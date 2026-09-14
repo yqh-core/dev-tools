@@ -1,0 +1,65 @@
+name: verify
+
+# 只做质量门禁，不负责发布。
+# 发布由 Cloudflare Pages 的 Git 集成负责（push main 即自动构建上线）。
+# 两条链路职责不重叠 —— Actions 答"能不能发"，Cloudflare 答"发"。
+#
+# 这里刻意复刻 Cloudflare 侧的构建环境：node 22.16.0（v3 镜像默认值，来自 .nvmrc）
+# + pnpm 9.11.0（与 package.json 的 packageManager 一致）。
+# 本地能过、这里能过，Cloudflare 那边才有把握过。
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.11.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: 安装依赖
+        run: pnpm install --frozen-lockfile
+
+      - name: 类型检查 + 构建
+        run: pnpm run build
+
+      - name: 校验产物
+        run: |
+          set -euo pipefail
+
+          test -f dist/index.html || { echo "::error::dist/index.html 缺失"; exit 1; }
+
+          # SPA 路由回退规则丢失的话，直接访问 /json-diff 这类深链会 404
+          test -f dist/_redirects || { echo "::error::dist/_redirects 缺失（SPA 回退规则没进产物）"; exit 1; }
+
+          # 源码 / 依赖不该被打进发布目录
+          for d in node_modules src scripts; do
+            if [ -e "dist/$d" ]; then
+              echo "::error::dist/$d 不该出现在发布产物里"
+              exit 1
+            fi
+          done
+
+          echo "产物文件数: $(find dist -type f | wc -l)"
+          du -sh dist
+
+      - name: 上传产物（便于人工核对）
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist
+          retention-days: 7

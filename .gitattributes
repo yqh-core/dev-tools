@@ -1,0 +1,21 @@
+# 仓库内一律存 LF，避免 CRLF 污染带语义的文本文件
+* text=auto
+
+# 二进制资源
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.ico  binary
+*.webp binary
+*.woff  binary
+*.woff2 binary
+*.ttf  binary
+*.eot  binary
+
+# 行尾有语义的文件必须钉死 LF。
+# .nvmrc 尾随一个 \r 会让 nvm 找不到该版本，构建直接失败。
+.nvmrc text eol=lf
+
+# Cloudflare Pages 读取的规则文件：多一个 \r 会让每条规则解析错
+public/_redirects text eol=lf

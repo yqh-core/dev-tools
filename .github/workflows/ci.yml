@@ -1,0 +1,48 @@
+name: ci
+
+# 质量门禁：lint / 单测 / 类型检查 / 构建。
+# 与 verify.yml 的分工：verify.yml 复刻 Cloudflare 的构建环境做「能不能发布」的判定，
+# ci.yml 做代码质量检查。两者都不负责发布 —— 发布由 Cloudflare Pages Git 集成完成。
+#
+# 相对上游的改动：
+# - Node 20 → .nvmrc（22.16.0，与 Cloudflare Pages v3 构建镜像默认值一致）
+# - corepack enable → pnpm/action-setup@v4 钉死 9.11.0（与 package.json 的
+#   packageManager 字段一致）。corepack enable 会临时去网络取包，属多余的不确定性。
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.11.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: 安装依赖
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm run lint
+
+      - name: 单元测试
+        run: pnpm run test
+
+      - name: 类型检查
+        run: pnpm run typecheck
+
+      - name: 构建
+        run: pnpm run build
