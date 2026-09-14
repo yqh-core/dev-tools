@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { IconBrandGithub, IconBrandX, IconInfoCircle, IconMoon, IconSun } from '@tabler/icons-vue';
+import { IconInfoCircle, IconMoon, IconSun } from '@tabler/icons-vue';
 import { useStyleStore } from '@/stores/style.store';
 
 const styleStore = useStyleStore();
@@ -7,10 +7,6 @@ const { isDarkTheme } = toRefs(styleStore);
 </script>
 
 <template>
-
-
-
-
   <c-tooltip :tooltip="$t('home.nav.about')" position="bottom">
     <c-button circle variant="text" to="/about" :aria-label="$t('home.nav.aboutLabel')">
       <n-icon size="25" :component="IconInfoCircle" />
