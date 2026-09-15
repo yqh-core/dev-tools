@@ -107,8 +107,9 @@ describe('otp functions', () => {
 
   describe('buildKeyUri', () => {
     it('build a key uri string', () => {
+      // issuer/account 会走 encodeURIComponent，中文品牌名在 URI 里必然是百分号编码形态
       expect(buildKeyUri({ secret: 'JBSWY3DPEHPK3PXP' })).to.eql(
-        'otpauth://totp/YQH 工具箱:demo-user?issuer=YQH 工具箱&secret=JBSWY3DPEHPK3PXP&algorithm=SHA1&digits=6&period=30',
+        'otpauth://totp/YQH%20%E5%B7%A5%E5%85%B7%E7%AE%B1:demo-user?issuer=YQH%20%E5%B7%A5%E5%85%B7%E7%AE%B1&secret=JBSWY3DPEHPK3PXP&algorithm=SHA1&digits=6&period=30',
       );
 
       expect(
