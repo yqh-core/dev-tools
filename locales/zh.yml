@@ -125,7 +125,7 @@ tools:
     title: Color 选择器
     description: 在不同格式（十六进制、rgb、hsl和css名称）之间转换颜色
   bcrypt:
-    title: 加密
+    title: Bcrypt 哈希
     description: 使用bcrypt对文本字符串进行哈希和比较。Bcrypt是一个基于Blowfish密码的密码哈希函数。
 
   crontab-generator:
@@ -149,7 +149,7 @@ tools:
     description: Git是一种去中心化的版本管理软件。使用此备忘单，您可以快速访问最常见的git命令.
 
   slugify-string:
-    title: 打乱字符串
+    title: 字符串转 Slug
     description: 确保字符串 url、文件名和 id 安全。
 
   encryption:
