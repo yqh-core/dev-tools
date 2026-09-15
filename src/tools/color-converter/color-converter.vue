@@ -53,7 +53,7 @@ const formats = {
   }),
 };
 
-updateColorValue(colord('#1ea54c'));
+updateColorValue(colord('#0f766e'));
 
 function updateColorValue(value: Colord | undefined, omitLabel?: string) {
   if (value === undefined) {

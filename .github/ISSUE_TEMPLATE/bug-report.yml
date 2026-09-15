@@ -1,8 +1,6 @@
 name: 🐞 Bug Report
 description: File a bug report.
 labels: ['bug', 'triage']
-assignees:
-  - CorentinTh
 body:
   - type: markdown
     attributes:
@@ -41,7 +39,7 @@ body:
     attributes:
       label: Where did you encounter the bug?
       options:
-        - Public app (it-tools.tech)
+        - 线上站点（https://yqh-devtools.pages.dev）
         - A self hosted
         - Other (installations, docker, etc.)
     validations:

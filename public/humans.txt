@@ -1,4 +1,12 @@
 /* TEAM */
-Developer: Corentin Thomasset
-Site: https://github.com/CorentinTh
-Twitter: @cthmsst
+Maintainer: yqh
+Site: https://github.com/yqh-core/yqh-devtools
+
+/* SITE */
+Name: YQH 工具箱
+URL: https://yqh-devtools.pages.dev
+Standards: HTML5, CSS3
+Components: Vue 3, Naive UI, Vite
+
+/* UPSTREAM */
+Based on: it-tools (GPL-3.0) https://github.com/CorentinTh/it-tools

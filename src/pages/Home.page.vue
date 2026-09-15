@@ -10,7 +10,7 @@ import { config } from '@/config';
 
 const toolStore = useToolStore();
 
-useHead({ title: 'IT Tools - Handy online tools for developers' });
+useHead({ title: 'YQH 工具箱 - 开发者常用在线工具' });
 const { t } = useI18n();
 
 const favoriteTools = computed(() => toolStore.favoriteTools);
@@ -28,14 +28,14 @@ function onUpdateFavoriteTools() {
         <ColoredCard v-if="config.showBanner" :title="$t('home.follow.title')" :icon="IconHeart">
           {{ $t('home.follow.p1') }}
           <a
-            href="https://github.com/CorentinTh/it-tools"
+            href="https://github.com/yqh-core/yqh-devtools"
             rel="noopener"
             target="_blank"
             :aria-label="$t('home.follow.githubRepository')"
           >GitHub</a>
           {{ $t('home.follow.p2') }}
           <a
-            href="https://x.com/ittoolsdottech"
+            href="https://github.com/yqh-core/yqh-devtools"
             rel="noopener"
             target="_blank"
             :aria-label="$t('home.follow.twitterXAccount')"

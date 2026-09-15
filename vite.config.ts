@@ -57,13 +57,13 @@ export default defineConfig({
       registerType: 'autoUpdate',
       strategies: 'generateSW',
       manifest: {
-        name: 'IT Tools',
-        description: 'Aggregated set of useful tools for developers.',
+        name: 'YQH 工具箱',
+        description: '开发者常用在线工具集合，纯前端运行，数据不出浏览器。',
         display: 'standalone',
-        lang: 'fr-FR',
+        lang: 'zh-CN',
         start_url: `${baseUrl}?utm_source=pwa&utm_medium=pwa`,
         orientation: 'any',
-        theme_color: '#18a058',
+        theme_color: '#0f766e',
         background_color: '#f1f5f9',
         icons: [
           {

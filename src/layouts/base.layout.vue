@@ -39,7 +39,7 @@ const tools = computed<ToolCategory[]>(() => [
         <HeroGradient class="gradient" />
         <div class="text-wrapper">
           <div class="title">
-            IT - TOOLS
+            YQH 工具箱
           </div>
           <div class="divider" />
           <div class="subtitle">
@@ -63,8 +63,8 @@ const tools = computed<ToolCategory[]>(() => [
 
           <div>
             © {{ new Date().getFullYear() }}
-            <c-link target="_blank" rel="noopener" href="https://dev.fktool.com">
-              dev.fktool.com
+            <c-link target="_blank" rel="noopener" href="https://yqh-devtools.pages.dev">
+              yqh-devtools.pages.dev
             </c-link>
           </div>
         </div>
