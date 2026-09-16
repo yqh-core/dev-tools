@@ -19,6 +19,11 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    # 仓库转私有后 runner 规格从 4 核/16GB 降到 2 核/7GB（公共仓库才免费给大规格），
+    # Node 默认堆上限不够跑完 vue-tsc + vite 构建，实测在 2GB 附近 OOM（exit 134）。
+    # 显式放宽到 4GB，给系统和其余进程留余量。
+    env:
+      NODE_OPTIONS: --max-old-space-size=4096
     steps:
       - uses: actions/checkout@v4
 

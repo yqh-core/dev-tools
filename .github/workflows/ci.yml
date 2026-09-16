@@ -20,6 +20,9 @@ permissions:
 jobs:
   ci:
     runs-on: ubuntu-latest
+    # 同 verify.yml：私有仓库的 runner 只有 2 核/7GB，构建需显式放宽 Node 堆上限。
+    env:
+      NODE_OPTIONS: --max-old-space-size=4096
     steps:
       - uses: actions/checkout@v4
 
