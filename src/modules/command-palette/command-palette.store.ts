@@ -2,6 +2,7 @@ import { defineStore } from 'pinia';
 import _ from 'lodash';
 import type { PaletteOption } from './command-palette.types';
 import { useToolStore } from '@/tools/tools.store';
+import { ALIASES } from '@/tools/aliases';
 import { useFuzzySearch } from '@/composable/fuzzySearch';
 import { useStyleStore } from '@/stores/style.store';
 
@@ -17,11 +18,13 @@ export const useCommandPaletteStore = defineStore('command-palette', () => {
   const router = useRouter();
   const searchPrompt = ref('');
 
+  // 关键词里补上中文别名，让「时间戳」「二维码」这类说法也能搜到对应工具
   const toolsOptions = toolStore.tools.map(tool => ({
     ...tool,
     to: tool.path,
     toolCategory: tool.category,
     category: 'Tools',
+    keywords: [...(tool.keywords ?? []), ...(ALIASES[tool.path] ?? [])],
   }));
 
   const searchOptions: PaletteOption[] = [

@@ -393,3 +393,37 @@ tools:
   text-to-binary:
     title: 文本到 ASCII 二进制
     description: 将文本转换为其 ASCII 二进制表示形式，反之亦然。
+
+  # 下面 8 个工具的标题写在各自的 index.ts 里（硬编码英文），没有走 i18n，
+  # 中文站上一直显示英文。补上中文条目后 tools.store 会优先取这里的翻译。
+  ascii-text-drawer:
+    title: ASCII 艺术字生成器
+    description: 用多种字体和样式把文本转换成 ASCII 艺术字。
+
+  email-normalizer:
+    title: 邮箱地址归一化
+    description: 把邮箱地址统一成标准格式，方便比对、去重和数据清洗。
+
+  json-to-xml:
+    title: JSON 转 XML
+    description: 将 JSON 数据转换为 XML 格式。
+
+  markdown-to-html:
+    title: Markdown 转 HTML
+    description: 把 Markdown 转换成 HTML，并支持打印（另存为 PDF）。
+
+  regex-memo:
+    title: 正则表达式速查表
+    description: JavaScript 正则表达式常用语法速查备忘单。
+
+  regex-tester:
+    title: 正则表达式测试器
+    description: 用示例文本实时测试正则表达式的匹配结果。
+
+  safelink-decoder:
+    title: Outlook 安全链接解码器
+    description: 解码 Outlook 邮件里的 SafeLink 安全链接，还原真实地址。
+
+  xml-to-json:
+    title: XML 转 JSON
+    description: 将 XML 数据转换为 JSON 格式。
