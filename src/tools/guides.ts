@@ -585,4 +585,4 @@ export const GUIDES: Record<string, ToolGuide> = {
     steps: ['粘贴 YAML', '得到 TOML 结果', '复制使用'],
     example: { label: '填入示例 YAML', text: 'title: demo\nserver:\n  port: 8080' },
   },
-}
+};

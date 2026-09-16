@@ -100,4 +100,4 @@ export const ALIASES: Record<string, string[]> = {
   '/yaml-prettify': ['yaml', '格式化', '美化', 'yml', '缩进'],
   '/yaml-to-json-converter': ['yaml', 'json', '转换', 'yml', '配置'],
   '/yaml-to-toml': ['yaml', 'toml', '转换', 'yml', '配置'],
-}
+};

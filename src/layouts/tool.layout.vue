@@ -7,6 +7,7 @@ import type { HeadObject } from '@vueuse/head';
 import BaseLayout from './base.layout.vue';
 import FavoriteButton from '@/components/FavoriteButton.vue';
 import type { Tool } from '@/tools/tools.types';
+
 // 只取类型，不会把几十 KB 的文案打进主包
 import type { ToolGuide } from '@/tools/guides';
 
@@ -44,7 +45,8 @@ async function loadGuide(path: string) {
   try {
     const { GUIDES } = await import('@/tools/guides');
     guide.value = GUIDES[path] ?? null;
-  } catch {
+  }
+  catch {
     guide.value = null; // 加载失败就当这个工具没说明，不影响使用
   }
 }
@@ -62,21 +64,27 @@ const guideOpen = ref(false);
 
 try {
   guideOpen.value = localStorage.getItem(GUIDE_SEEN_KEY) === '1';
-} catch {
+}
+catch {
   // 隐私模式下 localStorage 不可用，保持折叠即可
 }
 
 watch(guideOpen, (open) => {
-  if (!open) return;
+  if (!open) {
+    return;
+  }
   try {
     localStorage.setItem(GUIDE_SEEN_KEY, '1');
-  } catch {
+  }
+  catch {
     // 写不进去不影响使用
   }
 });
 
 const exampleApplied = ref(false);
-watch(() => route.path, () => { exampleApplied.value = false; });
+watch(() => route.path, () => {
+  exampleApplied.value = false;
+});
 
 /**
  * 把示例文本填进页面的第一个输入框。
@@ -86,22 +94,32 @@ watch(() => route.path, () => { exampleApplied.value = false; });
  */
 function applyExample() {
   const root = document.querySelector('.tool-content');
-  if (!root || !guide.value?.example) return;
+  if (!root || !guide.value?.example) {
+    return;
+  }
 
   const el = root.querySelector(
     'textarea, input[type="text"], input[type="search"], input[type="number"], input:not([type])',
   ) as HTMLTextAreaElement | HTMLInputElement | null;
 
-  if (!el) return;
+  if (!el) {
+    return;
+  }
 
   const proto = Object.getPrototypeOf(el);
   const setter = Object.getOwnPropertyDescriptor(proto, 'value')?.set;
-  if (setter) setter.call(el, guide.value.example.text);
-  else el.value = guide.value.example.text;
+  if (setter) {
+    setter.call(el, guide.value.example.text);
+  }
+  else {
+    el.value = guide.value.example.text;
+  }
 
   el.dispatchEvent(new Event('input', { bubbles: true }));
   exampleApplied.value = true;
-  setTimeout(() => { exampleApplied.value = false; }, 2000);
+  setTimeout(() => {
+    exampleApplied.value = false;
+  }, 2000);
 }
 </script>
 
@@ -137,10 +155,14 @@ function applyExample() {
           </button>
 
           <div v-show="guideOpen" class="guide-body">
-            <p class="guide-intro">{{ guide.intro }}</p>
+            <p class="guide-intro">
+              {{ guide.intro }}
+            </p>
 
             <ol class="guide-steps">
-              <li v-for="(step, index) in guide.steps" :key="index">{{ step }}</li>
+              <li v-for="(step, index) in guide.steps" :key="index">
+                {{ step }}
+              </li>
             </ol>
 
             <div v-if="guide.example" class="guide-example">
@@ -151,7 +173,9 @@ function applyExample() {
             </div>
 
             <ul v-if="guide.notes?.length" class="guide-notes">
-              <li v-for="(note, index) in guide.notes" :key="index">{{ note }}</li>
+              <li v-for="(note, index) in guide.notes" :key="index">
+                {{ note }}
+              </li>
             </ul>
           </div>
         </div>
