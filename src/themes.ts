@@ -30,12 +30,12 @@ export const darkThemeOverrides: GlobalThemeOverrides = {
   },
 
   Notification: {
-    color: '#333333',
+    color: '#131c2b',
   },
 
   AutoComplete: {
     peers: {
-      InternalSelectMenu: { height: '500px', color: '#1e1e1e' },
+      InternalSelectMenu: { height: '500px', color: '#131c2b' },
     },
   },
 
@@ -44,18 +44,19 @@ export const darkThemeOverrides: GlobalThemeOverrides = {
   },
 
   Layout: {
-    color: '#1c1c1c',
-    siderColor: '#232323',
+    // 暗色底收敛到 DigDevBox navy 体系（原 gray #1c1c1c → navy）
+    color: '#0b1220',
+    siderColor: '#131c2b',
     siderBorderColor: 'transparent',
   },
 
   Card: {
-    color: '#232323',
-    borderColor: '#282828',
+    color: '#131c2b',
+    borderColor: '#1e2d49',
   },
 
   Table: {
-    tdColor: '#232323',
-    thColor: '#353535',
+    tdColor: '#131c2b',
+    thColor: '#1c2740',
   },
 };

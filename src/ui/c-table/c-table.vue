@@ -48,7 +48,7 @@ const headers = computed(() => {
       </thead>
       <tbody>
         <tr
-          v-for="(row, i) in data" :key="i" border-b="1px solid dark:#282828 #efeff5" class="bg-white dark:bg-#232323"
+          v-for="(row, i) in data" :key="i" border-b="1px solid dark:#1e2d49 #efeff5" class="bg-white dark:bg-#131c2b"
           :class="{
             'important:border-b-none': i === data.length - 1,
           }"
