@@ -59,7 +59,7 @@ watch(() => route.path, path => loadGuide(path), { immediate: true });
  * 默认折叠，免得每次进工具都被一大段文字挡住；但用户只要展开过一次，
  * 说明他愿意看，之后就默认展开。偏好记在 localStorage 里。
  */
-const GUIDE_SEEN_KEY = 'yqh-devtools:guide-seen';
+const GUIDE_SEEN_KEY = 'digdevbox:guide-seen';
 const guideOpen = ref(false);
 
 try {

@@ -1,4 +1,4 @@
 # CoderKit 独立站（coderkit.pages.dev）SPA fallback
-# 历史说明：2026-09-17 之前此仓库曾通过 301 合并进 yqh-toolbox /dev/；
+# 历史说明：2026-09-17 之前此仓库曾通过 301 合并进 dev-toolbox /dev/；
 # 现改为独立站点，使用 history 路由，需要将所有路径回退到 index.html。
 /*    /index.html   200
