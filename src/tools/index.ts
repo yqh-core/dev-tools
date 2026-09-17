@@ -88,6 +88,16 @@ import { tool as macAddressLookup } from './mac-address-lookup';
 import { tool as xmlFormatter } from './xml-formatter';
 import { tool as yamlViewer } from './yaml-viewer';
 
+// —— 由 dev-toolbox（digdevbox 原工具集）移植的中文场景工具 ——
+import { tool as fullwidthConverter } from './fullwidth-converter';
+import { tool as morseCodeConverter } from './morse-code-converter';
+import { tool as rmbUppercase } from './rmb-uppercase';
+import { tool as pxRemConverter } from './px-rem-converter';
+import { tool as textReplacer } from './text-replacer';
+import { tool as jsonToGetParams } from './json-to-get-params';
+import { tool as unitConverter } from './unit-converter';
+import { tool as jsonToCode } from './json-to-code';
+
 export const toolsByCategory: ToolCategory[] = [
   {
     name: 'Crypto',
@@ -116,6 +126,7 @@ export const toolsByCategory: ToolCategory[] = [
       xmlToJson,
       jsonToXml,
       markdownToHtml,
+      rmbUppercase,
     ],
   },
   {
@@ -137,6 +148,7 @@ export const toolsByCategory: ToolCategory[] = [
       httpStatusCodes,
       jsonDiff,
       safelinkDecoder,
+      jsonToGetParams,
     ],
   },
   {
@@ -160,6 +172,8 @@ export const toolsByCategory: ToolCategory[] = [
       emailNormalizer,
       regexTester,
       regexMemo,
+      pxRemConverter,
+      jsonToCode,
     ],
   },
   {
@@ -172,7 +186,7 @@ export const toolsByCategory: ToolCategory[] = [
   },
   {
     name: 'Measurement',
-    components: [chronometer, temperatureConverter, benchmarkBuilder],
+    components: [chronometer, temperatureConverter, unitConverter, benchmarkBuilder],
   },
   {
     name: 'Text',
@@ -184,6 +198,9 @@ export const toolsByCategory: ToolCategory[] = [
       textDiff,
       numeronymGenerator,
       asciiTextDrawer,
+      fullwidthConverter,
+      morseCodeConverter,
+      textReplacer,
     ],
   },
   {

@@ -453,3 +453,34 @@ tools:
   text-to-binary:
     title: Text zu ASCII-Binär
     description: Konvertiere Text in seine ASCII-Binärrepräsentation und umgekehrt.
+  fullwidth-converter:
+    title: "Full-width / half-width converter"
+    description: "Convert between full-width and half-width characters using the fixed Unicode offset 0xFEE0, or adjust punctuation only."
+
+  morse-code-converter:
+    title: "Morse code converter"
+    description: "Encode text into Morse code and decode it back. Letters are separated by spaces and words by a slash."
+
+  rmb-uppercase:
+    title: "RMB amount in Chinese uppercase"
+    description: "Turn a numeric amount into the Chinese financial uppercase wording (yuan / jiao / fen), optionally prefixed with 人民币."
+
+  px-rem-converter:
+    title: "px / rem converter"
+    description: "Convert a batch of values between px and rem with a configurable root font size."
+
+  text-replacer:
+    title: "Batch text replacer"
+    description: "Find and replace text with plain or regular-expression matching, optional case-insensitive mode and a match counter."
+
+  json-to-get-params:
+    title: "JSON to GET params"
+    description: "Flatten JSON into a URL query string (a[b][0]=1 style) and rebuild JSON from a query string or a full URL."
+
+  unit-converter:
+    title: "Unit converter"
+    description: "Convert between 11 categories of units: length, area, volume, weight, speed, time, data storage, power, pressure, angle and temperature."
+
+  json-to-code:
+    title: "JSON to model classes"
+    description: "Generate TypeScript, C#, Java or Go model classes from JSON, splitting nested objects into their own classes."

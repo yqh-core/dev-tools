@@ -427,3 +427,34 @@ tools:
   xml-to-json:
     title: XML 转 JSON
     description: 将 XML 数据转换为 JSON 格式。
+  fullwidth-converter:
+    title: "全角半角转换"
+    description: "全角↔半角互转，支持整体转换或只转标点（Unicode 固定偏移 0xFEE0），适合中英混排的排版清理。"
+
+  morse-code-converter:
+    title: "摩斯电码转换"
+    description: "文本与摩斯电码双向转换，字母用空格分隔、单词用 / 分隔，支持 A–Z、0–9 与常用标点。"
+
+  rmb-uppercase:
+    title: "人民币大写转换"
+    description: "把金额数字转成财务用中文大写，遵循「元整 / 角 / 分」的规范写法，可加「人民币」前缀。"
+
+  px-rem-converter:
+    title: "px / rem 转换"
+    description: "按根字号在 px 与 rem 之间批量换算，支持空格、逗号、换行分隔的多个数值。"
+
+  text-replacer:
+    title: "文本批量替换"
+    description: "支持普通文本与正则表达式的批量替换，可忽略大小写，并给出替换次数统计。"
+
+  json-to-get-params:
+    title: "JSON / GET 参数互转"
+    description: "JSON 转 URL 查询字符串（嵌套用 a[b][0] 形式）并可反向还原，支持直接粘贴完整 URL。"
+
+  unit-converter:
+    title: "单位换算"
+    description: "长度、面积、体积、重量、速度、时间、数据存储、功率、压力、角度、温度共 11 类单位互转，含市斤、亩等中国单位。"
+
+  json-to-code:
+    title: "JSON 生成实体类"
+    description: "由 JSON 生成 TypeScript、C#、Java、Go 实体类定义，嵌套对象自动拆成独立类。"
