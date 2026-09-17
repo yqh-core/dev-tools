@@ -39,7 +39,7 @@ body:
     attributes:
       label: Where did you encounter the bug?
       options:
-        - 线上站点（https://yqh-devtools.pages.dev）
+        - 线上站点（https://coderkit.pages.dev）
         - A self hosted
         - Other (installations, docker, etc.)
     validations:

@@ -14,7 +14,7 @@ import type { ToolGuide } from '@/tools/guides';
 const route = useRoute();
 
 const head = computed<HeadObject>(() => ({
-  title: `${route.meta.name} - YQH 工具箱`,
+  title: `${route.meta.name} - 开发者工具箱`,
   meta: [
     {
       name: 'description',

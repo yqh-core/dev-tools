@@ -6,7 +6,7 @@ test.describe('Tool - JSON diff', () => {
   });
 
   test('Has correct title', async ({ page }) => {
-    await expect(page).toHaveTitle('JSON diff - YQH 工具箱');
+    await expect(page).toHaveTitle('JSON diff - 开发者工具箱');
   });
 
   test('Identical JSONs have a custom result message', async ({ page }) => {

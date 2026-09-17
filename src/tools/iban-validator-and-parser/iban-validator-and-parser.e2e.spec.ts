@@ -18,7 +18,7 @@ test.describe('Tool - Iban validator and parser', () => {
   });
 
   test('Has correct title', async ({ page }) => {
-    await expect(page).toHaveTitle('IBAN validator and parser - YQH 工具箱');
+    await expect(page).toHaveTitle('IBAN validator and parser - 开发者工具箱');
   });
 
   test('iban info are extracted from a valid iban', async ({ page }) => {

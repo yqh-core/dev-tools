@@ -6,7 +6,7 @@ test.describe('Tool - IPv4 range expander', () => {
   });
 
   test('Has correct title', async ({ page }) => {
-    await expect(page).toHaveTitle('IPv4 range expander - YQH 工具箱');
+    await expect(page).toHaveTitle('IPv4 range expander - 开发者工具箱');
   });
 
   test('Calculates correct for valid input', async ({ page }) => {

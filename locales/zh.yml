@@ -8,7 +8,7 @@ home:
   toggleMenu: '切换菜单'
   home: '主页'
   uiLib: 'UI 库'
-  support: '支持 YQH 工具箱'
+  support: '支持 开发者工具箱'
   buyMeACoffee: '赞助'
   follow:
     title: '关注我们'
@@ -22,33 +22,33 @@ home:
     githubRepository: 'GitHub 仓库'
     twitterX: 'GitHub 仓库'
     twitterXAccount: 'GitHub 仓库'
-    about: '关于 YQH 工具箱'
+    about: '关于 开发者工具箱'
     aboutLabel: '关于'
     darkMode: '深色模式'
     lightMode: '浅色模式'
     mode: '颜色模式'
 about:
   content: >
-    # 关于 YQH 工具箱
+    # 关于 开发者工具箱
 
-    YQH 工具箱汇集了对开发人员和运维人员有用的在线工具，全部在浏览器本地运行，不上传任何数据。如果对您有帮助，欢迎收藏并分享给同事。
+    开发者工具箱汇集了对开发人员和运维人员有用的在线工具，全部在浏览器本地运行，不上传任何数据。如果对您有帮助，欢迎收藏并分享给同事。
 
-    本项目基于开源项目 [it-tools](https://github.com/CorentinTh/it-tools)（GPL-3.0 许可）二次开发，在此感谢原作者的贡献。当前版本由 [yqh-core](https://github.com/yqh-core) 维护，源码托管在 [https://github.com/yqh-core/yqh-devtools](https://github.com/yqh-core/yqh-devtools)。
+    本项目基于开源项目 [it-tools](https://github.com/CorentinTh/it-tools)（GPL-3.0 许可）二次开发，在此感谢原作者的贡献。当前版本由 [yqh-core](https://github.com/yqh-core) 维护，源码托管在 [https://github.com/yqh-core/dev-tools](https://github.com/yqh-core/dev-tools)。
 
     ## 技术
 
-    前端采用 Vue 3 + Naive UI，构建工具为 Vite，部署在 Cloudflare Pages。部分工具使用了第三方开源库，完整列表见仓库的 [package.json](https://github.com/yqh-core/yqh-devtools/blob/main/package.json)。
+    前端采用 Vue 3 + Naive UI，构建工具为 Vite，部署在 Cloudflare Pages。部分工具使用了第三方开源库，完整列表见仓库的 [package.json](https://github.com/yqh-core/dev-tools/blob/main/package.json)。
 
     ## 发现问题？缺少工具？
 
-    如果需要某个目前没有的工具，欢迎到 [https://github.com/yqh-core/yqh-devtools/issues](https://github.com/yqh-core/yqh-devtools/issues/new/choose) 提交功能建议。
+    如果需要某个目前没有的工具，欢迎到 [https://github.com/yqh-core/dev-tools/issues](https://github.com/yqh-core/dev-tools/issues/new/choose) 提交功能建议。
 
-    如果发现 Bug 或某个功能表现异常，也请在 [https://github.com/yqh-core/yqh-devtools/issues](https://github.com/yqh-core/yqh-devtools/issues/new/choose) 提交问题报告。
+    如果发现 Bug 或某个功能表现异常，也请在 [https://github.com/yqh-core/dev-tools/issues](https://github.com/yqh-core/dev-tools/issues/new/choose) 提交问题报告。
 
     ## 同站工具
 
-    - [IP 归属地查询](https://yqh-iplocate.pages.dev)
-    - [房贷计算器](https://yqh-fangdai.pages.dev)
+    - [IP 归属地查询](https://locip.pages.dev)
+    - [房贷计算器](https://repaycalc.pages.dev)
 
 404:
   notFound: '404 页面不存在'

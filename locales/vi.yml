@@ -8,42 +8,42 @@ home:
   toggleMenu: 'Chuyển đổi menu'
   home: Trang chủ
   uiLib: 'Thư viện UI'
-  support: 'Hỗ trợ phát triển YQH 工具箱'
+  support: 'Hỗ trợ phát triển 开发者工具箱'
   buyMeACoffee: 'Ủng hộ tác giả'
   follow:
     title: 'Bạn thích IT-tools?'
     p1: 'Hãy cho chúng tôi một ngôi sao trên'
-    githubRepository: 'Kho GitHub YQH 工具箱'
+    githubRepository: 'Kho GitHub 开发者工具箱'
     p2: 'hoặc theo dõi chúng tôi trên'
-    twitterXAccount: 'Kho GitHub YQH 工具箱'
+    twitterXAccount: 'Kho GitHub 开发者工具箱'
     thankYou: 'Cảm ơn bạn!'
   nav:
     github: 'Kho GitHub'
-    githubRepository: 'Kho GitHub YQH 工具箱'
-    twitterX: 'Kho GitHub YQH 工具箱'
-    twitterXAccount: 'Kho GitHub YQH 工具箱'
-    about: 'Về YQH 工具箱'
+    githubRepository: 'Kho GitHub 开发者工具箱'
+    twitterX: 'Kho GitHub 开发者工具箱'
+    twitterXAccount: 'Kho GitHub 开发者工具箱'
+    about: 'Về 开发者工具箱'
     aboutLabel: 'Giới thiệu'
     darkMode: 'Chế độ tối'
     lightMode: 'Chế độ sáng'
     mode: 'Chuyển đổi chế độ tối/sáng'
 about:
   content: >
-    # Về YQH 工具箱
+    # Về 开发者工具箱
 
-    Website tuyệt vời này, được tạo ra bằng ❤ bởi [YQH](https://github.com/yqh-core/yqh-devtools), tổng hợp các công cụ hữu ích cho nhà phát triển và những người làm việc trong lĩnh vực IT. Nếu bạn thấy nó hữu ích, xin đừng ngần ngại chia sẻ cho những người mà bạn nghĩ sẽ thấy nó hữu ích và đừng quên đánh dấu nó trong thanh lối tắt của bạn!
+    Website tuyệt vời này, được tạo ra bằng ❤ bởi [YQH](https://github.com/yqh-core/dev-tools), tổng hợp các công cụ hữu ích cho nhà phát triển và những người làm việc trong lĩnh vực IT. Nếu bạn thấy nó hữu ích, xin đừng ngần ngại chia sẻ cho những người mà bạn nghĩ sẽ thấy nó hữu ích và đừng quên đánh dấu nó trong thanh lối tắt của bạn!
 
-    YQH 工具箱 là mã nguồn mở (dưới giấy phép GPL-3.0) và miễn phí, và sẽ luôn như vậy, nhưng tôi phải trả tiền để lưu trữ và gia hạn tên miền. Nếu bạn muốn hỗ trợ công việc của tôi, và khích lệ tôi thêm nhiều công cụ hơn, hãy xem xét hỗ trợ bằng cách [tài trợ cho tôi](https://github.com/yqh-core/yqh-devtools).
+    开发者工具箱 là mã nguồn mở (dưới giấy phép GPL-3.0) và miễn phí, và sẽ luôn như vậy, nhưng tôi phải trả tiền để lưu trữ và gia hạn tên miền. Nếu bạn muốn hỗ trợ công việc của tôi, và khích lệ tôi thêm nhiều công cụ hơn, hãy xem xét hỗ trợ bằng cách [tài trợ cho tôi](https://github.com/yqh-core/dev-tools).
 
     ## Công nghệ
 
-    YQH 工具箱 được tạo ra bằng Vue.js (Vue 3) với thư viện thành phần Naive UI và được lưu trữ và triển khai liên tục bởi Vercel. Các thư viện mã nguồn mở của bên thứ ba được sử dụng trong một số công cụ, bạn có thể tìm danh sách đầy đủ trong file [package.json](https://github.com/yqh-core/yqh-devtools/blob/main/package.json) của kho lưu trữ.
+    开发者工具箱 được tạo ra bằng Vue.js (Vue 3) với thư viện thành phần Naive UI và được lưu trữ và triển khai liên tục bởi Vercel. Các thư viện mã nguồn mở của bên thứ ba được sử dụng trong một số công cụ, bạn có thể tìm danh sách đầy đủ trong file [package.json](https://github.com/yqh-core/dev-tools/blob/main/package.json) của kho lưu trữ.
 
     ## Phát hiện lỗi? Một công cụ bị thiếu?
 
-    Nếu bạn cần một công cụ hiện không có ở đây, và bạn nghĩ rằng nó có thể hữu ích, bạn được chào đón để gửi một yêu cầu tính năng trong [phần vấn đề](https://github.com/yqh-core/yqh-devtools/issues/new/choose) trong kho GitHub.
+    Nếu bạn cần một công cụ hiện không có ở đây, và bạn nghĩ rằng nó có thể hữu ích, bạn được chào đón để gửi một yêu cầu tính năng trong [phần vấn đề](https://github.com/yqh-core/dev-tools/issues/new/choose) trong kho GitHub.
 
-    Và nếu bạn phát hiện ra một lỗi, hoặc điều gì đó không hoạt động như mong đợi, xin vui lòng gửi báo cáo lỗi trong [phần vấn đề](https://github.com/yqh-core/yqh-devtools/issues/new/choose) trong kho GitHub.
+    Và nếu bạn phát hiện ra một lỗi, hoặc điều gì đó không hoạt động như mong đợi, xin vui lòng gửi báo cáo lỗi trong [phần vấn đề](https://github.com/yqh-core/dev-tools/issues/new/choose) trong kho GitHub.
 
 404:
   notFound: '404 Không Tìm Thấy'

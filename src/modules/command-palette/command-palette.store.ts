@@ -51,7 +51,7 @@ export const useCommandPaletteStore = defineStore('command-palette', () => {
     },
     {
       name: 'Github repository',
-      href: 'https://github.com/yqh-core/yqh-devtools',
+      href: 'https://github.com/yqh-core/dev-tools',
       category: 'External',
       description: 'View the source code of YQH Tools on Github.',
       keywords: ['github', 'repo', 'repository', 'source', 'code'],
@@ -60,7 +60,7 @@ export const useCommandPaletteStore = defineStore('command-palette', () => {
     {
       name: 'Report a bug or an issue',
       description: 'Report a bug or an issue to help improve YQH Tools.',
-      href: 'https://github.com/yqh-core/yqh-devtools/issues/new/choose',
+      href: 'https://github.com/yqh-core/dev-tools/issues/new/choose',
       category: 'Actions',
       keywords: ['report', 'issue', 'bug', 'problem', 'error'],
       icon: BugIcon,

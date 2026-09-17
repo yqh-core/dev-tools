@@ -6,7 +6,7 @@ test.describe('Tool - JSON to CSV', () => {
   });
 
   test('Has correct title', async ({ page }) => {
-    await expect(page).toHaveTitle('JSON to CSV - YQH 工具箱');
+    await expect(page).toHaveTitle('JSON to CSV - 开发者工具箱');
   });
 
   test('Provided json is converted to csv', async ({ page }) => {

@@ -64,7 +64,7 @@ export const GUIDES: Record<string, ToolGuide> = {
     intro: '把文本编码成 Base64，或把 Base64 还原成原文。传参、塞 Authorization 头、临时隐藏明文时用得多。',
     steps: ['在左侧输入文本', '右侧即时给出编码结果', '要解码时点方向切换按钮，把 Base64 粘到左侧即可'],
     notes: ['Base64 是编码不是加密，任何人都能解回来，别用它存密码'],
-    example: { label: '填入示例文本', text: 'Hello YQH 工具箱' },
+    example: { label: '填入示例文本', text: 'Hello 开发者工具箱' },
   },
 
   '/basic-auth-generator': {
@@ -337,7 +337,7 @@ export const GUIDES: Record<string, ToolGuide> = {
   '/markdown-to-html': {
     intro: '把 Markdown 转成 HTML，写文档或生成页面内容时用。',
     steps: ['左侧写或粘 Markdown', '右侧实时预览并给出 HTML', '复制 HTML，需要时点打印存成 PDF'],
-    example: { label: '填入示例 Markdown', text: '# 标题\n\n这是一段 **加粗** 文本。\n\n- 列表项一\n- 列表项二\n\n[链接](https://yqh-toolbox.pages.dev)' },
+    example: { label: '填入示例 Markdown', text: '# 标题\n\n这是一段 **加粗** 文本。\n\n- 列表项一\n- 列表项二\n\n[链接](https://mytoolset.pages.dev)' },
   },
 
   '/math-evaluator': {
@@ -399,7 +399,7 @@ export const GUIDES: Record<string, ToolGuide> = {
     intro: '把文本或链接生成二维码，可自定义颜色和尺寸后下载。',
     steps: ['填要编码的内容（网址、文本都行）', '按需调整前景色、背景色和尺寸', '点下载保存图片'],
     notes: ['内容越长二维码越密，扫不出来就减少内容或调大尺寸'],
-    example: { label: '填入示例链接', text: 'https://yqh-toolbox.pages.dev' },
+    example: { label: '填入示例链接', text: 'https://mytoolset.pages.dev' },
   },
 
   '/random-port-generator': {
@@ -477,7 +477,7 @@ export const GUIDES: Record<string, ToolGuide> = {
     intro: '统计文本的字符数、词数、字节大小等信息，写文案或校验接口限制时用。',
     steps: ['粘贴文本', '看各项统计', '需要时按字节数核对限制'],
     notes: ['中文按 UTF-8 一个字约 3 字节，和字符数不一样'],
-    example: { label: '填入示例文本', text: 'YQH 工具箱，好用就多用。' },
+    example: { label: '填入示例文本', text: '开发者工具箱，好用就多用。' },
   },
 
   '/text-to-binary': {

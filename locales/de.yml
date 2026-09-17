@@ -15,48 +15,48 @@ home:
   toggleMenu: Menü umschalten
   home: Startseite
   uiLib: UI-Bibliothek
-  support: Unterstütze die Entwicklung von YQH 工具箱
+  support: Unterstütze die Entwicklung von 开发者工具箱
   buyMeACoffee: Kauf mir einen Kaffee
   follow:
-    title: Magst du YQH 工具箱?
+    title: Magst du 开发者工具箱?
     p1: Gib uns einen Stern auf
-    githubRepository: YQH 工具箱 GitHub-Repository
+    githubRepository: 开发者工具箱 GitHub-Repository
     p2: oder folge uns auf
-    twitterXAccount: YQH 工具箱 GitHub-Repository
+    twitterXAccount: 开发者工具箱 GitHub-Repository
     thankYou: Vielen Dank!
   nav:
     github: GitHub-Repository
-    githubRepository: YQH 工具箱 GitHub-Repository
+    githubRepository: 开发者工具箱 GitHub-Repository
     twitterX: X-Konto
-    twitterXAccount: YQH 工具箱 GitHub-Repository
-    about: Über YQH 工具箱
+    twitterXAccount: 开发者工具箱 GitHub-Repository
+    about: Über 开发者工具箱
     aboutLabel: Über
     darkMode: Dunkelmodus
     lightMode: Hellmodus
     mode: Wechseln zwischen dunklem/hellem Modus
 about:
   content: >
-    # Über YQH 工具箱
+    # Über 开发者工具箱
 
-    Diese wunderbare Website, erstellt mit ❤ von [YQH](https://github.com/yqh-core/yqh-devtools), sammelt nützliche Tools für
+    Diese wunderbare Website, erstellt mit ❤ von [YQH](https://github.com/yqh-core/dev-tools), sammelt nützliche Tools für
     Entwickler und Menschen, die in der IT arbeiten. Wenn du sie nützlich
     findest, teile sie gerne mit Personen, von denen du denkst, dass sie sie
     ebenfalls nützlich finden könnten, und vergiss nicht, sie in deiner
     Lesezeichenleiste zu speichern!
 
-    YQH 工具箱 ist Open Source (unter der GPL-3.0-Lizenz) und kostenlos und wird es
+    开发者工具箱 ist Open Source (unter der GPL-3.0-Lizenz) und kostenlos und wird es
     immer sein, aber es kostet mich Geld, die Website zu hosten und den
     Domainnamen zu erneuern. Wenn du meine Arbeit unterstützen möchtest und mich
     ermutigen möchtest, mehr Tools hinzuzufügen, überlege bitte, mich durch
-    [Sponsoring](https://github.com/yqh-core/yqh-devtools) zu unterstützen.
+    [Sponsoring](https://github.com/yqh-core/dev-tools) zu unterstützen.
 
     ## Technologien
 
-    YQH 工具箱 wurde mit Vue.js (Vue 3) und der Naive UI-Komponentenbibliothek
+    开发者工具箱 wurde mit Vue.js (Vue 3) und der Naive UI-Komponentenbibliothek
     erstellt und wird von Vercel gehostet und kontinuierlich bereitgestellt. In
     einigen Tools werden Drittanbieter-Open-Source-Bibliotheken verwendet. Du
     findest die vollständige Liste in der
-    [package.json](https://github.com/yqh-core/yqh-devtools/blob/main/package.json)-Datei
+    [package.json](https://github.com/yqh-core/dev-tools/blob/main/package.json)-Datei
     des Repositorys.
 
     ## Einen Fehler gefunden? Ein Tool fehlt?
@@ -64,12 +64,12 @@ about:
     Wenn du ein Tool benötigst, das hier noch nicht vorhanden ist, und du
     denkst, dass es nützlich sein könnte, bist du herzlich eingeladen, einen
     Feature-Request im
-    [Issues-Bereich](https://github.com/yqh-core/yqh-devtools/issues/new/choose)
+    [Issues-Bereich](https://github.com/yqh-core/dev-tools/issues/new/choose)
     im GitHub-Repository einzureichen.
 
     Und wenn du einen Fehler gefunden hast oder etwas nicht wie erwartet
     funktioniert, melde bitte einen Fehler im
-    [Issues-Bereich](https://github.com/yqh-core/yqh-devtools/issues/new/choose)
+    [Issues-Bereich](https://github.com/yqh-core/dev-tools/issues/new/choose)
     im GitHub-Repository.
 favoriteButton:
   remove: Aus Favoriten entfernen

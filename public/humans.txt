@@ -1,10 +1,10 @@
 /* TEAM */
 Maintainer: yqh
-Site: https://github.com/yqh-core/yqh-devtools
+Site: https://github.com/yqh-core/dev-tools
 
 /* SITE */
-Name: YQH 工具箱
-URL: https://yqh-devtools.pages.dev
+Name: 开发者工具箱
+URL: https://coderkit.pages.dev
 Standards: HTML5, CSS3
 Components: Vue 3, Naive UI, Vite
 

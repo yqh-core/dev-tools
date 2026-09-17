@@ -8,42 +8,42 @@ home:
   toggleMenu: 'Vekslemenmy'
   home: Hjem
   uiLib: 'UI Bib'
-  support: 'Støtt utviklingen av YQH 工具箱'
+  support: 'Støtt utviklingen av 开发者工具箱'
   buyMeACoffee: 'Kjøp en kaffe til meg'
   follow:
-    title: 'Liker du YQH 工具箱?'
+    title: 'Liker du 开发者工具箱?'
     p1: 'Gi oss en stjerne på'
-    githubRepository: 'YQH 工具箱 GitHub-depotet'
+    githubRepository: '开发者工具箱 GitHub-depotet'
     p2: 'eller følg oss på'
-    twitterXAccount: 'YQH 工具箱 GitHub-depotet'
+    twitterXAccount: '开发者工具箱 GitHub-depotet'
     thankYou: 'Tusen takk!'
   nav:
     github: 'GitHub-depot'
-    githubRepository: 'YQH 工具箱 GitHub-depot'
-    twitterX: 'YQH 工具箱 GitHub-depotet'
-    twitterXAccount: 'YQH 工具箱 GitHub-depotet'
-    about: 'Om  YQH 工具箱'
+    githubRepository: '开发者工具箱 GitHub-depot'
+    twitterX: '开发者工具箱 GitHub-depotet'
+    twitterXAccount: '开发者工具箱 GitHub-depotet'
+    about: 'Om  开发者工具箱'
     aboutLabel: 'Om'
     darkMode: 'Mørk modus'
     lightMode: 'Lys modus'
     mode: 'Veksle mørk/lys modus'
 about:
   content: >
-    # Om YQH 工具箱
+    # Om 开发者工具箱
 
-    Denne vidunderlige nettsiden, laget med ❤ av [YQH](https://github.com/yqh-core/yqh-devtools) , sammenstiller nyttige verktøy for utviklere og folk som jobber innen IT. Hvis du finner dette nyttig, Del det gjerne med andre som du tror kan få nytte av dette, og ikke glem å lage et bokmerke!
+    Denne vidunderlige nettsiden, laget med ❤ av [YQH](https://github.com/yqh-core/dev-tools) , sammenstiller nyttige verktøy for utviklere og folk som jobber innen IT. Hvis du finner dette nyttig, Del det gjerne med andre som du tror kan få nytte av dette, og ikke glem å lage et bokmerke!
 
-    YQH 工具箱 er åpen kildekode (under GPL-3.0 lisensen) og gratis, og det vil det alltid være, men det koster å drifte og å fornye domenet. Hvis du ønsker å støtte arbeidet mitt, og motivere meg til å legge til flere verktøy, gjerne støtt meg ved å [sponse meg](https://github.com/yqh-core/yqh-devtools).
+    开发者工具箱 er åpen kildekode (under GPL-3.0 lisensen) og gratis, og det vil det alltid være, men det koster å drifte og å fornye domenet. Hvis du ønsker å støtte arbeidet mitt, og motivere meg til å legge til flere verktøy, gjerne støtt meg ved å [sponse meg](https://github.com/yqh-core/dev-tools).
 
     ## Teknologier
 
-    YQH 工具箱 er laget i Vue.js (Vue 3) med Naive UI komponent bibliotektet og er hosted og kontinuerlig deployet av Vercel. Tredjeparts åpen-kildekode biblioteker er brukt i noen verktøy, du kan finne den komplette listen i [package.json](https://github.com/yqh-core/yqh-devtools/blob/main/package.json) filen i depoet.
+    开发者工具箱 er laget i Vue.js (Vue 3) med Naive UI komponent bibliotektet og er hosted og kontinuerlig deployet av Vercel. Tredjeparts åpen-kildekode biblioteker er brukt i noen verktøy, du kan finne den komplette listen i [package.json](https://github.com/yqh-core/dev-tools/blob/main/package.json) filen i depoet.
 
     ## Funnet en feil? Et verktøy som mangler?
 
-    Hvis du trenger et verktøy som foreløpig ikke er tilgjengelig her, og du tenker det kan være nyttig for andre, så er du velkommen til å legge til en funksjonsforespørsel i [problem seksjonen](https://github.com/yqh-core/yqh-devtools/issues/new/choose) i github-depotet.
+    Hvis du trenger et verktøy som foreløpig ikke er tilgjengelig her, og du tenker det kan være nyttig for andre, så er du velkommen til å legge til en funksjonsforespørsel i [problem seksjonen](https://github.com/yqh-core/dev-tools/issues/new/choose) i github-depotet.
 
-    Og hvis du har funnet en feil, eller noe ikke oppfører seg som forventet, vennligst send inn en feilrapport i [problem seksjonen](https://github.com/yqh-core/yqh-devtools/issues/new/choose) i github-depotet.
+    Og hvis du har funnet en feil, eller noe ikke oppfører seg som forventet, vennligst send inn en feilrapport i [problem seksjonen](https://github.com/yqh-core/dev-tools/issues/new/choose) i github-depotet.
 
 404:
   notFound: '404 ikke funnet'

@@ -57,7 +57,7 @@ export default defineConfig({
       registerType: 'autoUpdate',
       strategies: 'generateSW',
       manifest: {
-        name: 'YQH 工具箱',
+        name: '开发者工具箱',
         description: '开发者常用在线工具集合，纯前端运行，数据不出浏览器。',
         display: 'standalone',
         lang: 'zh-CN',

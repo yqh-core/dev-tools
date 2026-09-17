@@ -8,21 +8,21 @@ home:
   toggleMenu: 'Toggle menu'
   home: Home
   uiLib: 'UI Lib'
-  support: 'Support YQH 工具箱 development'
+  support: 'Support 开发者工具箱 development'
   buyMeACoffee: 'Buy me a coffee'
   follow:
-    title: 'You like YQH 工具箱?'
+    title: 'You like 开发者工具箱?'
     p1: 'Give us a star on'
-    githubRepository: 'YQH 工具箱 GitHub repository'
+    githubRepository: '开发者工具箱 GitHub repository'
     p2: 'or follow us on'
-    twitterXAccount: 'YQH 工具箱 GitHub repository'
+    twitterXAccount: '开发者工具箱 GitHub repository'
     thankYou: 'Thank you!'
   nav:
     github: 'GitHub repository'
-    githubRepository: 'YQH 工具箱 GitHub repository'
-    twitterX: 'YQH 工具箱 GitHub repository'
-    twitterXAccount: 'YQH 工具箱 GitHub repository'
-    about: 'About  YQH 工具箱'
+    githubRepository: '开发者工具箱 GitHub repository'
+    twitterX: '开发者工具箱 GitHub repository'
+    twitterXAccount: '开发者工具箱 GitHub repository'
+    about: 'About  开发者工具箱'
     aboutLabel: 'About'
     darkMode: 'Dark mode'
     lightMode: 'Light mode'
@@ -33,20 +33,20 @@ about:
 
     YQH Tools is a collection of handy online tools for developers. Everything runs client-side in your browser - no data is ever uploaded. If you find it useful, feel free to bookmark and share it.
 
-    This project is a fork of the open-source [it-tools](https://github.com/CorentinTh/it-tools) (GPL-3.0), and we are grateful to its author. It is currently maintained by [yqh-core](https://github.com/yqh-core) and the source lives at [https://github.com/yqh-core/yqh-devtools](https://github.com/yqh-core/yqh-devtools).
+    This project is a fork of the open-source [it-tools](https://github.com/CorentinTh/it-tools) (GPL-3.0), and we are grateful to its author. It is currently maintained by [yqh-core](https://github.com/yqh-core) and the source lives at [https://github.com/yqh-core/dev-tools](https://github.com/yqh-core/dev-tools).
 
     ## Technologies
 
-    Built with Vue 3, Naive UI and Vite, deployed on Cloudflare Pages. Some tools rely on third-party open-source libraries - see the [package.json](https://github.com/yqh-core/yqh-devtools/blob/main/package.json) in the repository for the full list.
+    Built with Vue 3, Naive UI and Vite, deployed on Cloudflare Pages. Some tools rely on third-party open-source libraries - see the [package.json](https://github.com/yqh-core/dev-tools/blob/main/package.json) in the repository for the full list.
 
     ## Found a bug? A tool is missing?
 
-    Feature requests and bug reports are welcome at [https://github.com/yqh-core/yqh-devtools/issues](https://github.com/yqh-core/yqh-devtools/issues/new/choose).
+    Feature requests and bug reports are welcome at [https://github.com/yqh-core/dev-tools/issues](https://github.com/yqh-core/dev-tools/issues/new/choose).
 
     ## Sibling tools
 
-    - [IP Geolocation](https://yqh-iplocate.pages.dev)
-    - [Mortgage Calculator](https://yqh-fangdai.pages.dev)
+    - [IP Geolocation](https://locip.pages.dev)
+    - [Mortgage Calculator](https://repaycalc.pages.dev)
 
 404:
   notFound: '404 Not Found'

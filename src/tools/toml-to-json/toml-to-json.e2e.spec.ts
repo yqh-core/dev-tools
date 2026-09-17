@@ -6,7 +6,7 @@ test.describe('Tool - TOML to JSON', () => {
   });
 
   test('Has correct title', async ({ page }) => {
-    await expect(page).toHaveTitle('TOML to JSON - YQH 工具箱');
+    await expect(page).toHaveTitle('TOML to JSON - 开发者工具箱');
   });
 
   test('TOML is parsed and outputs clean JSON', async ({ page }) => {

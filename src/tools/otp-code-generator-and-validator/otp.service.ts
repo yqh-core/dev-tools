@@ -107,7 +107,7 @@ function verifyTOTP({
 
 function buildKeyUri({
   secret,
-  app = 'YQH 工具箱',
+  app = '开发者工具箱',
   account = 'demo-user',
   algorithm = 'SHA1',
   digits = 6,
