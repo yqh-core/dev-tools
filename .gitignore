@@ -35,6 +35,3 @@ coverage
 salt
 # vite 配置热重载时产生的临时文件
 vite.config.ts.timestamp-*.mjs
-
-# vite 配置热重载时产生的临时文件
-vite.config.ts.timestamp-*.mjs
