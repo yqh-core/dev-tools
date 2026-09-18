@@ -1,4 +1,8 @@
 home:
+  classic:
+    entry: "Công cụ cổ điển"
+    desc: "162 công cụ từ trang cũ. Giao diện mộc mạc nhưng tải nhanh."
+    open: "Mở bản cổ điển"
   categories:
     newestTools: Công cụ mới nhất
     favoriteTools: 'Công cụ yêu thích của bạn'

@@ -1,0 +1,9 @@
+name = "coderkit"
+compatibility_date = "2024-09-23"
+
+# 说明：
+# - 这里只给 Pages Functions（functions/api/*）钉运行时兼容性日期。
+# - 故意不写 pages_build_output_dir：一旦有它，wrangler 配置文件就成为配置唯一来源，
+#   仪表盘上的「构建输出目录」会变只读；而纯静态 + Git 集成时构建配置应由仪表盘持有。
+#   本地调试用 CLI 传目录即可：npx wrangler pages dev dist
+# - 2026-09-18 从 mytoolset（dev-toolbox 仓库）迁入，name 同步改为 coderkit。

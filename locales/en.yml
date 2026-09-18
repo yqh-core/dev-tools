@@ -1,4 +1,8 @@
 home:
+  classic:
+    entry: "Classic tools"
+    desc: "162 tools kept from the older site. Plain-looking but fast to load."
+    open: "Open classic site"
   categories:
     newestTools: Newest tools
     favoriteTools: 'Your favorite tools'

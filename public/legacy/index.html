@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<title>Dev 工具箱 · 经典版（162 个工具）</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<link href="/legacy/static/style/tool.css" rel="stylesheet">
+<style>
+ body{font-family:-apple-system,"Segoe UI","Microsoft YaHei",sans-serif;max-width:1000px;margin:0 auto;
+  padding:24px 16px 60px;line-height:1.7;color:#1f2937;background:#f8fafc}
+ h1{font-size:22px;margin:0 0 4px}
+ p.sub{color:#6b7280;margin:0 0 18px;font-size:14px}
+ .bar{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
+ #q{flex:1;min-width:220px;border:1px solid #e5e7eb;border-radius:10px;padding:10px 14px;font-size:15px;
+  font-family:inherit;background:#fff}
+ #q:focus{outline:none;border-color:#14b8a6;box-shadow:0 0 0 3px rgba(20,184,166,.18)}
+ .cnt{color:#6b7280;font-size:13px;white-space:nowrap}
+ h2{font-size:15px;margin:26px 0 10px;border-left:4px solid #0f766e;padding-left:10px;
+  display:flex;align-items:center;gap:8px}
+ h2 .n{font-size:12px;font-weight:400;color:#6b7280;background:#fff;border:1px solid #e5e7eb;
+  border-radius:999px;padding:0 8px}
+ ul{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px}
+ li a{display:block;padding:8px 10px;border:1px solid #e5e7eb;border-radius:8px;text-decoration:none;
+  color:#0f766e;font-size:13.5px;background:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+ li a:hover{background:#f0fdfa;border-color:#99f6e4}
+ #empty{display:none;padding:40px 0;text-align:center;color:#6b7280}
+ .home{display:inline-flex;align-items:center;gap:6px;border:1px solid #0f766e;background:#0f766e;
+  color:#fff;border-radius:8px;padding:5px 12px;text-decoration:none;font-size:13.5px}
+ .home:hover{background:#115e59;color:#fff}
+</style></head>
+<body>
+<h1>Dev 工具箱 · 经典版</h1>
+<p class="sub">
+  共 162 个工具，按原站分类整理。任意页面按 <b>Ctrl+K</b>（或按 <b>/</b>）都能呼出站内搜索。
+  <a class="home" href="/">返回新版工具箱</a>
+</p>
+
+<div class="bar">
+  <input id="q" type="search" placeholder="搜索工具名或分类，例如 base64 / json / 时间戳…" autocomplete="off">
+  <span class="cnt" id="cnt">共 162 个工具</span>
+</div>
+
+<div id="groups">
+<h2>JSON工具<span class="n">13</span></h2>
+<ul>
+  <li data-s="json格式化 | json代码压缩 | json在线解析 json工具 json"><a href="/legacy/json/" title="Json格式化 | Json代码压缩 | Json在线解析">Json格式化 | Json代码压缩 | Json在线解析</a></li>
+  <li data-s="json格式化(上下) - json在线格式化工具 json工具 jsonudview"><a href="/legacy/jsonudview/" title="Json格式化(上下) - Json在线格式化工具">Json格式化(上下) - Json在线格式化工具</a></li>
+  <li data-s="json格式化(左右) - json在线格式化工具 json工具 jsonlrview"><a href="/legacy/jsonlrview/" title="Json格式化(左右) - Json在线格式化工具">Json格式化(左右) - Json在线格式化工具</a></li>
+  <li data-s="json压缩转义,在线json压缩格式化,json代码压缩 json工具 jsonzip"><a href="/legacy/jsonzip/" title="Json压缩转义,在线Json压缩格式化,json代码压缩">Json压缩转义,在线Json压缩格式化,json代码压缩</a></li>
+  <li data-s="json在线生成c#实体类,json生成c# model类工具 json工具 json2cs"><a href="/legacy/json2cs/" title="Json在线生成C#实体类,Json生成C# Model类工具">Json在线生成C#实体类,Json生成C# Model类工具</a></li>
+  <li data-s="json在线生成java实体类,json生成java bean类工具 json工具 json2java"><a href="/legacy/json2java/" title="Json在线生成Java实体类,Json生成Java Bean类工具">Json在线生成Java实体类,Json生成Java Bean类工具</a></li>
+  <li data-s="json转go,json生成golang结构体 json工具 json2go"><a href="/legacy/json2go/" title="Json转Go,Json生成Golang结构体">Json转Go,Json生成Golang结构体</a></li>
+  <li data-s="在线sql转java实体类 json工具 sql2java"><a href="/legacy/sql2java/" title="在线SQL转Java实体类">在线SQL转Java实体类</a></li>
+  <li data-s="xml与json在线转换工具,xml和json互转 json工具 json2xml"><a href="/legacy/json2xml/" title="Xml与Json在线转换工具,Xml和Json互转">Xml与Json在线转换工具,Xml和Json互转</a></li>
+  <li data-s="excel/csv/xls转json工具 json工具 excel2json"><a href="/legacy/excel2json/" title="Excel/Csv/xls转Json工具">Excel/Csv/xls转Json工具</a></li>
+  <li data-s="json转excel/csv/xls工具 json工具 json2excel"><a href="/legacy/json2excel/" title="Json转Excel/Csv/xls工具">Json转Excel/Csv/xls工具</a></li>
+  <li data-s="json转url,json和get参数转换工具 json工具 json2get"><a href="/legacy/json2get/" title="json转url,JSON和GET参数转换工具">json转url,JSON和GET参数转换工具</a></li>
+  <li data-s="json转yaml,在线yaml转json json工具 json2yaml"><a href="/legacy/json2yaml/" title="json转yaml,在线yaml转json">json转yaml,在线yaml转json</a></li>
+</ul>
+<h2>格式化转换<span class="n">34</span></h2>
+<ul>
+  <li data-s="html格式化,html美化,html排版 格式化转换 formathtml"><a href="/legacy/formathtml/" title="html格式化,html美化,html排版">html格式化,html美化,html排版</a></li>
+  <li data-s="css格式化,代码压缩及样式美化 格式化转换 formatcss"><a href="/legacy/formatcss/" title="css格式化,代码压缩及样式美化">css格式化,代码压缩及样式美化</a></li>
+  <li data-s="js格式化,js压缩工具 格式化转换 formatjs"><a href="/legacy/formatjs/" title="JS格式化,js压缩工具">JS格式化,js压缩工具</a></li>
+  <li data-s="js加密,js解密,js加解密工具 格式化转换 endecodejs"><a href="/legacy/endecodejs/" title="JS加密,JS解密,js加解密工具">JS加密,JS解密,js加解密工具</a></li>
+  <li data-s="js混合加密,js混淆加密,js混合加密工具 格式化转换 confundirjs"><a href="/legacy/confundirjs/" title="JS混合加密,JS混淆加密,js混合加密工具">JS混合加密,JS混淆加密,js混合加密工具</a></li>
+  <li data-s="sql格式化,sql查询语句压缩工具 格式化转换 formatsql"><a href="/legacy/formatsql/" title="SQL格式化,SQL查询语句压缩工具">SQL格式化,SQL查询语句压缩工具</a></li>
+  <li data-s="php格式化,在线美化php代码 格式化转换 formatphp"><a href="/legacy/formatphp/" title="PHP格式化,在线美化PHP代码">PHP格式化,在线美化PHP代码</a></li>
+  <li data-s="xml格式化,xml格式化解析,xml压缩工具 格式化转换 formatxml"><a href="/legacy/formatxml/" title="xml格式化,Xml格式化解析,xml压缩工具">xml格式化,Xml格式化解析,xml压缩工具</a></li>
+  <li data-s="c#格式化,c#代码美化 格式化转换 formatcs"><a href="/legacy/formatcs/" title="C#格式化,C#代码美化">C#格式化,C#代码美化</a></li>
+  <li data-s="java格式化,java代码美化 格式化转换 formatjava"><a href="/legacy/formatjava/" title="JAVA格式化,JAVA代码美化">JAVA格式化,JAVA代码美化</a></li>
+  <li data-s="sql代码格式化,sql代码美化 格式化转换 formatcsql"><a href="/legacy/formatcsql/" title="SQL代码格式化,SQL代码美化">SQL代码格式化,SQL代码美化</a></li>
+  <li data-s="python格式化,python代码美化 格式化转换 formatpy"><a href="/legacy/formatpy/" title="Python格式化,Python代码美化">Python格式化,Python代码美化</a></li>
+  <li data-s="ruby格式化,ruby代码美化 格式化转换 formatruby"><a href="/legacy/formatruby/" title="Ruby格式化,Ruby代码美化">Ruby格式化,Ruby代码美化</a></li>
+  <li data-s="c语言格式化,在线美化c语言代码 格式化转换 formatc"><a href="/legacy/formatc/" title="C语言格式化,在线美化C语言代码">C语言格式化,在线美化C语言代码</a></li>
+  <li data-s="c++格式化,在线美化c++代码,cpp格式化 格式化转换 formatcpp"><a href="/legacy/formatcpp/" title="C++格式化,在线美化C++代码,CPP格式化">C++格式化,在线美化C++代码,CPP格式化</a></li>
+  <li data-s="perl格式化,perl代码美化 格式化转换 formatperl"><a href="/legacy/formatperl/" title="perl格式化,perl代码美化">perl格式化,perl代码美化</a></li>
+  <li data-s="vbscript格式化,在线美化vbscript代码,vbs格式化 格式化转换 formatvbs"><a href="/legacy/formatvbs/" title="Vbscript格式化,在线美化Vbscript代码,VBS格式化">Vbscript格式化,在线美化Vbscript代码,VBS格式化</a></li>
+  <li data-s="html转js,html拼接js,html和js互换工具 格式化转换 html2js"><a href="/legacy/html2js/" title="HTML转JS,Html拼接JS,Html和JS互换工具">HTML转JS,Html拼接JS,Html和JS互换工具</a></li>
+  <li data-s="js代码转html,html转js,js和html在线转换工具 格式化转换 htmloutjs"><a href="/legacy/htmloutjs/" title="Js代码转HTML,Html转Js,Js和Html在线转换工具">Js代码转HTML,Html转Js,Js和Html在线转换工具</a></li>
+  <li data-s="html在线转义工具,html在线反转义工具 格式化转换 htmlescape"><a href="/legacy/htmlescape/" title="html在线转义工具,html在线反转义工具">html在线转义工具,html在线反转义工具</a></li>
+  <li data-s="html转c#,jsp代码,html与c#,.net,jsp在线转换工具 格式化转换 html2cj"><a href="/legacy/html2cj/" title="Html转C#,Jsp代码,Html与C#,.Net,Jsp在线转换工具">Html转C#,Jsp代码,Html与C#,.Net,Jsp在线转换工具</a></li>
+  <li data-s="html转php,html与php互转工具 格式化转换 html2php"><a href="/legacy/html2php/" title="Html转PHP,Html与PHP互转工具">Html转PHP,Html与PHP互转工具</a></li>
+  <li data-s="html转asp,html转perl,html转sws,html转vb.net 格式化转换 html2all"><a href="/legacy/html2all/" title="Html转ASP,Html转PERL,Html转SWS,Html转VB.NET">Html转ASP,Html转PERL,Html转SWS,Html转VB.NET</a></li>
+  <li data-s="excel格式转换,excel转html表格,cvs与txt,html表格转换工具 格式化转换 htmlfromcsv"><a href="/legacy/htmlfromcsv/" title="excel格式转换,excel转html表格,cvs与txt,html表格转换工具">excel格式转换,excel转html表格,cvs与txt,html表格转换工具</a></li>
+  <li data-s="在线生成html表格,html表格在线制作,table生成器 格式化转换 htmltable"><a href="/legacy/htmltable/" title="在线生成html表格,Html表格在线制作,table生成器">在线生成html表格,Html表格在线制作,table生成器</a></li>
+  <li data-s="ubb与html互转工具 格式化转换 html2ubb"><a href="/legacy/html2ubb/" title="UBB与HTML互转工具">UBB与HTML互转工具</a></li>
+  <li data-s="html与markdown互转工具 格式化转换 htmlmarkdown"><a href="/legacy/htmlmarkdown/" title="HTML与MarkDown互转工具">HTML与MarkDown互转工具</a></li>
+  <li data-s="正则表达式测试工具 格式化转换 regex"><a href="/legacy/regex/" title="正则表达式测试工具">正则表达式测试工具</a></li>
+  <li data-s="正则表达式在线代码生成工具 格式化转换 regexcode"><a href="/legacy/regexcode/" title="正则表达式在线代码生成工具">正则表达式在线代码生成工具</a></li>
+  <li data-s="html过滤工具,js,css标签样式过滤 格式化转换 formatfilter"><a href="/legacy/formatfilter/" title="html过滤工具,Js,Css标签样式过滤">html过滤工具,Js,Css标签样式过滤</a></li>
+  <li data-s="常用正则表达式,正则表达式数字 - dev 工具箱 格式化转换 regexdso"><a href="/legacy/regexdso/" title="常用正则表达式,正则表达式数字 - Dev 工具箱">常用正则表达式,正则表达式数字 - Dev 工具箱</a></li>
+  <li data-s="正则表达式语法,正则表达式速查表 格式化转换 regexsucha"><a href="/legacy/regexsucha/" title="正则表达式语法,正则表达式速查表">正则表达式语法,正则表达式速查表</a></li>
+  <li data-s="html/css/js在线运行代码,代码编辑器 格式化转换 runjs"><a href="/legacy/runjs/" title="HTML/CSS/JS在线运行代码,代码编辑器">HTML/CSS/JS在线运行代码,代码编辑器</a></li>
+  <li data-s="xpath工具 格式化转换 xpath"><a href="/legacy/xpath/" title="Xpath工具">Xpath工具</a></li>
+</ul>
+<h2>加解密编码<span class="n">29</span></h2>
+<ul>
+  <li data-s="md5在线加密,md5加密工具,16位32位不可逆加密 加解密编码 md5"><a href="/legacy/md5/" title="MD5在线加密,MD5加密工具,16位32位不可逆加密">MD5在线加密,MD5加密工具,16位32位不可逆加密</a></li>
+  <li data-s="url网址16进制加密工具,url加密工具,url16进制加密 加解密编码 urlcode"><a href="/legacy/urlcode/" title="URL网址16进制加密工具,URL加密工具,URL16进制加密">URL网址16进制加密工具,URL加密工具,URL16进制加密</a></li>
+  <li data-s="迅雷,快车,旋风url加密/解密工具,下载地址加解密 加解密编码 urlthunder"><a href="/legacy/urlthunder/" title="迅雷,快车,旋风URL加密/解密工具,下载地址加解密">迅雷,快车,旋风URL加密/解密工具,下载地址加解密</a></li>
+  <li data-s="base64在线解码,base64编码,base64加密解密 加解密编码 base64"><a href="/legacy/base64/" title="base64在线解码,base64编码,base64加密解密">base64在线解码,base64编码,base64加密解密</a></li>
+  <li data-s="escape在线解码编码,escape加密,unescape解密 加解密编码 escape"><a href="/legacy/escape/" title="Escape在线解码编码,Escape加密,unescape解密">Escape在线解码编码,Escape加密,unescape解密</a></li>
+  <li data-s="对称加密算法工具,可逆加密算法在线测试 加解密编码 deencrypt"><a href="/legacy/deencrypt/" title="对称加密算法工具,可逆加密算法在线测试">对称加密算法工具,可逆加密算法在线测试</a></li>
+  <li data-s="aes加解密工具,aes加密解密在线工具 加解密编码 aesencrypt"><a href="/legacy/aesencrypt/" title="AES加解密工具,AES加密解密在线工具">AES加解密工具,AES加密解密在线工具</a></li>
+  <li data-s="在线des加密,des解密工具 加解密编码 desencrypt"><a href="/legacy/desencrypt/" title="在线DES加密,DES解密工具">在线DES加密,DES解密工具</a></li>
+  <li data-s="在线rc4加密,rc4解密工具 加解密编码 rc4encrypt"><a href="/legacy/rc4encrypt/" title="在线RC4加密,RC4解密工具">在线RC4加密,RC4解密工具</a></li>
+  <li data-s="在线rabbit加密,rabbit解密工具 加解密编码 rabbitencrypt"><a href="/legacy/rabbitencrypt/" title="在线Rabbit加密,Rabbit解密工具">在线Rabbit加密,Rabbit解密工具</a></li>
+  <li data-s="在线tripledes加密,tripledes解密工具 加解密编码 tripledes"><a href="/legacy/tripledes/" title="在线TripleDES加密,TripleDES解密工具">在线TripleDES加密,TripleDES解密工具</a></li>
+  <li data-s="散列哈希/hash加密,所有不可逆hash在线加密工具 加解密编码 shaencrypt"><a href="/legacy/shaencrypt/" title="散列哈希/HASH加密,所有不可逆HASH在线加密工具">散列哈希/HASH加密,所有不可逆HASH在线加密工具</a></li>
+  <li data-s="散列哈希/hash加密,所有不可逆加密算法在线加密工具 加解密编码 allencrypt"><a href="/legacy/allencrypt/" title="散列哈希/HASH加密,所有不可逆加密算法在线加密工具">散列哈希/HASH加密,所有不可逆加密算法在线加密工具</a></li>
+  <li data-s="在线摩尔斯电码加密解密工具 加解密编码 morse"><a href="/legacy/morse/" title="在线摩尔斯电码加密解密工具">在线摩尔斯电码加密解密工具</a></li>
+  <li data-s="密码生成器,随机密码在线生成 加解密编码 password"><a href="/legacy/password/" title="密码生成器,随机密码在线生成">密码生成器,随机密码在线生成</a></li>
+  <li data-s="uuid在线生成器 加解密编码 uuid"><a href="/legacy/uuid/" title="UUID在线生成器">UUID在线生成器</a></li>
+  <li data-s="guid在线生成器 加解密编码 guid"><a href="/legacy/guid/" title="GUID在线生成器">GUID在线生成器</a></li>
+  <li data-s="htpasswd在线生成器 加解密编码 htpasswd"><a href="/legacy/htpasswd/" title="htpasswd在线生成器">htpasswd在线生成器</a></li>
+  <li data-s="条形码在线生成工具,条形码在线生成器 - dev 工具箱 加解密编码 barcode"><a href="/legacy/barcode/" title="条形码在线生成工具,条形码在线生成器 - Dev 工具箱">条形码在线生成工具,条形码在线生成器 - Dev 工具箱</a></li>
+  <li data-s="ip转int整形数字,ip地址与数字地址互转工具 加解密编码 ip2long"><a href="/legacy/ip2long/" title="IP转Int整形数字,IP地址与数字地址互转工具">IP转Int整形数字,IP地址与数字地址互转工具</a></li>
+  <li data-s="在线图片转base64,在线base64转图片,图片base64编码 加解密编码 img2base64"><a href="/legacy/img2base64/" title="在线图片转base64,在线base64转图片,图片base64编码">在线图片转base64,在线base64转图片,图片base64编码</a></li>
+  <li data-s="utf-8编码与中文互转工具,utf8转gbk,utf8转gb2312 加解密编码 utf8"><a href="/legacy/utf8/" title="UTF-8编码与中文互转工具,utf8转gbk,utf8转gb2312">UTF-8编码与中文互转工具,utf8转gbk,utf8转gb2312</a></li>
+  <li data-s="unicode编码转换工具,ascii与unicode互转 加解密编码 unicode"><a href="/legacy/unicode/" title="Unicode编码转换工具,ASCII与Unicode互转">Unicode编码转换工具,ASCII与Unicode互转</a></li>
+  <li data-s="在线ascii编码解码工具,ascii与中文互转 加解密编码 ascii"><a href="/legacy/ascii/" title="在线Ascii编码解码工具,ASCII与中文互转">在线Ascii编码解码工具,ASCII与中文互转</a></li>
+  <li data-s="url编码解码工具,urlencode编码,urldecode解码 加解密编码 urlencode"><a href="/legacy/urlencode/" title="url编码解码工具,UrlEncode编码,UrlDecode解码">url编码解码工具,UrlEncode编码,UrlDecode解码</a></li>
+  <li data-s="native/unicode编码在线转换工具 加解密编码 navtiveunicode"><a href="/legacy/navtiveunicode/" title="Native/Unicode编码在线转换工具">Native/Unicode编码在线转换工具</a></li>
+  <li data-s="键盘按键keycode码,获取keyascii值,keycode值在线获取工具 加解密编码 keyboardcode"><a href="/legacy/keyboardcode/" title="键盘按键KeyCode码,获取KeyAscii值,KeyCode值在线获取工具">键盘按键KeyCode码,获取KeyAscii值,KeyCode值在线获取工具</a></li>
+  <li data-s="android keycode对照表 加解密编码 androidkeycode"><a href="/legacy/androidkeycode/" title="Android KeyCode对照表">Android KeyCode对照表</a></li>
+  <li data-s="键盘按键测试,按键失灵检测 加解密编码 keyboardtest"><a href="/legacy/keyboardtest/" title="键盘按键测试,按键失灵检测">键盘按键测试,按键失灵检测</a></li>
+</ul>
+<h2>文本数字<span class="n">22</span></h2>
+<ul>
+  <li data-s="html在线编辑器,富文本编辑器 - dev 工具箱 文本数字 editor"><a href="/legacy/editor/" title="Html在线编辑器,富文本编辑器 - Dev 工具箱">Html在线编辑器,富文本编辑器 - Dev 工具箱</a></li>
+  <li data-s="在线自动排版工具,文章自动排版编辑器 文本数字 autoformat"><a href="/legacy/autoformat/" title="在线自动排版工具,文章自动排版编辑器">在线自动排版工具,文章自动排版编辑器</a></li>
+  <li data-s="文章采集,复制工具,内容在线采集器,编辑助手 文本数字 caiji"><a href="/legacy/caiji/" title="文章采集,复制工具,内容在线采集器,编辑助手">文章采集,复制工具,内容在线采集器,编辑助手</a></li>
+  <li data-s="简繁体在线转换,简繁体互转 文本数字 jianfan"><a href="/legacy/jianfan/" title="简繁体在线转换,简繁体互转">简繁体在线转换,简繁体互转</a></li>
+  <li data-s="汉字拼音在线转换,汉字拼音读音互转 文本数字 pinyin"><a href="/legacy/pinyin/" title="汉字拼音在线转换,汉字拼音读音互转">汉字拼音在线转换,汉字拼音读音互转</a></li>
+  <li data-s="火星文转换器,火星文转汉字在线转换器 文本数字 huoxingwen"><a href="/legacy/huoxingwen/" title="火星文转换器,火星文转汉字在线转换器">火星文转换器,火星文转汉字在线转换器</a></li>
+  <li data-s="文字内容批量替换工具,在线替换工具 文本数字 txtreplace"><a href="/legacy/txtreplace/" title="文字内容批量替换工具,在线替换工具">文字内容批量替换工具,在线替换工具</a></li>
+  <li data-s="在线文本比较工具,代码内容差异比较工具 文本数字 textdiff"><a href="/legacy/textdiff/" title="在线文本比较工具,代码内容差异比较工具">在线文本比较工具,代码内容差异比较工具</a></li>
+  <li data-s="字数统计,在线字数统计工具,字符总数计算 文本数字 txtcount"><a href="/legacy/txtcount/" title="字数统计,在线字数统计工具,字符总数计算">字数统计,在线字数统计工具,字符总数计算</a></li>
+  <li data-s="文字竖排工具,传统中文排版 文本数字 shupai"><a href="/legacy/shupai/" title="文字竖排工具,传统中文排版">文字竖排工具,传统中文排版</a></li>
+  <li data-s="在线文本翻转顺序工具,文字倒序排列工具 文本数字 textflip"><a href="/legacy/textflip/" title="在线文本翻转顺序工具,文字倒序排列工具">在线文本翻转顺序工具,文字倒序排列工具</a></li>
+  <li data-s="在线去重工具,去重复行 文本数字 quchong"><a href="/legacy/quchong/" title="在线去重工具,去重复行">在线去重工具,去重复行</a></li>
+  <li data-s="文字特效工具,彩色汉字特效生成 文本数字 wenzitexiao"><a href="/legacy/wenzitexiao/" title="文字特效工具,彩色汉字特效生成">文字特效工具,彩色汉字特效生成</a></li>
+  <li data-s="在线字符串文本压缩工具,内容去空格,去换行回车制表符 文本数字 zipstringtext"><a href="/legacy/zipstringtext/" title="在线字符串文本压缩工具,内容去空格,去换行回车制表符">在线字符串文本压缩工具,内容去空格,去换行回车制表符</a></li>
+  <li data-s="在线驼峰转下划线,下划线转驼峰 文本数字 camelcase"><a href="/legacy/camelcase/" title="在线驼峰转下划线,下划线转驼峰">在线驼峰转下划线,下划线转驼峰</a></li>
+  <li data-s="全角半角转换器,全角与半角互转 文本数字 quanbaojiao"><a href="/legacy/quanbaojiao/" title="全角半角转换器,全角与半角互转">全角半角转换器,全角与半角互转</a></li>
+  <li data-s="英文字母大小写转换工具 文本数字 enlower"><a href="/legacy/enlower/" title="英文字母大小写转换工具">英文字母大小写转换工具</a></li>
+  <li data-s="数字大写转换,金额大小写转换 文本数字 rmbdaxie"><a href="/legacy/rmbdaxie/" title="数字大写转换,金额大小写转换">数字大写转换,金额大小写转换</a></li>
+  <li data-s="随机数生成器,快速生成随机数 文本数字 random"><a href="/legacy/random/" title="随机数生成器,快速生成随机数">随机数生成器,快速生成随机数</a></li>
+  <li data-s="unix时间戳,datetime,在线时间戳,timestamp时间戳转换工具 文本数字 unixtime"><a href="/legacy/unixtime/" title="Unix时间戳,DateTime,在线时间戳,Timestamp时间戳转换工具">Unix时间戳,DateTime,在线时间戳,Timestamp时间戳转换工具</a></li>
+  <li data-s="所有进制互转工具,任意进制间相互转换 文本数字 hexconvert"><a href="/legacy/hexconvert/" title="所有进制互转工具,任意进制间相互转换">所有进制互转工具,任意进制间相互转换</a></li>
+  <li data-s="rgb颜色在线转换,十六进制颜色与rgb互转 文本数字 hexrgb"><a href="/legacy/hexrgb/" title="RGB颜色在线转换,十六进制颜色与RGB互转">RGB颜色在线转换,十六进制颜色与RGB互转</a></li>
+</ul>
+<h2>网络<span class="n">11</span></h2>
+<ul>
+  <li data-s="ip地址查询,服务器ip地理位置查询,域名查ip 网络 ip"><a href="/legacy/ip/" title="IP地址查询,服务器IP地理位置查询,域名查IP">IP地址查询,服务器IP地理位置查询,域名查IP</a></li>
+  <li data-s="websocket在线测试工具,websocket模拟请求 网络 websocket"><a href="/legacy/websocket/" title="Websocket在线测试工具,Websocket模拟请求">Websocket在线测试工具,Websocket模拟请求</a></li>
+  <li data-s="浏览器信息在线查看,获取客户端操作系统信息 网络 browserinfo"><a href="/legacy/browserinfo/" title="浏览器信息在线查看,获取客户端操作系统信息">浏览器信息在线查看,获取客户端操作系统信息</a></li>
+  <li data-s="免费公共dns设置大全,阿里,google,百度dns 网络 dns"><a href="/legacy/dns/" title="免费公共DNS设置大全,阿里,Google,百度DNS">免费公共DNS设置大全,阿里,Google,百度DNS</a></li>
+  <li data-s="各地区dns大全,美国dns 网络 alldns"><a href="/legacy/alldns/" title="各地区DNS大全,美国dns">各地区DNS大全,美国dns</a></li>
+  <li data-s="电信dns服务器大全,电信dns服务器地址 网络 dnsdx"><a href="/legacy/dnsdx/" title="电信DNS服务器大全,电信dns服务器地址">电信DNS服务器大全,电信dns服务器地址</a></li>
+  <li data-s="联通dns服务器大全,联通dns服务器地址 网络 dnslt"><a href="/legacy/dnslt/" title="联通DNS服务器大全,联通dns服务器地址">联通DNS服务器大全,联通dns服务器地址</a></li>
+  <li data-s="移动dns服务器大全,移动dns服务器地址 网络 dnsyd"><a href="/legacy/dnsyd/" title="移动DNS服务器大全,移动dns服务器地址">移动DNS服务器大全,移动dns服务器地址</a></li>
+  <li data-s="铁通dns服务器大全,铁通dns服务器地址 网络 dnstt"><a href="/legacy/dnstt/" title="铁通DNS服务器大全,铁通dns服务器地址">铁通DNS服务器大全,铁通dns服务器地址</a></li>
+  <li data-s="教育网dns服务器大全,教育网dns服务器地址 网络 dnsedu"><a href="/legacy/dnsedu/" title="教育网DNS服务器大全,教育网dns服务器地址">教育网DNS服务器大全,教育网dns服务器地址</a></li>
+  <li data-s="美国dns服务器大全,google dns,美国dns服务器地址 网络 dnsusa"><a href="/legacy/dnsusa/" title="美国DNS服务器大全,Google Dns,美国dns服务器地址">美国DNS服务器大全,Google Dns,美国dns服务器地址</a></li>
+</ul>
+<h2>站长<span class="n">15</span></h2>
+<ul>
+  <li data-s="微信域名检测工具,微信域名拦截封禁在线检测 站长 checkweixin"><a href="/legacy/checkweixin/" title="微信域名检测工具,微信域名拦截封禁在线检测">微信域名检测工具,微信域名拦截封禁在线检测</a></li>
+  <li data-s="htaccess换nginx,htaccess与nginx在线转换 站长 htaccess2nginx"><a href="/legacy/htaccess2nginx/" title="htaccess换nginx,htaccess与nginx在线转换">htaccess换nginx,htaccess与nginx在线转换</a></li>
+  <li data-s="在线生成网址桌面快捷方式 站长 shortcut"><a href="/legacy/shortcut/" title="在线生成网址桌面快捷方式">在线生成网址桌面快捷方式</a></li>
+  <li data-s="rem与px转换工具,px和rem换算 站长 px2rem"><a href="/legacy/px2rem/" title="rem与px转换工具,px和rem换算">rem与px转换工具,px和rem换算</a></li>
+  <li data-s="ico图标在线制作,favicon图标制作 站长 favicon"><a href="/legacy/favicon/" title="ico图标在线制作,favicon图标制作">ico图标在线制作,favicon图标制作</a></li>
+  <li data-s="meta标签在线生成工具,html5网页meta标签生成 站长 createmeta"><a href="/legacy/createmeta/" title="Meta标签在线生成工具,HTML5网页Meta标签生成">Meta标签在线生成工具,HTML5网页Meta标签生成</a></li>
+  <li data-s="在线定时自动刷新网页 站长 refresh"><a href="/legacy/refresh/" title="在线定时自动刷新网页">在线定时自动刷新网页</a></li>
+  <li data-s="在线调色板,调色板工具,颜色选择器 站长 tiaoseban"><a href="/legacy/tiaoseban/" title="在线调色板,调色板工具,颜色选择器">在线调色板,调色板工具,颜色选择器</a></li>
+  <li data-s="网页gzip压缩检测 站长 gzip"><a href="/legacy/gzip/" title="网页Gzip压缩检测">网页Gzip压缩检测</a></li>
+  <li data-s="网站死链检测查询工具 站长 checkurl"><a href="/legacy/checkurl/" title="网站死链检测查询工具">网站死链检测查询工具</a></li>
+  <li data-s="whois信息查询 站长 whois"><a href="/legacy/whois/" title="WHOIS信息查询">WHOIS信息查询</a></li>
+  <li data-s="icp备案查询,网站icp备案号查询 站长 chaicp"><a href="/legacy/chaicp/" title="ICP备案查询,网站ICP备案号查询">ICP备案查询,网站ICP备案号查询</a></li>
+  <li data-s="网页meta标签优化分析工具 站长 chameta"><a href="/legacy/chameta/" title="网页Meta标签优化分析工具">网页Meta标签优化分析工具</a></li>
+  <li data-s="网页关键词密度检测工具 站长 checkkeyword"><a href="/legacy/checkkeyword/" title="网页关键词密度检测工具">网页关键词密度检测工具</a></li>
+  <li data-s="http状态查询工具 站长 webstatus"><a href="/legacy/webstatus/" title="HTTP状态查询工具">HTTP状态查询工具</a></li>
+</ul>
+<h2>计算<span class="n">16</span></h2>
+<ul>
+  <li data-s="利率计算器,年利率计算器在线 计算 nianlvli"><a href="/legacy/nianlvli/" title="利率计算器,年利率计算器在线">利率计算器,年利率计算器在线</a></li>
+  <li data-s="子网掩码计算器 计算 subnetmask"><a href="/legacy/subnetmask/" title="子网掩码计算器">子网掩码计算器</a></li>
+  <li data-s="在线科学计算器 计算 calculator"><a href="/legacy/calculator/" title="在线科学计算器">在线科学计算器</a></li>
+  <li data-s="在线面积换算器 计算 calcarea"><a href="/legacy/calcarea/" title="在线面积换算器">在线面积换算器</a></li>
+  <li data-s="在线热量换算器,热量单位换算 计算 calcheat"><a href="/legacy/calcheat/" title="在线热量换算器,热量单位换算">在线热量换算器,热量单位换算</a></li>
+  <li data-s="在线体积容量换算器,体积单位换算 计算 calcvolume"><a href="/legacy/calcvolume/" title="在线体积容量换算器,体积单位换算">在线体积容量换算器,体积单位换算</a></li>
+  <li data-s="在线压力换算器,压力单位换算 计算 calcpressure"><a href="/legacy/calcpressure/" title="在线压力换算器,压力单位换算">在线压力换算器,压力单位换算</a></li>
+  <li data-s="在线功率换算器,功率单位换算 计算 calcpower"><a href="/legacy/calcpower/" title="在线功率换算器,功率单位换算">在线功率换算器,功率单位换算</a></li>
+  <li data-s="在线长度换算器,长度单位换算 计算 calclength"><a href="/legacy/calclength/" title="在线长度换算器,长度单位换算">在线长度换算器,长度单位换算</a></li>
+  <li data-s="摄氏度温度换算,华氏温度转换,温度单位在线换算 计算 calctemperature"><a href="/legacy/calctemperature/" title="摄氏度温度换算,华氏温度转换,温度单位在线换算">摄氏度温度换算,华氏温度转换,温度单位在线换算</a></li>
+  <li data-s="在线时间换算,年月周天换算,时间单位换算工具 计算 calctime"><a href="/legacy/calctime/" title="在线时间换算,年月周天换算,时间单位换算工具">在线时间换算,年月周天换算,时间单位换算工具</a></li>
+  <li data-s="在线速度换算器,速度单位换算 计算 calcspeed"><a href="/legacy/calcspeed/" title="在线速度换算器,速度单位换算">在线速度换算器,速度单位换算</a></li>
+  <li data-s="在线角度换算,弧度换算,毫弧度换算 计算 calcangle"><a href="/legacy/calcangle/" title="在线角度换算,弧度换算,毫弧度换算">在线角度换算,弧度换算,毫弧度换算</a></li>
+  <li data-s="bit,bytes,kb,mb,gb,tb换算与转换器 - dev 工具箱 计算 calcdata"><a href="/legacy/calcdata/" title="bit,bytes,KB,MB,GB,TB换算与转换器 - Dev 工具箱">bit,bytes,KB,MB,GB,TB换算与转换器 - Dev 工具箱</a></li>
+  <li data-s="在线密度换算器,密度单位换算 计算 calcthickness"><a href="/legacy/calcthickness/" title="在线密度换算器,密度单位换算">在线密度换算器,密度单位换算</a></li>
+  <li data-s="在线力换算器,力单位换算 计算 calcforce"><a href="/legacy/calcforce/" title="在线力换算器,力单位换算">在线力换算器,力单位换算</a></li>
+</ul>
+<h2>其他<span class="n">11</span></h2>
+<ul>
+  <li data-s="在线涂鸦画板,在线画板,随手涂鸦 其他 tuya"><a href="/legacy/tuya/" title="在线涂鸦画板,在线画板,随手涂鸦">在线涂鸦画板,在线画板,随手涂鸦</a></li>
+  <li data-s="在线时钟,网络时钟,现在几点钟 其他 shizhong"><a href="/legacy/shizhong/" title="在线时钟,网络时钟,现在几点钟">在线时钟,网络时钟,现在几点钟</a></li>
+  <li data-s="当前世界各地时间,世界时间,世界实时时间,美国时间 其他 worldtime"><a href="/legacy/worldtime/" title="当前世界各地时间,世界时间,世界实时时间,美国时间">当前世界各地时间,世界时间,世界实时时间,美国时间</a></li>
+  <li data-s="世界各国首都查询工具,世界各国首都大全 其他 capital"><a href="/legacy/capital/" title="世界各国首都查询工具,世界各国首都大全">世界各国首都查询工具,世界各国首都大全</a></li>
+  <li data-s="世界各地货币单位查询,世界各地区货币名称 其他 currency"><a href="/legacy/currency/" title="世界各地货币单位查询,世界各地区货币名称">世界各地货币单位查询,世界各地区货币名称</a></li>
+  <li data-s="世界各国区号查询,世界各国时差查询,世界各国域名后缀查询 其他 areacode"><a href="/legacy/areacode/" title="世界各国区号查询,世界各国时差查询,世界各国域名后缀查询">世界各国区号查询,世界各国时差查询,世界各国域名后缀查询</a></li>
+  <li data-s="世界节日查询,阳历农历节日查询 其他 jieri"><a href="/legacy/jieri/" title="世界节日查询,阳历农历节日查询">世界节日查询,阳历农历节日查询</a></li>
+  <li data-s="全国少数民族分布表,全国少数民族分布地区 其他 shaoshuminzu"><a href="/legacy/shaoshuminzu/" title="全国少数民族分布表,全国少数民族分布地区">全国少数民族分布表,全国少数民族分布地区</a></li>
+  <li data-s="中国历史朝代时间查询,中国历史朝代名称大全,中国历史朝代都城 其他 chaodai"><a href="/legacy/chaodai/" title="中国历史朝代时间查询,中国历史朝代名称大全,中国历史朝代都城">中国历史朝代时间查询,中国历史朝代名称大全,中国历史朝代都城</a></li>
+  <li data-s="特殊符号大全,爱心符号,表情符号 其他 tesufuhao"><a href="/legacy/tesufuhao/" title="特殊符号大全,爱心符号,表情符号">特殊符号大全,爱心符号,表情符号</a></li>
+  <li data-s="历史上的今天,历史上的今天发生了什么,历史事件查询 其他 lishishangdejintian"><a href="/legacy/lishishangdejintian/" title="历史上的今天,历史上的今天发生了什么,历史事件查询">历史上的今天,历史上的今天发生了什么,历史事件查询</a></li>
+</ul>
+<h2>对照列表<span class="n">11</span></h2>
+<ul>
+  <li data-s="常见浏览器user-agent大全,pc移动浏览器user-agent 对照列表 useragent"><a href="/legacy/useragent/" title="常见浏览器User-Agent大全,PC移动浏览器User-Agent">常见浏览器User-Agent大全,PC移动浏览器User-Agent</a></li>
+  <li data-s="http mime-type对照表,content-type(mime-type)文件类型扩展名 对照列表 contenttype"><a href="/legacy/contenttype/" title="HTTP Mime-Type对照表,Content-type(Mime-Type)文件类型扩展名">HTTP Mime-Type对照表,Content-type(Mime-Type)文件类型扩展名</a></li>
+  <li data-s="http请求方法对照表,http请求method大全 对照列表 requestmethod"><a href="/legacy/requestmethod/" title="HTTP请求方法对照表,HTTP请求method大全">HTTP请求方法对照表,HTTP请求method大全</a></li>
+  <li data-s="http请求头对照表,http请求header大全,api接口header 对照列表 httpheader"><a href="/legacy/httpheader/" title="HTTP请求头对照表,HTTP请求HEADER大全,API接口Header">HTTP请求头对照表,HTTP请求HEADER大全,API接口Header</a></li>
+  <li data-s="http状态码详解对照表 对照列表 pagecode"><a href="/legacy/pagecode/" title="HTTP状态码详解对照表">HTTP状态码详解对照表</a></li>
+  <li data-s="ascii码表,ascii码对照表,ascii编码 对照列表 asciicode"><a href="/legacy/asciicode/" title="ascii码表,Ascii码对照表,ascii编码">ascii码表,Ascii码对照表,ascii编码</a></li>
+  <li data-s="html转义字符大全,html特殊符号对照表 对照列表 htmlescapechar"><a href="/legacy/htmlescapechar/" title="HTML转义字符大全,HTML特殊符号对照表">HTML转义字符大全,HTML特殊符号对照表</a></li>
+  <li data-s="http,tcp,udp常见端口大全,455端口,443端口 对照列表 ports"><a href="/legacy/ports/" title="HTTP,TCP,UDP常见端口大全,455端口,443端口">HTTP,TCP,UDP常见端口大全,455端口,443端口</a></li>
+  <li data-s="bootstrap字体图标大全(glyphicons) 对照列表 bootstrapicon"><a href="/legacy/bootstrapicon/" title="Bootstrap字体图标大全(Glyphicons)">Bootstrap字体图标大全(Glyphicons)</a></li>
+  <li data-s="android manifest权限描述对照表 对照列表 androidmanifest"><a href="/legacy/androidmanifest/" title="Android Manifest权限描述对照表">Android Manifest权限描述对照表</a></li>
+  <li data-s="linux命令速查,linux常用命令大全,命令速查表 对照列表 linuxcmd"><a href="/legacy/linuxcmd/" title="Linux命令速查,Linux常用命令大全,命令速查表">Linux命令速查,Linux常用命令大全,命令速查表</a></li>
+</ul>
+</div>
+
+<div id="empty">没有匹配的工具</div>
+
+<script>
+(function () {
+  var q = document.getElementById('q');
+  var cnt = document.getElementById('cnt');
+  var box = document.getElementById('groups');
+  var empty = document.getElementById('empty');
+  var lis = [].slice.call(box.querySelectorAll('li'));
+  var secs = [].slice.call(box.querySelectorAll('h2'));
+  var uls = [].slice.call(box.querySelectorAll('ul'));
+
+  function run() {
+    var k = (q.value || '').trim().toLowerCase();
+    var shown = 0;
+    for (var i = 0; i < lis.length; i++) {
+      var ok = !k || (lis[i].getAttribute('data-s') || '').indexOf(k) >= 0;
+      lis[i].style.display = ok ? '' : 'none';
+      if (ok) shown++;
+    }
+    for (var j = 0; j < uls.length; j++) {
+      var vis = 0;
+      var kids = uls[j].children;
+      for (var m = 0; m < kids.length; m++) if (kids[m].style.display !== 'none') vis++;
+      uls[j].style.display = vis ? '' : 'none';
+      if (secs[j]) secs[j].style.display = vis ? '' : 'none';
+    }
+    empty.style.display = shown ? 'none' : 'block';
+    cnt.textContent = k ? ('匹配 ' + shown + ' 个工具') : ('共 ' + lis.length + ' 个工具');
+  }
+
+  q.addEventListener('input', run);
+  document.addEventListener('keydown', function (e) {
+    if (e.key === '/' && (e.target.tagName || '').toUpperCase() !== 'INPUT') {
+      e.preventDefault();
+      q.focus();
+    } else if (e.key === 'Escape') {
+      q.value = '';
+      run();
+    }
+  });
+})();
+</script>
+</body></html>

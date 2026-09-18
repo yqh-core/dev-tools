@@ -1,4 +1,8 @@
 home:
+  classic:
+    entry: "Klassiske verktøy"
+    desc: "162 verktøy fra det gamle nettstedet. Enkle, men raske å laste."
+    open: "Åpne klassisk versjon"
   categories:
     newestTools: Nyeste verktøy
     favoriteTools: 'Dine favoritt verktøy'

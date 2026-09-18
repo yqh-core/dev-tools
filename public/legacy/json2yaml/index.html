@@ -1,0 +1,545 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" /><title>json转yaml,在线yaml转json - Dev 工具箱</title><meta name="applicable-device" content="pc,mobile" /><meta http-equiv="Cache-Control" content="no-transform" /><meta http-equiv="Cache-Control" content="no-siteapp" /><meta name="keywords" content="JSON转yaml,yaml转json	" /><meta name="description" content="yaml和json相互转换工具为您提供JSON转yaml,yaml转json,json格式化转换为yaml格式,YAML的语法和其他高级语言类似，并且可以简单表达清单、散列表，标量等数据形态	" /><meta name="renderer" content="webkit" /><meta name="apple-mobile-web-app-capable" content="yes" /><link rel="icon" href="/legacy/favicon.ico" mce_href="/favicon.ico" type="image/x-icon" /><link href="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" type="text/css" /><link href="/legacy/static/style/tool.css" rel="stylesheet" type="text/css" /><!--[if lt IE 9]><script src="http://apps.bdimg.com/libs/html5shiv/3.7/html5shiv.min.js"></script><script src="http://apps.bdimg.com/libs/respond.js/1.4.2/respond.min.js"></script><![endif]--><!---->
+</head><body><style>
+#dd-fab{position:fixed;right:18px;bottom:18px;z-index:2147483000;width:46px;height:46px;border-radius:50%;
+ background:#0f766e;color:#fff;font-size:19px;line-height:46px;text-align:center;cursor:pointer;
+ box-shadow:0 6px 18px rgba(15,118,110,.35);user-select:none;-webkit-tap-highlight-color:transparent}
+#dd-fab:hover{background:#115e59}
+#dd-modal{position:fixed;inset:0;z-index:2147483001;background:rgba(15,23,42,.45);display:none;
+ align-items:flex-start;justify-content:center;padding:10vh 14px 14px;box-sizing:border-box}
+#dd-panel{width:100%;max-width:560px;background:#fff;border-radius:12px;overflow:hidden;display:flex;
+ flex-direction:column;max-height:72vh;box-shadow:0 20px 50px rgba(0,0,0,.3);font-size:15px;line-height:1.6}
+#dd-phead{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid #e5e7eb}
+#dd-q{flex:1;border:0;outline:none;font-size:15px;font-family:inherit;color:#1f2937;background:transparent}
+#dd-phead .k{font-size:11px;color:#6b7280;border:1px solid #e5e7eb;border-radius:5px;padding:1px 6px}
+#dd-plist{overflow:auto;padding:6px}
+#dd-plist a{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;
+ text-decoration:none;color:#1f2937}
+#dd-plist a:hover{background:#f0fdfa;color:#115e59}
+#dd-plist .t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#dd-plist .c{color:#9ca3af;font-size:12px;flex:none}
+#dd-plist .none{padding:28px 16px;text-align:center;color:#6b7280;font-size:13.5px}
+#dd-pfoot{display:flex;align-items:center;gap:14px;padding:8px 14px;border-top:1px solid #e5e7eb;
+ font-size:12px;color:#6b7280}
+#dd-pfoot a{color:#0f766e;text-decoration:none}
+#dd-cnt{margin-left:auto}
+</style>
+<div id="dd-fab" title="搜索这 163 个经典工具（Ctrl+K）">&#128269;</div>
+<div id="dd-modal" role="dialog" aria-modal="true" aria-label="搜索经典工具">
+  <div id="dd-panel">
+    <div id="dd-phead">
+      <span>&#128269;</span>
+      <input id="dd-q" type="text" autocomplete="off" placeholder="搜索经典工具：base64 / json / 时间戳…">
+      <span class="k">Esc</span>
+    </div>
+    <div id="dd-plist"></div>
+    <div id="dd-pfoot">
+      <a href="/">&#8592; 新版工具箱</a>
+      <a href="/legacy/">经典版全部工具</a>
+      <span id="dd-cnt"></span>
+    </div>
+  </div>
+</div>
+<script src="/legacy/legacy-index.js"></script>
+<script>
+(function () {
+  var PREFIX = '/legacy';
+  var fab = document.getElementById('dd-fab');
+  var modal = document.getElementById('dd-modal');
+  var input = document.getElementById('dd-q');
+  var list = document.getElementById('dd-plist');
+  var cnt = document.getElementById('dd-cnt');
+  var data = window.DD_LEGACY_TOOLS || [];
+
+  function isOpen() { return modal.style.display === 'flex'; }
+  function close() { modal.style.display = 'none'; }
+  function render(kw) {
+    var k = (kw || '').toLowerCase();
+    var hit = [];
+    for (var i = 0; i < data.length; i++) {
+      var t = data[i];
+      if (!k || t.t.toLowerCase().indexOf(k) >= 0 || t.n.indexOf(k) >= 0 ||
+          (t.c && t.c.toLowerCase().indexOf(k) >= 0)) hit.push(t);
+    }
+    var show = hit.slice(0, 60);
+    var html = '';
+    for (var j = 0; j < show.length; j++) {
+      html += '<a href="' + PREFIX + '/' + show[j].n + '/"><span class="t">' + show[j].t +
+              '</span><span class="c">' + (show[j].c || '') + '</span></a>';
+    }
+    list.innerHTML = show.length ? html : '<div class="none">没有匹配「' + kw + '」的工具</div>';
+    cnt.textContent = k ? ('匹配 ' + hit.length + ' 个') : ('共 ' + data.length + ' 个工具');
+  }
+  function open() {
+    modal.style.display = 'flex';
+    input.value = '';
+    render('');
+    setTimeout(function () { input.focus(); }, 30);
+  }
+  fab && fab.addEventListener('click', open);
+  input && input.addEventListener('input', function () { render(input.value); });
+  modal && modal.addEventListener('click', function (e) { if (e.target === modal) close(); });
+
+  document.addEventListener('keydown', function (e) {
+    var el = e.target || {};
+    var tag = (el.tagName || '').toUpperCase();
+    var typing = tag === 'INPUT' || tag === 'TEXTAREA' || el.isContentEditable;
+    if ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'K')) {
+      e.preventDefault();
+      isOpen() ? close() : open();
+      return;
+    }
+    if (e.key === '/' && !typing && !isOpen()) { e.preventDefault(); open(); return; }
+    if (e.key === 'Escape' && isOpen()) close();
+  });
+})();
+</script><div class="navbar navbar-default navbar-static-top navbar-fixed-top">
+    <div class="jz container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar"
+                    aria-expanded="false" aria-controls="navbar"><span class="sr-only">Dev 工具箱</span> <span
+                    class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></button>
+            <a class="navbar-brand" href="/legacy/" title="Dev 工具箱"><em class="logo_ico glyphicon glyphicon-wrench"></em>Dev 工具箱</a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse" role="navigation">
+            <ul class="nav navbar-nav" id="top_menu">
+                <li class="dropdown"><a href="/legacy/" class="dropdown-toggle" data-toggle="dropdown"
+                                        role="button" aria-haspopup="true" aria-expanded="false">JSON工具<span
+                        class="caret"></span></a>
+                    <ul class="dropdown-menu ul-list">
+                        <li><a href="/legacy/json/">Json格式化</a></li>
+                        <li><a href="/legacy/jsonudview/"> Json格式化(上下)</a></li>
+                        <li><a href="/legacy/jsonlrview/">Json格式化(左右)</a></li>
+                        <li><a href="/legacy/jsonzip/">Json在线压缩转义</a></li>
+                        <li role="separator" class="divider"></li>
+                        <li><a href="/legacy/json2cs/">Json生成C#实体类</a></li>
+                        <li><a href="/legacy/json2java/"> Json生成Java实体类</a></li>
+                        <li><a href="/legacy/json2go/">Json生成Go结构体</a></li>
+                        <li><a href="/legacy/sql2java/">SQL转Java实体类</a></li>
+                        <li><a href="/legacy/json2xml/">XML和Json在线互转</a></li>
+                        <li><a href="/legacy/excel2json/">Excel/CSV转Json格式</a></li>
+                        <li><a href="/legacy/json2excel/">Json转Excel/CSV格式</a></li>
+                        <li><a href="/legacy/json2get/">JSON和GET参数互转</a></li>
+                        <li><a href="/legacy/json2yaml/">JSON转YAML</a></li>
+                    </ul>
+                <li class="dropdown">
+                <li class="dropdown"><a href="/legacy/" class="dropdown-toggle" data-toggle="dropdown"
+                                        role="button" aria-haspopup="true" aria-expanded="false">格式化转换<span
+                        class="caret"></span></a>
+                    <ul class="dropdown-menu ul-list">
+                        <li><a href="/legacy/formathtml/">HTML格式化/压缩</a></li>
+                        <li><a href="/legacy/formatcss/" style="color:#f30"> CSS格式化/压缩</a></li>
+                        <li><a href="/legacy/formatjs/">JS格式化/压缩</a></li>
+                        <li><a href="/legacy/endecodejs/">JS加密/解密</a></li>
+                        <li><a href="/legacy/confundirjs/"> JS代码混合加密</a></li>
+                        <li><a href="/legacy/formatsql/">SQL压缩/格式化</a></li>
+                        <li><a href="/legacy/formatphp/">PHP代码格式化工具</a></li>
+                        <li><a href="/legacy/formatxml/">XML压缩/格式化 </a></li>
+                        <li role="separator" class="divider"></li>
+                        <li><a href="/legacy/htmloutjs/" style="color:#f30">Html/JS互转</a></li>
+                        <li><a href="/legacy/htmlescape/"> Html转义工具</a></li>
+                        <li><a href="/legacy/html2cj/"> Html转C#/JSP</a></li>
+                        <li><a href="/legacy/html2php/">Html转PHP代码</a></li>
+                        <li><a href="/legacy/html2all/">Html转ASP/Perl</a></li>
+                        <li><a href="/legacy/htmlfromcsv/">Excel转HTML表格</a></li>
+                        <li><a href="/legacy/htmltable/">Html表格生成器</a></li>
+                        <li><a href="/legacy/htmlmarkdown/">HTML/MarkDown互转</a></li>
+                        <li role="separator" class="divider"></li>
+                        <li><a href="/legacy/regex/" style="color:green">正则表达式测试工具</a></li>
+                        <li><a href="/legacy/regexcode/">正则生成代码</a></li>
+                        <li><a href="/legacy/formatfilter/">Html过滤工具</a></li>
+                        <li><a href="/legacy/runjs/">运行Js/html/css</a></li>
+                        <li><a href="/legacy/xpath/">Xpath工具</a></li>
+                    </ul>
+                <li class="dropdown">
+                <li class="dropdown"><a href="/legacy/" class="dropdown-toggle" data-toggle="dropdown"
+                                        role="button" aria-haspopup="true" aria-expanded="false">加解密编码<span
+                        class="caret"></span></a>
+                    <ul class="dropdown-menu ul-list">
+                        <li><a href="/legacy/md5/">MD5加密工具</a></li>
+                        <li><a href="/legacy/urlcode/">URL网址16进制加密</a></li>
+                        <li><a href="/legacy/urlthunder/">迅雷旋风URL加解密</a></li>
+                        <li><a href="/legacy/base64/"> Base64加密/解密</a></li>
+                        <li><a href="/legacy/escape/">Escape加密/解密</a></li>
+                        <li><a href="/legacy/deencrypt/">对称加密/解密</a></li>
+                        <li><a href="/legacy/shaencrypt/">SHA/SHA256加密</a></li>
+                        <li><a href="/legacy/allencrypt/">散列/哈希加密大全</a></li>
+                        <li><a href="/legacy/morse/">摩尔斯电码加解密</a></li>
+                        <li><a href="/legacy/password/">密码生成器</a></li>
+                        <li role="separator" class="divider"></li>
+                        <li><a href="/legacy/uuid/">UUID在线生成</a></li>
+                        <li><a href="/legacy/guid/">GUID在线生成</a></li>
+                        <li><a href="/legacy/barcode/">条形码生成器</a></li>
+                        <li><a href="/legacy/ip2long/">IP/数字地址转换</a></li>
+                        <li><a href="/legacy/img2base64/" style="color:#f00"> 图片转Base64</a></li>
+                        <li><a href="/legacy/utf8/">UTF-8转GBK</a></li>
+                        <li><a href="/legacy/unicode/">Unicode/ASCII转换</a></li>
+                        <li><a href="/legacy/ascii/">ASCII编码/解码</a></li>
+                        <li><a href="/legacy/urlencode/">URL编码/解码</a></li>
+                        <li><a href="/legacy/keyboardcode/">KeyCode键盘按键码</a></li>
+                        <li><a href="/legacy/androidkeycode/">Android按键码</a></li>
+                        <li><a href="/legacy/keyboardtest/">键盘测试工具</a></li>
+                    </ul>
+                <li class="dropdown">
+                <li class="dropdown"><a href="/legacy/" class="dropdown-toggle" data-toggle="dropdown"
+                                        role="button" aria-haspopup="true" aria-expanded="false">文本数字<span
+                        class="caret"></span></a>
+                    <ul class="dropdown-menu ul-list">
+                        <li><a href="/legacy/editor/">Html在线编辑器</a></li>
+                        <li><a href="/legacy/autoformat/" style="color:#f30"> 文章自动排版</a></li>
+                        <li><a href="/legacy/caiji/" style="color:green"> 文章内容采集</a></li>
+                        <li><a href="/legacy/jianfan/">简繁字体转换</a></li>
+                        <li><a href="/legacy/pinyin/">汉字转为拼音</a></li>
+                        <li><a href="/legacy/huoxingwen/">火星文转换器</a></li>
+                        <li><a href="/legacy/txtreplace/">文本内容替换</a></li>
+                        <li><a href="/legacy/textdiff/"> 文本内容对比</a></li>
+                        <li><a href="/legacy/txtcount/">在线统计字数工具</a></li>
+                        <li><a href="/legacy/quchong/">内容去重工具</a></li>
+                        <li><a href="/legacy/wenzitexiao/">文字特效工具</a></li>
+                        <li><a href="/legacy/zipstringtext/">字符串文本压缩工具</a></li>
+                        <li role="separator" class="divider"></li>
+                        <li><a href="/legacy/camelcase/" style="color:blue">驼峰与下划线互转</a></li>
+                        <li><a href="/legacy/quanbaojiao/">全角半角转换</a></li>
+                        <li><a href="/legacy/enlower/">英文字母大小写转换</a></li>
+                        <li><a href="/legacy/rmbdaxie/">人民币大写转换工具</a></li>
+                        <li><a href="/legacy/random/">随机数生成器</a></li>
+                        <li><a href="/legacy/unixtime/"> Unix时间戳在线转换</a></li>
+                        <li><a href="/legacy/hexconvert/">常用进制转换工具</a></li>
+                        <li><a href="/legacy/hexrgb/"> RGB颜色在线转换</a></li>
+                    </ul>
+                <li class="dropdown">
+                <li class="dropdown"><a href="/legacy/" class="dropdown-toggle" data-toggle="dropdown"
+                                        role="button" aria-haspopup="true" aria-expanded="false">网络<span
+                        class="caret"></span></a>
+                    <ul class="dropdown-menu">
+                        <li><a href="/legacy/ip/">IP地址归属地查询</a></li>
+                        <li><a href="/legacy/websocket/">Websocket测试</a></li>
+                        <li><a href="/legacy/browserinfo/">获取浏览器信息</a></li>
+                        <li><a href="/legacy/dns/">公共DNS</a></li>
+                        <li><a href="/legacy/alldns/">各地区公共DNS</a></li>
+                    </ul>
+                <li class="dropdown">
+                <li class="dropdown"><a href="/legacy/" class="dropdown-toggle" data-toggle="dropdown"
+                                        role="button" aria-haspopup="true" aria-expanded="false">站长<span
+                        class="caret"></span></a>
+                    <ul class="dropdown-menu ul-list">
+                        <li><a href="/legacy/checkweixin/" style="color:red">微信域名检测工具</a></li>
+                        <li><a href="/legacy/htaccess2nginx/" style="color:green">htaccess转nginx</a></li>
+                        <li><a href="/legacy/shortcut/">生成桌面快捷方式</a></li>
+                        <li><a href="/legacy/px2rem/">rem与px转换工具</a></li>
+                        <li><a href="/legacy/favicon/">在线制作ico图标</a></li>
+                        <li><a href="/legacy/createmeta/">生成网页Meta标签</a></li>
+                        <li><a href="/legacy/refresh/">在线定时刷新网址</a></li>
+                        <li><a href="/legacy/tiaoseban/">在线调色板</a></li>
+                        <li role="separator" class="divider"></li>
+                        <li><a href="/legacy/gzip/">网站Gzip压缩检测</a></li>
+                        <li><a href="/legacy/checkurl/">网站死链检测</a></li>
+                        <li><a href="/legacy/whois/"> Whois查询工具</a></li>
+                        <li><a href="/legacy/chaicp/">ICP网站备案查询</a></li>
+                        <li><a href="/legacy/chameta/">Meta标签优化分析</a></li>
+                        <li><a href="/legacy/checkkeyword/">网页关键词密度检测</a></li>
+                        <li><a href="/legacy/webstatus/">HTTP状态码查询</a></li>
+                    </ul>
+                <li class="dropdown">
+                <li class="dropdown"><a href="/legacy/" class="dropdown-toggle" data-toggle="dropdown"
+                                        role="button" aria-haspopup="true" aria-expanded="false">计算<span
+                        class="caret"></span></a>
+                    <ul class="dropdown-menu">
+                        <li><a href="/legacy/nianlvli/">利率计算器在线</a></li>
+                        <li><a href="/legacy/subnetmask/">子网掩码计算器</a></li>
+                        <li><a href="/legacy/calculator/">在线科学计算器</a></li>
+                    </ul>
+                <li class="dropdown">
+                <li class="dropdown"><a href="/legacy/" class="dropdown-toggle" data-toggle="dropdown"
+                                        role="button" aria-haspopup="true" aria-expanded="false">其他<span
+                        class="caret"></span></a>
+                    <ul class="dropdown-menu">
+                        <li><a href="/legacy/tuya/">在线涂鸦画板</a></li>
+                        <li><a href="/legacy/shizhong/">在线时钟</a></li>
+                        <li><a href="/legacy/worldtime/">世界各地时间</a></li>
+                        <li><a href="/legacy/capital/">世界各国首都查询</a></li>
+                        <li><a href="/legacy/currency/">世界各地货币查询</a></li>
+                        <li><a href="/legacy/areacode/">世界各国区号时差查询</a></li>
+                        <li><a href="/legacy/jieri/">世界节日查询</a></li>
+                        <li><a href="/legacy/shaoshuminzu/">全国少数民族分布查询</a></li>
+                        <li><a href="/legacy/chaodai/">中国历史朝代时间查询表</a></li>
+                        <li><a href="/legacy/tesufuhao/">特殊符号大全</a></li>
+                        <li><a href="/legacy/lishishangdejintian/">历史上的今天</a></li>
+                    </ul>
+                <li class="dropdown">
+                <li class="dropdown"><a href="/legacy/" class="dropdown-toggle" data-toggle="dropdown"
+                                        role="button" aria-haspopup="true" aria-expanded="false">对照列表<span
+                        class="caret"></span></a>
+                    <ul class="dropdown-menu">
+                        <li><a href="/legacy/useragent/">常用User-Agent</a></li>
+                        <li><a href="/legacy/contenttype/">Content-Type对照表</a></li>
+                        <li><a href="/legacy/requestmethod/">Request请求大全</a></li>
+                        <li><a href="/legacy/httpheader/">HTTP请求头大全</a></li>
+                        <li><a href="/legacy/pagecode/"> HTTP状态码</a></li>
+                        <li role="separator" class="divider"></li>
+                        <li><a href="/legacy/asciicode/">ASCII对照表</a></li>
+                        <li><a href="/legacy/htmlescapechar/">HTML特殊字符转义</a></li>
+                        <li><a href="/legacy/ports/">常见端口大全</a></li>
+                        <li><a href="/legacy/bootstrapicon/">Bootstrap字体图标</a></li>
+                        <li><a href="/legacy/androidmanifest/"> Android Manifest权限大全</a></li>
+                        <li><a href="/legacy/linuxcmd/">Linux常用命令大全</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+<div class="container"><div class="row"><div class="col-md-12 col10main"><div class="accordion" id="accordion2"><div class="accordion-group">
+<ul class="nav nav-tabs hbflag"><li role="presentation"><a href="/legacy/json/">Json格式化</a></li><li role="presentation"><a href="/legacy/jsonudview/"> Json格式化(上下)</a></li><li role="presentation"><a href="/legacy/jsonlrview/">Json格式化(左右)</a></li><li role="presentation"><a href="/legacy/jsonzip/">Json在线压缩转义</a></li><li role="presentation"><a href="/legacy/json2cs/">Json生成C#实体类</a></li><li role="presentation"><a href="/legacy/json2java/"> Json生成Java实体类</a></li><li role="presentation" class="active"><a href="/legacy/json2yaml/">JSON转YAML</a></li><li role="presentation" class="dropdown"><a class="dropdown-toggle" data-toggle="dropdown" href="javascript:;" role="button" aria-haspopup="true" aria-expanded="false">更多工具<span class="caret"> </span></a><ul class="dropdown-menu"><li role="presentation"><a href="/legacy/json2go/">Json生成Go结构体</a></li><li role="presentation"><a href="/legacy/sql2java/">SQL转Java实体类</a></li><li role="presentation"><a href="/legacy/json2xml/">XML和Json在线互转</a></li><li role="presentation"><a href="/legacy/excel2json/">Excel/CSV转Json格式</a></li><li role="presentation"><a href="/legacy/json2excel/">Json转Excel/CSV格式</a></li><li role="presentation"><a href="/legacy/json2get/">JSON和GET参数互转</a></li></ul></li></ul><div class="panel"><form id="form1" class="form-horizontal" method="post"><div class="form-group"><div class="col-sm-12"><textarea class="form-control" id="content" name="content" rows="15" placeholder="输入YAML 或 JSON"></textarea></div></div><div class="form-group"><div class="col-sm-12 text-center">                <button type="button" class="btn btn-success" onclick="yamlFormat('content')">YAML格式校验/转JSON</button><button type="button" class="btn btn-info" onclick="json2yaml('content', 'result')">JSON转YAML</button> <button type="button" id="copyallcode" class="btn btn-default copy-btn" data-clipboard-target="#result">复制</button> <button type="button" class="btn btn-default" onclick="ClearAll()">清空</button></div></div><div class="form-group"><div class="col-sm-12"><div id="format-message" class="alert mb-3 mb-0 d-none"></div><pre><code id="result"></code></pre></div></div></form></div></div><div class="alert alert alert-success alert-dismissible"><h4>什么是YAML？</h4><p>YAML的语法和其他高级语言类似，并且可以简单表达清单、散列表，标量等数据形态。它使用空白符号缩进和大量依赖外观的特色，特别适合用来表达或编辑数据结构、各种配置文件、倾印调试内容、文件大纲（例如：许多电子邮件标题格式和YAML非常接近）。尽管它比较适合用来表达层次结构式（hierarchical model）的数据结构，不过也有精致的语法可以表示关系性（relational model）的数据。由于YAML使用空白字符和分行来分隔数据，使得它特别适合用grep/Python/Perl/Ruby操作。其让人最容易上手的特色是巧妙避开各种封闭符号，如：引号、各种括号等，这些符号在嵌套结构时会变得复杂而难以辨认。</p></div> <div class="accordion-group"> </div></div></div></div></div><script src="/legacy/static/script/jquery-1.11.3.min.js" type="text/javascript"></script><script src="/legacy/static/script/bootstrap.min.js" type="text/javascript"></script><script src="/legacy/static/script/tool.js" type="text/javascript"></script><script>setJS(["/static/script/pcjs/json2yaml.js","/static/script/pcjs/yaml.js"]);</script><script src="/legacy/static/script/hightout.js"></script><div class="container" id="foot-history">
+    <div class="row">
+        <div class="col-md-12"><span>您的足迹：</span><span id="visit_history"></span></div>
+        <div class="col-md-12" style="margin-top:10px">
+            <!-- 广告区1 -->
+
+
+
+
+
+        </div>
+    </div>
+</div>
+<div class="container">
+    <div class="row">
+        <div class="col-md-12 footer-nav">
+            <h2>站内导航</h2>
+            <ul class="list-inline list-inline-bg">
+                <h3><span>JSON工具</span></h3>
+                <li><span></span><a href="/legacy/json/">Json格式化</a></li>
+                <li><span></span><a href="/legacy/jsonudview/"> Json格式化(上下)</a></li>
+                <li><span></span><a href="/legacy/jsonlrview/">Json格式化(左右)</a></li>
+                <li><span></span><a href="/legacy/jsonzip/">Json在线压缩转义</a></li>
+                <li><span></span><a href="/legacy/json2cs/">Json生成C#实体类</a></li>
+                <li><span></span><a href="/legacy/json2java/"> Json生成Java实体类</a></li>
+                <li><span></span><a href="/legacy/json2go/">Json生成Go结构体</a></li>
+                <li><span></span><a href="/legacy/sql2java/">SQL转Java实体类</a></li>
+                <li><span></span><a href="/legacy/json2xml/">XML和Json在线互转</a></li>
+                <li><span></span><a href="/legacy/excel2json/">Excel/CSV转Json格式</a></li>
+                <li><span></span><a href="/legacy/json2excel/">Json转Excel/CSV格式</a></li>
+                <li><span></span><a href="/legacy/json2get/">JSON和GET参数互转</a></li>
+                <li><span></span><a href="/legacy/json2yaml/">JSON转YAML</a></li>
+            </ul>
+            <ul class="list-inline list-inline-bg">
+                <h3><span>格式化转换</span></h3>
+                <li><span></span><a href="/legacy/formathtml/">HTML格式化/压缩</a></li>
+                <li><span></span><a href="/legacy/formatcss/" style="color:#f30"> CSS格式化/压缩</a></li>
+                <li><span></span><a href="/legacy/formatjs/">JS格式化/压缩</a></li>
+                <li><span></span><a href="/legacy/endecodejs/">JS加密/解密</a></li>
+                <li><span></span><a href="/legacy/confundirjs/"> JS代码混合加密</a></li>
+                <li><span></span><a href="/legacy/formatsql/">SQL压缩/格式化</a></li>
+                <li><span></span><a href="/legacy/formatphp/">PHP代码格式化工具</a></li>
+                <li><span></span><a href="/legacy/formatxml/">XML压缩/格式化 </a></li>
+                <li><span></span><a href="/legacy/formatcs/">C#代码格式化工具</a></li>
+                <li><span></span><a href="/legacy/formatjava/">JAVA代码格式化工具</a></li>
+                <li><span></span><a href="/legacy/formatcsql/">SQL代码格式化工具</a></li>
+                <li><span></span><a href="/legacy/formatpy/">Python代码格式化工具</a></li>
+                <li><span></span><a href="/legacy/formatruby/">Ruby代码格式化工具</a></li>
+                <li><span></span><a href="/legacy/formatc/">C语言代码格式化工具</a></li>
+                <li><span></span><a href="/legacy/formatcpp/">C++代码格式化工具</a></li>
+                <li><span></span><a href="/legacy/formatperl/">Perl代码格式化工具</a></li>
+                <li><span></span><a href="/legacy/formatvbs/">VBScript格式化工具</a></li>
+                <li><span></span><a href="/legacy/html2js/"> Html转JS</a></li>
+                <li><span></span><a href="/legacy/htmloutjs/" style="color:#f30">Html/JS互转</a></li>
+                <li><span></span><a href="/legacy/htmlescape/"> Html转义工具</a></li>
+                <li><span></span><a href="/legacy/html2cj/"> Html转C#/JSP</a></li>
+                <li><span></span><a href="/legacy/html2php/">Html转PHP代码</a></li>
+                <li><span></span><a href="/legacy/html2all/">Html转ASP/Perl</a></li>
+                <li><span></span><a href="/legacy/htmlfromcsv/">Excel转HTML表格</a></li>
+                <li><span></span><a href="/legacy/htmltable/">Html表格生成器</a></li>
+                <li><span></span><a href="/legacy/html2ubb/">HTML/UBB互转</a></li>
+                <li><span></span><a href="/legacy/htmlmarkdown/">HTML/MarkDown互转</a></li>
+                <li><span></span><a href="/legacy/regex/" style="color:green">正则表达式测试工具</a></li>
+                <li><span></span><a href="/legacy/regexcode/">正则生成代码</a></li>
+                <li><span></span><a href="/legacy/formatfilter/">Html过滤工具</a></li>
+                <li><span></span><a href="/legacy/regexdso/">常用正则表达式</a></li>
+                <li><span></span><a href="/legacy/regexsucha/">正则表达式语法速查</a></li>
+                <li><span></span><a href="/legacy/runjs/">运行Js/html/css</a></li>
+                <li><span></span><a href="/legacy/xpath/">Xpath工具</a></li>
+            </ul>
+            <ul class="list-inline list-inline-bg">
+                <h3><span>加解密编码</span></h3>
+                <li><span></span><a href="/legacy/md5/">MD5加密工具</a></li>
+                <li><span></span><a href="/legacy/urlcode/">URL网址16进制加密</a></li>
+                <li><span></span><a href="/legacy/urlthunder/">迅雷旋风URL加解密</a></li>
+                <li><span></span><a href="/legacy/base64/"> Base64加密/解密</a></li>
+                <li><span></span><a href="/legacy/escape/">Escape加密/解密</a></li>
+                <li><span></span><a href="/legacy/deencrypt/">对称加密/解密</a></li>
+                <li><span></span><a href="/legacy/aesencrypt/">AES加密/解密</a></li>
+                <li><span></span><a href="/legacy/desencrypt/">DES加密/解密</a></li>
+                <li><span></span><a href="/legacy/rc4encrypt/">RC4加密/解密</a></li>
+                <li><span></span><a href="/legacy/rabbitencrypt/">Rabbit加密/解密</a></li>
+                <li><span></span><a href="/legacy/tripledes/">TripleDES加密/解密</a></li>
+                <li><span></span><a href="/legacy/shaencrypt/">SHA/SHA256加密</a></li>
+                <li><span></span><a href="/legacy/allencrypt/">散列/哈希加密大全</a></li>
+                <li><span></span><a href="/legacy/morse/">摩尔斯电码加解密</a></li>
+                <li><span></span><a href="/legacy/password/">密码生成器</a></li>
+                <li><span></span><a href="/legacy/uuid/">UUID在线生成</a></li>
+                <li><span></span><a href="/legacy/guid/">GUID在线生成</a></li>
+                <li><span></span><a href="/legacy/htpasswd/">htpasswd生成</a></li>
+                <li><span></span><a href="/legacy/barcode/">条形码生成器</a></li>
+                <li><span></span><a href="/legacy/ip2long/">IP/数字地址转换</a></li>
+                <li><span></span><a href="/legacy/img2base64/" style="color:#f00"> 图片转Base64</a></li>
+                <li><span></span><a href="/legacy/utf8/">UTF-8转GBK</a></li>
+                <li><span></span><a href="/legacy/unicode/">Unicode/ASCII转换</a></li>
+                <li><span></span><a href="/legacy/ascii/">ASCII编码/解码</a></li>
+                <li><span></span><a href="/legacy/urlencode/">URL编码/解码</a></li>
+                <li><span></span><a href="/legacy/navtiveunicode/">Native/Unicode编码转换</a></li>
+                <li><span></span><a href="/legacy/keyboardcode/">KeyCode键盘按键码</a></li>
+                <li><span></span><a href="/legacy/androidkeycode/">Android按键码</a></li>
+                <li><span></span><a href="/legacy/keyboardtest/">键盘测试工具</a></li>
+            </ul>
+            <ul class="list-inline list-inline-bg">
+                <h3><span>文本数字</span></h3>
+                <li><span></span><a href="/legacy/editor/">Html在线编辑器</a></li>
+                <li><span></span><a href="/legacy/autoformat/" style="color:#f30"> 文章自动排版</a></li>
+                <li><span></span><a href="/legacy/caiji/" style="color:green"> 文章内容采集</a></li>
+                <li><span></span><a href="/legacy/jianfan/">简繁字体转换</a></li>
+                <li><span></span><a href="/legacy/pinyin/">汉字转为拼音</a></li>
+                <li><span></span><a href="/legacy/huoxingwen/">火星文转换器</a></li>
+                <li><span></span><a href="/legacy/txtreplace/">文本内容替换</a></li>
+                <li><span></span><a href="/legacy/textdiff/"> 文本内容对比</a></li>
+                <li><span></span><a href="/legacy/txtcount/">在线统计字数工具</a></li>
+                <li><span></span><a href="/legacy/shupai/">文字竖排工具</a></li>
+                <li><span></span><a href="/legacy/textflip/">文字翻转工具</a></li>
+                <li><span></span><a href="/legacy/quchong/">内容去重工具</a></li>
+                <li><span></span><a href="/legacy/wenzitexiao/">文字特效工具</a></li>
+                <li><span></span><a href="/legacy/zipstringtext/">字符串文本压缩工具</a></li>
+                <li><span></span><a href="/legacy/camelcase/" style="color:blue">驼峰与下划线互转</a></li>
+                <li><span></span><a href="/legacy/quanbaojiao/">全角半角转换</a></li>
+                <li><span></span><a href="/legacy/enlower/">英文字母大小写转换</a></li>
+                <li><span></span><a href="/legacy/rmbdaxie/">人民币大写转换工具</a></li>
+                <li><span></span><a href="/legacy/random/">随机数生成器</a></li>
+                <li><span></span><a href="/legacy/unixtime/"> Unix时间戳在线转换</a></li>
+                <li><span></span><a href="/legacy/hexconvert/">常用进制转换工具</a></li>
+                <li><span></span><a href="/legacy/hexrgb/"> RGB颜色在线转换</a></li>
+            </ul>
+            <ul class="list-inline list-inline-bg">
+                <h3><span>网络</span></h3>
+                <li><span></span><a href="/legacy/ip/">IP地址归属地查询</a></li>
+                <li><span></span><a href="/legacy/websocket/">Websocket测试</a></li>
+                <li><span></span><a href="/legacy/browserinfo/">获取浏览器信息</a></li>
+                <li><span></span><a href="/legacy/dns/">公共DNS</a></li>
+                <li><span></span><a href="/legacy/alldns/">各地区公共DNS</a></li>
+                <li><span></span><a href="/legacy/dnsdx/">各地电信DNS</a></li>
+                <li><span></span><a href="/legacy/dnslt/">各地联通DNS</a></li>
+                <li><span></span><a href="/legacy/dnsyd/">各地移动DNS</a></li>
+                <li><span></span><a href="/legacy/dnstt/">各地铁通DNS</a></li>
+                <li><span></span><a href="/legacy/dnsedu/">教育网DNS</a></li>
+                <li><span></span><a href="/legacy/dnsusa/">美国DNS</a></li>
+            </ul>
+            <ul class="list-inline list-inline-bg">
+                <h3><span>站长</span></h3>
+                <li><span></span><a href="/legacy/checkweixin/" style="color:red">微信域名检测工具</a></li>
+                <li><span></span><a href="/legacy/htaccess2nginx/" style="color:green">htaccess转nginx</a></li>
+                <li><span></span><a href="/legacy/shortcut/">生成桌面快捷方式</a></li>
+                <li><span></span><a href="/legacy/px2rem/">rem与px转换工具</a></li>
+                <li><span></span><a href="/legacy/favicon/">在线制作ico图标</a></li>
+                <li><span></span><a href="/legacy/createmeta/">生成网页Meta标签</a></li>
+                <li><span></span><a href="/legacy/refresh/">在线定时刷新网址</a></li>
+                <li><span></span><a href="/legacy/tiaoseban/">在线调色板</a></li>
+                <li><span></span><a href="/legacy/gzip/">网站Gzip压缩检测</a></li>
+                <li><span></span><a href="/legacy/checkurl/">网站死链检测</a></li>
+                <li><span></span><a href="/legacy/whois/"> Whois查询工具</a></li>
+                <li><span></span><a href="/legacy/chaicp/">ICP网站备案查询</a></li>
+                <li><span></span><a href="/legacy/chameta/">Meta标签优化分析</a></li>
+                <li><span></span><a href="/legacy/checkkeyword/">网页关键词密度检测</a></li>
+                <li><span></span><a href="/legacy/webstatus/">HTTP状态码查询</a></li>
+            </ul>
+            <ul class="list-inline list-inline-bg">
+                <h3><span>计算</span></h3>
+                <li><span></span><a href="/legacy/nianlvli/">利率计算器在线</a></li>
+                <li><span></span><a href="/legacy/subnetmask/">子网掩码计算器</a></li>
+                <li><span></span><a href="/legacy/calculator/">在线科学计算器</a></li>
+                <li><span></span><a href="/legacy/calcarea/">面积换算器</a></li>
+                <li><span></span><a href="/legacy/calcheat/">热量换算器</a></li>
+                <li><span></span><a href="/legacy/calcvolume/">体积换算器</a></li>
+                <li><span></span><a href="/legacy/calcpressure/">压力换算器</a></li>
+                <li><span></span><a href="/legacy/calcpower/">功率换算器</a></li>
+                <li><span></span><a href="/legacy/calclength/">长度换算器</a></li>
+                <li><span></span><a href="/legacy/calctemperature/">温度换算器</a></li>
+                <li><span></span><a href="/legacy/calctime/">时间换算器</a></li>
+                <li><span></span><a href="/legacy/calcspeed/">速度换算器</a></li>
+                <li><span></span><a href="/legacy/calcangle/">角度换算器</a></li>
+                <li><span></span><a href="/legacy/calcdata/">数据大小换算器</a></li>
+                <li><span></span><a href="/legacy/calcthickness/">密度换算器</a></li>
+                <li><span></span><a href="/legacy/calcforce/">力换算器</a></li>
+            </ul>
+            <ul class="list-inline list-inline-bg">
+                <h3><span>其他</span></h3>
+                <li><span></span><a href="/legacy/tuya/">在线涂鸦画板</a></li>
+                <li><span></span><a href="/legacy/shizhong/">在线时钟</a></li>
+                <li><span></span><a href="/legacy/worldtime/">世界各地时间</a></li>
+                <li><span></span><a href="/legacy/capital/">世界各国首都查询</a></li>
+                <li><span></span><a href="/legacy/currency/">世界各地货币查询</a></li>
+                <li><span></span><a href="/legacy/areacode/">世界各国区号时差查询</a></li>
+                <li><span></span><a href="/legacy/jieri/">世界节日查询</a></li>
+                <li><span></span><a href="/legacy/shaoshuminzu/">全国少数民族分布查询</a></li>
+                <li><span></span><a href="/legacy/chaodai/">中国历史朝代时间查询表</a></li>
+                <li><span></span><a href="/legacy/tesufuhao/">特殊符号大全</a></li>
+                <li><span></span><a href="/legacy/lishishangdejintian/">历史上的今天</a></li>
+            </ul>
+            <ul class="list-inline list-inline-bg">
+                <h3><span>对照列表</span></h3>
+                <li><span></span><a href="/legacy/useragent/">常用User-Agent</a></li>
+                <li><span></span><a href="/legacy/contenttype/">Content-Type对照表</a></li>
+                <li><span></span><a href="/legacy/requestmethod/">Request请求大全</a></li>
+                <li><span></span><a href="/legacy/httpheader/">HTTP请求头大全</a></li>
+                <li><span></span><a href="/legacy/pagecode/"> HTTP状态码</a></li>
+                <li><span></span><a href="/legacy/asciicode/">ASCII对照表</a></li>
+                <li><span></span><a href="/legacy/htmlescapechar/">HTML特殊字符转义</a></li>
+                <li><span></span><a href="/legacy/ports/">常见端口大全</a></li>
+                <li><span></span><a href="/legacy/bootstrapicon/">Bootstrap字体图标</a></li>
+                <li><span></span><a href="/legacy/androidmanifest/"> Android Manifest权限大全</a></li>
+                <li><span></span><a href="/legacy/linuxcmd/">Linux常用命令大全</a></li>
+            </ul>
+        </div>
+    </div>
+</div>
+<div class="container" style="margin-top:20px">
+    <div class="row">
+        <div class="col-sm-12"><p>友情链接：
+        	 <a href="https://coderkit.pages.dev" target="_blank" rel="noopener">开发者工具集</a>
+				<a href="https://locip.pages.dev" target="_blank" rel="noopener">IP 归属地查询</a>
+				<a href="https://repaycalc.pages.dev" target="_blank" rel="noopener">房贷计算器</a>
+        </div>
+    </div>
+</div>
+<div class="copyright" id="footer">
+    <div class="container">
+        <div class="row">
+            <div class="col-sm-12">
+                <span>
+                    Copyright © 2026
+                    <a href="/legacy/">
+                        Dev 工具箱
+                    </a>
+                </span>
+                |
+                <span>
+                    <a href="https://github.com/yqh-core/dev-toolbox" target="_blank" rel="noopener">
+                        源码
+                    </a>
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+<a class="gotop" href="#top" title="返回顶部" style="display: none;">
+    <span class="arrow">
+    </span>
+    <span class="arrow lit">
+    </span>
+</a>
+<!-- 共享核心脚本：保证每个工具页都能拿到 jQuery / Bootstrap / 工具辅助函数 -->
+<script src="/legacy/static/script/jquery-1.11.3.min.js" type="text/javascript"></script>
+<script src="/legacy/static/script/bootstrap.min.js" type="text/javascript"></script>
+<script src="/legacy/static/script/tool.js" type="text/javascript"></script>
+<script src="/legacy/static/script/hightout.js" type="text/javascript"></script>
+<script>
+    if (typeof tj === 'function') { tj(); }
+</script>
+
+</body></html>

@@ -1,4 +1,8 @@
 home:
+  classic:
+    entry: "Herramientas clásicas"
+    desc: "162 herramientas del sitio antiguo. Sobrias pero rápidas de cargar."
+    open: "Abrir versión clásica"
   categories:
     newestTools: Nuevas herramientas
     favoriteTools: 'Tus herramientas favoritas'

@@ -1,4 +1,8 @@
 home:
+  classic:
+    entry: "Outils classiques"
+    desc: "162 outils de l'ancien site. Sobre, mais rapide à charger."
+    open: "Ouvrir la version classique"
   categories:
     newestTools: 'Les nouveaux outils'
     favoriteTools: 'Vos outils favoris'

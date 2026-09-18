@@ -6,6 +6,10 @@
     versuchen?
   backHome: Zurück zur Startseite
 home:
+  classic:
+    entry: "Klassische Tools"
+    desc: "162 Tools der alten Seite. Schlicht, aber schnell geladen."
+    open: "Klassische Version öffnen"
   categories:
     newestTools: Neueste Tools
     favoriteTools: Deine Lieblingstools

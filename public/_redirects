@@ -1,4 +1,21 @@
-# CoderKit 独立站（coderkit.pages.dev）SPA fallback
-# 历史说明：2026-09-17 之前此仓库曾通过 301 合并进 dev-toolbox /dev/；
-# 现改为独立站点，使用 history 路由，需要将所有路径回退到 index.html。
+# CoderKit 站点路由规则（coderkit.pages.dev / digdevbox.com）
+#
+# 历史说明：2026-09-17 之前本仓库曾通过 301 合并进 dev-toolbox 的 /dev/ 子路径；
+# 之后改为独立站点并使用 history 路由，因此需要把未匹配的路径回退到 index.html。
+#
+# 2026-09-18：从 mytoolset（dev-toolbox 仓库）迁入「经典版」静态站（162 个工具，
+# 位于 public/legacy/），站点从「纯 SPA」变成「SPA + 静态子站」混合形态。
+#
+# ⚠ 规则顺序敏感：CF Pages 的 _redirects 自上而下匹配，第一条命中即生效。
+#   因此 /legacy/* 的规则必须排在 SPA fallback 之前 —— 否则经典版页面会被
+#   最后那条 catch-all 吃成 SPA：HTTP 仍是 200，但返回的是新版首页 HTML，
+#   属于「看起来没坏、其实全错」的静默故障，必须靠顺序而非运气规避。
+#
+# ⚠ 不要给 /api/* 加规则：Pages Functions 的匹配优先级高于 _redirects，
+#   加上反而容易在后续改动时把 functions/api/* 屏蔽掉。
+
+# 经典版静态站（自带目录索引，逐文件按原样服务）
+/legacy/*    /legacy/:splat   200
+
+# SPA fallback —— 必须保持为最后一条
 /*    /index.html   200

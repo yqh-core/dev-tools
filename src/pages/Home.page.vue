@@ -7,6 +7,7 @@ import ColoredCard from '../components/ColoredCard.vue';
 import ToolCard from '../components/ToolCard.vue';
 import { useToolStore } from '@/tools/tools.store';
 import { ALIASES } from '@/tools/aliases';
+import { CLASSIC_SITE_TOOL_COUNT, classicSiteUrl } from '@/classic-site';
 import { config } from '@/config';
 
 const toolStore = useToolStore();
@@ -145,6 +146,24 @@ function onUpdateFavoriteTools() {
         <div class="grid grid-cols-1 gap-12px lg:grid-cols-3 md:grid-cols-3 sm:grid-cols-2 xl:grid-cols-4">
           <ToolCard v-for="tool in toolStore.tools" :key="tool.name" :tool="tool" />
         </div>
+
+        <!--
+          经典版入口。老站 162 个工具原样保留在 public/legacy/，是独立静态子站，
+          不在 vue-router 路由内，因此这里用原生 <a>（用 RouterLink 会落到 404）。
+        -->
+        <h3 class="mb-5px mt-25px text-neutral-400 font-500">
+          {{ $t('home.classic.entry') }}
+        </h3>
+        <a class="classic-card" :href="classicSiteUrl">
+          <div class="classic-card-main">
+            <span class="classic-card-title">
+              {{ $t('home.classic.entry') }}
+              <span class="classic-card-count">{{ CLASSIC_SITE_TOOL_COUNT }}</span>
+            </span>
+            <span class="classic-card-desc">{{ $t('home.classic.desc') }}</span>
+          </div>
+          <span class="classic-card-go">{{ $t('home.classic.open') }} →</span>
+        </a>
       </template>
     </div>
   </div>
@@ -252,6 +271,68 @@ function onUpdateFavoriteTools() {
   100% {
     opacity: 0.4;
     transform: scale(1.0);
+  }
+}
+
+/*
+  经典版入口卡片。刻意用虚线边框与工具卡片（实线）区分：
+  它通向的是另一套站点，而不是本页的一个工具。
+*/
+.classic-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+
+  padding: 14px 16px;
+  border: 1px dashed rgba(128, 128, 128, 0.4);
+  border-radius: 8px;
+
+  color: inherit;
+  text-decoration: none;
+
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+
+  &:hover {
+    border-color: rgba(24, 160, 88, 0.8);
+    background-color: rgba(128, 128, 128, 0.05);
+  }
+
+  .classic-card-main {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+  }
+
+  .classic-card-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 15px;
+    font-weight: 500;
+  }
+
+  .classic-card-count {
+    padding: 0 6px;
+    border-radius: 9px;
+    background-color: rgba(128, 128, 128, 0.16);
+
+    font-size: 11px;
+    font-weight: 400;
+    line-height: 18px;
+    opacity: 0.8;
+  }
+
+  .classic-card-desc {
+    font-size: 13px;
+    opacity: 0.6;
+  }
+
+  .classic-card-go {
+    flex: none;
+    font-size: 13px;
+    opacity: 0.7;
   }
 }
 </style>

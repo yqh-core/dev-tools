@@ -1,0 +1,109 @@
+/**
+ * tool.css —— Dev 工具箱自定义样式（精简重建）
+ * 主要覆盖布局与 footer / 返回顶部按钮，Bootstrap 由 CDN 提供基础样式。
+ */
+html, body {
+    margin: 0;
+    padding: 0;
+    font-family: "Helvetica Neue", Helvetica, "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+    color: #333;
+    background: #f5f7f9;
+}
+
+.container {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 0 15px;
+}
+
+.col10main {
+    background: #fff;
+    border: 1px solid #e6e6e6;
+    border-radius: 6px;
+    padding: 20px;
+    margin: 20px 0;
+}
+
+.accordion-group {
+    margin-bottom: 12px;
+}
+
+/* 工具页顶部 Tab 导航 */
+.hbflag.nav {
+    border-bottom: 2px solid #0f766e;
+    margin-bottom: 16px;
+}
+.hbflag.nav li a {
+    color: #555;
+    border: none;
+    border-radius: 4px 4px 0 0;
+}
+.hbflag.nav li.active a,
+.hbflag.nav li a:hover {
+    color: #fff;
+    background: #0f766e;
+}
+
+/* 结果区 */
+pre {
+    background: #f8f9fa;
+    border: 1px solid #eaeaea;
+    border-radius: 4px;
+    padding: 12px;
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+pre code#result {
+    font-family: Consolas, Monaco, "Courier New", monospace;
+    font-size: 13px;
+    color: #1a1a1a;
+}
+
+/* footer */
+.copyright {
+    text-align: center;
+    padding: 24px 0;
+    color: #888;
+    font-size: 13px;
+    border-top: 1px solid #eee;
+    margin-top: 20px;
+}
+.copyright a {
+    color: #0f766e;
+    text-decoration: none;
+}
+.copyright a:hover {
+    text-decoration: underline;
+}
+
+/* 返回顶部 */
+.gotop {
+    position: fixed;
+    right: 24px;
+    bottom: 48px;
+    width: 42px;
+    height: 42px;
+    line-height: 42px;
+    text-align: center;
+    background: #0f766e;
+    border-radius: 50%;
+    color: #fff;
+    text-decoration: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, .2);
+    z-index: 999;
+}
+.gotop .arrow {
+    display: inline-block;
+    width: 0;
+    height: 0;
+    border-left: 7px solid transparent;
+    border-right: 7px solid transparent;
+    border-bottom: 9px solid #fff;
+}
+.gotop:hover {
+    background: #0d655c;
+}
+
+.text-center {
+    text-align: center;
+}
