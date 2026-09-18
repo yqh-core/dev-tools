@@ -1,3 +1,10 @@
+User-agent: Mediapartners-Google
+Allow: /
+
+User-agent: Google-Display-Ads-Bot
+Allow: /
+
 User-agent: *
-Disallow:
+Allow: /
+
 Sitemap: https://digdevbox.com/sitemap.xml
