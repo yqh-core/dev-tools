@@ -98,10 +98,19 @@ import { tool as jsonToGetParams } from './json-to-get-params';
 import { tool as unitConverter } from './unit-converter';
 import { tool as jsonToCode } from './json-to-code';
 
+// —— 第二批：网络类（走 Pages Functions）+ htpasswd + 三张速查表 ——
+import { tool as whoisLookup } from './whois-lookup';
+import { tool as httpStatusChecker } from './http-status-checker';
+import { tool as todayInHistory } from './today-in-history';
+import { tool as htpasswdGenerator } from './htpasswd-generator';
+import { tool as linuxCommands } from './linux-commands';
+import { tool as httpHeaders } from './http-headers';
+import { tool as asciiTable } from './ascii-table';
+
 export const toolsByCategory: ToolCategory[] = [
   {
     name: 'Crypto',
-    components: [tokenGenerator, hashText, bcrypt, uuidGenerator, ulidGenerator, cypher, bip39, hmacGenerator, rsaKeyPairGenerator, passwordStrengthAnalyser, pdfSignatureChecker],
+    components: [tokenGenerator, hashText, bcrypt, uuidGenerator, ulidGenerator, cypher, bip39, hmacGenerator, rsaKeyPairGenerator, passwordStrengthAnalyser, pdfSignatureChecker, htpasswdGenerator],
   },
   {
     name: 'Converter',
@@ -127,6 +136,7 @@ export const toolsByCategory: ToolCategory[] = [
       jsonToXml,
       markdownToHtml,
       rmbUppercase,
+      asciiTable,
     ],
   },
   {
@@ -149,6 +159,7 @@ export const toolsByCategory: ToolCategory[] = [
       jsonDiff,
       safelinkDecoder,
       jsonToGetParams,
+      httpHeaders,
     ],
   },
   {
@@ -174,11 +185,12 @@ export const toolsByCategory: ToolCategory[] = [
       regexMemo,
       pxRemConverter,
       jsonToCode,
+      linuxCommands,
     ],
   },
   {
     name: 'Network',
-    components: [ipv4SubnetCalculator, ipv4AddressConverter, ipv4RangeExpander, macAddressLookup, macAddressGenerator, ipv6UlaGenerator],
+    components: [ipv4SubnetCalculator, ipv4AddressConverter, ipv4RangeExpander, macAddressLookup, macAddressGenerator, ipv6UlaGenerator, whoisLookup, httpStatusChecker, todayInHistory],
   },
   {
     name: 'Math',

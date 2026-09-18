@@ -462,3 +462,30 @@ tools:
   json-to-code:
     title: "JSON 生成实体类"
     description: "由 JSON 生成 TypeScript、C#、Java、Go 实体类定义，嵌套对象自动拆成独立类。"
+  whois-lookup:
+    title: "WHOIS 查询"
+    description: "查询域名的注册信息（注册商、注册/到期时间、域名状态），数据来自 RDAP —— WHOIS 的官方继任协议。"
+
+  http-status-checker:
+    title: "HTTP 状态码检测"
+    description: "输入网址实时检测其 HTTP 状态码与响应头，用于排查站点可达性、跳转与缓存配置。"
+
+  today-in-history:
+    title: "历史上的今天"
+    description: "查看今天在历史上发生过的事件，进入页面即自动加载，可随时重新加载。"
+
+  htpasswd-generator:
+    title: "htpasswd 生成与校验"
+    description: "生成 Apache / Nginx Basic Auth 用的 .htpasswd 行，支持 bcrypt、apr1、SHA1 与明文，并可校验已有条目。"
+
+  linux-commands:
+    title: "Linux 命令速查"
+    description: "常用 Linux 命令速查，含作用说明与可直接复用的示例，覆盖文件、文本处理、进程、网络等场景。"
+
+  http-headers:
+    title: "HTTP 头速查"
+    description: "常见 HTTP 请求头与响应头速查，涵盖 CORS、缓存、安全相关字段及用途说明。"
+
+  ascii-table:
+    title: "ASCII 码表"
+    description: "标准 ASCII 码表（0 至 127），同时给出十进制、十六进制、八进制、二进制与字符，支持搜索。"

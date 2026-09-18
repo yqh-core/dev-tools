@@ -11,6 +11,8 @@ node_modules
 .DS_Store
 dist
 dist-ssr
+# 换个名字构建（--outDir dist-xxx）是为了绕开 emptyOutDir 被拦截；这些同样是产物
+dist-*
 coverage
 *.local
 

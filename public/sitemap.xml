@@ -2,6 +2,7 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://digdevbox.com/</loc><changefreq>weekly</changefreq></url>
   <url><loc>https://digdevbox.com/about</loc><changefreq>monthly</changefreq></url>
+  <url><loc>https://digdevbox.com/ascii-table</loc><changefreq>monthly</changefreq></url>
   <url><loc>https://digdevbox.com/ascii-text-drawer</loc><changefreq>monthly</changefreq></url>
   <url><loc>https://digdevbox.com/base-converter</loc><changefreq>monthly</changefreq></url>
   <url><loc>https://digdevbox.com/base64-file-converter</loc><changefreq>monthly</changefreq></url>
@@ -29,6 +30,9 @@
   <url><loc>https://digdevbox.com/hmac-generator</loc><changefreq>monthly</changefreq></url>
   <url><loc>https://digdevbox.com/html-entities</loc><changefreq>monthly</changefreq></url>
   <url><loc>https://digdevbox.com/html-wysiwyg-editor</loc><changefreq>monthly</changefreq></url>
+  <url><loc>https://digdevbox.com/htpasswd-generator</loc><changefreq>monthly</changefreq></url>
+  <url><loc>https://digdevbox.com/http-headers</loc><changefreq>monthly</changefreq></url>
+  <url><loc>https://digdevbox.com/http-status-checker</loc><changefreq>monthly</changefreq></url>
   <url><loc>https://digdevbox.com/http-status-codes</loc><changefreq>monthly</changefreq></url>
   <url><loc>https://digdevbox.com/iban-validator-and-parser</loc><changefreq>monthly</changefreq></url>
   <url><loc>https://digdevbox.com/ipv4-address-converter</loc><changefreq>monthly</changefreq></url>
@@ -46,6 +50,7 @@
   <url><loc>https://digdevbox.com/json-to-yaml-converter</loc><changefreq>monthly</changefreq></url>
   <url><loc>https://digdevbox.com/jwt-parser</loc><changefreq>monthly</changefreq></url>
   <url><loc>https://digdevbox.com/keycode-info</loc><changefreq>monthly</changefreq></url>
+  <url><loc>https://digdevbox.com/linux-commands</loc><changefreq>monthly</changefreq></url>
   <url><loc>https://digdevbox.com/list-converter</loc><changefreq>monthly</changefreq></url>
   <url><loc>https://digdevbox.com/lorem-ipsum-generator</loc><changefreq>monthly</changefreq></url>
   <url><loc>https://digdevbox.com/mac-address-generator</loc><changefreq>monthly</changefreq></url>
@@ -81,6 +86,7 @@
   <url><loc>https://digdevbox.com/text-to-binary</loc><changefreq>monthly</changefreq></url>
   <url><loc>https://digdevbox.com/text-to-nato-alphabet</loc><changefreq>monthly</changefreq></url>
   <url><loc>https://digdevbox.com/text-to-unicode</loc><changefreq>monthly</changefreq></url>
+  <url><loc>https://digdevbox.com/today-in-history</loc><changefreq>monthly</changefreq></url>
   <url><loc>https://digdevbox.com/token-generator</loc><changefreq>monthly</changefreq></url>
   <url><loc>https://digdevbox.com/toml-to-json</loc><changefreq>monthly</changefreq></url>
   <url><loc>https://digdevbox.com/toml-to-yaml</loc><changefreq>monthly</changefreq></url>
@@ -90,6 +96,7 @@
   <url><loc>https://digdevbox.com/url-parser</loc><changefreq>monthly</changefreq></url>
   <url><loc>https://digdevbox.com/user-agent-parser</loc><changefreq>monthly</changefreq></url>
   <url><loc>https://digdevbox.com/uuid-generator</loc><changefreq>monthly</changefreq></url>
+  <url><loc>https://digdevbox.com/whois-lookup</loc><changefreq>monthly</changefreq></url>
   <url><loc>https://digdevbox.com/wifi-qrcode-generator</loc><changefreq>monthly</changefreq></url>
   <url><loc>https://digdevbox.com/xml-formatter</loc><changefreq>monthly</changefreq></url>
   <url><loc>https://digdevbox.com/xml-to-json</loc><changefreq>monthly</changefreq></url>

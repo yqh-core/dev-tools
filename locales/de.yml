@@ -488,3 +488,30 @@ tools:
   json-to-code:
     title: "JSON to model classes"
     description: "Generate TypeScript, C#, Java or Go model classes from JSON, splitting nested objects into their own classes."
+  whois-lookup:
+    title: "WHOIS lookup"
+    description: "Look up domain registration data such as registrar, dates and status. Powered by RDAP, the official successor of WHOIS."
+
+  http-status-checker:
+    title: "HTTP status checker"
+    description: "Check the live HTTP status code and response headers of a URL to troubleshoot reachability, redirects and caching."
+
+  today-in-history:
+    title: "Today in history"
+    description: "See what happened on this day in history. Events load automatically when the page opens."
+
+  htpasswd-generator:
+    title: "htpasswd generator and checker"
+    description: "Generate .htpasswd lines for Apache or Nginx basic auth using bcrypt, apr1, SHA1 or plain text, and verify existing entries."
+
+  linux-commands:
+    title: "Linux commands cheat sheet"
+    description: "A searchable cheat sheet of common Linux commands with what they do and ready-to-use examples."
+
+  http-headers:
+    title: "HTTP headers reference"
+    description: "A searchable reference of common HTTP request and response headers, covering CORS, caching and security fields."
+
+  ascii-table:
+    title: "ASCII table"
+    description: "The standard ASCII table from 0 to 127 with decimal, hexadecimal, octal and binary values, searchable by character or code."
