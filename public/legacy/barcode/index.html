@@ -362,12 +362,21 @@
 <script src="/legacy/static/script/bootstrap.min.js" type="text/javascript"></script>
 <script src="/legacy/static/script/tool.js" type="text/javascript"></script>
 <script>setJS(["/static/script/pcjs/barcode.js"]);</script>
-<script type="text/javascript">    $(function () {
-    var content = $("#content").val();
-    if (content == "") {
-        content = "baidu.com";
-        $("#imgcode").JsBarcode(content);
+<script type="text/javascript">    $(function () {/* setJS 是异步注入，DOM ready 时 pcjs/barcode.js 可能尚未执行；这里轮询等待 jQuery 插件就绪再走原逻辑（最多等 8 秒，避免脚本真丢了时死等）。 */
+    function __legacyBarcodeInit(n) {
+        var J = window.jQuery;
+        var ready = !!J && !!J.fn && typeof J.fn.JsBarcode === "function";
+        if (!ready) {
+            if ((n || 0) < 320) { return setTimeout(function () { __legacyBarcodeInit((n || 0) + 1); }, 25); }
+            return;
+        }
+        var content = J("#content").val();
+        if (content == "") {
+            content = "baidu.com";
+            J("#imgcode").JsBarcode(content);
+        }
     }
+    __legacyBarcodeInit(0);
 });
 
 function gen_code() {
