@@ -23,6 +23,7 @@
   <url><loc>https://digdevbox.com/emoji-picker</loc><changefreq>monthly</changefreq></url>
   <url><loc>https://digdevbox.com/encryption</loc><changefreq>monthly</changefreq></url>
   <url><loc>https://digdevbox.com/eta-calculator</loc><changefreq>monthly</changefreq></url>
+  <url><loc>https://digdevbox.com/fullwidth-converter</loc><changefreq>monthly</changefreq></url>
   <url><loc>https://digdevbox.com/git-memo</loc><changefreq>monthly</changefreq></url>
   <url><loc>https://digdevbox.com/hash-text</loc><changefreq>monthly</changefreq></url>
   <url><loc>https://digdevbox.com/hmac-generator</loc><changefreq>monthly</changefreq></url>
@@ -37,7 +38,9 @@
   <url><loc>https://digdevbox.com/json-diff</loc><changefreq>monthly</changefreq></url>
   <url><loc>https://digdevbox.com/json-minify</loc><changefreq>monthly</changefreq></url>
   <url><loc>https://digdevbox.com/json-prettify</loc><changefreq>monthly</changefreq></url>
+  <url><loc>https://digdevbox.com/json-to-code</loc><changefreq>monthly</changefreq></url>
   <url><loc>https://digdevbox.com/json-to-csv</loc><changefreq>monthly</changefreq></url>
+  <url><loc>https://digdevbox.com/json-to-get-params</loc><changefreq>monthly</changefreq></url>
   <url><loc>https://digdevbox.com/json-to-toml</loc><changefreq>monthly</changefreq></url>
   <url><loc>https://digdevbox.com/json-to-xml</loc><changefreq>monthly</changefreq></url>
   <url><loc>https://digdevbox.com/json-to-yaml-converter</loc><changefreq>monthly</changefreq></url>
@@ -50,6 +53,7 @@
   <url><loc>https://digdevbox.com/markdown-to-html</loc><changefreq>monthly</changefreq></url>
   <url><loc>https://digdevbox.com/math-evaluator</loc><changefreq>monthly</changefreq></url>
   <url><loc>https://digdevbox.com/mime-types</loc><changefreq>monthly</changefreq></url>
+  <url><loc>https://digdevbox.com/morse-code-converter</loc><changefreq>monthly</changefreq></url>
   <url><loc>https://digdevbox.com/numeronym-generator</loc><changefreq>monthly</changefreq></url>
   <url><loc>https://digdevbox.com/og-meta-generator</loc><changefreq>monthly</changefreq></url>
   <url><loc>https://digdevbox.com/otp-generator</loc><changefreq>monthly</changefreq></url>
@@ -57,10 +61,12 @@
   <url><loc>https://digdevbox.com/pdf-signature-checker</loc><changefreq>monthly</changefreq></url>
   <url><loc>https://digdevbox.com/percentage-calculator</loc><changefreq>monthly</changefreq></url>
   <url><loc>https://digdevbox.com/phone-parser-and-formatter</loc><changefreq>monthly</changefreq></url>
+  <url><loc>https://digdevbox.com/px-rem-converter</loc><changefreq>monthly</changefreq></url>
   <url><loc>https://digdevbox.com/qrcode-generator</loc><changefreq>monthly</changefreq></url>
   <url><loc>https://digdevbox.com/random-port-generator</loc><changefreq>monthly</changefreq></url>
   <url><loc>https://digdevbox.com/regex-memo</loc><changefreq>monthly</changefreq></url>
   <url><loc>https://digdevbox.com/regex-tester</loc><changefreq>monthly</changefreq></url>
+  <url><loc>https://digdevbox.com/rmb-uppercase</loc><changefreq>monthly</changefreq></url>
   <url><loc>https://digdevbox.com/roman-numeral-converter</loc><changefreq>monthly</changefreq></url>
   <url><loc>https://digdevbox.com/rsa-key-pair-generator</loc><changefreq>monthly</changefreq></url>
   <url><loc>https://digdevbox.com/safelink-decoder</loc><changefreq>monthly</changefreq></url>
@@ -70,6 +76,7 @@
   <url><loc>https://digdevbox.com/svg-placeholder-generator</loc><changefreq>monthly</changefreq></url>
   <url><loc>https://digdevbox.com/temperature-converter</loc><changefreq>monthly</changefreq></url>
   <url><loc>https://digdevbox.com/text-diff</loc><changefreq>monthly</changefreq></url>
+  <url><loc>https://digdevbox.com/text-replacer</loc><changefreq>monthly</changefreq></url>
   <url><loc>https://digdevbox.com/text-statistics</loc><changefreq>monthly</changefreq></url>
   <url><loc>https://digdevbox.com/text-to-binary</loc><changefreq>monthly</changefreq></url>
   <url><loc>https://digdevbox.com/text-to-nato-alphabet</loc><changefreq>monthly</changefreq></url>
@@ -78,6 +85,7 @@
   <url><loc>https://digdevbox.com/toml-to-json</loc><changefreq>monthly</changefreq></url>
   <url><loc>https://digdevbox.com/toml-to-yaml</loc><changefreq>monthly</changefreq></url>
   <url><loc>https://digdevbox.com/ulid-generator</loc><changefreq>monthly</changefreq></url>
+  <url><loc>https://digdevbox.com/unit-converter</loc><changefreq>monthly</changefreq></url>
   <url><loc>https://digdevbox.com/url-encoder</loc><changefreq>monthly</changefreq></url>
   <url><loc>https://digdevbox.com/url-parser</loc><changefreq>monthly</changefreq></url>
   <url><loc>https://digdevbox.com/user-agent-parser</loc><changefreq>monthly</changefreq></url>
