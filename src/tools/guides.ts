@@ -337,7 +337,7 @@ export const GUIDES: Record<string, ToolGuide> = {
   '/markdown-to-html': {
     intro: '把 Markdown 转成 HTML，写文档或生成页面内容时用。',
     steps: ['左侧写或粘 Markdown', '右侧实时预览并给出 HTML', '复制 HTML，需要时点打印存成 PDF'],
-    example: { label: '填入示例 Markdown', text: '# 标题\n\n这是一段 **加粗** 文本。\n\n- 列表项一\n- 列表项二\n\n[链接](https://mytoolset.pages.dev)' },
+    example: { label: '填入示例 Markdown', text: '# 标题\n\n这是一段 **加粗** 文本。\n\n- 列表项一\n- 列表项二\n\n[链接](https://digdevbox.com)' },
   },
 
   '/math-evaluator': {
@@ -399,7 +399,7 @@ export const GUIDES: Record<string, ToolGuide> = {
     intro: '把文本或链接生成二维码，可自定义颜色和尺寸后下载。',
     steps: ['填要编码的内容（网址、文本都行）', '按需调整前景色、背景色和尺寸', '点下载保存图片'],
     notes: ['内容越长二维码越密，扫不出来就减少内容或调大尺寸'],
-    example: { label: '填入示例链接', text: 'https://mytoolset.pages.dev' },
+    example: { label: '填入示例链接', text: 'https://digdevbox.com' },
   },
 
   '/random-port-generator': {
