@@ -1,20 +1,28 @@
 /*!
- * 经典版 CSV/Excel 转 HTML 表格实现（重建 dataToTable()）
+ * 经典版在线运行 JS/HTML 实现（覆盖页面内联的 webdebug）
  *
  * 本文件由 D:/work/_ops/build-legacy-glue.py 生成，请勿手改。
  * 经典版(legacy)的静态脚本在从老 PHP 站迁移时整体丢失（源站从未入库），
  * 此处按页面的调用契约重建：公开库按原样取回，自研胶水按契约重写。
  *
  * 组成来源：
- *   - 原 pcjs/csv2table.js 不可追回；分隔符自动判定，支持引号包裹字段与引号转义。
+ *   - 页面内联的 webdebug() 在弹窗被拦截时 window.open() 返回 null，直接抛 TypeError
+ *   - （真机审计报的 Cannot read properties of null 就是它）；且写死了 jQuery。
+ *   - 这里在页面内联脚本之后覆盖同名全局函数：优先开新窗口，开不出来退化为页内 iframe 预览。
  */
 
 /* ==========================================================================
- * 胶水：按 htmlfromcsv 页（excel/csv 转 html 表格）的契约重建
- *   输入 #content → 结果写入 #result，页面调用 dataToTable()
- *   分隔符自动判定（制表符 / 分号 / 逗号，取首行里出现最多的那个）；
- *   支持双引号包裹字段与 "" 转义；单元格内容做 HTML 转义。
- *   不假设首行是表头（一律 <td>）——「首行即表头」是猜测，猜错会改坏用户数据。
+ * 胶水：按 runjs 页（HTML/CSS/JS 在线运行）的契约重建
+ *   页面内联定义了 webdebug()：
+ *     function webdebug(){ var win=window.open(); win.document.open();
+ *                          win.document.write($("#content").val()); win.document.close() }
+ *   两个毛病：
+ *     1 window.open() 被浏览器拦截时返回 **null** → 「点了没反应」（真机审计抓到的就是它）
+ *     2 写死 jQuery
+ *   本文件在页面内联脚本之后加载，覆盖同名全局函数（onclick 在点击时才解析全局名，
+ *   所以后加载的这份生效）：优先仍然开新窗口（与原行为一致），开不出来就退化成
+ *   页面内 iframe 预览 —— 任何情况下都能看到运行结果。
+ *   执行结果状态记在 w.__legacyRunjs（mode: popup|frame|none），供自动化验收断言。
  * ========================================================================== */
 (function (w) {
     'use strict';
@@ -84,58 +92,53 @@
         return el;
     }
 
-    function pickDelim(text) {
-        var first = text.split('\n')[0] || '';
-        var t = (first.match(/\t/g) || []).length;
-        var c = (first.match(/,/g) || []).length;
-        var s = (first.match(/;/g) || []).length;
-        if (t > 0 && t >= c && t >= s) { return '\t'; }
-        return (s > c) ? ';' : ',';
-    }
-
-    function parseCsv(text, d) {
-        var rows = [], row = [], field = '', i = 0, inQuote = false, c;
-        while (i < text.length) {
-            c = text.charAt(i);
-            if (inQuote) {
-                if (c === '"') {
-                    if (text.charAt(i + 1) === '"') { field += '"'; i += 2; continue; }
-                    inQuote = false; i++; continue;
-                }
-                field += c; i++; continue;
-            }
-            if (c === '"' && field === '') { inQuote = true; i++; continue; }
-            if (c === d) { row.push(field); field = ''; i++; continue; }
-            if (c === '\n') { row.push(field); rows.push(row); row = []; field = ''; i++; continue; }
-            if (c === '\r') { i++; continue; }
-            field += c; i++;
+    function frameFor(text) {
+        var f = $id('dd-runjs-frame');
+        if (!f) {
+            f = document.createElement('iframe');
+            f.id = 'dd-runjs-frame';
+            f.style.cssText = 'width:100%;height:420px;border:1px solid #ddd;border-radius:4px;' +
+                'margin-top:12px;background:#fff';
+            var host = $id('content');
+            var box = host && host.closest ? (host.closest('form') || host.parentNode) : null;
+            if (!box) { box = document.body; }
+            if (box && box.appendChild) { box.appendChild(f); }
         }
-        if (field !== '' || row.length) { row.push(field); rows.push(row); }
-        return rows;
-    }
-
-    function esc(s) {
-        return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    }
-
-    function toTable(text) {
-        text = String(text).replace(/\r\n?/g, '\n').replace(/\n+$/, '');
-        if (!text) { return ''; }
-        var rows = parseCsv(text, pickDelim(text));
-        var out = ['<table border="1" cellspacing="0" cellpadding="4">'], i, j;
-        for (i = 0; i < rows.length; i++) {
-            out.push('  <tr>');
-            for (j = 0; j < rows[i].length; j++) {
-                out.push('    <td>' + esc(rows[i][j]) + '</td>');
-            }
-            out.push('  </tr>');
+        if ('srcdoc' in f) {
+            f.srcdoc = text;
+        } else if (f.contentDocument) {          /* 老浏览器兜底 */
+            f.contentDocument.open();
+            f.contentDocument.write(text);
+            f.contentDocument.close();
+        } else if (f.setAttribute) {
+            f.setAttribute('srcdoc', text);
         }
-        out.push('</table>');
-        return out.join('\n');
+        return f;
     }
 
-    w.dataToTable = function () { emit(toTable(readText())); };
-
-    w.__legacyFormat = w.__legacyFormat || {};
-    w.__legacyFormat.csvToTable = toTable;
+    w.webdebug = function () {
+        var text = readText(null, 'content');
+        var st = { mode: 'none', ok: false, chars: text.length };
+        w.__legacyRunjs = st;
+        if (text.replace(/\s/g, '') === '') {
+            status('请先把要调试的 HTML/JS 代码粘贴到输入框');
+            return st;
+        }
+        var win = null;
+        try { win = w.open('', '_blank'); } catch (e) { win = null; }
+        if (win && win.document) {
+            try {
+                win.document.open();
+                win.document.write(text);
+                win.document.close();
+                st.mode = 'popup';
+                st.ok = true;
+                return st;
+            } catch (e) { /* 落到 iframe 兜底 */ }
+        }
+        var f = frameFor(text);
+        st.mode = 'frame';
+        st.ok = !!f;
+        return st;
+    };
 })(window);

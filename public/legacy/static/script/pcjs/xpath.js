@@ -62,6 +62,29 @@
         return out;
     }
 
+    /* 右下角浮层：给「报告类」操作（统计字数 / 查错别字 / 输入校验）一个非阻塞出口。
+       原站这类操作多用 alert()，既阻塞又会卡住自动化验收；浮层可点击关闭。
+       返回浮层元素，同时把最后一次内容记在 w.__legacyLastMsg 供自动化断言。 */
+    function status(msg) {
+        var text = (msg === undefined || msg === null) ? '' : String(msg);
+        w.__legacyLastMsg = text;
+        var el = $id('dd-legacy-msg');
+        if (!el || !el.parentNode) {
+            if (!document.body || !document.createElement) { return null; }
+            el = document.createElement('div');
+            el.id = 'dd-legacy-msg';
+            el.style.cssText = 'position:fixed;right:18px;bottom:18px;z-index:9999;max-width:420px;' +
+                'padding:10px 14px;border-radius:6px;background:#0f766e;color:#fff;font-size:13px;' +
+                'line-height:1.7;white-space:pre-wrap;box-shadow:0 4px 16px rgba(0,0,0,.25);cursor:pointer';
+            el.title = '点击关闭';
+            el.onclick = function () { el.style.display = 'none'; };
+            document.body.appendChild(el);
+        }
+        el.textContent = text;
+        el.style.display = '';
+        return el;
+    }
+
     var PRESET = { 1: '//img', 3: '//a' };
 
     function parseDoc(html) {
