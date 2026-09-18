@@ -489,3 +489,6 @@ tools:
   ascii-table:
     title: "ASCII 码表"
     description: "标准 ASCII 码表（0 至 127），同时给出十进制、十六进制、八进制、二进制与字符，支持搜索。"
+
+tool:
+  relatedTitle: "相关工具"

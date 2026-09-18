@@ -140,12 +140,19 @@ function onUpdateFavoriteTools() {
           </div>
         </div>
 
-        <h3 class="mb-5px mt-25px text-neutral-400 font-500">
-          {{ $t('home.categories.allTools') }}
-        </h3>
-        <div class="grid grid-cols-1 gap-12px lg:grid-cols-3 md:grid-cols-3 sm:grid-cols-2 xl:grid-cols-4">
-          <ToolCard v-for="tool in toolStore.tools" :key="tool.name" :tool="tool" />
-        </div>
+        <!--
+          分类浏览：107 个工具平铺成一个大网格时，新用户只能靠眼睛扫。
+          按与侧边栏一致的分类聚合成分区，落地首页即可按类浏览，不再依赖先开菜单。
+        -->
+        <template v-for="cat of toolStore.toolsByCategory" :key="cat.name">
+          <h3 class="mb-5px mt-25px text-neutral-400 font-500">
+            {{ cat.name }}
+            <span class="cat-count">{{ cat.components.length }}</span>
+          </h3>
+          <div class="grid grid-cols-1 gap-12px lg:grid-cols-3 md:grid-cols-3 sm:grid-cols-2 xl:grid-cols-4">
+            <ToolCard v-for="tool in cat.components" :key="tool.name" :tool="tool" />
+          </div>
+        </template>
 
         <!--
           经典版入口。老站 162 个工具原样保留在 public/legacy/，是独立静态子站，
@@ -237,6 +244,19 @@ function onUpdateFavoriteTools() {
   margin-bottom: 10px;
   opacity: 0.6;
   font-size: 13px;
+}
+
+/* 分类分区标题后的计数徽标，与侧边栏分类风格呼应 */
+.cat-count {
+  margin-left: 8px;
+  padding: 0 7px;
+  border-radius: 9px;
+  background-color: rgba(128, 128, 128, 0.16);
+
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 18px;
+  opacity: 0.7;
 }
 
 .height-enter-active,

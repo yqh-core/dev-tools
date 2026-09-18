@@ -1,11 +1,13 @@
 <script lang="ts" setup>
-import { ref, watch } from 'vue';
-import { useRoute } from 'vue-router';
+import { computed, ref, watch } from 'vue';
+import { RouterLink, useRoute } from 'vue-router';
 import { useHead } from '@vueuse/head';
 import type { HeadObject } from '@vueuse/head';
 
 import BaseLayout from './base.layout.vue';
 import FavoriteButton from '@/components/FavoriteButton.vue';
+import ToolCard from '@/components/ToolCard.vue';
+import { useToolStore } from '@/tools/tools.store';
 import type { Tool } from '@/tools/tools.types';
 
 // 只取类型，不会把几十 KB 的文案打进主包
@@ -28,6 +30,21 @@ const head = computed<HeadObject>(() => ({
 }));
 useHead(head);
 const { t } = useI18n();
+
+/**
+ * 同类相关工具。
+ *
+ * 工具定义本身不带分类字段，分类是聚合层（toolsByCategory）后来加的，
+ * 所以这里从 store 的 tools（已含 category）按当前路由反查分类，再取同分类的其它工具。
+ * 进工具页时给一个「同类推荐」，不用退出当前页就能发现相邻工具。
+ */
+const toolStore = useToolStore();
+const currentCategory = computed(() => toolStore.tools.find(tool => tool.path === route.path)?.category ?? '');
+const relatedTools = computed(() =>
+  currentCategory.value
+    ? toolStore.tools.filter(tool => tool.category === currentCategory.value && tool.path !== route.path).slice(0, 8)
+    : [],
+);
 
 const i18nKey = computed<string>(() => route.path.trim().replace('/', ''));
 const toolTitle = computed<string>(() => t(`tools.${i18nKey.value}.title`, String(route.meta.name)));
@@ -127,6 +144,14 @@ function applyExample() {
   <BaseLayout>
     <div class="tool-layout">
       <div class="tool-header">
+        <div class="breadcrumb">
+          <RouterLink to="/">{{ $t('home.home') }}</RouterLink>
+          <span class="sep">/</span>
+          <span>{{ currentCategory }}</span>
+          <span class="sep">/</span>
+          <span class="current">{{ toolTitle }}</span>
+        </div>
+
         <div flex flex-nowrap items-center justify-between>
           <n-h1>
             {{ toolTitle }}
@@ -185,6 +210,13 @@ function applyExample() {
     <div class="tool-content">
       <slot />
     </div>
+
+    <div v-if="relatedTools.length" class="related">
+      <h3 class="related-head">{{ $t('tool.relatedTitle') }}</h3>
+      <div class="grid grid-cols-1 gap-12px sm:grid-cols-2 md:grid-cols-3">
+        <ToolCard v-for="tool in relatedTools" :key="tool.name" :tool="tool" />
+      </div>
+    </div>
   </BaseLayout>
 </template>
 
@@ -206,6 +238,35 @@ function applyExample() {
   max-width: 600px;
   margin: 0 auto;
   box-sizing: border-box;
+
+  .breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 14px;
+
+    font-size: 13px;
+    opacity: 0.6;
+
+    a {
+      color: inherit;
+      text-decoration: none;
+      opacity: 0.85;
+
+      &:hover {
+        opacity: 1;
+        text-decoration: underline;
+      }
+    }
+
+    .sep {
+      opacity: 0.5;
+    }
+
+    .current {
+      opacity: 0.9;
+    }
+  }
 
   .tool-header {
     padding: 40px 0;
@@ -233,6 +294,22 @@ function applyExample() {
 
       opacity: 0.7;
     }
+  }
+}
+
+/* 同类相关工具推荐 */
+.related {
+  max-width: 600px;
+  margin: 0 auto;
+  box-sizing: border-box;
+  padding-top: 28px;
+
+  .related-head {
+    margin: 0 0 12px;
+
+    font-size: 15px;
+    font-weight: 500;
+    opacity: 0.75;
   }
 }
 

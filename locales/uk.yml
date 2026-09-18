@@ -132,3 +132,6 @@ tools:
   ascii-table:
     title: "ASCII table"
     description: "The standard ASCII table from 0 to 127 with decimal, hexadecimal, octal and binary values, searchable by character or code."
+
+tool:
+  relatedTitle: "Related tools"
