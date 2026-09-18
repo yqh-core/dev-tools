@@ -1,12 +1,31 @@
 <script setup lang="ts">
-import db from 'oui-data';
 import { macAddressValidationRules } from '@/utils/macAddress';
 import { useCopy } from '@/composable/copy';
 
 const getVendorValue = (address: string) => address.trim().replace(/[.:-]/g, '').toUpperCase().substring(0, 6);
 
 const macAddress = ref('20:37:06:12:34:56');
-const details = computed<string | undefined>(() => (db as Record<string, string>)[getVendorValue(macAddress.value)]);
+
+// oui-data 整包约 1MB，改为按需动态加载：仅在工具挂载后才拉取，
+// 并拆成独立 chunk，避免拖慢首屏与其它工具。
+const db = shallowRef<Record<string, string> | null>(null);
+
+const details = computed<string | undefined>(() => {
+  if (!db.value) {
+    return undefined;
+  }
+  return db.value[getVendorValue(macAddress.value)];
+});
+
+async function loadVendorDb() {
+  if (db.value) {
+    return;
+  }
+  const mod = await import('oui-data');
+  db.value = mod.default as Record<string, string>;
+}
+
+onMounted(loadVendorDb);
 
 const { copy } = useCopy({ source: () => details.value ?? '', text: 'Vendor info copied to the clipboard' });
 </script>
