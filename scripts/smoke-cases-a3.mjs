@@ -190,4 +190,29 @@ export const SMOKE_CASES = [
       not: ['加载失败'],
     },
   },
+
+  {
+    // F-8 的验证（新增）：接口在 events 为空时会返回 note 解释「为什么没有」，
+    // 但组件原先把它丢了、只硬编码一句「今天没有查到历史事件记录」。
+    // 用注入伪造「空 events + note」是**确定性**的 —— 不依赖当天恰好没收录
+    // （数据集只覆盖 29/365 天，靠等日期来验这条一年只能验几个月）。
+    ...TODAY,
+    name: 'today-in-history@api-200empty',
+    interceptApi: 'ok200empty',
+    strategy:
+      'realInput（空态注入）：注入 { events: [], note } —— 页面必须把接口给的「为什么没有」渲染出来，而不是只丢一句「没查到」',
+    steps: [{ wait: 2200 }],
+    expect: {
+      // note 原文出现在页面上 = 接口的说明真的透到了 UI（这是 F-8 的修复目标）
+      text: ['今日暂无收录事件，数据集持续完善中'],
+      not: ['加载失败'],
+      // 空态不得同时把「加载失败」的文案也渲染出来（两者互斥）
+      outNot: ['加载失败'],
+      js: `(function(){
+        var alert = document.querySelector('.tool-content .c-alert');
+        if (!alert || !alert.innerText.trim()) return false;
+        return ${STILL_USABLE};
+      })()`,
+    },
+  },
 ];

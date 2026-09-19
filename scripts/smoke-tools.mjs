@@ -462,27 +462,39 @@ const API_STUB_OK = JSON.stringify({
 });
 
 /**
- * 对照组（ok200）的响应体必须**逐个接口对齐真实契约**，否则前端会走到别的分支，
- * 对照组就失去意义。三个契约（读自 functions/api/*.js 与对应组件）：
- *   /api/whois      → { domain, raw }
- *   /api/webstatus  → { status, headers }
- *   /api/today      → { events: [{ date, title }] }
+ * 对照组（ok200 / ok200empty）的响应体必须**逐个接口对齐真实契约**，否则前端会走到别的分支，
+ * 对照组就失去意义。三个契约（读自 functions/api/*.js 与线上真实响应）：
+ *   /api/whois      → { domain, raw, source }（raw 是带中文标签的 RDAP 文本）
+ *   /api/webstatus  → { url, status, headers }
+ *   /api/today      → { date, events: [{ date, title }], note? }
+ *                     note 只在 events 为空时出现（Response.json 会丢掉 undefined 键）
+ *
+ * ok200empty：只对 /api/today 有意义 —— 伪造「当日无收录」+ note，
+ * 用来**确定性**验证空态有没有把接口给的「为什么」渲染出来（不依赖当天日期）。
  */
-function stubBodyFor(url) {
+function stubBodyFor(url, empty = false) {
   if (url.includes('/api/whois')) {
     return JSON.stringify({
       domain: 'example.com',
-      raw: 'Domain Name: EXAMPLE.COM\nRegistrar: RESERVED-Internet Assigned Numbers Authority\nStatus: reserved',
+      raw: '域名          : EXAMPLE.COM\n注册商        : RESERVED-Internet Assigned Numbers Authority\n到期时间      : 2027-08-13 04:00 UTC',
+      source: 'https://rdap.verisign.com/com/v1/domain/example.com',
     });
   }
   if (url.includes('/api/webstatus')) {
     return JSON.stringify({
+      url: 'https://example.com/',
       status: 200,
       headers: { 'content-type': 'text/html; charset=UTF-8', 'server': 'stub' },
-      createdAt: new Date().toISOString(),
     });
   }
   if (url.includes('/api/today')) {
+    if (empty) {
+      return JSON.stringify({
+        date: '09-19',
+        events: [],
+        note: '今日暂无收录事件，数据集持续完善中',
+      });
+    }
     return JSON.stringify({ events: [{ date: '1991-08-06', title: 'stub event for smoke test' }] });
   }
   return API_STUB_OK;
@@ -532,12 +544,12 @@ ws.addEventListener('message', ev => {
           responseHeaders: [{ name: 'content-type', value: 'application/json; charset=utf-8' }],
           body: Buffer.from('{"error":"injected failure by smoke test"}').toString('base64'),
         }).catch(() => {});
-      } else if (interceptApi === 'ok200') {
+      } else if (interceptApi === 'ok200' || interceptApi === 'ok200empty') {
         send('Fetch.fulfillRequest', {
           requestId,
           responseCode: 200,
           responseHeaders: [{ name: 'content-type', value: 'application/json; charset=utf-8' }],
-          body: Buffer.from(stubBodyFor(request.url || '')).toString('base64'),
+          body: Buffer.from(stubBodyFor(request.url || '', interceptApi === 'ok200empty')).toString('base64'),
         }).catch(() => {});
       } else {
         send('Fetch.continueRequest', { requestId }).catch(() => {});
