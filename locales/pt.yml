@@ -1,4 +1,7 @@
 home:
+  hero:
+    title: "Caixa de ferramentas do desenvolvedor"
+    subtitle: "Uma coleção de ferramentas online para desenvolvedores e equipes de operações: {count} ferramentas, todas executadas localmente no navegador. Nada é enviado nem armazenado."
   classic:
     entry: "Ferramentas clássicas"
     desc: "162 ferramentas do site antigo. Simples, mas rápidas de carregar."

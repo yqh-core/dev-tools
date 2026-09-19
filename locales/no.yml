@@ -1,4 +1,7 @@
 home:
+  hero:
+    title: "Utviklerverktøy"
+    subtitle: "En nettbasert verktøykasse for utviklere og driftsteam: {count} verktøy som kjører lokalt i nettleseren. Ingenting lastes opp eller lagres."
   classic:
     entry: "Klassiske verktøy"
     desc: "162 verktøy fra det gamle nettstedet. Enkle, men raske å laste."

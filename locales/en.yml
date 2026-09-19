@@ -1,4 +1,7 @@
 home:
+  hero:
+    title: "Developer Toolbox"
+    subtitle: "An online toolbox for developers and ops engineers: {count} tools, all running locally in your browser. Nothing is uploaded or stored."
   classic:
     entry: "Classic tools"
     desc: "162 tools kept from the older site. Plain-looking but fast to load."

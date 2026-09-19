@@ -54,6 +54,21 @@ function onUpdateFavoriteTools() {
 <template>
   <div class="pt-50px">
     <div class="grid-wrapper">
+      <!--
+        页面级标题与站点身份说明。
+        首页原先直接从搜索框开始，整页只有分类用的 <h3>：既没有 h1，也没有一句话
+        说明这个站是什么。抓取器读到的初始 HTML 因此缺「页面主题」这一层信息。
+        工具总数从 store 取真实值，不写死在文案里。
+      -->
+      <header class="home-hero">
+        <h1 class="home-hero-title">
+          {{ $t('home.hero.title') }}
+        </h1>
+        <p class="home-hero-subtitle">
+          {{ $t('home.hero.subtitle', { count: toolStore.tools.length }) }}
+        </p>
+      </header>
+
       <!-- 搜索框：工具一多，「找得到」比「有多少」更重要 -->
       <div class="search-bar">
         <n-icon :component="IconSearch" class="search-icon" />
@@ -178,6 +193,28 @@ function onUpdateFavoriteTools() {
 </template>
 
 <style scoped lang="less">
+/* 首页顶部：页面级标题 + 一句话站点身份说明（对应 P0-2 / STEP 4） */
+.home-hero {
+  margin-bottom: 18px;
+
+  .home-hero-title {
+    margin: 0 0 6px;
+
+    font-size: 22px;
+    font-weight: 600;
+    line-height: 1.3;
+  }
+
+  .home-hero-subtitle {
+    max-width: 760px;
+    margin: 0;
+
+    font-size: 14px;
+    line-height: 1.65;
+    opacity: 0.65;
+  }
+}
+
 .search-bar {
   display: flex;
   align-items: center;

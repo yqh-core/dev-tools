@@ -1,4 +1,7 @@
 home:
+  hero:
+    title: "Boîte à outils du développeur"
+    subtitle: "Une collection d'outils en ligne pour les développeurs et les équipes d'exploitation : {count} outils, tous exécutés localement dans le navigateur. Aucune donnée n'est envoyée ni conservée."
   classic:
     entry: "Outils classiques"
     desc: "162 outils de l'ancien site. Sobre, mais rapide à charger."

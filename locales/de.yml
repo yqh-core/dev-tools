@@ -6,6 +6,9 @@
     versuchen?
   backHome: Zurück zur Startseite
 home:
+  hero:
+    title: "Entwickler-Toolbox"
+    subtitle: "Eine Online-Toolbox für Entwickler und Betriebsteams: {count} Tools, die vollständig lokal im Browser laufen. Nichts wird hochgeladen oder gespeichert."
   classic:
     entry: "Klassische Tools"
     desc: "162 Tools der alten Seite. Schlicht, aber schnell geladen."

@@ -1,4 +1,7 @@
 home:
+  hero:
+    title: "Caja de herramientas para desarrolladores"
+    subtitle: "Una colección de herramientas en línea para desarrolladores y equipos de operaciones: {count} herramientas, todas ejecutadas localmente en el navegador. No se sube ni se guarda ningún dato."
   classic:
     entry: "Herramientas clásicas"
     desc: "162 herramientas del sitio antiguo. Sobrias pero rápidas de cargar."

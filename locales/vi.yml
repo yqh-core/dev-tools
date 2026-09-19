@@ -1,4 +1,7 @@
 home:
+  hero:
+    title: "Hộp công cụ cho lập trình viên"
+    subtitle: "Bộ công cụ trực tuyến cho lập trình viên và kỹ sư vận hành: {count} công cụ, tất cả chạy cục bộ trong trình duyệt. Không tải lên hay lưu trữ dữ liệu nào."
   classic:
     entry: "Công cụ cổ điển"
     desc: "162 công cụ từ trang cũ. Giao diện mộc mạc nhưng tải nhanh."
