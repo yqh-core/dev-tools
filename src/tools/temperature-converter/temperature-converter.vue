@@ -91,7 +91,12 @@ function update(key: TemperatureScale) {
   _.chain(units)
     .omit(key)
     .forEach(({ fromKelvin }, index) => {
-      units[index].ref = Math.floor((fromKelvin(kelvins) ?? 0) * 100) / 100;
+      // 取到 2 位小数必须**四舍五入**，不能用 Math.floor 截断。
+      // 100°C → 373.15K → 华氏 = 373.15 * 1.8 - 459.67，浮点结果是 211.99999999999994；
+      // Math.floor(21199.999999999996)/100 = 211.99 —— 显示出来的换算值比真值少 0.01，
+      // 是一个用户会直接看到并当成正确答案的错数值。toFixed(2) 按最近值取整 → 212。
+      const v = fromKelvin(kelvins) ?? 0;
+      units[index].ref = Number.isFinite(v) ? Number(v.toFixed(2)) : v;
     })
     .value();
 }

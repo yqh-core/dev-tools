@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import figlet from 'figlet';
+import standardFont from '@/assets/figlet/Standard.flf?raw';
 import TextareaCopyable from '@/components/TextareaCopyable.vue';
 
 const input = ref('Ascii ART');
@@ -9,7 +10,25 @@ const output = ref('');
 const errored = ref(false);
 const processing = ref(false);
 
-figlet.defaults({ fontPath: '//unpkg.com/figlet@1.6.0/fonts/' });
+/**
+ * 默认字体（Standard）**内置**，不走网络。
+ *
+ * 为什么必须内置：图省事写成 `fontPath: '//unpkg.com/...'` 时，字体是在运行时从第三方
+ * CDN 拉的，于是这个工具的可用性完全押在 unpkg 上 —— 它不可达（国内网络常见）、被墙、
+ * 或该版本被撤时，工具直接不可用，而本站对此无能为力。实测（无头 Chrome，http origin）：
+ * 协议相对 URL 解析成 http → unpkg 302 到 https → 重定向响应不带 CORS 头 → 被浏览器拦下，
+ * 页面报 “Current settings resulted in error.”，另附 4 条未捕获异常。
+ *
+ * figlet 的 loadFont() 遇到已注册的字体会直接返回（不发起 fetch），所以 parseFont 一次即可。
+ * 其余字体仍是按需从 CDN 拉 —— 这一点在方案里作为已知限制记录，不在本轮展开。
+ */
+figlet.parseFont('Standard', standardFont);
+
+// 绝对 https，不再用协议相对 URL：页面是 http 时它会解析成 http → 302 → CORS 失败。
+// （生产站是 https，但本地与预览环境是 http，不能让它在这里炸。）
+// 版本号必须跟 package.json 里的 figlet 依赖一致 —— 原先是 1.6.0，
+// 而实际装的是 1.7.0，等于让运行时字体与库来自两个版本。末尾不加斜杠，避免拼成 `fonts//X.flf`。
+figlet.defaults({ fontPath: 'https://unpkg.com/figlet@1.7.0/fonts' });
 
 watchEffect(async () => {
   processing.value = true;
@@ -79,7 +98,8 @@ const fonts = ['1Row', '3-D', '3D Diagonal', '3D-ASCII', '3x5', '4Max', '5 Line 
     </div>
 
     <c-alert v-if="errored" mt-1 text-center type="error">
-      Current settings resulted in error.
+      Could not render with font “{{ font }}”. If the font was not used before it has to be
+      downloaded from the CDN — check your network connection, then try another font.
     </c-alert>
 
     <n-form-item v-if="!processing && !errored" label="Ascii Art text:">

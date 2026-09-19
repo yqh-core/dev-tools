@@ -10,6 +10,13 @@ declare module '*.md' {
   export default Component;
 }
 
+/** Vite 的 `?raw` 后缀：把文件内容原样当字符串导入。
+ *  figlet 的 .flf 字体走这条路打进包里（见 ascii-text-drawer）。 */
+declare module '*?raw' {
+  const content: string;
+  export default content;
+}
+
 declare module 'iarna-toml-esm' {
   export const parse: (toml: string) => any;
   export const stringify: (obj: any) => string;

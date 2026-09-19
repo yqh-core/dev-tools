@@ -25,3 +25,7 @@ public/_redirects text eol=lf
 # 一旦行尾被改写，整个文件的结构就废了（pdf-signature-checker 会直接报损坏）。
 # 必须整体钉成二进制。
 *.pdf binary
+
+# figlet 字体（.flf）是**逐行解析**的文本格式：字形行里的行尾会被原样带进渲染结果。
+# 仓库开了 autocrlf，若不钉死，检出后每行尾部多一个 \r，字符画里就会混进脏字符。
+*.flf text eol=lf
