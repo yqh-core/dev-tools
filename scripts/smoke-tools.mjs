@@ -81,7 +81,7 @@ const BASE = argOf('--base', 'https://digdevbox.com').replace(/\/+$/, '');
 const CANON_ORIGIN = argOf('--canonical-origin', BASE).replace(/\/+$/, '');
 const SERVE_DIST = argOf('--serve-dist', '');
 const LOCAL = !!SERVE_DIST;
-const PORT = Number(argOf('--port', '4192'));
+let PORT = Number(argOf('--port', '4192'));
 const OUT = path.resolve(argOf('--out', path.join(REPO, '.smoke-out')));
 const BUDGET = Number(argOf('--budget', '20000'));
 const ONLY = (argOf('--only', '') || '')
@@ -106,6 +106,18 @@ fs.mkdirSync(OUT, { recursive: true });
 
 // 站点根 URL（用于判定同源 / 拼 canonical）
 const BASE_URL = new URL(BASE);
+
+/**
+ * --base 与 --port 各写各的，是本工具最贵的一个坑：内置静态服务绑在 PORT，
+ * 而浏览器访问的是 BASE —— 两者不一致时每一页都变成「无法访问此网站」，
+ * 报告里表现为「初始 HTML 非 200 / 组件未挂载 / 缺少 .tool-content」，
+ * 看着像 101 个页面全坏了。实测踩过：16 条全失败，查了几分钟才发现是端口。
+ * 既然 BASE 是明确给定的目标，就以它为准把服务端口对齐过去，并打一行日志。
+ */
+if (LOCAL && BASE_URL.port && Number(BASE_URL.port) !== PORT) {
+  console.log(`[serve] --base 的端口 ${BASE_URL.port} 与 --port ${PORT} 不一致 → 服务端口改为 ${BASE_URL.port}`);
+  PORT = Number(BASE_URL.port);
+}
 
 // ─────────────────────────────── 噪声白名单 ───────────────────────────────
 // 第三方 host：广告 / 统计 / 字体。这些域报错与被测功能无关。
