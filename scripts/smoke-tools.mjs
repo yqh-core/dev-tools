@@ -1137,13 +1137,30 @@ async function runCase(c) {
         else if (step.wait) await sleep(step.wait);
         else if (step.waitText) {
           const until = Date.now() + (step.waitText.ms || 4000);
+          // scope：等待范围。默认整页，但**工具页的文案常常在「工具描述/使用说明」里
+          // 也出现一份**，而描述在 .tool-content 之外 —— 于是「等结果出现」会立刻
+          // 被描述文字满足，几秒后就断言，结果还在飞。实测踩过：/whois-lookup 等
+          // '注册信息'，描述里就有这四个字，请求却还在 pending（按钮停在"查询中…"）。
+          // 等结果文案时一律显式限定 scope: '.tool-content'。
+          const q = step.waitText.scope
+            ? `(document.querySelector('${step.waitText.scope}') || {}).innerText || ''`
+            : 'document.body.innerText';
           let hit = false;
           while (Date.now() < until && !hit) {
-            const txt = await evaluate(`document.body.innerText`).catch(() => '');
+            const txt = await evaluate(q).catch(() => '');
             hit = (txt || '').includes(step.waitText.text);
             if (!hit) await sleep(200);
           }
           if (!hit) err = `等待文案超时：${step.waitText.text}`;
+        } else if (step.waitSel) {
+          // 等某个选择器出现（比等文案更硬：元素存在与否不会被别处的同名字符串骗过）
+          const until = Date.now() + (step.waitSel.ms || 6000);
+          let hit = false;
+          while (Date.now() < until && !hit) {
+            hit = await evaluate(`!!document.querySelector(${JSON.stringify(step.waitSel.sel)})`).catch(() => false);
+            if (!hit) await sleep(200);
+          }
+          if (!hit) err = `等待元素超时：${step.waitSel.sel}`;
         } else {
           err = '未知步骤：' + JSON.stringify(step);
         }
@@ -1202,7 +1219,11 @@ async function runCase(c) {
   let custom = null;
   if (exp.js) {
     try {
-      custom = await evaluate(`(() => { try { return !!(${exp.js}); } catch (e) { return 'ERR:' + e.message; } })()`);
+      // 这里**不能**用 !! 强制转布尔：那样「返回一串原因字符串」会被转成 true 而静默通过，
+      // 而 `return null` 会被转成 false 当失败 —— 两种写法都不直观（实测踩过：
+      // /today-in-history 的 js 返回 null 表示「空态也算合法」，被 !! 变成 false 后误报失败）。
+      // 约定与步骤里的 js 一致：返回 false 或**非空字符串**（作为失败原因）即失败。
+      custom = await evaluate(`(() => { try { return (${exp.js}); } catch (e) { return 'ERR:' + e.message; } })()`);
     } catch (e) {
       custom = 'ERR:' + (e.message || e);
     }
@@ -1295,8 +1316,14 @@ async function runCase(c) {
   if (outMissing.length) fail('输出区缺少文本：' + JSON.stringify(outMissing));
   if (outRegexMiss.length) fail('输出区正则未命中：' + JSON.stringify(outRegexMiss));
   if (outForbidden.length) fail('输出区命中禁止文本：' + JSON.stringify(outForbidden));
-  if (custom === false) fail('自定义断言未通过');
-  if (typeof custom === 'string' && custom.startsWith('ERR:')) fail('自定义断言异常：' + custom);
+  // 注意整块都要在 exp.js 存在时才判 —— custom 的初值就是 null，
+  // 不判 exp.js 会把「这条用例压根没写 js 断言」当成「js 返回了 null」而误报失败
+  // （本地 A3 一跑就抓到了这个回归）。
+  if (exp.js) {
+    if (custom === false || custom === null || custom === undefined) fail('自定义断言未通过');
+    else if (typeof custom === 'string' && custom && !custom.startsWith('ERR:')) fail('自定义断言未通过：' + custom);
+    if (typeof custom === 'string' && custom.startsWith('ERR:')) fail('自定义断言异常：' + custom);
+  }
   if (exp.canvasNonBlank && (!canvas || !canvas.count || !canvas.nonBlank)) {
     fail('canvas 未渲染出内容：' + JSON.stringify(canvas));
   }

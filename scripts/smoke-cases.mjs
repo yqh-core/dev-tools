@@ -20,7 +20,16 @@
  *   onlineOnly  依赖 /api/*，本地静态服务下必然拿不到数据，只在线上跑
  *   interceptApi 'fail500' | 'ok200' —— 用 CDP 拦截 /api/* 注入结果（A3 失败态）
  *   steps       步骤数组，见下
- *   expect      { text: [...], not: [...], regex: [...], js: '<表达式>', canvasNonBlank: true }
+ *   expect      { text, not, regex,                        ← 取值面=整页文本+全部控件值
+ *                 out, outRegex, outNot,                   ← 取值面=工具区文本+控件值(剔除与输入相同的)
+ *                 js, imageData, canvasNonBlank, consoleNoise }
+ *
+ *   ⚠️ 「输出恰好是输入的**回显**」的工具（解析/格式化/范围展开…）必须用 out 家族，
+ *      不能用 text/regex —— 期望值就躺在输入框里，text 断言恒真（假通过）。
+ *      `--lint-only` 会扫出这类空转断言，blind 必须为 0。
+ *
+ *   expect.js 返回 true 通过；返回 false 或**非空字符串**即失败（字符串当失败原因打印）。
+ *   注意别用 null 表示「通过」—— 早期引擎用 !! 强转，null 会变成 false 从而误报失败（踩过）。
  *
  * 步骤
  *   { applyExample: true }              点「怎么用这个工具？」里的示例按钮（guides.ts 的 example.text）
@@ -31,7 +40,11 @@
  *   { pick: { sel, text } }             点开下拉再选中文案匹配的选项
  *   { upload: { i, file, sel? } }       给文件输入注入真实文件（路径相对仓库根）
  *   { js: '<表达式>' }                  页内脚本；返回字符串=失败，返回 null=通过
- *   { wait: 毫秒 } / { waitText: { text, ms } }
+ *   { wait: 毫秒 } / { waitText: { text, ms, scope? } } / { waitSel: { sel, ms } }
+ *                 等东西出现一律用 waitText / waitSel（轮询+上限）；wait 只让动画/防抖跑完。
+ *                 waitText 默认在整页找 —— 工具页的文案常常在「使用说明」里也有一份，
+ *                 而说明在 .tool-content 之外；等结果文案时务必带 scope: '.tool-content'，
+ *                 或干脆用 waitSel 等结果元素（更硬）。两者都踩过。
  *
  * 断言策略（strategy 字段用的词）
  *   knownVector  外部公认测试向量（如 MD5("hello world")、BIP39 全零熵、罗马数字 2024）
@@ -1422,7 +1435,8 @@ export const SMOKE_CASES = [
     steps: [
       { fill: { i: 0, text: 'example.com' } },
       { click: '检测状态码' },
-      { waitText: { text: '响应头', ms: 12000 } },
+      // scope 限定到工具区：状态区的文案不能靠整页里同名的说明文字满足
+      { waitText: { text: '响应头（', ms: 15000, scope: '.tool-content' } },
     ],
     expect: {
       out: ['状态码', '响应头'],
@@ -1521,14 +1535,20 @@ export const SMOKE_CASES = [
     // 不是页面缺陷。改成认**两种合法态**：有收录则必须渲染出带年份的事件；
     // 未收录则必须给出空态说明。唯一不允许的是加载失败。
     strategy: 'structural（线上）：当日有收录→必须渲染带年份的事件；未收录→必须有空态说明；都不许是加载失败',
-    steps: [{ waitText: { text: '重新加载', ms: 8000 } }, { wait: 3500 }],
+    steps: [
+      // 等「加载完成」的**元素**而不是固定 sleep：数据集非空 → 渲染事件卡片；
+      // 数据集为空（本数据集只覆盖 29/365 天）→ 渲染提示 alert。两种都算加载完成。
+      { waitSel: { sel: '.tool-content .c-alert, .tool-content .c-card, .tool-content .n-card', ms: 12000 } },
+    ],
     expect: {
+      // 返回 true 通过；返回**非空字符串**即失败并把原因打出来（引擎的 js 约定）
       js: `(function(){
         var t = document.querySelector('.tool-content').innerText;
         if (/加载失败|Failed to fetch|服务返回/.test(t)) return '接口失败：' + t.slice(0, 160);
         var hasEvents = /\\b(1[0-9]{3}|20[0-9]{2})\\b/.test(t);
         var emptyState = /暂无收录|没有查到历史事件/.test(t);
-        return (hasEvents || emptyState) ? null : '既没有事件也没有空态说明：' + t.slice(0, 160);
+        if (hasEvents || emptyState) return true;
+        return '既没有事件也没有空态说明：' + t.slice(0, 160);
       })()`,
       outNot: ['加载失败'],
       not: ['Failed to fetch'],
@@ -1549,7 +1569,10 @@ export const SMOKE_CASES = [
     steps: [
       { fill: { i: 0, text: 'example.com' } },
       { click: '查询 WHOIS' },
-      { waitText: { text: '注册信息', ms: 15000 } },
+      // 等**元素**而不是等文案：'注册信息' 这四个字在工具页的「使用说明」里也有，
+      // 而说明在 .tool-content 之外 —— 等文案会被它立刻满足，请求却还在飞
+      // （实测线上：3s 后断言，按钮停在「查询中…」）。结果区只在成功时渲染。
+      { waitSel: { sel: '.tool-content [data-test-id="area-content"]', ms: 15000 } },
     ],
     expect: {
       out: ['注册信息', '注册商', '到期时间'],
