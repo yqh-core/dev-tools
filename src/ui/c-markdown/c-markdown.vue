@@ -13,7 +13,14 @@ marked.use({
   },
 });
 
-const html = computed(() => DomPurify.sanitize(marked(markdown.value), { ADD_ATTR: ['target'] }));
+// DOMPurify 依赖 DOM：Node 下 isSupported=false 且 sanitize 不是函数，
+// 构建期预渲染（scripts/build-seo.mjs）会直接 TypeError。
+// 预渲染内容来自仓库内的 .md 文件（构建期可信内容），SSR 下只跑 marked。
+const isSSR = typeof window === 'undefined';
+
+const html = computed(() =>
+  isSSR ? marked(markdown.value) : DomPurify.sanitize(marked(markdown.value), { ADD_ATTR: ['target'] }),
+);
 </script>
 
 <template>
