@@ -1,0 +1,106 @@
+<script setup lang="ts">
+/**
+ * 工具页「SEO 骨架」—— 构建期预渲染专用，**不参与客户端渲染**。
+ *
+ * 为什么不用真实的工具页组件（`src/layouts/tool.layout.vue` + 工具组件）做预渲染：
+ * tool.layout 外层是 base.layout，其导航栏用到 naive-ui 的 Follower（vueuc + css-render），
+ * 在 setup 阶段就访问 `document`，Node 下必崩（STEP 1 实测）。而 101 个工具组件
+ * 各自的浏览器 API 依赖（canvas / localStorage / WebRTC / FileReader）无法一次性验证完，
+ * 逐个踩坑的成本远大于收益。
+ *
+ * 因此这里渲染的是**与页面主题一致的正文骨架**：H1、工具简介、一句话描述、
+ * 真实使用说明、所属分类、同类工具互链。文字全部来自既有真实数据
+ * （见 `src/seo/tool-page.ts` 的内容来源说明），不新增任何臆断文案。
+ *
+ * 客户端挂载时 `createApp().mount('#app')` 会**替换** `#app` 的内容，
+ * 用户看到的是真实工具页；骨架只对「不执行 JS 的抓取器」和首屏渲染前的一瞬间可见。
+ * 因此骨架里的文字必须与真实页面一致 —— 不写任何真实页面上没有的内容，
+ * 否则就构成「给爬虫看一套、给用户看另一套」。
+ */
+// 一律用相对路径导入：`defineProps<{ entry: ToolSeoEntry }>()` 的类型需要被
+// @vue/compiler-sfc 静态解析，别名路径在部分版本下会解析失败（Unresolvable type reference）。
+import type { ToolSeoEntry } from './tool-page';
+import { usePageSeo } from './use-page-seo';
+import { SITE_NAME } from './site';
+
+const props = defineProps<{ entry: ToolSeoEntry }>();
+
+const { entry } = props;
+
+usePageSeo(entry.path, `${entry.name} - ${SITE_NAME}`, entry.description);
+
+/**
+ * 第 2 项「工具用途简介」。
+ *
+ * 优先用人工编写的 guide.intro（当前 101/101 全覆盖，逐工具独有）；
+ * 万一将来新增了还没写说明的工具，**不编造**用途，退回一句只陈述既有事实的分类说明。
+ */
+const lead = entry.guide?.intro
+  ?? `「${entry.name}」是开发者工具箱「${entry.category}」分类下的在线工具。`;
+
+// 骨架是纯静态 HTML（无响应式状态），样式只能用内联属性：
+// SFC 的 <style scoped> 会被提取进客户端 chunk，不会出现在预渲染出的 HTML 里。
+const box = 'max-width:800px;margin:0 auto;padding:32px 16px;box-sizing:border-box';
+</script>
+
+<template>
+  <article class="dd-tool-seo" :style="box">
+    <nav style="font-size:13px;opacity:.6;margin-bottom:16px">
+      <a href="/" style="color:inherit">首页</a>
+      <span> / </span>
+      <span>{{ entry.category }}</span>
+      <span> / </span>
+      <span style="opacity:.9">{{ entry.name }}</span>
+    </nav>
+
+    <h1 style="font-size:32px;font-weight:400;line-height:1.25;margin:0 0 12px">
+      {{ entry.name }}
+    </h1>
+
+    <p class="dd-tool-lead" style="font-size:16px;line-height:1.8;opacity:.85;margin:0 0 10px">
+      {{ lead }}
+    </p>
+
+    <!-- 与首段不同来源：这句是 tools.<key>.description 的原文 -->
+    <p v-if="lead !== entry.description" class="dd-tool-desc" style="font-size:15px;line-height:1.8;opacity:.75;margin:0 0 20px">
+      {{ entry.description }}
+    </p>
+
+    <!--
+      第 4 项「基本使用说明」。
+      用 <details> 而非默认展开 —— 真实页面上说明也是默认折叠的（tool.layout 的 guide 面板），
+      折叠起来既不遮挡内容、也不会出现「先展开再收起」的跳动，而文字确实存在于
+      HTML 源码里，能被不执行 JS 的抓取器读到。
+      工具的用途简介（guide.intro）不在这里，它已作为上方可见的首段输出。
+    -->
+    <details v-if="entry.guide" class="dd-tool-guide" style="margin:0 0 20px;font-size:15px;line-height:1.8">
+      <summary style="cursor:pointer;opacity:.9">操作步骤与注意事项</summary>
+      <ol style="margin:10px 0 0;padding-left:22px;opacity:.85">
+        <li v-for="(step, index) in entry.guide.steps" :key="index">
+          {{ step }}
+        </li>
+      </ol>
+      <ul v-if="entry.guide.notes?.length" style="margin:10px 0 0;padding-left:22px;opacity:.75;font-size:14px">
+        <li v-for="(note, index) in entry.guide.notes" :key="index">
+          {{ note }}
+        </li>
+      </ul>
+    </details>
+
+    <p class="dd-tool-category" style="font-size:14px;opacity:.7;margin:0 0 24px">
+      所属分类：{{ entry.category }}
+      <span v-if="!entry.guide">（该工具的使用说明尚未编写）</span>
+    </p>
+
+    <section v-if="entry.related.length" class="dd-tool-related">
+      <h2 style="font-size:16px;font-weight:500;opacity:.8;margin:0 0 10px">
+        同类工具
+      </h2>
+      <ul style="margin:0;padding-left:22px;line-height:2;font-size:15px">
+        <li v-for="item in entry.related" :key="item.path">
+          <a :href="`${item.path}/`" style="color:inherit">{{ item.name }}</a>
+        </li>
+      </ul>
+    </section>
+  </article>
+</template>

@@ -234,6 +234,7 @@ declare module '@vue/runtime-core' {
     TomlToYaml: typeof import('./src/tools/toml-to-yaml/toml-to-yaml.vue')['default']
     'Tool.layout': typeof import('./src/layouts/tool.layout.vue')['default']
     ToolCard: typeof import('./src/components/ToolCard.vue')['default']
+    ToolSeoPage: typeof import('./src/seo/ToolSeoPage.vue')['default']
     UlidGenerator: typeof import('./src/tools/ulid-generator/ulid-generator.vue')['default']
     UnitConverter: typeof import('./src/tools/unit-converter/unit-converter.vue')['default']
     UrlEncoder: typeof import('./src/tools/url-encoder/url-encoder.vue')['default']
