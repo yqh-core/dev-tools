@@ -76,7 +76,16 @@ const argOf = (f, d) => {
 };
 const has = f => argv.includes(f);
 
-const BASE = argOf('--base', 'https://digdevbox.com').replace(/\/+$/, '');
+// --base 允许写成 host:port 简写：不补协议时 new URL() 会抛 Invalid URL，
+// 报出来的堆栈与真实原因（协议没写）毫无关系，排查成本高。
+// loopback 缺协议按 http，其余按 https。
+let BASE = argOf('--base', 'https://digdevbox.com');
+if (!/^[a-z][a-z0-9+.-]*:\/\//i.test(BASE)) {
+  const loop = /^(127\.|localhost\b|\[::1\])/i.test(BASE);
+  console.log(`[base] --base "${BASE}" 未写协议 → 按 ${loop ? 'http' : 'https'}:// 处理`);
+  BASE = `${loop ? 'http' : 'https'}://${BASE}`;
+}
+BASE = BASE.replace(/\/+$/, '');
 // canonical 在预渲染时写死为生产域名，本地用 127.0.0.1 跑时必须分开算，否则全是假失败
 const CANON_ORIGIN = argOf('--canonical-origin', BASE).replace(/\/+$/, '');
 const SERVE_DIST = argOf('--serve-dist', '');
@@ -118,6 +127,78 @@ if (LOCAL && BASE_URL.port && Number(BASE_URL.port) !== PORT) {
   console.log(`[serve] --base 的端口 ${BASE_URL.port} 与 --port ${PORT} 不一致 → 服务端口改为 ${BASE_URL.port}`);
   PORT = Number(BASE_URL.port);
 }
+
+// ─────────────────────── 用例静态检查（跑浏览器之前，1ms） ───────────────────────
+/**
+ * 「断言空转」：expect 里的 token 如果本来就是这个用例自己填进去的输入值，
+ * 那么这条断言在任何情况下都成立 —— 查询没触发、接口 500、组件崩了，照样绿。
+ *
+ * 实测踩过（线上首跑）：/whois-lookup 的 expect.text = ['example.com']，而 steps 里
+ * fill 的就是 'example.com'；输入框里永远躺着这串字符。它报了 OK，但真实 WHOIS
+ * 查询从未执行（该组件必须点按钮才查，用例里没有 click）。同批还有两条同源问题。
+ *
+ * 假通过比假失败贵得多：假失败会被人查，假通过会被直接写进验收报告。
+ * 因此这里在开跑前就把这类 token 列出来，并要求用「独立于输入」的期望值替换。
+ * 只想看这份清单：--lint-only
+ *
+ * 判据只认一个方向：**期望 token 是输入的子串**（输入框里就躺着它 → 断言恒真）。
+ * 反向（token 是输入的超集，如期望 `admin:$apr1$` 而输入只有 `admin`）不算空转 ——
+ * 它额外要求了 `$apr1$` 出现，那是只有真正算过才有的东西。
+ * 分级：`vacuous` 该用例还有别的可信断言；`blind` 整条用例的断言全空转 → 无论
+ * 功能好坏都会绿，等于没测，必须补一条能证伪的断言。
+ */
+function lintCases(cases) {
+  const out = [];
+  for (const c of cases) {
+    if (!c || !c.path) continue;
+    const payloads = [];
+    for (const s of c.steps || []) {
+      if (s.fill && typeof s.fill.text === 'string') payloads.push(s.fill.text);
+      if (s.fillLabel && typeof s.fillLabel.text === 'string') payloads.push(s.fillLabel.text);
+    }
+    // 太短的输入不参与判定，否则正常断言会被大量误报
+    const usable = payloads.filter(p => p.length >= 4);
+    if (!usable.length) continue;
+
+    const vacuous = [];
+    const sound = [];
+    for (const tok of c.expect?.text || []) {
+      if (typeof tok !== 'string' || tok.length < 3) continue;
+      (usable.some(p => p.includes(tok)) ? vacuous : sound).push(`text "${tok}"`);
+    }
+    for (const tok of c.expect?.regex || []) {
+      let re;
+      try { re = new RegExp(tok); } catch { continue; }
+      (usable.some(p => re.test(p)) ? vacuous : sound).push(`regex /${tok}/`);
+    }
+    if (!vacuous.length) continue;
+
+    // 能证伪的断言：非空转的 text/regex，或输出区断言（out/outRegex）、页内脚本、画布、图片解码
+    const hasReal = sound.length
+      || (c.expect?.out || []).length
+      || (c.expect?.outRegex || []).length
+      || !!c.expect?.js
+      || c.expect?.canvasNonBlank
+      || c.expect?.imageData;
+    out.push({ path: c.path, level: hasReal ? 'vacuous' : 'blind', vacuous, sound });
+  }
+  return out;
+}
+
+const LINT = lintCases(SMOKE_CASES);
+const BLIND = LINT.filter(x => x.level === 'blind');
+if (BLIND.length) {
+  console.log(`[lint] ✗ ${BLIND.length} 条用例处于「断言盲区」：全部断言都能被自身输入满足，功能好坏都会绿`);
+  for (const b of BLIND) console.log(`  ✗ ${b.path}：${b.vacuous.join('、')} —— 把这些 token 移到 expect.out / outRegex（取工具区文本+控件值，且已剔除与输入完全相同的值），或补一条能证伪的断言`);
+}
+if (LINT.length > BLIND.length) {
+  console.log(`[lint] ! ${LINT.length - BLIND.length} 条用例含空转断言（另有可信断言兜底，可后续收紧）：`);
+  for (const v of LINT.filter(x => x.level === 'vacuous')) {
+    console.log(`  ! ${v.path}：空转 ${v.vacuous.join('、')} ｜ 兜底 ${v.sound.join('、')}`);
+  }
+}
+if (!LINT.length) console.log('[lint] 用例静态检查通过：未发现「断言可被自身输入满足」的空转断言');
+if (has('--lint-only')) process.exit(BLIND.length ? 1 : 0);
 
 // ─────────────────────────────── 噪声白名单 ───────────────────────────────
 // 第三方 host：广告 / 统计 / 字体。这些域报错与被测功能无关。
@@ -1072,6 +1153,40 @@ async function runCase(c) {
   const missing = (exp.text || []).filter(s => !text.includes(s));
   const forbidden = (exp.not || []).filter(s => text.includes(s));
   const regexMiss = (exp.regex || []).filter(s => !new RegExp(s, 'm').test(text));
+
+  /**
+   * 输出区断言通道（out / outRegex / outNot）—— 这是本次新增的、也是必须有的。
+   *
+   * 为什么需要：text 断言的取值面是「body.innerText + 全部控件值」，对「输出恰好是
+   * 输入的回显」这类工具（URL 解析、UA 解析、格式化…），期望值本来就在输入框里躺着 ——
+   * 功能好坏都会绿。实测有 7 条用例落在这种盲区里（`--lint-only` 会列出来）。
+   *
+   * 取值面 = 工具区（.tool-content）自身的 innerText + 该区域内的控件值，
+   * **但剔除与本用例 fill 载荷完全相同的那个值**（那就是输入本身）。
+   * 两条实测依据：
+   *   · 结果渲染成文本的（json-prettify 的美化结果）→ innerText 有；
+   *   · 结果渲染进只读 input 的（url-parser 的 protocol/host/path）→ innerText 没有，
+   *     得靠控件值 —— 所以只取 innerText 会漏，只取控件值又会被输入污染。
+   * 因此必须取「文本 + 剔除输入后的控件值」。
+   */
+  const fillPayloads = [];
+  for (const s of c.steps || []) {
+    if (s.fill && typeof s.fill.text === 'string') fillPayloads.push(s.fill.text);
+    if (s.fillLabel && typeof s.fillLabel.text === 'string') fillPayloads.push(s.fillLabel.text);
+  }
+  const outScope = (await evaluate(`(function(){
+    var r = document.querySelector('.tool-content');
+    if (!r) return { text: '', values: [] };
+    var vals = [].slice.call(r.querySelectorAll('input, textarea'))
+      .filter(function(e){ return ['checkbox','radio','password','file','submit','button'].indexOf(e.type) < 0; })
+      .map(function(e){ return e.value; }).filter(Boolean);
+    return { text: r.innerText || '', values: vals };
+  })()`).catch(() => null)) || { text: '', values: [] };
+  const outValues = outScope.values.filter(v => !fillPayloads.includes(v));
+  const outAll = outScope.text + '\n' + outValues.join('\n');
+  const outMissing = (exp.out || []).filter(s => !outAll.includes(s));
+  const outRegexMiss = (exp.outRegex || []).filter(s => !new RegExp(s, 'm').test(outAll));
+  const outForbidden = (exp.outNot || []).filter(s => outAll.includes(s));
   let custom = null;
   if (exp.js) {
     try {
@@ -1141,6 +1256,10 @@ async function runCase(c) {
   rec.assert.missing = missing;
   rec.assert.forbidden = forbidden;
   rec.assert.regexMiss = regexMiss;
+  rec.assert.outMissing = outMissing;
+  rec.assert.outRegexMiss = outRegexMiss;
+  rec.assert.outForbidden = outForbidden;
+  rec.assert.outText = outAll.replace(/\n{2,}/g, '\n').slice(0, 800);
   rec.assert.custom = custom;
   rec.assert.canvas = canvas;
   rec.assert.image = image;
@@ -1161,6 +1280,9 @@ async function runCase(c) {
   if (missing.length) fail('期望文本缺失：' + JSON.stringify(missing));
   if (forbidden.length) fail('命中禁止文本：' + JSON.stringify(forbidden));
   if (regexMiss.length) fail('期望正则未命中：' + JSON.stringify(regexMiss));
+  if (outMissing.length) fail('输出区缺少文本：' + JSON.stringify(outMissing));
+  if (outRegexMiss.length) fail('输出区正则未命中：' + JSON.stringify(outRegexMiss));
+  if (outForbidden.length) fail('输出区命中禁止文本：' + JSON.stringify(outForbidden));
   if (custom === false) fail('自定义断言未通过');
   if (typeof custom === 'string' && custom.startsWith('ERR:')) fail('自定义断言异常：' + custom);
   if (exp.canvasNonBlank && (!canvas || !canvas.count || !canvas.nonBlank)) {

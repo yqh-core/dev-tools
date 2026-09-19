@@ -1027,11 +1027,15 @@ export const SMOKE_CASES = [
     name: 'url-parser',
     zhTitle: 'Url分析器',
     strategy: 'structural：URL 的分量由 RFC 3986 定义，解析结果必须给出 protocol / host / pathname',
+    // 用 out 而不是 text：`https:` / `example.com` / `/path/page` 全都是输入 URL 的子串，
+    // 而 text 的取值面包含输入框的值 —— 用 text 断言等于拿输入去验它自己（恒真）。
+    // out 取的是工具区文本 + 控件值，并剔除与本用例输入完全相同的那个值，
+    // 因此这些 token 只可能来自「解析结果」那一列（只读 input）。
     steps: [
       { fill: { i: 0, text: 'https://example.com/path/page?q=1#frag' } },
       { wait: 900 },
     ],
-    expect: { text: ['https:', 'example.com', '/path/page'] },
+    expect: { out: ['Protocol', 'Hostname', 'Path', 'https:', 'example.com', '/path/page', '?q=1'] },
   },
 
   {
@@ -1048,7 +1052,9 @@ export const SMOKE_CASES = [
       },
       { wait: 1000 },
     ],
-    expect: { text: ['Chrome', 'Windows'] },
+    // out 而非 text：Chrome / Windows 都是 UA 串的子串；Blink（引擎）与 amd64（CPU）
+    // 则**只可能来自解析结果**（UA 串里没有这两个词），是最硬的可证伪信号。
+    expect: { out: ['Browser', 'Chrome', 'Engine', 'Blink', 'OS', 'Windows', 'amd64'] },
   },
 
   // ═════════════════════════ Development（17）════════════════════════
@@ -1126,8 +1132,8 @@ export const SMOKE_CASES = [
       { wait: 1000 },
     ],
     expect: {
-      text: ['services:', 'image: nginx'],
-      regex: ['8080:80', '--name[^\\n]*|container_name'],
+      out: ['services:', 'image: nginx', 'container_name'],
+      outRegex: ['8080:80', 'ports:'],
     },
   },
 
@@ -1180,9 +1186,12 @@ export const SMOKE_CASES = [
       { fill: { i: 1, text: '[{"id":1,"name":"devbox"}]' } },
       { wait: 1100 },
     ],
+    // out 而非 text：生成的类型定义**只有字段名与类型、不含字段值**，
+    // 所以 'devbox'（值）本来就不该被期望 —— 原断言能过，纯粹是输入框回显了它。
+    // 现在断言真正由输入推导出来的东西：类名、字段名 + 推断出的类型。
     expect: {
-      text: ['Root', 'devbox'],
-      regex: ['(interface|class|type)\\s+Root'],
+      out: ['export interface Root', 'id: number', 'name: string'],
+      outRegex: ['(interface|class|type)\\s+Root'],
       not: ['解析失败'],
     },
   },
@@ -1208,7 +1217,9 @@ export const SMOKE_CASES = [
     // 用序号 0 会写进那个数字框（n-input-number 直接丢弃非法值 → 框被清空），
     // 页面于是继续美化它自己的默认值，看起来就像「功能没反应」。
     steps: [{ fillLabel: { label: 'Your raw JSON', text: '{"a":1,"b":{"c":2}}' } }, { wait: 1000 }],
-    expect: { regex: ['"a":\\s*1'], not: ['Invalid'] },
+    // out 而非 text：期望值写成**带空格**的 `"a": 1`，而输入是不带空格的 `"a":1` ——
+    // 只有真的美化过才会有这个空格，输入回显永远给不出它。
+    expect: { out: ['"a": 1', '"c": 2'], not: ['Invalid'] },
   },
 
   {
@@ -1281,7 +1292,9 @@ export const SMOKE_CASES = [
       { fill: { i: 1, text: 'abc123def456' } },
       { wait: 1000 },
     ],
-    expect: { text: ['123', '456'] },
+    // out 而非 text：123/456 是待匹配文本的子串，而待匹配文本就在输入框里；
+    // 只有「匹配结果表」这一列才会把它们单独渲染出来（含命中位置 3 与 9）。
+    expect: { out: ['Matches', 'Index in text', '123', '456'], outRegex: ['3\\s+123', '9\\s+456'] },
   },
 
   {
@@ -1316,12 +1329,15 @@ export const SMOKE_CASES = [
     name: 'yaml-prettify',
     zhTitle: 'YAML美化和格式化',
     strategy: 'structural：美化不得改变 YAML 的键值语义（b: 2 与 a: 1 必须原样保留）',
-    // 两处修正：
+    // 三处修正：
     // ① 按 label 定位（Indent size 数字框在文本框之前，序号 0 会打错控件）；
     // ② 原文写的是 'b: 2\\na: 1' —— 在 JS 字符串里那是「反斜杠 + n」两个字符，
     //    送进去的是一行含字面 \n 的 YAML，而不是两行。要的是真换行，写 '\n'。
-    steps: [{ fillLabel: { label: 'Your raw YAML', text: 'b: 2\na: 1' } }, { wait: 1000 }],
-    expect: { regex: ['b:\\s*2', 'a:\\s*1'] },
+    // ③ 原输入与美化结果**逐字相同**，于是 text 断言验到的只是输入回显（恒真）。
+    //    改为送一个需要规范化的输入（冒号后 3 个空格），断言结果区归一为单空格、
+    //    且不得再出现带多空格的原始形式 —— 这两条都只有真的跑过美化才成立。
+    steps: [{ fillLabel: { label: 'Your raw YAML', text: 'b:   2\na: 1' } }, { wait: 1000 }],
+    expect: { out: ['b: 2'], outNot: ['b:   2'] },
   },
 
   // ═══════════════════════════ Math（3）═══════════════════════════
@@ -1400,8 +1416,20 @@ export const SMOKE_CASES = [
     // 它的「失败态 UI」在 A3 专项里用 CDP Fetch 域注入 500 单独验。
     onlineOnly: true,
     strategy: 'knownVector（线上）：example.com 必然返回 200，页面应展示状态码 200 与响应头',
-    steps: [{ fill: { i: 0, text: 'example.com' } }, { wait: 4000 }],
-    expect: { regex: ['200'], not: ['请求失败', 'Failed to fetch'] },
+    // 修正（线上首跑发现）：该组件**不自动检测**，check() 只由按钮 @click / 回车触发。
+    // 原先只有「填值 + 等 4s」，从没点过按钮 —— 页面上永远不会有结果（假失败）。
+    // 同时把断言从 text(regex '200') 收紧为「状态码 200 + 真实响应头」，两者都只可能来自接口。
+    steps: [
+      { fill: { i: 0, text: 'example.com' } },
+      { click: '检测状态码' },
+      { waitText: { text: '响应头', ms: 12000 } },
+    ],
+    expect: {
+      out: ['状态码', '响应头'],
+      outRegex: ['\\b200\\b', 'content-type'],
+      outNot: ['检测失败'],
+      not: ['Failed to fetch'],
+    },
   },
 
   {
@@ -1417,13 +1445,16 @@ export const SMOKE_CASES = [
     path: '/ipv4-range-expander',
     name: 'ipv4-range-expander',
     zhTitle: 'IPv4范围扩展器',
-    strategy: 'structural：给定起止地址，展开结果必须包含起止两端（且不越界到别的网段）',
+    strategy: 'structural：给定起止地址，展开结果必须给出覆盖该区间的 CIDR（192.168.1.1–1.3 → 192.168.1.0/30）',
     steps: [
       { fill: { i: 0, text: '192.168.1.1' } },
       { fill: { i: 1, text: '192.168.1.3' } },
       { wait: 1000 },
     ],
-    expect: { text: ['192.168.1.1', '192.168.1.3'] },
+    // out 而非 text：两端的 192.168.1.1 / .3 就是输入框里的字（恒真）。
+    // 改成断言**推导值**：区间 1–3 需要 4 个地址，对齐后必然是 192.168.1.0/30
+    // —— 这个字符串输入里没有，只有真算过才会出现。
+    expect: { out: ['Addresses in range', '192.168.1.0/30'] },
   },
 
   {
@@ -1485,14 +1516,22 @@ export const SMOKE_CASES = [
     name: 'today-in-history',
     zhTitle: '历史上的今天',
     onlineOnly: true,
-    strategy: 'structural（线上）：接口返回当日条目，页面必须渲染出至少一条历史事件（含年份）',
-    steps: [{ wait: 4000 }],
+    // 修正（线上首跑发现）：数据集只收录了 29 个日期（见 functions/api/today.js），
+    // 于是「当日必须有条目」这条断言一年里有 336 天必然失败 —— 是断言依赖数据，
+    // 不是页面缺陷。改成认**两种合法态**：有收录则必须渲染出带年份的事件；
+    // 未收录则必须给出空态说明。唯一不允许的是加载失败。
+    strategy: 'structural（线上）：当日有收录→必须渲染带年份的事件；未收录→必须有空态说明；都不许是加载失败',
+    steps: [{ waitText: { text: '重新加载', ms: 8000 } }, { wait: 3500 }],
     expect: {
       js: `(function(){
         var t = document.querySelector('.tool-content').innerText;
-        return /\\b(1[0-9]{3}|20[0-9]{2})\\b/.test(t) && t.length > 120;
+        if (/加载失败|Failed to fetch|服务返回/.test(t)) return '接口失败：' + t.slice(0, 160);
+        var hasEvents = /\\b(1[0-9]{3}|20[0-9]{2})\\b/.test(t);
+        var emptyState = /暂无收录|没有查到历史事件/.test(t);
+        return (hasEvents || emptyState) ? null : '既没有事件也没有空态说明：' + t.slice(0, 160);
       })()`,
-      not: ['请求失败', 'Failed to fetch'],
+      outNot: ['加载失败'],
+      not: ['Failed to fetch'],
     },
   },
 
@@ -1501,9 +1540,22 @@ export const SMOKE_CASES = [
     name: 'whois-lookup',
     zhTitle: 'WHOIS 查询',
     onlineOnly: true,
-    strategy: 'structural（线上）：查询 example.com（IANA 保留的示例域）必须返回注册信息',
-    steps: [{ fill: { i: 0, text: 'example.com' } }, { wait: 5000 }],
-    expect: { text: ['example.com'], not: ['请求失败', 'Failed to fetch'] },
+    strategy: 'structural（线上）：查询 example.com（IANA 保留的示例域）必须返回注册信息（RDAP 字段）',
+    // 修正（线上首跑发现，且是个**假通过**）：该组件同样必须点按钮才查，
+    // 原用例只有「填值 + 等 5s」，查询从未发生；而原断言 text:['example.com']
+    // 又被自己填进输入框的那串字符满足 —— 功能好坏都会绿。
+    // 现在：补点击，断言改为 RDAP 结果里的真实字段名（注册商/到期时间），
+    // 它们只可能来自接口返回的 raw 文本。
+    steps: [
+      { fill: { i: 0, text: 'example.com' } },
+      { click: '查询 WHOIS' },
+      { waitText: { text: '注册信息', ms: 15000 } },
+    ],
+    expect: {
+      out: ['注册信息', '注册商', '到期时间'],
+      outNot: ['查询失败'],
+      not: ['Failed to fetch'],
+    },
   },
 
   // ═══════════════════════════ Data（2）═══════════════════════════
