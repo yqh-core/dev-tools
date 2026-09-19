@@ -53,7 +53,7 @@ const toolDescription = computed<string>(() => t(`tools.${i18nKey.value}.descrip
 /**
  * 使用说明按需加载。
  *
- * 86 条说明是纯文案，同步 import 会把它们塞进主包拖慢首屏，
+ * 101 条说明是纯文案，同步 import 会把它们塞进主包拖慢首屏，
  * 所以只在进入工具页时才动态加载，且整个站共用同一个 chunk。
  */
 const guide = ref<ToolGuide | null>(null);
