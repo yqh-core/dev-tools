@@ -5,6 +5,9 @@
       <link rel="icon" href="favicon.ico" />
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
+      <!-- page-seo:start —— 以下标签随页面变化，构建期会被 scripts/build-seo.mjs 整体替换。
+           这里的值仅用于 vite dev（未预渲染时）。新增页面级 SEO 标签请加在本区块内，
+           不要写在区块外，否则预渲染时不会被替换、会与页面实际内容不符。 -->
       <title>开发者工具箱 - 开发者常用在线工具集合</title>
       <link rel="canonical" href="https://digdevbox.com/" />
       <meta itemprop="name" content="开发者工具箱 - 开发者常用在线工具集合" />
@@ -41,6 +44,7 @@
       />
       <meta name="twitter:image" content="https://digdevbox.com/og-image.jpg?v=1" />
       <meta name="twitter:image:alt" content="开发者工具箱 - 开发者常用在线工具集合" />
+      <!-- page-seo:end -->
   
   <link rel="stylesheet" href="/css/dd-tokens.css">
   <link rel="stylesheet" href="/css/dd-shell.css">

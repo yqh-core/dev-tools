@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { useHead } from '@vueuse/head';
+import { usePageSeo } from '@/seo/use-page-seo';
 
-useHead({ title: '关于 - 开发者工具箱' });
+// description / canonical / og / twitter 统一由 SEO 数据层产出（见 src/seo/）。
+usePageSeo('/about', '关于 - 开发者工具箱');
 </script>
 
 <template>

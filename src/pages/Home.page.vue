@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { IconDragDrop, IconHeart, IconSearch, IconX } from '@tabler/icons-vue';
-import { useHead } from '@vueuse/head';
 import { computed, ref } from 'vue';
 import Draggable from 'vuedraggable';
 import ColoredCard from '../components/ColoredCard.vue';
@@ -9,10 +8,12 @@ import { useToolStore } from '@/tools/tools.store';
 import { ALIASES } from '@/tools/aliases';
 import { CLASSIC_SITE_TOOL_COUNT, classicSiteUrl } from '@/classic-site';
 import { config } from '@/config';
+import { usePageSeo } from '@/seo/use-page-seo';
 
 const toolStore = useToolStore();
 
-useHead({ title: '开发者工具箱 - 开发者常用在线工具' });
+// description / canonical / og / twitter 统一由 SEO 数据层产出（见 src/seo/）。
+usePageSeo('/', '开发者工具箱 - 开发者常用在线工具');
 const { t } = useI18n();
 
 const favoriteTools = computed(() => toolStore.favoriteTools);

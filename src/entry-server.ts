@@ -18,8 +18,11 @@ import { createMemoryHistory } from 'vue-router';
 import { createAppRouter } from './router';
 import { i18nPlugin } from './plugins/i18n.plugin';
 import { naive } from './plugins/naive.plugin';
+import type { StaticRoutePath } from './seo/routes';
 
-const PAGES: Record<string, () => Promise<{ default: unknown }>> = {
+// 用 StaticRoutePath 约束键名：往 src/seo/routes.ts 的 STATIC_ROUTES 里加了路由
+// 却忘了在这里登记页面组件，vue-tsc --noEmit 会直接报错，不会到构建期才发现。
+const PAGES: Record<StaticRoutePath, () => Promise<{ default: unknown }>> = {
   '/': () => import('./pages/Home.page.vue'),
   '/about': () => import('./pages/About.vue'),
   '/privacy': () => import('./pages/Privacy.vue'),
@@ -27,9 +30,10 @@ const PAGES: Record<string, () => Promise<{ default: unknown }>> = {
   '/contact': () => import('./pages/Contact.vue'),
 };
 
-export async function render(path: string) {
+export async function render(path: StaticRoutePath) {
   const loader = PAGES[path];
   if (!loader) {
+    // 类型层面已被 Record<StaticRoutePath, …> 挡住，这里只防 .mjs 侧传入意外值。
     throw new Error(`[entry-server] 未登记的预渲染路由: ${path}`);
   }
   const { default: Page } = await loader();

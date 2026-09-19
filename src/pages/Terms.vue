@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { useHead } from '@vueuse/head';
 import { useI18n } from 'vue-i18n';
 
 import zh from '@/content/legal/terms.zh.md?raw';
 import en from '@/content/legal/terms.en.md?raw';
 import { CONTACT_EMAIL } from '@/config/contact';
+import { usePageSeo } from '@/seo/use-page-seo';
 
 const { locale, t } = useI18n();
 
@@ -16,7 +16,8 @@ const markdown = computed(() => {
 
 const title = computed(() => `${t('legal.terms')} - ${t('legal.siteName')}`);
 
-useHead({ title });
+// description / canonical / og / twitter 统一由 SEO 数据层产出（见 src/seo/）。
+usePageSeo('/terms', title);
 </script>
 
 <template>
