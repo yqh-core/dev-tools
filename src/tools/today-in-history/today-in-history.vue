@@ -24,7 +24,9 @@ async function load() {
     }
     events.value = data.events ?? [];
     if (events.value.length === 0) {
-      error.value = '今天没有查到历史事件记录';
+      // 用接口给的 note（说明「为什么没有」），而不是只丢一句「没查到」。
+      // 数据集是精选的、只覆盖部分日期，用户看到空结果时最需要知道的正是这一点。
+      error.value = data.note ?? '今天没有查到历史事件记录（数据集持续完善中）';
     }
   }
   catch (e) {
