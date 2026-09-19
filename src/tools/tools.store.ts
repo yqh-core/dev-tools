@@ -2,8 +2,24 @@ import { type MaybeRef, get, useStorage } from '@vueuse/core';
 import { defineStore } from 'pinia';
 import type { Ref } from 'vue';
 import _ from 'lodash';
-import type { Tool, ToolCategory, ToolWithCategory } from './tools.types';
+import type { Tool, ToolWithCategory } from './tools.types';
 import { toolsWithCategory } from './index';
+
+/**
+ * 分类分区的实际形状。
+ *
+ * 不能写成 tools.types 里的 `ToolCategory`（那是 `components: Tool[]`）：
+ * 这里的分组来自 `tools`（`ToolWithCategory[]`），每个元素都带 `category`，
+ * 用 `ToolCategory` 声明等于把已知信息丢掉 —— 调用方（如首页
+ * `<ToolCard :tool="tool" />`）会拿不到 category 而报类型错。
+ *
+ * 刻意不再带 `path` 字段：lodash `_.map` 回调的第三个参数是**整个集合对象**，
+ * 早期代码把它当成分类名塞进了 `path`，是个从未被任何调用方使用的错值。
+ */
+type ToolCategoryGroup = {
+  name: string
+  components: ToolWithCategory[]
+};
 
 export const useToolStore = defineStore('tools', () => {
   const favoriteToolsName = useStorage('favoriteToolsName', []) as Ref<string[]>;
@@ -21,12 +37,11 @@ export const useToolStore = defineStore('tools', () => {
     });
   }));
 
-  const toolsByCategory = computed<ToolCategory[]>(() => {
+  const toolsByCategory = computed<ToolCategoryGroup[]>(() => {
     return _.chain(tools.value)
       .groupBy('category')
-      .map((components, name, path) => ({
+      .map((components, name) => ({
         name,
-        path,
         components,
       }))
       .value();

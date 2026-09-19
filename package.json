@@ -19,7 +19,7 @@
   ],
   "scripts": {
     "dev": "vite",
-    "build": "vue-tsc --noEmit && vite build && node scripts/build-seo.mjs",
+    "build": "vue-tsc --noEmit -p tsconfig.app.json --composite false && vite build && node scripts/build-seo.mjs",
     "preview": "vite preview --port 5050",
     "test": "npm run test:unit",
     "test:unit": "vitest --environment jsdom",
