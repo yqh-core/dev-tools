@@ -11,6 +11,10 @@ const props = withDefaults(defineProps<{ toolsByCategory?: ToolCategory[] }>(), 
 const { toolsByCategory } = toRefs(props);
 const route = useRoute();
 
+// 与 tool.layout.vue 同理：规范 URL 带尾斜杠（CF Pages 目录型路由 308），
+// 而菜单项的 key 是工具注册表里的 path（不带斜杠）。不归一化 ⇒ 当前工具项永远不高亮。
+const currentPath = computed<string>(() => route.path.replace(/\/+$/, '') || '/');
+
 const makeLabel = (tool: Tool) => () => h(RouterLink, { to: tool.path }, { default: () => tool.name });
 const makeIcon = (tool: Tool) => () => h(MenuIconItem, { tool });
 
@@ -64,7 +68,7 @@ const themeVars = useThemeVars();
 
         <n-menu
           class="menu"
-          :value="route.path"
+          :value="currentPath"
           :collapsed-width="64"
           :collapsed-icon-size="22"
           :options="tools"

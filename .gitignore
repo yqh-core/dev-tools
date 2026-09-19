@@ -43,3 +43,6 @@ vite.config.ts.timestamp-*.mjs
 
 # wrangler 本地状态（`wrangler pages dev` 产出，含本地缓存，约 8MB）
 .wrangler/
+
+# 冒烟测试产物（可疑页截图 + 分片 JSON 报告，含 Chrome profile 目录）
+.smoke-out/

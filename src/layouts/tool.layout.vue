@@ -39,14 +39,35 @@ const { t } = useI18n();
  * 进工具页时给一个「同类推荐」，不用退出当前页就能发现相邻工具。
  */
 const toolStore = useToolStore();
-const currentCategory = computed(() => toolStore.tools.find(tool => tool.path === route.path)?.category ?? '');
+
+/**
+ * 当前工具在注册表里的规范 path（不带尾斜杠）。
+ *
+ * 为什么不直接用 route.path
+ * ------------------------------------------------------------------
+ * Cloudflare Pages 的目录型路由对「磁盘存在同名目录」的路径强制 308 到带斜杠形式，
+ * 本站的 canonical 与 sitemap 也统一写带斜杠形态 —— 也就是说，真实用户和爬虫拿到的
+ * URL 是 `/hash-text/`，`route.path` 也就是 `/hash-text/`。
+ * 而工具注册表、GUIDES、ALIASES、侧栏菜单 key 用的全是不带斜杠的 `/hash-text`。
+ * 直接比对会静默失配：使用说明、一键示例、相关工具、面包屑分类、收藏 path
+ * 会在**每一个真实访问**下一起失效（且失败被 catch 吞掉，界面上看不出报错）。
+ */
+const toolPath = computed<string>(() => route.path.replace(/\/+$/, '') || '/');
+
+const currentCategory = computed(
+  () => toolStore.tools.find(tool => tool.path === toolPath.value)?.category ?? '',
+);
 const relatedTools = computed(() =>
   currentCategory.value
-    ? toolStore.tools.filter(tool => tool.category === currentCategory.value && tool.path !== route.path).slice(0, 8)
+    ? toolStore.tools
+        .filter(tool => tool.category === currentCategory.value && tool.path !== toolPath.value)
+        .slice(0, 8)
     : [],
 );
 
-const i18nKey = computed<string>(() => route.path.trim().replace('/', ''));
+// 去掉**全部**斜杠拼 i18n key（与 tools.store.ts 的 toolI18nKey 保持同一写法）。
+// 只 replace 第一个 '/' 会让 key 变成 `hash-text/`，任何语言文件里都不存在这种 key。
+const i18nKey = computed<string>(() => toolPath.value.replace(/\//g, ''));
 const toolTitle = computed<string>(() => t(`tools.${i18nKey.value}.title`, String(route.meta.name)));
 const toolDescription = computed<string>(() => t(`tools.${i18nKey.value}.description`, String(route.meta.description)));
 
@@ -68,7 +89,7 @@ async function loadGuide(path: string) {
   }
 }
 
-watch(() => route.path, path => loadGuide(path), { immediate: true });
+watch(toolPath, path => loadGuide(path), { immediate: true });
 
 /**
  * 说明面板是否展开。
@@ -158,7 +179,7 @@ function applyExample() {
           </n-h1>
 
           <div>
-            <FavoriteButton :tool="{ name: route.meta.name, path: route.path } as Tool" />
+            <FavoriteButton :tool="{ name: route.meta.name, path: toolPath } as Tool" />
           </div>
         </div>
 
