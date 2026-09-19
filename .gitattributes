@@ -19,3 +19,9 @@
 
 # Cloudflare Pages 读取的规则文件：多一个 \r 会让每条规则解析错
 public/_redirects text eol=lf
+
+# 冒烟测试用的合成 PDF 是纯 ASCII 内容，`text=auto` 会把它当文本，
+# 检出时按 autocrlf 插入 \r\n —— 而 PDF 的 xref 表存的是**字节偏移**，
+# 一旦行尾被改写，整个文件的结构就废了（pdf-signature-checker 会直接报损坏）。
+# 必须整体钉成二进制。
+*.pdf binary
