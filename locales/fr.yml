@@ -46,6 +46,11 @@ about:
 
     Si vous avez besoin d'un outil qui n'est pas encore présent ici, et que vous pensez qu'il peut être utile, vous êtes invité à soumettre une demande de fonctionnalité dans la [section issue](https://github.com/yqh-core/dev-tools/issues/new/choose) du dépôt GitHub.
 
+legal:
+  siteName: 'Boîte à outils du développeur'
+  privacy: 'Politique de confidentialité'
+  terms: "Conditions d'utilisation"
+  contact: 'Nous contacter'
 404:
   notFound: '404 Not Found'
   sorry: "Désolé, cette page n'existe pas"

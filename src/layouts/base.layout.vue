@@ -63,9 +63,17 @@ const tools = computed<ToolCategory[]>(() => [
 
           <div>
             © {{ new Date().getFullYear() }}
-            <c-link target="_blank" rel="noopener" href="https://coderkit.pages.dev">
-              coderkit.pages.dev
+            <c-link href="https://digdevbox.com">
+              digdevbox.com
             </c-link>
+          </div>
+
+          <div class="footer-legal">
+            <RouterLink to="/privacy">{{ $t('legal.privacy') }}</RouterLink>
+            <span class="dot">·</span>
+            <RouterLink to="/terms">{{ $t('legal.terms') }}</RouterLink>
+            <span class="dot">·</span>
+            <RouterLink to="/contact">{{ $t('legal.contact') }}</RouterLink>
           </div>
         </div>
       </div>
@@ -138,6 +146,24 @@ const tools = computed<ToolCategory[]>(() => [
   color: #838587;
   margin-top: 20px;
   padding: 20px 0;
+
+  .footer-legal {
+    margin-top: 8px;
+    font-size: 13px;
+
+    a {
+      color: inherit;
+      text-decoration: none;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+
+    .dot {
+      margin: 0 6px;
+    }
+  }
 }
 
 .sider-content {

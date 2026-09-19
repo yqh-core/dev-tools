@@ -49,6 +49,11 @@ about:
 
     Và nếu bạn phát hiện ra một lỗi, hoặc điều gì đó không hoạt động như mong đợi, xin vui lòng gửi báo cáo lỗi trong [phần vấn đề](https://github.com/yqh-core/dev-tools/issues/new/choose) trong kho GitHub.
 
+legal:
+  siteName: 'Bộ công cụ nhà phát triển'
+  privacy: 'Chính sách bảo mật'
+  terms: 'Điều khoản dịch vụ'
+  contact: 'Liên hệ'
 404:
   notFound: '404 Không Tìm Thấy'
   sorry: 'Xin lỗi, trang này dường như không tồn tại'

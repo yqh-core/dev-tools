@@ -51,9 +51,14 @@ about:
 
     ## 同站工具
 
-    - [IP 归属地查询](https://locip.pages.dev)
-    - [房贷计算器](https://repaycalc.pages.dev)
+    - [IP 归属地查询](https://ip.digdevbox.com)
+    - [房贷计算器](https://fangdai.digdevbox.com)
 
+legal:
+  siteName: '开发者工具箱'
+  privacy: '隐私政策'
+  terms: '服务条款'
+  contact: '联系我们'
 404:
   notFound: '404 页面不存在'
   sorry: '抱歉，该页面似乎不存在'

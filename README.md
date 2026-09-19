@@ -2,7 +2,7 @@
 
 面向开发者与运维人员的在线工具集合，纯前端运行，所有计算都在浏览器本地完成，不上传任何数据。
 
-- 线上地址：<https://coderkit.pages.dev>
+- 线上地址：<https://digdevbox.com>
 - 源码仓库：<https://github.com/yqh-core/dev-tools>
 - 上游项目：[it-tools](https://github.com/CorentinTh/it-tools)（GPL-3.0），本项目在其基础上做了品牌与维护性改造
 

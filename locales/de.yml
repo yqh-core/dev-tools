@@ -518,3 +518,8 @@ tools:
 
 tool:
   relatedTitle: "Related tools"
+legal:
+  siteName: 'Entwickler-Toolbox'
+  privacy: 'Datenschutz'
+  terms: 'Nutzungsbedingungen'
+  contact: 'Kontakt'

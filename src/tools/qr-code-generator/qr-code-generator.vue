@@ -9,7 +9,7 @@ const errorCorrectionLevel = ref<QRCodeErrorCorrectionLevel>('medium');
 
 const errorCorrectionLevels = ['low', 'medium', 'quartile', 'high'];
 
-const text = ref('https://coderkit.pages.dev');
+const text = ref('https://digdevbox.com');
 const { qrcode } = useQRCode({
   text,
   color: {

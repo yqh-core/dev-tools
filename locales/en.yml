@@ -49,9 +49,14 @@ about:
 
     ## Sibling tools
 
-    - [IP Geolocation](https://locip.pages.dev)
-    - [Mortgage Calculator](https://repaycalc.pages.dev)
+    - [IP Geolocation](https://ip.digdevbox.com)
+    - [Mortgage Calculator](https://fangdai.digdevbox.com)
 
+legal:
+  siteName: 'Developer Toolbox'
+  privacy: 'Privacy Policy'
+  terms: 'Terms of Service'
+  contact: 'Contact Us'
 404:
   notFound: '404 Not Found'
   sorry: 'Sorry, this page does not seem to exist'

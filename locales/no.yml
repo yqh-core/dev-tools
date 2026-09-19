@@ -49,6 +49,11 @@ about:
 
     Og hvis du har funnet en feil, eller noe ikke oppfører seg som forventet, vennligst send inn en feilrapport i [problem seksjonen](https://github.com/yqh-core/dev-tools/issues/new/choose) i github-depotet.
 
+legal:
+  siteName: 'Utviklerverktøykasse'
+  privacy: 'Personvern'
+  terms: 'Vilkår for bruk'
+  contact: 'Kontakt oss'
 404:
   notFound: '404 ikke funnet'
   sorry: 'Beklager, denne siden ser ikke ut til å eksistere'

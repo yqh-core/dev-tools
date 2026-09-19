@@ -49,6 +49,11 @@ about:
 
     Y si encontró un error o algo no funciona como se esperaba, presente un reporte de error en el [issues section](https://github.com/yqh-core/dev-tools/issues/new/choose) en el repositorio de GitHub.
 
+legal:
+  siteName: 'Caja de herramientas para desarrolladores'
+  privacy: 'Política de privacidad'
+  terms: 'Términos de servicio'
+  contact: 'Contacto'
 404:
   notFound: '404 Not Found'
   sorry: 'Lo sentimos, esta página no parece existir'

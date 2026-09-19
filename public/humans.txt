@@ -4,7 +4,7 @@ Site: https://github.com/yqh-core/dev-tools
 
 /* SITE */
 Name: 开发者工具箱
-URL: https://coderkit.pages.dev
+URL: https://digdevbox.com
 Standards: HTML5, CSS3
 Components: Vue 3, Naive UI, Vite
 
