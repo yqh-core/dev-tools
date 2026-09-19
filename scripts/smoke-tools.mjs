@@ -21,6 +21,15 @@
  *     噪声 noise    = 第三方 host、favicon、SW 注册、net::ERR_ABORTED
  *   每条噪声都带 host/pattern 记录，便于复核白名单是否在掩盖真问题。
  *
+ * 用例可用的 expect 字段
+ *   text / regex / not        期望出现的文本、正则、禁止出现的文本
+ *   js                        页内断言（返回 false 或字符串=失败，字符串会原样进报告）
+ *   canvasNonBlank            canvas 里真的画了东西（非全透明像素）
+ *   imageData                 `{ sel, minBytes }`：存在 src 为 data:/blob: 的 <img>，
+ *                             且已解码出非零尺寸、字节数达标（二维码这类图片产物用它）
+ *   consoleNoise              `[{ re, why }]`：用例**自己声明**的豁免噪声，必须写 why，
+ *                             用于「故意注入故障」的场景（如 A3 注入 500 时浏览器必然记一条同源错误）
+ *
  * 零依赖
  *   本机没有 chrome-remote-interface / puppeteer / playwright，且不允许下载浏览器。
  *   所以走 Chrome `--headless=new --remote-debugging-port=0` + Node 22 原生 WebSocket
@@ -458,6 +467,27 @@ const evaluate = async (expression, awaitPromise = true) => {
 };
 
 // ─────────────────────────────── console 分类 ───────────────────────────────
+/**
+ * 用例自己声明的噪声规则（`expect.consoleNoise: [{ re, why }]`）。
+ *
+ * 为什么需要它：A3 用 Fetch 域**故意**注入 500 来验失败态 UI，浏览器必然把那次响应
+ * 记成一条同源 console error（`Failed to load resource: ... 500`）。这条错误是**测试自己造的**，
+ * 不是页面缺陷；但它长得跟「接口真挂了」一模一样，靠内置白名单无法区分。
+ *
+ * 与内置白名单同一条规矩：**必须写 why**，没写理由的条目一律不生效并记一条 warning ——
+ * 否则这个出口会变成「把不认识的报错都吞掉」的静默开关。
+ */
+let CASE_NOISE = [];
+const CASE_NOISE_SKIPPED = [];
+function setCaseNoise(list, caseName) {
+  CASE_NOISE_SKIPPED.length = 0;
+  CASE_NOISE = (Array.isArray(list) ? list : []).flatMap(n => {
+    if (!n || !n.why) { CASE_NOISE_SKIPPED.push({ case: caseName }); return []; }
+    return [{ re: n.re instanceof RegExp ? n.re : new RegExp(String(n.re)), why: n.why }];
+  });
+}
+const caseNoiseHit = (url, text) => CASE_NOISE.find(n => n.re.test(url) || n.re.test(text));
+
 function classifyConsole() {
   const blocking = [];
   const noise = [];
@@ -469,6 +499,11 @@ function classifyConsole() {
 
     if (isThirdParty(url) || NOISE_HOSTS.some(h => text.includes(h))) {
       noise.push({ ...rec, why: 'third-party' });
+      continue;
+    }
+    const byCase = caseNoiseHit(url, text);
+    if (byCase) {
+      noise.push({ ...rec, why: '用例声明：' + byCase.why });
       continue;
     }
     const hit = NOISE_SAME_ORIGIN.find(n => n.re.test(url) || n.re.test(text));
@@ -514,6 +549,11 @@ function classifyConsole() {
     const hit = NOISE_SAME_ORIGIN.find(n => n.re.test(f.url) || n.re.test(f.error));
     if (hit) {
       noise.push({ text: `资源失败(${hit.why}): ${f.error}`, url: f.url.split('?')[0], why: hit.why });
+      continue;
+    }
+    const byCase = caseNoiseHit(f.url, f.error);
+    if (byCase) {
+      noise.push({ text: `资源失败: ${f.error}`, url: f.url.split('?')[0], why: '用例声明：' + byCase.why });
       continue;
     }
     blocking.push({ text: `资源加载失败: ${f.error}`, url: f.url.split('?')[0] });
@@ -900,6 +940,10 @@ async function runCase(c) {
 
   // ③④⑤ 运行时层
   interceptApi = c.interceptApi || null;
+  setCaseNoise(c.expect && c.expect.consoleNoise, c.name || c.path);
+  if (CASE_NOISE_SKIPPED.length) {
+    rec.warnings = [...(rec.warnings || []), 'expect.consoleNoise 有条目没写 why，已忽略（写理由才能豁免）'];
+  }
   // A3：只有确实要注入 API 响应时才开 Fetch 域，且把 pattern 限定在 /api/ 下 ——
   // 不设 pattern 会把每个请求（含全部静态资源）都 pause 掉，既拖慢又容易漏 continue 而挂死页面。
   await send('Fetch.disable').catch(() => {});
@@ -1039,11 +1083,55 @@ async function runCase(c) {
     })()`).catch(() => null);
   }
 
+  /**
+   * 图片产物断言（二维码一类）。
+   *
+   * 为什么不能沿用 canvasNonBlank：本项目的二维码工具走 `QRCode.toDataURL()`，
+   * 渲染成 `<img src="data:image/png;base64,...">` —— 页面上**不存在 canvas 元素**，
+   * canvas 断言会报 `{"count":0}`，看起来像「工具没出图」，其实是判据选错了产物类型。
+   *
+   * 判据 = 目标里存在一个 src 为 `data:` / `blob:` 的 `<img>`，且：
+   *   ① naturalWidth/Height > 0 —— 浏览器真的解码出了位图（只挂上属性但加载失败不算）
+   *   ② 解码后字节数 ≥ minBytes（默认 200）—— 排除 1×1 占位图、空 data URL
+   * 出图是异步的（toDataURL 要等一次动态 import + 编码），所以轮询等待而不是拍一次快照。
+   */
+  let image = null;
+  if (exp.imageData) {
+    const o = typeof exp.imageData === 'object' && exp.imageData ? exp.imageData : {};
+    const sel = o.sel || '.tool-content img';
+    const minBytes = o.minBytes ?? 200;
+    const probe = `(function(){
+      var imgs = [].slice.call(document.querySelectorAll(${JSON.stringify(sel)}));
+      return imgs.map(function(im){
+        var s = im.getAttribute('src') || '';
+        var kind = s.slice(0, 5) === 'data:' ? 'data' : (s.slice(0, 5) === 'blob:' ? 'blob' : 'other');
+        var i = s.indexOf('base64,');
+        return {
+          kind: kind,
+          bytes: i >= 0 ? Math.floor((s.length - i - 7) * 3 / 4) : 0,
+          w: im.naturalWidth || 0,
+          h: im.naturalHeight || 0,
+        };
+      });
+    })()`;
+    const good = list =>
+      Array.isArray(list)
+      && list.some(x => (x.kind === 'data' || x.kind === 'blob') && x.bytes >= minBytes && x.w > 0 && x.h > 0);
+    const deadline = Date.now() + 3000;
+    do {
+      image = await evaluate(probe).catch(() => null);
+      if (good(image)) break;
+      await sleep(300);
+    } while (Date.now() < deadline);
+    image = { sel, minBytes, samples: Array.isArray(image) ? image : [], ok: good(image) };
+  }
+
   rec.assert.missing = missing;
   rec.assert.forbidden = forbidden;
   rec.assert.regexMiss = regexMiss;
   rec.assert.custom = custom;
   rec.assert.canvas = canvas;
+  rec.assert.image = image;
   // 留证：失败的断言必须能自证，否则报告里只有「缺失」没有「实际是什么」，无法判断是缺陷还是用例写错。
   // toolText 只取工具区（含 input/textarea 的值），避免 800 字全被侧栏导航吃掉。
   rec.assert.observedText = text.slice(0, 800);
@@ -1065,6 +1153,9 @@ async function runCase(c) {
   if (typeof custom === 'string' && custom.startsWith('ERR:')) fail('自定义断言异常：' + custom);
   if (exp.canvasNonBlank && (!canvas || !canvas.count || !canvas.nonBlank)) {
     fail('canvas 未渲染出内容：' + JSON.stringify(canvas));
+  }
+  if (exp.imageData && !(image && image.ok)) {
+    fail('图片产物未渲染出可解码位图：' + JSON.stringify(image));
   }
 
   // console

@@ -600,12 +600,13 @@ export const SMOKE_CASES = [
       { wait: 1500 },
     ],
     expect: {
-      not: ['Current settings resulted in error.'],
+      not: ['Could not render with font'],
       js: `(function(){
-        var cs = [].slice.call(document.querySelectorAll('.tool-content textarea'));
-        var ro = cs.filter(function(e){ return e.readOnly && (e.value||'').length > 50; });
-        if (!ro.length) return false;
-        var v = ro[ro.length - 1].value;
+        // 输出走 TextareaCopyable → <n-code data-test-id="area-content">，不是 <textarea>。
+        // 原断言按「只读 textarea」找，即使工具完全正常也永远为 false。
+        var out = document.querySelector('.tool-content [data-test-id="area-content"]');
+        if (!out) return false;
+        var v = out.innerText || '';
         return v.split('\\n').length >= 3 && v.length > 100;
       })()`,
     },
@@ -1058,7 +1059,12 @@ export const SMOKE_CASES = [
     zhTitle: 'Chmod 计算器',
     // 勾选 Read/Write/Execute 三行的 Owner 列 —— 即 u=rwx、g=o=---，八进制必须是 700。
     // 用「点哪一格」表达，不依赖任何组件内部状态。
+    // 注意：naive-ui 的 n-checkbox 渲染成 <div class="n-checkbox" role="checkbox">，
+    // **内部没有 <input>**（它自己用 click + 键盘事件维护状态）。按 input 找会永远找不到。
     strategy: 'knownVector：权限位 rwx=4+2+1=7，只要 Owner 全选、其余不选，chmod 八进制必为 700',
+    // 点击与核对必须分成两步：naive-ui 的 aria-checked 是**响应式更新**的，
+    // 在 .click() 的同一个同步块里读它还停留在旧值 —— 上一版就是因此在第 0 行提前 return，
+    // 只勾上了 Read（八进制 400），却报出「点不上」这种误导性结论。
     steps: [
       {
         js: `(function(){
@@ -1067,14 +1073,30 @@ export const SMOKE_CASES = [
           for (var r = 0; r < 3; r++) {
             var tds = rows[r].querySelectorAll('td');
             // tds[0] 是行标题（Read/Write/Execute），tds[1..3] 依次是 Owner / Group / Public
-            var box = tds[1] && tds[1].querySelector('input');
+            var box = tds[1] && tds[1].querySelector('.n-checkbox');
             if (!box) return '第 ' + r + ' 行 Owner 列的勾选框未找到';
             box.click();
           }
           return null;
         })()`,
       },
-      { wait: 700 },
+      { wait: 500 },
+      {
+        // 核对「三点都真的落到了状态上」。放到独立步骤里读，才拿得到更新后的 aria-checked。
+        js: `(function(){
+          var rows = document.querySelectorAll('.tool-content .permission-table tbody tr');
+          for (var r = 0; r < 3; r++) {
+            var tds = rows[r].querySelectorAll('td');
+            var box = tds[1] && tds[1].querySelector('.n-checkbox');
+            if (!box) return '第 ' + r + ' 行 Owner 列的勾选框消失';
+            if (box.getAttribute('aria-checked') !== 'true') {
+              return '第 ' + r + ' 行 Owner 列未勾上（aria-checked=' + box.getAttribute('aria-checked') + '）';
+            }
+          }
+          return null;
+        })()`,
+      },
+      { wait: 300 },
     ],
     expect: {
       js: `(function(){
@@ -1128,8 +1150,13 @@ export const SMOKE_CASES = [
       text: ['git'],
       js: `(function(){
         var t = document.querySelector('.tool-content').innerText;
-        // 至少要出现几个真实 git 子命令，才算表真的渲染了
-        return ['commit', 'branch', 'rebase', 'stash'].filter(function(k){ return t.indexOf(k) >= 0; }).length >= 3;
+        // 至少要出现几个真实 git 子命令，才算表真的渲染了。
+        // 关键词取自 git-memo.content.md 的**实际内容**（该文件自导入以来未改动，
+        // 全文只有 config / init / clone / commit / reset / branch 六类命令，
+        // **没有 rebase 与 stash**）。原先断言 rebase+stash 是把「我印象里速查表该有的内容」
+        // 当成了被测事实 —— 表本身是渲染出来的，只是没有那两条。
+        return ['git config', 'git init', 'git clone', 'git commit', 'git reset', 'git branch']
+          .filter(function(k){ return t.indexOf(k) >= 0; }).length >= 4;
       })()`,
     },
   },
@@ -1177,7 +1204,10 @@ export const SMOKE_CASES = [
     name: 'json-prettify',
     zhTitle: 'JSON美化和格式化',
     strategy: 'structural：美化 = 每个键值对独占一行且带缩进，键与值之间的冒号后有空格',
-    steps: [{ fill: { i: 0, text: '{"a":1,"b":{"c":2}}' } }, { wait: 1000 }],
+    // 必须按 label 定位：该页 DOM 里「Indent size」的 n-input-number 排在 JSON 文本框**前面**，
+    // 用序号 0 会写进那个数字框（n-input-number 直接丢弃非法值 → 框被清空），
+    // 页面于是继续美化它自己的默认值，看起来就像「功能没反应」。
+    steps: [{ fillLabel: { label: 'Your raw JSON', text: '{"a":1,"b":{"c":2}}' } }, { wait: 1000 }],
     expect: { regex: ['"a":\\s*1'], not: ['Invalid'] },
   },
 
@@ -1202,7 +1232,9 @@ export const SMOKE_CASES = [
     name: 'px-rem-converter',
     zhTitle: 'px / rem 转换',
     strategy: 'knownVector：浏览器默认根字号 16px，故 16px 恒等于 1rem',
-    steps: [{ fill: { i: 0, text: '16px' } }, { wait: 800 }],
+    // 按 label 定位：该页「根字号」「小数位」两个 n-input-number 都排在「数值」框前面，
+    // 序号 0 会写进根字号（被 n-input-number 丢弃 → 根字号变空、数值框始终为空 → 无输出）。
+    steps: [{ fillLabel: { label: '数值：', text: '16px' } }, { wait: 800 }],
     expect: { text: ['1rem'] },
   },
 
@@ -1269,7 +1301,8 @@ export const SMOKE_CASES = [
     name: 'xml-formatter',
     zhTitle: 'XML 格式化',
     strategy: 'structural：格式化 = 嵌套标签各自换行并缩进，父子标签不再挤在一行',
-    steps: [{ fill: { i: 0, text: '<a><b>1</b></a>' } }, { wait: 1000 }],
+    // 同 json-prettify：Indent size 的数字框排在 XML 文本框前面，序号 0 会打错控件。
+    steps: [{ fillLabel: { label: 'Your XML', text: '<a><b>1</b></a>' } }, { wait: 1000 }],
     expect: {
       js: `(function(){
         var t = document.querySelector('.tool-content').innerText;
@@ -1283,7 +1316,11 @@ export const SMOKE_CASES = [
     name: 'yaml-prettify',
     zhTitle: 'YAML美化和格式化',
     strategy: 'structural：美化不得改变 YAML 的键值语义（b: 2 与 a: 1 必须原样保留）',
-    steps: [{ fill: { i: 0, text: 'b: 2\\na: 1' } }, { wait: 1000 }],
+    // 两处修正：
+    // ① 按 label 定位（Indent size 数字框在文本框之前，序号 0 会打错控件）；
+    // ② 原文写的是 'b: 2\\na: 1' —— 在 JS 字符串里那是「反斜杠 + n」两个字符，
+    //    送进去的是一行含字面 \n 的 YAML，而不是两行。要的是真换行，写 '\n'。
+    steps: [{ fillLabel: { label: 'Your raw YAML', text: 'b: 2\na: 1' } }, { wait: 1000 }],
     expect: { regex: ['b:\\s*2', 'a:\\s*1'] },
   },
 
@@ -1309,12 +1346,17 @@ export const SMOKE_CASES = [
     name: 'percentage-calculator',
     zhTitle: '百分比计算器',
     strategy: 'knownVector：25% of 200 = 50（百分比定义：200 × 25 / 100）',
+    // data-test-id 落在组件的**根元素**上（n-input-number / c-input-text 都是 div 包裹），
+    // 不是里面那个真正的 <input>：直接对 div 调 setVal 只会给 div 挂个无用的 value 属性，
+    // 不触发任何 input 事件，表现是「步骤全绿但控件里什么都留不下」。必须再往下一层取 input。
     steps: [
       {
         js: `(function(){
           var S = window.__smoke;
           function set(id, v){
-            var el = document.querySelector('.tool-content [data-test-id="' + id + '"]');
+            var box = document.querySelector('.tool-content [data-test-id="' + id + '"]');
+            if (!box) return false;
+            var el = box.tagName === 'INPUT' ? box : box.querySelector('input');
             if (!el) return false;
             S.setVal(el, v);
             return true;
@@ -1328,8 +1370,9 @@ export const SMOKE_CASES = [
     ],
     expect: {
       js: `(function(){
-        var r = document.querySelector('.tool-content [data-test-id="percentageResult"]');
-        return !!r && String(r.value).trim() === '50';
+        var box = document.querySelector('.tool-content [data-test-id="percentageResult"]');
+        var el = box && (box.tagName === 'INPUT' ? box : box.querySelector('input'));
+        return !!el && String(el.value).trim() === '50';
       })()`,
     },
   },
@@ -1401,7 +1444,10 @@ export const SMOKE_CASES = [
     steps: [{ fill: { i: 0, text: '00:50:56:11:22:33' } }, { wait: 1000 }],
     expect: {
       js: `(function(){
-        var t = document.querySelector('.tool-content').innerText.toLowerCase();
+        // 生成结果落在只读 <input> 里，而 innerText **不含** 表单控件的值 ——
+        // 用 innerText 断言会得到「功能正常但一个字都读不到」的假失败。
+        // __smokeText = 页面 innerText + 全部 input/textarea/select 的值。
+        var t = (window.__smokeText || document.querySelector('.tool-content').innerText).toLowerCase();
         return /(^|[^0-9a-f])fd[0-9a-f]{2}:/.test(t);
       })()`,
     },
@@ -1412,11 +1458,14 @@ export const SMOKE_CASES = [
     name: 'mac-address-generator',
     zhTitle: 'MAC 地址生成器',
     strategy: 'structural：给定前缀后，生成的地址必须以前缀开头，且补齐为 6 组十六进制（分隔符可配置）',
-    steps: [{ fill: { i: 0, text: '64:16:7F' } }, { wait: 900 }],
+    // 按 label 定位：DOM 里「Quantity」的 n-input-number 排在前缀框前面，
+    // 序号 0 会把它写坏（n-input-number 丢弃非法值 → Quantity 变空 → 一条地址都不生成）。
+    // 前缀取一个不易碰巧重复的值，让「以前缀开头」这条断言真的有鉴别力。
+    steps: [{ fillLabel: { label: 'MAC address prefix:', text: 'DE:AD:BE' } }, { wait: 900 }],
     expect: {
       js: `(function(){
-        var t = document.querySelector('.tool-content').innerText.toUpperCase();
-        return /64[:\\-]16[:\\-]7F[:\\-][0-9A-F]{2}[:\\-][0-9A-F]{2}[:\\-][0-9A-F]{2}/.test(t);
+        var t = (window.__smokeText || document.querySelector('.tool-content').innerText).toUpperCase();
+        return /DE[:\\-.]AD[:\\-.]BE[:\\-.][0-9A-F]{2}[:\\-.][0-9A-F]{2}[:\\-.][0-9A-F]{2}/.test(t);
       })()`,
     },
   },
@@ -1504,9 +1553,11 @@ export const SMOKE_CASES = [
     path: '/qrcode-generator',
     name: 'qrcode-generator',
     zhTitle: '二维码生成器',
-    strategy: 'realInput：二维码是画布产物，只能用「canvas 真的被画了内容」来验（不能靠文本断言）',
+    strategy: 'realInput：二维码是图片产物 —— 必须真的解码出一张非平凡位图（不能靠文本断言）',
     steps: [{ fill: { i: 0, text: 'https://digdevbox.com' } }, { wait: 1400 }],
-    expect: { canvasNonBlank: true },
+    // 本工具走 QRCode.toDataURL() → <n-image> 即 <img src="data:image/png;base64,...">。
+    // 页面上没有 canvas，用 canvasNonBlank 会得到 {"count":0} 的假失败。
+    expect: { imageData: true },
   },
 
   {
@@ -1529,8 +1580,12 @@ export const SMOKE_CASES = [
     name: 'wifi-qrcode-generator',
     zhTitle: 'WiFi 二维码生成器',
     // WiFi 二维码的载荷格式是 WIFI:S:<ssid>;T:<type>;P:<pass>;;（通行约定），
-    // 但不同实现渲染方式不同，这里只断言「填了 SSID 后画布出图」。
-    strategy: 'realInput：填入 SSID 后必须生成二维码画布（payload 文本格式因实现而异，不锁死）',
+    // 但不同实现渲染方式不同，这里只断言「填好必填项后真的出图」。
+    strategy: 'realInput：填入 SSID + 密码后必须解码出二维码位图（payload 文本格式因实现而异，不锁死）',
+    // 必须同时给密码：该工具的载荷生成逻辑（useQRCode.ts 的 getQrCodeText）在
+    //   「加密方式既不是 nopass 也不是 WPA2-EAP，且**没有 password**」时直接 return null，
+    // 于是 qrcode 为空、<img> 整块不渲染，而且**界面不给任何提示**（静默空状态）。
+    // 这是它的既定行为（无密码的 WPA 网络没有意义），不是缺陷；但只填 SSID 的用例会得到假失败。
     steps: [
       {
         js: `(function(){
@@ -1538,12 +1593,16 @@ export const SMOKE_CASES = [
           var ssid = document.querySelector('.tool-content input[placeholder*="SSID"]');
           if (!ssid) return 'SSID 输入框未找到';
           S.setVal(ssid, 'DevBox-Smoke');
+          var pwd = document.querySelector('.tool-content input[type="password"]');
+          if (!pwd) return '密码输入框未找到';
+          S.setVal(pwd, 'smoke-pass-123');
           return null;
         })()`,
       },
       { wait: 1600 },
     ],
-    expect: { canvasNonBlank: true },
+    // 同 qrcode-generator：产物是 data-URL 的 <img>，页面上没有 canvas，canvasNonBlank 是假失败判据。
+    expect: { imageData: true },
   },
 
   // ═══════════════════════ Measurement（4）═══════════════════════
@@ -1571,7 +1630,11 @@ export const SMOKE_CASES = [
       text: ['Smoke'],
       js: `(function(){
         var t = document.querySelector('.tool-content').innerText.toLowerCase();
-        return ['mean', 'median', 'min', 'max'].filter(function(k){ return t.indexOf(k) >= 0; }).length >= 2;
+        // 该工具统计表的列是 POSITION / SUITE / SAMPLES / MEAN / VARIANCE（组件里写死的表头）。
+        // 原断言列的是 mean/median/min/max —— 后三个这个工具压根不显示，属「凭印象写期望」，
+        // 于是「表算对了也判失败」。改成实际存在的两列，并要求表里真的出现算好的数值与改名后的 suite。
+        if (['mean', 'variance'].filter(function(k){ return t.indexOf(k) >= 0; }).length < 2) return false;
+        return /\\d/.test(t) && /smoke/.test(t);
       })()`,
     },
   },
@@ -1620,12 +1683,34 @@ export const SMOKE_CASES = [
     // 默认类别与默认源单位由组件定义，这里不假定具体是哪一个，
     // 只要求「给出数值后必须产出非空换算结果」。
     strategy: 'realInput：给出数值后必须产出非空换算结果（类别与单位取自默认选择）',
-    steps: [{ fill: { i: 0, text: '1' } }, { wait: 1000 }],
+    // 这里必须用页内的 setVal，不能用引擎的 `fill` 步骤：
+    // 该数值框是 naive-ui 的 n-input-number，而 `fill` 会「先清空、再写入、最后 blur」，
+    // 那串动作会把它的模型打成 null（先前的失败留证：controlValues 为空、结果区整个不渲染），
+    // 第二次写入不生效。setVal 直接写值 + 派发 input，n-input-number 能正常接收
+    // （percentage-calculator 用同一条路径是通的）。
+    steps: [
+      {
+        js: `(function(){
+          var S = window.__smoke;
+          var el = document.querySelector('.tool-content input[placeholder="数值"]');
+          if (!el) return '数值输入框未找到';
+          S.setVal(el, '2');
+          return null;
+        })()`,
+      },
+      { wait: 1000 },
+    ],
     expect: {
-      text: ['换算结果'],
+      text: ['换算结果：'],
       js: `(function(){
-        var ta = document.querySelector('.tool-content textarea');
-        return !!ta && (ta.value || '').trim().length > 0;
+        // 输出走 TextareaCopyable → 渲染成 <n-code data-test-id="area-content">，
+        // **不是 <textarea>**（原断言按 textarea 找，必然拿不到）。
+        var out = document.querySelector('.tool-content [data-test-id="area-content"]');
+        if (!out) return false;
+        var t = out.innerText;
+        // 默认 category=长度、fromUnit=米（组件里 ref/FACTORS 的取值）。
+        // 输入 2 米 → 基准行必须是「米（输入）: 2」，且不是只有这一行。
+        return t.indexOf('米（输入）: 2') >= 0 && t.split('\\n').length >= 3;
       })()`,
     },
   },
