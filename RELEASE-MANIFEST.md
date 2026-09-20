@@ -87,9 +87,9 @@
 | ⑥ | E1 | PASS | ✅ **PASS（硬失败 0 / 实检项 172）**（2026-09-21 00:28 全量复跑）。⚠️ 此前线上首跑报 **4 硬失败** 是 **E1 脚本自身误报、非站点缺陷**：① A1 在 hydration 完成前就去找 `.c-select` 语言选择器（SSG 阶段不存在）→ 误报「找不到选择器」；② L10N 段漏了 A 组合已有的「组合间隔离」，上一组 zh 把 `localStorage.locale=zh` 遗留，工具页 hydration 成中文，与 SSG 默认英文被误判不一致。两处已加 `waitUntil('.c-select')` + 显式 `localStorage.locale='en'` 隔离，靶向 + 全量复跑均 0 硬失败 | `_ops/e1-user-path-report-prod.md` |
 | ⑦ | E1-NEG | **格数 50/50 完整 且 FAIL = 0**（SKIP 数可少于本地的 6，属预期；每条 SKIP 须有正当理由） | `⏳` | `_ops/e1-neg-input-report-prod.md` |
 | ⑧ | L10N / SEO / 品牌 | 两条判据 PASS + 106/106 + 品牌三条 | ✅ **L10N PASS 106/0/0/0**（判据2 命中 0 页；空转自证有效）· **SEO 106/106**（title 唯一；工具页 H1/title 101/101）· **品牌 PASS**（判据1 0/2 · 判据2 10/10 · 判据3 产物 0 命中）。部署前基线：L10N 对线上产物 FAIL（0/106）、SEO 大量 CJK | `_ops/l10n-body-report-prod.md` |
-| ⑨ | canonical / robots / sitemap | PASS | `⏳` | `_ops/step7-report.md` §2 |
-| ⑩ | 人工最终浏览 | 首页 + 4 法务页 + 3 抽样工具页 | `⏳` | — |
-| ⑪ | **FINAL GATE 13/13 判定** | 逐项对 `digdevbox-v2-rectification-plan.md` §7.3 那张表 | `⏳` | 同上 §7.3 |
+| ⑨ | canonical / robots / sitemap | PASS | ✅ **线上 PASS**（STEP7 272/272 含 canonical/robots/sitemap 一致性；SEO 106/106 含 canonical 唯一；`_ops/step7-report-prod.md`） | `_ops/step7-report-prod.md` §2 |
+| ⑩ | 人工最终浏览 | 首页 + 4 法务页 + 3 抽样工具页 | `⏳`（用户侧；建议 301 配好后做，确认跳转后的体验） | — |
+| ⑪ | **FINAL GATE 13/13 判定** | 逐项对 `digdevbox-v2-rectification-plan.md` §7.3 那张表 | `⏳`（**唯一阻塞 = ① C6 301 未配**；其余 12 项线上已全绿） | 同上 §7.3 |
 | — | AdSense 提交 | ⑪ 通过之后（**唯一允许的「提交」动作**；审核结论不由本项目判定） | `⏳` | — |
 
 ---
