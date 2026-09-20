@@ -1,8 +1,10 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n';
 import { usePageSeo } from '@/seo/use-page-seo';
 
 // description / canonical / og / twitter 统一由 SEO 数据层产出（见 src/seo/）。
-usePageSeo('/about', '关于 - 开发者工具箱');
+const { t } = useI18n();
+usePageSeo('/about', t('site.aboutTitle'));
 </script>
 
 <template>

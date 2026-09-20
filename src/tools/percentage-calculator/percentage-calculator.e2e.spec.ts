@@ -6,7 +6,7 @@ test.describe('Tool - Percentage calculator', () => {
   });
 
   test('Has correct title', async ({ page }) => {
-    await expect(page).toHaveTitle('Percentage calculator - 开发者工具箱');
+    await expect(page).toHaveTitle('Percentage calculator - DigDevBox');
   });
 
   test('Correctly works out percentages', async ({ page }) => {

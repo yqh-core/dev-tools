@@ -1,0 +1,128 @@
+# RELEASE MANIFEST — digdevbox.com
+
+> 一页纸回答一个问题：**哪个构建被测过、哪个构建部署了、哪个构建提交了 AdSense。**
+>
+> 背景（「整改6」第 11 条）：项目已有 8+ 份报告（E1 / E1-NEG / E1-L10N / L10N body /
+> STEP 7 / SEO / B3 / smoke），但**没有任何一份把「报告 ↔ 构建」对上号**。
+> 于是「本地 PASS」和「线上 PASS」可以是两个不同的构建 —— 这正是本轮整改一开始要消除的东西。
+>
+> **规则：只有当一个字段有硬证据时才填写；无证据一律写 `⏳ 待取证`，不得写「应该没问题」。**
+
+---
+
+## 1. 构建身份（构建身份三要素缺一不可）
+
+| 字段 | 值 | 证据来源 |
+|---|---|---|
+| Release | `digdevbox.com` | — |
+| Git Commit | `⏳ 待提交`（HEAD = `9d75e9d9c53b68ebef803920fd5ac22dfbc65f4d`；工作树 **81** 项未提交：68 改 + 7 删 + **6 新增**） | `git rev-parse HEAD` |
+| **⛔ 未跟踪文件（部署 blocker）** | `scripts/build-dd-tokens.mjs`（build 命令**第一步**）、`src/tools/guides.{en,zh,types}.ts`（`src/seo/tool-page.ts` 静态 import）—— **不提交则 CF 构建必然失败**：本地能构建是因为文件在**工作树**，CF 从干净 clone 开始、未跟踪文件不在其中 | `git status --porcelain \| grep "^??"` |
+| Git Branch | `main` | `git rev-parse --abbrev-ref HEAD` |
+| Build Time | `2026-09-20 21:47:33 +08:00` | `dist/index.html` mtime |
+| Build 命令 | `npm run build`（`BUILD_EXIT=0`） | 构建日志 |
+| 产物规模 | 647 个文件 / **270** 个 `index.html`（106 SSG + 164 legacy） | `find dist -type f` |
+| 首页 HTML | 257,907 字节（257.5 KB） | `ls -l dist/index.html` |
+| PWA manifest 指纹 | `name=DigDevBox` · `short_name=DigDevBox` · `lang=en` | 判据 3（产物侧） |
+| Deployment Time | `⏳ 待部署` | Cloudflare Pages |
+| Cloudflare Build ID | `⏳ 待部署` | Cloudflare Pages → Deployments |
+| 部署后线上 HTML 指纹 | `⏳ 待取证` | `curl -s https://digdevbox.com/ \| openssl dgst -sha256` |
+
+> ⚠ **本地构建 ≠ 已部署构建。** 部署完成前，下表所有「本地」结果
+> 只能证明「这份产物在本机是好的」，**不能**作为 AdSense 的线上验收。
+>
+> **本轮（F-9）的改动范围（两处，都不在渲染 / 路由 / SEO 逻辑上）**：
+> `public/_redirects` 的顶部注释（**去掉旧主机名字面** —— 该文件随部署上线，属产物）、
+> 以及 `RELEASE-MANIFEST.md` 自身的措辞。
+>
+> ⚠ 但**产物 Build Time 因此变了**（`20:01:44` → `21:47:33`）。按「验收对象必须一致」的纪律，
+> 本地六套件**已对这一份新构建全量重跑**（不抽样、不沿用旧数字）。
+> 这正是「整改7」要的口径：**换了构建就得重跑，哪怕改动看起来无关。**
+
+---
+
+## 2. 本地验收（对上面这个 Build Time 的产物）
+
+| 套件 | 期望 | 实测 | 退出码 | 报告 |
+|---|---|---|---|---|
+| E1 用户路径（8 组合 ×18 + L10N 25） | 169/169 | **169 ✅ / 0 ❌（硬失败 0 / 实检项 169）** | `0` | `_ops/e1-user-path-report.md` |
+| E1-NEG 异常输入（10 工具 ×5 类） | 44/0/6 | **44 PASS / 0 FAIL / 6 SKIP = 50**（重试 0；**完整性断言 50 格 ✅**） | `0` | `_ops/e1-neg-input-report.md` |
+| L10N 正文语言（判据 1 可见正文 + 判据 2 整页 CJK） | 106/0/0 | **106 PASS / 0 FAIL / 0 UNDECIDED**（判据 2 命中 0 页；两条空转自证均有效） | `0` | `_ops/l10n-body-report.md` |
+| 品牌名一致性（**三条**判据：源码负向 + 源码正向 + **产物**） | 0 残留 / 10 正向 / manifest 0 问题 | **0 未豁免 / 10-10 / 产物 0 命中**（扫描 **593** 个文本文件、未收录 19 个真二进制；空转自证 2/2 有效；**覆盖面自证**见报告「扫描覆盖自证」节） | `0` | `_ops/brand-consistency-report.md` |
+| STEP 7 全站 272 URL（本地 CF 语义服务） | 272/272 | **272/272 ✅**（首页 3/3 · sitemap 105/105 · 经典版 162/162 · 负样本 2/2；14 类缺陷 **全 0**） | `0` | `_ops/step7-report-local.md` |
+| Smoke 101 工具（本地静态服务） | Local 98 / 0 / 3 | **pass=98 fail=0 warn=0 skip=3**（覆盖面：用例集 101 条 / 执行 98 / 跳过 3，3 条 SKIP 的正当理由 = 依赖 Pages Functions `/api/*`） | `0` | `.smoke-out/shard-1.json` |
+| SEO 三件套 A4/A5 | 106/106 | **106/106**（title 唯一 106/106；工具页 H1/title 一致 101/101） | `0` | `_ops/i18n-seo-check`（stdout） |
+| B3 视觉回归 | 15/15 | 对**上一构建**已验证（15/15）；本轮改动不涉及视觉，**未重跑** | — | §3 执行记录 |
+| B6 五档移动端 | 无新增断点 | 已实测（375/390/768/1024/1440 溢出 0px）；本轮未重跑 | — | §5.5 |
+| B7 无障碍 | 真实问题可解释 | 真实 4 / 误报 101；本轮未重跑 | — | §5.5 |
+| 构建 | `BUILD_EXIT=0` | **106 页 SSG（静态 5 + 工具 101）+ sitemap 106 条** | `0` | 构建日志 |
+
+> **本轮唯一一次「红」及其分诊**（如实记录，见方案 §5.11 补充）：
+> E1-NEG 首次全量跑出 1 条红 —— `/math-evaluator` · ② 错误输入「工具区 0 字、无提示」。
+> **单用例连跑两次均 PASS** → 判为**抖动（假红）**，不是回归。
+> 根因是判据在写载荷后用**固定 `sleep(700)`** 读状态，提示还没画出来就被读走；
+> 且这一族不触发既有的「结构性失败重试」。
+> 已改为**有界条件等待**（等到工具区有文本，最多 2.5s），并让「工具区 0 字」走重试。
+> 修正后全量重跑：**44 / 0 / 6，重试 0，`exit 0`**。
+>
+> smoke 的 3 个 SKIP 不是失败：`/http-status-checker`、`/today-in-history`、`/whois-lookup`
+> 依赖 Cloudflare Pages Functions（`/api/*`），本地静态服务没有 —— 必须在**线上**才能取证。
+> 因此「Local 98/0/3 + Production 101/0/0」是**互补证据集合**，不是同一次 199 项测试。
+
+---
+
+## 3. 线上验收（**必须用 `Deployment Time` 那一份构建重跑**）
+
+> 「整改6」第 10 条：第 ④～⑧ **不要只挑几个测**。
+> 本地已经很绿，线上要证明的只有一件事：**部署出去的东西就是刚才测试通过的东西。**
+> 抽样恰恰证明不了这件事。
+
+| # | 闸门 | 期望 | 实测 | 报告 |
+|---|---|---|---|---|
+| ① | C6 · 6 个 `pages.dev` → 301 | 6/6 ✅ | `⏳ 待配置` 🔴 **唯一 P0**（2026-09-20 **22:45 复测**：**已 301 = 0 / 仍敞开 200 = 6**，与 19:1x / 21:3x 及用户截图一致）。CSV 本轮**重写**并新增校验器（正样本 PASS + 表头/302/布尔 false/BOM 四组负样本判红） | `_ops/pages-dev-301-plan.md` · `_ops/pages-dev-redirects.csv` |
+| ② | 部署完成 | Deployment Time 已记录 | `⏳`（**前置**：第 1 节那 4 个未跟踪文件必须先提交，否则 CF 构建失败） | — |
+| ③ | 构建身份已归档 | 本文件第 1 节填满 | `⏳` | 本文件 |
+| **③.0** | **指纹闸门：线上 == 本地这份构建** | `111 相同 / 0 不同` | **⛔ 部署前基线：4 相同 / 107 不同**（线上全页 `html lang="zh-CN"`，本地 `en`；`cf-cache-status: DYNAMIC×110` = **直达源站、非 CDN 缓存副本**，故结论可靠） | `_ops/prod-artifact-report.md` · `_ops/prod-artifact.json` |
+| ④ | STEP 7 | 272/272 PASS | `⏳`（须用 ③.0 通过后的构建） | `_ops/step7-report-prod.md` |
+| ⑤ | Smoke | **discovered 101 / executed 101 / failed 0 / skipped 0**（不只 `FAIL=0`，覆盖不得缩水） | `⏳` | `.smoke-out/` |
+| ⑥ | E1 | PASS | `⏳` | `_ops/e1-user-path-report-prod.md` |
+| ⑦ | E1-NEG | **格数 50/50 完整 且 FAIL = 0**（SKIP 数可少于本地的 6，属预期；每条 SKIP 须有正当理由） | `⏳` | `_ops/e1-neg-input-report-prod.md` |
+| ⑧ | L10N / SEO / 品牌 | 两条判据 PASS + 106/106 + 品牌三条 | **⛔ 部署前基线：L10N 对线上产物 FAIL（0 PASS / 106 FAIL）；SEO 大量 `CJK_IN_TITLE/DESCRIPTION/H1`** | `_ops/l10n-body-report-prod.md` |
+| ⑨ | canonical / robots / sitemap | PASS | `⏳` | `_ops/step7-report.md` §2 |
+| ⑩ | 人工最终浏览 | 首页 + 4 法务页 + 3 抽样工具页 | `⏳` | — |
+| ⑪ | **FINAL GATE 13/13 判定** | 逐项对 `digdevbox-v2-rectification-plan.md` §7.3 那张表 | `⏳` | 同上 §7.3 |
+| — | AdSense 提交 | ⑪ 通过之后（**唯一允许的「提交」动作**；审核结论不由本项目判定） | `⏳` | — |
+
+---
+
+## 4. 关于「AdSense 状态」的措辞（「整改6」第 7 条 → 「整改7」第 10 条收紧）
+
+本文件**只允许**写下面这一句：
+
+> **本地技术整改已完成，进入线上新构建最终验收阶段。**
+
+**禁止**出现：
+
+- ❌「**技术整改已完成**」（不带「本地」）—— 省略「本地」＝把「本地全绿」读成「连线上也验收完了」
+- ❌「AdSense 提交前最终验收阶段」（不带「线上新构建」）—— 未点明验收对象是**部署后的那一份构建**
+- ❌「符合 AdSense 要求」
+- ❌「一定可以通过 AdSense」
+- ❌「已达到最终提交条件」
+- ❌ `AdSense: PASS`（只能写 `AdSense: READY TO SUBMIT`）
+
+理由：本项目的自动化判据能证明**网站侧**的事实 —— 功能、页面质量、语言、SEO、UX、
+错误输入处理、页面结构。它**不能**证明 Google 的最终审核结论。
+这是两个不同层级的事，混写会让人把「我测完了」误读成「审核会过」。
+
+第 ⑪ 项因此写成 `AdSense：READY TO SUBMIT`（材料齐备、可以提交），
+而不是 `AdSense：PASS`（审核通过）—— 后者不存在于本文件的能力范围内。
+
+---
+
+## 5. 变更记录
+
+| 时间 | 变更 |
+|---|---|
+| 2026-09-20 22:0x | **本轮（F-10 · 发布链路打通，只动验证器与发布输入、不动产品代码）**：① 新增 `_ops/fetch-prod-artifact.mjs`（抓线上产物 + 与本地 dist **逐字节 sha256 比对**）并完成**部署前线上基线取证**：**4 相同 / 107 不同**、线上全页 `lang="zh-CN"`、L10N 对线上产物 **FAIL（0 PASS / 106 FAIL）**、SEO 大量 CJK → 「本地全绿 ≠ 线上合格」由断言变成可复现判据；② 修 `_ops/pages-dev-redirects.csv` 三处格式错误（表头 / BOM / 第 4·6 列互换）+ 新增 `verify-301-csv.mjs`（四组负样本自证）；③ 给 E1 / E1-NEG 加 `E1_BASE` 线上模式，给三个 dist 判据加 `--dist` / `--out`；④ 修判据自身三处**静默失效**（参数只认等号 → 静默扫本地；INVALID 凌驾 FAIL → 掩盖阻断；0 例报 PASS → 且覆盖真报告）；⑤ 查出**部署 blocker**：4 个未跟踪文件（`build-dd-tokens.mjs` + `guides.{en,zh,types}.ts`）会让 CF 构建必然失败。详见方案 §5.16 与 `_ops/PUBLISH-RUNBOOK.md` |
+| 2026-09-20 21:4x | **本轮（F-9）**：品牌判据补**覆盖面** —— `.toml`/`.tsx`/`.t`/`.conf`/`.csv` 进白名单、**无扩展名文件改「试读」**（仓库里 8 个无扩展名文件此前**一个都没被扫**）、`.wrangler/` 纳入跳过；新增「**扫描覆盖自证**」小节 + 白名单回显改**三态**。由此抓出两处真残留：`public/_redirects` 注释里的旧主机名（**该文件随部署上线，属产物**）与本文档自身引用的旧名 → 均已清 |
+| 2026-09-20 20:1x | **本轮（F-8）**：修 PWA manifest `short_name` 旧品牌残留（旧英文短名 → `DigDevBox`）、`lang` 对齐默认语言 `en`、`description` 换英文；品牌判据升级为**三条**（新增产物侧）；E1-NEG 假红分诊与判据收紧；全量本地复跑对新构建（BUILD `20:01:44`） |
+| 2026-09-20 19:3x | 建立本文件（整改6 第 11 条）；品牌统一为 DigDevBox；本地静态判据全绿 |

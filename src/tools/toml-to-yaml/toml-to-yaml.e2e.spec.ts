@@ -6,7 +6,7 @@ test.describe('Tool - TOML to YAML', () => {
   });
 
   test('Has correct title', async ({ page }) => {
-    await expect(page).toHaveTitle('TOML to YAML - 开发者工具箱');
+    await expect(page).toHaveTitle('TOML to YAML - DigDevBox');
   });
 
   test('TOML is parsed and outputs clean YAML', async ({ page }) => {

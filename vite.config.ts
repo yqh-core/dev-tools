@@ -76,10 +76,19 @@ export default defineConfig({
         navigateFallbackDenylist: [/^\/legacy\//],
       },
       manifest: {
-        name: '开发者工具箱',
-        description: '开发者常用在线工具集合，纯前端运行，数据不出浏览器。',
+        name: 'DigDevBox',
+        // ⚠ short_name 必须**显式**写死。不写时 vite-plugin-pwa 会回落到 package.json 的
+        //    `name`（本仓库沿用至今的旧包名），于是用户把 PWA 装到桌面/手机上，图标上的名字
+        //    仍是旧品牌。而这个值只存在于构建产物 dist/manifest.webmanifest 里，
+        //    **源码全局搜索永远查不到** —— 是「品牌统一」里最容易漏的一处。
+        //    判据：_ops/brand-consistency-check.mjs 的判据 3（产物侧）。
+        short_name: 'DigDevBox',
+        // 站点默认语言是 en（A2 已拍板），而 manifest 只有一份、不随 locale 变，
+        // 所以这里跟默认语言对齐；中文由界面内的语言切换承担。
+        lang: 'en',
+        description:
+          'A curated collection of practical online tools for developers and IT professionals, with a friendly interface and simple workflows. DigDevBox is a free and open-source toolkit covering encryption, conversion, development, networking and more.',
         display: 'standalone',
-        lang: 'zh-CN',
         start_url: `${baseUrl}?utm_source=pwa&utm_medium=pwa`,
         orientation: 'any',
         theme_color: '#0f766e',

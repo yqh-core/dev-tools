@@ -107,7 +107,7 @@ function verifyTOTP({
 
 function buildKeyUri({
   secret,
-  app = '开发者工具箱',
+  app = 'DigDevBox',
   account = 'demo-user',
   algorithm = 'SHA1',
   digits = 6,

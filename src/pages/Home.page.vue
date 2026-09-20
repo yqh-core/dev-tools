@@ -5,6 +5,7 @@ import Draggable from 'vuedraggable';
 import ColoredCard from '../components/ColoredCard.vue';
 import ToolCard from '../components/ToolCard.vue';
 import { useToolStore } from '@/tools/tools.store';
+import type { ToolWithCategory } from '@/tools/tools.types';
 import { ALIASES } from '@/tools/aliases';
 import { CLASSIC_SITE_TOOL_COUNT, classicSiteUrl } from '@/classic-site';
 import { config } from '@/config';
@@ -13,8 +14,8 @@ import { usePageSeo } from '@/seo/use-page-seo';
 const toolStore = useToolStore();
 
 // description / canonical / og / twitter 统一由 SEO 数据层产出（见 src/seo/）。
-usePageSeo('/', '开发者工具箱 - 开发者常用在线工具');
 const { t } = useI18n();
+usePageSeo('/', t('site.homeTitle'));
 
 const favoriteTools = computed(() => toolStore.favoriteTools);
 
@@ -44,6 +45,33 @@ const matchedTools = computed(() => {
 });
 
 const isSearching = computed(() => normalizedQuery.value.length > 0);
+
+/**
+ * 常用工具（Popular Tools）。
+ *
+ * 为什么是硬编码清单而不是按访问量排序：站点没有后端，拿不到真实访问统计；
+ * 硬编码一份**人工确认过的**清单，比拍脑袋造一个「热度算法」诚实。
+ *
+ * 这些 path 全部经过 sitemap 核对 —— 例如「JSON 格式化」的真实 path 是
+ * `/json-prettify` 而非直觉上的 `/json-formatter`，凭印象写会渲染成空区块。
+ * `filter(Boolean)` 兜底：万一某个工具日后改名下架，区块少一张卡，不会白屏。
+ */
+const POPULAR_TOOL_PATHS = [
+  '/json-prettify',
+  '/base64-string-converter',
+  '/hash-text',
+  '/token-generator',
+  '/uuid-generator',
+  '/url-encoder',
+  '/regex-tester',
+  '/qrcode-generator',
+];
+
+const popularTools = computed(() =>
+  POPULAR_TOOL_PATHS
+    .map(path => toolStore.tools.find(tool => tool.path === path))
+    .filter(Boolean) as ToolWithCategory[],
+);
 
 // Update favorite tools order when drag is finished
 function onUpdateFavoriteTools() {
@@ -76,14 +104,14 @@ function onUpdateFavoriteTools() {
           v-model="searchQuery"
           class="search-input"
           type="search"
-          placeholder="搜索工具，例如：时间戳、美化、二维码、base64"
-          aria-label="搜索工具"
+          :placeholder="t('search.placeholder')"
+          :aria-label="t('search.inputLabel')"
         >
         <button
           v-if="isSearching"
           class="search-clear"
           type="button"
-          aria-label="清空搜索"
+          :aria-label="t('search.clear')"
           @click="searchQuery = ''"
         >
           <n-icon :component="IconX" size="16" />
@@ -92,10 +120,10 @@ function onUpdateFavoriteTools() {
 
       <div v-if="isSearching" class="search-result-head">
         <span v-if="matchedTools.length > 0">
-          找到 {{ matchedTools.length }} 个匹配「{{ searchQuery.trim() }}」的工具
+          {{ t('search.found', { count: matchedTools.length, query: searchQuery.trim() }) }}
         </span>
         <span v-else>
-          没有找到匹配「{{ searchQuery.trim() }}」的工具，换个说法试试（如「格式化」「转换」「生成」）
+          {{ t('search.empty', { query: searchQuery.trim() }) }}
         </span>
       </div>
 
@@ -125,6 +153,19 @@ function onUpdateFavoriteTools() {
           </ColoredCard>
         </div>
 
+        <!--
+          常用工具：给新用户一个「从哪开始」的入口。
+          101 个工具平铺时，第一次来的人只会看到一片网格；这 8 个是高频入口。
+        -->
+        <div v-if="popularTools.length > 0">
+          <h3 class="mb-5px mt-25px text-neutral-400 font-500">
+            {{ t('home.categories.popularTools') }}
+          </h3>
+          <div class="grid grid-cols-1 gap-12px lg:grid-cols-3 md:grid-cols-3 sm:grid-cols-2 xl:grid-cols-4">
+            <ToolCard v-for="tool in popularTools" :key="tool.path" :tool="tool" />
+          </div>
+        </div>
+
         <transition name="height">
           <div v-if="toolStore.favoriteTools.length > 0">
             <h3 class="mb-5px mt-25px text-neutral-400 font-500">
@@ -146,6 +187,27 @@ function onUpdateFavoriteTools() {
             </Draggable>
           </div>
         </transition>
+
+        <!--
+          最近使用：纯客户端 localStorage，不需要登录。
+          首次访问没有数据（v-if 为假），不影响 SSG 预渲染出的初始 HTML，
+          因此不会给「不执行 JS 的抓取器」看到一个空标题。
+        -->
+        <div v-if="toolStore.recentTools.length > 0">
+          <h3 class="mb-5px mt-25px text-neutral-400 font-500">
+            {{ t('home.categories.recentTools') }}
+            <button
+              class="cat-action"
+              type="button"
+              @click="toolStore.clearRecentTools()"
+            >
+              {{ t('home.categories.clearRecent') }}
+            </button>
+          </h3>
+          <div class="grid grid-cols-1 gap-12px lg:grid-cols-3 md:grid-cols-3 sm:grid-cols-2 xl:grid-cols-4">
+            <ToolCard v-for="tool in toolStore.recentTools" :key="tool.path" :tool="tool" />
+          </div>
+        </div>
 
         <div v-if="toolStore.newTools.length > 0">
           <h3 class="mb-5px mt-25px text-neutral-400 font-500">
@@ -295,6 +357,26 @@ function onUpdateFavoriteTools() {
   font-weight: 400;
   line-height: 18px;
   opacity: 0.7;
+}
+
+/* 「清空最近使用」：与 .cat-count 同尺寸，但可点，因此要有 hover 反馈 */
+.cat-action {
+  margin-left: 8px;
+  padding: 0 7px;
+  border: 0;
+  border-radius: 9px;
+  background-color: rgba(128, 128, 128, 0.16);
+  color: inherit;
+  cursor: pointer;
+
+  font-size: 11px;
+  font-family: inherit;
+  font-weight: 400;
+  line-height: 18px;
+}
+
+.cat-action:hover {
+  background-color: rgba(128, 128, 128, 0.32);
 }
 
 .height-enter-active,

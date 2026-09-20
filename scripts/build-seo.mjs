@@ -24,6 +24,7 @@ import { readFile, writeFile, mkdir, rm } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createServer } from 'vite';
+import { parse } from 'yaml';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const DRY_RUN = process.argv.includes('--dry-run');
@@ -34,15 +35,36 @@ const DRY_RUN = process.argv.includes('--dry-run');
  * 这里补一段静态页脚导航；客户端 mount 后会被真实页脚接管，链接集合一致。
  *
  * href 统一带尾斜杠，与 canonical / sitemap 保持一致（原因见 src/seo/site.ts）。
+ *
+ * ⚠ 文案必须取**默认 locale（en）**的词条，不能硬编码中文。
+ *   2026-09-20 实测踩坑：这里原先写死「首页 / 关于 / 隐私政策 / 服务条款 / 联系我们」，
+ *   而默认 locale 已是 en —— 结果是「爬虫与不执行 JS 的访问者看到中文页脚，
+ *   执行 JS 的用户看到英文页脚」，同一页面两套语言。
+ *   这与「只改 SSG 骨架不改客户端」是同一类缺陷（见 V2 方案 §5.6 / E1-L10N），
+ *   只是方向相反。改为从 locales/en.yml 读，词条改了这里自动跟着变，不会漂移。
  */
+const DEFAULT_LOCALE = 'en';
+const messages = parse(await readFile(join(root, `locales/${DEFAULT_LOCALE}.yml`), 'utf8'));
+const label = (dotted) => {
+  const v = dotted.split('.').reduce((o, k) => (o == null ? o : o[k]), messages);
+  if (typeof v !== 'string' || !v.trim()) {
+    throw new Error(`[build-seo] locales/${DEFAULT_LOCALE}.yml 缺少词条 ${dotted}（静态页脚要用）`);
+  }
+  return v;
+};
+// 与客户端真实页脚的链接集合一致：首页 / 关于 + 3 个法务页。
+const FOOTER_LINKS = [
+  { href: '/', text: label('home.home') },
+  { href: '/about/', text: label('home.nav.aboutLabel') },
+  { href: '/privacy/', text: label('legal.privacy') },
+  { href: '/terms/', text: label('legal.terms') },
+  { href: '/contact/', text: label('legal.contact') },
+];
+
 const STATIC_FOOTER = `
 <footer class="dd-seo-footer" style="max-width:800px;margin:48px auto 0;padding:24px 16px;border-top:1px solid rgba(128,128,128,.25);font-size:14px;line-height:2">
   <nav>
-    <a href="/">首页</a> ·
-    <a href="/about/">关于</a> ·
-    <a href="/privacy/">隐私政策</a> ·
-    <a href="/terms/">服务条款</a> ·
-    <a href="/contact/">联系我们</a>
+${FOOTER_LINKS.map(l => `    <a href="${l.href}">${l.text}</a>`).join(' ·\n')}
   </nav>
 </footer>`;
 

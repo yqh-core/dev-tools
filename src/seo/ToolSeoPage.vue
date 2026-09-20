@@ -20,23 +20,27 @@
 // 一律用相对路径导入：`defineProps<{ entry: ToolSeoEntry }>()` 的类型需要被
 // @vue/compiler-sfc 静态解析，别名路径在部分版本下会解析失败（Unresolvable type reference）。
 import type { ToolSeoEntry } from './tool-page';
+import { useI18n } from 'vue-i18n';
 import { usePageSeo } from './use-page-seo';
-import { SITE_NAME } from './site';
 
 const props = defineProps<{ entry: ToolSeoEntry }>();
 
 const { entry } = props;
+const { t } = useI18n();
 
-usePageSeo(entry.path, `${entry.name} - ${SITE_NAME}`, entry.description);
+usePageSeo(entry.path, `${entry.name} - ${t('site.name')}`, entry.description);
 
 /**
  * 第 2 项「工具用途简介」。
  *
  * 优先用人工编写的 guide.intro（当前 101/101 全覆盖，逐工具独有）；
  * 万一将来新增了还没写说明的工具，**不编造**用途，退回一句只陈述既有事实的分类说明。
+ *
+ * 骨架是给「不执行 JS 的抓取器」看的，所以这里的文案必须走 i18n 并落在**默认语言
+ * （en）**上 —— 写死中文字面量会让英文页面的正文混进中文（与 guides 同一类问题）。
  */
 const lead = entry.guide?.intro
-  ?? `「${entry.name}」是开发者工具箱「${entry.category}」分类下的在线工具。`;
+  ?? t('seo.leadFallback', { name: entry.name, category: entry.category });
 
 // 骨架是纯静态 HTML（无响应式状态），样式只能用内联属性：
 // SFC 的 <style scoped> 会被提取进客户端 chunk，不会出现在预渲染出的 HTML 里。
@@ -46,7 +50,7 @@ const box = 'max-width:800px;margin:0 auto;padding:32px 16px;box-sizing:border-b
 <template>
   <article class="dd-tool-seo" :style="box">
     <nav style="font-size:13px;opacity:.6;margin-bottom:16px">
-      <a href="/" style="color:inherit">首页</a>
+      <a href="/" style="color:inherit">{{ t('home.home') }}</a>
       <span> / </span>
       <span>{{ entry.category }}</span>
       <span> / </span>
@@ -74,7 +78,7 @@ const box = 'max-width:800px;margin:0 auto;padding:32px 16px;box-sizing:border-b
       工具的用途简介（guide.intro）不在这里，它已作为上方可见的首段输出。
     -->
     <details v-if="entry.guide" class="dd-tool-guide" style="margin:0 0 20px;font-size:15px;line-height:1.8">
-      <summary style="cursor:pointer;opacity:.9">操作步骤与注意事项</summary>
+      <summary style="cursor:pointer;opacity:.9">{{ t('seo.guideSummary') }}</summary>
       <ol style="margin:10px 0 0;padding-left:22px;opacity:.85">
         <li v-for="(step, index) in entry.guide.steps" :key="index">
           {{ step }}
@@ -88,13 +92,13 @@ const box = 'max-width:800px;margin:0 auto;padding:32px 16px;box-sizing:border-b
     </details>
 
     <p class="dd-tool-category" style="font-size:14px;opacity:.7;margin:0 0 24px">
-      所属分类：{{ entry.category }}
-      <span v-if="!entry.guide">（该工具的使用说明尚未编写）</span>
+      {{ t('seo.categoryLine', { category: entry.category }) }}
+      <span v-if="!entry.guide">{{ t('seo.guideMissing') }}</span>
     </p>
 
     <section v-if="entry.related.length" class="dd-tool-related">
       <h2 style="font-size:16px;font-weight:500;opacity:.8;margin:0 0 10px">
-        同类工具
+        {{ t('tool.relatedTitle') }}
       </h2>
       <ul style="margin:0;padding-left:22px;line-height:2;font-size:15px">
         <li v-for="item in entry.related" :key="item.path">

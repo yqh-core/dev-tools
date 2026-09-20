@@ -6,7 +6,7 @@ test.describe('Tool - Token generator', () => {
   });
 
   test('Has title', async ({ page }) => {
-    await expect(page).toHaveTitle('Token generator - 开发者工具箱');
+    await expect(page).toHaveTitle('Token generator - DigDevBox');
   });
 
   test('New token on refresh', async ({ page }) => {

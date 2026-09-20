@@ -21,10 +21,10 @@ export const SITE_ORIGIN = 'https://digdevbox.com';
 /** 站点主机名，用于需要在正文里提到域名的场景。 */
 export const SITE_HOST = 'digdevbox.com';
 
-export const SITE_NAME = '开发者工具箱';
+export const SITE_NAME = 'DigDevBox';
 
 /** 社交卡片图（相对站点根）。带上版本号便于更换后绕过平台缓存。 */
-export const OG_IMAGE = `${SITE_ORIGIN}/og-image.jpg?v=1`;
+export const OG_IMAGE = `${SITE_ORIGIN}/og-image.jpg?v=2`;
 
 /**
  * 把任意路由路径规范化成唯一形式：以 `/` 开头；非根路径以 `/` 结尾。

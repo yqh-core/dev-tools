@@ -39,7 +39,7 @@ const tools = computed<ToolCategory[]>(() => [
         <HeroGradient class="gradient" />
         <div class="text-wrapper">
           <div class="title">
-            开发者工具箱
+            {{ $t('legal.siteName') }}
           </div>
           <div class="divider" />
           <div class="subtitle">
@@ -147,8 +147,18 @@ const tools = computed<ToolCategory[]>(() => [
   margin-top: 20px;
   padding: 20px 0;
 
+  /*
+   * 触控目标：B7 甄别出页脚这 4 个链接真实高度只有 16~18px（低于 24px 建议值），
+   * 且它们**没有更大的可点祖先** —— 与侧栏菜单那 101 个（祖先点击区已达标）性质不同，
+   * 这 4 个是真问题。用纵向 padding 把可点区撑到 >= 24px，视觉排版不变。
+   */
+  a {
+    display: inline-block;
+    padding: 4px 2px;
+  }
+
   .footer-legal {
-    margin-top: 8px;
+    margin-top: 4px;
     font-size: 13px;
 
     a {

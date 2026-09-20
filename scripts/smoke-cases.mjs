@@ -334,9 +334,13 @@ export const SMOKE_CASES = [
     category: 'Converter',
     zhTitle: 'Base64 字符串编码/解码',
     tier: 'io',
-    strategy: 'knownVector：base64("Hello 开发者工具箱")，期望值由 Python base64 独立算出',
+    strategy:
+      'knownVector：base64(guides 示例文本 "Hello DigDevBox")，期望值由 Python base64 独立算出。'
+      + '⚠ 本用例的期望值与 guides 的 example.text 耦合（applyExample 会填该文本）：'
+      + '2026-09-20 品牌统一时 en/zh 两侧示例都改成同一串，才使本用例与语言无关；'
+      + '以后再改示例文本，必须同步重算这里的期望值。',
     steps: [{ applyExample: true }, { wait: 600 }],
-    expect: { text: ['SGVsbG8g5byA5Y+R6ICF5bel5YW3566x'] },
+    expect: { text: ['SGVsbG8gRGlnRGV2Qm94'] },
   },
   {
     path: '/base-converter',

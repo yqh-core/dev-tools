@@ -1,3 +1,9 @@
+site:
+  name: "DigDevBox"
+  homeTitle: "DigDevBox - Online Developer Tools"
+  aboutTitle: "About - DigDevBox"
+  notFoundTitle: "Page Not Found - DigDevBox"
+
 home:
   hero:
     title: "Developer Toolbox"
@@ -9,36 +15,39 @@ home:
   categories:
     newestTools: Newest tools
     favoriteTools: 'Your favorite tools'
+    recentTools: 'Recently used'
+    popularTools: 'Popular tools'
     allTools: 'All the tools'
     favoritesDndToolTip: 'Drag and drop to reorder favorites'
+    clearRecent: 'Clear recently used'
   subtitle: 'Handy tools for developers'
   toggleMenu: 'Toggle menu'
   home: Home
   uiLib: 'UI Lib'
-  support: 'Support 开发者工具箱 development'
+  support: 'Support DigDevBox development'
   buyMeACoffee: 'Buy me a coffee'
   follow:
-    title: 'You like 开发者工具箱?'
+    title: 'You like DigDevBox?'
     p1: 'Give us a star on'
-    githubRepository: '开发者工具箱 GitHub repository'
+    githubRepository: 'DigDevBox GitHub repository'
     p2: 'or follow us on'
-    twitterXAccount: '开发者工具箱 GitHub repository'
+    twitterXAccount: 'DigDevBox GitHub repository'
     thankYou: 'Thank you!'
   nav:
     github: 'GitHub repository'
-    githubRepository: '开发者工具箱 GitHub repository'
-    twitterX: '开发者工具箱 GitHub repository'
-    twitterXAccount: '开发者工具箱 GitHub repository'
-    about: 'About  开发者工具箱'
+    githubRepository: 'DigDevBox GitHub repository'
+    twitterX: 'DigDevBox GitHub repository'
+    twitterXAccount: 'DigDevBox GitHub repository'
+    about: 'About DigDevBox'
     aboutLabel: 'About'
     darkMode: 'Dark mode'
     lightMode: 'Light mode'
     mode: 'Toggle dark/light mode'
 about:
   content: >
-    # About 开发者工具箱
+    # About DigDevBox
 
-    开发者工具箱 is a collection of handy online tools for developers. Everything runs client-side in your browser - no data is ever uploaded. If you find it useful, feel free to bookmark and share it.
+    DigDevBox is a collection of handy online tools for developers. Everything runs client-side in your browser - no data is ever uploaded. If you find it useful, feel free to bookmark and share it.
 
     This project is a fork of the open-source [it-tools](https://github.com/CorentinTh/it-tools) (GPL-3.0), and we are grateful to its author. It is currently maintained by [yqh-core](https://github.com/yqh-core) and the source lives at [https://github.com/yqh-core/dev-tools](https://github.com/yqh-core/dev-tools).
 
@@ -56,7 +65,7 @@ about:
     - [Mortgage Calculator](https://fangdai.digdevbox.com)
 
 legal:
-  siteName: 'Developer Toolbox'
+  siteName: 'DigDevBox'
   privacy: 'Privacy Policy'
   terms: 'Terms of Service'
   contact: 'Contact Us'
@@ -72,6 +81,11 @@ toolCard:
   new: New
 search:
   label: Search
+  placeholder: 'Search tools, e.g. timestamp, format, QR code, base64'
+  inputLabel: 'Search tools'
+  clear: 'Clear search'
+  found: 'Found {count} tools matching "{query}"'
+  empty: 'No tools match "{query}". Try another wording, such as "format", "convert" or "generate".'
 tools:
   categories:
     favorite-tools: 'Your favorite tools'
@@ -407,6 +421,39 @@ tools:
   text-to-binary:
     title: Text to ASCII binary
     description: Convert text to its ASCII binary representation and vice-versa.
+
+  ascii-text-drawer:
+    title: ASCII Art Generator
+    description: Turn text into ASCII art with multiple fonts and styles.
+
+  email-normalizer:
+    title: Email Address Normalizer
+    description: Normalize email addresses to a standard format for easier comparison, deduplication and data cleaning.
+
+  json-to-xml:
+    title: JSON to XML
+    description: Convert JSON data to XML format.
+
+  markdown-to-html:
+    title: Markdown to HTML
+    description: Convert Markdown to HTML, with print support (save as PDF).
+
+  regex-memo:
+    title: Regex Cheat Sheet
+    description: Quick reference cheat sheet for common JavaScript regular expression syntax.
+
+  regex-tester:
+    title: Regex Tester
+    description: Test regular expressions against sample text with live match results.
+
+  safelink-decoder:
+    title: Outlook SafeLink Decoder
+    description: Decode SafeLink URLs from Outlook emails and recover the real address.
+
+  xml-to-json:
+    title: XML to JSON
+    description: Convert XML data to JSON format.
+
   fullwidth-converter:
     title: "Full-width / half-width converter"
     description: "Convert between full-width and half-width characters using the fixed Unicode offset 0xFEE0, or adjust punctuation only."
@@ -417,7 +464,7 @@ tools:
 
   rmb-uppercase:
     title: "RMB amount in Chinese uppercase"
-    description: "Turn a numeric amount into the Chinese financial uppercase wording (yuan / jiao / fen), optionally prefixed with 人民币."
+    description: "Turn a numeric amount into the Chinese financial uppercase wording (yuan / jiao / fen), with an optional RMB prefix."
 
   px-rem-converter:
     title: "px / rem converter"
@@ -468,3 +515,12 @@ tools:
 
 tool:
   relatedTitle: "Related tools"
+  guideExpand: "How do I use this tool?"
+  guideCollapse: "Hide instructions"
+  guideExampleTip: "Not sure what to enter? Click to fill in a sample value."
+  guideExampleApplied: "✓ Filled in"
+seo:
+  guideSummary: "Steps and notes"
+  categoryLine: "Category: {category}"
+  guideMissing: "No usage guide has been written for this tool yet."
+  leadFallback: "{name} is an online tool in the {category} category of DigDevBox."

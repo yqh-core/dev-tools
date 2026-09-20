@@ -3,7 +3,7 @@
   "type": "module",
   "version": "2026.01.22-v2",
   "packageManager": "pnpm@9.11.0",
-  "description": "开发者工具箱 - collection of handy online tools for developers.",
+  "description": "DigDevBox - collection of handy online tools for developers.",
   "author": "DigDevBox",
   "license": "GNU GPLv3",
   "keywords": [
@@ -18,8 +18,9 @@
     "developer-productivity"
   ],
   "scripts": {
-    "dev": "vite",
-    "build": "vue-tsc --noEmit -p tsconfig.app.json --composite false && vite build && node scripts/build-seo.mjs",
+    "dev": "node scripts/build-dd-tokens.mjs && vite",
+    "build": "node scripts/build-dd-tokens.mjs && vue-tsc --noEmit -p tsconfig.app.json --composite false && vite build && node scripts/build-seo.mjs",
+    "tokens:check": "node scripts/build-dd-tokens.mjs --check",
     "preview": "vite preview --port 5050",
     "test": "npm run test:unit",
     "test:unit": "vitest --environment jsdom",

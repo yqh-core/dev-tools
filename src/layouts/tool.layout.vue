@@ -10,26 +10,14 @@ import ToolCard from '@/components/ToolCard.vue';
 import { useToolStore } from '@/tools/tools.store';
 import type { Tool } from '@/tools/tools.types';
 
-// 只取类型，不会把几十 KB 的文案打进主包
+// 入口模块本身不含数据（只导出类型 + 按语言加载的函数），
+// 两份说明各自是懒加载 chunk，不会把几十 KB 文案打进主包。
+import { loadGuides } from '@/tools/guides';
 import type { ToolGuide } from '@/tools/guides';
 
 const route = useRoute();
 
-const head = computed<HeadObject>(() => ({
-  title: `${route.meta.name} - 开发者工具箱`,
-  meta: [
-    {
-      name: 'description',
-      content: route.meta?.description as string,
-    },
-    {
-      name: 'keywords',
-      content: ((route.meta.keywords ?? []) as string[]).join(','),
-    },
-  ],
-}));
-useHead(head);
-const { t } = useI18n();
+const { t, locale } = useI18n();
 
 /**
  * 同类相关工具。
@@ -54,8 +42,26 @@ const toolStore = useToolStore();
  */
 const toolPath = computed<string>(() => route.path.replace(/\/+$/, '') || '/');
 
-const currentCategory = computed(
-  () => toolStore.tools.find(tool => tool.path === toolPath.value)?.category ?? '',
+const currentTool = computed(
+  () => toolStore.tools.find(tool => tool.path === toolPath.value),
+);
+
+const currentCategory = computed(() => currentTool.value?.category ?? '');
+
+/**
+ * 最近使用：进入工具页即记录一次。
+ *
+ * 用 watch + immediate 而不是 onMounted：路由在同一布局内切换（工具 A → 工具 B）
+ * 不会重新挂载组件，onMounted 只会记一次，漏掉后续每一次。
+ */
+watch(
+  currentTool,
+  (tool) => {
+    if (tool) {
+      toolStore.recordToolUse({ tool });
+    }
+  },
+  { immediate: true },
 );
 const relatedTools = computed(() =>
   currentCategory.value
@@ -72,24 +78,67 @@ const toolTitle = computed<string>(() => t(`tools.${i18nKey.value}.title`, Strin
 const toolDescription = computed<string>(() => t(`tools.${i18nKey.value}.description`, String(route.meta.description)));
 
 /**
- * 使用说明按需加载。
+ * 客户端页面 head（title / description / keywords）。
  *
- * 101 条说明是纯文案，同步 import 会把它们塞进主包拖慢首屏，
- * 所以只在进入工具页时才动态加载，且整个站共用同一个 chunk。
+ * ⚠ 为什么这一段曾经导致全站工具页报错、而且**没有任何人发现**
+ * --------------------------------------------------------------
+ * 原来的写法是把它写在文件开头、`const { t } = useI18n()` **之前**：
+ *
+ *     const head = computed(() => ({ title: `${route.meta.name} - ${t('site.name')}` }))
+ *     useHead(head)              // ← 这里就会首次求值 head
+ *     const { t } = useI18n()    // ← 太晚了
+ *
+ * computed 是惰性的，但 `useHead` 在 setup 阶段就会取值 → `t` 仍在 TDZ，
+ * 打包后变量名被压成 `r`，于是每个工具页都抛
+ * `ReferenceError: Cannot access 'r' before initialization`。
+ *
+ * 后果**不是**「控制台多一行红字」，而是 **整个 head 从未生效**：
+ *   · 浏览器标签页标题退化成 index.html 模板里的通用标题
+ *     （实测 "DigDevBox - Online Developer Tools" —— 而 SSG 里是对的 "Hash text - DigDevBox"）
+ *   · meta description 同样没被写入
+ * 这正是「爬虫看一套、用户看另一套」，也是 E1-L10N 存在的理由。
+ *
+ * 修法是**调整声明顺序**（不用 try/catch 掩盖），并改用 `toolTitle` / `toolDescription`：
+ * 与 SSG 骨架（`ToolSeoPage`）读同一批 `tools.<key>.title/description` 词条，
+ * 所以两边逐字一致，切中文时标题也跟着变中文。
+ */
+const head = computed<HeadObject>(() => ({
+  title: `${toolTitle.value} - ${t('site.name')}`,
+  meta: [
+    {
+      name: 'description',
+      content: toolDescription.value,
+    },
+    {
+      name: 'keywords',
+      content: ((route.meta.keywords ?? []) as string[]).join(','),
+    },
+  ],
+}));
+useHead(head);
+
+/**
+ * 使用说明按需加载（跟随当前语言）。
+ *
+ * 说明是纯文案，同步 import 会把它们塞进主包拖慢首屏，所以只在进入工具页时
+ * 动态加载；en / zh 各是一个 chunk，切换语言时再取另一份。
+ *
+ * 依赖 `locale` 而不只是路由：只换界面文案、不换说明正文，会变成
+ * 「中文界面 + 英文说明」的另一种语言断层（与修 F-4 之前的方向相反）。
  */
 const guide = ref<ToolGuide | null>(null);
 
 async function loadGuide(path: string) {
   try {
-    const { GUIDES } = await import('@/tools/guides');
-    guide.value = GUIDES[path] ?? null;
+    const table = await loadGuides(locale.value);
+    guide.value = table[path] ?? null;
   }
   catch {
     guide.value = null; // 加载失败就当这个工具没说明，不影响使用
   }
 }
 
-watch(toolPath, path => loadGuide(path), { immediate: true });
+watch([toolPath, locale], ([path]) => loadGuide(path), { immediate: true });
 
 /**
  * 说明面板是否展开。
@@ -197,7 +246,7 @@ function applyExample() {
             @click="guideOpen = !guideOpen"
           >
             <span class="guide-caret" :class="{ 'is-open': guideOpen }">▸</span>
-            {{ guideOpen ? '收起使用说明' : '怎么用这个工具？' }}
+            {{ guideOpen ? $t('tool.guideCollapse') : $t('tool.guideExpand') }}
           </button>
 
           <div v-show="guideOpen" class="guide-body">
@@ -213,9 +262,9 @@ function applyExample() {
 
             <div v-if="guide.example" class="guide-example">
               <button class="guide-example-btn" type="button" @click="applyExample">
-                {{ exampleApplied ? '✓ 已填入' : guide.example.label }}
+                {{ exampleApplied ? $t('tool.guideExampleApplied') : guide.example.label }}
               </button>
-              <span class="guide-example-tip">不确定填什么？点一下自动填一份示例内容。</span>
+              <span class="guide-example-tip">{{ $t('tool.guideExampleTip') }}</span>
             </div>
 
             <ul v-if="guide.notes?.length" class="guide-notes">

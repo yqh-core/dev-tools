@@ -6,6 +6,6 @@ test.describe('Tool - Http status codes', () => {
   });
 
   test('Has correct title', async ({ page }) => {
-    await expect(page).toHaveTitle('HTTP status codes - 开发者工具箱');
+    await expect(page).toHaveTitle('HTTP status codes - DigDevBox');
   });
 });

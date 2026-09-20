@@ -21,8 +21,12 @@ type ToolCategoryGroup = {
   components: ToolWithCategory[]
 };
 
+/** 最近使用最多保留多少条 —— 只在客户端 localStorage 里，不参与 SSG 渲染。 */
+const RECENT_LIMIT = 12;
+
 export const useToolStore = defineStore('tools', () => {
   const favoriteToolsName = useStorage('favoriteToolsName', []) as Ref<string[]>;
+  const recentToolsName = useStorage('recentToolsName', []) as Ref<string[]>;
   const { t } = useI18n();
 
   const tools = computed<ToolWithCategory[]>(() => toolsWithCategory.map((tool) => {
@@ -53,9 +57,23 @@ export const useToolStore = defineStore('tools', () => {
       .filter(Boolean) as ToolWithCategory[]; // cast because .filter(Boolean) does not remove undefined from type
   });
 
+  /**
+   * 最近使用 —— 与收藏同源（localStorage），不需要登录。
+   *
+   * 只存 `path`（不像收藏那样兼容 name）：收藏是历史遗留、早期存过 name，
+   * 最近使用是新增能力，从一开始就只写 path，避免再引入第二种取值口径。
+   * 过滤掉已下架/改名的工具（`find` 返回 undefined），防止旧数据把列表打空。
+   */
+  const recentTools = computed(() => {
+    return recentToolsName.value
+      .map(path => tools.value.find(tool => tool.path === path))
+      .filter(Boolean) as ToolWithCategory[];
+  });
+
   return {
     tools,
     favoriteTools,
+    recentTools,
     toolsByCategory,
     newTools: computed(() => tools.value.filter(({ isNew }) => isNew)),
 
@@ -77,6 +95,29 @@ export const useToolStore = defineStore('tools', () => {
 
     updateFavoriteTools(newOrder: ToolWithCategory[]) {
       favoriteToolsName.value = newOrder.map(tool => tool.path);
+    },
+
+    /**
+     * 记录一次使用：去重后置顶，超长截断。
+     *
+     * 为什么先过滤再 unshift 而不是直接 push：用户连续打开同一个工具时，
+     * 列表里只应保留一条且排在最前；push 会让同一工具占满整个列表。
+     */
+    recordToolUse({ tool }: { tool: MaybeRef<Tool> }) {
+      const toolPath = get(tool).path;
+      if (!toolPath) {
+        return;
+      }
+      const rest = recentToolsName.value.filter(path => path !== toolPath);
+      recentToolsName.value = [toolPath, ...rest].slice(0, RECENT_LIMIT);
+    },
+
+    removeToolFromRecent({ tool }: { tool: MaybeRef<Tool> }) {
+      recentToolsName.value = recentToolsName.value.filter(path => path !== get(tool).path);
+    },
+
+    clearRecentTools() {
+      recentToolsName.value = [];
     },
   };
 });

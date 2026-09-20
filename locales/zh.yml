@@ -1,6 +1,12 @@
+site:
+  name: "DigDevBox"
+  homeTitle: "DigDevBox - 开发者常用在线工具"
+  aboutTitle: "关于 - DigDevBox"
+  notFoundTitle: "页面不存在 - DigDevBox"
+
 home:
   hero:
-    title: "开发者工具箱"
+    title: "DigDevBox"
     subtitle: "面向开发者与运维人员的在线工具集，现有 {count} 个工具，全部在浏览器本地运行，不上传、不留存任何数据。"
   classic:
     entry: "经典工具"
@@ -9,13 +15,16 @@ home:
   categories:
     newestTools: '最新工具'
     favoriteTools: '我的收藏'
+    recentTools: '最近使用'
+    popularTools: '常用工具'
     allTools: '全部工具'
     favoritesDndToolTip: '拖放重新排列收藏夹'
+    clearRecent: '清空最近使用'
   subtitle: '助力开发人员和 IT 工作者'
   toggleMenu: '切换菜单'
   home: '主页'
   uiLib: 'UI 库'
-  support: '支持 开发者工具箱'
+  support: '支持 DigDevBox'
   buyMeACoffee: '赞助'
   follow:
     title: '关注我们'
@@ -29,16 +38,16 @@ home:
     githubRepository: 'GitHub 仓库'
     twitterX: 'GitHub 仓库'
     twitterXAccount: 'GitHub 仓库'
-    about: '关于 开发者工具箱'
+    about: '关于 DigDevBox'
     aboutLabel: '关于'
     darkMode: '深色模式'
     lightMode: '浅色模式'
     mode: '颜色模式'
 about:
   content: >
-    # 关于 开发者工具箱
+    # 关于 DigDevBox
 
-    开发者工具箱汇集了对开发人员和运维人员有用的在线工具，全部在浏览器本地运行，不上传任何数据。如果对您有帮助，欢迎收藏并分享给同事。
+    DigDevBox汇集了对开发人员和运维人员有用的在线工具，全部在浏览器本地运行，不上传任何数据。如果对您有帮助，欢迎收藏并分享给同事。
 
     本项目基于开源项目 [it-tools](https://github.com/CorentinTh/it-tools)（GPL-3.0 许可）二次开发，在此感谢原作者的贡献。当前版本由 [yqh-core](https://github.com/yqh-core) 维护，源码托管在 [https://github.com/yqh-core/dev-tools](https://github.com/yqh-core/dev-tools)。
 
@@ -58,7 +67,7 @@ about:
     - [房贷计算器](https://fangdai.digdevbox.com)
 
 legal:
-  siteName: '开发者工具箱'
+  siteName: 'DigDevBox'
   privacy: '隐私政策'
   terms: '服务条款'
   contact: '联系我们'
@@ -74,6 +83,11 @@ toolCard:
   new: '新'
 search:
   label: '搜索'
+  placeholder: '搜索工具，例如：时间戳、美化、二维码、base64'
+  inputLabel: '搜索工具'
+  clear: '清空搜索'
+  found: '找到 {count} 个匹配「{query}」的工具'
+  empty: '没有找到匹配「{query}」的工具，换个说法试试（如「格式化」「转换」「生成」）'
 tools:
   categories:
     favorite-tools: '我的收藏'
@@ -500,3 +514,12 @@ tools:
 
 tool:
   relatedTitle: "相关工具"
+  guideExpand: "怎么用这个工具？"
+  guideCollapse: "收起使用说明"
+  guideExampleTip: "不确定填什么？点一下自动填一份示例内容。"
+  guideExampleApplied: "✓ 已填入"
+seo:
+  guideSummary: "操作步骤与注意事项"
+  categoryLine: "所属分类：{category}"
+  guideMissing: "（该工具的使用说明尚未编写）"
+  leadFallback: "「{name}」是 DigDevBox「{category}」分类下的在线工具。"

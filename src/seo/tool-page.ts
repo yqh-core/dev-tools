@@ -9,24 +9,26 @@
  *
  * 本模块**不生产任何新文案**，只把既有真实数据组装起来：
  *   - 工具名 / 一句话描述 ← `defineTool()` 里的 `tools.<key>.title` / `description`
- *     （101/101 均为真实差异化中文文案，非模板拼接）
- *   - 使用说明 ← `src/tools/guides.ts` 的 `GUIDES[path]`（101/101 条人工编写）
+ *     （101/101 均为真实差异化文案，非模板拼接；按 i18n 默认语言 en 取值）
+ *   - 使用说明 ← `src/tools/guides.en.ts` 的 `GUIDES[path]`（101/101 条人工编写，
+ *     与 `guides.zh.ts` 的 key 一一对应，由 `auditToolSeoData` 强制校验）
  *   - 分类 ← `toolsByCategory` 的聚合结果
  *
  * 缺失即缺失：取不到 guide 的工具**不会**被补上「输入内容→点击按钮→查看结果」
  * 这类机械文案（那是低价值内容政策里的「自动生成内容」形态）。覆盖率由
  * `build-seo.mjs` 打印出来，缺口按待办处理而不是靠凑字数掩盖。
  */
-import { GUIDES } from '@/tools/guides';
-import type { ToolGuide } from '@/tools/guides';
+import { GUIDES } from '@/tools/guides.en';
+import { GUIDES as GUIDES_ZH } from '@/tools/guides.zh';
+import type { ToolGuide } from '@/tools/guides.types';
 import { toolsWithCategory } from '@/tools';
 
 export interface ToolSeoEntry {
   /** 工具路由，不带尾斜杠，如 `/uuid-generator`。 */
   path: string
-  /** 工具名（zh）。 */
+  /** 工具名（i18n 默认语言）。 */
   name: string
-  /** `tools.<key>.description` 的真实文案（zh）。 */
+  /** `tools.<key>.description` 的真实文案（i18n 默认语言）。 */
   description: string
   /** 所属分类名（来自 toolsByCategory）。 */
   category: string
@@ -119,12 +121,30 @@ export function getToolSeoEntry(path: string): ToolSeoEntry | undefined {
  * 返回统计信息供 `build-seo.mjs` 打印（覆盖率要看得见，缺口才不会被忽略）。
  */
 export function auditToolSeoData() {
-  // guides.ts 的 key 必须都是真实工具路径，否则说明它已经和路由脱节
+  // guides 的 key 必须都是真实工具路径，否则说明它已经和路由脱节
   // （改过工具 path 却忘了改说明 → 该工具的使用说明会静默失效）。
-  const staleGuideKeys = Object.keys(GUIDES).filter(key => !BY_PATH.has(key));
-  if (staleGuideKeys.length > 0) {
+  // 两份语言各查一遍。
+  for (const [lang, table] of [['en', GUIDES], ['zh', GUIDES_ZH]] as const) {
+    const staleKeys = Object.keys(table).filter(key => !BY_PATH.has(key));
+    if (staleKeys.length > 0) {
+      throw new Error(
+        `[seo/tool-page] src/tools/guides.${lang}.ts 存在与任何工具路径都不匹配的 key: ${staleKeys.join(', ')}`,
+      );
+    }
+  }
+
+  // 语言完整性：en / zh 的 key 集合必须完全一致。
+  // 只补一种语言时，另一种语言的工具页会**静默**没有使用说明 ——
+  // 界面上看不出任何报错，所以必须在构建期拦下。
+  const enKeys = new Set(Object.keys(GUIDES));
+  const zhKeys = new Set(Object.keys(GUIDES_ZH));
+  const missingInZh = [...enKeys].filter(key => !zhKeys.has(key));
+  const missingInEn = [...zhKeys].filter(key => !enKeys.has(key));
+  if (missingInZh.length > 0 || missingInEn.length > 0) {
     throw new Error(
-      `[seo/tool-page] src/tools/guides.ts 存在与任何工具路径都不匹配的 key: ${staleGuideKeys.join(', ')}`,
+      '[seo/tool-page] guides 语言数据不一致：'
+      + `${missingInZh.length > 0 ? `zh 缺少 ${missingInZh.join(', ')}` : ''}`
+      + `${missingInEn.length > 0 ? `${missingInZh.length > 0 ? '；' : ''}en 缺少 ${missingInEn.join(', ')}` : ''}`,
     );
   }
 
@@ -135,5 +155,7 @@ export function auditToolSeoData() {
     total: TOOL_SEO_PAGES.length,
     withGuide: TOOL_SEO_PAGES.length - withoutGuide.length,
     withoutGuide,
+    guideKeys: enKeys.size,
+    guideLocales: ['en', 'zh'] as const,
   };
 }

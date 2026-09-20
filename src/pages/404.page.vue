@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { useHead } from '@vueuse/head';
+import { useI18n } from 'vue-i18n';
 
-useHead({ title: '页面不存在 - 开发者工具箱' });
+const { t } = useI18n();
+useHead({ title: t('site.notFoundTitle') });
 </script>
 
 <template>

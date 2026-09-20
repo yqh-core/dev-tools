@@ -11,7 +11,7 @@
  *   ① HTTP 状态      —— 请求必须带尾斜杠（CF Pages 目录型路由对无斜杠强制 308）
  *   ② 初始 HTML      —— h1 / title / canonical 自指 / AdSense 标记 / 正文非空
  *   ③ JS chunk       —— 同源脚本不得 4xx/5xx，不得 loadingFailed
- *   ④ 组件 mount     —— .tool-layout 出现、.tool-content 有内容、h1 等于 zh.yml 声明的中文标题
+ *   ④ 组件 mount     —— .tool-layout 出现、.tool-content 有内容、h1 等于 locales/<locale>.yml 声明的标题
  *   ⑤ 客户端已接管   —— 预渲染骨架 article.dd-tool-seo 必须已被 SPA 替换
  *                        （这一项就是「客户端渲染是否回退」的判据）
  *
@@ -43,6 +43,9 @@
  *
  * 参数
  *   --base <url>        被测站点，默认 https://digdevbox.com
+ *   --canonical-origin <url>  页面里 canonical 的期望源。**本地跑必须显式传生产域名**，
+ *                             否则 canonicalSelf 会拿 127.0.0.1 去比对 → 全量假失败
+ *   --locale <code>     期望标题语种，默认 en（本站默认英文）；读 locales/<code>.yml
  *   --serve-dist <dir>  起内置静态服务（含目录 index.html 与 SPA fallback），供本地跑
  *   --port <n>          本地静态服务端口，默认 4192（多分片各自 +n）
  *   --shard i/n         只跑第 i 片（1-based），默认 1/1
@@ -110,6 +113,50 @@ const pageUrl = p => BASE + p + (NO_SLASH ? '' : '/');
 const SKIP_HTML_LAYER = has('--skip-html-layer');
 let runtimeOnly = false;
 const canonUrl = p => CANON_ORIGIN + p + '/';
+
+/**
+ * 期望标题的语种（默认 en）—— 判据必须跟着产品走。
+ *
+ * 2026-09-20 踩坑（T-37）：本站默认语言从 zh 切成 en 之后，
+ * 「初始 HTML 的 H1 == zh.yml 里的中文标题」这条断言对 98 个工具页**必然全红**。
+ * 它表面上在报产品缺陷，实际是判据自己过期了 ——
+ * 与 T-31（soft404 长度阈值失效）同属「测试规则随系统演进失效但报告仍然可信」这一类。
+ *
+ * 现在按 --locale 读 locales/<locale>.yml 的 tools.<name>.title；
+ * **解析不到就报错，不静默跳过** —— 静默跳过等于这条验收项不存在（比全红更危险）。
+ */
+const LOCALE = argOf('--locale', 'en');
+const LOCALE_TITLES = loadLocaleToolTitles(LOCALE);
+
+/** 只为读 `tools: → 两个空格 <name>: → 四个空格 title:` 这一层，零依赖，够用且不易误匹配 */
+function loadLocaleToolTitles(locale) {
+  const f = path.join(REPO, 'locales', `${LOCALE}.yml`);
+  if (!fs.existsSync(f)) {
+    console.error(`[locale] 找不到词条文件 ${f} —— 拒绝在「没有判据」的状态下跑 H1 断言`);
+    process.exit(2);
+  }
+  const lines = fs.readFileSync(f, 'utf8').split(/\r?\n/);
+  const titles = {};
+  let inTools = false;
+  let cur = null;
+  for (const raw of lines) {
+    if (/^tools:\s*$/.test(raw)) { inTools = true; cur = null; continue; }
+    if (/^[A-Za-z_]/.test(raw)) { inTools = false; continue; } // 顶层键，离开 tools 区
+    if (!inTools) continue;
+    let m = /^ {2}([A-Za-z0-9_.-]+):\s*$/.exec(raw);
+    if (m) { cur = m[1]; continue; }
+    m = /^ {4}title:\s*(.+?)\s*$/.exec(raw);
+    if (m && cur) {
+      titles[cur] = m[1].replace(/^['"]|['"]$/g, '');
+    }
+  }
+  if (Object.keys(titles).length < 50) {
+    console.error(`[locale] 从 ${LOCALE}.yml 只解析出 ${Object.keys(titles).length} 个工具标题 —— 解析器或词条结构变了，拒绝继续`);
+    process.exit(2);
+  }
+  console.log(`[locale] 期望标题语种 = ${LOCALE}（${Object.keys(titles).length} 条词条）`);
+  return titles;
+}
 
 fs.mkdirSync(OUT, { recursive: true });
 
@@ -1037,9 +1084,18 @@ async function runCase(c) {
   for (const k of rec.html.bad) {
     if (k !== 'status200') fail(`初始 HTML 检查未过：${k}`);
   }
-  // 标题与 zh.yml 声明的中文标题一致性（能抓到「工具定义漏接 translate()」这类缺陷）
-  if (c.zhTitle && rec.html.htmlH1 && rec.html.htmlH1 !== c.zhTitle) {
-    fail(`初始 HTML 的 H1 与 zh.yml 不一致：页面「${rec.html.htmlH1}」≠ 词条「${c.zhTitle}」`);
+  // 标题与 locales/<locale>.yml 声明的标题一致性（能抓到「工具定义漏接 translate()」这类缺陷）
+  // 期望值以 --locale 为准，不再写死 zh.yml（见文件上方 LOCALE 的说明）
+  //
+  // 键名用 **path 段**推导，不用用例里的 name：
+  //   /base-converter → tools.base-converter.title（而 c.name 是 'integer-base-converter'）
+  //   两者对多数工具相同、对少数不同，用 name 会漏判（实测 2 例）。
+  const titleKey = c.path.replace(/^\/+|\/+$/g, '');
+  const expectedTitle = LOCALE_TITLES[titleKey] ?? LOCALE_TITLES[c.name];
+  if (!expectedTitle) {
+    fail(`locales/${LOCALE}.yml 里找不到 tools.${titleKey}.title —— 判据缺失，不计入通过`);
+  } else if (rec.html.htmlH1 && rec.html.htmlH1 !== expectedTitle) {
+    fail(`初始 HTML 的 H1 与 ${LOCALE}.yml 不一致：页面「${rec.html.htmlH1}」≠ 词条「${expectedTitle}」`);
   }
   }
 
@@ -1481,10 +1537,63 @@ fs.writeFileSync(path.join(OUT, `shard-${SHARD_I}.json`), JSON.stringify(summary
 console.log(
   `\n[smoke] 分片 ${SHARD_I}/${SHARD_N} 汇总：pass=${summary.pass} fail=${summary.fail} warn=${summary.warn} skip=${summary.skip}`,
 );
+
+/**
+ * 覆盖面自证 —— 为什么要单独印这一块：
+ *
+ * `pass=98 fail=0 skip=3` 与 `pass=101 fail=0 skip=0` 都会让脚本 `exit 0`。
+ * 只看退出码时，「3 条被环境性跳过」与「101 条全过」在终端里长得几乎一样，
+ * 极易把**覆盖面缩水**读成「全站通过」。
+ *
+ * 所以这里把四个数分开印，并加两条硬判据：
+ *   ① 计划数必须被「执行 + 跳过」完全消耗（用例不得凭空消失）
+ *   ② 线上模式（非本地 static serve）不允许出现 SKIP ——
+ *      本地那 3 条 SKIP 的正当理由是「依赖 Pages Functions `/api/*`」，
+ *      线上这些接口可用，再出现 SKIP 就说明有别的环境原因在吞用例，必须查。
+ */
+const executed = summary.total - summary.skip;
+console.log(
+  `[smoke] 覆盖面：计划 ${all.length} 条 / 本片上界 ${mine.length} · ` +
+    `执行 ${executed} · 跳过 ${summary.skip} · 失败 ${summary.fail} · 警告 ${summary.warn}`,
+);
+
+// ① 用例消耗完整性：本片实际跑的条数 = 执行 + 跳过（两者都不该为负或凭空多出）
+if (executed + summary.skip !== summary.total) {
+  console.log(
+    `[smoke] ✗ 覆盖不完整：执行 ${executed} + 跳过 ${summary.skip} ≠ 本片总条数 ${summary.total}`,
+  );
+  summary.coverageShrunk = true;
+}
+
+/**
+ * ②③ 两条覆盖面判据只在**全量跑**时生效。
+ * `--only` 是单工具诊断模式，它的本分就是「只跑几条」；
+ * 用全量口径去要求它，只会产出假 FAIL，把诊断跑本身变成噪声源。
+ */
+if (ONLY.length === 0) {
+  // ② 单分片跑时，本片应等于全集（分片模式下每片只是一部分，不做此断言）
+  if (SHARD_N === 1 && summary.total !== all.length) {
+    console.log(
+      `[smoke] ✗ 覆盖不完整：单分片跑了 ${summary.total} 条，但用例集共 ${all.length} 条`,
+    );
+    summary.coverageShrunk = true;
+  }
+
+  // ③ 线上模式不允许环境性跳过
+  if (!LOCAL && summary.skip > 0) {
+    console.log(
+      `[smoke] ✗ 线上模式出现 ${summary.skip} 条 SKIP —— 线上不应有环境性跳过，需逐条核对理由。`,
+    );
+    summary.coverageShrunk = true;
+  }
+} else {
+  console.log(`[smoke] ℹ 诊断模式（--only ${ONLY.length} 项）：不做全量覆盖面断言。`);
+}
+
 if (runtimeOnly) {
   console.log('[smoke] ⚠ 本轮跳过了「初始 HTML / 预渲染」层（--skip-html-layer）——只验证了运行时层，**不可当作完整验收**。');
   console.log('[smoke]   完整验收请对 dist 产物或线上跑（不加该开关）。');
 }
 console.log(`[smoke] 明细 → ${path.join(OUT, `shard-${SHARD_I}.json`)}`);
 
-teardown(summary.fail ? 1 : 0);
+teardown(summary.fail || summary.coverageShrunk ? 1 : 0);

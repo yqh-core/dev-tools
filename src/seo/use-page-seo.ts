@@ -19,6 +19,14 @@ import { getPageMeta } from './page-meta';
 import { canonicalUrl, OG_IMAGE } from './site';
 
 /**
+ * 品牌主色 —— 同时用于 `<meta name="theme-color">`（手机浏览器地址栏着色）。
+ * 注意：index.html 模板里的 theme-color 写在 `<!-- page-seo -->` 区块内，
+ * 构建期会被本文件 useHead 生成的标签整体替换掉，所以必须在这里也声明，
+ * 否则线上的 theme-color 会丢失（静态层体检实测到的就是这个问题）。
+ */
+const BRAND_COLOR = '#0f766e';
+
+/**
  * @param path        该页面的路由路径（不带尾斜杠，如 `/privacy`）。
  *                    由 `canonicalUrl()` 统一规范化，页面无需自己关心尾斜杠。
  * @param title       页面标题。法务页传 i18n `legal.*` 的 computed，
@@ -44,6 +52,7 @@ export function usePageSeo(path: string, title: MaybeRef<string>, description?: 
       { name: 'description', content: pageDescription },
       { itemprop: 'name', content: pageTitle },
       { itemprop: 'description', content: pageDescription },
+      { name: 'theme-color', content: BRAND_COLOR },
 
       { property: 'og:url', content: canonical },
       { property: 'og:type', content: 'website' },

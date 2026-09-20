@@ -6,7 +6,7 @@ test.describe('Tool - json to yaml', () => {
   });
 
   test('Has correct title', async ({ page }) => {
-    await expect(page).toHaveTitle('JSON to YAML converter - 开发者工具箱');
+    await expect(page).toHaveTitle('JSON to YAML converter - DigDevBox');
   });
 
   test('json is parsed and output clean yaml', async ({ page }) => {

@@ -6,7 +6,7 @@ test.describe('Tool - Password strength analyser', () => {
   });
 
   test('Has correct title', async ({ page }) => {
-    await expect(page).toHaveTitle('Password strength analyser - 开发者工具箱');
+    await expect(page).toHaveTitle('Password strength analyser - DigDevBox');
   });
 
   test('Computes the brute force attack time of a password', async ({ page }) => {

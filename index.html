@@ -1,23 +1,28 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
   <head>
       <meta charset="UTF-8" />
-      <link rel="icon" href="favicon.ico" />
+      <!-- Always use root-absolute paths: a relative path would resolve under a sub-path
+           such as /token-generator/ into /token-generator/favicon.ico, causing one
+           pointless 404 per page across the whole site. -->
+      <link rel="icon" href="/favicon.ico" />
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-      <!-- page-seo:start —— 以下标签随页面变化，构建期会被 scripts/build-seo.mjs 整体替换。
-           这里的值仅用于 vite dev（未预渲染时）。新增页面级 SEO 标签请加在本区块内，
-           不要写在区块外，否则预渲染时不会被替换、会与页面实际内容不符。 -->
-      <title>开发者工具箱 - 开发者常用在线工具集合</title>
+      <!-- page-seo:start — the tags below vary per page and are replaced wholesale at build
+           time by scripts/build-seo.mjs. The values here are only used by `vite dev`
+           (before prerendering). Add new page-level SEO tags inside this block, never
+           outside it — otherwise they will not be replaced during prerendering and will
+           contradict the actual page content. -->
+      <title>DigDevBox - Online Developer Tools</title>
       <link rel="canonical" href="https://digdevbox.com/" />
-      <meta itemprop="name" content="开发者工具箱 - 开发者常用在线工具集合" />
+      <meta itemprop="name" content="DigDevBox - Online Developer Tools" />
       <meta
               name="description"
-              content="为开发者和IT相关人员精心收集的一系列实用在线工具，界面友好，操作便捷。开发者工具箱是一个免费开源的在线实用工具集合，涵盖加密、转换、开发、网络等常用工具。"
+              content="A curated collection of practical online tools for developers and IT professionals, with a friendly interface and simple workflows. DigDevBox is a free and open-source toolkit covering encryption, conversion, development, networking and more."
       />
       <meta
               itemprop="description"
-              content="为开发者和IT相关人员精心收集的一系列实用在线工具，界面友好，操作便捷。开发者工具箱是一个免费开源的在线实用工具集合，涵盖加密、转换、开发、网络等常用工具。"
+              content="A curated collection of practical online tools for developers and IT professionals, with a friendly interface and simple workflows. DigDevBox is a free and open-source toolkit covering encryption, conversion, development, networking and more."
       />
 
       <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
@@ -29,21 +34,21 @@
 
       <meta property="og:url" content="https://digdevbox.com/" />
       <meta property="og:type" content="website" />
-      <meta property="og:title" content="开发者工具箱 - 开发者常用在线工具集合" />
+      <meta property="og:title" content="DigDevBox - Online Developer Tools" />
       <meta
               property="og:description"
-              content="为开发者和IT相关人员精心收集的一系列实用在线工具，界面友好，操作便捷。开发者工具箱是一个免费开源的在线实用工具集合，涵盖加密、转换、开发、网络等常用工具。"
+              content="A curated collection of practical online tools for developers and IT professionals, with a friendly interface and simple workflows. DigDevBox is a free and open-source toolkit covering encryption, conversion, development, networking and more."
       />
-      <meta property="og:image" content="https://digdevbox.com/og-image.jpg?v=1" />
+      <meta property="og:image" content="https://digdevbox.com/og-image.jpg?v=2" />
 
       <meta name="twitter:card" content="summary_large_image" />
-      <meta name="twitter:title" content="开发者工具箱 - 开发者常用在线工具集合" />
+      <meta name="twitter:title" content="DigDevBox - Online Developer Tools" />
       <meta
               name="twitter:description"
-              content="为开发者和IT相关人员精心收集的一系列实用在线工具，界面友好，操作便捷。开发者工具箱是一个免费开源的在线实用工具集合，涵盖加密、转换、开发、网络等常用工具。"
+              content="A curated collection of practical online tools for developers and IT professionals, with a friendly interface and simple workflows. DigDevBox is a free and open-source toolkit covering encryption, conversion, development, networking and more."
       />
-      <meta name="twitter:image" content="https://digdevbox.com/og-image.jpg?v=1" />
-      <meta name="twitter:image:alt" content="开发者工具箱 - 开发者常用在线工具集合" />
+      <meta name="twitter:image" content="https://digdevbox.com/og-image.jpg?v=2" />
+      <meta name="twitter:image:alt" content="DigDevBox - Online Developer Tools" />
       <!-- page-seo:end -->
   
   <link rel="stylesheet" href="/css/dd-tokens.css">

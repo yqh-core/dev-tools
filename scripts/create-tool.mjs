@@ -85,7 +85,7 @@ test.describe('Tool - ${toolNameTitleCase}', () => {
   });
 
   test('Has correct title', async ({ page }) => {
-    await expect(page).toHaveTitle('${toolNameTitleCase} - 开发者工具箱');
+    await expect(page).toHaveTitle('${toolNameTitleCase} - DigDevBox');
   });
 
   test('', async ({ page }) => {

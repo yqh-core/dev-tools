@@ -16,6 +16,9 @@ dist-*
 coverage
 *.local
 
+# smoke 引擎的分片输出（含 270 页的实测抓取结果，体积大且每次都变）
+.smoke-out/
+
 /cypress/videos/
 /cypress/screenshots/
 

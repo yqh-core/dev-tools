@@ -1,4 +1,9 @@
-# CoderKit 站点路由规则（coderkit.pages.dev / digdevbox.com）
+# DigDevBox 站点路由规则（主域 digdevbox.com；旧的 *.pages.dev 主机由
+# Cloudflare 侧 301 汇入主域，不经本文件处理）
+#
+# ⚠ 这里**刻意不写旧主机名**：本文件会被原样拷进 dist/ 并部署上线，属「产物」，
+#   而产物要对全文做旧品牌名扫描（判据 3）。把旧名写进注释等于给线上留残留。
+#   旧主机名的准确拼写见 `wrangler.toml`（CF Pages 项目名＝部署身份，不可改）。
 #
 # 历史说明：2026-09-17 之前本仓库曾通过 301 合并进 dev-toolbox 的 /dev/ 子路径；
 # 之后改为独立站点并使用 history 路由，因此需要把未匹配的路径回退到 index.html。

@@ -6,7 +6,7 @@ test.describe('Tool - XML formatter', () => {
   });
 
   test('Has correct title', async ({ page }) => {
-    await expect(page).toHaveTitle('XML formatter - 开发者工具箱');
+    await expect(page).toHaveTitle('XML formatter - DigDevBox');
   });
 
   test('XML is converted into a human readable format', async ({ page }) => {
