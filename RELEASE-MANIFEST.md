@@ -15,17 +15,17 @@
 | 字段 | 值 | 证据来源 |
 |---|---|---|
 | Release | `digdevbox.com` | — |
-| Git Commit | `⏳ 待提交`（HEAD = `9d75e9d9c53b68ebef803920fd5ac22dfbc65f4d`；工作树 **81** 项未提交：68 改 + 7 删 + **6 新增**） | `git rev-parse HEAD` |
-| **⛔ 未跟踪文件（部署 blocker）** | `scripts/build-dd-tokens.mjs`（build 命令**第一步**）、`src/tools/guides.{en,zh,types}.ts`（`src/seo/tool-page.ts` 静态 import）—— **不提交则 CF 构建必然失败**：本地能构建是因为文件在**工作树**，CF 从干净 clone 开始、未跟踪文件不在其中 | `git status --porcelain \| grep "^??"` |
+| Git Commit | **`6123adff4d9dfb4a16cdb033b702a57f7a7bc434`**（短 `6123adf`）。已提交 → 已推送 → **与 CF 部署记录的 commit 逐字一致** ✅ | `git rev-parse HEAD` ↔ CF Deployments |
+| **未跟踪文件（曾为部署 blocker）** | ✅ **已随 `6123adf` 一并提交** —— `scripts/build-dd-tokens.mjs`（build 命令第一步）、`src/tools/guides.{en,zh,types}.ts`、`src/generated/dd-tokens.ts`。CF 从干净 clone 构建，未跟踪文件不在其中，**不提交则 CF 构建必然失败**（本地能构建只是因为文件在工作树） | `git show --stat 6123adf` |
 | Git Branch | `main` | `git rev-parse --abbrev-ref HEAD` |
 | Build Time | `2026-09-20 21:47:33 +08:00` | `dist/index.html` mtime |
 | Build 命令 | `npm run build`（`BUILD_EXIT=0`） | 构建日志 |
 | 产物规模 | 647 个文件 / **270** 个 `index.html`（106 SSG + 164 legacy） | `find dist -type f` |
 | 首页 HTML | 257,907 字节（257.5 KB） | `ls -l dist/index.html` |
 | PWA manifest 指纹 | `name=DigDevBox` · `short_name=DigDevBox` · `lang=en` | 判据 3（产物侧） |
-| Deployment Time | `⏳ 待部署` | Cloudflare Pages |
-| Cloudflare Build ID | `⏳ 待部署` | Cloudflare Pages → Deployments |
-| 部署后线上 HTML 指纹 | `⏳ 待取证` | `curl -s https://digdevbox.com/ \| openssl dgst -sha256` |
+| Deployment Time | **`2026-09-20T14:57:51.988Z`**（北京时间 22:57:52）· `stage: deploy success` · env `production` · branch `main` | CF API `GET /accounts/{aid}/pages/projects/coderkit/deployments` |
+| Cloudflare Build ID | **`e06634a7-1b72-4122-841f-6e90c6cf1b17`** | 同上（Deployment ID） |
+| 部署后线上指纹 | **Gate 0 通过**：`0 项真差异 / 逐字节全等 5 / 仅 asset 名不同 106 / 0 本地缺 / 0 抓取失败`。线上 `html lang="en"`、`title="DigDevBox - Online Developer Tools"`（部署前是 `zh-CN` + 中文标题） | `_ops/prod-artifact-report.md` |
 
 > ⚠ **本地构建 ≠ 已部署构建。** 部署完成前，下表所有「本地」结果
 > 只能证明「这份产物在本机是好的」，**不能**作为 AdSense 的线上验收。
@@ -81,12 +81,12 @@
 | ① | C6 · 6 个 `pages.dev` → 301 | 6/6 ✅ | `⏳ 待配置` 🔴 **唯一 P0**（2026-09-20 **22:45 复测**：**已 301 = 0 / 仍敞开 200 = 6**，与 19:1x / 21:3x 及用户截图一致）。CSV 本轮**重写**并新增校验器（正样本 PASS + 表头/302/布尔 false/BOM 四组负样本判红） | `_ops/pages-dev-301-plan.md` · `_ops/pages-dev-redirects.csv` |
 | ② | 部署完成 | Deployment Time 已记录 | `⏳`（**前置**：第 1 节那 4 个未跟踪文件必须先提交，否则 CF 构建失败） | — |
 | ③ | 构建身份已归档 | 本文件第 1 节填满 | `⏳` | 本文件 |
-| **③.0** | **指纹闸门：线上 == 本地这份构建** | `111 相同 / 0 不同` | **⛔ 部署前基线：4 相同 / 107 不同**（线上全页 `html lang="zh-CN"`，本地 `en`；`cf-cache-status: DYNAMIC×110` = **直达源站、非 CDN 缓存副本**，故结论可靠） | `_ops/prod-artifact-report.md` · `_ops/prod-artifact.json` |
-| ④ | STEP 7 | 272/272 PASS | `⏳`（须用 ③.0 通过后的构建） | `_ops/step7-report-prod.md` |
+| **③.0** | **Gate 0 · 指纹闸门：线上 == 本地这份构建** | `0 项真差异`（归一化后） | ✅ **已通过**（2026-09-20 23:01）：`0 项真差异 / 逐字节全等 5 / 仅 asset 名不同 106 / 0 本地缺 / 0 抓取失败`。线上 `html lang="en"`、`title="DigDevBox - Online Developer Tools"`；部署前基线是 `4 相同 / 107 不同` + 全页 `zh-CN` | `_ops/prod-artifact-report.md` · `_ops/prod-artifact.json` |
+| ④ | STEP 7 | 272/272 PASS | ✅ **272/272**（含 2 条负样本自证；经典版 162/162；14 类缺陷全 0；内部链接 8/8 通过 + 1 条正当跳过） | `_ops/step7-report-prod.md` |
 | ⑤ | Smoke | **discovered 101 / executed 101 / failed 0 / skipped 0**（不只 `FAIL=0`，覆盖不得缩水） | `⏳` | `.smoke-out/` |
 | ⑥ | E1 | PASS | `⏳` | `_ops/e1-user-path-report-prod.md` |
 | ⑦ | E1-NEG | **格数 50/50 完整 且 FAIL = 0**（SKIP 数可少于本地的 6，属预期；每条 SKIP 须有正当理由） | `⏳` | `_ops/e1-neg-input-report-prod.md` |
-| ⑧ | L10N / SEO / 品牌 | 两条判据 PASS + 106/106 + 品牌三条 | **⛔ 部署前基线：L10N 对线上产物 FAIL（0 PASS / 106 FAIL）；SEO 大量 `CJK_IN_TITLE/DESCRIPTION/H1`** | `_ops/l10n-body-report-prod.md` |
+| ⑧ | L10N / SEO / 品牌 | 两条判据 PASS + 106/106 + 品牌三条 | ✅ **L10N PASS 106/0/0/0**（判据2 命中 0 页；空转自证有效）· **SEO 106/106**（title 唯一；工具页 H1/title 101/101）· **品牌 PASS**（判据1 0/2 · 判据2 10/10 · 判据3 产物 0 命中）。部署前基线：L10N 对线上产物 FAIL（0/106）、SEO 大量 CJK | `_ops/l10n-body-report-prod.md` |
 | ⑨ | canonical / robots / sitemap | PASS | `⏳` | `_ops/step7-report.md` §2 |
 | ⑩ | 人工最终浏览 | 首页 + 4 法务页 + 3 抽样工具页 | `⏳` | — |
 | ⑪ | **FINAL GATE 13/13 判定** | 逐项对 `digdevbox-v2-rectification-plan.md` §7.3 那张表 | `⏳` | 同上 §7.3 |

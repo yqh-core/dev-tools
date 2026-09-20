@@ -1525,7 +1525,16 @@ export const SMOKE_CASES = [
     zhTitle: 'MAC地址查找',
     // 00:50:56 是 IEEE 分配给 VMware 的 OUI（公开的注册事实，与本站实现无关）。
     strategy: 'knownVector：00:50:56 是 VMware 的 IEEE OUI，查询必须识别出厂商',
-    steps: [{ fill: { i: 0, text: '00:50:56:11:22:33' } }, { wait: 1100 }],
+    // ⚠ 这里**不能用固定 wait**：OUI 数据是 3.46MB 的独立 chunk，按需动态 import，
+    // 线上首次访问要现下（本地 --serve-dist 读磁盘秒读，所以本地一直过）。
+    // 实测线上单跑三次：FAIL / OK / FAIL —— 固定 1100ms 等的是一个「下载完没有」的赌局，
+    // 判据实际测的是网速而不是工具能力。改为**有界条件等待**：等到结果区（.tool-content）
+    // 真的出现厂商名，最多 20s。超时才算真失败。
+    // （scope 必须写 .tool-content：整页文本里工具说明处也可能出现厂商名。）
+    steps: [
+      { fill: { i: 0, text: '00:50:56:11:22:33' } },
+      { waitText: { text: 'VMware', scope: '.tool-content', ms: 20000 } },
+    ],
     expect: { regex: ['VMware'] },
   },
 
