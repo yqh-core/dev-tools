@@ -1119,17 +1119,22 @@ async function runCase(c) {
   loadFailures = [];
   reqUrl.clear();
 
+  let mountMs = 0;
   try {
     await send('Page.navigate', { url: 'about:blank' });
     await sleep(120);
     await send('Page.navigate', { url: BASE + c.path + '/' });
 
     // 轮询等待挂载 —— 固定 sleep 会把「chunk 还没加载完」误判成「功能坏了」。
-    // 默认 10s；重依赖工具（如 text-diff 的 Monaco）在 dev 下要慢得多，可用 case.mountTimeout 放宽。
+    // 默认 45s；线上（digdevbox.com 走 CF 边缘、冷启动慢）实测得单次挂载偶发 16s / 21s，
+    // 把默认从 10s → 20s → 45s 逐级放宽（与 waitText 对齐），避免「量网速不是量工具」的假红。
+    // 注意：默认**独立于 BUDGET**（不再被 Math.min(…,BUDGET) 压回 20s）；
+    // 本地 --serve-dist 读磁盘挂载是瞬时的，循环会立刻 break，不增加本地耗时。
+    // 重依赖工具（如 text-diff 的 Monaco）在 dev 下要慢得多，可用 case.mountTimeout 再放宽。
     let mounted = false;
     // mountTimeout 是**显式覆盖**，不再被 0.6×BUDGET 压回去 ——
     // 否则写了 mountTimeout: 45000 也会被 default 的 BUDGET 悄悄截成 12s，等于没写。
-    const mountMs = c.mountTimeout || Math.min(10000, BUDGET * 0.6);
+    mountMs = c.mountTimeout || 45000;
     const mountDeadline = Date.now() + mountMs;
     while (Date.now() < mountDeadline) {
       mounted = await evaluate(`!!document.querySelector('.tool-layout')`).catch(() => false);
@@ -1171,7 +1176,7 @@ async function runCase(c) {
   // 交互步骤
   if (!rec.skipped && rec.runtime.mounted) {
     // 单页预算按用例放宽：重依赖工具（Monaco 等）光挂载就要几十秒
-    const budget = Math.max(BUDGET, (c.mountTimeout || 0) + 10000);
+    const budget = Math.max(BUDGET, mountMs + 10000);
     for (const step of c.steps || []) {
       if (Date.now() - t0 > budget) {
         rec.steps.push({ step: JSON.stringify(step), err: '超出单页预算' });
