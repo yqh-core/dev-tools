@@ -85,11 +85,11 @@
 | ④ | STEP 7 | 272/272 PASS | ✅ **272/272**（含 2 条负样本自证；经典版 162/162；14 类缺陷全 0；内部链接 8/8 通过 + 1 条正当跳过） | `_ops/step7-report-prod.md` |
 | ⑤ | Smoke | **discovered 101 / executed 101 / failed 0 / skipped 0**（不只 `FAIL=0`，覆盖不得缩水） | ✅ **全量线上 101/0**（2026-09-21 00:5x 复跑）。过程：首跑 `100/1`（mac-address-lookup 固定等 1100ms 量的是 3.46MB chunk 网速 → 改 waitText）；二跑 `100/1`（uuid 冷启动挂载超时）；三跑因我改 `mountMs` 时作用域 bug 全挂；四跑 `100/1`（mac 线上冷启动波动到 22s）；五跑 `100/1`（ulid 挂载 21.7s）。根因一致：**判据在量 CF 边缘冷启动网速，不是工具能力**。最终把 `mac waitText` 与**默认挂载等待都放到 45s**（独立 BUDGET），六跑 `101/0` | `.smoke-out/` |
 | ⑥ | E1 | PASS | ✅ **PASS（硬失败 0 / 实检项 172）**（2026-09-21 00:28 全量复跑）。⚠️ 此前线上首跑报 **4 硬失败** 是 **E1 脚本自身误报、非站点缺陷**：① A1 在 hydration 完成前就去找 `.c-select` 语言选择器（SSG 阶段不存在）→ 误报「找不到选择器」；② L10N 段漏了 A 组合已有的「组合间隔离」，上一组 zh 把 `localStorage.locale=zh` 遗留，工具页 hydration 成中文，与 SSG 默认英文被误判不一致。两处已加 `waitUntil('.c-select')` + 显式 `localStorage.locale='en'` 隔离，靶向 + 全量复跑均 0 硬失败 | `_ops/e1-user-path-report-prod.md` |
-| ⑦ | E1-NEG | **格数 50/50 完整 且 FAIL = 0**（SKIP 数可少于本地的 6，属预期；每条 SKIP 须有正当理由） | `⏳` | `_ops/e1-neg-input-report-prod.md` |
+| ⑦ | E1-NEG | **格数 50/50 完整 且 FAIL = 0**（SKIP 数可少于本地的 6，属预期；每条 SKIP 须有正当理由） | ✅ **线上 PASS**（2026-09-21 00:2x）：**50 格完整（44 PASS + 6 SKIP + 0 FAIL）**，完整性断言通过；SKIP 逐项有正当理由（该类输入在对应工具上不存在「非法」形态） | `_ops/e1-neg-input-report-prod.md` |
 | ⑧ | L10N / SEO / 品牌 | 两条判据 PASS + 106/106 + 品牌三条 | ✅ **L10N PASS 106/0/0/0**（判据2 命中 0 页；空转自证有效）· **SEO 106/106**（title 唯一；工具页 H1/title 101/101）· **品牌 PASS**（判据1 0/2 · 判据2 10/10 · 判据3 产物 0 命中）。部署前基线：L10N 对线上产物 FAIL（0/106）、SEO 大量 CJK | `_ops/l10n-body-report-prod.md` |
 | ⑨ | canonical / robots / sitemap | PASS | ✅ **线上 PASS**（STEP7 272/272 含 canonical/robots/sitemap 一致性；SEO 106/106 含 canonical 唯一；`_ops/step7-report-prod.md`） | `_ops/step7-report-prod.md` §2 |
 | ⑩ | 人工最终浏览 | 首页 + 4 法务页 + 3 抽样工具页 | `⏳`（用户侧；建议 301 配好后做，确认跳转后的体验） | — |
-| ⑪ | **FINAL GATE 13/13 判定** | 逐项对 `digdevbox-v2-rectification-plan.md` §7.3 那张表 | `⏳`（**唯一阻塞 = ① C6 301 未配**；其余 12 项线上已全绿） | 同上 §7.3 |
+| ⑪ | **FINAL GATE 13/13 判定** | 逐项对 `digdevbox-v2-rectification-plan.md` §7.3 那张表 | `⏳`（**仅剩 ⑩ 人工浏览**一项用户侧动作；①～⑨ 线上已全绿） | 同上 §7.3 |
 | — | AdSense 提交 | ⑪ 通过之后（**唯一允许的「提交」动作**；审核结论不由本项目判定） | `⏳` | — |
 
 ---
@@ -123,6 +123,7 @@
 | 时间 | 变更 |
 |---|---|
 | 2026-09-21 00:3x–01:0x | **本轮（线上全量复检收尾）**：① **根因 E1 线上 4 FAIL 是脚本误报、非站点缺陷** —— A1 在 hydration 完成前找 `.c-select` 选择器（SSG 阶段不存在）+ L10N 段漏了 A 组合已有的「组合间隔离」（zh 组合的 `localStorage.locale=zh` 遗留，工具页 hydration 成中文）。修：加 `waitUntil('.c-select')` + 显式 `localStorage.locale='en'` 隔离。靶向 + 全量复跑均 **0 硬失败 / 172 项 PASS**。② Smoke 线上 `101/0`（经 5 轮 harness 修复：mac-address-lookup 固定 wait→waitText 45s；默认挂载等待 10s→20s→**45s** 且独立于 BUDGET；中间我改挂载等待时引入 `mountMs` 作用域 bug 已修复）。其余判据全绿：**Gate0（0 真差异）· STEP7 272/272 · E1 172/0 · E1-NEG 50/6/0 · L10N 106/0/0/0 · SEO 106/106 · 品牌 0/10-10/产物 0**。③ 301 复测仍 **0/6**（唯一 P0，待用户在 CF 控制台配 Bulk Redirects）。④ RELEASE-MANIFEST 同步本结论 |
+| 2026-09-21 00:24 | **C6 闭环 🔴→✅**：用户在 CF 控制台完成 Bulk Redirect List `pagesdevredirects`（6 条，来自 `_ops/pages-dev-redirects.csv`）+ Bulk Redirect Rule `pages-dev-redirects`（Enabled）。audit 复测 **301 = 6 / 200 = 0**；抽查两条带路径 + 查询串的跳转，subpath matching / preserve path suffix / preserve query string 实测生效。至此 **①～⑨ 线上全绿，FINAL GATE 仅剩 ⑩ 人工浏览** |
 | 2026-09-20 22:0x | **本轮（F-10 · 发布链路打通，只动验证器与发布输入、不动产品代码）**：① 新增 `_ops/fetch-prod-artifact.mjs`（抓线上产物 + 与本地 dist **逐字节 sha256 比对**）并完成**部署前线上基线取证**：**4 相同 / 107 不同**、线上全页 `lang="zh-CN"`、L10N 对线上产物 **FAIL（0 PASS / 106 FAIL）**、SEO 大量 CJK → 「本地全绿 ≠ 线上合格」由断言变成可复现判据；② 修 `_ops/pages-dev-redirects.csv` 三处格式错误（表头 / BOM / 第 4·6 列互换）+ 新增 `verify-301-csv.mjs`（四组负样本自证）；③ 给 E1 / E1-NEG 加 `E1_BASE` 线上模式，给三个 dist 判据加 `--dist` / `--out`；④ 修判据自身三处**静默失效**（参数只认等号 → 静默扫本地；INVALID 凌驾 FAIL → 掩盖阻断；0 例报 PASS → 且覆盖真报告）；⑤ 查出**部署 blocker**：4 个未跟踪文件（`build-dd-tokens.mjs` + `guides.{en,zh,types}.ts`）会让 CF 构建必然失败。详见方案 §5.16 与 `_ops/PUBLISH-RUNBOOK.md` |
 | 2026-09-20 21:4x | **本轮（F-9）**：品牌判据补**覆盖面** —— `.toml`/`.tsx`/`.t`/`.conf`/`.csv` 进白名单、**无扩展名文件改「试读」**（仓库里 8 个无扩展名文件此前**一个都没被扫**）、`.wrangler/` 纳入跳过；新增「**扫描覆盖自证**」小节 + 白名单回显改**三态**。由此抓出两处真残留：`public/_redirects` 注释里的旧主机名（**该文件随部署上线，属产物**）与本文档自身引用的旧名 → 均已清 |
 | 2026-09-20 20:1x | **本轮（F-8）**：修 PWA manifest `short_name` 旧品牌残留（旧英文短名 → `DigDevBox`）、`lang` 对齐默认语言 `en`、`description` 换英文；品牌判据升级为**三条**（新增产物侧）；E1-NEG 假红分诊与判据收紧；全量本地复跑对新构建（BUILD `20:01:44`） |
