@@ -79,7 +79,7 @@
 | # | 闸门 | 期望 | 实测 | 报告 |
 |---|---|---|---|---|
 | ① | C6 · 6 个 `pages.dev` → 301 | 6/6 ✅ | `⏳ 待配置` 🔴 **唯一 P0**（2026-09-21 **00:25 复测**：**已 301 = 0 / 仍敞开 200 = 6**，与 19:1x / 21:3x / 22:45 及用户截图一致）。CSV 已校验 6/6 合规（无表头无 BOM、列序正确），可直接拖进 Bulk Redirects | `_ops/pages-dev-301-plan.md` · `_ops/pages-dev-redirects.csv` |
-| ② | 部署完成 | Deployment Time 已记录 | ✅ **两次部署均成功**（`e06634a7` @2026-09-20T14:57:51Z commit `6123adf`；`682cc02c` @2026-09-20T16:2x commit `46d1ae8`，仅测试侧改动） | — |
+| ② | 部署完成 | Deployment Time 已记录 | ✅ **三次部署**（`e06634a7` @2026-09-20T14:57:51Z commit `6123adf`；`682cc02c` @2026-09-20T15:14:43Z commit `46d1ae8`；`f152b445` @2026-09-21T00:26:27Z commit `6711200`，仅文档/测试侧改动、产物不变） | — |
 | ③ | 构建身份已归档 | 本文件第 1 节填满 | ✅ 已归档（Commit / Deployment / Deploy Time 三项齐） | 本文件 |
 | **③.0** | **Gate 0 · 指纹闸门：线上 == 本地这份构建** | `0 项真差异`（归一化后） | ✅ **已通过**（2026-09-20 23:01）：`0 项真差异 / 逐字节全等 5 / 仅 asset 名不同 106 / 0 本地缺 / 0 抓取失败`。线上 `html lang="en"`、`title="DigDevBox - Online Developer Tools"`；部署前基线是 `4 相同 / 107 不同` + 全页 `zh-CN` | `_ops/prod-artifact-report.md` · `_ops/prod-artifact.json` |
 | ④ | STEP 7 | 272/272 PASS | ✅ **272/272**（含 2 条负样本自证；经典版 162/162；14 类缺陷全 0；内部链接 8/8 通过 + 1 条正当跳过） | `_ops/step7-report-prod.md` |
