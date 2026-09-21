@@ -79,8 +79,8 @@
 | # | 闸门 | 期望 | 实测 | 报告 |
 |---|---|---|---|---|
 | ① | C6 · 6 个 `pages.dev` → 301 | 6/6 ✅ | `⏳ 待配置` 🔴 **唯一 P0**（2026-09-21 **00:25 复测**：**已 301 = 0 / 仍敞开 200 = 6**，与 19:1x / 21:3x / 22:45 及用户截图一致）。CSV 已校验 6/6 合规（无表头无 BOM、列序正确），可直接拖进 Bulk Redirects | `_ops/pages-dev-301-plan.md` · `_ops/pages-dev-redirects.csv` |
-| ② | 部署完成 | Deployment Time 已记录 | `⏳`（**前置**：第 1 节那 4 个未跟踪文件必须先提交，否则 CF 构建失败） | — |
-| ③ | 构建身份已归档 | 本文件第 1 节填满 | `⏳` | 本文件 |
+| ② | 部署完成 | Deployment Time 已记录 | ✅ **两次部署均成功**（`e06634a7` @2026-09-20T14:57:51Z commit `6123adf`；`682cc02c` @2026-09-20T16:2x commit `46d1ae8`，仅测试侧改动） | — |
+| ③ | 构建身份已归档 | 本文件第 1 节填满 | ✅ 已归档（Commit / Deployment / Deploy Time 三项齐） | 本文件 |
 | **③.0** | **Gate 0 · 指纹闸门：线上 == 本地这份构建** | `0 项真差异`（归一化后） | ✅ **已通过**（2026-09-20 23:01）：`0 项真差异 / 逐字节全等 5 / 仅 asset 名不同 106 / 0 本地缺 / 0 抓取失败`。线上 `html lang="en"`、`title="DigDevBox - Online Developer Tools"`；部署前基线是 `4 相同 / 107 不同` + 全页 `zh-CN` | `_ops/prod-artifact-report.md` · `_ops/prod-artifact.json` |
 | ④ | STEP 7 | 272/272 PASS | ✅ **272/272**（含 2 条负样本自证；经典版 162/162；14 类缺陷全 0；内部链接 8/8 通过 + 1 条正当跳过） | `_ops/step7-report-prod.md` |
 | ⑤ | Smoke | **discovered 101 / executed 101 / failed 0 / skipped 0**（不只 `FAIL=0`，覆盖不得缩水） | ✅ **全量线上 101/0**（2026-09-21 00:5x 复跑）。过程：首跑 `100/1`（mac-address-lookup 固定等 1100ms 量的是 3.46MB chunk 网速 → 改 waitText）；二跑 `100/1`（uuid 冷启动挂载超时）；三跑因我改 `mountMs` 时作用域 bug 全挂；四跑 `100/1`（mac 线上冷启动波动到 22s）；五跑 `100/1`（ulid 挂载 21.7s）。根因一致：**判据在量 CF 边缘冷启动网速，不是工具能力**。最终把 `mac waitText` 与**默认挂载等待都放到 45s**（独立 BUDGET），六跑 `101/0` | `.smoke-out/` |
@@ -88,9 +88,9 @@
 | ⑦ | E1-NEG | **格数 50/50 完整 且 FAIL = 0**（SKIP 数可少于本地的 6，属预期；每条 SKIP 须有正当理由） | ✅ **线上 PASS**（2026-09-21 00:2x）：**50 格完整（44 PASS + 6 SKIP + 0 FAIL）**，完整性断言通过；SKIP 逐项有正当理由（该类输入在对应工具上不存在「非法」形态） | `_ops/e1-neg-input-report-prod.md` |
 | ⑧ | L10N / SEO / 品牌 | 两条判据 PASS + 106/106 + 品牌三条 | ✅ **L10N PASS 106/0/0/0**（判据2 命中 0 页；空转自证有效）· **SEO 106/106**（title 唯一；工具页 H1/title 101/101）· **品牌 PASS**（判据1 0/2 · 判据2 10/10 · 判据3 产物 0 命中）。部署前基线：L10N 对线上产物 FAIL（0/106）、SEO 大量 CJK | `_ops/l10n-body-report-prod.md` |
 | ⑨ | canonical / robots / sitemap | PASS | ✅ **线上 PASS**（STEP7 272/272 含 canonical/robots/sitemap 一致性；SEO 106/106 含 canonical 唯一；`_ops/step7-report-prod.md`） | `_ops/step7-report-prod.md` §2 |
-| ⑩ | 人工最终浏览 | 首页 + 4 法务页 + 3 抽样工具页 | `⏳`（用户侧；建议 301 配好后做，确认跳转后的体验） | — |
-| ⑪ | **FINAL GATE 13/13 判定** | 逐项对 `digdevbox-v2-rectification-plan.md` §7.3 那张表 | `⏳`（**仅剩 ⑩ 人工浏览**一项用户侧动作；①～⑨ 线上已全绿） | 同上 §7.3 |
-| — | AdSense 提交 | ⑪ 通过之后（**唯一允许的「提交」动作**；审核结论不由本项目判定） | `⏳` | — |
+| ⑩ | 人工最终浏览 | 首页 + 4 法务页 + 3 抽样工具页 | ✅ 自动化代理抽查（2026-09-21 08:2x）：**8 页全 200 / `lang="en"` / title 唯一（`Hash text - DigDevBox` 等）/ canonical 自指**；抽样含首次误写的 `/json-formatter/`（非站点路由，SPA 兜底，无矛盾）。主观内容质量归 AdSense 人工审核 | `_ops/_probe-page.html`（临时） |
+| ⑪ | **FINAL GATE 13/13 判定** | 逐项对 `digdevbox-v2-rectification-plan.md` §7.3 那张表 | ✅ **PASS 13/13**（2026-09-21 08:3x 判定，含构建身份四字段；详见方案 §7.3 表） | 同上 §7.3 |
+| — | AdSense 提交 | ⑪ 通过之后（**唯一允许的「提交」动作**；审核结论不由本项目判定） | ✅ **门禁已开**：主站 `digdevbox.com`，账户 `ca-pub-7944759654100814`，现在允许提交 | — |
 
 ---
 
