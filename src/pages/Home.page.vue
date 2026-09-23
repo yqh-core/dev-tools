@@ -136,18 +136,18 @@ function onUpdateFavoriteTools() {
           <ColoredCard v-if="config.showBanner" :title="$t('home.follow.title')" :icon="IconHeart">
             {{ $t('home.follow.p1') }}
             <a
-              href="https://github.com/yqh-core/dev-tools"
+              href="https://digdevbox.com/"
               rel="noopener"
               target="_blank"
               :aria-label="$t('home.follow.githubRepository')"
-            >GitHub</a>
+            >DigDevBox</a>
             {{ $t('home.follow.p2') }}
             <a
-              href="https://github.com/yqh-core/dev-tools"
+              href="https://digdevbox.com/"
               rel="noopener"
               target="_blank"
               :aria-label="$t('home.follow.twitterXAccount')"
-            >X</a>.
+            >DigDevBox</a>.
             {{ $t('home.follow.thankYou') }}
             <n-icon :component="IconHeart" />
           </ColoredCard>

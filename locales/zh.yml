@@ -28,10 +28,10 @@ home:
   buyMeACoffee: '赞助'
   follow:
     title: '关注我们'
-    p1: '给我们 Star'
-    githubRepository: 'GitHub 仓库'
-    p2: '或访问我们的'
-    twitterXAccount: 'GitHub 仓库'
+    p1: '喜欢 DigDevBox？收藏'
+    githubRepository: 'DigDevBox 主站'
+    p2: '或把工具分享给'
+    twitterXAccount: '同事'
     thankYou: '感谢您的支持！'
   nav:
     github: 'GitHub 仓库'
@@ -49,17 +49,17 @@ about:
 
     DigDevBox汇集了对开发人员和运维人员有用的在线工具，全部在浏览器本地运行，不上传任何数据。如果对您有帮助，欢迎收藏并分享给同事。
 
-    本项目基于开源项目 [it-tools](https://github.com/CorentinTh/it-tools)（GPL-3.0 许可）二次开发，在此感谢原作者的贡献。当前版本由 [yqh-core](https://github.com/yqh-core) 维护，源码托管在 [https://github.com/yqh-core/dev-tools](https://github.com/yqh-core/dev-tools)。
+    本项目基于开源项目 [it-tools](https://github.com/CorentinTh/it-tools)（GPL-3.0 许可）二次开发，在此感谢原作者的贡献。当前版本由 DigDevBox 团队维护。
 
     ## 技术
 
-    前端采用 Vue 3 + Naive UI，构建工具为 Vite，部署在 Cloudflare Pages。部分工具使用了第三方开源库，完整列表见仓库的 [package.json](https://github.com/yqh-core/dev-tools/blob/main/package.json)。
+    前端采用 Vue 3 + Naive UI，构建工具为 Vite，部署在 Cloudflare Pages。部分工具使用了第三方开源库。
 
     ## 发现问题？缺少工具？
 
-    如果需要某个目前没有的工具，欢迎到 [https://github.com/yqh-core/dev-tools/issues](https://github.com/yqh-core/dev-tools/issues/new/choose) 提交功能建议。
+    如果需要某个目前没有的工具，欢迎到 [DigDevBox 联系页](https://digdevbox.com/contact) 提交功能建议。
 
-    如果发现 Bug 或某个功能表现异常，也请在 [https://github.com/yqh-core/dev-tools/issues](https://github.com/yqh-core/dev-tools/issues/new/choose) 提交问题报告。
+    如果发现 Bug 或某个功能表现异常，也请通过 [DigDevBox 联系页](https://digdevbox.com/contact) 提交问题报告。
 
     ## 同站工具
 

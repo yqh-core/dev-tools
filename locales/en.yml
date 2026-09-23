@@ -28,10 +28,10 @@ home:
   buyMeACoffee: 'Buy me a coffee'
   follow:
     title: 'You like DigDevBox?'
-    p1: 'Give us a star on'
-    githubRepository: 'DigDevBox GitHub repository'
-    p2: 'or follow us on'
-    twitterXAccount: 'DigDevBox GitHub repository'
+    p1: 'If you like DigDevBox, bookmark'
+    githubRepository: 'DigDevBox'
+    p2: 'or share it with'
+    twitterXAccount: 'your colleagues'
     thankYou: 'Thank you!'
   nav:
     github: 'GitHub repository'
@@ -49,15 +49,15 @@ about:
 
     DigDevBox is a collection of handy online tools for developers. Everything runs client-side in your browser - no data is ever uploaded. If you find it useful, feel free to bookmark and share it.
 
-    This project is a fork of the open-source [it-tools](https://github.com/CorentinTh/it-tools) (GPL-3.0), and we are grateful to its author. It is currently maintained by [yqh-core](https://github.com/yqh-core) and the source lives at [https://github.com/yqh-core/dev-tools](https://github.com/yqh-core/dev-tools).
+    This project is a fork of the open-source [it-tools](https://github.com/CorentinTh/it-tools) (GPL-3.0), and we are grateful to its author. It is currently maintained by the DigDevBox team.
 
     ## Technologies
 
-    Built with Vue 3, Naive UI and Vite, deployed on Cloudflare Pages. Some tools rely on third-party open-source libraries - see the [package.json](https://github.com/yqh-core/dev-tools/blob/main/package.json) in the repository for the full list.
+    Built with Vue 3, Naive UI and Vite, deployed on Cloudflare Pages. Some tools rely on third-party open-source libraries.
 
     ## Found a bug? A tool is missing?
 
-    Feature requests and bug reports are welcome at [https://github.com/yqh-core/dev-tools/issues](https://github.com/yqh-core/dev-tools/issues/new/choose).
+    Feature requests and bug reports are welcome at the [DigDevBox contact page](https://digdevbox.com/contact).
 
     ## Sibling tools
 

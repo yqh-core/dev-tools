@@ -1,6 +1,6 @@
 /* TEAM */
 Maintainer: DigDevBox
-Site: https://github.com/yqh-core/dev-tools
+Site: https://digdevbox.com/dev-tools
 
 /* SITE */
 Name: DigDevBox
