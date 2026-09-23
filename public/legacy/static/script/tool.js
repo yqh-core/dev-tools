@@ -1,5 +1,5 @@
 /**
- * tool.js —— Dev 工具箱共享前端逻辑
+ * tool.js —— DigDevBox共享前端逻辑
  *
  * 提供全站模板共用的辅助函数（原 upstream 仓库缺失，此处按调用契约重建）：
  *   - tj()           : footer「返回顶部」按钮行为
