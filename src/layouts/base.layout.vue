@@ -176,6 +176,12 @@ const tools = computed<ToolCategory[]>(() => [
   }
 }
 
+/* D022b：暗色下沿用 #6b6d70 只有 3.29:1（bg 约 #131c2b），换浅灰 #a3a3a3 保证 >= 4.5:1。
+   scoped 编译后为 `.dark .footer[data-v-…]`，data-v 只加在末位选择器，html.dark 可正确命中 */
+.dark .footer {
+  color: #a3a3a3;
+}
+
 .sider-content {
   padding-top: 160px;
   padding-bottom: 200px;
