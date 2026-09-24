@@ -4,7 +4,7 @@ Last updated: 2026-09-19
 
 ## Overview
 
-Developer Toolbox (digdevbox.com) is a collection of online tools. Most tools run entirely in your browser; the data you enter is not uploaded to our servers.
+DigDevBox (digdevbox.com) is a collection of online tools. Most tools run entirely in your browser; the data you enter is not uploaded to our servers.
 
 This page is written according to the services **actually deployed** on this site and is updated whenever that changes.
 

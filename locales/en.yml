@@ -6,7 +6,7 @@ site:
 
 home:
   hero:
-    title: "Developer Toolbox"
+    title: "DigDevBox"
     subtitle: "An online toolbox for developers and ops engineers: {count} tools, all running locally in your browser. Nothing is uploaded or stored."
   classic:
     entry: "Classic tools"
