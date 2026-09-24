@@ -63,7 +63,7 @@ pre code#result {
 .copyright {
     text-align: center;
     padding: 24px 0;
-    color: #888;
+    color: #6b6b6b;
     font-size: 13px;
     border-top: 1px solid #eee;
     margin-top: 20px;
@@ -107,3 +107,10 @@ pre code#result {
 .text-center {
     text-align: center;
 }
+
+/* D023：对比度达标覆写 —— Bootstrap 3.3.7 默认色（链接 #337ab7=4.24:1、导航 #777=4.22:1）
+   在 #f5f7f9/#f8f8f8 浅底不足 4.5:1，加深至 5:1 以上（本文件在 Bootstrap 之后加载，同特异性后者胜出） */
+a { color: #2d6a9f; }
+a:hover, a:focus { color: #23527c; }
+.navbar-default .navbar-brand,
+.navbar-default .navbar-nav > li > a { color: #6b6b6b; }
