@@ -158,7 +158,7 @@ function onUpdateFavoriteTools() {
           101 个工具平铺时，第一次来的人只会看到一片网格；这 8 个是高频入口。
         -->
         <div v-if="popularTools.length > 0">
-          <h3 class="mb-5px mt-25px text-neutral-400 font-500">
+          <h3 class="mb-5px mt-25px text-neutral-600 dark:text-neutral-400 font-500">
             {{ t('home.categories.popularTools') }}
           </h3>
           <div class="grid grid-cols-1 gap-12px lg:grid-cols-3 md:grid-cols-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -168,7 +168,7 @@ function onUpdateFavoriteTools() {
 
         <transition name="height">
           <div v-if="toolStore.favoriteTools.length > 0">
-            <h3 class="mb-5px mt-25px text-neutral-400 font-500">
+            <h3 class="mb-5px mt-25px text-neutral-600 dark:text-neutral-400 font-500">
               {{ $t('home.categories.favoriteTools') }}
               <c-tooltip :tooltip="$t('home.categories.favoritesDndToolTip')">
                 <n-icon :component="IconDragDrop" size="18" />
@@ -194,7 +194,7 @@ function onUpdateFavoriteTools() {
           因此不会给「不执行 JS 的抓取器」看到一个空标题。
         -->
         <div v-if="toolStore.recentTools.length > 0">
-          <h3 class="mb-5px mt-25px text-neutral-400 font-500">
+          <h3 class="mb-5px mt-25px text-neutral-600 dark:text-neutral-400 font-500">
             {{ t('home.categories.recentTools') }}
             <button
               class="cat-action"
@@ -210,7 +210,7 @@ function onUpdateFavoriteTools() {
         </div>
 
         <div v-if="toolStore.newTools.length > 0">
-          <h3 class="mb-5px mt-25px text-neutral-400 font-500">
+          <h3 class="mb-5px mt-25px text-neutral-600 dark:text-neutral-400 font-500">
             {{ t('home.categories.newestTools') }}
           </h3>
           <div class="grid grid-cols-1 gap-12px lg:grid-cols-3 md:grid-cols-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -223,7 +223,7 @@ function onUpdateFavoriteTools() {
           按与侧边栏一致的分类聚合成分区，落地首页即可按类浏览，不再依赖先开菜单。
         -->
         <template v-for="cat of toolStore.toolsByCategory" :key="cat.name">
-          <h3 class="mb-5px mt-25px text-neutral-400 font-500">
+          <h3 class="mb-5px mt-25px text-neutral-600 dark:text-neutral-400 font-500">
             {{ cat.name }}
             <span class="cat-count">{{ cat.components.length }}</span>
           </h3>
@@ -236,7 +236,7 @@ function onUpdateFavoriteTools() {
           经典版入口。老站 162 个工具原样保留在 public/legacy/，是独立静态子站，
           不在 vue-router 路由内，因此这里用原生 <a>（用 RouterLink 会落到 404）。
         -->
-        <h3 class="mb-5px mt-25px text-neutral-400 font-500">
+        <h3 class="mb-5px mt-25px text-neutral-600 dark:text-neutral-400 font-500">
           {{ $t('home.classic.entry') }}
         </h3>
         <a class="classic-card" :href="classicSiteUrl">

@@ -143,7 +143,7 @@ const tools = computed<ToolCategory[]>(() => [
 
 .footer {
   text-align: center;
-  color: #838587;
+  color: #6b6d70;
   margin-top: 20px;
   padding: 20px 0;
 
