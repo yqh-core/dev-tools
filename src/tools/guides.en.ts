@@ -273,6 +273,12 @@ export const GUIDES: Record<string, ToolGuide> = {
     intro: 'Compares two JSON documents and highlights the differences — makes config changes or API response drift obvious.',
     steps: ['Paste the original JSON on the left', 'Paste the new JSON on the right', 'Review the highlighted additions, removals and changes'],
     notes: ['Key order does not affect the comparison, but array order does'],
+    about: 'Comparing two JSON documents by eye does not scale: a changed port or a missing comma hides easily among hundreds of lines. A JSON diff parses both sides and reports the differences structurally — values that were added, removed, or changed — instead of diffing raw text lines. That means JSON that was merely reformatted compares as equal, while a real value change stands out.',
+    faqs: [
+      { q: 'Does key order affect the result?', a: 'No. JSON objects are unordered key-value pairs, so { "a": 1, "b": 2 } equals { "b": 2, "a": 1 }. Arrays are ordered by definition — reordering array elements is reported as a change.' },
+      { q: 'Why do two values that look identical show as different?', a: 'Usually the type changed: 1 (number) and "1" (string), or true and "true", render similarly but are different JSON values. A textual diff hides that; a structural diff points at the type mismatch.' },
+      { q: 'Can I compare large documents?', a: 'Everything runs in your browser, so the practical limit is tab memory — documents of a few megabytes are fine.' },
+    ],
     example: { label: 'Fill in sample JSON', text: '{ "name": "DigDevBox", "version": 1, "tags": ["a", "b"] }' },
   },
 
@@ -280,6 +286,12 @@ export const GUIDES: Record<string, ToolGuide> = {
     intro: 'Strips the whitespace and newlines out of JSON, compressing it onto one line to save transfer size.',
     steps: ['Paste the formatted JSON', 'Get the minified result', 'Copy and use it'],
     example: { label: 'Fill in sample JSON', text: '{\n  "name": "DigDevBox",\n  "list": [1, 2, 3]\n}' },
+    about: 'Minifying JSON removes everything the machine does not need: indentation, spaces, newlines. The parsed value stays exactly the same, but the file gets smaller and fits on one line — useful for embedding JSON into environment variables, command-line flags, HTML templates or URLs, where whitespace breaks things.',
+    faqs: [
+      { q: 'How much smaller does the file get?', a: 'For formatted JSON typically 20-40%: whitespace is pure overhead. Minifying does not shorten keys or values the way a binary format would — for transfer size, gzip on the transport layer is the next step.' },
+      { q: 'Is minified JSON still valid?', a: 'Yes. Whitespace between tokens is not part of the JSON data model. Minifying requires parsing first, so invalid input errors out instead of producing broken output.' },
+      { q: 'How do I get it back into readable form?', a: 'Paste it into the JSON formatter and it is re-indented. Minify and format are inverse operations at the presentation level — the data itself never changes.' },
+    ],
   },
 
   '/json-prettify': {
@@ -299,6 +311,12 @@ export const GUIDES: Record<string, ToolGuide> = {
     intro: 'Converts a JSON array into a CSV table for Excel or a data-analysis tool.',
     steps: ['Paste the JSON array', 'Check the auto-detected column headers', 'Copy or download the CSV'],
     notes: ['Nested objects are flattened or stringified; for deeply structured JSON it helps to tidy it first'],
+    about: 'CSV is still the common language of spreadsheets. This tool takes a JSON array of objects — the shape most APIs return — and maps each object to a row, with the keys becoming column headers. Data moves from an API response into Excel, Numbers or a BI tool without writing a conversion script.',
+    faqs: [
+      { q: 'What happens to nested objects and arrays?', a: 'CSV has only flat rows. Nested values are flattened or stringified (an object becomes JSON text inside the cell). For deeply nested data, reshape the JSON first — the formatter helps you see the structure before converting.' },
+      { q: 'How are the column headers decided?', a: 'From the keys of the objects in the array. If objects have different keys, the union is used and missing cells stay empty.' },
+      { q: 'Will Excel open the result correctly?', a: 'For normal text, yes. Watch out for values starting with = (Excel treats them as formulas) and very long numbers turning into scientific notation. Importing the downloaded file is safer than copy-paste.' },
+    ],
     example: { label: 'Fill in sample JSON', text: '[\n  { "id": 1, "name": "Alice", "score": 92 },\n  { "id": 2, "name": "Bob", "score": 88 }\n]' },
   },
 
@@ -442,12 +460,24 @@ export const GUIDES: Record<string, ToolGuide> = {
   '/regex-memo': {
     intro: 'A cheat sheet of common regular expressions for when you have forgotten the syntax.',
     steps: ['Find the syntax you need by category', 'Copy the fragment', 'Verify it in the Regex Tester'],
+    about: 'Regex syntax is easy to forget precisely because it is dense: character classes, quantifiers, anchors and groups are all written in punctuation. This cheat sheet collects the constructs you actually reach for — ready-made patterns for emails, URLs and dates, the common character classes, and lookahead examples — so you copy a working starting point instead of rebuilding it from memory.',
+    faqs: [
+      { q: 'Are these patterns production-ready?', a: 'They are solid starting points for common cases. The classic example: fully RFC-compliant email validation is practically impossible in pure regex — the patterns here cover the pragmatic 99%, not the adversarial 1%.' },
+      { q: 'Will these patterns work in every language?', a: 'The core syntax (classes, quantifiers, groups, anchors) is nearly universal. Advanced features like lookbehind or named groups vary by engine — verify JavaScript behavior in the Regex Tester.' },
+      { q: 'How do I adapt a pattern to my case?', a: 'Copy it into the Regex Tester, paste a sample of your real text, then tighten the pattern until only the parts you want are highlighted.' },
+    ],
   },
 
   '/regex-tester': {
     intro: 'Tests regular expression matches live, so you can verify as you write.',
     steps: ['Write the pattern in the top field (without the surrounding slashes)', 'Enter the text to match in the bottom field', 'Review the highlighted matches and capture groups'],
     notes: ['Add the g flag for global matching, otherwise only the first match is reported'],
+    about: 'Regular expressions fail silently: a pattern that looks right may be matching the wrong thing. A live tester closes the gap between writing a pattern and trusting it — paste the real text you need to parse, and every match, capture group and flag effect is highlighted as you type.',
+    faqs: [
+      { q: 'Which regex flavor does this use?', a: 'JavaScript (ECMAScript). Everyday syntax is shared with PCRE and Python, but lookbehind, named groups and unicode handling differ between engines — keep the rules of your target language in mind when testing.' },
+      { q: 'What do the flags mean?', a: 'g returns all matches instead of stopping at the first one; i ignores case; m makes ^ and $ match line boundaries; s lets the dot match newlines.' },
+      { q: 'Is my text sent anywhere?', a: 'No. Matching runs entirely in your browser — nothing you paste ever leaves the page.' },
+    ],
     example: { label: 'Fill in a sample pattern', text: '\\d{3}-\\d{4}' },
   },
 
