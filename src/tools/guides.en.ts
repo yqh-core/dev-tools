@@ -66,6 +66,12 @@ export const GUIDES: Record<string, ToolGuide> = {
       'A higher cost is slower and more secure; 10–12 is typical in production',
       'The same plaintext produces a different hash every time — that is expected (random salt)',
     ],
+    about: 'bcrypt is a password-specific hash: unlike SHA-256 it is deliberately slow, and the cost factor lets you slow it down further as hardware improves. Every bcrypt output embeds its own random salt and the cost in the string itself ($2b$10$... means cost 10), which is why the same password hashes differently every time and why verification needs no separate salt storage — the algorithm, salt and cost are all read back from the hash. This tool hashes with bcryptjs and verifies by re-hashing the candidate and comparing, exactly how a server does at login. Typical cost is 10–12: each step doubles the work, so cost 12 is roughly four times slower than cost 10 — pick the slowest value your login latency tolerates.',
+    faqs: [
+      { q: 'Why does the same password produce different bcrypt hashes?', a: 'By design: a fresh random salt is generated for every hash, so identical passwords produce different outputs and rainbow tables are useless. bcrypt verification handles this automatically — it reads the salt back out of the hash before comparing.' },
+      { q: 'What cost (salt rounds) should I choose?', a: 'The rule of thumb is "about 250 ms per hash on your production hardware". Cost 10 is a common floor; 11–12 is typical today. Each +1 doubles the time for both you and the attacker, so take the slowest your login path can afford.' },
+      { q: 'Can I decrypt a bcrypt hash to get the password back?', a: 'No, and any service claiming to is a scam. bcrypt is one-way; the only path is guessing candidates and hashing each one — which the cost factor is specifically engineered to make slow.' },
+    ],
     example: { label: 'Fill in a sample password', text: 'MyP@ssw0rd' },
   },
 
@@ -136,6 +142,12 @@ export const GUIDES: Record<string, ToolGuide> = {
     intro: 'Converts a time to a Unix timestamp or turns a timestamp back into a readable time, with several output formats.',
     steps: ['Use the current time or enter one manually', 'Read the Unix timestamp and the formatted results', 'Note whether you need seconds or milliseconds'],
     notes: ['Unix timestamps are usually seconds (10 digits), while JavaScript Date.now() is milliseconds (13 digits)'],
+    about: 'A date is one moment wearing many coats, and this tool converts between them: Unix timestamps (seconds or milliseconds), ISO 8601, RFC 3339, UTC strings and locale-formatted strings. Where a format does not state a timezone, your browser\'s local zone is applied — so "now" on this page is the same moment your logs call a different name. The everyday uses: turning a timestamp from a log line into readable local time, checking whether an expiry (a JWT exp, an ISO field from a database) is already in the past, and generating timestamp values for test fixtures.',
+    faqs: [
+      { q: 'Is my timestamp in seconds or milliseconds?', a: 'Count the digits: 10 digits is seconds (good until the year 2286), 13 digits is milliseconds. Pasting seconds where milliseconds are expected lands you centuries in the future — the wrong scale is usually obvious as soon as you convert.' },
+      { q: 'Why does the converted time shift by hours?', a: 'Timezone interpretation. ISO strings like 2026-10-05T08:00:00Z name an exact moment (Z = UTC), but "2026-10-05 08:00" without a zone is ambiguous and gets read as your local time. A +8h shift almost always means one side treated a zone-less string as UTC and the other as local.' },
+      { q: 'Which timestamp format should I store in my database?', a: 'Either UTC ISO 8601 strings or integer Unix timestamps — both are unambiguous. What you must avoid is zone-less datetime strings in local time: they break the moment a server, a user or daylight saving changes the timezone.' },
+    ],
   },
 
   '/device-information': {
@@ -183,16 +195,28 @@ export const GUIDES: Record<string, ToolGuide> = {
   },
 
   '/hash-text': {
-    intro: 'Computes MD5, SHA1, SHA256 and other hashes of text — for verifying file integrity or producing digests.',
+    intro: 'Computes MD5, SHA-1, SHA-256, SHA-512, SHA-3, RIPEMD-160 and more digests of a text, in hex or binary — for verifying content integrity or producing fingerprints.',
     steps: ['Paste the text', 'Choose the algorithm in the result area', 'Copy the corresponding digest'],
     notes: ['MD5 and SHA1 are no longer collision-resistant; do not use them for passwords or signatures'],
+    about: 'A hash function turns input of any size into a fixed-length digest: the same input always gives the same digest, but you cannot get the input back from it. This tool computes all of the widely used algorithms at once — MD5, RIPEMD-160, the SHA-1/2/3 families — and shows each digest as hex plus binary, so a single paste replaces running openssl dgst per algorithm. Hashes of text are not hashes of files: an extra trailing newline silently changes every digest, which is the most common reason two "identical" texts disagree. For signatures and message authentication you need HMAC instead (see Related Tools); for passwords you need a slow, salted scheme like bcrypt — neither a plain SHA-256 nor this page\'s output is acceptable there.',
+    faqs: [
+      { q: 'Which hash algorithm should I use?', a: 'For integrity checks and general fingerprints today, SHA-256 or SHA-512. MD5 and SHA-1 still work for detecting accidental corruption but must not be used where an adversary can craft collisions — signatures, certificates, password storage.' },
+      { q: 'Why do MD5 and SHA-1 hashes differ between tools for the same text?', a: 'Usually the input is not identical: a trailing newline, CRLF versus LF line endings, or a BOM all change the bytes and therefore every digest. Paste again without the hidden characters and they will match.' },
+      { q: 'Can I recover the original text from a hash?', a: 'No. Hashing is one-way by design. A hash "database" only matches precomputed inputs — a strong, unique input such as a random password will not be found in one.' },
+    ],
     example: { label: 'Fill in sample text', text: 'hello world' },
   },
 
   '/hmac-generator': {
-    intro: 'Computes an HMAC from a key and a hash function, for API signing and verifying a message origin.',
+    intro: 'Computes an HMAC with MD5, SHA-1, SHA-2, SHA-3 or RIPEMD-160 from a message and a shared key — for API request signing and verifying a message origin.',
     steps: ['Enter the message', 'Enter the key', 'Choose a hash algorithm to get the HMAC'],
     notes: ['HMAC depends on the key: a different key gives a completely different result, so both sides must agree on it'],
+    about: 'HMAC (hash-based message authentication code) mixes a secret key into the hashing process, so the output can only be reproduced by someone who holds the same key. Where a plain hash proves "these bytes are unchanged", an HMAC proves "these bytes are unchanged AND sent by someone who knows the key" — which is why request signing for payment callbacks, webhooks and API authentication is built on it. The underlying algorithm matters less than key discipline: any member of the SHA-2 family is fine, but the key must travel to the other side over a channel you already trust, and must never appear in the request itself. This tool computes the HMAC locally in your browser, so it is safe for experimenting with real keys, but remember that anything pasted into a web page you do not control is a leak risk.',
+    faqs: [
+      { q: 'HMAC vs a plain hash — when do I need the key?', a: 'Whenever the receiver must know who produced the digest. A plain SHA-256 of a payload can be computed by anyone; an HMAC-SHA256 can only be computed (or verified) by holders of the key, which is what "signing" means in most API docs.' },
+      { q: 'Which HMAC algorithm should I pick?', a: 'Match what the other side specifies — HMAC-SHA256 is the most common default. The algorithm is not a security dial: upgrading MD5 to SHA-512 does not compensate for a weak or reused key.' },
+      { q: 'Why does my HMAC not match the server\'s value?', a: 'The usual suspects, in order: the key differs (trailing whitespace, a copied "example" key), the payload bytes differ (JSON key order, CRLF, unicode escaping), or you hashed the payload when the server signed payload plus extra headers. Compare hex outputs byte by byte.' },
+    ],
     example: { label: 'Fill in a sample message', text: 'hello world' },
   },
 
@@ -303,6 +327,12 @@ export const GUIDES: Record<string, ToolGuide> = {
     notes: [
       'This only decodes, it does not verify — you cannot tell from here whether the token was tampered with',
       'The payload is plain Base64, so never put sensitive data in it',
+    ],
+    about: 'A JWT (JSON Web Token) is three Base64URL segments joined by dots: header (algorithm and token type), payload (the claims, such as sub for the subject and exp for expiry) and signature. Decoding is pure Base64 — that is what this tool does — so anyone holding the token can read every claim inside it. That is fine and intended: JWTs carry identity, not secrecy. What decoding cannot tell you is authenticity — only the server holding the secret key or public key can verify the signature, and until it does, any decoded content should be treated as unverified input. Reading an expired token, checking which claims a third-party service actually issues, or debugging why your auth middleware rejects a token are the everyday jobs of this page.',
+    faqs: [
+      { q: 'Does decoding a JWT verify it?', a: 'No. Decoding just reverses Base64URL and anyone can do it, including an attacker with a forged token. Verification requires the signing key (HMAC) or public key (RSA/ECDSA) on the server. A token whose signature you have not verified is a claim, not a fact.' },
+      { q: 'Is it safe to put user data in the JWT payload?', a: 'Readable, yes; sensitive, no. The payload is plain Base64URL with no encryption — "decode" is one click. Never put passwords, keys, or data a user must not see into it; keep such data server-side and reference it by an identifier.' },
+      { q: 'My token was rejected — what should I check first?', a: 'The exp claim first (this tool shows it; remember it is in seconds, not milliseconds), then that nothing mangled the token in transit — trailing whitespace, line breaks, or a proxy URL-decoding the Base64URL characters - and _ will all invalidate the signature.' },
     ],
     example: { label: 'Fill in a sample token', text: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IllRSCIsImlhdCI6MTUxNjIzOTAyMn0.4Adcj3UFYzPUVaVF43FmMab6RlaQD8A9V8wFzzht-KQ' },
   },
@@ -528,12 +558,24 @@ export const GUIDES: Record<string, ToolGuide> = {
     intro: 'Encodes a string into percent-encoded form, or decodes it back — avoids the classic pitfalls when building query strings.',
     steps: ['Paste the raw or already-encoded string', 'Click encode or decode', 'Copy the result'],
     notes: ['Encoding a whole URL also escapes the :// — normally you should only encode the parameter values'],
+    about: 'Percent-encoding (URL encoding) replaces characters that would break a URL — spaces, &, ?, #, +, non-ASCII text — with a % followed by the byte\'s hex value, so a space becomes %20 and 王 becomes %E7%8E%8B. This tool uses the browser\'s encodeURIComponent, the same function your backend frameworks call, so its output matches what production code produces. The single most common mistake is scope: encoding a complete URL escapes the :// and ? that make it a URL. Encode values, then concatenate them into the URL — that is what "only encode the parameter values" in the notes means.',
+    faqs: [
+      { q: 'What is the difference between %20 and +?', a: 'Both historically mean "space" in a query string, but they belong to different encodings: %20 comes from percent-encoding, + is an application/x-www-form-urlencoded convention. encodeURIComponent produces %20. Some servers treat + literally, so when in doubt use %20 and test against the real endpoint.' },
+      { q: 'Why is my decoded string full of %EF%BF%BD or garbage characters?', a: 'That byte sequence is U+FFFD, the replacement character: the text was already corrupted before encoding, typically by being stored or transmitted in the wrong charset. Percent-encoding preserves bytes, not meaning — fixing it requires finding where the encoding was first mismatched.' },
+      { q: 'Should I encode the whole URL or just the parameter values?', a: 'Only the values. Encoding a full URL turns https:// into https%3A%2F%2F and destroys its structure. Build the URL first, then encode each value you insert into it — or encode the complete URL only when it is itself a value of another parameter (a redirect target, for example).' },
+    ],
     example: { label: 'Fill in sample text', text: 'https://example.com/search?q=hello world&page=1' },
   },
 
   '/url-parser': {
     intro: 'Breaks a URL down into its scheme, host, port, path and query parameters.',
     steps: ['Paste the full URL', 'Read the parsed fields', 'Query parameters are listed as a table for easy copying'],
+    about: 'This tool applies the browser\'s native URL parser to whatever you paste and lays out every component the spec recognizes: protocol, username, password, hostname, port, pathname, query parameters (each key and value on its own row) and fragment. Using the same parser as the browser matters because URL edge cases are genuinely subtle — default ports are hidden, percent-encoding is normalized, and internationalized domain names are converted to punycode. When a redirect, an allowlist check or a routing rule is not behaving as expected, parse the exact string here first; the discrepancy between what you think the URL is and what the parser sees is usually the bug.',
+    faqs: [
+      { q: 'Why is the port missing from my parsed URL?', a: 'Default ports are not written in URLs: https implies 443 and http implies 80, and the browser\'s parser reports an empty port for them. The URL is not "missing" anything — the scheme determines the port automatically.' },
+      { q: 'Can a URL with a username and password be safe?', a: 'Basic-auth credentials in a URL (https://user:pass@host) are visible in logs, browser history and Referer headers, and several browsers now strip or block them. The parser shows them so you can audit links — production systems should send credentials via headers instead.' },
+      { q: 'What does the #fragment part mean for the server?', a: 'Nothing: the fragment is never sent to the server, it stays in the browser (for anchor jumps or, in SPA frameworks, as client-side routing). Two URLs differing only in fragment are the same request to a server.' },
+    ],
     example: { label: 'Fill in a sample URL', text: 'https://user:pass@example.com:8443/path/to/page?a=1&b=2#section' },
   },
 
