@@ -4,6 +4,16 @@ import { useStyleStore } from '@/stores/style.store';
 const styleStore = useStyleStore();
 const { isMenuCollapsed, isSmallScreen } = toRefs(styleStore);
 const siderPosition = computed(() => (isSmallScreen.value ? 'absolute' : 'static'));
+
+// P0-1 修复（移动端体验）：小屏下侧栏打开时一旦发生路由跳转
+// （在抽屉里点了一个工具），立即自动收起，让用户回到内容。
+// 桌面端不受影响；点遮罩收起的逻辑由模板里的 .overlay 承担。
+const route = useRoute();
+watch(() => route.fullPath, () => {
+  if (isSmallScreen.value) {
+    isMenuCollapsed.value = true;
+  }
+});
 </script>
 
 <template>
