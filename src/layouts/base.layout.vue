@@ -75,6 +75,19 @@ const tools = computed<ToolCategory[]>(() => [
             <span class="dot">·</span>
             <RouterLink to="/contact">{{ $t('legal.contact') }}</RouterLink>
           </div>
+
+          <div class="footer-network">
+            {{ $t('network.label') }}
+            <a href="https://ip.digdevbox.com/">{{ $t('network.ip') }}</a> ·
+            <a href="https://fangdai.digdevbox.com/">{{ $t('network.fangdai') }}</a> ·
+            <a href="https://play.digdevbox.com/">{{ $t('network.play') }}</a> ·
+            <a href="https://draw.digdevbox.com/">{{ $t('network.draw') }}</a> ·
+            <a href="https://notes.digdevbox.com/">{{ $t('network.notes') }}</a>
+          </div>
+
+          <div class="footer-trust">
+            {{ $t('trust') }}
+          </div>
         </div>
       </div>
     </template>
@@ -173,6 +186,30 @@ const tools = computed<ToolCategory[]>(() => [
     .dot {
       margin: 0 6px;
     }
+  }
+
+  .footer-network {
+    margin-top: 8px;
+    font-size: 13px;
+
+    a {
+      color: inherit;
+      text-decoration: none;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+
+  .footer-trust {
+    margin-top: 8px;
+    font-size: 12px;
+    opacity: 0.85;
+    max-width: 560px;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 1.6;
   }
 }
 

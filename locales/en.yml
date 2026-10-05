@@ -69,6 +69,14 @@ legal:
   privacy: 'Privacy Policy'
   terms: 'Terms of Service'
   contact: 'Contact Us'
+network:
+  label: 'DigDevBox Tools:'
+  ip: 'IP Lookup'
+  fangdai: 'Mortgage Calculator'
+  play: 'StreamPlay'
+  draw: 'ImageForge'
+  notes: 'Forge Notes'
+trust: 'Tools process your data locally in your browser and do not upload your input to our servers. Some online features may access third-party services.'
 404:
   notFound: '404 Not Found'
   sorry: 'Sorry, this page does not seem to exist'

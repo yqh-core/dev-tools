@@ -71,6 +71,14 @@ legal:
   privacy: '隐私政策'
   terms: '服务条款'
   contact: '联系我们'
+network:
+  label: 'DigDevBox 工具箱：'
+  ip: 'IP 查询'
+  fangdai: '房贷计算器'
+  play: '在线播放'
+  draw: 'ImageForge'
+  notes: 'Notes'
+trust: '工具优先在你的浏览器本地处理数据，不会将输入内容上传到我们的服务器；部分联网功能可能需要访问第三方服务。'
 404:
   notFound: '404 页面不存在'
   sorry: '抱歉，该页面似乎不存在'

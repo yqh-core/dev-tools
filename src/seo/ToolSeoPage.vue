@@ -127,5 +127,23 @@ const box = 'max-width:800px;margin:0 auto;padding:32px 16px;box-sizing:border-b
         </li>
       </ul>
     </section>
+
+    <!--
+      站群互链 + 信任声明：与真实页 base.layout footer 读同一批 i18n 词条、
+      同一组外链 —— 骨架与真实页逐字一致，不构成 cloaking。
+    -->
+    <footer class="dd-site-footer" style="margin-top:28px;padding-top:14px;border-top:1px solid rgba(128,128,128,.25);font-size:13px;opacity:.8">
+      <p style="margin:0">
+        {{ t('network.label') }}
+        <a href="https://ip.digdevbox.com/" style="color:inherit">{{ t('network.ip') }}</a> ·
+        <a href="https://fangdai.digdevbox.com/" style="color:inherit">{{ t('network.fangdai') }}</a> ·
+        <a href="https://play.digdevbox.com/" style="color:inherit">{{ t('network.play') }}</a> ·
+        <a href="https://draw.digdevbox.com/" style="color:inherit">{{ t('network.draw') }}</a> ·
+        <a href="https://notes.digdevbox.com/" style="color:inherit">{{ t('network.notes') }}</a>
+      </p>
+      <p style="margin:6px 0 0;opacity:.85">
+        {{ t('trust') }}
+      </p>
+    </footer>
   </article>
 </template>
