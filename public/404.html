@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex" />
+  <title>404 - Page not found | DigDevBox</title>
+  <meta name="description" content="The page you are looking for does not exist. Browse all 100+ free online developer tools on DigDevBox." />
+  <link rel="icon" href="/favicon.ico" />
+  <style>
+    /* 自包含样式：404 页不应依赖可能缓存不一致的外部 CSS。
+       颜色取自 public/css/dd-tokens.css 的品牌令牌。 */
+    :root { --dd-primary: #0f766e; --dd-primary-hover: #0d9488; --dd-bg: #f8fafc; --dd-text: #0f172a; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center;
+      background: var(--dd-bg); color: var(--dd-text);
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      padding: 24px;
+    }
+    main { text-align: center; max-width: 560px; }
+    .code { font-size: 96px; font-weight: 800; letter-spacing: 4px; color: var(--dd-primary); margin: 0; line-height: 1.1; }
+    h1 { font-size: 24px; margin: 12px 0 8px; }
+    p { color: #475569; line-height: 1.6; margin: 0 0 28px; }
+    a.btn {
+      display: inline-block; padding: 12px 28px; border-radius: 8px; text-decoration: none;
+      background: var(--dd-primary); color: #fff; font-weight: 600;
+    }
+    a.btn:hover { background: var(--dd-primary-hover); }
+    a.sub { display: block; margin-top: 16px; color: var(--dd-primary); font-size: 14px; }
+  </style>
+</head>
+<body>
+  <main>
+    <p class="code">404</p>
+    <h1>Page not found</h1>
+    <p>The page you are looking for doesn't exist or has been moved.<br />
+      All 100+ free online developer tools live on the homepage.</p>
+    <a class="btn" href="/">Browse all tools</a>
+    <a class="sub" href="/about/">About DigDevBox</a>
+  </main>
+</body>
+</html>

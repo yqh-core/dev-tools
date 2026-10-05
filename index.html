@@ -57,7 +57,38 @@
 <!-- adsense:start -->
   <meta name="google-adsense-account" content="ca-pub-7944759654100814" />
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7944759654100814" crossorigin="anonymous"></script>
-  <!-- adsense:end -->
+      <!-- adsense:end -->
+
+      <!-- 站点级结构化数据：WebSite + Organization。放在 page-seo 区块**外**，
+           因此预渲染逐页替换时原样保留 —— 每个页面（含 101 个工具页）都带这份
+           站点级声明。页面级的 SoftwareApplication 由 scripts/build-seo.mjs
+           按工具注入，不在这里写死。 -->
+      <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "WebSite",
+            "@id": "https://digdevbox.com/#website",
+            "url": "https://digdevbox.com/",
+            "name": "DigDevBox",
+            "alternateName": "DigDevBox - Online Developer Tools",
+            "description": "A curated collection of practical online tools for developers and IT professionals, running locally in the browser.",
+            "inLanguage": "en"
+          },
+          {
+            "@type": "Organization",
+            "@id": "https://digdevbox.com/#organization",
+            "name": "DigDevBox",
+            "url": "https://digdevbox.com/",
+            "logo": {
+              "@type": "ImageObject",
+              "url": "https://digdevbox.com/og-image.jpg"
+            }
+          }
+        ]
+      }
+      </script>
 </head>
 
   <body>

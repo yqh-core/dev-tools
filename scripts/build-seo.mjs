@@ -143,6 +143,29 @@ function stripComments(html) {
   return html.replace(/<!--[\s\S]*?-->/g, '');
 }
 
+/**
+ * 工具页的 SoftwareApplication 结构化数据 —— 帮助搜索引擎理解
+ * 「这是一个免费、无需安装、跑在浏览器里的工具页」。
+ *
+ * 放在构建期注入（而不是 useHead 客户端声明）有两个原因：
+ *   1. 客户端接管后真实工具页组件不含 SEO head，注入的 script 会被移除；
+ *      构建期写进初始 HTML 对抓取器最稳（本脚本的自检也会盯着它）。
+ *   2. 数据直接取 TOOL_SEO_ENTRIES，与页面正文同一来源，不会出现两套事实。
+ */
+function buildSoftwareApplicationLd(entry, canonical) {
+  return JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'SoftwareApplication',
+    name: entry.name,
+    url: canonical,
+    description: entry.description,
+    applicationCategory: 'DeveloperApplication',
+    operatingSystem: 'Any',
+    browserRequirements: 'Requires JavaScript',
+    offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+  });
+}
+
 try {
   // —— 全部从 TypeScript 侧取，保证与页面/路由使用同一份数据 ——
   const { canonicalUrl, SITE_ORIGIN } = await vite.ssrLoadModule('/src/seo/site.ts');
@@ -238,6 +261,10 @@ try {
     const canonical = canonicalUrl(path);
     // 先剥注释再注入：dev 模式下 Vue 会把模板注释输出到渲染结果里（见 stripComments）
     const html = stripComments(rawHtml);
+    // 工具页在 page-seo 区块尾部追加 SoftwareApplication JSON-LD（见函数注释）
+    const pageTags = kind === 'tool'
+      ? `${headTags}\n      <script type="application/ld+json">${buildSoftwareApplicationLd(TOOL_SEO_PAGES.find(item => item.path === path), canonical)}</script>`
+      : headTags;
     const out = replaceOnce(
       replaceOnce(
         template,
@@ -245,7 +272,7 @@ try {
         `<div id="app">${html}${STATIC_FOOTER}</div>`,
       ),
       pageSeoBlock,
-      `<!-- page-seo:start -->\n${headTags}\n      <!-- page-seo:end -->`,
+      `<!-- page-seo:start -->\n${pageTags}\n      <!-- page-seo:end -->`,
     );
 
     const file = path === '/' ? join(root, 'dist/index.html') : join(root, 'dist', path, 'index.html');
@@ -281,6 +308,8 @@ try {
         problems.push(`正文里找不到工具名(${entry.name})`);
       }
       if (bodyText < 60) { problems.push(`正文过短 text=${bodyText}`); }
+      // SoftwareApplication JSON-LD 必须真的进了初始 HTML（防 replaceOnce 静默失效）
+      if (!out.includes('"@type":"SoftwareApplication"')) { problems.push('JSON-LD 缺失'); }
     }
 
     if (problems.length > 0) {

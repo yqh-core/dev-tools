@@ -22,5 +22,13 @@
 # 经典版静态站（自带目录索引，逐文件按原样服务）
 /legacy/*    /legacy/:splat   200
 
-# SPA fallback —— 必须保持为最后一条
-/*    /index.html   200
+# 2026-10-05：删除 `/* /index.html 200` SPA fallback —— 它是软 404 的根源：
+# 任何不存在的路径都会返回 200 + 首页 HTML，Google 会把垃圾 URL 当有效页面
+# 持续抓取，浪费抓取预算并拉低整站质量评分。
+#
+# 删除后的服务顺序（CF Pages）：静态资产优先（106 个预渲染页面 + legacy 静态站
+# 都是真实文件，不受影响）；未匹配路径自动落到 /404.html 并返回 **404 状态码**。
+# 客户端路由里已注册 `/:pathMatch(.*)* → NotFound`（src/router.ts），站内导航
+# 到未知路径仍由 Vue Router 接管，不依赖这条 fallback。
+#
+# ⚠ 404.html 属于产物，同样接受旧品牌名扫描；文案只写 DigDevBox。

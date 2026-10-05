@@ -17,6 +17,10 @@
  * 回落英文，不引入机器翻译产物。
  */
 import { SITE_HOST } from './site';
+import { TOOL_SEO_PAGES } from './tool-page';
+
+/** 工具数从注册表实时取值：新增/下架工具后 description 自动跟随，不再硬编码。 */
+const TOOL_COUNT = TOOL_SEO_PAGES.length;
 
 export interface PageMeta {
   description: string;
@@ -25,7 +29,7 @@ export interface PageMeta {
 const ZH: Record<string, PageMeta> = {
   '/': {
     description:
-      `DigDevBox（${SITE_HOST}）收录 101 个面向开发与运维的在线工具，`
+      `DigDevBox（${SITE_HOST}）收录 ${TOOL_COUNT} 个面向开发与运维的在线工具，`
       + '涵盖加密、转换、Web、开发、网络、文本、数学、度量、数据等分类；'
       + '绝大多数工具在浏览器本地运行，输入内容不会上传。',
   },
@@ -55,29 +59,29 @@ const ZH: Record<string, PageMeta> = {
 const EN: Record<string, PageMeta> = {
   '/': {
     description:
-      'DevBox collects 101 online tools for developers and IT engineers, covering crypto, '
+      `DigDevBox collects ${TOOL_COUNT} online tools for developers and IT engineers, covering crypto, `
       + 'converters, web, development, network, text, math, measurement and data. '
       + 'Most tools run entirely in your browser and never upload your input.',
   },
   '/about': {
     description:
-      'About DevBox: what the site is, which tools it collects, the tech stack and its licence. '
+      'About DigDevBox: what the site is, which tools it collects, the tech stack and its licence. '
       + 'Built with Vue 3 + Naive UI and Vite, deployed on Cloudflare Pages, '
       + 'based on the open-source it-tools project (GPL-3.0).',
   },
   '/privacy': {
     description:
-      'DevBox privacy policy: which services are actually deployed, how each kind of tool handles '
+      'DigDevBox privacy policy: which services are actually deployed, how each kind of tool handles '
       + 'your input, local storage and advertising (Google AdSense), and the choices available to you.',
   },
   '/terms': {
     description:
-      'DevBox terms of service: the rules for using the site, disclaimers about tool output, '
+      'DigDevBox terms of service: the rules for using the site, disclaimers about tool output, '
       + 'intellectual property, advertising, availability, and how these terms may change.',
   },
   '/contact': {
     description:
-      'Contact DevBox: tool bugs and feedback, new tool suggestions, privacy and data questions, '
+      'Contact DigDevBox: tool bugs and feedback, new tool suggestions, privacy and data questions, '
       + 'and advertising or business enquiries, plus what to include in your message.',
   },
 };
