@@ -22,7 +22,7 @@ export const GUIDES: Record<string, ToolGuide> = {
     intro: 'Turns plain text into "ASCII art" lettering, handy for code comments, terminal banners or the top of a README.',
     steps: ['Type the text to convert (keep it under ~10 characters, longer text wraps)', 'Pick a font style below', 'Copy the result with the copy button'],
     notes: ['Non-ASCII characters usually have no matching art font — stick to letters and digits'],
-    example: { label: 'Fill in sample text', text: 'DevBox' },
+    example: { label: 'Fill in sample text', text: 'DigDevBox' },
   },
 
   '/base-converter': {
@@ -249,13 +249,13 @@ export const GUIDES: Record<string, ToolGuide> = {
     intro: 'Compares two JSON documents and highlights the differences — makes config changes or API response drift obvious.',
     steps: ['Paste the original JSON on the left', 'Paste the new JSON on the right', 'Review the highlighted additions, removals and changes'],
     notes: ['Key order does not affect the comparison, but array order does'],
-    example: { label: 'Fill in sample JSON', text: '{ "name": "DevBox", "version": 1, "tags": ["a", "b"] }' },
+    example: { label: 'Fill in sample JSON', text: '{ "name": "DigDevBox", "version": 1, "tags": ["a", "b"] }' },
   },
 
   '/json-minify': {
     intro: 'Strips the whitespace and newlines out of JSON, compressing it onto one line to save transfer size.',
     steps: ['Paste the formatted JSON', 'Get the minified result', 'Copy and use it'],
-    example: { label: 'Fill in sample JSON', text: '{\n  "name": "DevBox",\n  "list": [1, 2, 3]\n}' },
+    example: { label: 'Fill in sample JSON', text: '{\n  "name": "DigDevBox",\n  "list": [1, 2, 3]\n}' },
   },
 
   '/json-prettify': {

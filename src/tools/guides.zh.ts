@@ -14,7 +14,7 @@ export const GUIDES: Record<string, ToolGuide> = {
     intro: '把普通文字变成用字符拼成的「艺术字」，适合放在代码注释、终端横幅或 README 顶部。',
     steps: ['在输入框里填要转换的文字（建议 10 个字符以内，太长会折行）', '在下方挑选喜欢的字体样式', '点复制按钮把结果带走'],
     notes: ['中文字符一般没有对应的艺术字体，建议用英文或数字'],
-    example: { label: '填入示例文字', text: 'DevBox' },
+    example: { label: '填入示例文字', text: 'DigDevBox' },
   },
 
   '/base-converter': {
@@ -241,13 +241,13 @@ export const GUIDES: Record<string, ToolGuide> = {
     intro: '对比两份 JSON 的差异，排查配置变更或接口返回变化时一目了然。',
     steps: ['左边粘原始 JSON', '右边粘新的 JSON', '看高亮出的增删改'],
     notes: ['键的顺序不影响比较，但数组顺序会影响'],
-    example: { label: '填入示例 JSON', text: '{ "name": "DevBox", "version": 1, "tags": ["a", "b"] }' },
+    example: { label: '填入示例 JSON', text: '{ "name": "DigDevBox", "version": 1, "tags": ["a", "b"] }' },
   },
 
   '/json-minify': {
     intro: '去掉 JSON 里的空格和换行，压缩成一行，省传输体积。',
     steps: ['粘贴格式化过的 JSON', '得到压缩结果', '复制使用'],
-    example: { label: '填入示例 JSON', text: '{\n  "name": "DevBox",\n  "list": [1, 2, 3]\n}' },
+    example: { label: '填入示例 JSON', text: '{\n  "name": "DigDevBox",\n  "list": [1, 2, 3]\n}' },
   },
 
   '/json-prettify': {

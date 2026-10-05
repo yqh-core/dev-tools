@@ -610,9 +610,9 @@ export const SMOKE_CASES = [
     category: 'Text',
     zhTitle: 'ASCII 艺术字生成器',
     tier: 'io',
-    strategy: 'structural：输入 DevBox 后「Ascii Art text:」区必须产出多行、足够长的字符画，且不得报错',
+    strategy: 'structural：输入 DigDevBox 后「Ascii Art text:」区必须产出多行、足够长的字符画，且不得报错',
     steps: [
-      { fill: { i: 0, text: 'DevBox' } },
+      { fill: { i: 0, text: 'DigDevBox' } },
       { waitText: { text: 'Ascii Art text:', ms: 5000 } },
       { wait: 1500 },
     ],
@@ -962,13 +962,13 @@ export const SMOKE_CASES = [
           var S = window.__smoke;
           var el = document.querySelector('.tool-content input[placeholder*="title of your website"]');
           if (!el) return 'Title 输入框未找到';
-          S.setVal(el, 'DevBox 冒烟标题');
+          S.setVal(el, 'DigDevBox 冒烟标题');
           return null;
         })()`,
       },
       { wait: 1000 },
     ],
-    expect: { text: ['og:title', 'DevBox 冒烟标题'] },
+    expect: { text: ['og:title', 'DigDevBox 冒烟标题'] },
   },
 
   {
@@ -1681,7 +1681,7 @@ export const SMOKE_CASES = [
           var S = window.__smoke;
           var ssid = document.querySelector('.tool-content input[placeholder*="SSID"]');
           if (!ssid) return 'SSID 输入框未找到';
-          S.setVal(ssid, 'DevBox-Smoke');
+          S.setVal(ssid, 'DigDevBox-Smoke');
           var pwd = document.querySelector('.tool-content input[type="password"]');
           if (!pwd) return '密码输入框未找到';
           S.setVal(pwd, 'smoke-pass-123');
