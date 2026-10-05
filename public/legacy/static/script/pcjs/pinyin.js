@@ -1,7 +1,7 @@
 /*!
  * 经典版汉字拼音转换实现（重建 transs() + #trans 绑定）
  *
- * 本文件由 D:/work/_ops/build-legacy-glue.py 生成，请勿手改。
+ * 本文件由 build-legacy-glue.py（仓库外构建脚本） 生成，请勿手改。
  * 经典版(legacy)的静态脚本在从老 PHP 站迁移时整体丢失（源站从未入库），
  * 此处按页面的调用契约重建：公开库按原样取回，自研胶水按契约重写。
  *
@@ -10,7 +10,7 @@
  *   - 且「转换为拼音」按钮 #trans 在原页面没有 onclick（老脚本动态绑定），这里补上。
  *   - 字表：mozillazg/pinyin-data 0.15.0 pinyin.txt（MIT License）
  *   -   CJK 基本区 U+4E00–U+9FA5 共 20892 字；多音字取数据中的第一个读音，拼音带声调。
- *   - 数据由 D:/work/_ops/gen-legacy-dicts.py 生成（_vendor/pinyin-data.txt）
+ *   - 数据由 gen-legacy-dicts.py（仓库外构建脚本） 生成（_vendor/pinyin-data.txt）
  */
 
 /* ==========================================================================

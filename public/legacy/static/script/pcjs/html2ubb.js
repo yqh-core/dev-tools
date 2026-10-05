@@ -1,7 +1,7 @@
 /*!
  * 经典版 UBB 与 HTML 互转实现（重建 htmltoubb() / ubbtohtml()）
  *
- * 本文件由 D:/work/_ops/build-legacy-glue.py 生成，请勿手改。
+ * 本文件由 build-legacy-glue.py（仓库外构建脚本） 生成，请勿手改。
  * 经典版(legacy)的静态脚本在从老 PHP 站迁移时整体丢失（源站从未入库），
  * 此处按页面的调用契约重建：公开库按原样取回，自研胶水按契约重写。
  *

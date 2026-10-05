@@ -1,7 +1,7 @@
 /*!
  * 经典版简繁 / 火星文转换实现（重建 convert()）
  *
- * 本文件由 D:/work/_ops/build-legacy-glue.py 生成，请勿手改。
+ * 本文件由 build-legacy-glue.py（仓库外构建脚本） 生成，请勿手改。
  * 经典版(legacy)的静态脚本在从老 PHP 站迁移时整体丢失（源站从未入库），
  * 此处按页面的调用契约重建：公开库按原样取回，自研胶水按契约重写。
  *
@@ -10,7 +10,7 @@
  *   - 简繁单字表：opencc-js@1.0.5 STCharacters.js / TSCharacters.js（OpenCC, Apache-2.0）
  *   -   简→繁 2596 条 / 繁→简 2843 条（过滤到 CJK 基本区；一字多繁取首候选）
  *   - 火星文字表：自建常见字表 137 条（不求穷尽）
- *   - 数据由 D:/work/_ops/gen-legacy-dicts.py 生成（_vendor/jianfan-data.txt）
+ *   - 数据由 gen-legacy-dicts.py（仓库外构建脚本） 生成（_vendor/jianfan-data.txt）
  */
 
 /* ==========================================================================
@@ -22,7 +22,7 @@
  *   输入 #content → 结果写入 #result
  *
  * 字表：简繁单字表来自 opencc-js（OpenCC 项目）；火星文为自建常见字表。
- *       两者都由 D:/work/_ops/gen-legacy-dicts.py 生成，见文件末尾的 embed 注释。
+ *       两者都由 gen-legacy-dicts.py（仓库外构建脚本） 生成，见文件末尾的 embed 注释。
  * ========================================================================== */
 (function (w) {
     'use strict';

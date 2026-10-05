@@ -24,7 +24,7 @@
 //     https://developers.cloudflare.com/workers/runtime-apis/tcp-sockets/
 // 因此「校验过的 IP」与「真正建连的 IP」之间理论上有窗口（DNS rebinding / TOCTOU）。
 //
-// 实测缓解（2026-09-19，脚本 D:/work/_ops/probe-rebinding.py，12 次采样）：
+// 实测缓解（2026-09-19，probe-rebinding.py 脚本，12 次采样）：
 //   用 rbndr.us 构造「同一域名交替返回 127.0.0.1 / 1.1.1.1」，
 //   解析到私网的请求被 Cloudflare 边缘 403 拦下、解析到公网的正常建连（409）——
 //   即平台在**连接目标层**拦私网，与是否字面量无关。

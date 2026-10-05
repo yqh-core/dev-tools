@@ -17,7 +17,7 @@
  * 运行：
  *   node scripts/smoke-tools.mjs --serve-dist dist --base http://127.0.0.1:4192 \
  *     --canonical-origin https://digdevbox.com --cases=./smoke-cases-a3.mjs \
- *     --out D:/work/_ops/step5-a1/a3
+ *     --out <本地输出目录>/step5-a1/a3
  */
 
 const WHOIS = {
