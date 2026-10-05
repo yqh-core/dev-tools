@@ -166,6 +166,26 @@ function buildSoftwareApplicationLd(entry, canonical) {
   });
 }
 
+/**
+ * 工具页的 FAQPage 结构化数据。
+ *
+ * 只给配置了 guide.faqs 的工具页注入，且问题与答案取自 guides 数据本身 ——
+ * 与页面正文（真实工具页 guide 面板 + 预渲染骨架）逐字同源。Google 要求
+ * FAQ 内容必须对用户可见（折叠面板即满足），这里的问题在页面上确实由用户
+ * 展开后可读，因此不算「结构化数据与页面内容不符」。
+ */
+function buildFaqPageLd(entry) {
+  return JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: entry.guide.faqs.map(({ q, a }) => ({
+      '@type': 'Question',
+      name: q,
+      acceptedAnswer: { '@type': 'Answer', text: a },
+    })),
+  });
+}
+
 try {
   // —— 全部从 TypeScript 侧取，保证与页面/路由使用同一份数据 ——
   const { canonicalUrl, SITE_ORIGIN } = await vite.ssrLoadModule('/src/seo/site.ts');
@@ -182,6 +202,7 @@ try {
   if (audit.withoutGuide.length > 0) {
     console.log(`[tools] 待补说明（正文仍有 H1/简介/描述，不虚构、不凑字数）: ${audit.withoutGuide.join(' ')}`);
   }
+  console.log(`[tools] 知识内容覆盖：about ${audit.withAbout}/${audit.total}，faqs ${audit.withFaqs}/${audit.total}`);
 
   const staticPaths = new Set(STATIC_ROUTES.map(({ path }) => path));
   const collide = TOOL_SEO_PAGES.filter(({ path }) => staticPaths.has(path));
@@ -262,9 +283,14 @@ try {
     // 先剥注释再注入：dev 模式下 Vue 会把模板注释输出到渲染结果里（见 stripComments）
     const html = stripComments(rawHtml);
     // 工具页在 page-seo 区块尾部追加 SoftwareApplication JSON-LD（见函数注释）
-    const pageTags = kind === 'tool'
-      ? `${headTags}\n      <script type="application/ld+json">${buildSoftwareApplicationLd(TOOL_SEO_PAGES.find(item => item.path === path), canonical)}</script>`
+    // 注意 faqs 挂在 entry.guide.faqs（ToolGuide 的字段），不是 entry.faqs
+    const entry = kind === 'tool' ? TOOL_SEO_PAGES.find(item => item.path === path) : undefined;
+    let pageTags = kind === 'tool'
+      ? `${headTags}\n      <script type="application/ld+json">${buildSoftwareApplicationLd(entry, canonical)}</script>`
       : headTags;
+    if (entry?.guide?.faqs?.length) {
+      pageTags += `\n      <script type="application/ld+json">${buildFaqPageLd(entry)}</script>`;
+    }
     const out = replaceOnce(
       replaceOnce(
         template,
@@ -310,6 +336,22 @@ try {
       if (bodyText < 60) { problems.push(`正文过短 text=${bodyText}`); }
       // SoftwareApplication JSON-LD 必须真的进了初始 HTML（防 replaceOnce 静默失效）
       if (!out.includes('"@type":"SoftwareApplication"')) { problems.push('JSON-LD 缺失'); }
+      // 配了 FAQ 的页面必须带 FAQPage JSON-LD；反之没配的页面不允许出现。
+      // 判据字段同样是 entry.guide.faqs —— 这两处曾一致地写错成 entry.faqs，
+      // 结果「缺注入」和「防缺注入的检查」一起静默跳过；现在构建日志会打印
+      // withFaqs 覆盖数，0 而数据源里有 FAQ 时肉眼立刻能看出来。
+      if (entry.guide?.faqs?.length && !out.includes('"@type":"FAQPage"')) { problems.push('FAQPage JSON-LD 缺失'); }
+      if (!entry.guide?.faqs?.length && out.includes('"@type":"FAQPage"')) { problems.push('FAQPage JSON-LD 超发'); }
+      // FAQ 问答与页面正文必须同源：结构化数据里的问题要能在骨架正文中找到
+      if (entry.guide?.faqs?.length) {
+        const squashedBody = squash(bodyRaw);
+        for (const { q } of entry.guide.faqs) {
+          if (!squashedBody.includes(squash(q))) {
+            problems.push(`FAQ 问题不在正文中: ${q}`);
+            break;
+          }
+        }
+      }
     }
 
     if (problems.length > 0) {

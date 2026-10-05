@@ -151,11 +151,30 @@ export function auditToolSeoData() {
   // 反向：工具不含 guide 是允许的（新工具还没写说明），但要报数、不掩盖。
   const withoutGuide = TOOL_SEO_PAGES.filter(entry => !entry.guide).map(entry => entry.path);
 
+  // 知识型内容（about / faqs）的语言成对性：骨架预渲染走 en，真实页面跟随用户语言。
+  // 只补一种语言时，另一侧会静默少一整段内容（界面无报错），所以构建期直接拦下。
+  const contentGaps: string[] = [];
+  for (const path of Object.keys(GUIDES)) {
+    const en = GUIDES[path];
+    const zh = GUIDES_ZH[path];
+    if (Boolean(en.about) !== Boolean(zh.about)) {
+      contentGaps.push(`${path}: about 只有一侧有`);
+    }
+    if ((en.faqs?.length ?? 0) !== (zh.faqs?.length ?? 0)) {
+      contentGaps.push(`${path}: faqs 条数不一致（en ${en.faqs?.length ?? 0} / zh ${zh.faqs?.length ?? 0}）`);
+    }
+  }
+  if (contentGaps.length > 0) {
+    throw new Error(`[seo/tool-page] about/faqs 语言数据不成对: ${contentGaps.join('; ')}`);
+  }
+
   return {
     total: TOOL_SEO_PAGES.length,
     withGuide: TOOL_SEO_PAGES.length - withoutGuide.length,
     withoutGuide,
     guideKeys: enKeys.size,
     guideLocales: ['en', 'zh'] as const,
+    withAbout: TOOL_SEO_PAGES.filter(entry => entry.guide?.about).length,
+    withFaqs: TOOL_SEO_PAGES.filter(entry => entry.guide?.faqs?.length).length,
   };
 }

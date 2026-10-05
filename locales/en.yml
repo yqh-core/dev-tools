@@ -521,6 +521,8 @@ tool:
   guideExampleApplied: "✓ Filled in"
 seo:
   guideSummary: "Steps and notes"
+  aboutTitle: "What is {name}?"
+  faqTitle: "Frequently asked questions"
   categoryLine: "Category: {category}"
   guideMissing: "No usage guide has been written for this tool yet."
   leadFallback: "{name} is an online tool in the {category} category of DigDevBox."

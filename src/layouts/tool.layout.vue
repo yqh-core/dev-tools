@@ -254,6 +254,16 @@ function applyExample() {
               {{ guide.intro }}
             </p>
 
+            <!--
+              知识型背景（What is）与 FAQ：与预渲染骨架（ToolSeoPage.vue）读同一份
+              guides 数据、同一批 i18n 词条，两边内容逐字一致 —— 骨架红线要求
+              「给抓取器看的文字必须真实存在于用户可见的页面上」，这里是可见侧。
+            -->
+            <section v-if="guide.about" class="guide-about">
+              <h4 class="guide-section-head">{{ $t('seo.aboutTitle', { name: toolTitle }) }}</h4>
+              <p>{{ guide.about }}</p>
+            </section>
+
             <ol class="guide-steps">
               <li v-for="(step, index) in guide.steps" :key="index">
                 {{ step }}
@@ -272,6 +282,16 @@ function applyExample() {
                 {{ note }}
               </li>
             </ul>
+
+            <section v-if="guide.faqs?.length" class="guide-faqs">
+              <h4 class="guide-section-head">{{ $t('seo.faqTitle') }}</h4>
+              <dl class="guide-faq-list">
+                <template v-for="(faq, index) in guide.faqs" :key="index">
+                  <dt>{{ faq.q }}</dt>
+                  <dd>{{ faq.a }}</dd>
+                </template>
+              </dl>
+            </section>
           </div>
         </div>
       </div>
@@ -430,6 +450,42 @@ function applyExample() {
   .guide-intro {
     margin: 0 0 10px;
     opacity: 0.85;
+  }
+
+  /* 知识型内容区（about / FAQ）的小节标题，与预渲染骨架同一信息结构 */
+  .guide-section-head {
+    margin: 14px 0 6px;
+
+    font-size: 14px;
+    font-weight: 500;
+    opacity: 0.85;
+  }
+
+  .guide-about {
+    p {
+      margin: 0;
+      opacity: 0.8;
+    }
+  }
+
+  .guide-faqs {
+    .guide-faq-list {
+      margin: 0;
+
+      dt {
+        margin-top: 8px;
+
+        font-weight: 500;
+        opacity: 0.85;
+      }
+
+      dd {
+        margin: 2px 0 0;
+        padding-left: 0;
+
+        opacity: 0.75;
+      }
+    }
   }
 
   .guide-steps {

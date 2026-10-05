@@ -42,6 +42,12 @@ export const GUIDES: Record<string, ToolGuide> = {
     intro: 'Encodes text to Base64, or decodes Base64 back to the original text. Common for query parameters, Authorization headers and temporarily hiding plain text.',
     steps: ['Enter the text on the left', 'The encoded result appears on the right immediately', 'To decode, flip the direction and paste the Base64 into the left side'],
     notes: ['Base64 is encoding, not encryption — anyone can reverse it, so never use it to store passwords'],
+    about: 'Base64 is an encoding that represents data using 64 printable ASCII characters, so payloads can travel through text-only channels: email (MIME), data URLs, HTTP Basic credentials and JSON fields. It maps every 3 bytes to 4 characters and pads the tail with = when the input is not a multiple of 3 bytes.',
+    faqs: [
+      { q: 'Is Base64 encryption?', a: 'No. It is a reversible encoding with no secret key — anyone can decode it. Never use it to protect passwords or tokens; use real encryption or hashing for that.' },
+      { q: 'Why does the result end with one or two = signs?', a: 'Base64 processes input in 3-byte groups. When the last group is incomplete, = characters pad the output to a multiple of 4. The padding carries no data and can stay as it is.' },
+      { q: 'Why does my Base64 break inside a URL?', a: 'The standard alphabet uses + and /, which have special meanings in URLs. Switch on the URL-safe option when decoding such values, and percent-encode the string before putting it into a query parameter.' },
+    ],
     example: { label: 'Fill in sample text', text: 'Hello DigDevBox' },
   },
 
@@ -91,6 +97,12 @@ export const GUIDES: Record<string, ToolGuide> = {
     intro: 'Works out chmod permission values and commands by ticking boxes, so you do not have to remember what rwx maps to.',
     steps: ['Tick read/write/execute for owner, group and others', 'The numeric form (e.g. 755) and symbolic form update above', 'Copy the generated chmod command'],
     notes: ['Be careful granting execute permission, and especially careful with 777'],
+    about: 'chmod controls who can read, write and execute a file on Linux and macOS. Permissions are grouped for the owner, the group and everyone else, and each group is a sum of read (4), write (2) and execute (1) — which is why 755 reads as rwxr-xr-x.',
+    faqs: [
+      { q: 'What does 755 actually mean?', a: 'The owner gets read, write and execute (7 = 4+2+1); the group and others get read and execute (5 = 4+1). It is the typical permission for directories and for scripts that others may run but not modify.' },
+      { q: 'Is 777 ever a good idea?', a: 'Almost never. It lets every user on the machine write to and execute the file — the quickest way to get a web script modified or a directory trashed. Use the narrowest permission that works.' },
+      { q: 'Numeric or symbolic form — which should I use?', a: 'They describe the same thing. Numeric (644) is compact and convenient in scripts; symbolic (u=rw,go=r) changes only the bits you mention, which is safer for small tweaks on shared files.' },
+    ],
   },
 
   '/chronometer': {
@@ -110,6 +122,12 @@ export const GUIDES: Record<string, ToolGuide> = {
     notes: [
       'The five fields are minute, hour, day-of-month, month, day-of-week — mixing up the order is the most common mistake',
       'Mind the server time zone: cron runs on the machine local time',
+    ],
+    about: 'cron is the time-based scheduler on Unix-like systems, and its expression packs the whole schedule into five fields: minute, hour, day-of-month, month and day-of-week. A single wrong character silently changes when your job runs, so validating the expression and previewing the next run times before committing it to a server saves real debugging time.',
+    faqs: [
+      { q: 'Why does my job run at the wrong hour?', a: 'Usually a time zone mismatch: cron runs on the server\'s local time, which may differ from yours or be set to UTC. Check the machine with the date command and convert your schedule accordingly.' },
+      { q: 'What is the difference between * and */5?', a: '* means every value of the field; */5 means every 5th value. So * * * * * runs every minute, while */5 * * * * runs every 5 minutes starting from minute 0.' },
+      { q: 'Why do day-of-month and day-of-week not simply add up?', a: 'When both fields are restricted (not *), cron runs the job if EITHER of them matches, not both. That OR semantics surprises most people — restrict only one of the two unless you specifically want it.' },
     ],
     example: { label: 'Fill in a sample expression', text: '*/5 * * * *' },
   },
@@ -244,7 +262,13 @@ export const GUIDES: Record<string, ToolGuide> = {
     intro: 'Formats cramped JSON into a readable indented structure — essential when reading logs and API responses.',
     steps: ['Paste the minified JSON', 'Get the formatted result', 'Adjust the indentation if you need to'],
     notes: ['JSON only allows double quotes; single quotes fail to parse'],
-    example: { label: 'Fill in sample JSON', text: '{"name":"DevBox","tools":["toolbox","devtools"],"count":2}' },
+    about: 'JSON (JavaScript Object Notation) is the de-facto data format for APIs and configuration files. Tools and logs usually emit it minified — one long line with no whitespace — which is compact to transfer but unreadable to humans. This tool re-indents that single line into a structure you can actually read, and fails loudly on invalid JSON, which makes syntax errors visible at a glance.',
+    faqs: [
+      { q: 'Does formatting change my data?', a: 'No. Whitespace between tokens is not part of the JSON data model, so the parsed value is identical before and after — only the presentation changes.' },
+      { q: 'Why does my JSON fail to parse here?', a: 'The three most common causes: single quotes instead of double quotes, a trailing comma after the last element, and unescaped newlines inside strings. JSON is stricter than JavaScript object literals.' },
+      { q: 'Is this the same as a JSON validator?', a: 'Formatting has to parse the input first, so invalid JSON shows up as an error either way. A dedicated validator also gives you the precise error position, which matters more for large documents.' },
+    ],
+    example: { label: 'Fill in sample JSON', text: '{"name":"DigDevBox","tools":["toolbox","devtools"],"count":2}' },
   },
 
   '/json-to-csv': {
@@ -524,6 +548,12 @@ export const GUIDES: Record<string, ToolGuide> = {
     intro: 'Generates UUIDs in bulk (v4 by default) for test data or unique identifiers.',
     steps: ['Choose how many you need', 'Click generate', 'Copy and use them'],
     notes: ['UUID v4 is random and not time-sortable; use ULID if you need an ordered identifier'],
+    about: 'A UUID (Universally Unique Identifier) is a 128-bit label, and version 4 — the default here — is generated from random data. With about 122 random bits, the chance of two v4 UUIDs colliding is negligible, so machines can generate identifiers independently without any central coordinator. This tool can also produce v1, v3 and v5 when you need time- or name-based identifiers.',
+    faqs: [
+      { q: 'Can two generated UUIDs ever collide?', a: 'Theoretically yes, practically no — you would need to generate billions per second for a long time to reach even a coin-flip chance. Databases keep unique constraints as a backstop, not because you will hit it.' },
+      { q: 'UUID v4 or ULID — which one do I need?', a: 'v4 is completely random, so sorting by UUID says nothing about creation order. If identifiers land in database indexes where insertion order matters, a time-ordered format such as ULID or UUID v7 performs better.' },
+      { q: 'Are the generated UUIDs sent anywhere?', a: 'No. They are generated locally in your browser and never leave the page.' },
+    ],
   },
 
   '/wifi-qrcode-generator': {

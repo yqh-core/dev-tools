@@ -520,6 +520,8 @@ tool:
   guideExampleApplied: "✓ 已填入"
 seo:
   guideSummary: "操作步骤与注意事项"
+  aboutTitle: "「{name}」是什么？"
+  faqTitle: "常见问题"
   categoryLine: "所属分类：{category}"
   guideMissing: "（该工具的使用说明尚未编写）"
   leadFallback: "「{name}」是 DigDevBox「{category}」分类下的在线工具。"

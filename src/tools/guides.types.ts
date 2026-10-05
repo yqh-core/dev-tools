@@ -22,4 +22,18 @@ export interface ToolGuide {
     /** 要填入的内容 */
     text: string
   }
+  /**
+   * 「{name} 是什么」—— 知识型背景说明（概念、原理、适用场景）。
+   *
+   * 与 intro 的分工：intro 说「这个工具能帮你干什么」，about 说「这个东西本身是什么」。
+   * 只写给有真实知识增量可讲的工具，宁缺勿滥（可选字段就是为此）。
+   * en / zh 必须成对出现（auditToolSeoData 强制校验）。
+   */
+  about?: string
+  /**
+   * 常见问题。只收真实高频的问题（工具本身容易用错、容易误解的点），
+   * 不为凑 FAQ 数量编造问题——那是低价值内容政策的典型形态。
+   * en / zh 必须成对出现（auditToolSeoData 强制校验）。
+   */
+  faqs?: { q: string, a: string }[]
 }
