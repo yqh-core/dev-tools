@@ -316,6 +316,12 @@ export const GUIDES: Record<string, ToolGuide> = {
     intro: '把 JSON 转换成 TOML 格式，写配置文件时常用。',
     steps: ['粘贴 JSON', '得到 TOML 结果', '复制使用'],
     example: { label: '填入示例 JSON', text: '{ "title": "demo", "server": { "port": 8080 } }' },
+    about: 'TOML（Tom\'s Obvious Minimal Language）的设计目标就是一种可读、且能干净映射到哈希表的配置格式——而关键在于，它也能干净地映射到 JSON。本工具遍历一个 JSON 值并输出等价的 TOML：对象变成表，嵌套对象变成点号键或子表，数组变成 TOML 数组。反向的 TOML → JSON 由另一个工具负责，于是不用手动改文件就能在两种格式间往返。很多项目配置最初是 JSON，但工具链（Cargo、pyproject.toml、Hugo）要求 TOML，这就是大多数团队需要的那座桥。',
+    faqs: [
+      { q: 'JSON 和 TOML 表达的数据一样吗？', a: '大体一致。TOML 从设计上就保证一份 TOML 文档能映射到 JSON 对象，而 JSON 又是 TOML 能表达范围的一个子集。常见类型（字符串、数字、布尔、数组、嵌套表）的转换是无损的。' },
+      { q: 'JSON 里的嵌套对象在 TOML 里怎么写？', a: '{ "server": { "port": 8080 } } 可以写成 [server] 换行 port = 8080，也可以写成 server.port = 8080——两种都合法；本工具对浅层嵌套用点号键，更深的嵌套用完整子表。' },
+      { q: '转换会丢东西吗？', a: '数据模型层不会丢，但 TOML 的键规则比 JSON 更严：键里含某些字符必须加引号，跨表的重复键是错误。JSON 允许任意字符串键，所以如果你的键里有点号或方括号，TOML 输出里会被加上引号。' },
+    ],
   },
 
   '/json-to-xml': {
@@ -323,12 +329,24 @@ export const GUIDES: Record<string, ToolGuide> = {
     steps: ['粘贴 JSON', '得到 XML 结果', '复制使用'],
     notes: ['XML 没有数组概念，列表会转成重复的标签'],
     example: { label: '填入示例 JSON', text: '{ "user": { "id": 1, "name": "Alice" } }' },
+    about: 'XML 在很多企业、支付和 SOAP 风格系统里仍是交换格式，尽管 JSON 已经赢了。本工具把 JSON 值映射到 XML 文档：对象变成带子元素的根元素，数组变成同名重复元素，标量值变成文本内容。因为 XML 和 JSON 对数据的建模方式不同——XML 没有原生的数组或布尔类型——转换会做一组合理选择（例如布尔和数字变成字符串文本），等你收到 XML 时再用 XML → JSON 工具反向还原。',
+    faqs: [
+      { q: '数组在 XML 里怎么表示？', a: '数组里的值会变成多个同名兄弟元素。键 "item" 下的 [1, 2, 3] 会变成 <item>1</item><item>2</item><item>3</item>。XML 没有数组类型，所以重复标签约定是让列表能往返的标准写法。' },
+      { q: '根元素怎么处理？', a: 'XML 文档必须恰好有一个根元素，而顶层 JSON 可能是对象、数组或标量。本工具用根元素（通常是 <root>）包住输出，保证结果一定是良构 XML；按你对接方要求的 schema 改个名字即可。' },
+      { q: '转换可逆吗？', a: '有前提。再转回 XML → JSON 时，会丢失 XML 从未有过的区分——没有原生布尔或数字，一切都是文本，所以 1 可能以字符串 "1" 回来。如果需要精确类型往返，保留原始 JSON。' },
+    ],
   },
 
   '/json-to-yaml-converter': {
     intro: '把 JSON 转成 YAML，写 K8s 清单或各类配置文件时很常用。',
     steps: ['粘贴 JSON', '得到 YAML 结果', '复制使用'],
     example: { label: '填入示例 JSON', text: '{ "name": "devbox", "services": ["web", "api"] }' },
+    about: 'YAML 是 JSON 的超集——任何合法 JSON 也是合法 YAML——这正是它在配置里如此常见的原因：它保留 JSON 能表达的一切，同时提供清爽的、基于缩进的语法和注释。本工具把一个 JSON 值重新输出为地道的 YAML：嵌套对象变成缩进块，数组变成短横线列表，只在 YAML 会误读值的地方加引号（比如裸的 yes 或 1.0）。配套的 YAML → JSON 工具在你需要把 YAML 配置喂给 JSON 接口时做反向转换。',
+    faqs: [
+      { q: '结果是合法 YAML 吗？', a: '是的——YAML 是 JSON 的超集，所以生成的文本两种格式都能解析。缩进用空格（绝不用 Tab，YAML 不接受），对看起来像其他 YAML 类型的值加引号，让它们保持为字符串。' },
+      { q: '为什么我的数字被加上了引号？', a: 'YAML 会推断类型：像 1.0 或 2024 这样的值可能被读回成数字，yes/no/on/off 会被读成布尔。为了让数据与源 JSON 完全一致，本工具给会被重新解释的值加引号，于是 "1.0" 仍是字符串 "1.0"。' },
+      { q: '能转回 JSON 吗？', a: '可以，用 YAML → JSON 工具。因为 YAML 是 JSON 超集，数据模型的往返是无损的；你只会丢掉 YAML 的注释，JSON 没有存放注释的位置。' },
+    ],
   },
 
   '/jwt-parser': {
@@ -563,6 +581,12 @@ export const GUIDES: Record<string, ToolGuide> = {
     intro: '把 TOML 配置转成 JSON，便于在代码或接口里使用。',
     steps: ['粘贴 TOML', '得到 JSON 结果', '复制使用'],
     example: { label: '填入示例 TOML', text: 'title = "demo"\n\n[server]\nport = 8080' },
+    about: 'TOML 因为人类可编辑、又能映射到干净的数据结构，是应用配置的心头好，但多数代码和接口说的是 JSON。本工具把 TOML 解析成数据模型再序列化成 JSON：表变成对象，点号键变成嵌套对象，表数组变成 JSON 数组。配套的 JSON → TOML 工具负责另一个方向，于是配置能不靠手动编辑就从 TOML 文件流进 JSON 管线。',
+    faqs: [
+      { q: 'TOML 的表和 JSON 的对象是一回事吗？', a: '基本是。[server] 表里写 port = 8080，会变成 { "server": { "port": 8080 } }；点号键 server.port = 8080 产生同样的结构。表数组（[[items]]）变成 JSON 的对象数组。' },
+      { q: 'JSON 没有的 TOML 类型怎么办？', a: 'TOML 有日期时间（本地、带时区、带偏移），JSON 原生表达不了。它们会被序列化成 ISO-8601 字符串，值得以保留；如果另一端需要真正的日期，再显式解析这个字符串。' },
+      { q: '转换无损吗？', a: '数据模型层是无损的——不会丢任何东西。唯一丢失的是 TOML 特有的点缀，比如注释和某些序列化器下的键顺序；值本身原样保留。' },
+    ],
   },
 
   '/toml-to-yaml': {
@@ -637,6 +661,12 @@ export const GUIDES: Record<string, ToolGuide> = {
     steps: ['粘贴 XML', '得到 JSON 结果', '复制使用'],
     notes: ['XML 的属性和文本节点在 JSON 里会用不同字段表示，转换后注意核对'],
     example: { label: '填入示例 XML', text: '<user id="1"><name>Alice</name></user>' },
+    about: 'JSON 是现代接口的通用语，但不少系统仍在吐 XML。本工具解析 XML 文档并投影成 JSON：元素变成对象，重复元素变成数组，属性与文本分别用不同键表示，二者都不丢失。这个映射不是唯一的——XML 在某些地方（属性、混合内容）比 JSON 承载更多结构——所以输出采用一致的约定（通常属性放在 "@" 键下、文本放在 "#text" 下），你在下游解析时可以依赖它。',
+    faqs: [
+      { q: 'XML 的属性在 JSON 里去哪了？', a: '本工具把属性放在专用键（通常是 @）下，元素文本放在另一个键（通常是 #text）下，于是 <user id="1">Alice</user> 变成 { "user": { "@id": "1", "#text": "Alice" } }。具体键名遵循转换器的约定——在代码里信任这个结构前，先看一个样本。' },
+      { q: '为什么重复的标签变成了数组？', a: 'JSON 有真正的数组，XML 没有。当同一个子元素出现多次，转换器把它们归进一个数组，顺序和数量都保留。单个出现就保持为单个对象，除非 schema 把它标成列表。' },
+      { q: '怎么转回 XML？', a: '用 JSON → XML 工具。注意往返不是完美对称：变成 @ 键的属性必须被重新特殊处理，而且 XML 丢掉的那些类型（一切都是文本）不会凭空回来。' },
+    ],
   },
 
   '/yaml-prettify': {
@@ -650,6 +680,12 @@ export const GUIDES: Record<string, ToolGuide> = {
     intro: '把 YAML 转成 JSON，处理配置文件或接口数据时常用。',
     steps: ['粘贴 YAML', '得到 JSON 结果', '复制使用'],
     example: { label: '填入示例 YAML', text: 'name: devbox\nservices:\n  - web\n  - api' },
+    about: 'YAML 在配置和 CI 里无处不在，但代码和接口几乎都消费 JSON。本工具把 YAML 解析成数据模型再写回 JSON。因为 YAML 是 JSON 的严格超集，转换是忠实的：缩进定义嵌套，短横线列表变成数组，YAML 的类型推断（布尔、数字、null）保留为对应的 JSON 值。当你需要从 JSON 得到 YAML 文件时，JSON → YAML 工具做反向转换。',
+    faqs: [
+      { q: '转换会保留数据类型吗？', a: '会。YAML 推断布尔、整数、浮点和 null，它们会变成正确的 JSON true/false/数字/null。像 "123" 这样的字符串因被引号括起或语义明确而保持字符串，于是 JSON 类型与 YAML 意图一致。' },
+      { q: 'YAML 的注释会怎样？', a: '被丢弃——JSON 没有表示注释的方式，无处安放。如果注释承载含义（比如一条弃用说明），在生成 JSON 的同时保留 YAML 源文件。' },
+      { q: '为什么我的值变成了数字或布尔？', a: 'YAML 会自动给裸词定型：yes、no、true、false、on、off 变成布尔，1、1.5、1e3 变成数字。如果它们需要是字符串，在 YAML 里加引号；否则 JSON 会正确反映 YAML 的解释。' },
+    ],
   },
 
   '/yaml-to-toml': {
@@ -745,6 +781,12 @@ export const GUIDES: Record<string, ToolGuide> = {
       '值为 null、空数组或空对象的字段会输出空值',
     ],
     example: { label: '填入示例 JSON', text: '{"a":1,"b":{"c":2},"list":[1,2]}' },
+    about: 'HTML 表单和很多服务端框架用方括号记号把结构化数据编码进查询串：嵌套对象 { "b": { "c": 2 } } 变成 b[c]=2，数组 { "list": [1, 2] } 变成 list[0]=1&list[1]=2。本工具把 JSON 拍平成这种精确记号，让你能把 JSON 负载直接丢进 URL，也能在收到查询串时反向还原成嵌套 JSON。它是干净 JSON 体与 PHP、Express、Ruby on Rails 等所期望的方括号查询串之间的桥。',
+    faqs: [
+      { q: '嵌套在查询串里怎么表达？', a: '用方括号，镜像 JavaScript 的成员访问：{ "a": { "b": [1] } } 变成 a[b][0]=1。对象每深一层就多一个方括号键，数组每个下标多一个数字括号，于是结构在回程里完全可还原。' },
+      { q: 'null 或空值会怎样？', a: '它们在查询串里产生空值（key= 后面什么都没有）。这是忠实的表示——查询串无法比"空字段"更精确地表达"缺席"——所以重建 JSON 时值会以空字符串回来，而不是 null。发送前如果服务端严格，先把这些键去掉。' },
+      { q: '输出有做 URL 编码吗？', a: '本工具展示的是逻辑上的 key=value 对；键或值里的特殊字符在放进真实 URL 前应当做百分号编码。编码值（不要编码方括号），这样括号结构保持完整、服务端才能正确解析。' },
+    ],
   },
 
   '/json-to-code': {
@@ -755,6 +797,13 @@ export const GUIDES: Record<string, ToolGuide> = {
       '样本里值为 null 的字段判断不出类型，会退化成该语言的通用类型',
       '多给几条真实数据（尤其数组里多放几个元素）能得到更完整的字段集合',
       '生成结果只是起点，字段命名与可空性请按业务再核对',
+    ],
+    about: '当接口返回 JSON、而你的代码库是静态类型时，第一个繁琐步骤就是写一个镜像返回值的类或接口。本工具读取 JSON 样本，为你生成 TypeScript、C#、Java 或 Go 的脚手架：每个对象变成带类型字段的类，嵌套对象变成嵌套类型，数组变成列表或切片。类型是从你粘贴的实际值推断的——数字变成 int/long/double，字符串仍是 string——所以一份包含几条代表性记录的好样本，比空的 schema 猜测产出准确得多的起点。',
+    example: { label: '填入示例 JSON', text: '{\n  "id": 1,\n  "name": "Alice",\n  "email": "alice@example.com",\n  "active": true\n}' },
+    faqs: [
+      { q: '字段类型怎么定的？', a: '来自样本值，不是 schema。是数字的值变成对应的数值类型（本工具按语言选 int/long/double），字符串保持字符串，布尔变成布尔。多条记录类型不一致时，会放宽到公共父类型。' },
+      { q: '如果样本里某个字段是 null 怎么办？', a: 'null 值不带类型信息，于是字段退化成该语言的通用/any 类型（C# 的 object、Go 的 interface{}、TypeScript 的 any）。要正确定型，至少包含一条该字段有具体值的记录。' },
+      { q: '生成的代码会和我的接口完全一致吗？', a: '不会。它是从一个样本派生出的起点，所以字段名沿用 JSON 的键、可空性是猜的。核对字段名、把接口可能省略的字段标成可空、补上校验——生成器省掉样板活，但不替代你的领域知识。' },
     ],
   },
 

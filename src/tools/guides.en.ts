@@ -324,6 +324,12 @@ export const GUIDES: Record<string, ToolGuide> = {
     intro: 'Converts JSON into TOML, a common format for configuration files.',
     steps: ['Paste the JSON', 'Get the TOML result', 'Copy and use it'],
     example: { label: 'Fill in sample JSON', text: '{ "title": "demo", "server": { "port": 8080 } }' },
+    about: 'TOML (Tom\'s Obvious Minimal Language) was designed as a readable config format that maps cleanly onto a hash table — and, crucially, onto JSON as well. This tool walks a JSON value and emits the equivalent TOML: objects become tables, nested objects become dotted keys or sub-tables, and arrays become TOML arrays. The reverse direction is handled by the TOML-to-JSON tool, so you can move between the two formats without hand-editing. This is the bridge most teams need when a project\'s config started as JSON but the surrounding tooling (Cargo, pyproject.toml, Hugo) expects TOML.',
+    faqs: [
+      { q: 'Do JSON and TOML represent the same data?', a: 'Mostly. TOML was deliberately designed so a TOML document maps onto a JSON object, and JSON is a subset of what TOML can express. The conversion is lossless for the common cases: strings, numbers, booleans, arrays and nested tables.' },
+      { q: 'How are nested JSON objects written in TOML?', a: 'A nested object becomes either a [table] section or a dotted key. { "server": { "port": 8080 } } can be written as [server] followed by port = 8080, or as server.port = 8080 — both are valid TOML. This tool uses dotted keys for shallow nesting and full tables for deeper structures.' },
+      { q: 'What is lost when converting?', a: 'Nothing in the data model, but TOML has stricter key rules than JSON: keys holding certain characters must be quoted, and duplicate keys across tables are an error. JSON allows arbitrary string keys, so if yours contain dots or square brackets, expect them to be quoted in the TOML output.' },
+    ],
   },
 
   '/json-to-xml': {
@@ -331,12 +337,24 @@ export const GUIDES: Record<string, ToolGuide> = {
     steps: ['Paste the JSON', 'Get the XML result', 'Copy and use it'],
     notes: ['XML has no concept of arrays, so lists become repeated tags'],
     example: { label: 'Fill in sample JSON', text: '{ "user": { "id": 1, "name": "Alice" } }' },
+    about: 'XML is still the interchange format for a lot of enterprise, payment and SOAP-style systems, even though JSON won. This tool maps a JSON value onto an XML document: objects become elements with a child element per key, arrays become repeated elements sharing the same tag name, and scalar values become text content. Because XML and JSON model data differently — XML has no native array or boolean type — the conversion makes a set of reasonable choices (booleans and numbers become string text, for instance), and the XML-to-JSON tool reverses it when you receive XML back.',
+    faqs: [
+      { q: 'How are arrays represented in XML?', a: 'An array of values becomes several sibling elements that share the same tag name. [1, 2, 3] under the key "item" becomes <item>1</item><item>2</item><item>3</item>. There is no XML array type, so the repeated-tag convention is the standard way to round-trip a list.' },
+      { q: 'What happens to the root element?', a: 'XML documents need exactly one root element, but top-level JSON may be an object, array or scalar. This tool wraps the output in a root element (commonly <root>) so the result is always well-formed XML; rename it to match the schema your consumer expects.' },
+      { q: 'Is the conversion reversible?', a: 'With caveats. Converting XML back to JSON again loses the distinction XML never had — there is no native boolean or number, everything is text — so 1 may come back as the string "1". Keep the original JSON if you need exact types round-tripped.' },
+    ],
   },
 
   '/json-to-yaml-converter': {
     intro: 'Converts JSON into YAML, widely used for Kubernetes manifests and other configuration files.',
     steps: ['Paste the JSON', 'Get the YAML result', 'Copy and use it'],
     example: { label: 'Fill in sample JSON', text: '{ "name": "devbox", "services": ["web", "api"] }' },
+    about: 'YAML is a superset of JSON — any valid JSON is also valid YAML — which is why it is so common for configuration: it preserves everything JSON can express while adding a cleaner, indentation-based syntax and comments. This tool re-emits a JSON value as idiomatic YAML: nested objects become indented blocks, arrays become dash lists, and quoting is added only where YAML would otherwise misinterpret the value (a bare yes or 1.0, for example). The companion YAML-to-JSON tool does the reverse when you need to feed a YAML config into a JSON API.',
+    faqs: [
+      { q: 'Is the result valid YAML?', a: 'Yes — YAML is a superset of JSON, so the emitted text parses as both. Indentation is added with spaces (never tabs, which YAML rejects), and values that look like other YAML types are quoted so they stay strings.' },
+      { q: 'Why did my number get quoted?', a: 'YAML infers types: a value like 1.0 or 2024 may be read back as a number, and yes/no/on/off as booleans. To keep the data identical to the source JSON, this tool quotes values that would otherwise be reinterpreted, so "1.0" stays the string "1.0".' },
+      { q: 'Can I convert this back to JSON?', a: 'Yes, with the YAML-to-JSON tool. Because YAML is a JSON superset the round trip is lossless for the data model; you only lose the YAML comments, which JSON has no place to store.' },
+    ],
   },
 
   '/jwt-parser': {
@@ -571,6 +589,12 @@ export const GUIDES: Record<string, ToolGuide> = {
     intro: 'Converts TOML configuration into JSON, so it can be consumed in code or over an API.',
     steps: ['Paste the TOML', 'Get the JSON result', 'Copy and use it'],
     example: { label: 'Fill in sample TOML', text: 'title = "demo"\n\n[server]\nport = 8080' },
+    about: 'TOML is a favourite for application config because it is human-editable and maps onto a clean data structure, but most code and APIs speak JSON. This tool parses TOML into its data model and serialises the result as JSON: tables become objects, dotted keys become nested objects, and arrays of tables become JSON arrays. The companion JSON-to-TOML tool handles the other direction, so config can flow from a TOML file into a JSON-based pipeline without manual editing.',
+    faqs: [
+      { q: 'Are TOML tables the same as JSON objects?', a: 'Effectively yes. A [server] table with port = 8080 becomes { "server": { "port": 8080 } }, and a dotted key server.port = 8080 produces the same structure. Arrays of tables ([[items]]) become JSON arrays of objects.' },
+      { q: 'What about TOML types JSON lacks?', a: 'TOML has datetimes (local, zoned and offset) that JSON cannot represent natively. They are serialised as ISO-8601 strings so the value survives the conversion; if you need them as real dates on the other side, parse the string explicitly.' },
+      { q: 'Is the conversion lossless?', a: 'For the data model, yes — nothing is dropped. The only loss is TOML-specific niceties like comments and key ordering in some serialisers; the values themselves come through unchanged.' },
+    ],
   },
 
   '/toml-to-yaml': {
@@ -645,6 +669,12 @@ export const GUIDES: Record<string, ToolGuide> = {
     steps: ['Paste the XML', 'Get the JSON result', 'Copy and use it'],
     notes: ['XML attributes and text nodes are represented by different fields in JSON — check the output after converting'],
     example: { label: 'Fill in sample XML', text: '<user id="1"><name>Alice</name></user>' },
+    about: 'JSON is the lingua franca of modern APIs, but plenty of systems still emit XML. This tool parses an XML document and projects it into JSON: elements become objects, repeated elements become arrays, and attributes and text are given distinct keys so neither is lost. The mapping is not unique — XML carries more structure than JSON in places (attributes, mixed content) — so the output uses a consistent convention (commonly attributes under an "@" key and text under "#text") that you can rely on when parsing it downstream.',
+    faqs: [
+      { q: 'Where do XML attributes go in the JSON?', a: 'This tool puts attributes under a dedicated key (typically @) and element text under another (typically #text), so <user id="1">Alice</user> becomes { "user": { "@id": "1", "#text": "Alice" } }. The exact key names follow the converter\'s convention — read one sample before trusting the shape in code.' },
+      { q: 'Why did my repeated tags become an array?', a: 'JSON has real arrays; XML does not. When the same child element appears more than once, the converter groups them into an array so order and multiplicity are preserved. A single occurrence stays a single object unless the schema marks it as a list.' },
+      { q: 'How do I convert back to XML?', a: 'Use the JSON-to-XML tool. Keep in mind the round trip is not perfectly symmetric: attributes that became @ keys must be re-special-cased, and any typing XML lost (everything is text) will not magically return.' },
+    ],
   },
 
   '/yaml-prettify': {
@@ -658,6 +688,12 @@ export const GUIDES: Record<string, ToolGuide> = {
     intro: 'Converts YAML into JSON, a common step when handling configuration files or API data.',
     steps: ['Paste the YAML', 'Get the JSON result', 'Copy and use it'],
     example: { label: 'Fill in sample YAML', text: 'name: devbox\nservices:\n  - web\n  - api' },
+    about: 'YAML is everywhere in config and CI, but code and APIs overwhelmingly consume JSON. This tool parses YAML into its data model and writes it back as JSON. Because YAML is a strict superset of JSON, the conversion is faithful: indentation defines nesting, dash lists become arrays, and YAML\'s type inference (booleans, numbers, null) is preserved as the matching JSON values. The JSON-to-YAML tool reverses it when you need a YAML file from JSON.',
+    faqs: [
+      { q: 'Does the conversion keep my data types?', a: 'Yes. YAML infers booleans, integers, floats and null, and those become the correct JSON true/false/number/null. A string like "123" stays a string because it was quoted or unambiguous, so the JSON types match the YAML intent.' },
+      { q: 'What happens to YAML comments?', a: 'They are dropped — JSON has no representation for comments, so there is nowhere to put them. If the comments carry meaning (for example a deprecation note), preserve the YAML source alongside the generated JSON.' },
+      { q: 'Why did my value turn into a number or boolean?', a: 'YAML auto-types bare words: yes, no, true, false, on and off become booleans, and 1, 1.5 and 1e3 become numbers. If you need them as strings, quote them in the YAML; otherwise the JSON will correctly reflect YAML\'s interpretation.' },
+    ],
   },
 
   '/yaml-to-toml': {
@@ -748,6 +784,12 @@ export const GUIDES: Record<string, ToolGuide> = {
       'Fields whose value is null, an empty array or an empty object produce an empty value',
     ],
     example: { label: 'Fill in sample JSON', text: '{"a":1,"b":{"c":2},"list":[1,2]}' },
+    about: 'HTML forms and many server frameworks encode structured data in the query string using bracket notation: a nested object { "b": { "c": 2 } } becomes b[c]=2, and an array { "list": [1, 2] } becomes list[0]=1&list[1]=2. This tool flattens JSON into that exact notation so you can drop a JSON payload straight into a URL, and parses a query string back into nested JSON when you receive one. It is the bridge between a clean JSON body and the bracket-encoded query strings that PHP, Express, Ruby on Rails and others expect.',
+    faqs: [
+      { q: 'How is nesting expressed in the query string?', a: 'With square brackets, mirroring JavaScript member access: { "a": { "b": [1] } } becomes a[b][0]=1. Each level of object nesting adds a bracketed key, and each array index adds a numeric bracket, so the structure is fully recoverable on the way back.' },
+      { q: 'What happens to null or empty values?', a: 'They produce an empty value in the query string (key= with nothing after). That is the faithful representation — a query string cannot encode "absence" more precisely than an empty field — so when rebuilding JSON the value comes back as an empty string rather than null. Drop such keys before sending if the server is strict.' },
+      { q: 'Is the output URL-encoded?', a: 'The tool shows the logical key=value pairs; special characters in keys or values should be percent-encoded before putting them in a real URL. Encode the values (not the brackets) so the bracket structure stays intact and the server parses it correctly.' },
+    ],
   },
 
   '/json-to-code': {
@@ -758,6 +800,13 @@ export const GUIDES: Record<string, ToolGuide> = {
       'Fields that are null in the sample cannot be typed and fall back to the language\'s generic type',
       'Providing a few realistic records (especially several array elements) yields a more complete field set',
       'The output is only a starting point — review field names and nullability against your own domain',
+    ],
+    about: 'When an API returns JSON but your codebase is statically typed, the first tedious step is writing a class or interface that mirrors the response. This tool reads a JSON sample and generates that scaffolding for you in TypeScript, C#, Java or Go: each object becomes a class with typed fields, nested objects become nested types, and arrays become lists or slices. Types are inferred from the actual values you paste — a number becomes the appropriate numeric type, a string stays a string — so a good sample with a few representative records produces a far more accurate starting point than an empty schema guess.',
+    example: { label: 'Fill in a sample JSON', text: '{\n  "id": 1,\n  "name": "Alice",\n  "email": "alice@example.com",\n  "active": true\n}' },
+    faqs: [
+      { q: 'How are field types decided?', a: 'From the sample values, not a schema. A numeric value becomes the appropriate numeric type (the tool picks int/long/double per language), a string stays a string, and a boolean becomes bool. Mixed types across records are widened to the common supertype.' },
+      { q: 'What if a field is null in my sample?', a: 'A null value carries no type information, so the field falls back to the language\'s generic/any type (object in C#, interface{} in Go, any in TypeScript). To type it correctly, include at least one record where that field has a concrete value.' },
+      { q: 'Will the generated code match my API exactly?', a: 'No. It is a starting point derived from one sample, so field names follow the JSON keys and nullability is guessed. Review the names, make fields nullable where the API can omit them, and add validation — the generator removes the boilerplate, it does not replace your domain knowledge.' },
     ],
   },
 
