@@ -177,6 +177,7 @@ export const GUIDES: Record<string, ToolGuide> = {
   '/emoji-picker': {
     intro: '搜索并复制 Emoji，同时能查到它的 Unicode 码点。',
     steps: ['在搜索框输入关键词（如 smile）', '点选需要的 Emoji', '复制字符或它的 Unicode 编码'],
+    example: { label: '填入示例查询', text: 'smile' },
   },
 
   '/encryption': {
@@ -240,12 +241,12 @@ export const GUIDES: Record<string, ToolGuide> = {
   '/html-wysiwyg-editor': {
     intro: '一个所见即所得的富文本编辑器，编辑完可以直接取 HTML 源码。',
     steps: ['在编辑区输入或粘贴内容', '用工具栏调整格式', '切到源码视图复制 HTML'],
-    example: { label: '填入示例内容', text: '<h2>标题</h2><p>这里是正文，<strong>加粗</strong>试试。</p>' },
   },
 
   '/http-status-codes': {
     intro: '所有 HTTP 状态码的含义速查，遇到陌生状态码来这里查。',
     steps: ['按分类或搜索找到状态码', '看官方名称和常见场景'],
+    example: { label: '填入示例查询', text: '404' },
   },
 
   '/iban-validator-and-parser': {
@@ -428,7 +429,6 @@ export const GUIDES: Record<string, ToolGuide> = {
   '/mime-types': {
     intro: 'MIME 类型与文件扩展名互查，配置服务器或写上传校验时用。',
     steps: ['输入 MIME 类型或扩展名', '看对应的另一种形式', '复制使用'],
-    example: { label: '填入示例类型', text: 'application/json' },
   },
 
   '/numeronym-generator': {
@@ -453,7 +453,6 @@ export const GUIDES: Record<string, ToolGuide> = {
     intro: '评估密码强度和大致破解耗时，用来判断一条密码是否够用。',
     steps: ['输入要评估的密码', '看强度条和估算的破解时间', '按建议加长或增加字符种类'],
     notes: ['本工具纯本地计算，输入的密码不会被发送出去'],
-    example: { label: '填入示例密码', text: 'MyP@ssw0rd2024' },
   },
 
   '/pdf-signature-checker': {
@@ -520,12 +519,14 @@ export const GUIDES: Record<string, ToolGuide> = {
     intro: '生成 RSA 公私钥对（PEM 格式），做加密传输或签名验证时用。',
     steps: ['选择密钥长度（2048 位起步）', '点生成', '分别保存私钥和公钥'],
     notes: ['私钥一旦丢失无法恢复，请妥善保存；也不要把私钥提交到代码仓库'],
+    example: { label: '填入示例密钥长度', text: '4096' },
   },
 
   '/safelink-decoder': {
     intro: '还原 Outlook 邮件里被 SafeLink 包装过的真实链接。',
     steps: ['复制邮件里那条超长的 SafeLink 地址', '粘贴到输入框', '点解码得到原始 URL'],
     notes: ['解码只是还原地址，点开前仍要自己判断是否可信'],
+    example: { label: '填入示例 SafeLink 链接', text: 'https://nam.safelinks.protection.outlook.com/?url=https%3A%2F%2Fexample.com%2Fdocs' },
   },
 
   '/slugify-string': {
@@ -682,6 +683,7 @@ export const GUIDES: Record<string, ToolGuide> = {
     intro: '生成 WiFi 二维码，别人扫码就能连网，不用手输密码。',
     steps: ['填 WiFi 名称（SSID）', '填密码并选择加密方式', '点生成后扫码或下载'],
     notes: ['二维码里含明文密码，贴在公共区域要谨慎'],
+    example: { label: '填入示例 WiFi 名称', text: 'Home-WiFi' },
   },
 
   '/xml-formatter': {
@@ -849,6 +851,7 @@ export const GUIDES: Record<string, ToolGuide> = {
       '数据存储按 1024 进制（KB = 1024 字节）',
       '温度走换算公式，不与其他单位共用一套系数',
     ],
+    example: { label: '填入示例数值', text: '100' },
   },
 
   '/ascii-table': {

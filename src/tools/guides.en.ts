@@ -185,6 +185,7 @@ export const GUIDES: Record<string, ToolGuide> = {
   '/emoji-picker': {
     intro: 'Search and copy emoji, and look up their Unicode code points.',
     steps: ['Type a keyword in the search box (e.g. smile)', 'Click the emoji you need', 'Copy the character or its Unicode encoding'],
+    example: { label: 'Fill in a sample query', text: 'smile' },
   },
 
   '/encryption': {
@@ -248,12 +249,12 @@ export const GUIDES: Record<string, ToolGuide> = {
   '/html-wysiwyg-editor': {
     intro: 'A WYSIWYG rich-text editor whose HTML source you can grab once you are done editing.',
     steps: ['Type or paste into the editing area', 'Use the toolbar to adjust formatting', 'Switch to the source view and copy the HTML'],
-    example: { label: 'Fill in sample content', text: '<h2>Heading</h2><p>This is the body text, try <strong>bold</strong>.</p>' },
   },
 
   '/http-status-codes': {
     intro: 'A reference for the meaning of every HTTP status code, for when you hit an unfamiliar one.',
     steps: ['Find the code by category or search', 'Read its official name and the usual scenario'],
+    example: { label: 'Fill in a sample query', text: '404' },
   },
 
   '/iban-validator-and-parser': {
@@ -436,7 +437,6 @@ export const GUIDES: Record<string, ToolGuide> = {
   '/mime-types': {
     intro: 'Looks up MIME types and file extensions from one another — useful when configuring a server or writing upload validation.',
     steps: ['Enter a MIME type or an extension', 'Read the corresponding form', 'Copy and use it'],
-    example: { label: 'Fill in a sample type', text: 'application/json' },
   },
 
   '/numeronym-generator': {
@@ -461,7 +461,6 @@ export const GUIDES: Record<string, ToolGuide> = {
     intro: 'Estimates password strength and approximate cracking time, to judge whether a password is good enough.',
     steps: ['Enter the password to evaluate', 'Read the strength bar and estimated cracking time', 'Lengthen it or add character classes as suggested'],
     notes: ['The calculation runs entirely in your browser; the password is never sent anywhere'],
-    example: { label: 'Fill in a sample password', text: 'MyP@ssw0rd2024' },
   },
 
   '/pdf-signature-checker': {
@@ -528,12 +527,14 @@ export const GUIDES: Record<string, ToolGuide> = {
     intro: 'Generates an RSA public/private key pair in PEM format, for encrypted transport or signature verification.',
     steps: ['Choose the key length (2048 bits and up)', 'Click generate', 'Save the private and public keys separately'],
     notes: ['A lost private key cannot be recovered, so store it safely — and never commit it to a repository'],
+    example: { label: 'Fill in a sample key size', text: '4096' },
   },
 
   '/safelink-decoder': {
     intro: 'Recovers the real link hidden behind an Outlook SafeLink wrapper.',
     steps: ['Copy the very long SafeLink URL from the email', 'Paste it into the input', 'Click decode to get the original URL'],
     notes: ['Decoding only reveals the address — you still have to judge for yourself whether it is trustworthy'],
+    example: { label: 'Fill in a sample SafeLink URL', text: 'https://nam.safelinks.protection.outlook.com/?url=https%3A%2F%2Fexample.com%2Fdocs' },
   },
 
   '/slugify-string': {
@@ -690,6 +691,7 @@ export const GUIDES: Record<string, ToolGuide> = {
     intro: 'Generates a Wi-Fi QR code so guests can join the network by scanning instead of typing the password.',
     steps: ['Enter the network name (SSID)', 'Enter the password and pick the security type', 'Generate, then scan or download'],
     notes: ['The QR code contains the password in plain form — be careful about posting it in public places'],
+    example: { label: 'Fill in a sample SSID', text: 'Home-WiFi' },
   },
 
   '/xml-formatter': {
@@ -852,6 +854,7 @@ export const GUIDES: Record<string, ToolGuide> = {
       'Data storage uses powers of 1024 (KB = 1024 bytes)',
       'Temperature uses conversion formulas rather than a shared coefficient',
     ],
+    example: { label: 'Fill in a sample value', text: '100' },
   },
 
   '/ascii-table': {
