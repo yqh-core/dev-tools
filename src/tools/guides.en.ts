@@ -142,6 +142,7 @@ export const GUIDES: Record<string, ToolGuide> = {
     intro: 'Converts a time to a Unix timestamp or turns a timestamp back into a readable time, with several output formats.',
     steps: ['Use the current time or enter one manually', 'Read the Unix timestamp and the formatted results', 'Note whether you need seconds or milliseconds'],
     notes: ['Unix timestamps are usually seconds (10 digits), while JavaScript Date.now() is milliseconds (13 digits)'],
+    example: { label: 'Paste a sample date', text: '2026-10-05T08:00:00Z' },
     about: 'A date is one moment wearing many coats, and this tool converts between them: Unix timestamps (seconds or milliseconds), ISO 8601, RFC 3339, UTC strings and locale-formatted strings. Where a format does not state a timezone, your browser\'s local zone is applied — so "now" on this page is the same moment your logs call a different name. The everyday uses: turning a timestamp from a log line into readable local time, checking whether an expiry (a JWT exp, an ISO field from a database) is already in the past, and generating timestamp values for test fixtures.',
     faqs: [
       { q: 'Is my timestamp in seconds or milliseconds?', a: 'Count the digits: 10 digits is seconds (good until the year 2286), 13 digits is milliseconds. Pasting seconds where milliseconds are expected lands you centuries in the future — the wrong scale is usually obvious as soon as you convert.' },
