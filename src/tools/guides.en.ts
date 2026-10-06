@@ -36,6 +36,12 @@ export const GUIDES: Record<string, ToolGuide> = {
     intro: 'Encodes a file (image, PDF, …) into a Base64 string so it can be inlined into HTML/CSS or an API payload.',
     steps: ['Click the upload area to pick a file, or drag one in', 'The Base64 string appears on the right', 'Copy it; enable the data-URI option if that is the form you need'],
     notes: ['Base64 inflates the size by roughly a third, so inline large files with care'],
+    about: 'Base64 and files meet in both directions here. Paste a Base64 string — a full data URI or a bare payload — and the tool rebuilds the original file: common types (PNG, JPEG, GIF, PDF) are recognised from their signatures, the extension field fills itself in, images can be previewed inline, and Download saves the result under the name you choose. The other way around, drop or pick a file and its Base64 string appears below, ready to copy. Both conversions run in your browser, so the practical limit is memory: comfortable for images and documents, less so for large videos.',
+    faqs: [
+      { q: 'Why did the Extension field fill itself in?', a: 'When your input starts with a data URI prefix or matches a known signature (PNG, JPEG, GIF, PDF), the tool infers the file type and sets the extension for you. Unknown types keep whatever you typed — edit the field manually if the guess is wrong.' },
+      { q: 'How do I get the Base64 string of a file?', a: 'Use the File to Base64 card: drag a file onto the upload area or click to select one, and the string appears in the readonly box below. The Copy button puts it on your clipboard.' },
+      { q: 'Is there a file size limit?', a: 'Nothing is enforced, but the conversion happens in browser memory. Images and documents are comfortable; very large files can get slow or hit memory limits — and remember the Base64 text is about a third larger than the original file.' },
+    ],
   },
 
   '/base64-string-converter': {
