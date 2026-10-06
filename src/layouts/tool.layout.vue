@@ -99,6 +99,14 @@ const clusterLabel = computed<string>(() => {
 const i18nKey = computed<string>(() => toolPath.value.replace(/\//g, ''));
 const toolTitle = computed<string>(() => t(`tools.${i18nKey.value}.title`, String(route.meta.name)));
 const toolDescription = computed<string>(() => t(`tools.${i18nKey.value}.description`, String(route.meta.description)));
+/**
+ * 页面 H1 = title 的核心词（em dash 前半段）。
+ *
+ * Keyword Map V1（G-01a）的定位策略：`<title>` 带长尾后缀（"X — Y Online"）去打
+ * 搜索结果页，H1 保持短核心词照顾页面可读性。title 无 em dash 的工具（101 个里
+ * 目前只有 Keyword Map 落地的 7 个）split 结果就是原文，行为不变。
+ */
+const toolH1 = computed<string>(() => toolTitle.value.split(' — ')[0]);
 
 /**
  * 客户端页面 head（title / description / keywords）。
@@ -317,7 +325,7 @@ const shareLabel = computed(() => {
 
         <div flex flex-nowrap items-center justify-between>
           <n-h1>
-            {{ toolTitle }}
+            {{ toolH1 }}
           </n-h1>
 
           <div>

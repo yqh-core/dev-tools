@@ -29,6 +29,14 @@ export interface ToolSeoEntry {
   path: string
   /** 工具名（i18n 默认语言）。 */
   name: string
+  /**
+   * 页面 H1：title 的核心词（em dash 前半段）。
+   *
+   * Keyword Map V1（G-01a）的定位策略：`<title>` 带长尾后缀打搜索结果，
+   * H1 保持短核心词。title 无 em dash 的工具派生结果 === name，行为不变。
+   * 与 `tool.layout.vue` 的 `toolH1` 同一规则，保证 SSG / CSR 两边逐字一致。
+   */
+  h1: string
   /** `tools.<key>.description` 的真实文案（i18n 默认语言）。 */
   description: string
   /** 所属分类名（来自 toolsByCategory）。 */
@@ -111,6 +119,7 @@ function buildEntries(): ToolSeoEntry[] {
     entries.push({
       path,
       name: String(tool.name ?? '').trim(),
+      h1: String(tool.name ?? '').trim().split(' — ')[0],
       description,
       category: tool.category,
       guide: GUIDES[path] ?? null,

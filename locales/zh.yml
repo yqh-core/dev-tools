@@ -272,8 +272,8 @@ tools:
     description: 转义或unescape html实体（将<、>、&、“和\'替换为其html版本）
 
   json-prettify:
-    title: JSON美化和格式化
-    description: 将JSON字符串修饰为友好的可读格式。
+    title: JSON 格式化与校验 — 在线美化验证 JSON
+    description: 在线格式化与校验 JSON — 即时美化、压缩并发现语法错误，全程在浏览器内完成。
 
   docker-run-to-docker-compose-converter:
     title: Docker Run 到 docker-compose 转换器
@@ -335,12 +335,12 @@ tools:
     title: JSON 差异比较
     description: 比较两个JSON对象并获得它们之间的差异。
   jwt-parser:
-    title: JWT 解析器
-    description: 解析和解码JSON Web Token（jwt）并显示其内容。
+    title: JWT 解码器与解析器 — 在线解析 JSON Web Token
+    description: 在线解码并解析 JSON Web Token（JWT）— 一目了然查看 Header、Payload 与标准声明。
 
   date-converter:
-    title: 日期时间转换器
-    description: 将日期和时间转换为各种不同的格式
+    title: Unix 时间戳转换器 — 时间戳与日期在线互转
+    description: Unix 时间戳与日期在线互转 — 支持 epoch、ISO 8601、UTC 与本地时区等多种格式。
 
   phone-parser-and-formatter:
     title: 电话分析器和格式化程序
@@ -379,8 +379,8 @@ tools:
     description: 通过删除不必要的空白来缩小和压缩JSON。
 
   ulid-generator:
-    title: ULID 生成器
-    description: 生成随机的通用唯一词典可排序标识符（ULID）。
+    title: ULID 生成器 — 可排序、按时间有序的在线 ID
+    description: 在线生成 ULID — 可排序、按时间有序的唯一标识符，适合数据库主键与分布式系统。
 
   string-obfuscator:
     title: 字符串混淆器
@@ -395,8 +395,8 @@ tools:
     description: 使用此在线转换器将YAML转换为JSON。
 
   uuid-generator:
-    title: UUIDs 生成器
-    description: 通用唯一标识符（UUID）是一个128位数字，用于标识计算机系统中的信息。可能的UUID数量为16^32，即2^128或约3.4x10^38（这是一个很大的数字！）。
+    title: UUID 生成器 — 免费在线 UUID v4 生成
+    description: 免费在线生成 UUID — 支持 v4 随机、v1 时间戳、v3/v5 命名空间与 NIL，一键复制。
 
   ipv4-address-converter:
     title: Ipv4地址转换器
@@ -457,12 +457,12 @@ tools:
     description: 把 Markdown 转换成 HTML，并支持打印（另存为 PDF）。
 
   regex-memo:
-    title: 正则表达式速查表
-    description: JavaScript 正则表达式常用语法速查备忘单。
+    title: 正则速查表 — 完整正则表达式语法参考
+    description: 完整的正则表达式速查表 — 常用语法、量词、标志位与字符类，附示例，随查随用。
 
   regex-tester:
-    title: 正则表达式测试器
-    description: 用示例文本实时测试正则表达式的匹配结果。
+    title: 正则表达式测试器 — 在线测试正则匹配
+    description: 在线测试正则表达式 — JavaScript 语法，实时高亮匹配结果，可切换标志位与捕获组。
 
   safelink-decoder:
     title: Outlook 安全链接解码器

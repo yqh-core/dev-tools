@@ -273,8 +273,8 @@ tools:
     description: Escape or unescape HTML entities (replace characters like <,>, &, " and \' with their HTML version)
 
   json-prettify:
-    title: JSON prettify and format
-    description: Prettify your JSON string into a friendly, human-readable format.
+    title: JSON Formatter & Validator — Beautify and Validate JSON Online
+    description: Format and validate JSON online — beautify, minify and spot syntax errors instantly, right in your browser.
 
   docker-run-to-docker-compose-converter:
     title: Docker run to Docker compose converter
@@ -337,12 +337,12 @@ tools:
     description: Compare two JSON objects and get the differences between them.
 
   jwt-parser:
-    title: JWT parser
-    description: Parse and decode your JSON Web Token (jwt) and display its content.
+    title: JWT Decoder & Parser — Decode JSON Web Tokens Online
+    description: Decode and parse JSON Web Tokens (JWT) online — inspect header, payload and registered claims at a glance.
 
   date-converter:
-    title: Date-time converter
-    description: Convert date and time into the various different formats
+    title: Unix Timestamp Converter — Epoch to Date & Time Online
+    description: Convert Unix timestamps to human-readable dates and back — epoch time, ISO 8601, UTC and local time zones.
 
   phone-parser-and-formatter:
     title: Phone parser and formatter
@@ -381,8 +381,8 @@ tools:
     description: Minify and compress your JSON by removing unnecessary whitespace.
 
   ulid-generator:
-    title: ULID generator
-    description: Generate random Universally Unique Lexicographically Sortable Identifier (ULID).
+    title: ULID Generator — Sortable, Time-Ordered IDs Online
+    description: Generate ULIDs online — sortable, time-ordered unique identifiers, ideal for database keys and distributed systems.
 
   string-obfuscator:
     title: String obfuscator
@@ -397,8 +397,8 @@ tools:
     description: Simply convert YAML to JSON with this online live converter.
 
   uuid-generator:
-    title: UUIDs generator
-    description: A Universally Unique Identifier (UUID) is a 128-bit number used to identify information in computer systems. The number of possible UUIDs is 16^32, which is 2^128 or about 3.4x10^38 (which is a lot!).
+    title: UUID Generator — Free Online UUID v4 Generator
+    description: Generate UUIDs online for free — v4 random, v1 time-based, v3/v5 namespace UUIDs and NIL, with one-click copy.
 
   ipv4-address-converter:
     title: IPv4 address converter
@@ -457,12 +457,12 @@ tools:
     description: Convert Markdown to HTML, with print support (save as PDF).
 
   regex-memo:
-    title: Regex Cheat Sheet
-    description: Quick reference cheat sheet for common JavaScript regular expression syntax.
+    title: Regex Cheat Sheet — Complete Regular Expression Reference
+    description: A complete regex cheat sheet — common regular expression syntax, quantifiers, flags and character classes with examples.
 
   regex-tester:
-    title: Regex Tester
-    description: Test regular expressions against sample text with live match results.
+    title: Regex Tester — Test Regular Expressions Online
+    description: Test regular expressions online with live match results — JavaScript flavor, toggle flags and capture groups instantly.
 
   safelink-decoder:
     title: Outlook SafeLink Decoder

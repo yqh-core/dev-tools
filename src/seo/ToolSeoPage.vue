@@ -58,7 +58,7 @@ const box = 'max-width:800px;margin:0 auto;padding:32px 16px;box-sizing:border-b
     </nav>
 
     <h1 style="font-size:32px;font-weight:400;line-height:1.25;margin:0 0 12px">
-      {{ entry.name }}
+      {{ entry.h1 }}
     </h1>
 
     <p class="dd-tool-lead" style="font-size:16px;line-height:1.8;opacity:.85;margin:0 0 10px">
