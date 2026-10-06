@@ -18,6 +18,10 @@ home:
     title: "隐私说明：你的数据去了哪里"
     local: "默认情况下，所有工具都在你的浏览器本地运行。粘贴的内容不会被上传，也不存在可关联的账号。"
     networkIntro: "以下工具是例外 —— 它们必须查询第三方服务才能给出结果："
+  blog:
+    title: "来自博客"
+    intro: "关于性能优化、SEO 与本站工具链的长文指南 —— 写给真正动手开发的工程师。"
+    more: "阅读全部文章 →"
   classic:
     entry: "经典工具"
     desc: "老站原样保留的 162 个工具，界面朴素、加载轻快，作为新版之外的补充。"
@@ -48,6 +52,7 @@ home:
     githubRepository: 'GitHub 仓库'
     twitterX: 'GitHub 仓库'
     twitterXAccount: 'GitHub 仓库'
+    blog: '博客 — 开发者指南与文章'
     about: '关于 DigDevBox'
     aboutLabel: '关于'
     darkMode: '深色模式'

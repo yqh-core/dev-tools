@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { IconInfoCircle, IconMoon, IconSun } from '@tabler/icons-vue';
+import { IconBook, IconInfoCircle, IconMoon, IconSun } from '@tabler/icons-vue';
 import { useStyleStore } from '@/stores/style.store';
 
 const styleStore = useStyleStore();
@@ -7,6 +7,18 @@ const { isDarkTheme } = toRefs(styleStore);
 </script>
 
 <template>
+  <c-tooltip :tooltip="$t('home.nav.blog')" position="bottom">
+    <c-button
+      circle
+      variant="text"
+      href="https://notes.digdevbox.com/"
+      target="_blank"
+      rel="noopener"
+      :aria-label="$t('home.nav.blog')"
+    >
+      <n-icon size="25" :component="IconBook" />
+    </c-button>
+  </c-tooltip>
   <c-tooltip :tooltip="$t('home.nav.about')" position="bottom">
     <c-button circle variant="text" to="/about" :aria-label="$t('home.nav.aboutLabel')">
       <n-icon size="25" :component="IconInfoCircle" />

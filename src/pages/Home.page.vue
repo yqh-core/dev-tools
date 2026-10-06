@@ -107,6 +107,28 @@ const WHY_POINT_KEYS = [
   'home.why.point4',
 ];
 
+/**
+ * 首页 Blog 区块的文章卡片（S3）。
+ *
+ * 标题必须与 forge-notes 线上文章 frontmatter title 逐字一致（2026-10-07 核对），
+ * URL 形态 = https://notes.digdevbox.com/posts/<slug>。新文章上线后手动增补，
+ * 下线文章必须同步移除 —— 外链 404 比少一篇卡片伤害大。
+ */
+const BLOG_POSTS = [
+  {
+    title: '前端性能优化实战：提升网站速度与转化率',
+    url: 'https://notes.digdevbox.com/posts/frontend-performance-optimization',
+  },
+  {
+    title: '谷歌 SEO 优化完整指南：从零到排名第一',
+    url: 'https://notes.digdevbox.com/posts/google-seo-guide',
+  },
+  {
+    title: 'VitePress 入门指南',
+    url: 'https://notes.digdevbox.com/posts/vitepress-guide',
+  },
+];
+
 const popularTools = computed(() =>
   POPULAR_TOOL_PATHS
     .map(path => toolStore.tools.find(tool => tool.path === path))
@@ -249,6 +271,37 @@ function onUpdateFavoriteTools() {
           </div>
         </section>
 
+        <!--
+          Blog 区块（S3 博客集成）。文章清单手动维护：标题必须与
+          forge-notes 站线上文章的真实 frontmatter title 逐字一致（红线：不得虚构），
+          新增/下线文章时同步改 BLOG_POSTS。中文文章受众 = 中文开发者，
+          与工具站英文界面并存是有意为之。
+        -->
+        <section class="home-block">
+          <h2 class="home-block-title">
+            {{ $t('home.blog.title') }}
+          </h2>
+          <p class="home-block-text">
+            {{ $t('home.blog.intro') }}
+          </p>
+          <div class="home-blog-list">
+            <a
+              v-for="post in BLOG_POSTS"
+              :key="post.url"
+              class="home-blog-card"
+              :href="post.url"
+              target="_blank"
+              rel="noopener"
+            >
+              <span class="home-blog-card-title">{{ post.title }}</span>
+              <span class="home-blog-card-site">notes.digdevbox.com</span>
+            </a>
+          </div>
+          <a class="home-blog-more" href="https://notes.digdevbox.com/" target="_blank" rel="noopener">
+            {{ $t('home.blog.more') }}
+          </a>
+        </section>
+
         <transition name="height">
           <div v-if="toolStore.favoriteTools.length > 0">
             <h3 class="mb-5px mt-25px text-neutral-600 dark:text-neutral-400 font-500">
@@ -379,6 +432,64 @@ function onUpdateFavoriteTools() {
     font-size: 13px;
     line-height: 1.65;
     opacity: 0.7;
+  }
+}
+
+.home-blog-list {
+  display: grid;
+  gap: 8px;
+  margin: 10px 0 0;
+
+  grid-template-columns: 1fr;
+
+  @media (min-width: 640px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (min-width: 1024px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.home-blog-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  padding: 12px 14px;
+
+  text-decoration: none;
+
+  border: 1px solid rgb(128, 128, 128, 0.18);
+  border-radius: 8px;
+
+  transition: border-color ease 0.2s;
+
+  &:hover {
+    border-color: rgb(59, 149, 111, 0.65);
+  }
+
+  .home-blog-card-title {
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.5;
+  }
+
+  .home-blog-card-site {
+    font-size: 11px;
+    opacity: 0.55;
+  }
+}
+
+.home-blog-more {
+  display: inline-block;
+  margin-top: 10px;
+
+  font-size: 13px;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
   }
 }
 

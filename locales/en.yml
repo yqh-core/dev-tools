@@ -18,6 +18,10 @@ home:
     title: "Privacy: where your data goes"
     local: "Every tool runs locally in your browser by default. What you paste is not uploaded, and there is no account that could be linked to it."
     networkIntro: "These tools are the exception — they have to query a third-party service to return a result at all:"
+  blog:
+    title: "From the blog"
+    intro: "Long-form guides on performance, SEO and the tooling behind this site — written for developers who build things."
+    more: "Read all articles →"
   classic:
     entry: "Classic tools"
     desc: "162 tools kept from the older site. Plain-looking but fast to load."
@@ -48,6 +52,7 @@ home:
     githubRepository: 'DigDevBox GitHub repository'
     twitterX: 'DigDevBox GitHub repository'
     twitterXAccount: 'DigDevBox GitHub repository'
+    blog: 'Blog — guides and articles for developers'
     about: 'About DigDevBox'
     aboutLabel: 'About'
     darkMode: 'Dark mode'
