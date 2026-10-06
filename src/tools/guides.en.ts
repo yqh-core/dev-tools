@@ -583,6 +583,13 @@ export const GUIDES: Record<string, ToolGuide> = {
     intro: 'Generates a random string from a chosen character set — for temporary passwords and invite codes.',
     steps: ['Set the length', 'Tick the character classes you need', 'Click generate and copy'],
     notes: ['This uses a regular random number generator; for security-sensitive cases use the platform cryptographic source'],
+    example: { label: 'Show a sample token', text: 'A1b2C3d4E5f6G7h8I9j0K1l2M3n4O5p6Q7r8S9t0U1v2W3x4Y5z6a7B8c9D0e1F2g3H4i5J6k7' },
+    about: 'A token here is a random string built from a character set you choose — uppercase, lowercase, digits and optional symbols — at any length from 1 to 512. It is handy for temporary passwords, invite codes, placeholder secrets and other non-critical identifiers. The string is generated in the browser from a pseudo-random source: fine for uniqueness, but for security-sensitive secrets (password-reset links, API keys) prefer a cryptographically strong generator that an attacker cannot predict.',
+    faqs: [
+      { q: 'Are generated tokens sent anywhere?', a: 'No. The token is produced locally in your browser and never leaves the page, so nothing is uploaded or logged by this tool.' },
+      { q: 'Can I use this for password-reset tokens or API keys?', a: 'For low-stakes cases — a temporary password, an invite code, a test fixture — yes. For anything security-sensitive, use a cryptographically strong source instead: this tool uses a regular random number generator, which is good for uniqueness but not for unpredictability against a determined attacker.' },
+      { q: 'How do I make a token harder to guess?', a: 'Increase the length and enable more character classes. Entropy grows with length multiplied by alphabet size, so a longer token that mixes letters, digits and symbols is far harder to brute-force than a short one.' },
+    ],
   },
 
   '/toml-to-json': {
@@ -606,6 +613,13 @@ export const GUIDES: Record<string, ToolGuide> = {
   '/ulid-generator': {
     intro: 'Generates ULIDs: unique like a UUID, but sortable by time — friendlier as a database primary key.',
     steps: ['Click generate to get a ULID', 'Generate repeatedly for more', 'Copy and use it'],
+    example: { label: 'Show a sample ULID', text: '01ARZ3NDEKTSV4RRFFQ69G5FAV' },
+    about: 'A ULID is a 128-bit identifier that is lexicographically sortable: the first 10 characters encode a millisecond timestamp, so sorting ULIDs as strings puts them in creation order. That makes them a drop-in upgrade over a random UUID when the identifier is also used as a database primary key or a sort key — new rows land at the end instead of being scattered. The remaining 16 characters are 80 bits of randomness, so collisions are not a practical concern. ULIDs use Crockford base32 (no I, L, O or U) and are conventionally written uppercase.',
+    faqs: [
+      { q: 'How is a ULID different from a UUID v4?', a: 'A UUID v4 is random, so its byte order carries no meaning and sorting it tells you nothing about creation time. A ULID puts a millisecond timestamp in its first 10 characters, so lexicographic order equals chronological order — which is exactly what you want from a primary or sort key.' },
+      { q: 'Can two ULIDs collide?', a: 'Within a single millisecond a ULID still has 80 random bits (the last 16 characters), giving about 2^80 values before a collision is even theoretically likely. Real systems generate far fewer than that per millisecond, so collisions are not a concern in practice.' },
+      { q: 'Is a ULID case-sensitive?', a: 'ULID uses Crockford base32 and is conventionally uppercase; the canonical form keeps it uppercase. Some libraries accept lowercase on input, but store and compare the canonical uppercase string to avoid mismatches.' },
+    ],
   },
 
   '/url-encoder': {
@@ -644,6 +658,7 @@ export const GUIDES: Record<string, ToolGuide> = {
     intro: 'Generates UUIDs in bulk (v4 by default) for test data or unique identifiers.',
     steps: ['Choose how many you need', 'Click generate', 'Copy and use them'],
     notes: ['UUID v4 is random and not time-sortable; use ULID if you need an ordered identifier'],
+    example: { label: 'Show a sample v4 UUID', text: '9f1c2d3e-4b5a-4c6d-8e9f-0a1b2c3d4e5f' },
     about: 'A UUID (Universally Unique Identifier) is a 128-bit label, and version 4 — the default here — is generated from random data. With about 122 random bits, the chance of two v4 UUIDs colliding is negligible, so machines can generate identifiers independently without any central coordinator. This tool can also produce v1, v3 and v5 when you need time- or name-based identifiers.',
     faqs: [
       { q: 'Can two generated UUIDs ever collide?', a: 'Theoretically yes, practically no — you would need to generate billions per second for a long time to reach even a coin-flip chance. Databases keep unique constraints as a backstop, not because you will hit it.' },
