@@ -166,6 +166,12 @@ export const GUIDES: Record<string, ToolGuide> = {
     intro: 'Turns a long docker run command into a docker-compose.yml, saving you from writing the compose file by hand.',
     steps: ['Paste the docker run command', 'The compose snippet is generated on the right', 'Check the port mappings and volume mounts before copying'],
     notes: ['Automatic conversion covers the common flags; health checks, network aliases and similar need to be added by hand'],
+    about: 'Containerising a service by hand means a docker run command on the whiteboard and a compose file in the repo — two sources that drift apart. This tool reads a docker run command and emits the equivalent docker-compose.yml service entry: the image and container name, published port mappings, volume mounts, environment variables and restart policy all carry over, so the command you tested locally becomes version-controlled infrastructure. The generated YAML is a starting point, not a substitute for review: automatic conversion covers the common flags, while health checks, network aliases, depends_on ordering and multi-service wiring still need to be added by hand — the tool makes the mechanical 80% instant so you can spend attention on the part that actually needs judgement.',
+    faqs: [
+      { q: 'Which docker run flags are converted automatically?', a: 'The common ones: --name, -p port mappings, -v volume mounts, -e environment variables, --restart, --network and the image tag. Each maps to the corresponding compose service field. Flags that describe orchestration (health checks, network aliases, swarm constraints) are not covered and should be added manually in the generated YAML.' },
+      { q: 'Can I paste a command with line continuations or extra whitespace?', a: 'Yes. The parser tolerates backslash line continuations and irregular spacing, so a multi-line command copied from a README converts the same as a single-line one. Flags with values are matched by name, not by position.' },
+      { q: 'Does the generated compose file work with docker compose v2?', a: 'Yes. The output uses the standard service fields (image, ports, volumes, environment, restart) that both docker compose v2 and Compose V2-compatible tools understand. Always run docker compose config or start the stack once before committing the file — the tool converts syntax, it cannot validate that your actual image and paths exist.' },
+    ],
     example: { label: 'Fill in a sample command', text: 'docker run -d --name web -p 8080:80 -v /data:/usr/share/nginx/html nginx:latest' },
   },
 
@@ -199,6 +205,12 @@ export const GUIDES: Record<string, ToolGuide> = {
   '/git-memo': {
     intro: 'A cheat sheet of common Git commands for when you have forgotten the exact flags.',
     steps: ['Find the scenario by category', 'Copy the command', 'Replace the placeholders with your own branch or file names'],
+    about: 'Git\'s model is simple; its flag surface is not. Everyone re-learns the same half-dozen situations: undoing a commit, squashing before a pull request, un-staging a file, pointing a branch at the right remote. This cheat sheet organises those recurring situations by category and gives one copy-paste command per scenario, with placeholders for the parts that vary (branch names, file names, commit ranges). It is deliberately a reference, not a tutorial: each entry assumes you know what the operation means and just need the exact syntax, so you can get back to work in seconds. For anything beyond the everyday cases — interactive rebase surgery, reflog archaeology, submodule workflows — the entries link the concept name you should search for next.',
+    faqs: [
+      { q: 'Do I need to change anything before pasting a command?', a: 'Usually yes — the placeholders. Commands are shown with tokens like your-branch or file-name standing in for the values that differ per situation. Replace them with your own branch, file or commit range; the surrounding flags are already correct.' },
+      { q: 'Is this a Git tutorial?', a: 'No, and that is on purpose. Each entry is one command for one recognised situation, assuming you already know what the operation does. If you are unsure what a command will change, run it with --dry-run where available or check the linked concept in the official documentation first.' },
+      { q: 'I ran a command from the list and want to undo it — is that covered?', a: 'The undo scenarios (un-staging, amending, resetting a commit, restoring a file) are their own category precisely because they get forgotten. For anything else, git reflog records where HEAD has been, which is the general escape hatch when a listed command did something unexpected.' },
+    ],
   },
 
   '/hash-text': {
@@ -860,6 +872,12 @@ export const GUIDES: Record<string, ToolGuide> = {
     intro: 'A reference for common Linux commands covering files, text processing, processes and networking, each with an example you can adapt directly.',
     steps: ['Type a command (e.g. grep) or a scenario keyword (e.g. port, disk) in the search box', 'The list filters live', 'Adapt each example to your own paths and arguments'],
     notes: ['Search matches the command name, the description and the example command'],
+    about: 'Most Linux knowledge is not syntax — it is remembering which of the hundred tools applies and which flags it takes. This reference groups the everyday commands by scenario (files and directories, text processing, processes, networking, permissions) and shows each one with a working example you can adapt, so looking up "how do I find what is listening on a port" lands you on ss with the right flags instead of a man page. The search box filters the list live and matches the command name, the description and the example command, which makes it work both ways: type grep when you know the tool, type port or disk when you only know the goal. Every entry is a starting point to adapt to your own paths and arguments — the reference teaches the pattern, not just the incantation.',
+    faqs: [
+      { q: 'Does the search match anything besides command names?', a: 'Yes. It matches the command name, the scenario description and the example command text. That means searching port finds ss -tlnp and lsof -i, and searching disk finds df and du, even when the command name itself contains neither word.' },
+      { q: 'Are the examples safe to run as-is?', a: 'They are written to be read first, run second. Most are harmless, but some (like chmod or kill examples) contain placeholder arguments you should replace with your own values. The list adapts each example to your paths and arguments rather than pasting blindly.' },
+      { q: 'Why is a command I know missing from the list?', a: 'The list covers the commands that come up in day-to-day server and shell work, curated rather than exhaustive. If a whole area feels missing, the scenario categories above the list are the intended navigation; for niche flags, the man page of the closest related command usually cross-references it.' },
+    ],
     example: { label: 'Fill in a sample query', text: 'grep' },
   },
 
