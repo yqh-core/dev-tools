@@ -6,8 +6,18 @@ site:
 
 home:
   hero:
-    title: "DigDevBox"
-    subtitle: "An online toolbox for developers and ops engineers: {count} tools, all running locally in your browser. Nothing is uploaded or stored."
+    title: "Free Online Developer Tools"
+    subtitle: "Format JSON, decode JWTs, test regex, convert data and debug HTTP — {count} tools that run in your browser. No signup, no upload."
+  why:
+    title: "Why DigDevBox"
+    point1: "Runs in your browser: no install, no signup, no paywall."
+    point2: "Privacy by default: your input stays on your machine for every tool that can work locally."
+    point3: "Built around real workflows: debug an API, ship a container, convert data — not a flat grid of widgets."
+    point4: "Find it fast: press Ctrl+K to jump to any tool, or just type in the search box above."
+  privacy:
+    title: "Privacy: where your data goes"
+    local: "Every tool runs locally in your browser by default. What you paste is not uploaded, and there is no account that could be linked to it."
+    networkIntro: "These tools are the exception — they have to query a third-party service to return a result at all:"
   classic:
     entry: "Classic tools"
     desc: "162 tools kept from the older site. Plain-looking but fast to load."

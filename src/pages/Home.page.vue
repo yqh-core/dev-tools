@@ -52,19 +52,59 @@ const isSearching = computed(() => normalizedQuery.value.length > 0);
  * 为什么是硬编码清单而不是按访问量排序：站点没有后端，拿不到真实访问统计；
  * 硬编码一份**人工确认过的**清单，比拍脑袋造一个「热度算法」诚实。
  *
+ * 2026-10-06（G-01a）清单从「随手挑八个」改为**由 Keyword Map V1 驱动**：
+ * 排序依据是 27 次真实 SERP 检索后的竞争可切入度 + 工具契合度，见
+ * D:/work/_ops/digdevbox-keyword-map-v1.md。
+ * 被换掉的三个：/hash-text（同质化最高，域名即关键词的垂直站已占位）、
+ * /token-generator（无关键词证据）、/qrcode-generator（本轮未做 SERP 研究）。
+ *
  * 这些 path 全部经过 sitemap 核对 —— 例如「JSON 格式化」的真实 path 是
  * `/json-prettify` 而非直觉上的 `/json-formatter`，凭印象写会渲染成空区块。
  * `filter(Boolean)` 兜底：万一某个工具日后改名下架，区块少一张卡，不会白屏。
  */
 const POPULAR_TOOL_PATHS = [
   '/json-prettify',
-  '/base64-string-converter',
-  '/hash-text',
-  '/token-generator',
-  '/uuid-generator',
-  '/url-encoder',
+  '/jwt-parser',
   '/regex-tester',
-  '/qrcode-generator',
+  '/base64-string-converter',
+  '/uuid-generator',
+  '/ulid-generator',
+  '/date-converter',
+  '/chmod-calculator',
+  '/crontab-generator',
+  '/docker-run-to-docker-compose-converter',
+];
+
+/**
+ * 必须联网才能工作的工具。
+ *
+ * 首页 Privacy 区块要「按工具实际能力分层」，不做「数据一律不上传」的绝对化声明
+ * （yqh 纪律：禁止机械写「数据不上传」）。这三条是构建期 grep `axios|fetch(`
+ * 的真实结果（src/tools 下只有这三个 vue 发起外部请求）。
+ *
+ * ⚠ 新增任何会发外部请求的工具，必须同步加到这里，否则首页的隐私声明就是假的。
+ */
+const NETWORK_TOOL_PATHS = ['/whois-lookup', '/http-status-checker', '/today-in-history'];
+
+const networkTools = computed(() =>
+  NETWORK_TOOL_PATHS
+    .map(path => toolStore.tools.find(tool => tool.path === path))
+    .filter(Boolean) as ToolWithCategory[],
+);
+
+/**
+ * Why DigDevBox 四条卖点的 key。
+ *
+ * 为什么不用数组词条 + v-for：SSR 预渲染阶段脚本里的 `t('home.why.points')`
+ * 实测返回的是 key 本身（产物里出现过 `<li>home.why.points</li>`），
+ * 数组型词条在预渲染这条链路上没被解析。改成 4 个标量 key + 模板内 `$t`，
+ * 预渲染与客户端两条路径都用同一套解析，行为一致。
+ */
+const WHY_POINT_KEYS = [
+  'home.why.point1',
+  'home.why.point2',
+  'home.why.point3',
+  'home.why.point4',
 ];
 
 const popularTools = computed(() =>
@@ -155,7 +195,7 @@ function onUpdateFavoriteTools() {
 
         <!--
           常用工具：给新用户一个「从哪开始」的入口。
-          101 个工具平铺时，第一次来的人只会看到一片网格；这 8 个是高频入口。
+          101 个工具平铺时，第一次来的人只会看到一片网格；这里的 10 个由 Keyword Map V1 驱动。
         -->
         <div v-if="popularTools.length > 0">
           <h3 class="mb-5px mt-25px text-neutral-600 dark:text-neutral-400 font-500">
@@ -165,6 +205,49 @@ function onUpdateFavoriteTools() {
             <ToolCard v-for="tool in popularTools" :key="tool.path" :tool="tool" />
           </div>
         </div>
+
+        <!--
+          Why DigDevBox（G-01a）。
+          竞品类型 A 在比工具数量，我们比的是「为什么在这里做」。
+          四条都必须是已实现的事实，不写 roadmap 上的东西。
+        -->
+        <section class="home-block">
+          <h2 class="home-block-title">
+            {{ $t('home.why.title') }}
+          </h2>
+          <ul class="home-why-list">
+            <li v-for="key in WHY_POINT_KEYS" :key="key" class="home-why-item">
+              {{ $t(key) }}
+            </li>
+          </ul>
+        </section>
+
+        <!--
+          Privacy（G-01a）。按工具实际能力分层 —— 不做「数据一律不上传」的绝对化声明。
+          联网工具清单由 NETWORK_TOOL_PATHS 驱动（构建期 grep 的真实结果），
+          新增会发外部请求的工具必须同步改那个常量，否则这里的声明就是假的。
+        -->
+        <section class="home-block">
+          <h2 class="home-block-title">
+            {{ $t('home.privacy.title') }}
+          </h2>
+          <p class="home-block-text">
+            {{ $t('home.privacy.local') }}
+          </p>
+          <p class="home-block-text">
+            {{ $t('home.privacy.networkIntro') }}
+          </p>
+          <div class="home-network-tools">
+            <RouterLink
+              v-for="tool in networkTools"
+              :key="tool.path"
+              class="home-network-chip"
+              :to="tool.path"
+            >
+              {{ tool.name }}
+            </RouterLink>
+          </div>
+        </section>
 
         <transition name="height">
           <div v-if="toolStore.favoriteTools.length > 0">
@@ -274,6 +357,88 @@ function onUpdateFavoriteTools() {
     font-size: 14px;
     line-height: 1.65;
     opacity: 0.65;
+  }
+}
+
+/* G-01a：Why DigDevBox + Privacy 两个信任区块。
+   390px 下单列、chip 换行，不引入横向滚动。 */
+.home-block {
+  margin-top: 25px;
+
+  .home-block-title {
+    margin: 0 0 8px;
+
+    font-size: 15px;
+    font-weight: 600;
+  }
+
+  .home-block-text {
+    max-width: 760px;
+    margin: 0 0 6px;
+
+    font-size: 13px;
+    line-height: 1.65;
+    opacity: 0.7;
+  }
+}
+
+.home-why-list {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+
+  list-style: none;
+  grid-template-columns: 1fr;
+
+  @media (min-width: 768px) {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.home-why-item {
+  position: relative;
+  padding-left: 14px;
+
+  font-size: 13px;
+  line-height: 1.6;
+  opacity: 0.75;
+
+  &::before {
+    position: absolute;
+    top: 8px;
+    left: 0;
+
+    width: 5px;
+    height: 5px;
+
+    border-radius: 50%;
+    background: rgba(24, 160, 88, 0.85);
+
+    content: '';
+  }
+}
+
+.home-network-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.home-network-chip {
+  padding: 4px 10px;
+
+  border: 1px solid rgba(128, 128, 128, 0.35);
+  border-radius: 999px;
+  background: rgba(128, 128, 128, 0.06);
+
+  color: inherit;
+  font-size: 12px;
+  text-decoration: none;
+
+  &:hover {
+    border-color: rgba(24, 160, 88, 0.8);
   }
 }
 
