@@ -83,6 +83,7 @@ export const GUIDES: Record<string, ToolGuide> = {
     intro: '生成或校验 BIP39 助记词，也能从助记词推出种子。玩钱包、做密钥管理时用。',
     steps: ['选择助记词长度（常见 12 词）', '点生成得到助记词', '已有助记词时粘进去可以校验并推导种子'],
     notes: ['助记词等于私钥，生成后请离线保存，不要粘到任何在线工具里长期留存'],
+    example: { label: '填入示例熵', text: '1a2b3c4d5e6f7a8b' },
   },
 
   '/camera-recorder': {
@@ -193,6 +194,7 @@ export const GUIDES: Record<string, ToolGuide> = {
   '/eta-calculator': {
     intro: '按当前进度估算任务完成时刻，看下载或批处理还剩多久时很直观。',
     steps: ['填已完成的量', '填总量', '看预计完成时间'],
+    example: { label: '填入示例数量', text: '500' },
   },
 
   '/git-memo': {
@@ -266,6 +268,7 @@ export const GUIDES: Record<string, ToolGuide> = {
     intro: '给定起止 IP，算出覆盖这段范围的最简 CIDR 列表，整理防火墙规则时很实用。',
     steps: ['填起始 IP', '填结束 IP', '看生成的 CIDR 列表'],
     notes: ['起止 IP 不构成连续块时会拆成多个 CIDR，这是正常的'],
+    example: { label: '填入示例起始 IP', text: '10.0.0.1' },
   },
 
   '/ipv4-subnet-calculator': {
@@ -279,6 +282,7 @@ export const GUIDES: Record<string, ToolGuide> = {
     intro: '按 RFC 4193 生成局域网用的 IPv6 唯一本地地址（ULA），给内网设备编址时用。',
     steps: ['点生成得到前缀', '按需要拼上子网和接口 ID', '复制使用'],
     notes: ['ULA 类似 IPv4 私网地址，不能在公网路由'],
+    example: { label: '粘贴示例 MAC 地址', text: '00:11:22:33:44:55' },
   },
 
   '/json-diff': {
@@ -441,12 +445,14 @@ export const GUIDES: Record<string, ToolGuide> = {
     intro: '生成 Open Graph 和社交平台的 meta 标签，做分享卡片时用。',
     steps: ['填标题、描述、图片地址和链接', '点生成', '把给出的 meta 标签粘到页面 head 里'],
     notes: ['分享平台会缓存卡片，改完可能需要用平台工具刷新缓存'],
+    example: { label: '填入示例站点标题', text: 'My Awesome Site' },
   },
 
   '/otp-generator': {
     intro: '生成并校验基于时间的一次性密码（TOTP），对接两步验证时用。',
     steps: ['填入密钥（Base32 形式）', '点生成得到当前验证码', '校验时把对方给的码填进去比对'],
     notes: ['TOTP 依赖设备时间，时间差太大会导致验证码一直不匹配'],
+    example: { label: '粘贴示例 Base32 密钥', text: 'JBSWY3DPEHPK3PXP' },
   },
 
   '/password-strength-analyser': {
@@ -557,6 +563,7 @@ export const GUIDES: Record<string, ToolGuide> = {
   '/temperature-converter': {
     intro: '摄氏度、华氏度、开尔文等温标互转。',
     steps: ['在任意一个温标里填数值', '其余温标自动换算', '复制需要的结果'],
+    example: { label: '填入示例温度', text: '100' },
   },
 
   '/text-diff': {

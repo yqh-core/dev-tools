@@ -91,6 +91,7 @@ export const GUIDES: Record<string, ToolGuide> = {
     intro: 'Generates or validates BIP39 mnemonic phrases, and derives the seed from a mnemonic. Useful for wallets and key management.',
     steps: ['Choose the mnemonic length (12 words is common)', 'Click generate to get the phrase', 'With an existing phrase, paste it in to validate and derive the seed'],
     notes: ['A mnemonic is equivalent to a private key: store it offline and never leave it in an online tool'],
+    example: { label: 'Fill in a sample entropy', text: '1a2b3c4d5e6f7a8b' },
   },
 
   '/camera-recorder': {
@@ -201,6 +202,7 @@ export const GUIDES: Record<string, ToolGuide> = {
   '/eta-calculator': {
     intro: 'Estimates when a task will finish based on current progress — a clear way to see how much longer a download or batch job needs.',
     steps: ['Enter the amount completed', 'Enter the total amount', 'Read the estimated completion time'],
+    example: { label: 'Fill in a sample amount', text: '500' },
   },
 
   '/git-memo': {
@@ -274,6 +276,7 @@ export const GUIDES: Record<string, ToolGuide> = {
     intro: 'Given a start and end IP, computes the minimal list of CIDR blocks covering that range — very practical when tidying firewall rules.',
     steps: ['Enter the start IP', 'Enter the end IP', 'Read the generated CIDR list'],
     notes: ['If the range is not a contiguous block it is split into several CIDRs — that is expected'],
+    example: { label: 'Fill in a sample start IP', text: '10.0.0.1' },
   },
 
   '/ipv4-subnet-calculator': {
@@ -287,6 +290,7 @@ export const GUIDES: Record<string, ToolGuide> = {
     intro: 'Generates an IPv6 Unique Local Address (ULA) prefix per RFC 4193 for local networks — handy for addressing internal devices.',
     steps: ['Click generate to get a prefix', 'Combine it with a subnet and interface ID as needed', 'Copy and use it'],
     notes: ['A ULA is the IPv6 counterpart of a private IPv4 range and must not be routed on the public internet'],
+    example: { label: 'Paste a sample MAC address', text: '00:11:22:33:44:55' },
   },
 
   '/json-diff': {
@@ -449,12 +453,14 @@ export const GUIDES: Record<string, ToolGuide> = {
     intro: 'Generates Open Graph and social-platform meta tags for share cards.',
     steps: ['Enter the title, description, image URL and link', 'Click generate', 'Paste the resulting meta tags into your page head'],
     notes: ['Platforms cache share cards, so you may need their debug tool to refresh the cache after a change'],
+    example: { label: 'Fill in a sample site title', text: 'My Awesome Site' },
   },
 
   '/otp-generator': {
     intro: 'Generates and verifies time-based one-time passwords (TOTP) for two-factor authentication setups.',
     steps: ['Enter the secret (Base32)', 'Click generate to get the current code', 'To verify, enter the code the other party provided and compare'],
     notes: ['TOTP depends on the device clock — too large a time difference makes codes fail to match indefinitely'],
+    example: { label: 'Paste a sample Base32 secret', text: 'JBSWY3DPEHPK3PXP' },
   },
 
   '/password-strength-analyser': {
@@ -565,6 +571,7 @@ export const GUIDES: Record<string, ToolGuide> = {
   '/temperature-converter': {
     intro: 'Converts between Celsius, Fahrenheit, Kelvin and other temperature scales.',
     steps: ['Enter a value on any scale', 'The other scales update automatically', 'Copy the result you need'],
+    example: { label: 'Fill in a sample temperature', text: '100' },
   },
 
   '/text-diff': {
