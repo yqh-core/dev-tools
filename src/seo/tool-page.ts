@@ -22,6 +22,7 @@ import { GUIDES } from '@/tools/guides.en';
 import { GUIDES as GUIDES_ZH } from '@/tools/guides.zh';
 import type { ToolGuide } from '@/tools/guides.types';
 import { toolsWithCategory } from '@/tools';
+import { CLUSTER_IDS, TOOL_CLUSTERS, clusterOf, resolveRelated, resolveWorkflow } from './clusters';
 
 export interface ToolSeoEntry {
   /** 工具路由，不带尾斜杠，如 `/uuid-generator`。 */
@@ -34,12 +35,23 @@ export interface ToolSeoEntry {
   category: string
   /** 人工编写的使用说明；无则为 null，此时骨架不输出使用说明段落。 */
   guide: ToolGuide | null
-  /** 同分类的其它工具，用于页内互链（提升重要页面的内部可发现性）。 */
+  /**
+   * 同任务（簇）优先的相关工具，簇内不足时由同分类补齐。
+   *
+   * 旧的「同分类前 8」会把 `/json-prettify` 链向 `/git-memo`（同属 Development），
+   * 对用户毫无意义，也把内链权重散给不相干页面。详见 `src/seo/clusters.ts`。
+   */
   related: { path: string, name: string }[]
+  /** 所属任务簇 id（i18n 词条 `clusters.<id>`）；不属于任何簇时为 null。 */
+  cluster: string | null
+  /** 同簇的完整工作流链条（含当前项标记）；不属于任何簇时为空数组。 */
+  workflow: { path: string, name: string, current: boolean }[]
 }
 
-/** 同分类互链的条数上限：只做「相邻工具发现」，不做全站链接堆砌。 */
-const MAX_RELATED = 8;
+/** 同簇互链的条数上限：只做「相邻工具发现」，不做全站链接堆砌。 */
+const MAX_RELATED = 6;
+/** 工作流链条的最大节点数：再长就不是「流程」而是目录了。 */
+const MAX_WORKFLOW = 8;
 
 /**
  * 被用作重定向源的路径（`redirectFrom`）。
@@ -53,14 +65,6 @@ const REDIRECT_SOURCES = new Set(
 );
 
 function buildEntries(): ToolSeoEntry[] {
-  // 同分类索引：related 需要「同分类、排除自身」。
-  const byCategory = new Map<string, { path: string, name: string }[]>();
-  for (const tool of toolsWithCategory) {
-    const list = byCategory.get(tool.category) ?? [];
-    list.push({ path: tool.path, name: tool.name });
-    byCategory.set(tool.category, list);
-  }
-
   const seen = new Set<string>();
   const entries: ToolSeoEntry[] = [];
 
@@ -91,15 +95,28 @@ function buildEntries(): ToolSeoEntry[] {
       );
     }
 
+    const related = resolveRelated({
+      path,
+      category: tool.category,
+      tools: toolsWithCategory,
+      max: MAX_RELATED,
+    }).map(({ path: p, name }) => ({ path: p, name }));
+
+    const workflow = resolveWorkflow({
+      path,
+      tools: toolsWithCategory,
+      max: MAX_WORKFLOW,
+    }).map(({ item, current }) => ({ path: item.path, name: item.name, current }));
+
     entries.push({
       path,
       name: String(tool.name ?? '').trim(),
       description,
       category: tool.category,
       guide: GUIDES[path] ?? null,
-      related: (byCategory.get(tool.category) ?? [])
-        .filter(item => item.path !== path)
-        .slice(0, MAX_RELATED),
+      related,
+      cluster: workflow.length > 0 ? (clusterOf(path)?.id ?? null) : null,
+      workflow,
     });
   }
 
@@ -168,6 +185,44 @@ export function auditToolSeoData() {
     throw new Error(`[seo/tool-page] about/faqs 语言数据不成对: ${contentGaps.join('; ')}`);
   }
 
+  // —— 簇数据校验（src/seo/clusters.ts）——
+  // 簇是手工维护的数据，写错 path 不会报错、只会静默少一条内链，
+  // 所以必须在构建期把它变成硬失败。
+  const clusterProblems: string[] = [];
+  for (const { id, members } of TOOL_CLUSTERS) {
+    const dup = new Set<string>();
+    for (const member of members) {
+      if (!BY_PATH.has(member)) {
+        clusterProblems.push(`簇 ${id} 的成员 ${member} 不是真实工具路径`);
+      }
+      if (dup.has(member)) {
+        clusterProblems.push(`簇 ${id} 的成员 ${member} 重复`);
+      }
+      dup.add(member);
+    }
+  }
+  if (clusterProblems.length > 0) {
+    throw new Error(`[seo/tool-page] 簇数据有问题: ${clusterProblems.join('; ')}`);
+  }
+
+  // 内链自检：related 不能为空、不能自指 —— 这正是「簇写错 / 分类为空」时
+  // 最容易静默退化成空区块的地方，而空区块在界面上看不出任何异常。
+  const linkProblems: string[] = [];
+  for (const entry of TOOL_SEO_PAGES) {
+    if (entry.related.length === 0) {
+      linkProblems.push(`${entry.path}: related 为空`);
+    }
+    if (entry.related.some(item => item.path === entry.path)) {
+      linkProblems.push(`${entry.path}: related 含自身`);
+    }
+    if (entry.workflow.length > 0 && entry.workflow.filter(item => item.current).length !== 1) {
+      linkProblems.push(`${entry.path}: workflow 里当前项不是恰好一个`);
+    }
+  }
+  if (linkProblems.length > 0) {
+    throw new Error(`[seo/tool-page] 内链数据有问题: ${linkProblems.join('; ')}`);
+  }
+
   return {
     total: TOOL_SEO_PAGES.length,
     withGuide: TOOL_SEO_PAGES.length - withoutGuide.length,
@@ -176,5 +231,8 @@ export function auditToolSeoData() {
     guideLocales: ['en', 'zh'] as const,
     withAbout: TOOL_SEO_PAGES.filter(entry => entry.guide?.about).length,
     withFaqs: TOOL_SEO_PAGES.filter(entry => entry.guide?.faqs?.length).length,
+    // 簇覆盖：x/101。数字掉下来 = 有工具被移出簇或簇数据丢了，肉眼可见。
+    withCluster: TOOL_SEO_PAGES.filter(entry => entry.cluster).length,
+    clusterIds: CLUSTER_IDS,
   };
 }

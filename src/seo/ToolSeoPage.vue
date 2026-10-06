@@ -117,6 +117,24 @@ const box = 'max-width:800px;margin:0 auto;padding:32px 16px;box-sizing:border-b
       <span v-if="!entry.guide">{{ t('seo.guideMissing') }}</span>
     </p>
 
+    <!--
+      工作流链条：与真实工具页的 workflow 区块读同一份簇数据（src/seo/clusters.ts），
+      链接集合与顺序逐字一致 —— 骨架不写任何真实页面上没有的内容。
+      「当前工具」在真实页上是高亮态，这里用 <strong> 表达同一事实。
+    -->
+    <section v-if="entry.workflow.length" class="dd-tool-workflow" style="margin:0 0 24px">
+      <h2 style="font-size:16px;font-weight:500;opacity:.8;margin:0 0 10px">
+        {{ t('tool.workflowTitle', { cluster: t(`clusters.${entry.cluster}`) }) }}
+      </h2>
+      <p style="margin:0;font-size:15px;line-height:2.2">
+        <template v-for="(node, index) in entry.workflow" :key="node.path">
+          <span v-if="index > 0" style="opacity:.4"> → </span>
+          <strong v-if="node.current" style="font-weight:600">{{ node.name }}</strong>
+          <a v-else :href="`${node.path}/`" style="color:inherit">{{ node.name }}</a>
+        </template>
+      </p>
+    </section>
+
     <section v-if="entry.related.length" class="dd-tool-related">
       <h2 style="font-size:16px;font-weight:500;opacity:.8;margin:0 0 10px">
         {{ t('tool.relatedTitle') }}

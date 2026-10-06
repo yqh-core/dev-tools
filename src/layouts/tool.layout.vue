@@ -14,6 +14,7 @@ import type { Tool } from '@/tools/tools.types';
 // 两份说明各自是懒加载 chunk，不会把几十 KB 文案打进主包。
 import { loadGuides } from '@/tools/guides';
 import type { ToolGuide } from '@/tools/guides';
+import { clusterOf, resolveRelated, resolveWorkflow } from '@/seo/clusters';
 
 const route = useRoute();
 
@@ -63,13 +64,35 @@ watch(
   },
   { immediate: true },
 );
+/**
+ * 相关工具：同任务簇优先，簇内不够再由同分类补齐。
+ *
+ * 旧规则是「同分类前 8」，于是 `/json-prettify`（Development）的相关工具里出现
+ * `/git-memo`、`/chmod-calculator` —— 分类是数据库视角，不是用户任务视角。
+ * 簇定义见 `src/seo/clusters.ts`；构建期骨架（`ToolSeoPage`）读同一份数据，
+ * 因此预渲染 HTML 与客户端页面的链接集合逐条一致。
+ */
 const relatedTools = computed(() =>
-  currentCategory.value
-    ? toolStore.tools
-        .filter(tool => tool.category === currentCategory.value && tool.path !== toolPath.value)
-        .slice(0, 8)
-    : [],
+  resolveRelated({
+    path: toolPath.value,
+    category: currentCategory.value,
+    tools: toolStore.tools,
+    max: 6,
+  }),
 );
+
+/**
+ * 工作流链条：当前工具所在簇的完整顺序（含「你在这里」标记）。
+ * 不属于任何簇时为空 —— 此时不渲染区块，而不是退化成同分类列表。
+ */
+const workflowNodes = computed(() =>
+  resolveWorkflow({ path: toolPath.value, tools: toolStore.tools, max: 8 }),
+);
+
+const clusterLabel = computed<string>(() => {
+  const id = clusterOf(toolPath.value)?.id;
+  return id ? t(`clusters.${id}`, id) : '';
+});
 
 // 去掉**全部**斜杠拼 i18n key（与 tools.store.ts 的 toolI18nKey 保持同一写法）。
 // 只 replace 第一个 '/' 会让 key 变成 `hash-text/`，任何语言文件里都不存在这种 key。
@@ -174,40 +197,110 @@ watch(() => route.path, () => {
 });
 
 /**
- * 把示例文本填进页面的第一个输入框。
+ * 主输入控件：工具内容区里第一个可编辑控件。
  *
- * 工具页没有统一的输入组件，这里按「主内容区第一个可编辑控件」定位，
- * 并用原生 setter + input 事件赋值 —— 直接改 el.value 不会触发 Vue 的响应式更新。
+ * 工具页没有统一的输入组件契约（101 个工具各自实现），这里按「主内容区第一个
+ * 可编辑控件」定位，只用于**模板层能统一提供的动作**（填示例 / 清空），
+ * 不据此断言任何输出 —— 输出形态差异太大，猜出来的复制按钮必然有失败模式。
  */
-function applyExample() {
+function findPrimaryInput(): HTMLTextAreaElement | HTMLInputElement | null {
   const root = document.querySelector('.tool-content');
-  if (!root || !guide.value?.example) {
-    return;
+  if (!root) {
+    return null;
   }
-
-  const el = root.querySelector(
+  return root.querySelector(
     'textarea, input[type="text"], input[type="search"], input[type="number"], input:not([type])',
   ) as HTMLTextAreaElement | HTMLInputElement | null;
+}
 
-  if (!el) {
-    return;
-  }
-
+/**
+ * 写入输入控件的值。
+ *
+ * 必须用原生 setter + input 事件：直接改 `el.value` 不会触发 Vue 的响应式更新，
+ * 界面上看起来「点了没反应」，而数据层其实已经变了 —— 这类假象最难排查。
+ */
+function setInputValue(el: HTMLTextAreaElement | HTMLInputElement, value: string) {
   const proto = Object.getPrototypeOf(el);
   const setter = Object.getOwnPropertyDescriptor(proto, 'value')?.set;
   if (setter) {
-    setter.call(el, guide.value.example.text);
+    setter.call(el, value);
   }
   else {
-    el.value = guide.value.example.text;
+    el.value = value;
   }
-
   el.dispatchEvent(new Event('input', { bubbles: true }));
+}
+
+/** 填示例：让第一次打开工具的人不用面对空白输入框。 */
+function applyExample() {
+  const el = findPrimaryInput();
+  if (!el || !guide.value?.example) {
+    return;
+  }
+  setInputValue(el, guide.value.example.text);
   exampleApplied.value = true;
   setTimeout(() => {
     exampleApplied.value = false;
   }, 2000);
 }
+
+/** 清空：换下一份数据时不用逐字选中删除。 */
+function clearInput() {
+  const el = findPrimaryInput();
+  if (!el) {
+    return;
+  }
+  setInputValue(el, '');
+}
+
+/**
+ * 分享：把当前工具页链接复制到剪贴板。
+ *
+ * 三态（idle / done / failed）而不是「点了就算成功」：剪贴板 API 在非安全上下文、
+ * 无用户手势、权限被拒时都会抛错，静默吞掉会让用户以为已经复制成功，
+ * 粘贴时才发现是旧内容。失败也要明说（文案里告诉他从地址栏复制）。
+ */
+const shareState = ref<'idle' | 'done' | 'failed'>('idle');
+
+async function shareLink() {
+  const url = window.location.href;
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(url);
+    }
+    else {
+      // 老浏览器 / 非安全上下文没有 clipboard API，退回 execCommand。
+      const ta = document.createElement('textarea');
+      ta.value = url;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.append(ta);
+      ta.select();
+      const ok = document.execCommand('copy');
+      ta.remove();
+      if (!ok) {
+        throw new Error('execCommand copy 返回 false');
+      }
+    }
+    shareState.value = 'done';
+  }
+  catch {
+    shareState.value = 'failed';
+  }
+  setTimeout(() => {
+    shareState.value = 'idle';
+  }, 2000);
+}
+
+const shareLabel = computed(() => {
+  if (shareState.value === 'done') {
+    return t('tool.actionShareDone');
+  }
+  if (shareState.value === 'failed') {
+    return t('tool.actionShareFailed');
+  }
+  return t('tool.actionShare');
+});
 </script>
 
 <template>
@@ -236,6 +329,29 @@ function applyExample() {
 
         <div class="description">
           {{ toolDescription }}
+        </div>
+
+        <!--
+          工具动作条：填示例 / 清空 / 分享。
+          放在说明面板**外面**：说明默认折叠，如果示例按钮也跟着折叠，
+          第一次打开工具的人面对的就是一个空白输入框 —— 那不是「简洁」，是没引导。
+        -->
+        <div class="actions">
+          <button
+            v-if="guide?.example"
+            class="action-btn action-example"
+            type="button"
+            @click="applyExample"
+          >
+            {{ exampleApplied ? $t('tool.guideExampleApplied') : guide.example.label }}
+          </button>
+          <button class="action-btn" type="button" @click="clearInput">
+            {{ $t('tool.actionClear') }}
+          </button>
+          <button class="action-btn" type="button" @click="shareLink">
+            {{ shareLabel }}
+          </button>
+          <span v-if="guide?.example" class="action-tip">{{ $t('tool.guideExampleTip') }}</span>
         </div>
 
         <div v-if="guide" class="guide">
@@ -270,12 +386,7 @@ function applyExample() {
               </li>
             </ol>
 
-            <div v-if="guide.example" class="guide-example">
-              <button class="guide-example-btn" type="button" @click="applyExample">
-                {{ exampleApplied ? $t('tool.guideExampleApplied') : guide.example.label }}
-              </button>
-              <span class="guide-example-tip">{{ $t('tool.guideExampleTip') }}</span>
-            </div>
+            <!-- 示例按钮已移到折叠面板外的动作条（见 .actions），这里不再重复 -->
 
             <ul v-if="guide.notes?.length" class="guide-notes">
               <li v-for="(note, index) in guide.notes" :key="index">
@@ -299,6 +410,26 @@ function applyExample() {
 
     <div class="tool-content">
       <slot />
+    </div>
+
+    <!--
+      工作流链条：告诉用户「这件事的完整流程长什么样」，并给相邻步骤可直接点的入口。
+      与相关工具的区别 —— related 是「你可能还需要什么」（排除自身、可兜底），
+      workflow 是「流程本身」（包含自身、只取簇内、不兜底）。没有簇就不渲染。
+    -->
+    <div v-if="workflowNodes.length" class="workflow">
+      <h3 class="workflow-head">{{ $t('tool.workflowTitle', { cluster: clusterLabel }) }}</h3>
+      <div class="workflow-chain">
+        <template v-for="(node, index) in workflowNodes" :key="node.item.path">
+          <span v-if="index > 0" class="workflow-arrow">→</span>
+          <span v-if="node.current" class="workflow-current" :title="$t('tool.workflowCurrent')">
+            {{ node.item.name }}
+          </span>
+          <RouterLink v-else class="workflow-link" :to="node.item.path">
+            {{ node.item.name }}
+          </RouterLink>
+        </template>
+      </div>
     </div>
 
     <div v-if="relatedTools.length" class="related">
@@ -387,7 +518,94 @@ function applyExample() {
   }
 }
 
-/* 同类相关工具推荐 */
+/* 工具动作条：填示例 / 清空 / 分享 */
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+
+  margin-top: 12px;
+
+  .action-btn {
+    padding: 5px 12px;
+    border: 1px solid rgba(128, 128, 128, 0.45);
+    border-radius: 4px;
+
+    background: none;
+    color: inherit;
+    cursor: pointer;
+
+    font-size: 13px;
+
+    &:hover {
+      border-color: rgba(24, 160, 88, 0.8);
+      background: rgba(24, 160, 88, 0.1);
+    }
+  }
+
+  .action-example {
+    border-color: rgba(24, 160, 88, 0.8);
+    background: rgba(24, 160, 88, 0.1);
+  }
+
+  .action-tip {
+    opacity: 0.55;
+    font-size: 12px;
+  }
+}
+
+/* 工作流链条：同簇步骤按顺序串起来，当前步骤高亮 */
+.workflow {
+  max-width: 600px;
+  margin: 0 auto;
+  box-sizing: border-box;
+  padding-top: 24px;
+
+  .workflow-head {
+    margin: 0 0 10px;
+
+    font-size: 15px;
+    font-weight: 500;
+    opacity: 0.75;
+  }
+
+  .workflow-chain {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+
+    font-size: 14px;
+    line-height: 2;
+  }
+
+  .workflow-arrow {
+    opacity: 0.4;
+  }
+
+  .workflow-link {
+    color: inherit;
+    opacity: 0.8;
+    text-decoration: none;
+
+    &:hover {
+      opacity: 1;
+      text-decoration: underline;
+    }
+  }
+
+  .workflow-current {
+    padding: 2px 8px;
+    border-radius: 4px;
+
+    background: rgba(24, 160, 88, 0.14);
+    color: inherit;
+    font-weight: 500;
+  }
+}
+
+/* 相关工具：同任务簇优先（见 resolveRelated） */
 .related {
   max-width: 600px;
   margin: 0 auto;
@@ -498,35 +716,7 @@ function applyExample() {
     }
   }
 
-  .guide-example {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 8px;
-
-    margin-top: 12px;
-
-    .guide-example-btn {
-      padding: 5px 12px;
-      border: 1px solid rgba(24, 160, 88, 0.8);
-      border-radius: 4px;
-
-      background: rgba(24, 160, 88, 0.1);
-      color: inherit;
-      cursor: pointer;
-
-      font-size: 13px;
-
-      &:hover {
-        background: rgba(24, 160, 88, 0.2);
-      }
-    }
-
-    .guide-example-tip {
-      opacity: 0.55;
-      font-size: 12px;
-    }
-  }
+  /* .guide-example 的按钮已移到折叠面板外的动作条（.actions），样式随之移出 */
 
   .guide-notes {
     margin: 12px 0 0;

@@ -52,6 +52,19 @@ const label = (dotted) => {
   }
   return v;
 };
+
+/**
+ * 另一份语言的词条存在性校验（只读，不参与渲染）。
+ *
+ * 预渲染只走默认语言，但**词条缺失**必须在构建期拦下：簇名是真页面上会渲染的文案，
+ * 少一种语言时该语言的 workflow 区块标题会直接显示 key（`clusters.json`），
+ * 界面上不报错、肉眼才看得见 —— 与 guides en/zh 不成对是同一类缺陷。
+ */
+const messagesZh = parse(await readFile(join(root, 'locales/zh.yml'), 'utf8'));
+const hasZh = (dotted) => {
+  const v = dotted.split('.').reduce((o, k) => (o == null ? o : o[k]), messagesZh);
+  return typeof v === 'string' && v.trim().length > 0;
+};
 // 与客户端真实页脚的链接集合一致：首页 / 关于 + 3 个法务页。
 const FOOTER_LINKS = [
   { href: '/', text: label('home.home') },
@@ -167,6 +180,27 @@ function buildSoftwareApplicationLd(entry, canonical) {
 }
 
 /**
+ * 工具页的 BreadcrumbList 结构化数据。
+ *
+ * 只放「首页 → 当前工具」两级，不编造分类层级：本站**没有**分类落地页
+ * （面包屑里的分类是纯文本，点不了），给它编一个 URL 会让结构化数据与站点
+ * 实际结构不符 —— 那正是结构化数据最容易踩的坑。
+ *
+ * 与页面上的面包屑（ToolSeoPage / tool.layout）指向同一个事实：
+ * 首页可达、当前页自指。
+ */
+function buildBreadcrumbLd(entry, canonical, homeUrl) {
+  return JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: homeUrl },
+      { '@type': 'ListItem', position: 2, name: entry.name, item: canonical },
+    ],
+  });
+}
+
+/**
  * 工具页的 FAQPage 结构化数据。
  *
  * 只给配置了 guide.faqs 的工具页注入，且问题与答案取自 guides 数据本身 ——
@@ -203,6 +237,19 @@ try {
     console.log(`[tools] 待补说明（正文仍有 H1/简介/描述，不虚构、不凑字数）: ${audit.withoutGuide.join(' ')}`);
   }
   console.log(`[tools] 知识内容覆盖：about ${audit.withAbout}/${audit.total}，faqs ${audit.withFaqs}/${audit.total}`);
+
+  // 簇名必须两种语言都有：预渲染只走 en，缺 zh 时中文页面的 workflow 标题会直接
+  // 显示成 `clusters.json`（不报错、只有肉眼可见），所以在构建期拦死。
+  for (const id of audit.clusterIds) {
+    label(`clusters.${id}`);
+    if (!hasZh(`clusters.${id}`)) {
+      throw new Error(`[build-seo] locales/zh.yml 缺少词条 clusters.${id}（en 有、zh 没有）`);
+    }
+  }
+  console.log(
+    `[tools] 任务簇覆盖：${audit.withCluster}/${audit.total} 个工具页有工作流区块`
+    + `（簇 ${audit.clusterIds.length} 个：${audit.clusterIds.join(', ')}）`,
+  );
 
   const staticPaths = new Set(STATIC_ROUTES.map(({ path }) => path));
   const collide = TOOL_SEO_PAGES.filter(({ path }) => staticPaths.has(path));
@@ -282,11 +329,13 @@ try {
     const canonical = canonicalUrl(path);
     // 先剥注释再注入：dev 模式下 Vue 会把模板注释输出到渲染结果里（见 stripComments）
     const html = stripComments(rawHtml);
-    // 工具页在 page-seo 区块尾部追加 SoftwareApplication JSON-LD（见函数注释）
+    // 工具页在 page-seo 区块尾部追加 SoftwareApplication / BreadcrumbList JSON-LD（见函数注释）
     // 注意 faqs 挂在 entry.guide.faqs（ToolGuide 的字段），不是 entry.faqs
     const entry = kind === 'tool' ? TOOL_SEO_PAGES.find(item => item.path === path) : undefined;
     let pageTags = kind === 'tool'
-      ? `${headTags}\n      <script type="application/ld+json">${buildSoftwareApplicationLd(entry, canonical)}</script>`
+      ? `${headTags}`
+        + `\n      <script type="application/ld+json">${buildSoftwareApplicationLd(entry, canonical)}</script>`
+        + `\n      <script type="application/ld+json">${buildBreadcrumbLd(entry, canonical, SITE_ORIGIN + '/')}</script>`
       : headTags;
     if (entry?.guide?.faqs?.length) {
       pageTags += `\n      <script type="application/ld+json">${buildFaqPageLd(entry)}</script>`;
@@ -336,6 +385,23 @@ try {
       if (bodyText < 60) { problems.push(`正文过短 text=${bodyText}`); }
       // SoftwareApplication JSON-LD 必须真的进了初始 HTML（防 replaceOnce 静默失效）
       if (!out.includes('"@type":"SoftwareApplication"')) { problems.push('JSON-LD 缺失'); }
+      // 面包屑结构化数据同上：注入链路任何一环断了，这里都会红。
+      if (!out.includes('"@type":"BreadcrumbList"')) { problems.push('BreadcrumbList JSON-LD 缺失'); }
+      // 工作流区块：配了簇就必须真的把链条渲染进正文（防「数据有了、模板没输出」）
+      if (entry.cluster) {
+        const clusterLabel = label(`clusters.${entry.cluster}`);
+        if (!squash(bodyRaw).includes(squash(clusterLabel))) {
+          problems.push(`workflow 簇名不在正文中(${clusterLabel})`);
+        }
+        if (html.split('dd-tool-workflow').length - 1 !== 1) {
+          problems.push('workflow 区块数量异常');
+        }
+        for (const node of entry.workflow) {
+          if (!squash(bodyRaw).includes(squash(node.name))) {
+            problems.push(`workflow 节点不在正文中(${node.name})`);
+          }
+        }
+      }
       // 配了 FAQ 的页面必须带 FAQPage JSON-LD；反之没配的页面不允许出现。
       // 判据字段同样是 entry.guide.faqs —— 这两处曾一致地写错成 entry.faqs，
       // 结果「缺注入」和「防缺注入的检查」一起静默跳过；现在构建日志会打印
