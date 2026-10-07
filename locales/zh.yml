@@ -7,7 +7,13 @@ site:
 home:
   hero:
     title: "免费在线开发者工具"
-    subtitle: "格式化 JSON、解析 JWT、测试正则、转换数据、排查 HTTP —— {count} 个工具全部在浏览器里运行，无需注册，不上传数据。"
+    # S2 裁定：不笼统宣称 browser-only（whois/http-status-checker/today-in-history 需联网）。
+    # browser 能力表述只允许带限定语（默认/少数），与首页 Privacy 区块的分层声明同口径。
+    subtitle: "格式化 JSON、解析 JWT、测试正则、转换数据、排查 HTTP —— {count} 个面向真实工作流的开发者工具，默认在浏览器本地运行，少数工具需要联网查询。"
+    badgeFree: "免费"
+    badgeNoSignup: "无需注册"
+    badgeTools: "{count} 个工具"
+    cta: "浏览全部工具"
   why:
     title: "为什么选择 DigDevBox"
     point1: "在浏览器里运行：免安装、免注册、无付费墙。"

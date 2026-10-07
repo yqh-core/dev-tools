@@ -7,7 +7,14 @@ site:
 home:
   hero:
     title: "Free Online Developer Tools"
-    subtitle: "Format JSON, decode JWTs, test regex, convert data and debug HTTP — {count} tools that run in your browser. No signup, no upload."
+    # S2 裁定：不笼统宣称 browser-only（whois/http-status-checker/today-in-history 需联网）。
+    # browser 能力表述只允许带限定语（by default / a few require a network query），
+    # 与首页 Privacy 区块的分层声明同口径。
+    subtitle: "Format JSON, decode JWTs, test regex, convert data and debug HTTP — {count} developer tools for real workflows. Tools run locally in your browser by default; a few require a network query."
+    badgeFree: "Free"
+    badgeNoSignup: "No signup"
+    badgeTools: "{count} tools"
+    cta: "Browse all tools"
   why:
     title: "Why DigDevBox"
     point1: "Runs in your browser: no install, no signup, no paywall."

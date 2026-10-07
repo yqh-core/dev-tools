@@ -55,7 +55,9 @@ const isSearching = computed(() => normalizedQuery.value.length > 0);
  * 2026-10-06（G-01a）清单从「随手挑八个」改为**由 Keyword Map V1 驱动**：
  * 排序依据是 27 次真实 SERP 检索后的竞争可切入度 + 工具契合度，见
  * D:/work/_ops/digdevbox-keyword-map-v1.md。
- * 被换掉的三个：/hash-text（同质化最高，域名即关键词的垂直站已占位）、
+ * 2026-10-07（S2 裁定②）：/regex-memo（S1-a 七个 P0 页之一）换出
+ * /chmod-calculator；Popular 保持固定 10 张，不扩容。
+ * 早期被换掉的三个：/hash-text（同质化最高，域名即关键词的垂直站已占位）、
  * /token-generator（无关键词证据）、/qrcode-generator（本轮未做 SERP 研究）。
  *
  * 这些 path 全部经过 sitemap 核对 —— 例如「JSON 格式化」的真实 path 是
@@ -70,7 +72,7 @@ const POPULAR_TOOL_PATHS = [
   '/uuid-generator',
   '/ulid-generator',
   '/date-converter',
-  '/chmod-calculator',
+  '/regex-memo',
   '/crontab-generator',
   '/docker-run-to-docker-compose-converter',
 ];
@@ -108,26 +110,61 @@ const WHY_POINT_KEYS = [
 ];
 
 /**
- * 首页 Blog 区块的文章卡片（S3）。
+ * 首页 Blog 区块的文章卡片（S3 集成、S2 上移+视觉升级）。
  *
  * 标题必须与 forge-notes 线上文章 frontmatter title 逐字一致（2026-10-07 核对），
  * URL 形态 = https://notes.digdevbox.com/posts/<slug>。新文章上线后手动增补，
  * 下线文章必须同步移除 —— 外链 404 比少一篇卡片伤害大。
+ * tag 是从文章标题派生的真实归类（非虚构栏目），与文章语言一致用中文。
  */
 const BLOG_POSTS = [
   {
     title: '前端性能优化实战：提升网站速度与转化率',
     url: 'https://notes.digdevbox.com/posts/frontend-performance-optimization',
+    tag: '性能优化',
   },
   {
     title: '谷歌 SEO 优化完整指南：从零到排名第一',
     url: 'https://notes.digdevbox.com/posts/google-seo-guide',
+    tag: 'SEO',
   },
   {
     title: 'VitePress 入门指南',
     url: 'https://notes.digdevbox.com/posts/vitepress-guide',
+    tag: '工具链',
   },
 ];
+
+/**
+ * Hero CTA（S2）：滚动到分类浏览区。
+ * 用 button 而不是 <a href="#home-categories">：vue-router 会对同路径 hash 变化
+ * 做路由解析，边界行为不可控。
+ *
+ * 不用 Element.scrollIntoView 而显式查找最近可滚祖先：本站是 naive-ui 双层
+ * n-layout 嵌套（外层菜单 layout + 内层内容 layout），中间隔着 overflow:hidden 层，
+ * 真实滚动容器是内层 .n-layout-scroll-container。scrollIntoView 的滚动链在这类
+ * 嵌套结构上跨浏览器行为不一致（Chrome/154 实测在 CDP 验证窗口中不推进），
+ * 显式祖先查找 + scrollTo 只依赖确定性 API，行为可预期。
+ * smooth 动画依赖 rAF；CDP 失焦窗口 rAF 冻结属测试环境限制，真实前台不受影响。
+ */
+function scrollToCategories() {
+  const target = document.getElementById('home-categories');
+  if (!target) {
+    return;
+  }
+  let el: HTMLElement | null = target.parentElement;
+  while (el) {
+    const style = getComputedStyle(el);
+    if (/(auto|scroll)/.test(style.overflowY) && el.scrollHeight > el.clientHeight) {
+      const delta = target.getBoundingClientRect().top - el.getBoundingClientRect().top;
+      el.scrollTo({ top: el.scrollTop + delta - 12, behavior: 'smooth' });
+      return;
+    }
+    el = el.parentElement;
+  }
+  // 兜底：结构未知时退回原生行为
+  target.scrollIntoView({ behavior: 'smooth' });
+}
 
 const popularTools = computed(() =>
   POPULAR_TOOL_PATHS
@@ -146,8 +183,9 @@ function onUpdateFavoriteTools() {
     <div class="grid-wrapper">
       <!--
         页面级标题与站点身份说明。
-        首页原先直接从搜索框开始，整页只有分类用的 <h3>：既没有 h1，也没有一句话
-        说明这个站是什么。抓取器读到的初始 HTML 因此缺「页面主题」这一层信息。
+        S2（裁定+能力真实性校验）：badge 行只放 Free / No signup / 计数三条，
+        不放 "Runs in your browser" —— whois 等 3 个工具需联网，笼统 browser-only
+        是能力表述风险；browser 声称保留在带限定语的 subtitle 与 Privacy 分层区块里。
         工具总数从 store 取真实值，不写死在文案里。
       -->
       <header class="home-hero">
@@ -157,6 +195,20 @@ function onUpdateFavoriteTools() {
         <p class="home-hero-subtitle">
           {{ $t('home.hero.subtitle', { count: toolStore.tools.length }) }}
         </p>
+        <ul class="hero-badges">
+          <li class="hero-badge hero-badge-strong">
+            {{ t('home.hero.badgeFree') }}
+          </li>
+          <li class="hero-badge">
+            {{ t('home.hero.badgeNoSignup') }}
+          </li>
+          <li class="hero-badge">
+            {{ t('home.hero.badgeTools', { count: toolStore.tools.length }) }}
+          </li>
+        </ul>
+        <button class="hero-cta" type="button" @click="scrollToCategories">
+          {{ t('home.hero.cta') }} ↓
+        </button>
       </header>
 
       <!-- 搜索框：工具一多，「找得到」比「有多少」更重要 -->
@@ -229,9 +281,42 @@ function onUpdateFavoriteTools() {
         </div>
 
         <!--
+          Blog 区块（S3 集成、S2 上移至第 3 位 + 视觉升级）。
+          文章清单手动维护：标题必须与 forge-notes 站线上文章的真实
+          frontmatter title 逐字一致（红线：不得虚构），新增/下线文章时同步改
+          BLOG_POSTS。中文文章受众 = 中文开发者，与工具站英文界面并存是有意为之。
+        -->
+        <section class="home-block">
+          <h2 class="home-block-title">
+            {{ $t('home.blog.title') }}
+          </h2>
+          <p class="home-block-text">
+            {{ $t('home.blog.intro') }}
+          </p>
+          <div class="home-blog-list">
+            <a
+              v-for="post in BLOG_POSTS"
+              :key="post.url"
+              class="home-blog-card"
+              :href="post.url"
+              target="_blank"
+              rel="noopener"
+            >
+              <span class="home-blog-card-tag">{{ post.tag }}</span>
+              <span class="home-blog-card-title">{{ post.title }}</span>
+              <span class="home-blog-card-site">notes.digdevbox.com</span>
+            </a>
+          </div>
+          <a class="home-blog-more" href="https://notes.digdevbox.com/" target="_blank" rel="noopener">
+            {{ $t('home.blog.more') }}
+          </a>
+        </section>
+
+        <!--
           Why DigDevBox（G-01a）。
           竞品类型 A 在比工具数量，我们比的是「为什么在这里做」。
           四条都必须是已实现的事实，不写 roadmap 上的东西。
+          S2：整块移到 Blog 之后（裁定③：Blog 是内容获客入口，信任说明居其后）。
         -->
         <section class="home-block">
           <h2 class="home-block-title">
@@ -269,37 +354,6 @@ function onUpdateFavoriteTools() {
               {{ tool.name }}
             </RouterLink>
           </div>
-        </section>
-
-        <!--
-          Blog 区块（S3 博客集成）。文章清单手动维护：标题必须与
-          forge-notes 站线上文章的真实 frontmatter title 逐字一致（红线：不得虚构），
-          新增/下线文章时同步改 BLOG_POSTS。中文文章受众 = 中文开发者，
-          与工具站英文界面并存是有意为之。
-        -->
-        <section class="home-block">
-          <h2 class="home-block-title">
-            {{ $t('home.blog.title') }}
-          </h2>
-          <p class="home-block-text">
-            {{ $t('home.blog.intro') }}
-          </p>
-          <div class="home-blog-list">
-            <a
-              v-for="post in BLOG_POSTS"
-              :key="post.url"
-              class="home-blog-card"
-              :href="post.url"
-              target="_blank"
-              rel="noopener"
-            >
-              <span class="home-blog-card-title">{{ post.title }}</span>
-              <span class="home-blog-card-site">notes.digdevbox.com</span>
-            </a>
-          </div>
-          <a class="home-blog-more" href="https://notes.digdevbox.com/" target="_blank" rel="noopener">
-            {{ $t('home.blog.more') }}
-          </a>
         </section>
 
         <transition name="height">
@@ -355,18 +409,30 @@ function onUpdateFavoriteTools() {
         </div>
 
         <!--
-          分类浏览：107 个工具平铺成一个大网格时，新用户只能靠眼睛扫。
-          按与侧边栏一致的分类聚合成分区，落地首页即可按类浏览，不再依赖先开菜单。
+          分类浏览（S2 紧凑化）。
+          红线：101 个工具内链必须全部保留在 SSR HTML —— 折叠/紧凑只允许
+          通过「chips 密集网格」这种 DOM 全量渲染的方式实现，禁止 v-if 摘链接。
+          Hero CTA 锚点滚到 #home-categories。
         -->
-        <template v-for="cat of toolStore.toolsByCategory" :key="cat.name">
-          <h3 class="mb-5px mt-25px text-neutral-600 dark:text-neutral-400 font-500">
-            {{ cat.name }}
-            <span class="cat-count">{{ cat.components.length }}</span>
-          </h3>
-          <div class="grid grid-cols-1 gap-12px lg:grid-cols-3 md:grid-cols-3 sm:grid-cols-2 xl:grid-cols-4">
-            <ToolCard v-for="tool in cat.components" :key="tool.name" :tool="tool" />
-          </div>
-        </template>
+        <div id="home-categories">
+          <template v-for="cat of toolStore.toolsByCategory" :key="cat.name">
+            <h3 class="mb-8px mt-25px text-neutral-600 dark:text-neutral-400 font-500">
+              {{ cat.name }}
+              <span class="cat-count">{{ cat.components.length }}</span>
+            </h3>
+            <div class="cat-chips">
+              <RouterLink
+                v-for="tool in cat.components"
+                :key="tool.path"
+                class="cat-chip"
+                :to="tool.path"
+              >
+                <n-icon :component="tool.icon" size="15" class="cat-chip-icon" />
+                <span class="cat-chip-name">{{ tool.name }}</span>
+              </RouterLink>
+            </div>
+          </template>
+        </div>
 
         <!--
           经典版入口。老站 162 个工具原样保留在 public/legacy/，是独立静态子站，
@@ -391,7 +457,7 @@ function onUpdateFavoriteTools() {
 </template>
 
 <style scoped lang="less">
-/* 首页顶部：页面级标题 + 一句话站点身份说明（对应 P0-2 / STEP 4） */
+/* 首页顶部：页面级标题 + 一句话站点身份说明 + badge 行 + CTA（对应 P0-2 / STEP 4 / S2） */
 .home-hero {
   margin-bottom: 18px;
 
@@ -413,10 +479,126 @@ function onUpdateFavoriteTools() {
   }
 }
 
-/* G-01a：Why DigDevBox + Privacy 两个信任区块。
+/* S2：badge 行。真实能力三条（Free / No signup / 计数），不放 browser-only。 */
+.hero-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0 0;
+  padding: 0;
+
+  list-style: none;
+}
+
+.hero-badge {
+  padding: 3px 10px;
+
+  border: 1px solid rgba(128, 128, 128, 0.3);
+  border-radius: 999px;
+  background: rgba(128, 128, 128, 0.06);
+
+  font-size: 12px;
+  line-height: 1.6;
+  opacity: 0.8;
+}
+
+.hero-badge-strong {
+  border-color: rgba(24, 160, 88, 0.55);
+  background: rgba(24, 160, 88, 0.08);
+
+  color: rgba(16, 128, 67, 1);
+  font-weight: 500;
+  opacity: 1;
+
+  .dark & {
+    color: rgba(60, 200, 130, 1);
+  }
+}
+
+/* S2：主 CTA。锚点滚动到分类区，链接式弱按钮，不与搜索框抢视觉。 */
+.hero-cta {
+  margin-top: 12px;
+  padding: 6px 14px;
+
+  border: 1px solid rgba(24, 160, 88, 0.55);
+  border-radius: 8px;
+  background: transparent;
+
+  color: rgba(16, 128, 67, 1);
+  cursor: pointer;
+
+  font-size: 13px;
+  font-family: inherit;
+  font-weight: 500;
+
+  transition: background-color 0.2s ease;
+
+  &:hover {
+    background: rgba(24, 160, 88, 0.1);
+  }
+
+  .dark & {
+    color: rgba(60, 200, 130, 1);
+  }
+}
+
+/* S2：分类 chips 密集网格 —— 替代 101 张大卡。
+   DOM 全量渲染（101 个 RouterLink 一个不少），紧凑只靠降低单条目视觉体积。 */
+.cat-chips {
+  display: grid;
+  gap: 6px;
+
+  grid-template-columns: repeat(2, 1fr);
+
+  @media (min-width: 640px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  @media (min-width: 1024px) {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.cat-chip {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+
+  min-width: 0;
+  padding: 6px 10px;
+
+  border: 1px solid rgba(128, 128, 128, 0.22);
+  border-radius: 6px;
+
+  color: inherit;
+  text-decoration: none;
+
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+
+  &:hover {
+    border-color: rgba(24, 160, 88, 0.7);
+    background: rgba(24, 160, 88, 0.05);
+  }
+
+  .cat-chip-icon {
+    flex: none;
+
+    opacity: 0.5;
+  }
+
+  .cat-chip-name {
+    overflow: hidden;
+
+    font-size: 12.5px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+}
+
+/* G-01a：Why DigDevBox + Privacy 两个信任区块。S2：间距收紧、不引入新视觉重量。
    390px 下单列、chip 换行，不引入横向滚动。 */
 .home-block {
-  margin-top: 25px;
+  margin-top: 20px;
 
   .home-block-title {
     margin: 0 0 8px;
@@ -454,6 +636,7 @@ function onUpdateFavoriteTools() {
 .home-blog-card {
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
   gap: 6px;
 
   padding: 12px 14px;
@@ -461,12 +644,30 @@ function onUpdateFavoriteTools() {
   text-decoration: none;
 
   border: 1px solid rgb(128, 128, 128, 0.18);
+  border-left: 3px solid rgba(24, 160, 88, 0.5);
   border-radius: 8px;
 
-  transition: border-color ease 0.2s;
+  transition: border-color ease 0.2s, background-color ease 0.2s;
 
   &:hover {
     border-color: rgb(59, 149, 111, 0.65);
+    background: rgba(24, 160, 88, 0.04);
+  }
+
+  .home-blog-card-tag {
+    padding: 2px 8px;
+
+    border-radius: 999px;
+    background: rgba(24, 160, 88, 0.1);
+
+    color: rgba(16, 128, 67, 1);
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 1.5;
+
+    .dark & {
+      color: rgba(60, 200, 130, 1);
+    }
   }
 
   .home-blog-card-title {
