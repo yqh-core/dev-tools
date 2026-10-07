@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 140" width="200" height="140">
-<g transform="translate(-21.52,-36.40) scale(1.1200)" fill="#000000">
-<circle cx="116" cy="95" r="42" fill="none" stroke="#000000" stroke-width="16"/>
+<g transform="translate(-29.36,-36.40) scale(1.1200)" fill="#000000">
+<circle cx="123" cy="95" r="42" fill="none" stroke="#000000" stroke-width="11"/>
 <path fill-rule="evenodd" d="M40,45 H56 A50,50 0 0 1 56,145 H40 Z M56,69 H62 A26,26 0 0 1 62,121 H56 Z"/>
-<path fill-rule="evenodd" d="M126,45 H152 A25,25 0 0 1 152,95 A25,25 0 0 1 152,145 H126 Z M142,57 H150 A13,13 0 0 1 150,83 H142 Z M142,107 H150 A13,13 0 0 1 150,133 H142 Z"/>
+<path fill-rule="evenodd" d="M140,45 H166 A25,25 0 0 1 166,95 A25,25 0 0 1 166,145 H140 Z M156,57 H164 A13,13 0 0 1 164,83 H156 Z M156,107 H164 A13,13 0 0 1 164,133 H156 Z"/>
 </g>
 </svg>
