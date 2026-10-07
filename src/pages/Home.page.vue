@@ -8,6 +8,7 @@ import { useToolStore } from '@/tools/tools.store';
 import type { ToolWithCategory } from '@/tools/tools.types';
 import { toolsWithCategory } from '@/tools/index';
 import { ALIASES } from '@/tools/aliases';
+import { GUIDES } from '@/tools/guides.en';
 import { useFuzzySearch } from '@/composable/fuzzySearch';
 import { TOOL_CLUSTERS } from '@/seo/clusters';
 import { CLASSIC_SITE_TOOL_COUNT, classicSiteUrl } from '@/classic-site';
@@ -240,38 +241,55 @@ const taskClusters = computed(() =>
 );
 
 /**
- * 首页 Blog 区块的文章卡片（S3 集成、S2 上移+视觉升级、G-03-1 换英文文章）。
+ * 首页 Blog 区块的文章卡片 —— **从 guides 的 relatedNotes 反向聚合**（不再手写清单）。
  *
- * 红线（G-03 裁定④）：title / description / url 三字段必须与 forge-notes
- * 文章 frontmatter **逐字一致**（title = frontmatter title；description =
- * frontmatter description；url = https://notes.digdevbox.com/posts/<slug>）。
- * 防止「首页标题 ≠ 文章标题 ≠ JSON-LD 标题」的 SEO 信号分裂。
- * 新文章上线后手动增补，下线文章必须同步移除 —— 外链 404 比少一篇卡片伤害大。
- * tag 从文章主题派生（英文文章用英文 tag，与文章语言一致）。
+ * ## 为什么改成数据驱动
+ *   此前这里是硬编码的 3 篇卡片 + 一句「新文章上线后手动增补」的注释。那个机制正在
+ *   **静默失效，且失效方向是最坏的那种**：2026-10-07 上线的两篇英文开发文章
+ *   （devops-tools-guide / uuid-vs-ulid-guide）恰好对应 Keyword Map 里标为高优先的
+ *   /chmod-calculator + /crontab-generator 与 /uuid-generator + /ulid-generator，
+ *   却因为「要记得手动加」而没进首页。硬编码清单的维护成本恒大于收益。
+ *
+ *   现在：文章清单的唯一事实源是 `ToolGuide.relatedNotes`（src/tools/guides.*.ts），
+ *   工具页 related guides 区块与首页 Blog 区块**消费同一份数据**。新文章只要在某个
+ *   工具的 relatedNotes 加一条，两处同时出现。
+ *
+ * ## 红线（G-03 裁定④，由机器守住而不是靠注释提醒）
+ *   title / description / url 必须与 forge-notes 文章 frontmatter **逐字一致**，
+ *   否则「首页标题 ≠ 文章标题」会分裂 SEO 信号。本文件**只做校验与展示，不生产文案**：
+ *   三个字段全部原样取自 guides 的 relatedNotes。
+ *   ⛔ 逐字一致性由 `scripts/audit-keyword-map.mjs --frontmatter` 对着真实
+ *     forge-notes 仓库做门禁（那个仓库在本项目之外，只能在脚本里去读），
+ *     另有 auditToolSeoData 守住 en/zh 成对性。⛔ 不靠注释提醒。
+ *
+ * ## ⛔ 只收英文文章
+ *   forge-notes 现有 22 篇正文，其中 17 篇是中文（AdSense / 跨境电商 / SEO /
+ *   VitePress），受众与英文主站不一致。relatedNotes 只登记 `lang: en` 的 5 篇 ——
+ *   把中文文章塞进英文主站首页是 Localization 事故，不是「内容更丰富」。
+ *
+ * ## 排序：按工具分类顺序首次出现的次序
+ *   ⛔ 不引入手写顺序数组 —— 那只是把「维护一份清单」换成了「维护另一份清单」。
+ *   去重后保留首次出现的位置，因此 JSON 文章一定排在 DevOps 之前（分类顺序稳定），
+ *   且完全由 guides 的 key 顺序决定。
  */
-const BLOG_POSTS = [
-  {
-    title: 'JWT Decoder Explained: How to Inspect and Debug JSON Web Tokens',
-    description:
-      'Learn how a JSON Web Token is structured and how to decode one online to inspect its header, payload and registered claims when debugging authentication issues.',
-    url: 'https://notes.digdevbox.com/posts/jwt-decoder-guide',
-    tag: 'JWT',
-  },
-  {
-    title: 'JSON Formatter Guide: Format, Validate and Compare JSON Online',
-    description:
-      'How to format, validate, minify and compare JSON online — a practical guide to cleaning up API responses, spotting syntax errors and diffing config files.',
-    url: 'https://notes.digdevbox.com/posts/json-formatting-guide',
-    tag: 'JSON',
-  },
-  {
-    title: 'Regex Testing Guide: How Developers Debug Regular Expressions',
-    description:
-      'A practical workflow for testing and debugging regular expressions online — live matches, flags, capture groups and a cheat sheet for the syntax you forget.',
-    url: 'https://notes.digdevbox.com/posts/regex-testing-guide',
-    tag: 'Regex',
-  },
-];
+const BLOG_POSTS = (() => {
+  const byUrl = new Map<string, { title: string; description: string; url: string; tag: string }>();
+  for (const guide of Object.values(GUIDES)) {
+    for (const note of guide.relatedNotes ?? []) {
+      // 按 url 去重：同一篇文章被多个工具引用（uuid-vs-ulid-guide 同时挂在
+      // /uuid-generator 与 /ulid-generator 上）只出现一次。
+      if (!byUrl.has(note.url)) {
+        byUrl.set(note.url, {
+          title: note.title,
+          description: note.description,
+          url: note.url,
+          tag: note.tag,
+        });
+      }
+    }
+  }
+  return [...byUrl.values()];
+})();
 
 /**
  * Hero CTA（S2）：滚动到分类浏览区。

@@ -556,6 +556,7 @@ tools:
 
 tool:
   relatedTitle: "Related tools"
+  notesTitle: "Read next"
   workflowTitle: "{cluster} workflow"
   workflowCurrent: "You are here"
   actionClear: "Clear"

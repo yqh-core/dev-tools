@@ -150,6 +150,15 @@ export const GUIDES: Record<string, ToolGuide> = {
       { q: '什么时候可以用 777？', a: '几乎永远不要。它让机器上任何用户都能改和执行这个文件，是网页脚本被篡改、目录被清空的最快方式。永远用能工作的最小权限。' },
       { q: '数字形式和符号形式该用哪个？', a: '两者描述的是同一件事。数字形式（644）紧凑、适合写进脚本；符号形式（u=rw,go=r）只改你提到的位，对共享文件做小调整时更安全。' },
     ],
+    relatedNotes: [
+      {
+        slug: 'devops-tools-guide',
+        title: 'DevOps Tools for Everyday Work: Cron, Permissions and Docker Compose',
+        description: 'Everyday DevOps tasks that cost the most time — writing cron expressions, computing chmod permissions, converting docker run commands — with tools for each.',
+        url: 'https://notes.digdevbox.com/posts/devops-tools-guide',
+        tag: 'DevOps',
+      },
+    ],
   },
 
   '/chronometer': {
@@ -189,6 +198,15 @@ export const GUIDES: Record<string, ToolGuide> = {
       { q: '「日」和「周」两个字段为什么不能叠加？', a: '当两个字段都被限定（不是 *）时，cron 的规则是命中任意一个就执行，不是同时满足。这个 OR 语义坑过很多人——除非你明确要这个行为，否则只限定其中一个。' },
     ],
     example: { label: '填入示例表达式', text: '*/5 * * * *' },
+    relatedNotes: [
+      {
+        slug: 'devops-tools-guide',
+        title: 'DevOps Tools for Everyday Work: Cron, Permissions and Docker Compose',
+        description: 'Everyday DevOps tasks that cost the most time — writing cron expressions, computing chmod permissions, converting docker run commands — with tools for each.',
+        url: 'https://notes.digdevbox.com/posts/devops-tools-guide',
+        tag: 'DevOps',
+      },
+    ],
   },
 
   '/date-converter': {
@@ -226,6 +244,15 @@ export const GUIDES: Record<string, ToolGuide> = {
       { q: '生成的 compose 文件兼容 docker compose v2 吗？', a: '兼容。输出用的是标准服务字段（image、ports、volumes、environment、restart），docker compose v2 及兼容工具都能识别。提交文件前建议先跑一次 docker compose config 或直接起一遍——工具转换的是语法，无法验证你的镜像和路径真实存在。' },
     ],
     example: { label: '填入示例命令', text: 'docker run -d --name web -p 8080:80 -v /data:/usr/share/nginx/html nginx:latest' },
+    relatedNotes: [
+      {
+        slug: 'devops-tools-guide',
+        title: 'DevOps Tools for Everyday Work: Cron, Permissions and Docker Compose',
+        description: 'Everyday DevOps tasks that cost the most time — writing cron expressions, computing chmod permissions, converting docker run commands — with tools for each.',
+        url: 'https://notes.digdevbox.com/posts/devops-tools-guide',
+        tag: 'DevOps',
+      },
+    ],
   },
 
   '/email-normalizer': {
@@ -428,6 +455,15 @@ export const GUIDES: Record<string, ToolGuide> = {
       { q: '能比较大文件吗？', a: '比较完全在浏览器里运行，上限就是标签页的内存——几 MB 的文档没有问题。' },
     ],
     example: { label: '填入示例 JSON', text: '{ "name": "DigDevBox", "version": 1, "tags": ["a", "b"] }' },
+    relatedNotes: [
+      {
+        slug: 'json-formatting-guide',
+        title: 'JSON Formatter Guide: Format, Validate and Compare JSON Online',
+        description: 'How to format, validate, minify and compare JSON online — a practical guide to cleaning up API responses, spotting syntax errors and diffing config files.',
+        url: 'https://notes.digdevbox.com/posts/json-formatting-guide',
+        tag: 'JSON',
+      },
+    ],
   },
 
   '/json-minify': {
@@ -439,6 +475,15 @@ export const GUIDES: Record<string, ToolGuide> = {
       { q: '压缩能省多少体积？', a: '格式化过的 JSON 通常能省 20-40%：空白纯属开销。压缩不会像二进制格式那样缩短键名和值——传输体积的下一步是传输层的 gzip。' },
       { q: '压缩后的 JSON 还合法吗？', a: '合法——标记之间的空白不属于 JSON 数据模型。压缩前必须先解析，所以非法输入会直接报错，不会产出坏数据。' },
       { q: '怎么还原成可读格式？', a: '粘进 JSON 格式化工具重新缩进即可。压缩和格式化在展示层面互为逆操作，数据本身不变。' },
+    ],
+    relatedNotes: [
+      {
+        slug: 'json-formatting-guide',
+        title: 'JSON Formatter Guide: Format, Validate and Compare JSON Online',
+        description: 'How to format, validate, minify and compare JSON online — a practical guide to cleaning up API responses, spotting syntax errors and diffing config files.',
+        url: 'https://notes.digdevbox.com/posts/json-formatting-guide',
+        tag: 'JSON',
+      },
     ],
   },
 
@@ -453,6 +498,15 @@ export const GUIDES: Record<string, ToolGuide> = {
       { q: '这和 JSON 校验器是一回事吗？', a: '格式化必须先解析输入，所以非法 JSON 无论如何都会报错。专门的校验器还会给出精确的错误位置，文档很大时更实用。' },
     ],
     example: { label: '填入示例 JSON', text: '{"name":"DigDevBox","tools":["toolbox","devtools"],"count":2}' },
+    relatedNotes: [
+      {
+        slug: 'json-formatting-guide',
+        title: 'JSON Formatter Guide: Format, Validate and Compare JSON Online',
+        description: 'How to format, validate, minify and compare JSON online — a practical guide to cleaning up API responses, spotting syntax errors and diffing config files.',
+        url: 'https://notes.digdevbox.com/posts/json-formatting-guide',
+        tag: 'JSON',
+      },
+    ],
   },
 
   '/json-to-csv': {
@@ -519,6 +573,15 @@ export const GUIDES: Record<string, ToolGuide> = {
       { q: 'token 被拒了，先查什么？', a: '先看 exp 声明（本工具会解析出来，注意它是秒不是毫秒），再确认 token 在传输中没被改动——行尾空白、换行、或代理把 Base64URL 的 - 和 _ 做了 URL 解码，都会让签名失效。' },
     ],
     example: { label: '填入示例 Token', text: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IllRSCIsImlhdCI6MTUxNjIzOTAyMn0.4Adcj3UFYzPUVaVF43FmMab6RlaQD8A9V8wFzzht-KQ' },
+    relatedNotes: [
+      {
+        slug: 'jwt-decoder-guide',
+        title: 'JWT Decoder Explained: How to Inspect and Debug JSON Web Tokens',
+        description: 'Learn how a JSON Web Token is structured and how to decode one online to inspect its header, payload and registered claims when debugging authentication issues.',
+        url: 'https://notes.digdevbox.com/posts/jwt-decoder-guide',
+        tag: 'JWT',
+      },
+    ],
   },
 
   '/keycode-info': {
@@ -734,6 +797,15 @@ export const GUIDES: Record<string, ToolGuide> = {
       { q: '所有语言都能用吗？', a: '核心语法（字符类、量词、分组、锚点）几乎通用。后行断言、命名分组等高级特性因引擎而异——用正则测试器按 JavaScript 的行为验证。' },
       { q: '怎么把模式改成我自己的？', a: '复制进正则测试器，粘一段你的真实文本，收紧模式直到高亮的只有你想要的部分。' },
     ],
+    relatedNotes: [
+      {
+        slug: 'regex-testing-guide',
+        title: 'Regex Testing Guide: How Developers Debug Regular Expressions',
+        description: 'A practical workflow for testing and debugging regular expressions online — live matches, flags, capture groups and a cheat sheet for the syntax you forget.',
+        url: 'https://notes.digdevbox.com/posts/regex-testing-guide',
+        tag: 'Regex',
+      },
+    ],
   },
 
   '/regex-tester': {
@@ -747,6 +819,15 @@ export const GUIDES: Record<string, ToolGuide> = {
       { q: '我的文本会被上传吗？', a: '不会。匹配完全在你的浏览器里完成，粘进来的任何内容都不离开这个页面。' },
     ],
     example: { label: '填入示例正则', text: '\\d{3}-\\d{4}' },
+    relatedNotes: [
+      {
+        slug: 'regex-testing-guide',
+        title: 'Regex Testing Guide: How Developers Debug Regular Expressions',
+        description: 'A practical workflow for testing and debugging regular expressions online — live matches, flags, capture groups and a cheat sheet for the syntax you forget.',
+        url: 'https://notes.digdevbox.com/posts/regex-testing-guide',
+        tag: 'Regex',
+      },
+    ],
   },
 
   '/roman-numeral-converter': {
@@ -957,6 +1038,15 @@ export const GUIDES: Record<string, ToolGuide> = {
       { q: '两个 ULID 会重复吗？', a: '同一毫秒内 ULID 仍有 80 位随机数（最后 16 个字符），理论上要生成约 2^80 个才会碰撞。真实系统每毫秒远达不到这个量，所以实践里不用愁碰撞。' },
       { q: 'ULID 大小写敏感吗？', a: 'ULID 用 Crockford base32，约定大写；规范形式保持大写。有些库接受小写输入，但存储和比较时请统一用规范大写串，避免不一致。' },
     ],
+    relatedNotes: [
+      {
+        slug: 'uuid-vs-ulid-guide',
+        title: 'UUID vs ULID: Choosing the Right Identifier for Modern Applications',
+        description: 'UUID or ULID for your primary keys? A practical comparison of randomness, sortability and index behavior — with live generators to produce both formats online.',
+        url: 'https://notes.digdevbox.com/posts/uuid-vs-ulid-guide',
+        tag: 'UUID',
+      },
+    ],
   },
 
   '/url-encoder': {
@@ -1007,6 +1097,15 @@ export const GUIDES: Record<string, ToolGuide> = {
       { q: '生成的 UUID 有可能重复吗？', a: '理论上可能，实践中不会——得每秒生成几十亿个、持续很多年才有五五开的碰撞概率。数据库的唯一约束是兜底，不是你真会撞上。' },
       { q: 'UUID v4 还是 ULID？', a: 'v4 完全随机，按 UUID 排序得不到任何创建顺序信息。如果标识会进数据库索引、而插入顺序很重要，用 ULID 或 UUID v7 这类按时间有序的格式表现更好。' },
       { q: '生成的 UUID 会被上传吗？', a: '不会。全部在你浏览器本地生成，不会离开这个页面。' },
+    ],
+    relatedNotes: [
+      {
+        slug: 'uuid-vs-ulid-guide',
+        title: 'UUID vs ULID: Choosing the Right Identifier for Modern Applications',
+        description: 'UUID or ULID for your primary keys? A practical comparison of randomness, sortability and index behavior — with live generators to produce both formats online.',
+        url: 'https://notes.digdevbox.com/posts/uuid-vs-ulid-guide',
+        tag: 'UUID',
+      },
     ],
   },
 

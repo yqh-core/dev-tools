@@ -158,6 +158,15 @@ export const GUIDES: Record<string, ToolGuide> = {
       { q: 'Is 777 ever a good idea?', a: 'Almost never. It lets every user on the machine write to and execute the file — the quickest way to get a web script modified or a directory trashed. Use the narrowest permission that works.' },
       { q: 'Numeric or symbolic form — which should I use?', a: 'They describe the same thing. Numeric (644) is compact and convenient in scripts; symbolic (u=rw,go=r) changes only the bits you mention, which is safer for small tweaks on shared files.' },
     ],
+    relatedNotes: [
+      {
+        slug: 'devops-tools-guide',
+        title: 'DevOps Tools for Everyday Work: Cron, Permissions and Docker Compose',
+        description: 'Everyday DevOps tasks that cost the most time — writing cron expressions, computing chmod permissions, converting docker run commands — with tools for each.',
+        url: 'https://notes.digdevbox.com/posts/devops-tools-guide',
+        tag: 'DevOps',
+      },
+    ],
   },
 
   '/chronometer': {
@@ -197,6 +206,15 @@ export const GUIDES: Record<string, ToolGuide> = {
       { q: 'Why do day-of-month and day-of-week not simply add up?', a: 'When both fields are restricted (not *), cron runs the job if EITHER of them matches, not both. That OR semantics surprises most people — restrict only one of the two unless you specifically want it.' },
     ],
     example: { label: 'Fill in a sample expression', text: '*/5 * * * *' },
+    relatedNotes: [
+      {
+        slug: 'devops-tools-guide',
+        title: 'DevOps Tools for Everyday Work: Cron, Permissions and Docker Compose',
+        description: 'Everyday DevOps tasks that cost the most time — writing cron expressions, computing chmod permissions, converting docker run commands — with tools for each.',
+        url: 'https://notes.digdevbox.com/posts/devops-tools-guide',
+        tag: 'DevOps',
+      },
+    ],
   },
 
   '/date-converter': {
@@ -234,6 +252,15 @@ export const GUIDES: Record<string, ToolGuide> = {
       { q: 'Does the generated compose file work with docker compose v2?', a: 'Yes. The output uses the standard service fields (image, ports, volumes, environment, restart) that both docker compose v2 and Compose V2-compatible tools understand. Always run docker compose config or start the stack once before committing the file — the tool converts syntax, it cannot validate that your actual image and paths exist.' },
     ],
     example: { label: 'Fill in a sample command', text: 'docker run -d --name web -p 8080:80 -v /data:/usr/share/nginx/html nginx:latest' },
+    relatedNotes: [
+      {
+        slug: 'devops-tools-guide',
+        title: 'DevOps Tools for Everyday Work: Cron, Permissions and Docker Compose',
+        description: 'Everyday DevOps tasks that cost the most time — writing cron expressions, computing chmod permissions, converting docker run commands — with tools for each.',
+        url: 'https://notes.digdevbox.com/posts/devops-tools-guide',
+        tag: 'DevOps',
+      },
+    ],
   },
 
   '/email-normalizer': {
@@ -436,6 +463,15 @@ export const GUIDES: Record<string, ToolGuide> = {
       { q: 'Can I compare large documents?', a: 'Everything runs in your browser, so the practical limit is tab memory — documents of a few megabytes are fine.' },
     ],
     example: { label: 'Fill in sample JSON', text: '{ "name": "DigDevBox", "version": 1, "tags": ["a", "b"] }' },
+    relatedNotes: [
+      {
+        slug: 'json-formatting-guide',
+        title: 'JSON Formatter Guide: Format, Validate and Compare JSON Online',
+        description: 'How to format, validate, minify and compare JSON online — a practical guide to cleaning up API responses, spotting syntax errors and diffing config files.',
+        url: 'https://notes.digdevbox.com/posts/json-formatting-guide',
+        tag: 'JSON',
+      },
+    ],
   },
 
   '/json-minify': {
@@ -447,6 +483,15 @@ export const GUIDES: Record<string, ToolGuide> = {
       { q: 'How much smaller does the file get?', a: 'For formatted JSON typically 20-40%: whitespace is pure overhead. Minifying does not shorten keys or values the way a binary format would — for transfer size, gzip on the transport layer is the next step.' },
       { q: 'Is minified JSON still valid?', a: 'Yes. Whitespace between tokens is not part of the JSON data model. Minifying requires parsing first, so invalid input errors out instead of producing broken output.' },
       { q: 'How do I get it back into readable form?', a: 'Paste it into the JSON formatter and it is re-indented. Minify and format are inverse operations at the presentation level — the data itself never changes.' },
+    ],
+    relatedNotes: [
+      {
+        slug: 'json-formatting-guide',
+        title: 'JSON Formatter Guide: Format, Validate and Compare JSON Online',
+        description: 'How to format, validate, minify and compare JSON online — a practical guide to cleaning up API responses, spotting syntax errors and diffing config files.',
+        url: 'https://notes.digdevbox.com/posts/json-formatting-guide',
+        tag: 'JSON',
+      },
     ],
   },
 
@@ -461,6 +506,15 @@ export const GUIDES: Record<string, ToolGuide> = {
       { q: 'Is this the same as a JSON validator?', a: 'Formatting has to parse the input first, so invalid JSON shows up as an error either way. A dedicated validator also gives you the precise error position, which matters more for large documents.' },
     ],
     example: { label: 'Fill in sample JSON', text: '{"name":"DigDevBox","tools":["toolbox","devtools"],"count":2}' },
+    relatedNotes: [
+      {
+        slug: 'json-formatting-guide',
+        title: 'JSON Formatter Guide: Format, Validate and Compare JSON Online',
+        description: 'How to format, validate, minify and compare JSON online — a practical guide to cleaning up API responses, spotting syntax errors and diffing config files.',
+        url: 'https://notes.digdevbox.com/posts/json-formatting-guide',
+        tag: 'JSON',
+      },
+    ],
   },
 
   '/json-to-csv': {
@@ -527,6 +581,15 @@ export const GUIDES: Record<string, ToolGuide> = {
       { q: 'My token was rejected — what should I check first?', a: 'The exp claim first (this tool shows it; remember it is in seconds, not milliseconds), then that nothing mangled the token in transit — trailing whitespace, line breaks, or a proxy URL-decoding the Base64URL characters - and _ will all invalidate the signature.' },
     ],
     example: { label: 'Fill in a sample token', text: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IllRSCIsImlhdCI6MTUxNjIzOTAyMn0.4Adcj3UFYzPUVaVF43FmMab6RlaQD8A9V8wFzzht-KQ' },
+    relatedNotes: [
+      {
+        slug: 'jwt-decoder-guide',
+        title: 'JWT Decoder Explained: How to Inspect and Debug JSON Web Tokens',
+        description: 'Learn how a JSON Web Token is structured and how to decode one online to inspect its header, payload and registered claims when debugging authentication issues.',
+        url: 'https://notes.digdevbox.com/posts/jwt-decoder-guide',
+        tag: 'JWT',
+      },
+    ],
   },
 
   '/keycode-info': {
@@ -742,6 +805,15 @@ export const GUIDES: Record<string, ToolGuide> = {
       { q: 'Will these patterns work in every language?', a: 'The core syntax (classes, quantifiers, groups, anchors) is nearly universal. Advanced features like lookbehind or named groups vary by engine — verify JavaScript behavior in the Regex Tester.' },
       { q: 'How do I adapt a pattern to my case?', a: 'Copy it into the Regex Tester, paste a sample of your real text, then tighten the pattern until only the parts you want are highlighted.' },
     ],
+    relatedNotes: [
+      {
+        slug: 'regex-testing-guide',
+        title: 'Regex Testing Guide: How Developers Debug Regular Expressions',
+        description: 'A practical workflow for testing and debugging regular expressions online — live matches, flags, capture groups and a cheat sheet for the syntax you forget.',
+        url: 'https://notes.digdevbox.com/posts/regex-testing-guide',
+        tag: 'Regex',
+      },
+    ],
   },
 
   '/regex-tester': {
@@ -755,6 +827,15 @@ export const GUIDES: Record<string, ToolGuide> = {
       { q: 'Is my text sent anywhere?', a: 'No. Matching runs entirely in your browser — nothing you paste ever leaves the page.' },
     ],
     example: { label: 'Fill in a sample pattern', text: '\\d{3}-\\d{4}' },
+    relatedNotes: [
+      {
+        slug: 'regex-testing-guide',
+        title: 'Regex Testing Guide: How Developers Debug Regular Expressions',
+        description: 'A practical workflow for testing and debugging regular expressions online — live matches, flags, capture groups and a cheat sheet for the syntax you forget.',
+        url: 'https://notes.digdevbox.com/posts/regex-testing-guide',
+        tag: 'Regex',
+      },
+    ],
   },
 
   '/roman-numeral-converter': {
@@ -965,6 +1046,15 @@ export const GUIDES: Record<string, ToolGuide> = {
       { q: 'Can two ULIDs collide?', a: 'Within a single millisecond a ULID still has 80 random bits (the last 16 characters), giving about 2^80 values before a collision is even theoretically likely. Real systems generate far fewer than that per millisecond, so collisions are not a concern in practice.' },
       { q: 'Is a ULID case-sensitive?', a: 'ULID uses Crockford base32 and is conventionally uppercase; the canonical form keeps it uppercase. Some libraries accept lowercase on input, but store and compare the canonical uppercase string to avoid mismatches.' },
     ],
+    relatedNotes: [
+      {
+        slug: 'uuid-vs-ulid-guide',
+        title: 'UUID vs ULID: Choosing the Right Identifier for Modern Applications',
+        description: 'UUID or ULID for your primary keys? A practical comparison of randomness, sortability and index behavior — with live generators to produce both formats online.',
+        url: 'https://notes.digdevbox.com/posts/uuid-vs-ulid-guide',
+        tag: 'UUID',
+      },
+    ],
   },
 
   '/url-encoder': {
@@ -1015,6 +1105,15 @@ export const GUIDES: Record<string, ToolGuide> = {
       { q: 'Can two generated UUIDs ever collide?', a: 'Theoretically yes, practically no — you would need to generate billions per second for a long time to reach even a coin-flip chance. Databases keep unique constraints as a backstop, not because you will hit it.' },
       { q: 'UUID v4 or ULID — which one do I need?', a: 'v4 is completely random, so sorting by UUID says nothing about creation order. If identifiers land in database indexes where insertion order matters, a time-ordered format such as ULID or UUID v7 performs better.' },
       { q: 'Are the generated UUIDs sent anywhere?', a: 'No. They are generated locally in your browser and never leave the page.' },
+    ],
+    relatedNotes: [
+      {
+        slug: 'uuid-vs-ulid-guide',
+        title: 'UUID vs ULID: Choosing the Right Identifier for Modern Applications',
+        description: 'UUID or ULID for your primary keys? A practical comparison of randomness, sortability and index behavior — with live generators to produce both formats online.',
+        url: 'https://notes.digdevbox.com/posts/uuid-vs-ulid-guide',
+        tag: 'UUID',
+      },
     ],
   },
 

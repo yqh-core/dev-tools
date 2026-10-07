@@ -35,5 +35,54 @@ export interface ToolGuide {
    * 不为凑 FAQ 数量编造问题——那是低价值内容政策的典型形态。
    * en / zh 必须成对出现（auditToolSeoData 强制校验）。
    */
-  faqs?: { q: string, a: string }[]
+  faqs?: { q: string; a: string }[]
+  /**
+   * 配套的 forge-notes 文章（notes.digdevbox.com）—— 工具 ↔ 文章的**正向**一半。
+   *
+   * 为什么放在 guides 而不是 clusters：clusters 是「同任务簇的工具互链」，
+   * 这里是「工具页 → 站群另一站的文章」这条跨站链路，粒度与消费方都不同。
+   *
+   * 为什么要数据化而不是在模板里写死：这是**双向绑定**的另一半 —— 首页 Blog
+   * 区块从这里的 `relatedNotes` 反向聚合生成（`src/pages/Home.page.vue`）。
+   * 一处数据、两处消费 ⇒ 新文章只要在某个工具的 `relatedNotes` 加一条，
+   * 工具页与首页同时出现，不存在「只改了一处」的静默失效。
+   *
+   * ## 硬约束
+   * - ⛔ 只给开发相关的工具加（JSON/JWT/Base64/UUID/ULID/Regex/Date/DevOps/Hash/
+   *   HTTP），⛔ 不要给 101 个全加（那是无意义工作量，也会让工具页变成链接农场）。
+   * - ⛔ `slug` 必须是 `src/seo/keyword-map.ts` 的 `KNOWN_NOTE_SLUGS` 里的真实
+   *   slug —— forge-notes 在本仓库之外，拼错查不出来，只会在生产上变成 404 外链。
+   * - ⛔ 只收英文文章（`lang: en`）。英文主站不能把 17 篇中文 AdSense /
+   *   跨境电商 / SEO 文章混进正文与首页。
+   * - ⛔ `title` / `description` 必须与 forge-notes frontmatter **逐字一致**
+   *   （G-03 裁定④红线，防止「首页标题 ≠ 文章标题」的 SEO 信号分裂），
+   *   由 `auditToolSeoData` + `audit-keyword-map.mjs --frontmatter` 双重把关。
+   * - en / zh 必须成对出现且条数一致（`auditToolSeoData` 强制校验）。
+   */
+  relatedNotes?: ToolRelatedNote[]
+}
+
+/**
+ * 一条「工具页 → 站外文章」的引用。
+ *
+ * `title` / `description` / `url` 全部是**从文章 frontmatter 抄下来的**既有真实数据，
+ * 本仓库不生产任何新文案（与 guides 的 intro/about 同一纪律）。
+ */
+export interface ToolRelatedNote {
+  /** forge-notes 文章 slug（`docs/posts/<slug>.md` 的文件名去掉 .md）。 */
+  slug: string
+  /** 文章标题，与 frontmatter `title` 逐字一致。 */
+  title: string
+  /** 文章摘要，与 frontmatter `description` 逐字一致。首页 Blog 卡片复用它。 */
+  description: string
+  /** 文章绝对 URL，形如 `https://notes.digdevbox.com/posts/<slug>`（⛔ 不带 query）。 */
+  url: string
+  /**
+   * 人工派生的主题标签（如 `JWT` / `JSON` / `DevOps`）。
+   *
+   * ⛔ 不要试图用 frontmatter 的 `tags` 自动推断：实测部分文章的 `tags` 为空，
+   *   且 `Home.page.vue` 里原先的 `tag: 'JWT'` 本来就是人工写的。
+   *   这里延续「人工指定」而不是假装能自动派生。
+   */
+  tag: string
 }

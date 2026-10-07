@@ -159,6 +159,15 @@ useHead(head);
  */
 const guide = ref<ToolGuide | null>(null);
 
+/**
+ * 配套长文（notes.digdevbox.com）—— 与 `guide` 同一个数据源的同一个字段。
+ *
+ * 单独一个 computed 而不是模板里 `guide.relatedNotes`：模板里写 `guide?.relatedNotes`
+ * 在 `guide` 还是 null 的首帧会整块消失，而这是一个**常显**区块（不是折叠面板里的），
+ * 首帧闪烁比多一个 computed 贵。数据量是 0 或 1 条，计算成本可忽略。
+ */
+const relatedNotes = computed(() => guide.value?.relatedNotes ?? []);
+
 async function loadGuide(path: string) {
   try {
     const table = await loadGuides(locale.value);
@@ -446,6 +455,25 @@ const shareLabel = computed(() => {
         <ToolCard v-for="tool in relatedTools" :key="tool.name" :tool="tool" />
       </div>
     </div>
+
+    <!--
+      配套长文（站群另一站 notes.digdevbox.com）：与预渲染骨架
+      （src/seo/ToolSeoPage.vue 的 dd-tool-notes 区块）读**同一份** guides 数据、
+      同一批 i18n 词条，标题与链接集合逐字一致。
+      ⛔ 两边必须同时存在，否则就是「给爬虫看一套、给用户看另一套」：
+        只有骨架有 = 用户永远看不到（CDP 探针实测过这个失效方向，22 项红），
+        只有真实页有 = 不执行 JS 的抓取器读不到。
+      放在 related 之后而不是 guide 折叠面板里：guide 默认收起，放进去等于
+      默认不可见，而骨架侧的 dd-tool-notes 是常显的 —— 两边可见性也要一致。
+    -->
+    <div v-if="relatedNotes.length" class="related-notes">
+      <h3 class="related-notes-head">{{ $t('tool.notesTitle') }}</h3>
+      <ul class="related-notes-list">
+        <li v-for="note in relatedNotes" :key="note.slug">
+          <a class="related-notes-link" :href="note.url" target="_blank" rel="noopener">{{ note.title }}</a>
+        </li>
+      </ul>
+    </div>
   </BaseLayout>
 </template>
 
@@ -626,6 +654,39 @@ const shareLabel = computed(() => {
     font-size: 15px;
     font-weight: 500;
     opacity: 0.75;
+  }
+}
+
+/*
+  配套长文区块：宽度、标题样式与 .related 完全一致（两个区块是同级关系），
+  区别只是内容是站外文章链接而不是工具卡片。
+  375px 窄屏下用 overflow-wrap 而不是固定宽度，避免长英文标题撑出横向滚动。
+*/
+.related-notes {
+  max-width: 600px;
+  margin: 0 auto;
+  box-sizing: border-box;
+  padding-top: 28px;
+
+  .related-notes-head {
+    margin: 0 0 12px;
+
+    font-size: 15px;
+    font-weight: 500;
+    opacity: 0.75;
+  }
+
+  .related-notes-list {
+    margin: 0;
+    padding-left: 20px;
+
+    font-size: 14px;
+    line-height: 2;
+    opacity: 0.85;
+  }
+
+  .related-notes-link {
+    overflow-wrap: anywhere;
   }
 }
 

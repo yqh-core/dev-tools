@@ -22,6 +22,7 @@
     "build": "node scripts/build-dd-tokens.mjs && vue-tsc --noEmit -p tsconfig.app.json --composite false && vite build && node scripts/build-seo.mjs",
     "tokens:check": "node scripts/build-dd-tokens.mjs --check",
     "audit:keyword-map": "node scripts/audit-keyword-map.mjs --check",
+    "audit:notes": "node scripts/audit-keyword-map.mjs --check --frontmatter",
     "preview": "vite preview --port 5050",
     "test": "npm run test:unit",
     "test:unit": "vitest --environment jsdom",

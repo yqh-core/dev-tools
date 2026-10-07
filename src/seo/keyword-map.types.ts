@@ -25,18 +25,20 @@ export type KeywordPriority = 'P0' | 'P1' | 'P2' | 'P3';
  * 文档里写的是中文口语（`调试刚需` / `查表` / `生成→复制`），这里落成机器可比较的
  * 闭集 —— `auditKeywordMap` 会校验每个 intent 都落在集合内，写错一个词就构建失败。
  * 这样「意图」才能被聚合统计（例：P0 里有几个 debug 类页面），而不只是装饰性文本。
+ *
+ * 逐个含义：
+ *   debug     调试刚需：输入坏数据、看内部结构
+ *   format    格式化：把数据整理成人能读的样子
+ *   generate  生成→复制：产出随机值 / 表达式，拿到即走
+ *   convert   转换：两种格式之间来回
+ *   encode    编解码：可逆变换（base64 / percent-encoding）
+ *   parse     解析：从一段文本里抽出结构化字段
+ *   compute   计算：由输入推导数值结果
+ *   inspect   查看 / 探测：给一段原始报文，输出解读或评分
+ *   lookup    查表：需求是「查」不是「算」（速查表、状态码表）
+ *   reference 阅读：整页是知识性内容，工具形态不构成优势
  */
-export type KeywordIntent
-  = | 'debug' // 调试刚需：输入坏数据、看内部结构
-    | 'format' // 格式化：把数据整理成人能读的样子
-    | 'generate' // 生成→复制：产出随机值 / 表达式，拿到即走
-    | 'convert' // 转换：两种格式之间来回
-    | 'encode' // 编解码：可逆变换（base64 / percent-encoding）
-    | 'parse' // 解析：从一段文本里抽出结构化字段
-    | 'compute' // 计算：由输入推导数值结果
-    | 'inspect' // 查看 / 探测：给一段原始报文，输出解读或评分
-    | 'lookup' // 查表：需求是「查」不是「算」（速查表、状态码表）
-    | 'reference' // 阅读：整页是知识性内容，工具形态不构成优势
+export type KeywordIntent = 'debug' | 'format' | 'generate' | 'convert' | 'encode' | 'parse' | 'compute' | 'inspect' | 'lookup' | 'reference';
 
 /** 竞争烈度的定性评级。⛔ 不是任何工具的分数，是 top5 域名构成的观察结论。 */
 export type KeywordCompetition = 'low' | 'medium' | 'high' | 'very-high';

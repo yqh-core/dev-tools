@@ -18,11 +18,12 @@
  * 这类机械文案（那是低价值内容政策里的「自动生成内容」形态）。覆盖率由
  * `build-seo.mjs` 打印出来，缺口按待办处理而不是靠凑字数掩盖。
  */
+import { CLUSTER_IDS, TOOL_CLUSTERS, clusterOf, resolveRelated, resolveWorkflow } from './clusters';
+import { KNOWN_NOTE_SLUGS, NOTES_ORIGIN } from './keyword-map';
 import { GUIDES } from '@/tools/guides.en';
 import { GUIDES as GUIDES_ZH } from '@/tools/guides.zh';
 import type { ToolGuide } from '@/tools/guides.types';
 import { toolsWithCategory } from '@/tools';
-import { CLUSTER_IDS, TOOL_CLUSTERS, clusterOf, resolveRelated, resolveWorkflow } from './clusters';
 
 export interface ToolSeoEntry {
   /** 工具路由，不带尾斜杠，如 `/uuid-generator`。 */
@@ -194,6 +195,41 @@ export function auditToolSeoData() {
     throw new Error(`[seo/tool-page] about/faqs 语言数据不成对: ${contentGaps.join('; ')}`);
   }
 
+  // relatedNotes（工具 → 站外文章）的成对性与 slug 合法性。
+  // 与 about/faqs 同一类缺陷、同一类后果：只补一种语言时另一种语言的工具页会**静默**
+  // 少一整块 related guides 区块（界面上不报错，只有对比两语言页面才看得见），
+  // 所以同样在构建期拦死。
+  //
+  // slug 合法性额外查一层：forge-notes 在**本仓库之外**（无版本控制、无 CI），
+  // 拼错的 slug 在这里查不出来，只会在生产上变成一条 404 外链 —— 而首页 Blog
+  // 区块正是从这份数据反向聚合的，一错就是两处 404。
+  const relatedNotesProblems: string[] = [];
+  for (const path of Object.keys(GUIDES)) {
+    const en = GUIDES[path].relatedNotes ?? [];
+    const zh = GUIDES_ZH[path].relatedNotes ?? [];
+    if (en.length !== zh.length) {
+      relatedNotesProblems.push(`${path}: 条数不一致（en ${en.length} / zh ${zh.length}）`);
+    }
+    for (const [index, note] of en.entries()) {
+      const zhNote = zh[index];
+      if (zhNote && zhNote.slug !== note.slug) {
+        relatedNotesProblems.push(`${path}[${index}]: slug 不一致（en ${note.slug} / zh ${zhNote.slug}）`);
+      }
+      if (!(KNOWN_NOTE_SLUGS as readonly string[]).includes(note.slug)) {
+        relatedNotesProblems.push(`${path}: slug ${JSON.stringify(note.slug)} 不在 KNOWN_NOTE_SLUGS 白名单里`);
+      }
+      // URL 必须由 slug 拼出来：⛔ 不带 query（跨站 canonical 页带 query 等于自造重复内容），
+      // ⛔ 主机名写错（notes.digdevbox.com 拼成 blog.… 这类手写笔误）。
+      const expectedUrl = `${NOTES_ORIGIN}/posts/${note.slug}`;
+      if (note.url !== expectedUrl) {
+        relatedNotesProblems.push(`${path}: url 应为 ${expectedUrl}，实际 ${JSON.stringify(note.url)}`);
+      }
+    }
+  }
+  if (relatedNotesProblems.length > 0) {
+    throw new Error(`[seo/tool-page] relatedNotes 数据有问题: ${relatedNotesProblems.join('; ')}`);
+  }
+
   // —— 簇数据校验（src/seo/clusters.ts）——
   // 簇是手工维护的数据，写错 path 不会报错、只会静默少一条内链，
   // 所以必须在构建期把它变成硬失败。
@@ -240,6 +276,9 @@ export function auditToolSeoData() {
     guideLocales: ['en', 'zh'] as const,
     withAbout: TOOL_SEO_PAGES.filter(entry => entry.guide?.about).length,
     withFaqs: TOOL_SEO_PAGES.filter(entry => entry.guide?.faqs?.length).length,
+    // relatedNotes 覆盖：x/101。首页 Blog 区块从这份数据反向聚合，所以这个数字
+    // 同时是「首页会有几篇文章」的上游来源 —— 掉下来肉眼立刻能看出首页少了几张卡。
+    withRelatedNotes: TOOL_SEO_PAGES.filter(entry => entry.guide?.relatedNotes?.length).length,
     // 簇覆盖：x/101。数字掉下来 = 有工具被移出簇或簇数据丢了，肉眼可见。
     withCluster: TOOL_SEO_PAGES.filter(entry => entry.cluster).length,
     clusterIds: CLUSTER_IDS,

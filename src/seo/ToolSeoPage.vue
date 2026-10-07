@@ -150,6 +150,17 @@ const box = 'max-width:800px;margin:0 auto;padding:32px 16px;box-sizing:border-b
       站群互链 + 信任声明：与真实页 base.layout footer 读同一批 i18n 词条、
       同一组外链 —— 骨架与真实页逐字一致，不构成 cloaking。
     -->
+    <section v-if="entry.guide?.relatedNotes?.length" class="dd-tool-notes">
+      <h2 style="font-size:16px;font-weight:500;opacity:.8;margin:0 0 10px">
+        {{ t('tool.notesTitle') }}
+      </h2>
+      <ul style="margin:0;padding-left:22px;line-height:2;font-size:15px">
+        <li v-for="note in entry.guide.relatedNotes" :key="note.slug">
+          <a :href="note.url" style="color:inherit">{{ note.title }}</a>
+        </li>
+      </ul>
+    </section>
+
     <footer class="dd-site-footer" style="margin-top:28px;padding-top:14px;border-top:1px solid rgba(128,128,128,.25);font-size:13px;opacity:.8">
       <p style="margin:0">
         {{ t('network.label') }}

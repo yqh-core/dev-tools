@@ -30,13 +30,13 @@
  * 不会有任何报错 —— 一次「顺手清理」就能悄悄丢掉 7 条已经验证过的定位。
  * `auditKeywordMap()` 就是那道锁：抛错式（throw-on-drift），构建期拦住。
  */
-import { toolsWithCategory } from '@/tools';
+import type { KeywordMapEntry } from './keyword-map.types';
 import {
   KEYWORD_COMPETITIONS,
   KEYWORD_INTENTS,
   KEYWORD_PRIORITIES,
 } from './keyword-map.types';
-import type { KeywordMapEntry } from './keyword-map.types';
+import { toolsWithCategory } from '@/tools';
 
 /**
  * forge-notes 里**真实存在**的英文文章 slug 白名单。
