@@ -16,10 +16,10 @@ home:
     cta: "浏览全部工具"
   why:
     title: "为什么选择 DigDevBox"
-    point1: "在浏览器里运行：免安装、免注册、无付费墙。"
-    point2: "默认隐私：凡是能本地完成的计算，输入内容都留在你的机器上。"
-    point3: "围绕真实工作流组织：排查接口、交付容器、转换数据，而不是一张平铺的控件网格。"
-    point4: "找得到：按 Ctrl+K 直达任意工具，或直接在上方搜索框输入。"
+    point1: "快：工具直接在浏览器里运行，不需要等服务端往返。"
+    point2: "私有：凡是能本地完成的计算，输入内容都留在你的机器上。"
+    point3: "免注册：不要账号、不要邮箱、没有付费墙 —— 打开即用。"
+    point4: "基于浏览器：无需安装，无需配置。"
   privacy:
     title: "隐私说明：你的数据去了哪里"
     local: "默认情况下，所有工具都在你的浏览器本地运行。粘贴的内容不会被上传，也不存在可关联的账号。"
@@ -32,6 +32,15 @@ home:
     entry: "经典工具"
     desc: "老站原样保留的 162 个工具，界面朴素、加载轻快，作为新版之外的补充。"
     open: "打开经典版"
+  tasks:
+    title: "按任务浏览"
+    intro: "从你要做的事开始 —— 每一组都是完成同一件事所需的工具链。"
+  practice:
+    title: "开发者英语练习"
+    subtitle: "学技术英语"
+    topics: "Go · TypeScript · Kubernetes · AI"
+    intro: "面向开发者词汇的打字练习 —— 练的就是你在文档、日志和 code review 里真正读到的那些词。"
+    cta: "打开开发者英语练习"
   categories:
     newestTools: '最新工具'
     favoriteTools: '我的收藏'
@@ -114,7 +123,7 @@ toolCard:
   new: '新'
 search:
   label: '搜索'
-  placeholder: '搜索工具，例如：时间戳、美化、二维码、base64'
+  placeholder: '试试「格式化 JSON」「解码 JWT」「转换时间戳」'
   inputLabel: '搜索工具'
   clear: '清空搜索'
   found: '找到 {count} 个匹配「{query}」的工具'

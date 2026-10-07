@@ -17,10 +17,10 @@ home:
     cta: "Browse all tools"
   why:
     title: "Why DigDevBox"
-    point1: "Runs in your browser: no install, no signup, no paywall."
-    point2: "Privacy by default: your input stays on your machine for every tool that can work locally."
-    point3: "Built around real workflows: debug an API, ship a container, convert data — not a flat grid of widgets."
-    point4: "Find it fast: press Ctrl+K to jump to any tool, or just type in the search box above."
+    point1: "Fast: tools load in your browser with no round trip to a server."
+    point2: "Private: your input stays on your machine for every tool that can work locally."
+    point3: "No signup: no account, no email, no paywall — open a tool and use it."
+    point4: "Browser based: nothing to install, nothing to configure."
   privacy:
     title: "Privacy: where your data goes"
     local: "Every tool runs locally in your browser by default. What you paste is not uploaded, and there is no account that could be linked to it."
@@ -33,6 +33,15 @@ home:
     entry: "Classic tools"
     desc: "162 tools kept from the older site. Plain-looking but fast to load."
     open: "Open classic site"
+  tasks:
+    title: "Browse by task"
+    intro: "Start from what you are trying to do. Each group links the tools that cover one job end to end."
+  practice:
+    title: "Developer Practice"
+    subtitle: "Learn technical English"
+    topics: "Go · TypeScript · Kubernetes · AI"
+    intro: "Typing drills for developer vocabulary — practise the words you actually read in docs, logs and code reviews."
+    cta: "Open Developer Practice"
   categories:
     newestTools: Newest tools
     favoriteTools: 'Your favorite tools'
@@ -113,7 +122,7 @@ toolCard:
   new: New
 search:
   label: Search
-  placeholder: 'Search tools, e.g. timestamp, format, QR code, base64'
+  placeholder: 'Try "format JSON", "decode JWT", "convert timestamp"'
   inputLabel: 'Search tools'
   clear: 'Clear search'
   found: 'Found {count} tools matching "{query}"'
