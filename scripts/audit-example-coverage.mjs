@@ -132,28 +132,27 @@ const NO_EXAMPLE_WHITELIST = [
     path: '/lorem-ipsum-generator',
     why: 'findPrimaryInput() 命中的第一个控件是 readonly 的结果区textarea —— 那是生成结果，不是输入（探测 mode=readonly-output）',
   },
-  // —— 以下 4 条是 E8：数字控件吃掉写入，补了也是假功能（详见 KNOWN_DEFECT） ——
-  {
-    path: '/percentage-calculator',
-    why: '主控件是 naive-ui n-input-number：真实按键输入文本并 blur 后控件值被回退成 ""（探测 mode=number-only）—— applyExample 未修前填文本等于没填',
-  },
-  {
-    path: '/px-rem-converter',
-    why: '主控件是 naive-ui n-input-number：真实按键输入文本并 blur 后控件值被回退成 ""（探测 mode=number-only）—— applyExample 未修前填文本等于没填',
-  },
-  {
-    path: '/mac-address-generator',
-    why: '主控件是 naive-ui n-input-number（Quantity）：真实按键输入文本并 blur 后控件值被回退成 ""（探测 mode=number-only）—— applyExample 未修前填文本等于没填',
-  },
-  {
-    path: '/svg-placeholder-generator',
-    why: '主控件是 naive-ui n-input-number（Width）：真实按键输入文本并 blur 后控件值被回退成 ""，且 SVG 渲染出 viewBox="0 0 null 350"（探测 mode=number-only）—— applyExample 未修前填文本等于没填',
-  },
 ];
 
 /**
- * applyExample 的已知缺陷 —— **只报告，不修**（用户明确要求不动实现）。
- * 门禁每次运行都把它打印成独立一节，供决策是否单独开一刀。
+ * 已知「首个输入控件是 naive-ui n-input-number」的工具。
+ *
+ * applyExample 修复后（写入后派发 blur + 读回校验，src/layouts/tool.layout.vue），
+ * 这些工具可以安全地配 example，但 example.text 必须是**纯数字**（naive-ui 在 blur 时
+ * 会把非数字文本回退成 ""）。本清单为显式登记，来源是
+ * scripts/probe-example-targets.mjs 的真机探测（_ops/example-probe-2026-10-07.md，mode=number-only）。
+ * E8 用它对这类工具做「纯数字载荷」校验——不再拦「补了 example」本身。
+ */
+const NUMERIC_INPUT_TOOLS = [
+  '/percentage-calculator',
+  '/px-rem-converter',
+  '/mac-address-generator',
+  '/svg-placeholder-generator',
+];
+
+/**
+ * applyExample 的已知缺陷 —— **已于本轮修复**（方向 A + 方向 C）。
+ * 门禁仍把它打印成独立一节，记录根因与修复方案，供后续审计回溯。
  */
 const KNOWN_DEFECT = {
   id: 'APPLY-EXAMPLE-N-INPUT-NUMBER',
@@ -189,8 +188,17 @@ const KNOWN_DEFECT = {
     '  但这会改变「主输入控件」的定义，对已有 83 条 example 的行为影响面更大，需要逐条回归。',
     '方向 C（数据侧绕行）：给这 4 个工具补**纯数字** example（如 "16"），文本能存活。',
     '  —— 成本最低，但只是绕过通用缺陷，且按钮文案必须说清填的是数字（例如「填入 16」）。',
-    '⛔ 三个方向都未实施：用户明确要求本轮不改applyExample / findPrimaryInput。',
+    '⛔ 以上三个方向当时都未实施：用户明确要求上一轮不改 applyExample / findPrimaryInput。',
     '建议：单独开一刀做方向 A + C（方向 A 修根因，方向 C 立即恢复这 4 个工具的示例能力）。',
+  ],
+  status: 'resolved',
+  resolution: [
+    '方向 A 已实施（src/layouts/tool.layout.vue）：setInputValue 写入后追加派发 blur，',
+    '  applyExample 在 blur 后读回真实值——若被控件回退成 ""/null/NaN 则**不**置 exampleApplied=true，',
+    '  并给出可见反馈（按钮旁短暂提示「示例无法填入此输入框」）。',
+    '方向 C 已实施：给 4 个 n-input-number 工具补了纯数字 example（42 / 16 / 10 / 800），',
+    '  现已从 NO_EXAMPLE_WHITELIST 移除；E8 改为只允许纯数字载荷（含字母/单位如 "16px" 仍判红）。',
+    '探测报告 _ops/example-probe-2026-10-07.md 的 4 个 mode=number-only 工具全部得到真机回填验证。',
   ],
 };
 
@@ -331,18 +339,22 @@ const CHECKS = [
   },
   {
     id: 'E8',
-    name: '数字型工具登记（applyExample 未修前不得补 example）',
+    name: '数字型工具 example 必须是纯数字载荷',
     run() {
-      // 反向断言：E8 的实际作用是「确保 KNOWN_DEFECT 里列出的受影响工具都在白名单里」。
-      // 一旦有人绕过白名单给它们补了 example，门禁必须在这里拦下——
-      // 因为那会立刻变成「按钮显示、点击无效」的线上缺陷。
+      // applyExample 已修复（写入后派发 blur + 读回校验）：n-input-number 工具不再是「补了就假功能」，
+      // 但 example.text 必须是控件能接受并保留的**纯数字**——naive-ui 在 blur 时会把含字母/单位的
+      // 文本（如 "16px"、"Hello Dev 123"）回退成 ""，按钮会报「未填入」。
+      // 故 E8 从「拦补 example」改为「拦非纯数字载荷」：纯数字放行，含字母/单位仍判红。
       const problems = [];
-      const numericOnly = NO_EXAMPLE_WHITELIST.filter(w => /n-input-number/.test(w.why)).map(w => w.path);
-      for (const p of numericOnly) {
-        if (GUIDES[p]?.example) {
+      const PURE_NUMBER = /^-?\d+(?:\.\d+)?$/;
+      for (const p of NUMERIC_INPUT_TOOLS) {
+        const e = GUIDES[p]?.example;
+        if (!e) continue;
+        if (!PURE_NUMBER.test(e.text.trim())) {
           problems.push(
-            `E8 ${p}：主控件是 n-input-number，applyExample 对它无效（${KNOWN_DEFECT.id}）—— `
-            + '给它补 example 会得到「点了没反应」的假功能。请先修 applyExample，或改用纯数字载荷。',
+            `E8 ${p}：主控件是 naive-ui n-input-number，example.text ${JSON.stringify(e.text)} 含非数字字符 —— `
+            + 'blur 后会被控件回退成 ""（applyExample 已修，会如实报「未填入」），但 shipped 的示例不该是这种形态。'
+            + '请改成纯数字（例如 "16"），或确认该工具首个输入确实接受此格式。',
           );
         }
       }
@@ -440,7 +452,8 @@ function printReport(results, { exitCode }) {
   }
 
   console.log('');
-  console.log(`[example] 已知缺陷 ${KNOWN_DEFECT.id}：${KNOWN_DEFECT.title}`);
+  const defectStatus = KNOWN_DEFECT.status === 'resolved' ? '已修复' : '未修复';
+  console.log(`[example] 已知缺陷 ${KNOWN_DEFECT.id}：${KNOWN_DEFECT.title} —— 状态：${defectStatus}`);
   console.log('  根因：');
   for (const l of KNOWN_DEFECT.rootCause) {
     console.log(`    · ${l}`);
@@ -453,9 +466,17 @@ function printReport(results, { exitCode }) {
   for (const l of KNOWN_DEFECT.impact) {
     console.log(`    · ${l}`);
   }
-  console.log('  建议修法（本轮⛔ 未实施，用户要求不动 applyExample / findPrimaryInput）：');
-  for (const l of KNOWN_DEFECT.suggestedFix) {
-    console.log(`    · ${l}`);
+  if (KNOWN_DEFECT.status === 'resolved') {
+    console.log('  修复方案（已实施）：');
+    for (const l of KNOWN_DEFECT.resolution) {
+      console.log(`    · ${l}`);
+    }
+  }
+  else {
+    console.log('  建议修法（尚未实施）：');
+    for (const l of KNOWN_DEFECT.suggestedFix) {
+      console.log(`    · ${l}`);
+    }
   }
 
   const total = results.reduce((n, r) => n + r.problems.length, 0);

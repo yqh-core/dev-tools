@@ -673,6 +673,7 @@ export const GUIDES: Record<string, ToolGuide> = {
 
   '/mac-address-generator': {
     intro: '批量生成 MAC 地址，测试网络设备或造数据时用。',
+    example: { label: '填入数量 10', text: '10' },
     steps: ['填需要生成的数量', '需要时填前缀', '点生成并复制'],
     about: '批量生成随机 MAC 地址：可指定前缀（标识厂商的前三字节 OUI）、数量与大小写。填充测试数据、模拟设备清单、验证地址过滤逻辑时都用得上，不必碰真实硬件。',
     faqs: [
@@ -794,6 +795,7 @@ export const GUIDES: Record<string, ToolGuide> = {
 
   '/percentage-calculator': {
     intro: '算两个数之间的百分比、增减比例，或由百分比反推数值。',
+    example: { label: '填入 42（百分比）', text: '42' },
     steps: ['根据要算的问题选择对应模式', '填入已知数值', '读结果'],
     about: '那些总要愣一秒的百分比算术，这里直接给清楚：X 占 Y 的百分之几、Y 的 P% 是多少、两个值之间的增减百分比。填两个已知数，读第三个——结账时不用再在脑子里重新推导公式。',
     faqs: [
@@ -960,6 +962,7 @@ export const GUIDES: Record<string, ToolGuide> = {
 
   '/svg-placeholder-generator': {
     intro: '生成指定尺寸的 SVG 占位图，做页面骨架时用，比外部图床快也稳。',
+    example: { label: '填入宽度 800', text: '800' },
     steps: ['填宽度和高度', '按需设置文字和颜色', '复制 SVG 或 data URI'],
     about: '生成 SVG 占位图——设尺寸、配色和可选文字，在真实素材就位前把 URL 或标记嵌进布局。SVG 任意尺寸都清晰、文件只有几百字节，线框图从此不再被裂图毁掉。',
     faqs: [
@@ -1354,6 +1357,7 @@ export const GUIDES: Record<string, ToolGuide> = {
 
   '/px-rem-converter': {
     intro: '按根字号在 px 与 rem 之间批量换算，调响应式字号和间距时用。',
+    example: { label: '填入根字号 16', text: '16' },
     steps: [
       '设「根字号」——即页面 html 的 font-size，默认 16px；按需改「小数位」',
       '选「转换方向」：px → rem 或 rem → px',

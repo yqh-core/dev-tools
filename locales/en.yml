@@ -567,6 +567,7 @@ tool:
   guideCollapse: "Hide instructions"
   guideExampleTip: "Not sure what to enter? Click to fill in a sample value."
   guideExampleApplied: "✓ Filled in"
+  guideExampleFailed: "Couldn't auto-fill this input"
 clusters:
   json: "JSON tools"
   yaml: "YAML & TOML"

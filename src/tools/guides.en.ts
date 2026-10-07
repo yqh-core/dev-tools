@@ -681,6 +681,7 @@ export const GUIDES: Record<string, ToolGuide> = {
 
   '/mac-address-generator': {
     intro: 'Generates MAC addresses in bulk for testing network gear or fabricating test data.',
+    example: { label: 'Fill in quantity 10', text: '10' },
     steps: ['Enter how many you need', 'Add a prefix if required', 'Click generate and copy'],
     about: 'Generate any number of random MAC addresses, optionally prefixed with a specific OUI (the first three bytes that identify a vendor) and in your preferred case. Useful for populating test fixtures, mocking device inventories or exercising address-filtering logic without touching real hardware.',
     faqs: [
@@ -802,6 +803,7 @@ export const GUIDES: Record<string, ToolGuide> = {
 
   '/percentage-calculator': {
     intro: 'Computes percentages between two numbers, percentage increases or decreases, or works backwards from a percentage.',
+    example: { label: 'Fill in 42 (%)', text: '42' },
     steps: ['Pick the mode matching your question', 'Enter the known values', 'Read the result'],
     about: 'The percentage maths that always needs a second of thought, made explicit: X is what percent of Y, what is P percent of Y, and percentage increase or decrease between two values. Fill the two knowns, read the third — no more re-deriving the formula in your head at the checkout.',
     faqs: [
@@ -968,6 +970,7 @@ export const GUIDES: Record<string, ToolGuide> = {
 
   '/svg-placeholder-generator': {
     intro: 'Generates an SVG placeholder of a given size — faster and more reliable than an external placeholder service when building skeleton screens.',
+    example: { label: 'Fill in width 800', text: '800' },
     steps: ['Enter the width and height', 'Set the text and colours as needed', 'Copy the SVG or its data URI'],
     about: 'Generate SVG placeholder images — set dimensions, colours and optional text, and embed the URL or markup in your layout while real assets are still in flight. SVG stays crisp at any size and the file is a few hundred bytes, so mockups stop breaking on missing images.',
     faqs: [
@@ -1357,6 +1360,7 @@ export const GUIDES: Record<string, ToolGuide> = {
 
   '/px-rem-converter': {
     intro: 'Converts between px and rem in bulk against a root font size — for tuning responsive typography and spacing.',
+    example: { label: 'Fill in root size 16', text: '16' },
     steps: [
       'Set the root font size — the font-size of the page html, 16px by default; adjust the decimal places as needed',
       'Choose the direction: px → rem or rem → px',

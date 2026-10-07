@@ -565,6 +565,7 @@ tool:
   guideCollapse: "收起使用说明"
   guideExampleTip: "不确定填什么？点一下自动填一份示例内容。"
   guideExampleApplied: "✓ 已填入"
+  guideExampleFailed: "示例无法填入此输入框"
 clusters:
   json: "JSON 工具"
   yaml: "YAML 与 TOML"

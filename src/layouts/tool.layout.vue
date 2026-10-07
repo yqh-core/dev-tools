@@ -209,8 +209,11 @@ watch(guideOpen, (open) => {
 });
 
 const exampleApplied = ref(false);
+/** 填示例失败（控件在 blur 后拒绝了写入的值）时的可见反馈标记。 */
+const exampleFailed = ref(false);
 watch(() => route.path, () => {
   exampleApplied.value = false;
+  exampleFailed.value = false;
 });
 
 /**
@@ -235,6 +238,11 @@ function findPrimaryInput(): HTMLTextAreaElement | HTMLInputElement | null {
  *
  * 必须用原生 setter + input 事件：直接改 `el.value` 不会触发 Vue 的响应式更新，
  * 界面上看起来「点了没反应」，而数据层其实已经变了 —— 这类假象最难排查。
+ *
+ * 写入后再派发一次 `blur`：naive-ui 的 n-input-number 只在 blur 时才解析输入框内容，
+ * 派发 blur 让它走自己的解析/校验路径，控件才能把「解析后的真实值」回写到 DOM。
+ * 不派发 blur 的话，下文 applyExample 读回的就是 setter 写入的瞬间值（对数字控件是假阳性）。
+ * 所有控件类型统一处理：setInputValue 不按控件类型分支（详见 applyExample 的读回校验）。
  */
 function setInputValue(el: HTMLTextAreaElement | HTMLInputElement, value: string) {
   const proto = Object.getPrototypeOf(el);
@@ -246,19 +254,52 @@ function setInputValue(el: HTMLTextAreaElement | HTMLInputElement, value: string
     el.value = value;
   }
   el.dispatchEvent(new Event('input', { bubbles: true }));
+  // 让控件走自己的解析/校验（详见上方说明）。applyExample 会在 blur 后读回真实值判定。
+  el.dispatchEvent(new Event('blur', { bubbles: true }));
 }
 
-/** 填示例：让第一次打开工具的人不用面对空白输入框。 */
+/**
+ * 填示例：让第一次打开工具的人不用面对空白输入框。
+ *
+ * 关键：写入 + blur 后**读回真实值**再做判定。
+ * naive-ui 的 n-input-number 在 blur 时会把非法输入（非数字文本）回退成 ""，
+ * 此时界面上其实「没填进去」——不能再谎报成功（旧实现会置 exampleApplied=true，
+ * 按钮文案变「已填入」而数据没进去，正是上一轮确诊的静默失效缺陷）。
+ *
+ * ⛔ 读回不能同步做：组件在 blur 后的回写多半发生在 nextTick（微任务），
+ * 这里用 setTimeout(0)（宏任务，排在微任务之后）确保回写已落定。
+ * 判定只看「回写值是否还非空」——对文本/多行框原样保留（非空白），
+ * 对数字控件非法文本被清成 "" → 判定为未填入。
+ */
 function applyExample() {
   const el = findPrimaryInput();
   if (!el || !guide.value?.example) {
     return;
   }
-  setInputValue(el, guide.value.example.text);
-  exampleApplied.value = true;
+  const expected = guide.value.example.text;
+  setInputValue(el, expected);
+  // setInputValue 已派发 blur（naive-ui 数字控件据此解析/校验并回写真实值）。
+  // 读回真实值做判定（所有控件类型通用，不按类型分支）：
+  //  · 数字控件非法文本在 blur 后被清成 ""（survived=false）
+  //  · 文本/多行框原样保留（survived=true）
+  // ⛔ 读回不能同步：组件回写多在 nextTick（微任务），用 setTimeout(0)（宏任务）等其落定。
   setTimeout(() => {
-    exampleApplied.value = false;
-  }, 2000);
+    const raw = (el as HTMLInputElement).value;
+    const survived = raw !== '' && raw != null;
+    if (!survived) {
+      // 写入的值被控件在 blur 后拒绝（典型：数字控件吃到非数字文本）。
+      // 不置 exampleApplied（按钮留在「示例」文案），并给出可见反馈。
+      exampleFailed.value = true;
+      setTimeout(() => {
+        exampleFailed.value = false;
+      }, 2000);
+      return;
+    }
+    exampleApplied.value = true;
+    setTimeout(() => {
+      exampleApplied.value = false;
+    }, 2000);
+  }, 0);
 }
 
 /** 清空：换下一份数据时不用逐字选中删除。 */
@@ -371,6 +412,7 @@ const shareLabel = computed(() => {
             {{ shareLabel }}
           </button>
           <span v-if="guide?.example" class="action-tip">{{ $t('tool.guideExampleTip') }}</span>
+          <span v-if="exampleFailed" class="action-tip action-tip--error">{{ $t('tool.guideExampleFailed') }}</span>
         </div>
 
         <div v-if="guide" class="guide">
@@ -600,6 +642,11 @@ const shareLabel = computed(() => {
   .action-tip {
     opacity: 0.55;
     font-size: 12px;
+  }
+
+  .action-tip--error {
+    opacity: 1;
+    color: var(--error-color, #d03050);
   }
 }
 
