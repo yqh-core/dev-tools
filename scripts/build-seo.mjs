@@ -225,6 +225,9 @@ try {
   const { canonicalUrl, SITE_ORIGIN } = await vite.ssrLoadModule('/src/seo/site.ts');
   const { STATIC_ROUTES } = await vite.ssrLoadModule('/src/seo/routes.ts');
   const { TOOL_SEO_PAGES, auditToolSeoData } = await vite.ssrLoadModule('/src/seo/tool-page.ts');
+  // Keyword Map 的已落地 title 与 locales/en.yml 逐字比对：drift 即构建失败。
+  // 判据全部在 src/seo/keyword-map.ts（不在本脚本里），⛔ 本脚本不改任何现有判据。
+  const { auditKeywordMap } = await vite.ssrLoadModule('/src/seo/keyword-map.ts');
   const mod = await vite.ssrLoadModule('/src/entry-server.ts');
 
   // —— 数据体检：不通过就让构建失败，而不是少渲染几个页面还说成功 ——
@@ -250,6 +253,18 @@ try {
     `[tools] 任务簇覆盖：${audit.withCluster}/${audit.total} 个工具页有工作流区块`
     + `（簇 ${audit.clusterIds.length} 个：${audit.clusterIds.join(', ')}）`,
   );
+
+  // Keyword Map 体检：锁定 title 漂移 + 路径/取值域/文章 slug。不通过直接抛错。
+  const toolTitles = Object.fromEntries(
+    Object.entries(messages.tools ?? {}).map(([key, value]) => [key, value?.title]),
+  );
+  const kwAudit = auditKeywordMap(toolTitles);
+  console.log(
+    `[keyword-map] ${kwAudit.total} 行已入库：title 锁定 ${kwAudit.lockedTitles} 条，`
+    + `待落地 ${kwAudit.pendingTitles.length} 条，配文章 ${kwAudit.withArticle} 条，`
+    + `搜索量 ${kwAudit.searchVolume}（口径：全部 N/A，无 Keyword Planner 权限，禁止当流量预测）`,
+  );
+  console.log(`[keyword-map] 优先级分布 ${kwAudit.byPriority.join(' ')}｜搜索量 ${kwAudit.searchVolume}`);
 
   const staticPaths = new Set(STATIC_ROUTES.map(({ path }) => path));
   const collide = TOOL_SEO_PAGES.filter(({ path }) => staticPaths.has(path));
