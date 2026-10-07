@@ -110,28 +110,36 @@ const WHY_POINT_KEYS = [
 ];
 
 /**
- * 首页 Blog 区块的文章卡片（S3 集成、S2 上移+视觉升级）。
+ * 首页 Blog 区块的文章卡片（S3 集成、S2 上移+视觉升级、G-03-1 换英文文章）。
  *
- * 标题必须与 forge-notes 线上文章 frontmatter title 逐字一致（2026-10-07 核对），
- * URL 形态 = https://notes.digdevbox.com/posts/<slug>。新文章上线后手动增补，
- * 下线文章必须同步移除 —— 外链 404 比少一篇卡片伤害大。
- * tag 是从文章标题派生的真实归类（非虚构栏目），与文章语言一致用中文。
+ * 红线（G-03 裁定④）：title / description / url 三字段必须与 forge-notes
+ * 文章 frontmatter **逐字一致**（title = frontmatter title；description =
+ * frontmatter description；url = https://notes.digdevbox.com/posts/<slug>）。
+ * 防止「首页标题 ≠ 文章标题 ≠ JSON-LD 标题」的 SEO 信号分裂。
+ * 新文章上线后手动增补，下线文章必须同步移除 —— 外链 404 比少一篇卡片伤害大。
+ * tag 从文章主题派生（英文文章用英文 tag，与文章语言一致）。
  */
 const BLOG_POSTS = [
   {
-    title: '前端性能优化实战：提升网站速度与转化率',
-    url: 'https://notes.digdevbox.com/posts/frontend-performance-optimization',
-    tag: '性能优化',
+    title: 'JWT Decoder Explained: How to Inspect and Debug JSON Web Tokens',
+    description:
+      'Learn how a JSON Web Token is structured and how to decode one online to inspect its header, payload and registered claims when debugging authentication issues.',
+    url: 'https://notes.digdevbox.com/posts/jwt-decoder-guide',
+    tag: 'JWT',
   },
   {
-    title: '谷歌 SEO 优化完整指南：从零到排名第一',
-    url: 'https://notes.digdevbox.com/posts/google-seo-guide',
-    tag: 'SEO',
+    title: 'JSON Formatter Guide: Format, Validate and Compare JSON Online',
+    description:
+      'How to format, validate, minify and compare JSON online — a practical guide to cleaning up API responses, spotting syntax errors and diffing config files.',
+    url: 'https://notes.digdevbox.com/posts/json-formatting-guide',
+    tag: 'JSON',
   },
   {
-    title: 'VitePress 入门指南',
-    url: 'https://notes.digdevbox.com/posts/vitepress-guide',
-    tag: '工具链',
+    title: 'Regex Testing Guide: How Developers Debug Regular Expressions',
+    description:
+      'A practical workflow for testing and debugging regular expressions online — live matches, flags, capture groups and a cheat sheet for the syntax you forget.',
+    url: 'https://notes.digdevbox.com/posts/regex-testing-guide',
+    tag: 'Regex',
   },
 ];
 
@@ -281,10 +289,10 @@ function onUpdateFavoriteTools() {
         </div>
 
         <!--
-          Blog 区块（S3 集成、S2 上移至第 3 位 + 视觉升级）。
-          文章清单手动维护：标题必须与 forge-notes 站线上文章的真实
-          frontmatter title 逐字一致（红线：不得虚构），新增/下线文章时同步改
-          BLOG_POSTS。中文文章受众 = 中文开发者，与工具站英文界面并存是有意为之。
+          Blog 区块（S3 集成、S2 上移至第 3 位 + 视觉升级、G-03-1 换英文文章）。
+          文章清单手动维护：title/description/url 必须与 forge-notes 文章
+          frontmatter 逐字一致（G-03 裁定④红线），新增/下线文章时同步改 BLOG_POSTS。
+          英文文章受众 = 全球开发者，与主站英文界面一致（G-03 裁定①）。
         -->
         <section class="home-block">
           <h2 class="home-block-title">
@@ -304,6 +312,7 @@ function onUpdateFavoriteTools() {
             >
               <span class="home-blog-card-tag">{{ post.tag }}</span>
               <span class="home-blog-card-title">{{ post.title }}</span>
+              <span class="home-blog-card-desc">{{ post.description }}</span>
               <span class="home-blog-card-site">notes.digdevbox.com</span>
             </a>
           </div>
@@ -674,6 +683,17 @@ function onUpdateFavoriteTools() {
     font-size: 13px;
     font-weight: 500;
     line-height: 1.5;
+  }
+
+  .home-blog-card-desc {
+    display: -webkit-box;
+    overflow: hidden;
+
+    font-size: 12px;
+    line-height: 1.55;
+    opacity: 0.7;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
   }
 
   .home-blog-card-site {
