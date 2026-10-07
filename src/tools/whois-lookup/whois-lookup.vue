@@ -66,7 +66,7 @@ function clear() {
       @keydown.enter="queryWhois"
     />
 
-    <div flex gap-2 items-center>
+    <div flex items-center gap-2>
       <c-button type="primary" :disabled="loading || !domain.trim()" @click="queryWhois">
         {{ loading ? '查询中…' : '查询 WHOIS' }}
       </c-button>
@@ -80,7 +80,7 @@ function clear() {
     </c-alert>
 
     <div v-if="result">
-      <div mb-1 op-70 text-13px>
+      <div mb-1 text-13px op-70>
         注册信息：
       </div>
       <TextareaCopyable :value="result" />

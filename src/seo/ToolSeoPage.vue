@@ -19,8 +19,8 @@
  */
 // 一律用相对路径导入：`defineProps<{ entry: ToolSeoEntry }>()` 的类型需要被
 // @vue/compiler-sfc 静态解析，别名路径在部分版本下会解析失败（Unresolvable type reference）。
-import type { ToolSeoEntry } from './tool-page';
 import { useI18n } from 'vue-i18n';
+import type { ToolSeoEntry } from './tool-page';
 import { usePageSeo } from './use-page-seo';
 
 const props = defineProps<{ entry: ToolSeoEntry }>();
@@ -78,7 +78,9 @@ const box = 'max-width:800px;margin:0 auto;padding:32px 16px;box-sizing:border-b
       工具的用途简介（guide.intro）不在这里，它已作为上方可见的首段输出。
     -->
     <details v-if="entry.guide" class="dd-tool-guide" style="margin:0 0 20px;font-size:15px;line-height:1.8">
-      <summary style="cursor:pointer;opacity:.9">{{ t('seo.guideSummary') }}</summary>
+      <summary style="cursor:pointer;opacity:.9">
+        {{ t('seo.guideSummary') }}
+      </summary>
       <!--
         about / faqs 与真实工具页（tool.layout 的 guide 面板）读同一份 guides 数据、
         同一批 i18n 词条：骨架侧多输出的任何一句话，都必须在用户展开面板后逐字可见。
@@ -87,7 +89,9 @@ const box = 'max-width:800px;margin:0 auto;padding:32px 16px;box-sizing:border-b
         <h2 style="font-size:16px;font-weight:500;opacity:.85;margin:10px 0 6px">
           {{ t('seo.aboutTitle', { name: entry.name }) }}
         </h2>
-        <p style="margin:0;opacity:.85">{{ entry.guide.about }}</p>
+        <p style="margin:0;opacity:.85">
+          {{ entry.guide.about }}
+        </p>
       </section>
       <ol style="margin:10px 0 0;padding-left:22px;opacity:.85">
         <li v-for="(step, index) in entry.guide.steps" :key="index">
@@ -105,8 +109,12 @@ const box = 'max-width:800px;margin:0 auto;padding:32px 16px;box-sizing:border-b
         </h2>
         <dl style="margin:0">
           <template v-for="(faq, index) in entry.guide.faqs" :key="index">
-            <dt style="font-weight:500;opacity:.85;margin-top:8px">{{ faq.q }}</dt>
-            <dd style="margin:2px 0 0;opacity:.75">{{ faq.a }}</dd>
+            <dt style="font-weight:500;opacity:.85;margin-top:8px">
+              {{ faq.q }}
+            </dt>
+            <dd style="margin:2px 0 0;opacity:.75">
+              {{ faq.a }}
+            </dd>
           </template>
         </dl>
       </section>

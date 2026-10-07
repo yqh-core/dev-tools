@@ -18,20 +18,18 @@ const rows = computed(() => (search.value ? searchResult.value : httpHeaderEntri
     <c-input-text
       v-model:value="search"
       placeholder="搜索头部字段，如 Cookie / CORS / 缓存…"
-      autofocus
-      raw-text
-      mb-6
-      clearable
+
+      autofocus raw-text clearable mb-6
     />
 
-    <div mb-2 op-60 text-13px>
+    <div mb-2 text-13px op-60>
       共 {{ rows.length }} 条
     </div>
 
     <c-card v-for="item of rows" :key="item.name" mb-2>
       <div flex flex-wrap items-baseline gap-2>
         <span text-16px font-bold font-mono>{{ item.name }}</span>
-        <span op-60 text-13px px-1 b-rd-3px bg-gray-2>{{ item.dir }}</span>
+        <span b-rd-3px bg-gray-2 px-1 text-13px op-60>{{ item.dir }}</span>
       </div>
       <div mt-1 op-70>
         {{ item.zh }}

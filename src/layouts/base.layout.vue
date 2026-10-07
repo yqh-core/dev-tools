@@ -60,7 +60,6 @@ const tools = computed<ToolCategory[]>(() => [
         <CollapsibleToolMenu :tools-by-category="tools" />
 
         <div class="footer">
-
           <div>
             © {{ new Date().getFullYear() }}
             <c-link href="https://digdevbox.com">
@@ -69,11 +68,17 @@ const tools = computed<ToolCategory[]>(() => [
           </div>
 
           <div class="footer-legal">
-            <RouterLink to="/privacy">{{ $t('legal.privacy') }}</RouterLink>
+            <RouterLink to="/privacy">
+              {{ $t('legal.privacy') }}
+            </RouterLink>
             <span class="dot">·</span>
-            <RouterLink to="/terms">{{ $t('legal.terms') }}</RouterLink>
+            <RouterLink to="/terms">
+              {{ $t('legal.terms') }}
+            </RouterLink>
             <span class="dot">·</span>
-            <RouterLink to="/contact">{{ $t('legal.contact') }}</RouterLink>
+            <RouterLink to="/contact">
+              {{ $t('legal.contact') }}
+            </RouterLink>
           </div>
 
           <div class="footer-network">
@@ -123,7 +128,6 @@ const tools = computed<ToolCategory[]>(() => [
         <div>
           <NavbarButtons v-if="!styleStore.isSmallScreen" />
         </div>
-
       </div>
       <slot />
     </template>

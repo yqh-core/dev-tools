@@ -325,7 +325,9 @@ const shareLabel = computed(() => {
     <div class="tool-layout">
       <div class="tool-header">
         <div class="breadcrumb">
-          <RouterLink to="/">{{ $t('home.home') }}</RouterLink>
+          <RouterLink to="/">
+            {{ $t('home.home') }}
+          </RouterLink>
           <span class="sep">/</span>
           <span>{{ currentCategory }}</span>
           <span class="sep">/</span>
@@ -393,7 +395,9 @@ const shareLabel = computed(() => {
               「给抓取器看的文字必须真实存在于用户可见的页面上」，这里是可见侧。
             -->
             <section v-if="guide.about" class="guide-about">
-              <h4 class="guide-section-head">{{ $t('seo.aboutTitle', { name: toolTitle }) }}</h4>
+              <h4 class="guide-section-head">
+                {{ $t('seo.aboutTitle', { name: toolTitle }) }}
+              </h4>
               <p>{{ guide.about }}</p>
             </section>
 
@@ -412,7 +416,9 @@ const shareLabel = computed(() => {
             </ul>
 
             <section v-if="guide.faqs?.length" class="guide-faqs">
-              <h4 class="guide-section-head">{{ $t('seo.faqTitle') }}</h4>
+              <h4 class="guide-section-head">
+                {{ $t('seo.faqTitle') }}
+              </h4>
               <dl class="guide-faq-list">
                 <template v-for="(faq, index) in guide.faqs" :key="index">
                   <dt>{{ faq.q }}</dt>
@@ -435,7 +441,9 @@ const shareLabel = computed(() => {
       workflow 是「流程本身」（包含自身、只取簇内、不兜底）。没有簇就不渲染。
     -->
     <div v-if="workflowNodes.length" class="workflow">
-      <h3 class="workflow-head">{{ $t('tool.workflowTitle', { cluster: clusterLabel }) }}</h3>
+      <h3 class="workflow-head">
+        {{ $t('tool.workflowTitle', { cluster: clusterLabel }) }}
+      </h3>
       <div class="workflow-chain">
         <template v-for="(node, index) in workflowNodes" :key="node.item.path">
           <span v-if="index > 0" class="workflow-arrow">→</span>
@@ -450,8 +458,10 @@ const shareLabel = computed(() => {
     </div>
 
     <div v-if="relatedTools.length" class="related">
-      <h3 class="related-head">{{ $t('tool.relatedTitle') }}</h3>
-      <div class="grid grid-cols-1 gap-12px sm:grid-cols-2 md:grid-cols-3">
+      <h3 class="related-head">
+        {{ $t('tool.relatedTitle') }}
+      </h3>
+      <div class="grid grid-cols-1 gap-12px md:grid-cols-3 sm:grid-cols-2">
         <ToolCard v-for="tool in relatedTools" :key="tool.name" :tool="tool" />
       </div>
     </div>
@@ -467,7 +477,9 @@ const shareLabel = computed(() => {
       默认不可见，而骨架侧的 dd-tool-notes 是常显的 —— 两边可见性也要一致。
     -->
     <div v-if="relatedNotes.length" class="related-notes">
-      <h3 class="related-notes-head">{{ $t('tool.notesTitle') }}</h3>
+      <h3 class="related-notes-head">
+        {{ $t('tool.notesTitle') }}
+      </h3>
       <ul class="related-notes-list">
         <li v-for="note in relatedNotes" :key="note.slug">
           <a class="related-notes-link" :href="note.url" target="_blank" rel="noopener">{{ note.title }}</a>

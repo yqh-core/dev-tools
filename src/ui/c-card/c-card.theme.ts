@@ -1,5 +1,5 @@
-import { ddTokens } from '@/generated/dd-tokens';
 import { defineThemes } from '../theme/theme.models';
+import { ddTokens } from '@/generated/dd-tokens';
 
 export const { useTheme } = defineThemes({
   dark: {

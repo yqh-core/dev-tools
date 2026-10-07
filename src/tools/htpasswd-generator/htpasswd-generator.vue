@@ -9,7 +9,7 @@
  * 注意：生成动作刻意做成「点按钮」而不是 computed —— 随机盐放进 computed 会让结果
  * 在每次无关输入时自己变化，bcrypt 在高成本下还要几百毫秒。
  */
-import { hashSync, compareSync } from 'bcryptjs';
+import { compareSync, hashSync } from 'bcryptjs';
 import CryptoJS from 'crypto-js';
 import { apr1, apr1Verify } from './apr1';
 
@@ -178,14 +178,14 @@ function useGenerated() {
         label-align="right"
       />
 
-      <div flex gap-2 items-center>
+      <div flex items-center gap-2>
         <c-button type="primary" @click="generate">
           生成
         </c-button>
         <c-button v-if="fmt === 'apr1'" @click="salt = randomSalt()">
           随机盐
         </c-button>
-        <span op-60 text-13px>{{ activeHint }}</span>
+        <span text-13px op-60>{{ activeHint }}</span>
       </div>
     </div>
 
@@ -194,7 +194,7 @@ function useGenerated() {
     </c-alert>
 
     <div v-if="generated" flex flex-col gap-2>
-      <div op-70 text-13px>
+      <div text-13px op-70>
         生成结果{{ saltUsed ? `（本次使用的盐：${saltUsed}）` : '' }}：
       </div>
       <InputCopyable :value="generated" />
@@ -231,11 +231,11 @@ function useGenerated() {
         raw-text
       />
 
-      <div flex gap-2 items-center>
+      <div flex items-center gap-2>
         <c-button type="primary" @click="verify">
           校验
         </c-button>
-        <span v-if="parsed" op-60 text-13px>识别到格式：{{ detected }}</span>
+        <span v-if="parsed" text-13px op-60>识别到格式：{{ detected }}</span>
       </div>
 
       <c-alert v-if="verifyError">

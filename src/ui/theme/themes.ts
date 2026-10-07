@@ -1,5 +1,5 @@
-import { ddTokens } from '@/generated/dd-tokens';
 import { defineThemes } from './theme.models';
+import { ddTokens } from '@/generated/dd-tokens';
 
 /**
  * c-* 组件族的主题 —— 颜色来自 dd-tokens（B3）。

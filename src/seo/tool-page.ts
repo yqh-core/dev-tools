@@ -50,11 +50,11 @@ export interface ToolSeoEntry {
    * 旧的「同分类前 8」会把 `/json-prettify` 链向 `/git-memo`（同属 Development），
    * 对用户毫无意义，也把内链权重散给不相干页面。详见 `src/seo/clusters.ts`。
    */
-  related: { path: string, name: string }[]
+  related: { path: string; name: string }[]
   /** 所属任务簇 id（i18n 词条 `clusters.<id>`）；不属于任何簇时为 null。 */
   cluster: string | null
   /** 同簇的完整工作流链条（含当前项标记）；不属于任何簇时为空数组。 */
-  workflow: { path: string, name: string, current: boolean }[]
+  workflow: { path: string; name: string; current: boolean }[]
 }
 
 /** 同簇互链的条数上限：只做「相邻工具发现」，不做全站链接堆砌。 */

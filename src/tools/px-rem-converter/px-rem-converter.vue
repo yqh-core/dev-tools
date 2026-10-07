@@ -6,7 +6,7 @@ const digits = ref(4);
 const input = useStorage('px-rem-converter:input', '');
 const direction = ref<Direction>('px2rem');
 
-const directionOptions: { label: string, value: Direction }[] = [
+const directionOptions: { label: string; value: Direction }[] = [
   { label: 'px → rem', value: 'px2rem' },
   { label: 'rem → px', value: 'rem2px' },
 ];
@@ -79,7 +79,7 @@ const text = computed(() =>
     />
 
     <div v-if="rows.length" mt-1>
-      <div mb-1 op-70 text-13px>
+      <div mb-1 text-13px op-70>
         转换结果（rem = px ÷ 根字号）：
       </div>
       <TextareaCopyable :value="text" />

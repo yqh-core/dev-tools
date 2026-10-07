@@ -16,7 +16,7 @@ import { useHead } from '@vueuse/head';
 import { useI18n } from 'vue-i18n';
 
 import { getPageMeta } from './page-meta';
-import { canonicalUrl, OG_IMAGE } from './site';
+import { OG_IMAGE, canonicalUrl } from './site';
 
 /**
  * 品牌主色 —— 同时用于 `<meta name="theme-color">`（手机浏览器地址栏着色）。

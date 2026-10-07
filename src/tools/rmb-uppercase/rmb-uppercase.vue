@@ -69,7 +69,7 @@ const result = computed(() => {
   const neg = raw.startsWith('-');
   const abs = raw.replace('-', '');
   const [intPart, decRaw = ''] = abs.split('.');
-  const dec = (decRaw + '00').slice(0, 2);
+  const dec = (`${decRaw}00`).slice(0, 2);
   const jiao = Number(dec[0]);
   const fen = Number(dec[1]);
   const yuanChar = useYuan.value ? '元' : '圆';
@@ -77,12 +77,15 @@ const result = computed(() => {
   let tail = '';
   if (jiao === 0 && fen === 0) {
     tail = `${yuanChar}整`;
-  } else if (jiao > 0 && fen === 0) {
-    tail = yuanChar + DIGITS[jiao] + '角';
-  } else if (jiao === 0 && fen > 0) {
+  }
+  else if (jiao > 0 && fen === 0) {
+    tail = `${yuanChar + DIGITS[jiao]}角`;
+  }
+  else if (jiao === 0 && fen > 0) {
     tail = `${yuanChar}零${DIGITS[fen]}分`;
-  } else {
-    tail = yuanChar + DIGITS[jiao] + '角' + DIGITS[fen] + '分';
+  }
+  else {
+    tail = `${yuanChar + DIGITS[jiao]}角${DIGITS[fen]}分`;
   }
 
   const head = intToCn(intPart) + tail;

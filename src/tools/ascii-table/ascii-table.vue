@@ -18,25 +18,23 @@ const rows = computed(() => (search.value ? searchResult.value : asciiEntries));
     <c-input-text
       v-model:value="search"
       placeholder="搜索字符或码值，如 65 / A / 0x41…"
-      autofocus
-      raw-text
-      mb-6
-      clearable
+
+      autofocus raw-text clearable mb-6
     />
 
-    <div mb-2 op-60 text-13px>
+    <div mb-2 text-13px op-60>
       共 {{ rows.length }} 条
     </div>
 
     <c-card v-for="item of rows" :key="item.dec" mb-2>
       <div flex flex-wrap items-baseline gap-3>
-        <span text-18px font-bold font-mono w-40px inline-block text-center>{{ item.char }}</span>
-        <span op-70 text-13px font-mono>dec {{ item.dec }}</span>
-        <span op-70 text-13px font-mono>{{ item.hex }}</span>
-        <span op-70 text-13px font-mono>{{ item.oct }}</span>
-        <span op-70 text-13px font-mono>{{ item.bin }}</span>
+        <span inline-block w-40px text-center text-18px font-bold font-mono>{{ item.char }}</span>
+        <span text-13px font-mono op-70>dec {{ item.dec }}</span>
+        <span text-13px font-mono op-70>{{ item.hex }}</span>
+        <span text-13px font-mono op-70>{{ item.oct }}</span>
+        <span text-13px font-mono op-70>{{ item.bin }}</span>
       </div>
-      <div v-if="item.zh" mt-1 op-60 text-13px>
+      <div v-if="item.zh" mt-1 text-13px op-60>
         {{ item.zh }}
       </div>
     </c-card>

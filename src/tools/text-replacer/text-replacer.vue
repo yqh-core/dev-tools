@@ -87,7 +87,7 @@ const output = computed(() => {
     </c-alert>
 
     <template v-else-if="find">
-      <div flex flex-wrap gap-6 pl-90px op-80 text-13px>
+      <div flex flex-wrap gap-6 pl-90px text-13px op-80>
         <span>替换次数：<b>{{ count }}</b></span>
         <span>原文字符：<b>{{ source.length }}</b></span>
         <span>结果字符：<b>{{ output.length }}</b></span>

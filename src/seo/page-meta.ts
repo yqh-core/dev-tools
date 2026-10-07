@@ -23,7 +23,7 @@ import { TOOL_SEO_PAGES } from './tool-page';
 const TOOL_COUNT = TOOL_SEO_PAGES.length;
 
 export interface PageMeta {
-  description: string;
+  description: string
 }
 
 const ZH: Record<string, PageMeta> = {

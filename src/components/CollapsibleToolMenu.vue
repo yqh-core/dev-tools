@@ -3,8 +3,8 @@ import { IconHistory } from '@tabler/icons-vue';
 import { useStorage } from '@vueuse/core';
 import { useThemeVars } from 'naive-ui';
 import { RouterLink, useRoute } from 'vue-router';
-import { CLASSIC_SITE_TOOL_COUNT, classicSiteUrl } from '@/classic-site';
 import MenuIconItem from './MenuIconItem.vue';
+import { CLASSIC_SITE_TOOL_COUNT, classicSiteUrl } from '@/classic-site';
 import type { Tool, ToolCategory } from '@/tools/tools.types';
 
 const props = withDefaults(defineProps<{ toolsByCategory?: ToolCategory[] }>(), { toolsByCategory: () => [] });

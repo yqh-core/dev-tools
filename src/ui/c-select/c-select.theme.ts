@@ -1,6 +1,6 @@
-import { ddTokens } from '@/generated/dd-tokens';
 import { defineThemes } from '../theme/theme.models';
 import { appThemes } from '../theme/themes';
+import { ddTokens } from '@/generated/dd-tokens';
 
 const sizes = {
   small: {

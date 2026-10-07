@@ -1433,4 +1433,4 @@ export const GUIDES: Record<string, ToolGuide> = {
       { q: '页面需要联网吗？', a: '需要——事件在页面打开时实时拉取。请求失败时页面会明确提示，而不是展示过期数据。' },
     ],
   },
-}
+};

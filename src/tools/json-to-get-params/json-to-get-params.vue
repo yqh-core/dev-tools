@@ -4,7 +4,7 @@ type Direction = 'to-get' | 'to-json';
 const input = useStorage('json-to-get-params:input', '');
 const direction = ref<Direction>('to-get');
 
-const directionOptions: { label: string, value: Direction }[] = [
+const directionOptions: { label: string; value: Direction }[] = [
   { label: 'JSON → GET 参数', value: 'to-get' },
   { label: 'GET 参数 → JSON', value: 'to-json' },
 ];
@@ -133,7 +133,7 @@ const result = computed(() => {
     </c-alert>
 
     <div v-else-if="result.output" mt-1>
-      <div mb-1 op-70 text-13px>
+      <div mb-1 text-13px op-70>
         转换结果：
       </div>
       <TextareaCopyable :value="result.output" />

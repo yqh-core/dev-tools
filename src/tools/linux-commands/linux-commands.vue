@@ -18,13 +18,11 @@ const rows = computed(() => (search.value ? searchResult.value : linuxCommands))
     <c-input-text
       v-model:value="search"
       placeholder="搜索命令或场景，如 grep / 端口 / 磁盘…"
-      autofocus
-      raw-text
-      mb-6
-      clearable
+
+      autofocus raw-text clearable mb-6
     />
 
-    <div mb-2 op-60 text-13px>
+    <div mb-2 text-13px op-60>
       共 {{ rows.length }} 条
     </div>
 
@@ -33,7 +31,7 @@ const rows = computed(() => (search.value ? searchResult.value : linuxCommands))
         <span text-16px font-bold font-mono>{{ item.cmd }}</span>
         <span op-70>{{ item.zh }}</span>
       </div>
-      <div mt-1 op-60 text-13px font-mono>
+      <div mt-1 text-13px font-mono op-60>
         {{ item.eg }}
       </div>
     </c-card>

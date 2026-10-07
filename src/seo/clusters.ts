@@ -205,7 +205,7 @@ export function clusterOf(path: string): ToolCluster | undefined {
 /** 全部簇 id，供构建期校验 i18n 词条是否齐全。 */
 export const CLUSTER_IDS: string[] = TOOL_CLUSTERS.map(cluster => cluster.id);
 
-export interface RelatedOptions<T extends { path: string, category?: string }> {
+export interface RelatedOptions<T extends { path: string; category?: string }> {
   /** 当前工具路由（不带尾斜杠）。 */
   path: string
   /** 当前工具所属分类，用于簇内成员不足时兜底。 */
@@ -223,7 +223,7 @@ export interface RelatedOptions<T extends { path: string, category?: string }> {
  * 区块会短得不像一个区块；而「同分类」虽然弱，也比留空强。
  * 顺序上簇成员永远排在前面 —— 兜底只补数量，不抢位置。
  */
-export function resolveRelated<T extends { path: string, category?: string }>(
+export function resolveRelated<T extends { path: string; category?: string }>(
   { path, category, tools, max = 6 }: RelatedOptions<T>,
 ): T[] {
   const cluster = clusterOf(path);
@@ -272,7 +272,7 @@ export interface WorkflowItem<T> {
  * 两者共用同一份簇数据，所以页面上不会出现「related 说 A、workflow 说 B」的错位。
  */
 export function resolveWorkflow<T extends { path: string }>(
-  { path, tools, max = 8 }: { path: string, tools: T[], max?: number },
+  { path, tools, max = 8 }: { path: string; tools: T[]; max?: number },
 ): WorkflowItem<T>[] {
   const cluster = clusterOf(path);
   if (!cluster) {

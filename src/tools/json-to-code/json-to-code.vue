@@ -2,14 +2,14 @@
 type JsonValue = null | boolean | number | string | JsonValue[] | { [k: string]: JsonValue };
 type Lang = 'ts' | 'cs' | 'java' | 'go';
 
-interface Field { key: string, type: string, optional: boolean }
-interface Model { name: string, fields: Field[] }
+interface Field { key: string; type: string; optional: boolean }
+interface Model { name: string; fields: Field[] }
 
 const input = useStorage('json-to-code:input', '');
 const rootName = useStorage('json-to-code:rootName', 'Root');
 const lang = ref<Lang>('ts');
 
-const LANGS: { label: string, value: Lang }[] = [
+const LANGS: { label: string; value: Lang }[] = [
   { label: 'TypeScript', value: 'ts' },
   { label: 'C#', value: 'cs' },
   { label: 'Java', value: 'java' },
@@ -40,7 +40,11 @@ function build(): void {
   parseError.value = '';
   models.value = [];
 
-  const infer = (v: JsonValue, key: string, parent: string): string => {
+  // 这三个函数互相递归（infer → buildModel/mergeModel → infer），
+  // 所以必须用会被提升的 function 声明：
+  // 若保持 const 箭头函数，箭头函数不提升，彼此互调会直接撞 TDZ（运行时 ReferenceError）。
+  // eslint 的 no-use-before-define 在本项目配置为 functions:false，即允许函数声明前向引用。
+  function infer(v: JsonValue, key: string, parent: string): string {
     if (v === null) {
       return 'any';
     }
@@ -67,9 +71,9 @@ function build(): void {
     const name = parent + pascal(key);
     buildModel(v, name);
     return name;
-  };
+  }
 
-  const buildModel = (obj: { [k: string]: JsonValue }, name: string): void => {
+  function buildModel(obj: { [k: string]: JsonValue }, name: string): void {
     if (models.value.some(m => m.name === name)) {
       return;
     }
@@ -78,10 +82,10 @@ function build(): void {
     for (const [k, val] of Object.entries(obj)) {
       model.fields.push({ key: k, type: infer(val, k, name), optional: val === null });
     }
-  };
+  }
 
   /** 数组合并：取所有元素键的并集，缺失或为 null 的键标记为可选 */
-  const mergeModel = (elements: { [k: string]: JsonValue }[], name: string): void => {
+  function mergeModel(elements: { [k: string]: JsonValue }[], name: string): void {
     if (models.value.some(m => m.name === name)) {
       return;
     }
@@ -98,13 +102,13 @@ function build(): void {
     for (const k of keys) {
       const present = elements.filter(el => k in el).map(el => el[k]);
       const nonNull = present.filter((x): x is JsonValue => x !== null);
-      const optional = present.length < elements.length || present.some(x => x === null);
+      const optional = present.length < elements.length || present.includes(null);
       const type = nonNull.length
         ? [...new Set(nonNull.map(val => infer(val, k, name)))].join(' | ')
         : 'any';
       model.fields.push({ key: k, type, optional });
     }
-  };
+  }
 
   const raw = input.value.trim();
   if (!raw) {

@@ -25,7 +25,7 @@ const MAGIC = '$apr1$';
 function to64(v: number, n: number): string {
   let s = '';
   while (n-- > 0) {
-    s += ITOA64.charAt(v & 0x3f);
+    s += ITOA64.charAt(v & 0x3F);
     v >>>= 6;
   }
   return s;
@@ -34,7 +34,7 @@ function to64(v: number, n: number): string {
 function toBytes(wa: CryptoJS.lib.WordArray): number[] {
   const out: number[] = [];
   for (let i = 0; i < wa.sigBytes; i++) {
-    out.push((wa.words[i >>> 2] >>> (24 - (i % 4) * 8)) & 0xff);
+    out.push((wa.words[i >>> 2] >>> (24 - (i % 4) * 8)) & 0xFF);
   }
   return out;
 }

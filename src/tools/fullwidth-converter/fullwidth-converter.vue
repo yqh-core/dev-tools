@@ -4,7 +4,7 @@ type Mode = 'to-full' | 'to-half' | 'punct-to-half' | 'punct-to-full';
 const input = useStorage('fullwidth-converter:input', '');
 const mode = ref<Mode>('to-full');
 
-const modeOptions: { label: string, value: Mode }[] = [
+const modeOptions: { label: string; value: Mode }[] = [
   { label: '半角 → 全角', value: 'to-full' },
   { label: '全角 → 半角', value: 'to-half' },
   { label: '全角标点 → 半角标点', value: 'punct-to-half' },
@@ -12,10 +12,12 @@ const modeOptions: { label: string, value: Mode }[] = [
 ];
 
 // 半角 ! 至 ~ 与全角 ！ 至 ～ 相差固定偏移 0xFEE0；全角空格 U+3000 需单独处理
-const toFull = (s: string) =>
-  s.replace(/[!-~]/g, c => String.fromCharCode(c.charCodeAt(0) + 0xfee0)).replace(/ /g, '\u3000');
-const toHalf = (s: string) =>
-  s.replace(/[\uff01-\uff5e]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xfee0)).replace(/\u3000/g, ' ');
+function toFull(s: string) {
+  return s.replace(/[!-~]/g, c => String.fromCharCode(c.charCodeAt(0) + 0xFEE0)).replace(/ /g, '\u3000');
+}
+function toHalf(s: string) {
+  return s.replace(/[\uFF01-\uFF5E]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0)).replace(/\u3000/g, ' ');
+}
 
 // 「只转标点」用的对照表，两串按位一一对应
 const PUNCT_FULL = '，。！？；：（）【】“”‘’《》、·—…￥';
@@ -65,7 +67,7 @@ const output = computed(() => {
     />
 
     <div v-if="output" mt-1>
-      <div mb-1 op-70 text-13px>
+      <div mb-1 text-13px op-70>
         转换结果：
       </div>
       <TextareaCopyable :value="output" />

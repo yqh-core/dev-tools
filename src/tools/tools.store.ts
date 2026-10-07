@@ -16,10 +16,10 @@ import { toolsWithCategory } from './index';
  * 刻意不再带 `path` 字段：lodash `_.map` 回调的第三个参数是**整个集合对象**，
  * 早期代码把它当成分类名塞进了 `path`，是个从未被任何调用方使用的错值。
  */
-type ToolCategoryGroup = {
+interface ToolCategoryGroup {
   name: string
   components: ToolWithCategory[]
-};
+}
 
 /** 最近使用最多保留多少条 —— 只在客户端 localStorage 里，不参与 SSG 渲染。 */
 const RECENT_LIMIT = 12;

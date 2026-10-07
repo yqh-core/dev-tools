@@ -78,11 +78,11 @@ const headersText = computed(() => JSON.stringify(headers.value, null, 2));
       @keydown.enter="check"
     />
 
-    <div flex gap-2 items-center>
+    <div flex items-center gap-2>
       <c-button type="primary" :disabled="loading || !url.trim()" @click="check">
         {{ loading ? '检测中…' : '检测状态码' }}
       </c-button>
-      <span op-60 text-13px>未写协议时按 https 处理</span>
+      <span text-13px op-60>未写协议时按 https 处理</span>
     </div>
 
     <c-alert v-if="error">
@@ -91,14 +91,14 @@ const headersText = computed(() => JSON.stringify(headers.value, null, 2));
 
     <c-card v-if="status !== null">
       <div flex items-baseline gap-3>
-        <span op-70 text-13px>状态码：</span>
+        <span text-13px op-70>状态码：</span>
         <span text-32px font-bold :class="statusTone">{{ status }}</span>
       </div>
     </c-card>
 
     <div v-if="headerEntries.length">
-      <div flex justify-between items-center mb-1>
-        <span op-70 text-13px>响应头（{{ headerEntries.length }} 项）：</span>
+      <div mb-1 flex items-center justify-between>
+        <span text-13px op-70>响应头（{{ headerEntries.length }} 项）：</span>
         <SpanCopyable v-if="headersText" :value="headersText" />
       </div>
       <c-card v-for="[key, value] of headerEntries" :key="key" mb-2>
