@@ -132,6 +132,14 @@ const NO_EXAMPLE_WHITELIST = [
     path: '/lorem-ipsum-generator',
     why: 'findPrimaryInput() 命中的第一个控件是 readonly 的结果区textarea —— 那是生成结果，不是输入（探测 mode=readonly-output）',
   },
+  {
+    path: '/ulid-generator',
+    why: '生成器：example 是「样例输出串」（ULID），但机制是往**输入框**填，而本工具没有内容输入框（首个控件是 amount 数字框）。把 ULID 串塞进 amount 数字框会被 naive-ui 在 blur 时拒掉。生成器无「待处理样本数据」概念，example 不成立 → 豁免，不补。',
+  },
+  {
+    path: '/uuid-generator',
+    why: '生成器：同 /ulid-generator，example 是「样例输出串」（UUID v4），但本工具没有内容输入框（首个控件是 count 数字框）。把 UUID 串塞进 count 数字框会被 naive-ui 在 blur 时拒掉。生成器无「待处理样本数据」概念，example 不成立 → 豁免，不补。',
+  },
 ];
 
 /**
@@ -177,8 +185,8 @@ const KNOWN_DEFECT = {
     '受影响工具（当前 4 个）：/percentage-calculator、/px-rem-converter、/mac-address-generator、/svg-placeholder-generator。',
     '潜在影响面：全站任何以 n-input-number 作为首个输入的工具 ——',
     'findPrimaryInput() 的选择器把 n-input-number 误判为文本框，是通用缺陷而非这 4 个工具的个例。',
-    '当前之所以没暴露成线上缺陷，纯粹是因为这 4 个工具都还没配 example（已登记进白名单）。',
-    '⛔ 一旦有人给它们补 example，就会立刻变成「按钮显示、点击无效」。',
+    '该缺陷之所以没暴露成线上缺陷，是因为这 4 个工具最初都没配 example（已登记进白名单）。',
+    '⛔ 一旦有人给它们补非数字 example，就会立刻变成「按钮显示、点击无效」—— 方向 C 已用纯数字 example 封堵。',
   ],
   suggestedFix: [
     '方向 A（推荐）：让 setInputValue 在写入后**派发 blur**，让naive-ui 走自己的解析与校验路径；',

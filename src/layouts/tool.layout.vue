@@ -228,8 +228,17 @@ function findPrimaryInput(): HTMLTextAreaElement | HTMLInputElement | null {
   if (!root) {
     return null;
   }
+  // 优先内容文本域：格式化类工具（json / xml 等）的主输入是文本域，
+  // 而「缩进大小 / 数量」等数字参数控件排在前面，会被 querySelector 误判成首个输入，
+  // 导致 example 填错框（已确诊的误标缺陷）。
+  // 跳过只读/禁用文本域（通常是输出框），避免把示例填进输出域。
+  const tas = Array.from(root.querySelectorAll('textarea')) as HTMLTextAreaElement[];
+  const editableTA = tas.find(ta => !ta.readOnly && !ta.disabled);
+  if (editableTA) {
+    return editableTA;
+  }
   return root.querySelector(
-    'textarea, input[type="text"], input[type="search"], input[type="number"], input:not([type])',
+    'input[type="text"], input[type="search"], input[type="number"], input:not([type])',
   ) as HTMLTextAreaElement | HTMLInputElement | null;
 }
 

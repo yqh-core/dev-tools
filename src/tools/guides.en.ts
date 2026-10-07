@@ -1094,7 +1094,6 @@ export const GUIDES: Record<string, ToolGuide> = {
   '/ulid-generator': {
     intro: 'Generates ULIDs: unique like a UUID, but sortable by time — friendlier as a database primary key.',
     steps: ['Click generate to get a ULID', 'Generate repeatedly for more', 'Copy and use it'],
-    example: { label: 'Show a sample ULID', text: '01ARZ3NDEKTSV4RRFFQ69G5FAV' },
     about: 'A ULID is a 128-bit identifier that is lexicographically sortable: the first 10 characters encode a millisecond timestamp, so sorting ULIDs as strings puts them in creation order. That makes them a drop-in upgrade over a random UUID when the identifier is also used as a database primary key or a sort key — new rows land at the end instead of being scattered. The remaining 16 characters are 80 bits of randomness, so collisions are not a practical concern. ULIDs use Crockford base32 (no I, L, O or U) and are conventionally written uppercase.',
     faqs: [
       { q: 'How is a ULID different from a UUID v4?', a: 'A UUID v4 is random, so its byte order carries no meaning and sorting it tells you nothing about creation time. A ULID puts a millisecond timestamp in its first 10 characters, so lexicographic order equals chronological order — which is exactly what you want from a primary or sort key.' },
@@ -1174,7 +1173,6 @@ export const GUIDES: Record<string, ToolGuide> = {
     intro: 'Generates UUIDs in bulk (v4 by default) for test data or unique identifiers.',
     steps: ['Choose how many you need', 'Click generate', 'Copy and use them'],
     notes: ['UUID v4 is random and not time-sortable; use ULID if you need an ordered identifier'],
-    example: { label: 'Show a sample v4 UUID', text: '9f1c2d3e-4b5a-4c6d-8e9f-0a1b2c3d4e5f' },
     about: 'A UUID (Universally Unique Identifier) is a 128-bit label, and version 4 — the default here — is generated from random data. With about 122 random bits, the chance of two v4 UUIDs colliding is negligible, so machines can generate identifiers independently without any central coordinator. This tool can also produce v1, v3 and v5 when you need time- or name-based identifiers.',
     faqs: [
       { q: 'Can two generated UUIDs ever collide?', a: 'Theoretically yes, practically no — you would need to generate billions per second for a long time to reach even a coin-flip chance. Databases keep unique constraints as a backstop, not because you will hit it.' },

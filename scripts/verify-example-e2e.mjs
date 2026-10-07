@@ -46,8 +46,17 @@ const SETTLE_MS = 450;
 const LOCAL = !!SERVE_DIST;
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
-// findPrimaryInput 的逐字复刻（与 tool.layout.vue:231、探针脚本一致）
-const FIND_PRIMARY_INPUT_SEL = 'textarea, input[type="text"], input[type="search"], input[type="number"], input:not([type])';
+// findPrimaryInput 的逐字复刻（与 tool.layout.vue 的 findPrimaryInput 一致）。
+// ⛔ 必须用「优先可编辑 textarea、跳过只读/禁用」的同一套逻辑，否则格式化类工具
+// （xml / json 等）的真实按钮填的是 textarea，而读回却去读首个 n-input-number（缩进大小）→ 假阴性。
+const FIND_PRIMARY_INPUT_FN = `(() => {
+  const root = document.querySelector('.tool-content');
+  if (!root) return null;
+  const tas = Array.from(root.querySelectorAll('textarea'));
+  const editableTA = tas.find(ta => !ta.readOnly && !ta.disabled);
+  if (editableTA) return editableTA;
+  return root.querySelector('input[type="text"], input[type="search"], input[type="number"], input:not([type])');
+})`;
 
 // ── 期望值来源：真实 guides 数据（不是硬编码字符串） ──
 const vite = await createServer({ root: REPO, server: { middlewareMode: true }, appType: 'custom', logLevel: 'silent' });
@@ -292,7 +301,7 @@ const evaluate = async (expression) => {
 const READ = `(() => {
   const root = document.querySelector('.tool-content');
   const btn = document.querySelector('.action-example');
-  const el = root ? root.querySelector(${JSON.stringify(FIND_PRIMARY_INPUT_SEL)}) : null;
+  const el = root ? (${FIND_PRIMARY_INPUT_FN})() : null;
   return {
     hasContent: !!root,
     hasBtn: !!btn,
@@ -345,7 +354,7 @@ for (const [i, p] of TARGETS.entries()) {
     // 先清空，再点按钮 —— 真实用户路径
     await evaluate(`(() => {
       const root = document.querySelector('.tool-content');
-      const el = root.querySelector(${JSON.stringify(FIND_PRIMARY_INPUT_SEL)});
+      const el = (${FIND_PRIMARY_INPUT_FN})();
       const setter = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(el), 'value')?.set;
       if (setter) setter.call(el, ''); else el.value = '';
       el.dispatchEvent(new Event('input', { bubbles: true }));
