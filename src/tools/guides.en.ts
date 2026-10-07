@@ -23,6 +23,12 @@ export const GUIDES: Record<string, ToolGuide> = {
     steps: ['Type the text to convert (keep it under ~10 characters, longer text wraps)', 'Pick a font style below', 'Copy the result with the copy button'],
     notes: ['Non-ASCII characters usually have no matching art font — stick to letters and digits'],
     example: { label: 'Fill in sample text', text: 'DigDevBox' },
+    about: 'Turn a short piece of text into ASCII art rendered in a selection of display fonts. The result is plain text, so it survives anywhere monospace text does — source-file banners, terminal motd, README headings, CLI help output.',
+    faqs: [
+      { q: 'Where can I use ASCII art output?', a: 'Anywhere that keeps monospace alignment: code comments, commit banners, shell prompts, chat code blocks. In proportional fonts it will distort, so keep it in monospace contexts.' },
+      { q: 'Why do different fonts produce different sizes?', a: 'Each font defines its own glyph height and width, so the same word can be one line in a compact font and five lines in a blocky one. Pick per medium — banners for headers, compact fonts for inline comments.' },
+      { q: 'Why does my text look broken in one font?', a: 'Some fonts lack glyphs for certain characters and fall back to blanks or substitutes. Switch to another font or restrict the input to plain letters and digits.' },
+    ],
   },
 
   '/base-converter': {
@@ -30,6 +36,12 @@ export const GUIDES: Record<string, ToolGuide> = {
     steps: ['Enter the number in any of the base fields', 'The other bases update automatically', 'Copy the result you need from its field'],
     notes: ['This converts numbers, not text. To convert text, use "Text to ASCII Binary" instead'],
     example: { label: 'Fill in a sample number', text: '255' },
+    about: 'Convert an integer between decimal, hexadecimal, binary, octal, base64 and more — paste once, see every base at once. Indispensable when reading flags and masks (0x1F), permission bits, colour channels or wire protocols where the same number keeps changing costume.',
+    faqs: [
+      { q: 'Why do programmers keep switching bases?', a: 'Because each base answers a different question: hex maps 1:1 to 4 bits (flags, memory addresses), binary shows individual bits, octal survives in Unix permissions. The number never changes — only the view.' },
+      { q: 'How does base64 fit in here if it is not a number base?', a: 'Base64 encodes bytes as text; when your input is a small integer, its byte pattern can be shown as base64 characters. For full text-to-base64 you want the dedicated Base64 tools — this one is for numbers.' },
+      { q: 'Are negative numbers and decimals supported?', a: 'The converter targets integers. Negative and fractional values behave differently in each base and encoding, so use the math evaluator or a language runtime when those matter.' },
+    ],
   },
 
   '/base64-file-converter': {
@@ -62,6 +74,12 @@ export const GUIDES: Record<string, ToolGuide> = {
     steps: ['Enter the username', 'Enter the password', 'Copy the generated Authorization header'],
     notes: ['Basic auth only Base64-encodes the credentials, so it must always be used over HTTPS'],
     example: { label: 'Fill in a sample username', text: 'admin' },
+    about: 'Build the Authorization header value for HTTP Basic auth: enter a username and password, get the base64-encoded string ready to paste into curl, an API client or a proxy config. Everything is computed in your browser — the credentials never leave the page.',
+    faqs: [
+      { q: 'Is Basic auth secure?', a: 'Only over HTTPS. The header is trivially reversible — base64 is an encoding, not a lock — so it protects nothing if an attacker can read the traffic. Always pair it with TLS.' },
+      { q: 'What exactly goes into the header?', a: 'The literal string "Basic " followed by base64(username:password), so user "api" with password "secret" becomes "Basic YXBpOnNlY3JldA==". This tool produces that value for you.' },
+      { q: 'Why does my server reject the generated header?', a: 'Common causes: an extra space or newline copied in, the wrong scheme prefix, or the server expecting a token format instead. Compare the exact bytes you send with what the server documents.' },
+    ],
   },
 
   '/bcrypt': {
@@ -85,6 +103,12 @@ export const GUIDES: Record<string, ToolGuide> = {
     intro: 'Times several code snippets side by side to see quickly which implementation is faster.',
     steps: ['Add the implementations you want to compare', 'Click run', 'Read the per-snippet timings and relative ratios'],
     notes: ['Browser-side timing is affected by machine load — avoid drawing conclusions from differences under ~10%'],
+    about: 'A simple online benchmark builder: define tasks (either a piece of code or a fixed duration), run them, and compare execution times in one table. Built for the classic "which approach is faster" question — with enough structure (labels, iterations, relative bars) that results are comparable rather than vibes.',
+    faqs: [
+      { q: 'How should I structure a fair comparison?', a: 'Keep one variable: same data, same machine, same tab. Run tasks repeatedly and look at steady-state times rather than the first run, which pays JIT and cache warm-up costs.' },
+      { q: 'Why do my numbers differ between runs?', a: 'Browsers share CPU with the OS, other tabs and background work — a few percent of noise is normal. Trust differences that persist across multiple runs, not single victories.' },
+      { q: 'Can it benchmark network calls?', a: 'It measures wall-clock duration of whatever you define as a task, including async work — but network variance will dominate. For network comparisons, run many iterations and compare medians.' },
+    ],
   },
 
   '/bip39-generator': {
@@ -92,18 +116,36 @@ export const GUIDES: Record<string, ToolGuide> = {
     steps: ['Choose the mnemonic length (12 words is common)', 'Click generate to get the phrase', 'With an existing phrase, paste it in to validate and derive the seed'],
     notes: ['A mnemonic is equivalent to a private key: store it offline and never leave it in an online tool'],
     example: { label: 'Fill in a sample entropy', text: '1a2b3c4d5e6f7a8b' },
+    about: 'Work with BIP39: generate a fresh mnemonic phrase, or derive the passphrase/seed from an existing mnemonic and vice versa. BIP39 is the standard that turns a 12/24-word phrase into the seed behind crypto wallets — this tool implements it locally, so nothing you paste is transmitted.',
+    faqs: [
+      { q: 'What is a BIP39 mnemonic?', a: 'A list of 12–24 words picked from a fixed 2048-word list. The words encode entropy plus a checksum, and the wallet derives all your keys from them — the phrase is the wallet.' },
+      { q: 'Is it safe to enter my real mnemonic here?', a: 'The tool runs entirely client-side and sends nothing anywhere. Still, the security advice is absolute: a mnemonic that protects real funds should only ever be typed into a trusted, offline device.' },
+      { q: 'Why does one mnemonic produce many keys?', a: 'The mnemonic seeds a hierarchy (BIP32): one seed deterministically derives an entire tree of account keys. Losing the phrase therefore loses every derived account, and anyone holding it holds them all.' },
+    ],
   },
 
   '/camera-recorder': {
     intro: 'Takes a photo or records a short video with your camera — a quick way to check a device works or capture throwaway footage.',
     steps: ['Click start and allow the browser permission prompt', 'Take a photo or start recording', 'Download the result when you are done'],
     notes: ['Browsers only allow camera access over HTTPS', 'Everything is processed locally and never uploaded'],
+    about: 'Take photos or record video straight from your browser camera — no app install, no upload. Frames and clips stay on your machine until you download them, which makes it a quick utility for profile shots, bug-report videos or checking what your webcam actually sees.',
+    faqs: [
+      { q: 'Why does the browser ask for camera permission?', a: ' getUserMedia requires explicit consent per site. Granting it lets this page show the video locally; recording and downloading are separate actions you control.' },
+      { q: 'Which formats are the recordings?', a: 'Video comes out in the container your browser records (typically webm); photos save as images. If a platform rejects the file, convert it — the content is intact.' },
+      { q: 'Nothing appears — where do I look first?', a: 'Check that the right camera is selected (many laptops have several), that no other app holds the device exclusively, and that the site runs on HTTPS, which browsers require for camera access.' },
+    ],
   },
 
   '/case-converter': {
     intro: 'Changes case in bulk and converts between naming styles such as camelCase, snake_case and kebab-case — a time saver for API fields and constants.',
     steps: ['Paste the original text', 'Pick the target style below', 'Copy the result'],
     example: { label: 'Fill in sample text', text: 'hello world example' },
+    about: 'Convert a string into every naming convention you run into day to day: camelCase, PascalCase, snake_case, CONSTANT_CASE, kebab-case and more, all from one input. Ideal when an API field becomes a database column becomes a CSS class and each layer demands its own style.',
+    faqs: [
+      { q: 'What is the difference between camelCase and PascalCase?', a: 'Only the first letter: camelCase starts lowercase (userName), PascalCase uppercase (UserName). Languages differ in convention — Java methods vs .NET classes, for example.' },
+      { q: 'When should I use kebab-case?', a: 'URLs, file names, CSS classes and HTML data attributes. Spaces are illegal or awkward there, and search engines treat hyphens as word separators.' },
+      { q: 'How are acronyms handled?', a: 'Conventions disagree: XMLHttpRequest-style acronyms may become xml-http-request or xmlh-ttp-request depending on the splitter. Check the output for acronyms and normalise your input if needed.' },
+    ],
   },
 
   '/chmod-calculator': {
@@ -121,12 +163,24 @@ export const GUIDES: Record<string, ToolGuide> = {
   '/chronometer': {
     intro: 'A clean stopwatch/timer for measuring elapsed time or running pomodoro sessions.',
     steps: ['Click start', 'Click lap to record split times', 'Click stop to see the total duration'],
+    about: 'A clean stopwatch in your browser: start, pause, lap and reset, with the elapsed time always visible. Useful as a lightweight timer for coding sprints, meeting segments, brewing instructions — anything where opening your phone is a bigger context switch than a spare tab.',
+    faqs: [
+      { q: 'Does it keep running if I switch tabs?', a: 'Yes — it tracks elapsed wall-clock time rather than counting ticks, so background throttling does not make it lose seconds. Return to the tab and the correct total is shown.' },
+      { q: 'What is the difference between pause and lap?', a: 'Pause freezes the count until you resume; lap records a timestamp while the clock keeps running. Laps give you per-segment times, pause gives you a break.' },
+      { q: 'How accurate is a browser stopwatch?', a: 'It reads the system clock, so accuracy is that of your device — well within what human timing needs. For sub-millisecond engineering measurements, use the benchmark tool instead.' },
+    ],
   },
 
   '/color-converter': {
     intro: 'Converts between HEX, RGB, HSL and CSS colour names — useful when editing a design or tuning a theme.',
     steps: ['Type a value in any format, or use the colour picker', 'The other formats update automatically', 'Copy the one you need'],
     example: { label: 'Fill in a sample colour', text: '#ff6600' },
+    about: 'Convert a colour between hex, rgb, hsl and CSS named colours in one place. Design tokens arrive in one format and get consumed in another — a designer hands you #ff6600, the CSS variable wants hsl, the logo spec says the name is "orangered". Also handy for nudging lightness in hsl and seeing all representations update.',
+    faqs: [
+      { q: 'Why do hex and hsl describe the same colour differently?', a: 'They are coordinate systems, not colours: rgb stores red/green/blue intensities, hsl stores hue/saturation/lightness. Converting is lossless — the rendered pixel is identical.' },
+      { q: 'Which format should I use in CSS?', a: 'Hex for brand constants, hsl when you derive variants (hover = lower lightness, palette = rotate hue) and named colours for prototyping only — the name set is small and imprecise.' },
+      { q: 'Does the tool support alpha transparency?', a: 'The hex input accepts 8-digit (#RRGGBBAA) form. Keep in mind older tooling may expect rgba() instead, so convert with the alpha intact and verify the render.' },
+    ],
   },
 
   '/crontab-generator': {
@@ -161,6 +215,12 @@ export const GUIDES: Record<string, ToolGuide> = {
   '/device-information': {
     intro: 'Shows the current device screen size, pixel ratio, User-Agent and more — useful evidence when debugging compatibility issues.',
     steps: ['Open the page to see all the information', 'Copy the fields you need'],
+    about: 'See what your browser tells websites about this device: screen size and pixel ratio, user agent, platform, language, CPU cores, memory hints and more. The quick answer to "what fingerprint am I presenting" and a handy reference when debugging layout or feature-detection issues.',
+    faqs: [
+      { q: 'Do websites really see all of this?', a: 'Yes — every field here is readable by any site\'s JavaScript without permissions. Individually harmless, collectively they form the fingerprint that makes ad tracking possible.' },
+      { q: 'Why does my screen size look smaller than my display?', a: 'The values are CSS pixels of the window, not hardware pixels; pixel ratio multiplies them for the physical panel. A 4K screen with DPR 2 reports half the width in CSS pixels.' },
+      { q: 'Can I change what I reveal?', a: 'Partially — privacy extensions and some browser settings spoof or freeze fields like the user agent. Reload this page after changing them to see what the spoof looks like to sites.' },
+    ],
   },
 
   '/docker-run-to-docker-compose-converter': {
@@ -181,12 +241,24 @@ export const GUIDES: Record<string, ToolGuide> = {
     steps: ['Paste one or more email addresses', 'Read the normalised results', 'Apply the rules you need for + tags, casing, dots, etc.'],
     notes: ['Gmail\'s dot and + tag rules differ between providers; confirm your own policy before de-duplicating'],
     example: { label: 'Fill in a sample email', text: 'John.Doe+news@Gmail.com' },
+    about: 'Normalise a list of email addresses (one per line) so that equivalent addresses collapse into one canonical form — lower-casing and folding away provider-specific aliases such as Gmail-ignored dots and plus-addressing. Built for deduplication: merge mailing lists, clean CRM exports, compare subscriber files.',
+    faqs: [
+      { q: 'Why do john.doe@gmail.com and johndoe@gmail.com match?', a: 'Gmail ignores dots in the local part and treats everything after a plus sign as a label, so both belong to the same mailbox. Normalisation folds them together so your dedupe actually dedupes.' },
+      { q: 'Is plus-addressing safe to strip for every provider?', a: 'It is safe for Gmail-style providers. Some mail servers treat plus tags as real distinct addresses, so keep the raw list as the source of truth and use the normalised one only for comparison.' },
+      { q: 'Does normalisation fix typos?', a: 'No — it folds equivalent spellings, not wrong ones. gmial.com stays wrong; syntax and domain checks are a separate concern.' },
+    ],
   },
 
   '/emoji-picker': {
     intro: 'Search and copy emoji, and look up their Unicode code points.',
     steps: ['Type a keyword in the search box (e.g. smile)', 'Click the emoji you need', 'Copy the character or its Unicode encoding'],
     example: { label: 'Fill in a sample query', text: 'smile' },
+    about: 'Browse and search the emoji set, then copy either the emoji itself, its Unicode escape or its code points. Handy for picking the right glyph in UI copy, README badges or commit messages, and for resolving "which character is this exactly" when an emoji renders differently across platforms.',
+    faqs: [
+      { q: 'Why does an emoji look different on my colleague\'s phone?', a: 'Each platform draws emoji with its own font. The code point is the standard; the artwork is not. Copying the code point guarantees you mean the same character, not the same look.' },
+      { q: 'What is a code point and why do some emojis show two?', a: 'Characters outside the BMP are written as surrogate pairs in JavaScript, so one emoji can span two code units. Flags and skin-tone variants also combine several code points into one glyph.' },
+      { q: 'Can I search by description?', a: 'Yes — search by keyword to find emoji by meaning instead of scrolling. Searching "fire" beats hunting for the flame glyph by eye.' },
+    ],
   },
 
   '/encryption': {
@@ -197,12 +269,24 @@ export const GUIDES: Record<string, ToolGuide> = {
       'Algorithms and modes are not interchangeable: decryption must use exactly the same settings as encryption',
     ],
     example: { label: 'Fill in sample text', text: 'This is a message to encrypt' },
+    about: 'Encrypt and decrypt text with classic web cryptography algorithms — AES, TripleDES, Rabbit and RC4 (via crypto-js) — using a shared key. Handy for quick obfuscation of notes between machines, CTF puzzles, or interoperability checks when you need to see exactly what a given cipher+key produces.',
+    faqs: [
+      { q: 'Is this suitable for protecting real secrets?', a: 'Treat it as a utility, not an infrastructure: AES here is fine for a locked note, but serious key management (storage, rotation, derivation) is what real cryptography engineering is for. Never protect anything critical with RC4.' },
+      { q: 'Why does the same text encrypt differently each time?', a: 'Modes like CBC use a random initialisation vector, so identical plaintext+key yields different ciphertext — by design. Decrypting still returns the original text.' },
+      { q: 'Which algorithm should I pick?', a: 'AES is the modern default. TripleDES is legacy-compatible, Rabbit and RC4 are stream ciphers mostly seen in old systems — use them only to interoperate with something that already speaks them.' },
+    ],
   },
 
   '/eta-calculator': {
     intro: 'Estimates when a task will finish based on current progress — a clear way to see how much longer a download or batch job needs.',
     steps: ['Enter the amount completed', 'Enter the total amount', 'Read the estimated completion time'],
     example: { label: 'Fill in a sample amount', text: '500' },
+    about: 'Enter the amount of work done and the total, and get the estimated completion time — given your current pace, when does this download, build or batch job actually finish? A tiny calculator that turns two numbers into the answer you keep doing in your head.',
+    faqs: [
+      { q: 'What inputs does it need?', a: 'Two quantities: how much is completed and the total amount, optionally with a start time so the estimate anchors to real elapsed time. From those it projects the remaining duration and the finish time.' },
+      { q: 'Why does the ETA jump around during a download?', a: 'Because it extrapolates from instantaneous rate, which fluctuates. Early estimates are wildly optimistic; the number stabilises as more progress accumulates. Judge it near the middle of the job, not the start.' },
+      { q: 'Does it assume the rate stays constant?', a: 'Yes — it is a linear projection. If your task accelerates or decelerates (compiling, syncing), treat the output as a running snapshot and re-check as progress advances.' },
+    ],
   },
 
   '/git-memo': {
@@ -246,17 +330,35 @@ export const GUIDES: Record<string, ToolGuide> = {
     intro: 'Converts characters such as <, > and & into HTML entities, or reverses the process — used to insert text into a page safely.',
     steps: ['Paste the original text', 'Click escape or unescape', 'Copy the result'],
     example: { label: 'Fill in sample text', text: '<div class="box">Hello & "World"</div>' },
+    about: 'Escape or unescape HTML entities: turn <, >, &, " and \' into &lt;, &gt;, &amp; and friends, or reverse the process. Use it when injecting user content into HTML templates, reading escaped source from a CMS, or debugging markup that renders literally instead of structurally.',
+    faqs: [
+      { q: 'When must I escape HTML?', a: 'Whenever untrusted text becomes part of markup — comments, form values, rich-text imports. Skipping it is how XSS happens; escaping turns a payload into visible text.' },
+      { q: 'Why does &amp; appear inside URLs in my HTML?', a: 'Attribute values are parsed as HTML too, so & must be written &amp; inside href. Browsers tolerate the bare ampersand, but validators do not, and some edge cases silently break.' },
+      { q: 'What is the difference between named and numeric entities?', a: 'Named ones (&amp;, &lt;) are readable; numeric ones (&#38;, &#x26;) work for every character including those without a name. Both decode to the same character.' },
+    ],
   },
 
   '/html-wysiwyg-editor': {
     intro: 'A WYSIWYG rich-text editor whose HTML source you can grab once you are done editing.',
     steps: ['Type or paste into the editing area', 'Use the toolbar to adjust formatting', 'Switch to the source view and copy the HTML'],
+    about: 'A full WYSIWYG HTML editor in the browser: format rich text with a toolbar and read the generated HTML source alongside, in real time. Built for drafting emails, CMS snippets and documentation fragments where you want both the visual result and the exact markup it produces.',
+    faqs: [
+      { q: 'How clean is the generated HTML?', a: 'It is the standard output of the underlying editor engine — semantic elements with inline styles for formatting. Always review the source tab when the HTML will be pasted into a template with its own CSS.' },
+      { q: 'Can I paste from Word or a web page?', a: 'Yes, and pasting usually carries the source formatting with it (spans, classes, empty paragraphs). For clean HTML, paste, then tidy or re-apply styles from the toolbar.' },
+      { q: 'Does it support tables and images?', a: 'The toolbar covers common structures including tables, lists, links and images. Complex layouts are still better authored as hand-written HTML — a WYSIWYG is for content, not for page scaffolding.' },
+    ],
   },
 
   '/http-status-codes': {
     intro: 'A reference for the meaning of every HTTP status code, for when you hit an unfamiliar one.',
     steps: ['Find the code by category or search', 'Read its official name and the usual scenario'],
     example: { label: 'Fill in a sample query', text: '404' },
+    about: 'The complete list of HTTP status codes with their official name and a plain-language meaning for each — from 200 OK through the redirect class (3xx), client errors (4xx) and server errors (5xx). A quick reference when reading logs, writing an API client or explaining a failure to a teammate.',
+    faqs: [
+      { q: '401 vs 403 — which one do I return?', a: '401 means "who are you?" — authentication is missing or invalid. 403 means "I know who you are and you still cannot do this." If re-login could fix it, use 401; otherwise 403.' },
+      { q: '301, 302, 307 — what is the practical difference?', a: '301 is permanent and clients may cache it forever; 302 is temporary but legacy clients may switch method to GET; 307 is temporary with the method preserved. For a temporary POST redirect, 307 is the safe modern answer.' },
+      { q: 'Is a 4xx my fault or the client\'s?', a: 'Convention: 4xx means the request was bad (bad URL, bad credentials, rate limited) and the client must change something; 5xx means the server failed despite a valid request.' },
+    ],
   },
 
   '/iban-validator-and-parser': {
@@ -264,12 +366,24 @@ export const GUIDES: Record<string, ToolGuide> = {
     steps: ['Enter the IBAN (spaces are fine)', 'Read the validation result', 'Read the parsed country code and account parts below'],
     notes: ['An IBAN carries its own check digits, so a malformed one is rejected outright — first check you did not mistype it'],
     example: { label: 'Fill in a sample IBAN', text: 'DE89 3704 0044 0532 0130 00' },
+    about: 'Validate an IBAN and break it into its parts: country code, check digits, BBAN and a space-grouped friendly format for display. The validator implements the ISO 13616 mod-97 check, so a mistyped digit is caught instantly — exactly what you want before wiring money or storing the number in a CRM.',
+    faqs: [
+      { q: 'How does IBAN validation work?', a: 'The check digits are computed over the rearranged account number with a mod-97 operation (ISO 13616). If the whole number does not satisfy the check, at least one character is wrong — though validity does not guarantee the account exists.' },
+      { q: 'What is a QR-IBAN?', a: 'A Swiss variant with an alternative check-digit calculation, reserved for QR-bill invoicing. This tool flags whether an IBAN is one, which matters if you process Swiss payments.' },
+      { q: 'Why is the friendly format grouped in fours?', a: 'IBANs are officially printed in four-character blocks because grouped digits are dramatically easier to read aloud and transcribe. The grouping is presentation only — systems store it without spaces.' },
+    ],
   },
 
   '/ipv4-address-converter': {
     intro: 'Converts an IPv4 address into decimal, binary and hexadecimal forms — useful when writing scripts or reading packet dumps.',
     steps: ['Enter the IPv4 address', 'Read the results in each base', 'Copy the format you need'],
     example: { label: 'Fill in a sample address', text: '192.168.1.1' },
+    about: 'An IPv4 address is really just a 32-bit number, and the dotted format you know (192.168.1.1) is only one way to write it. This tool converts an IP into its decimal, binary, hexadecimal and IPv6-mapped forms at once, which is exactly what you need when reading packet dumps, firewall rules or database columns that store IPs as integers.',
+    faqs: [
+      { q: 'Why does 192.168.0.1 equal 3232235521?', a: 'The four octets are one 32-bit number: 192×256³ + 168×256² + 0×256 + 1 = 3232235521. Dotted notation is a convenience for humans; many systems store the plain integer.' },
+      { q: 'What is the IPv6 form of an IPv4 address?', a: 'IPv4 addresses can be represented inside IPv6 as a mapped address like ::ffff:c0a8:1 (192.168.0.1). You will meet this form in dual-stack logs and transition mechanisms.' },
+      { q: 'Can I open a decimal IP in my browser?', a: 'Often yes — http://3232235521 works in most browsers because the OS resolves it to 192.168.0.1. Some browsers restrict it, so treat it as a debugging trick, not a production pattern.' },
+    ],
   },
 
   '/ipv4-range-expander': {
@@ -277,6 +391,12 @@ export const GUIDES: Record<string, ToolGuide> = {
     steps: ['Enter the start IP', 'Enter the end IP', 'Read the generated CIDR list'],
     notes: ['If the range is not a contiguous block it is split into several CIDRs — that is expected'],
     example: { label: 'Fill in a sample start IP', text: '10.0.0.1' },
+    about: 'Given a start and an end address, this tool finds the smallest CIDR block (or a minimal set of blocks) that covers the whole range. Useful when a firewall, cloud security group or routing table only accepts CIDR notation but your list of machines was defined by two endpoints.',
+    faqs: [
+      { q: 'Why is the result larger than my range?', a: 'CIDR blocks must start on a boundary and have a power-of-two size. If your start and end are not aligned, the covering block necessarily includes extra addresses on both sides — the tool picks the smallest such block.' },
+      { q: 'Why did my range split into several CIDRs?', a: 'Some ranges cannot be covered by a single block without huge waste. The tool then returns the minimal set of contiguous blocks that exactly covers your endpoints, which is still valid for firewall rules.' },
+      { q: 'What does /32 mean here?', a: '/32 is a block of exactly one address — start and end are the same. It is the tightest possible rule and often what you want when whitelisting a single host.' },
+    ],
   },
 
   '/ipv4-subnet-calculator': {
@@ -284,6 +404,12 @@ export const GUIDES: Record<string, ToolGuide> = {
     steps: ['Enter the CIDR (e.g. 192.168.1.0/24)', 'Read the results below', 'Copy whichever field you need'],
     notes: ['The network address and broadcast address normally cannot be assigned to a host'],
     example: { label: 'Fill in a sample network', text: '192.168.1.0/24' },
+    about: 'Paste a CIDR block like 192.168.1.0/24 and get everything a subnet plan needs: network and broadcast addresses, first and last usable host, usable host count, netmask and wildcard mask. Handy for VLAN planning, DHCP scope sizing or double-checking an assignment before you apply it.',
+    faqs: [
+      { q: 'How many addresses are in a /24?', a: '256 total. Subtracting the network and broadcast addresses leaves 254 usable hosts — this is the most common home-lab and small-office subnet.' },
+      { q: 'Why do two addresses disappear from the usable count?', a: 'The lowest address identifies the network itself and the highest is reserved for broadcast, so neither can be assigned to a host. The calculator shows them explicitly so nothing surprises you.' },
+      { q: 'What is a wildcard mask for?', a: 'It is the inverted netmask (0.0.0.255 for /24). Access control lists on routers and some firewalls are written with wildcards instead of netmasks, and mixing the two up breaks matching.' },
+    ],
   },
 
   '/ipv6-ula-generator': {
@@ -291,6 +417,12 @@ export const GUIDES: Record<string, ToolGuide> = {
     steps: ['Click generate to get a prefix', 'Combine it with a subnet and interface ID as needed', 'Copy and use it'],
     notes: ['A ULA is the IPv6 counterpart of a private IPv4 range and must not be routed on the public internet'],
     example: { label: 'Paste a sample MAC address', text: '00:11:22:33:44:55' },
+    about: 'A ULA (Unique Local Address) is the IPv6 counterpart of the private IPv4 ranges: addresses under fd00::/8 that are free to use inside your organisation but must not be routed on the public internet. RFC 4193 asks for a randomly chosen 40-bit global ID so independently generated prefixes almost never collide, and that is exactly what this tool generates.',
+    faqs: [
+      { q: 'ULA vs public IPv6 — what is the difference?', a: 'Public addresses are globally routable and assigned by your provider. ULAs work only inside your network, never leave your router, and survive provider changes — good for infrastructure that should not be exposed.' },
+      { q: 'Why generate the prefix randomly instead of picking fd00::1?', a: 'RFC 4193 mandates a random global ID precisely so two sites that later merge their networks will not clash. Hand-picked prefixes like fd00::/64 are a common source of hard-to-debug conflicts.' },
+      { q: 'Can a ULA reach the internet?', a: 'No. Routers must not forward fd00::/8 to the public internet. Use it for internal services; hosts still get global addresses from your provider for outbound traffic.' },
+    ],
   },
 
   '/json-diff': {
@@ -401,22 +533,46 @@ export const GUIDES: Record<string, ToolGuide> = {
     intro: 'Press any key to see its keyCode, code, location and other details — useful when wiring up keyboard shortcuts.',
     steps: ['Focus the page', 'Press the key you want to inspect', 'Read the details shown below'],
     notes: ['keyCode is deprecated; prefer event.code or event.key in new code'],
+    about: 'Press any key and see everything the browser tells you about the event: the legacy keyCode, the modern code (physical key), key (produced character), location and active modifiers. The fastest way to resolve "which value do I compare against" while wiring a keyboard shortcut or a game control scheme.',
+    faqs: [
+      { q: 'Is keyCode deprecated?', a: 'Yes — the spec marks it legacy and new code should use KeyboardEvent.code for physical keys or KeyboardEvent.key for characters. It is kept here because countless existing libraries and tutorials still compare against it.' },
+      { q: 'What is the difference between key and code?', a: 'key is what the character produces and changes with layout and modifiers (Shift+1 gives "!"); code is the physical button regardless of layout (Digit1 in both cases). Shortcuts belong on code; text input belongs on key.' },
+      { q: 'Why do some keys differ between platforms?', a: 'Physical layouts vary (ISO vs ANSI Enter, Mac Command vs Windows key) and location distinguishes left/right modifiers. Testing the real key on the target platform avoids surprises.' },
+    ],
   },
 
   '/list-converter': {
     intro: 'Sorts, de-duplicates, adds prefixes/suffixes and reverses multi-line text in one go — a big time saver when tidying data.',
     steps: ['Paste the data, one item per line', 'Tick or select the operations you need', 'Copy the processed result'],
     example: { label: 'Fill in a sample list', text: 'banana\napple\ncherry\napple' },
+    about: 'Process column-based text with row-wise transforms: transpose rows and columns, add prefix or suffix, reverse, sort, lowercase, or truncate each value. Paste a column from a spreadsheet, reshape it, and copy the result back — a text-level alternative to fighting with formulas.',
+    faqs: [
+      { q: 'How does transpose handle uneven rows?', a: 'Transposing reshapes rows into columns; rows of different lengths produce ragged columns with gaps. Normalise row lengths first if you need a clean grid.' },
+      { q: 'What is the separator between values?', a: 'Each line is treated as one value by default. For comma- or space-separated data, split it into lines first (or apply the transforms per line) so each value is handled individually.' },
+      { q: 'Can I chain several transforms?', a: 'Yes — the transforms compose in the order you apply them (e.g. sort then prefix). If the result surprises you, clear the toggles and re-apply one at a time to see which step did what.' },
+    ],
   },
 
   '/lorem-ipsum-generator': {
     intro: 'Generates placeholder text to fill out layouts and visual mockups.',
     steps: ['Choose paragraphs or a word count', 'Click generate', 'Copy the text'],
+    about: 'Generate lorem ipsum placeholder paragraphs, sentences or words to fill a layout with realistic-looking text. Lorem ipsum has been the printing industry\'s dummy text since the 1500s because its letter distribution resembles natural language — the layout reads as "text" without anyone getting distracted by meaning.',
+    faqs: [
+      { q: 'Why not just use "text text text" as filler?', a: 'Uniform filler hides typography problems. Lorem ipsum has varied word lengths and rhythm, which exposes cramped spacing, bad measure and weak hierarchy exactly like real copy does.' },
+      { q: 'Is lorem ipsum real Latin?', a: 'It derives from a scrambled passage of Cicero\'s "De Finibus Bonorum et Malorum" (circa 45 BC), truncated and garbled over centuries. It looks like Latin; it does not parse as Latin.' },
+      { q: 'Should placeholder ship to production?', a: 'No. It is for design and layout review only. A surprising number of "lorem ipsum" screenshots in the wild started as an unfinished page that got deployed.' },
+    ],
   },
 
   '/mac-address-generator': {
     intro: 'Generates MAC addresses in bulk for testing network gear or fabricating test data.',
     steps: ['Enter how many you need', 'Add a prefix if required', 'Click generate and copy'],
+    about: 'Generate any number of random MAC addresses, optionally prefixed with a specific OUI (the first three bytes that identify a vendor) and in your preferred case. Useful for populating test fixtures, mocking device inventories or exercising address-filtering logic without touching real hardware.',
+    faqs: [
+      { q: 'What does the prefix option do?', a: 'The first three bytes (OUI) encode the manufacturer. Setting a prefix makes the generated addresses look like they belong to a given vendor — handy when your system parses or routes on OUI.' },
+      { q: 'Are these safe to use in documentation?', a: 'Yes for examples and tests. Do not reuse them to spoof devices on networks you do not own — MAC filtering and logging exist for a reason.' },
+      { q: 'Why upper versus lower case?', a: 'IEEE records use colon-separated lower case, while many Windows tools print upper case. The bytes are identical; pick the convention your target system expects to avoid string-comparison bugs.' },
+    ],
   },
 
   '/mac-address-lookup': {
@@ -424,29 +580,59 @@ export const GUIDES: Record<string, ToolGuide> = {
     steps: ['Enter the MAC address', 'Click look up', 'Read the vendor information'],
     notes: ['The first 24 bits identify the vendor and the last 24 can be rewritten, so this locates a vendor, not a device'],
     example: { label: 'Fill in a sample MAC', text: '00:1A:2B:3C:4D:5E' },
+    about: 'Every network interface carries a MAC whose first three bytes identify its manufacturer. Enter an address and this tool resolves that OUI prefix to the vendor name using a bundled offline copy of the IEEE registry — the lookup runs entirely in your browser and works without a network connection.',
+    faqs: [
+      { q: 'Why is my vendor shown as unknown?', a: 'The address may use a locally administered format (the second hex digit is 2, 6, A or E) — those are assigned by software, not IEEE, so no vendor exists for them. Randomised MACs from phones also have no meaningful vendor.' },
+      { q: 'Where does the vendor data come from?', a: 'From the IEEE OUI registry, bundled into the page as static data. Nothing is sent to a server, so the lookup also works offline.' },
+      { q: 'Which part of the MAC is the vendor?', a: 'The first three bytes, e.g. 00:1A:2B in 00:1A:2B:3C:4D:5E. The remaining three bytes are the device-specific serial the vendor assigns.' },
+    ],
   },
 
   '/markdown-to-html': {
     intro: 'Converts Markdown into HTML, for writing docs or generating page content.',
     steps: ['Write or paste Markdown on the left', 'The right side previews it live and shows the HTML', 'Copy the HTML, or click print to save it as a PDF'],
     example: { label: 'Fill in sample Markdown', text: '# Heading\n\nThis is a **bold** paragraph.\n\n- First item\n- Second item\n\n[Link](https://digdevbox.com)' },
+    about: 'Convert Markdown to clean HTML in the browser, with a built-in print view for saving as PDF. Useful for turning notes, READMEs or release notes into a shareable page or a printable document without pasting content into an online converter you cannot audit.',
+    faqs: [
+      { q: 'Which Markdown flavour is supported?', a: 'The common core: headings, lists, tables, code blocks, links, images and emphasis. GitHub-flavoured extras like task lists generally render too; exotic extensions (footnotes, math) may not.' },
+      { q: 'How does save-as-PDF work?', a: 'The tool renders your Markdown to HTML and opens the browser print dialog, where "Save as PDF" is a destination. Styling follows the print preview — page breaks land where the HTML puts them.' },
+      { q: 'Is my content uploaded anywhere?', a: 'No — conversion happens in your browser. That is the practical reason to use a local converter for internal notes instead of pasting them into a random web service.' },
+    ],
   },
 
   '/math-evaluator': {
     intro: 'Evaluates mathematical expressions with functions such as sqrt, sin, cos and abs — handier than a system calculator.',
     steps: ['Type the expression', 'The result updates live, or after you click evaluate', 'For long expressions, verifying the steps separately is worthwhile'],
     example: { label: 'Fill in a sample expression', text: 'sqrt(16) + 3 * (2 + 4)' },
+    about: 'Evaluate mathematical expressions directly — arithmetic, parentheses, and functions like sqrt, cos, sin and abs. Faster than opening a spreadsheet for a one-off calculation, and it keeps the full expression visible so you can check the formula, not just the result.',
+    faqs: [
+      { q: 'Which functions can I use?', a: 'The common math set: sqrt, abs, trigonometric functions (sin, cos, tan), logarithms and more. Type the expression as you would write it — the standard precedence rules apply.' },
+      { q: 'Why does 0.1 + 0.2 not equal exactly 0.3?', a: 'Floating-point arithmetic: binary cannot represent 0.1 exactly, so the result is 0.30000000000000004. It is a property of every IEEE 754 calculator, not a bug in this one.' },
+      { q: 'Are angles in degrees or radians?', a: 'The trig functions follow the JavaScript convention and use radians — convert with deg * pi / 180 first if your data is in degrees.' },
+    ],
   },
 
   '/mime-types': {
     intro: 'Looks up MIME types and file extensions from one another — useful when configuring a server or writing upload validation.',
     steps: ['Enter a MIME type or an extension', 'Read the corresponding form', 'Copy and use it'],
+    about: 'Look up which MIME type matches a file extension and vice versa. Searchable in both directions, so you can resolve "what Content-Type do I send for .woff2" as easily as "which files does audio/mpeg cover". The mapping matters every time you configure a web server, write an upload handler or debug a file that downloads instead of rendering.',
+    faqs: [
+      { q: 'Why does one extension map to several MIME types?', a: 'Formats accumulate aliases over time (.mp3 maps to audio/mpeg while older stacks expect audio/mp3). Servers expect the canonical one; this tool shows the common mappings so you can pick what your stack accepts.' },
+      { q: 'What happens if I send the wrong Content-Type?', a: 'Browsers may refuse to execute scripts (strict MIME checking), render text as plain text, or trigger a download. API clients also pick their parser from the Content-Type, so wrong types cause silent parse failures.' },
+      { q: 'What is the difference between text/plain and application/octet-stream?', a: 'text/plain tells the client the bytes are human-readable text; octet-stream means "opaque binary, save it". Sending octet-stream for something renderable is the classic cause of forced downloads.' },
+    ],
   },
 
   '/numeronym-generator': {
     intro: 'Builds numeronyms such as i18n and k8s — first letter, letter count, last letter.',
     steps: ['Enter a long word', 'Get its numeronym', 'Copy and use it'],
     example: { label: 'Fill in a sample word', text: 'internationalization' },
+    about: 'Turn long words into numeronyms — abbreviations where a number counts the omitted middle letters, like i18n for internationalization or k8s for kubernetes. Common in engineering culture for everything that gets typed often; this tool also decodes common ones back to their full words.',
+    faqs: [
+      { q: 'How is i18n formed?', a: 'First letter + count of the letters in between + last letter: "internationalization" has 18 letters between the leading i and the trailing n. The rule works for any long word.' },
+      { q: 'Which numeronyms should I use at work?', a: 'The established ones travel well: i18n, l10n, a11y, k8s, n7m. Inventing new ones for one-off words forces every reader to decode them — use numeronyms for frequency, not for style.' },
+      { q: 'Why does accessibility use a11y?', a: 'Same rule — "accessibility" has 11 letters between the a and the y. The tag stuck because it sits nicely next to i18n in engineering discussions about inclusive products.' },
+    ],
   },
 
   '/og-meta-generator': {
@@ -454,6 +640,12 @@ export const GUIDES: Record<string, ToolGuide> = {
     steps: ['Enter the title, description, image URL and link', 'Click generate', 'Paste the resulting meta tags into your page head'],
     notes: ['Platforms cache share cards, so you may need their debug tool to refresh the cache after a change'],
     example: { label: 'Fill in a sample site title', text: 'My Awesome Site' },
+    about: 'Fill in a page title, description, URL and image, and get ready-to-paste Open Graph and Twitter meta tags. Social platforms read these tags to build share cards, so the difference between a bare link and an inviting preview is usually just this handful of meta tags in your page head.',
+    faqs: [
+      { q: 'What is the minimum set of OG tags?', a: 'og:title, og:description, og:image and og:url cover every major platform. The Twitter tags (twitter:card in particular) refine how the card looks on X.' },
+      { q: 'Why does my share card still show old text?', a: 'Platforms cache card data aggressively. After changing tags you usually need the platform\'s debugger (e.g. the Facebook Sharing Debugger or X Card Validator) to force a re-scrape.' },
+      { q: 'What image size should og:image be?', a: 'Around 1200×630 pixels is the widely supported sweet spot. Keep text large and centred — cards are often cropped or shown small on mobile.' },
+    ],
   },
 
   '/otp-generator': {
@@ -461,23 +653,47 @@ export const GUIDES: Record<string, ToolGuide> = {
     steps: ['Enter the secret (Base32)', 'Click generate to get the current code', 'To verify, enter the code the other party provided and compare'],
     notes: ['TOTP depends on the device clock — too large a time difference makes codes fail to match indefinitely'],
     example: { label: 'Paste a sample Base32 secret', text: 'JBSWY3DPEHPK3PXP' },
+    about: 'Generate and validate time-based one-time passwords (TOTP) from a base32 secret — the same mechanism behind Google Authenticator-style codes. Useful for testing your own MFA implementation, decoding a setup key before scanning it into an app, or verifying that a code is currently valid.',
+    faqs: [
+      { q: 'How does the 6-digit code get calculated?', a: 'The secret plus the current time (in 30-second steps) go through HMAC, and a slice of the result becomes the code. Same secret + same time window = same code, which is why phone and server agree.' },
+      { q: 'Why did my code stop matching?', a: 'Clock drift. TOTP depends on the device clock — too large a difference from the server makes codes fail indefinitely. Re-sync the device time or re-enrol the secret.' },
+      { q: 'Is the base32 secret sensitive?', a: 'Completely — anyone holding it can generate your codes forever. Store it like a password, and enrol it in an authenticator app rather than pasting it around.' },
+    ],
   },
 
   '/password-strength-analyser': {
     intro: 'Estimates password strength and approximate cracking time, to judge whether a password is good enough.',
     steps: ['Enter the password to evaluate', 'Read the strength bar and estimated cracking time', 'Lengthen it or add character classes as suggested'],
     notes: ['The calculation runs entirely in your browser; the password is never sent anywhere'],
+    about: 'Analyse a password\'s strength entirely in your browser — entropy, common-pattern checks and a crack-time estimate. Nothing is submitted anywhere, so it is safe to probe the passwords you actually use; the point is to see which weaknesses (length? reuse? predictable structure?) dominate your risk.',
+    faqs: [
+      { q: 'How is "time to crack" estimated?', a: 'It models an attacker guessing at some rate (billions per second for offline attacks on a stolen hash). The estimate is orders-of-magnitude, not a prophecy — relative comparisons between passwords are what matter.' },
+      { q: 'Is a complex short password better than a long simple one?', a: 'Usually not. Length dominates: a four-word passphrase outruns a 9-character symbol soup because entropy grows with every added character of vocabulary, not only with symbol variety.' },
+      { q: 'Does the tool store or transmit my password?', a: 'No — the analysis runs client-side and the input never leaves the page. Still, measuring a password on any shared machine carries some risk; prefer your own device.' },
+    ],
   },
 
   '/pdf-signature-checker': {
     intro: 'Checks whether a PDF carries a digital signature and whether that signature is valid.',
     steps: ['Choose or drag in a PDF file', 'Wait for it to be parsed', 'Read the number of signatures and the verification result'],
     notes: ['Having a signature only means a signature field exists — trustworthiness also depends on the certificate chain'],
+    about: 'Verify the digital signatures inside a PDF file: who signed it and whether the content has been altered since signing. The file is processed locally, so confidential contracts can be checked without uploading them to a third party — useful when a counterparty\'s PDF arrives and you need to trust it before acting.',
+    faqs: [
+      { q: 'What does a valid signature actually prove?', a: 'Two things: the document bytes have not changed since signing, and the certificate chain ties the signature to an identity (a person or organisation) at signing time. It does not judge whether the signer was trustworthy.' },
+      { q: 'The document opens fine — why is the signature invalid?', a: 'Any edit after signing breaks the byte-range digest, including saving with "print to PDF", annotating, or a converter that rewrites the file. A clean-looking page does not mean untouched bytes.' },
+      { q: 'Where can I get a signed PDF to test with?', a: 'Many tax authorities, banks and certification bodies publish sample signed documents. Signing one yourself requires a certificate — the checker is happy with either as input.' },
+    ],
   },
 
   '/percentage-calculator': {
     intro: 'Computes percentages between two numbers, percentage increases or decreases, or works backwards from a percentage.',
     steps: ['Pick the mode matching your question', 'Enter the known values', 'Read the result'],
+    about: 'The percentage maths that always needs a second of thought, made explicit: X is what percent of Y, what is P percent of Y, and percentage increase or decrease between two values. Fill the two knowns, read the third — no more re-deriving the formula in your head at the checkout.',
+    faqs: [
+      { q: 'Why does the result need both fields filled?', a: 'Every percentage question involves two known numbers and one unknown; a single input cannot determine anything. Enter both values for your chosen question type and the answer computes immediately.' },
+      { q: 'How do I compute a percentage change (not just a share)?', a: 'Use the increase/decrease mode: (new - old) / old × 100. Going from 80 to 100 is +25%; going back from 100 to 80 is -20% — the asymmetry is real and trips up many reports.' },
+      { q: 'What is the difference between percentage and percentage points?', a: 'A percentage is a share of a base; percentage points are the arithmetic difference between two shares. Interest moving from 3% to 4% rose one point, but 33% relative.' },
+    ],
   },
 
   '/phone-parser-and-formatter': {
@@ -485,6 +701,12 @@ export const GUIDES: Record<string, ToolGuide> = {
     steps: ['Enter the phone number (including the country code improves accuracy)', 'Read the parsed details', 'Copy the formatted number'],
     notes: ['A number without a country code can only be parsed against a default region and is easily misidentified'],
     example: { label: 'Fill in a sample number', text: '+86 138 0013 8000' },
+    about: 'Parse a phone number into its structured form and reformat it between national, international and E.164 notation. The engine is libphonenumber (the same library behind Android\'s number handling), so you get country code, number type and validity based on real numbering plans rather than a regex guess.',
+    faqs: [
+      { q: 'What is E.164 and why does everyone ask for it?', a: 'It is the unambiguous international format — plus sign, country code, subscriber number, no spaces (e.g. +442071838750). APIs and databases prefer it because the same number has many human spellings but exactly one E.164 form.' },
+      { q: 'Why does the result change when I add a country code?', a: 'Without one, the parser must assume a default country for local notation; with one, the number is interpreted globally. Ambiguous short numbers can legitimately parse differently — always pass the country you mean.' },
+      { q: 'What does the "type" field mean?', a: 'It classifies the number as mobile, fixed line, toll-free, premium rate and so on, based on the country\'s numbering plan. Useful for filtering out fax lines or blocking premium numbers before dialling.' },
+    ],
   },
 
   '/qrcode-generator': {
@@ -492,11 +714,23 @@ export const GUIDES: Record<string, ToolGuide> = {
     steps: ['Enter what to encode (a URL or any text)', 'Adjust the foreground colour, background colour and size as needed', 'Click download to save the image'],
     notes: ['Longer content makes a denser code; if it will not scan, shorten the content or increase the size'],
     example: { label: 'Fill in a sample link', text: 'https://digdevbox.com' },
+    about: 'Generate a QR code for any URL or plain text, tune the foreground and background colours, and download the result as a PNG. Everything is rendered in your browser — the encoded content never leaves the page — so it is safe for internal links and credentials-shaped test data alike.',
+    faqs: [
+      { q: 'Can I change the colours?', a: 'Yes. Keep strong contrast between foreground and background — scanners rely on it. Dark-on-light is the safest combination; inverting the usual colours works only if contrast stays high.' },
+      { q: 'What actually goes inside a QR code?', a: 'Exactly the text you type — nothing more. A URL QR code simply stores the URL; scanning apps just open or show it.' },
+      { q: 'How do I print it reliably?', a: 'Prefer a quiet margin around the code, high contrast, and a physical size large enough for the scanning distance. Test the printed version with at least two different phones before mass printing.' },
+    ],
   },
 
   '/random-port-generator': {
     intro: 'Generates a random port number above 1024, for starting local services or writing tests.',
     steps: ['Click generate to get a port', 'Copy and use it', 'Generate again if you need several'],
+    about: 'Draw one or more random port numbers while excluding the well-known range 0–1023, so you never land on ports that require root privileges or collide with system services. Useful for spinning up local dev servers, assigning ephemeral service ports in configs, or picking ports for test harnesses.',
+    faqs: [
+      { q: 'Why exclude ports 0–1023?', a: 'The well-known range is reserved for system services (SSH 22, HTTP 80…) and binding to it usually requires administrator rights. Random picks there would mostly fail or shadow real services.' },
+      { q: 'Does a random port guarantee it is free?', a: 'No — nothing else on your machine claimed it at generation time, but you should still check with netstat or your runtime before binding. The tool gives you a sane candidate, not a reservation.' },
+      { q: 'Which range do the numbers come from?', a: 'The registered/ephemeral range above 1023 (up to 65535). For services exposed to others, the conventional registered range is 1024–49151.' },
+    ],
   },
 
   '/regex-memo': {
@@ -527,6 +761,12 @@ export const GUIDES: Record<string, ToolGuide> = {
     intro: 'Converts between Roman numerals and Arabic numbers — useful for ordinals and copyright years.',
     steps: ['Enter a number or a Roman numeral on either side', 'The other side updates automatically', 'Copy and use it'],
     example: { label: 'Fill in a sample number', text: '2024' },
+    about: 'Convert between Roman numerals and Arabic numbers in both directions, with validation on the Roman side. Reading years on buildings and film credits (MCMXCIV), parsing chapter or monarch numbering, or generating stylistic numerals — without hand-counting letter values.',
+    faqs: [
+      { q: 'Why is 4 written IV and not IIII?', a: 'Subtractive notation: a smaller numeral before a larger one subtracts (IV = 5-1, CM = 900). Clock faces traditionally break this rule and print IIII, but standard Roman numerals use subtraction.' },
+      { q: 'What is the largest number this handles?', a: 'Standard notation tops out around 3999 (MMMCMXCIX) because there is no classical symbol above M. Anything larger needs vinculum or archaic forms that no modern convention agrees on.' },
+      { q: 'Why does my Roman input fail validation?', a: 'Likely an illegal pattern like IC for 99 (must be XCIX) or repeated V, L, D. The validator enforces classical rules so you do not engrave a typo in stone.' },
+    ],
   },
 
   '/rsa-key-pair-generator': {
@@ -534,6 +774,12 @@ export const GUIDES: Record<string, ToolGuide> = {
     steps: ['Choose the key length (2048 bits and up)', 'Click generate', 'Save the private and public keys separately'],
     notes: ['A lost private key cannot be recovered, so store it safely — and never commit it to a repository'],
     example: { label: 'Fill in a sample key size', text: '4096' },
+    about: 'Generate an RSA key pair — private and public key in PEM format, in the key size you choose — directly in the browser. Useful for SSH keys, TLS client certificates, JWT RS256 signing setups, or anywhere you need a fresh pair without installing OpenSSL.',
+    faqs: [
+      { q: 'Which key size should I generate?', a: '2048 bits is the floor for compatibility; 4096 if the extra signing/verification cost is acceptable and longevity matters. Everything below 2048 exists in the tool only for testing legacy systems.' },
+      { q: 'How do I keep the private key private?', a: 'Never share it, never commit it, and prefer generating it on the machine that will use it. This tool runs locally so the key is not transmitted — but anything pasted into a browser context deserves the same care as a password.' },
+      { q: 'Can I use these keys for SSH?', a: 'Yes — an RSA PEM private key converts to OpenSSH format with ssh-keygen. Generate here, then run ssh-keygen -y against it to derive the public line for authorized_keys.' },
+    ],
   },
 
   '/safelink-decoder': {
@@ -541,6 +787,12 @@ export const GUIDES: Record<string, ToolGuide> = {
     steps: ['Copy the very long SafeLink URL from the email', 'Paste it into the input', 'Click decode to get the original URL'],
     notes: ['Decoding only reveals the address — you still have to judge for yourself whether it is trustworthy'],
     example: { label: 'Fill in a sample SafeLink URL', text: 'https://nam.safelinks.protection.outlook.com/?url=https%3A%2F%2Fexample.com%2Fdocs' },
+    about: 'Outlook SafeLink wraps every URL in corporate mail into a long tracking redirect — you click the wrapper, not the destination. Paste a SafeLink URL and this tool extracts the real address encoded inside it, so you can see (and decide about) where a link actually goes before opening it.',
+    faqs: [
+      { q: 'What is SafeLink, and why do links look like that?', a: 'It is Microsoft\'s rewriter: mail links are replaced with a URL that routes through Microsoft servers for scanning, then forwards you. The original address is inside the wrapper as a query parameter.' },
+      { q: 'Why decode before clicking?', a: 'Two reasons: transparency (you see the real destination, including any look-alike domains) and convenience — the decoded URL opens directly, without the tracking hop and its privacy implications.' },
+      { q: 'Does decoding bypass any security?', a: 'No. It only reads the wrapped URL; it does not touch attachments or Microsoft\'s scanning. You are simply choosing to visit the destination directly rather than through the redirect.' },
+    ],
   },
 
   '/slugify-string': {
@@ -548,12 +800,24 @@ export const GUIDES: Record<string, ToolGuide> = {
     steps: ['Enter the original string', 'Read the generated slug', 'Copy and use it'],
     notes: ['Input longer than 100,000 characters is rejected outright — slug generation is skipped rather than blocking the page', 'Non-ASCII text is transliterated or handled by rule; English words make the best slugs'],
     example: { label: 'Fill in sample text', text: 'Hello World! 你好 2026' },
+    about: 'Turn any string into a URL-, filename- and ID-safe slug: accents transliterated, spaces and symbols replaced, lowercase throughout. Slugs keep URLs readable and stable, and this tool shows exactly what your title becomes before it hits routing or a filesystem.',
+    faqs: [
+      { q: 'Why do URLs use slugs instead of titles?', a: 'Titles contain spaces, punctuation and encodable characters that make URLs long and brittle. A slug is one safe token that still reads — better for users, sharing and SEO than an opaque ID.' },
+      { q: 'What happens to accented characters?', a: 'They are transliterated to their base form (é to e, ü to u) so the slug stays ASCII-safe. If you need to preserve accents in URLs, modern browsers can display them — but ASCII slugs are the portable choice.' },
+      { q: 'Can two different titles produce the same slug?', a: 'Yes — "Café!" and "cafe" both become "cafe". That is why systems append IDs or dates when uniqueness matters; the slug guarantees safety and readability, not uniqueness.' },
+    ],
   },
 
   '/sql-prettify': {
     intro: 'Formats SQL that is crammed onto one line into a clearly indented structure — very useful for reading slow-query logs.',
     steps: ['Paste the SQL', 'Pick a dialect (optional)', 'Copy the formatted result'],
     example: { label: 'Fill in sample SQL', text: 'select id,name,created_at from users where status=1 order by created_at desc limit 10' },
+    about: 'Paste a SQL query and get it formatted — keywords upper-cased, joins and clauses indented, one field per line — with dialect-aware parsing for PostgreSQL, MySQL, T-SQL, PL/SQL, SQLite, BigQuery, Redshift, Hive, Spark, MariaDB, DB2 and N1QL. A formatted query is the fastest way to review a 40-line join before running it.',
+    faqs: [
+      { q: 'Why should I pick the right dialect?', a: 'Dialects differ in keywords, quoting and comment syntax. Formatting with the engine you actually run keeps identifiers like backtick-quoted names or @variables recognised and placed correctly.' },
+      { q: 'Does formatting change how my query executes?', a: 'No — whitespace and case are irrelevant to the SQL engine. Formatting is purely for humans; the query plan stays identical.' },
+      { q: 'Can it minify SQL back to one line?', a: 'Prettifying is the core job. For a compact form, most developers keep the formatted version as the source of truth and let their tools strip whitespace on deploy.' },
+    ],
   },
 
   '/string-obfuscator': {
@@ -561,23 +825,47 @@ export const GUIDES: Record<string, ToolGuide> = {
     steps: ['Enter the original string', 'Set how many leading and trailing characters to keep', 'Copy the masked result'],
     notes: ['This is display-level masking, not encryption. Do not rely on it to protect genuinely sensitive data'],
     example: { label: 'Fill in a sample string', text: 'my-secret-token-123456' },
+    about: 'Mask a string so it stays recognisable and comparable without revealing its content — show the first and last few characters and blank out the middle. Built for sharing examples safely: paste a token, an IBAN or a client ID into a bug report or screenshot without leaking the real value.',
+    faqs: [
+      { q: 'Can the masked value be recovered?', a: 'No — it is redaction for display. The masked value cannot be recovered, which is the point: the output is safe to share precisely because the middle is gone.' },
+      { q: 'How much should I keep visible?', a: 'Enough for recognition, not enough for reconstruction. A common convention is first 4 and last 4 for long tokens; shorter secrets deserve fewer visible characters or none.' },
+      { q: 'Why not just delete the secret from the screenshot?', a: 'Because you usually need to show that a value was there — length, shape, distinctness between two values. Masking preserves that evidence while removing the secret itself.' },
+    ],
   },
 
   '/svg-placeholder-generator': {
     intro: 'Generates an SVG placeholder of a given size — faster and more reliable than an external placeholder service when building skeleton screens.',
     steps: ['Enter the width and height', 'Set the text and colours as needed', 'Copy the SVG or its data URI'],
+    about: 'Generate SVG placeholder images — set dimensions, colours and optional text, and embed the URL or markup in your layout while real assets are still in flight. SVG stays crisp at any size and the file is a few hundred bytes, so mockups stop breaking on missing images.',
+    faqs: [
+      { q: 'Why SVG instead of a PNG placeholder service?', a: 'No network dependency and no fixed resolution: an inline SVG data URI renders instantly and stays sharp at any DPI. For wireframes and CI screenshots, self-hosted placeholders are also more private.' },
+      { q: 'How do I embed the result?', a: 'Either as an image src pointing to the generated SVG URL/data URI, or inline as markup so you can style it with CSS. The tool gives you both forms.' },
+      { q: 'Can I customise the label text?', a: 'Yes — the placeholder can carry text (dimensions by default, or your own label), which makes it obvious in review which slot each image belongs to.' },
+    ],
   },
 
   '/temperature-converter': {
     intro: 'Converts between Celsius, Fahrenheit, Kelvin and other temperature scales.',
     steps: ['Enter a value on any scale', 'The other scales update automatically', 'Copy the result you need'],
     example: { label: 'Fill in a sample temperature', text: '100' },
+    about: 'Convert a temperature across eight scales at once: Celsius, Fahrenheit, Kelvin, Rankine, Delisle, Newton, Réaumur and Rømer. Type a value on any scale and the others update live — whether you are checking an oven setting from a European recipe or decoding historical scientific data that used Réaumur.',
+    faqs: [
+      { q: 'Why are there so many scales?', a: 'Celsius, Fahrenheit and Kelvin are the everyday and scientific standards; Rankine is Kelvin\'s Fahrenheit-based sibling; Delisle, Newton, Réaumur and Rømer are historical European scales you meet in old records and period instruments.' },
+      { q: 'Why can temperature go negative in some scales but not Kelvin?', a: 'Kelvin is absolute — 0 K is the physical floor — while Celsius and Fahrenheit place zero at convenient reference points (freezing water, brine). Negative degrees just mean "below that reference", not "less than no heat".' },
+      { q: 'Which scale should I use in code?', a: 'Kelvin for physics and thermodynamics (ratios are meaningful), Celsius or Fahrenheit for user-facing display. Converting at the boundary once is cheaper than mixing scales through your logic.' },
+    ],
   },
 
   '/text-diff': {
     intro: 'Compares two blocks of text line by line to see exactly what changed.',
     steps: ['Paste the original text on the left', 'Paste the new text on the right', 'Review the highlighted additions and removals'],
     example: { label: 'Fill in sample text', text: 'First line\nSecond line\nThird line' },
+    about: 'Paste two texts and see their differences line by line — additions, deletions and unchanged context. The no-install way to compare config exports, log excerpts, code reviews or two versions of a paragraph before you commit to one.',
+    faqs: [
+      { q: 'How does the diff decide lines changed?', a: 'It aligns matching lines and reports the rest as added or removed, in the classic diff style. Rewritten lines usually show as a removal plus an addition rather than a special "changed" marker.' },
+      { q: 'Why does a tiny edit show the whole paragraph changed?', a: 'Because the diff is line-based: one changed character makes the whole line differ. Diffing on smaller units (split the paragraph into lines) gives a tighter result.' },
+      { q: 'Does whitespace matter?', a: 'Yes — trailing spaces and line-ending differences (CRLF vs LF) count as changes and are a common source of "nothing changed but everything is red". Normalise line endings before comparing if that noise is not what you are hunting.' },
+    ],
   },
 
   '/text-statistics': {
@@ -585,6 +873,12 @@ export const GUIDES: Record<string, ToolGuide> = {
     steps: ['Paste the text', 'Read the statistics', 'Cross-check the byte count against the limit where relevant'],
     notes: ['In UTF-8 a CJK character is about 3 bytes, so the byte count differs from the character count'],
     example: { label: 'Fill in sample text', text: 'The quick brown fox jumps over the lazy dog.' },
+    about: 'Live statistics for the text you paste: character count, word count, line count and byte size, updating as you type. The byte size accounts for multi-byte characters, which is what actually matters when filling forms with length limits, sizing payloads or estimating storage.',
+    faqs: [
+      { q: 'Why do character count and byte size differ?', a: 'Characters outside ASCII take multiple bytes in UTF-8 — an emoji is one character but four bytes. Forms and APIs usually enforce byte or UTF-16 limits, so watch the byte counter for anything multilingual.' },
+      { q: 'How are words counted?', a: 'By whitespace separation. "well-known" is one word and punctuation sticks to its word; if you need linguistic word counts (hyphens, contractions) treat this as the fast estimate it is.' },
+      { q: 'What counts as a line?', a: 'Every newline-terminated row, so a trailing newline adds one to the count. Empty lines count too — they are real lines in the text.' },
+    ],
   },
 
   '/text-to-binary': {
@@ -592,18 +886,36 @@ export const GUIDES: Record<string, ToolGuide> = {
     steps: ['Enter the text or the binary', 'The other side updates automatically', 'Copy and use it'],
     notes: ['Binary is grouped in 8-bit blocks; spaces between them are tolerated'],
     example: { label: 'Fill in sample text', text: 'Hi' },
+    about: 'Convert text into its ASCII binary representation and back — each character becomes one 8-bit byte, so "Hi" is 01001000 01101001. Useful in teaching contexts, protocol debugging, and any moment you want to see what a string really is under the hood.',
+    faqs: [
+      { q: 'Why 8 bits per character?', a: 'Extended ASCII and UTF-8 both represent the basic Latin range in single 8-bit bytes. For characters beyond that range, UTF-8 uses multiple bytes — check the Unicode tool for those.' },
+      { q: 'How do I convert back without losing data?', a: 'Split the binary into groups of 8 bits and map each to its character code. Groups that are not multiples of 8 indicate truncated or corrupted input.' },
+      { q: 'Can binary text keep a message secret?', a: 'Not at all — it is a faithful encoding with no key. Anyone can decode it, which makes it great for illustration and useless for secrecy.' },
+    ],
   },
 
   '/text-to-nato-alphabet': {
     intro: 'Turns text into the NATO phonetic alphabet, so spelling something out over the phone is not misheard.',
     steps: ['Enter the text', 'Read the corresponding words', 'Copy them, or just read them out'],
     example: { label: 'Fill in sample text', text: 'SOS' },
+    about: 'Transcribe text into the NATO phonetic alphabet — A becomes Alfa, B Bravo, 9 Nine — so it can be conveyed reliably over a noisy voice channel. Call centres, aviation, support scripts and tabletop exercises use it to eliminate the B/P and M/N confusions that plague spelled-out letters.',
+    faqs: [
+      { q: 'Why not just say the letters louder?', a: 'Because the problem is not volume — it is that B, C, D, E, G, P, T, V, Z all rhyme. Distinct codewords remove the ambiguity entirely, which is why the alphabet is international and standardised.' },
+      { q: 'How are numbers handled?', a: 'Digits have their own standard pronunciations (9 is "niner"). The tool outputs the official word per digit so nothing is left to improvisation.' },
+      { q: 'Does punctuation get encoded?', a: 'No — the alphabet covers letters and digits. Punctuation like "dot" in an email address is spoken by convention; the tool keeps the output to the standard set.' },
+    ],
   },
 
   '/text-to-unicode': {
     intro: 'Converts text to and from Unicode code points — useful for tracking down mojibake or writing escape sequences.',
     steps: ['Enter the text or the code point sequence', 'The other side shows the converted result', 'Copy and use it'],
     example: { label: 'Fill in sample text', text: 'Hello 你好' },
+    about: 'Parse text into Unicode code points and convert escapes back into text — see exactly which characters a string contains, whether that "identical" name has a zero-width joiner inside, and what \\u escapes in a JSON payload decode to.',
+    faqs: [
+      { q: 'Why does my "duplicate" username fail a comparison?', a: 'It very likely contains invisible characters — zero-width spaces, joiners or look-alike homoglyphs. Inspecting the code points exposes them; a character that should not be there will stand out immediately.' },
+      { q: 'What is the difference between U+ notation and \\u escapes?', a: 'They are two spellings of the same code point: U+1F600 and \\uD83D\\uDE00 (its surrogate pair in JS/JSON) both denote the same emoji. This tool converts between the views so you can paste whichever your context needs.' },
+      { q: 'What are combining characters?', a: 'Accents and marks that attach to the previous character instead of standing alone. "é" can be one code point or "e" plus a combining accent — both display the same but compare differently, and this tool shows which one you have.' },
+    ],
   },
 
   '/token-generator': {
@@ -635,6 +947,12 @@ export const GUIDES: Record<string, ToolGuide> = {
     intro: 'Converts TOML configuration into YAML, for migrating between configuration formats.',
     steps: ['Paste the TOML', 'Get the YAML result', 'Copy and use it'],
     example: { label: 'Fill in sample TOML', text: 'title = "demo"\n\n[server]\nport = 8080' },
+    about: 'Convert TOML into YAML — the direction you need when a Rust or Python project file must become a CI variable file, a Kubernetes-adjacent config, or simply a format your teammates can eyeball. TOML tables map to nested YAML mappings, arrays of tables to YAML lists.',
+    faqs: [
+      { q: 'What happens to [tool.x] style table headers?', a: 'Each dotted header becomes the equivalent nested mapping, so [tool.pytest] turns into tool: pytest: {...}. Round-tripping back to TOML reproduces the original structure.' },
+      { q: 'Are arrays of tables supported?', a: 'Yes — [[products]] style arrays become YAML lists of mappings, which is the standard way to express the same data in YAML.' },
+      { q: 'Why does the YAML output quote some values?', a: 'YAML has many implicit-type pitfalls (the Norway problem: "no" parses as false). Emitting quotes where the type could be ambiguous keeps the converted document faithful to the TOML types.' },
+    ],
   },
 
   '/ulid-generator': {
@@ -679,6 +997,12 @@ export const GUIDES: Record<string, ToolGuide> = {
     steps: ['Paste a UA string, or fill in the current browser in one click', 'Read the parsed information', 'Copy the fields you need'],
     notes: ['A UA string can be forged, so it suits statistics and display but never security decisions'],
     example: { label: 'Fill in a sample UA', text: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36' },
+    about: 'Paste a user-agent string and get its structure parsed into browser, engine, OS, CPU and device fields. Essential when triaging analytics, writing UA-based routing rules, or checking what a crawler\'s UA actually declares before you trust it.',
+    faqs: [
+      { q: 'Can I trust the user-agent string?', a: 'No — any client can send any string, and some browsers deliberately freeze or spoof parts of it. Treat parsed UA data as a hint for statistics and routing, never as an authentication factor.' },
+      { q: 'Why does the device field say "generic" on desktop?', a: 'Desktop browsers do not report a device model at all, so the parser can only say the class. Detailed device names appear mostly for mobile UAs.' },
+      { q: 'How do I recognise a bot?', a: 'Bots usually announce themselves (Googlebot, bingbot) and often lack a full engine/version structure. Parse the string and check whether browser and engine fields look coherent — missing pieces are a strong bot signal.' },
+    ],
   },
 
   '/uuid-generator': {
@@ -699,12 +1023,24 @@ export const GUIDES: Record<string, ToolGuide> = {
     steps: ['Enter the network name (SSID)', 'Enter the password and pick the security type', 'Generate, then scan or download'],
     notes: ['The QR code contains the password in plain form — be careful about posting it in public places'],
     example: { label: 'Fill in a sample SSID', text: 'Home-WiFi' },
+    about: 'Turn your WiFi credentials into a QR code guests can scan to join instantly — no more reading passwords aloud. Fill in the network name (SSID), pick the security mode (WPA by default, or a no-password open network), type the password and optionally mark the SSID as hidden; then download the code as a PNG for printing.',
+    faqs: [
+      { q: 'How does scanning a WiFi QR code work?', a: 'The QR encodes a standard WIFI: string (SSID, password, security mode). iOS and Android both detect this format natively and offer to join the network straight from the camera.' },
+      { q: 'My network has no password — which mode do I pick?', a: 'Choose the no-password/open option. Picking WPA with an empty password produces a code phones cannot use — the mode must match how the router actually broadcasts.' },
+      { q: 'Does it work with a hidden SSID?', a: 'Yes — mark the SSID as hidden and the code carries that flag. Guests still need to be within radio range, and some older devices handle hidden networks less smoothly.' },
+    ],
   },
 
   '/xml-formatter': {
     intro: 'Formats XML that has been compressed onto one line into an indented structure — very useful when reading API payloads.',
     steps: ['Paste the XML', 'Click format', 'Copy the result'],
     example: { label: 'Fill in sample XML', text: '<root><user id="1"><name>Alice</name></user></root>' },
+    about: 'Turn a cramped XML string into readable, indented markup — or strip it back down when you need the compact form. Well-formed XML is validated as part of processing, so a misplaced tag surfaces immediately instead of exploding somewhere downstream in your SOAP response or Android layout.',
+    faqs: [
+      { q: 'Does formatting validate my XML?', a: 'Partially: the parser must read your XML successfully, so broken nesting, unclosed tags and bad entities fail loudly here. It is not a schema (XSD) validator — structure rules beyond well-formedness need a dedicated tool.' },
+      { q: 'Why is my indented XML suddenly bigger?', a: 'Pretty-printing adds whitespace text nodes, which matter in XML: an element containing " text " is not the same as one containing "text". That is why round-tripping through minify can alter content-sensitive documents.' },
+      { q: 'What about namespaces and attributes?', a: 'Namespaces are preserved exactly — formatting only re-arranges whitespace between tags, never renames elements or touches attribute values.' },
+    ],
   },
 
   '/xml-to-json': {
@@ -725,6 +1061,12 @@ export const GUIDES: Record<string, ToolGuide> = {
     steps: ['Paste the YAML', 'Click format', 'Copy the result'],
     notes: ['YAML expresses hierarchy through indentation, and only spaces work — never tabs'],
     example: { label: 'Fill in sample YAML', text: 'name: devbox\nservices:\n- web\n- api' },
+    about: 'Normalise a YAML document into clean, consistent indentation — the single most common source of YAML bugs. Paste your config, get it re-emitted with uniform spacing and structure, and use the parse step as a syntax check before kubectl or your CI pipeline rejects it for one stray tab.',
+    faqs: [
+      { q: 'Why does YAML break so easily?', a: 'Structure comes from indentation, not brackets — one wrong space changes nesting, and tabs are forbidden outright. Formatting normalises all of it and fails fast on anything unparseable.' },
+      { q: 'Does the formatter fix wrong indentation?', a: 'It re-emits whatever the parser understood. If your YAML parses, the output comes out with consistent indentation; if the structure itself is ambiguous, parsing fails and points you at the line.' },
+      { q: 'Will it preserve my comments and anchors?', a: 'Parse-and-rewrite loses comments in some cases, because comments are not part of the parsed model. Keep a version-controlled copy of commented configs rather than round-tripping through any formatter.' },
+    ],
   },
 
   '/yaml-to-json-converter': {
@@ -743,6 +1085,12 @@ export const GUIDES: Record<string, ToolGuide> = {
     intro: 'Converts YAML into TOML format, for configuration migrations.',
     steps: ['Paste the YAML', 'Get the TOML result', 'Copy and use it'],
     example: { label: 'Fill in sample YAML', text: 'title: demo\nserver:\n  port: 8080' },
+    about: 'Convert YAML configuration into TOML. Typical situation: a tool or language ecosystem expects TOML (Cargo, pyproject.toml, Netlify) while your notes or templates are in YAML — paste one side, copy the other, with nested structures mapped to TOML tables.',
+    faqs: [
+      { q: 'How do nested YAML maps become TOML?', a: 'Nested mappings become TOML table headers ([section], [section.sub]). The output stays readable, but very deep nesting produces long dotted table names — that is the format\'s nature, not a bug.' },
+      { q: 'What about YAML lists and mixed types?', a: 'Lists map to TOML arrays; lists of maps become arrays of inline tables ([{...}]). Homogeneous lists survive perfectly; exotic mixes may change shape slightly.' },
+      { q: 'Are YAML anchors and multi-line strings converted?', a: 'Anchors are resolved to their values during parsing — the TOML output is always anchor-free. Block scalars become ordinary strings with the newlines preserved.' },
+    ],
   },
 
   '/htpasswd-generator': {
@@ -761,6 +1109,12 @@ export const GUIDES: Record<string, ToolGuide> = {
       'The plaintext format is only supported by Windows / Netware — do not use it in production',
     ],
     example: { label: 'Fill in a sample username', text: 'admin' },
+    about: 'Generate .htpasswd entries for Apache or Nginx basic auth — bcrypt, apr1, SHA1 or crypt — and verify existing lines. One entry per line in the right hash format is all a server needs to password-protect a directory, and this tool produces exactly that without touching a terminal.',
+    faqs: [
+      { q: 'Which hash format should I choose?', a: 'bcrypt for new setups (strongest, slow by design). apr1 is the Apache-legacy default; SHA1 and plain are only for ancient servers that accept nothing else — do not introduce them on purpose.' },
+      { q: 'Where does the .htpasswd file go?', a: 'Outside the web root, referenced from your server config (AuthUserFile in Apache, auth_basic_user_file in Nginx). The file must never be downloadable.' },
+      { q: 'Why does verification fail for a line I know is right?', a: 'Hashes are salted: a password hashes to a different string each generation, and only the stored salt is reused to verify. Mismatch usually means the password differs, not that the tool is broken.' },
+    ],
   },
 
   '/rmb-uppercase': {
@@ -768,6 +1122,12 @@ export const GUIDES: Record<string, ToolGuide> = {
     steps: ['Enter the amount', 'Tick the RMB prefix and the 元/圆 wording as needed', 'Copy the uppercase Chinese result'],
     notes: ['Grouping units go up to trillions; double-check the result for unusually large amounts'],
     example: { label: 'Fill in a sample amount', text: '1409.05' },
+    about: 'Turn a numeric amount into the standard Chinese financial uppercase wording (人民币大写: 壹佰贰拾叁元整), with jiao and fen handled and an optional 「人民币」 prefix. Financial documents in China require this form on invoices, receipts and contracts precisely because uppercase characters cannot be altered the way plain digits can.',
+    faqs: [
+      { q: 'Why do Chinese financial documents use uppercase numerals?', a: 'Simple strokes like 一二三 are trivially altered into 二三四. The complex uppercase forms (壹, 贰, 叁) resist tampering, so banking law requires them on negotiable documents.' },
+      { q: 'How are zeros handled?', a: 'Standard rules apply: intermediate zeros collapse to one 零 (102 = 壹佰零贰元), and trailing zero jiao/fen produce 整 (exactly). The tool follows the People\'s Bank conventions.' },
+      { q: 'Does it support the 人民币 prefix and decimals?', a: 'Yes — toggle the prefix as your template requires, and amounts with jiao (角) and fen (分) decimals are worded correctly down to the cent.' },
+    ],
   },
 
   '/fullwidth-converter': {
@@ -778,6 +1138,12 @@ export const GUIDES: Record<string, ToolGuide> = {
       'Half-width and full-width spaces (U+3000) are both converted',
     ],
     example: { label: 'Fill in sample text', text: 'ＡＢＣ１２３，全角标点。' },
+    about: 'Convert between full-width and half-width characters — the fixed Unicode offset 0xFEE0 maps A to Ａ, 1 to １ and so on — with an option to adjust punctuation only. Essential when cleaning data pasted from CJK documents, aligning mixed-language databases, or fixing lookups that fail because "ABC" and "ＡＢＣ" are different strings to a computer.',
+    faqs: [
+      { q: 'What is the difference between full-width and half-width?', a: 'Full-width characters occupy an em square (used in CJK typesetting); half-width is the narrow Latin form. Unicode places most full-width forms at a constant 0xFEE0 offset from their half-width counterparts, which is exactly what this tool exploits.' },
+      { q: 'Why did my search or join fail with no visible difference?', a: 'Because ＡＢＣ and ABC are different code points even though they print identically in many fonts. Normalising width before comparing strings fixes a whole class of "invisible" data bugs.' },
+      { q: 'When should I convert punctuation only?', a: 'When the letters are correct but punctuation came in full-width from a CJK editor (，vs ,). Converting only punctuation keeps identifiers intact while fixing separators.' },
+    ],
   },
 
   '/morse-code-converter': {
@@ -790,6 +1156,12 @@ export const GUIDES: Record<string, ToolGuide> = {
       'Decoding an unknown code point outputs ?',
     ],
     example: { label: 'Fill in sample text', text: 'SOS' },
+    about: 'Encode text into Morse code and decode it back, with letters separated by spaces and words by slashes. Useful for radio amateur practice, escape-room props, signal-themed games — or just settling what "SOS" actually looks like in dots and dashes.',
+    faqs: [
+      { q: 'Why are words separated by a slash?', a: 'Morse only has dot/dash and gaps, and text has two levels of separation (letters and words). Written Morse needs a visible word gap, and the slash is the convention — a single space would be ambiguous.' },
+      { q: 'Is Morse case-sensitive?', a: 'No — Morse has no case and no punctuation of its own except a few procedural signals. This encoder accepts mixed input and maps every letter to the same code regardless of case.' },
+      { q: 'What is the classic SOS sequence?', a: 'Three short, three long, three short: ... --- ... It was chosen because the pattern is unmistakable even under noise, not because it abbreviates anything.' },
+    ],
   },
 
   '/px-rem-converter': {
@@ -801,6 +1173,12 @@ export const GUIDES: Record<string, ToolGuide> = {
       'Copy the result. The relationship is rem = px ÷ root font size',
     ],
     notes: ['A wrong root font size shifts every result, so keep it in sync when you change the design baseline'],
+    about: 'Convert a batch of values between px and rem against any root font size — the 16px default or whatever your design system sets. Rems keep typography and spacing accessible (users who scale their base font size get proportional layouts), and this converter handles the whole stylesheet\'s worth of values in one paste.',
+    faqs: [
+      { q: 'What root font size should I assume?', a: 'Browsers default to 16px, but users and design systems can change it. The tool lets you set the root explicitly — converting against the real root of your project beats assuming the default.' },
+      { q: 'Why prefer rem over px at all?', a: 'Accessibility and consistency: rem values scale when a user raises their base font size, while px stays fixed. Browsers also enforce minimum font sizes, which px-based layouts handle badly.' },
+      { q: 'Does it convert both directions in one go?', a: 'Yes — paste a list and see px and rem side by side. Ideal when migrating a legacy px stylesheet to rem incrementally.' },
+    ],
   },
 
   '/text-replacer': {
@@ -817,6 +1195,12 @@ export const GUIDES: Record<string, ToolGuide> = {
       '$1 and $& in the replacement text are not treated as capture group references and are written literally',
     ],
     example: { label: 'Fill in sample text', text: 'name=Alice; name=Bob; name=Carol' },
+    about: 'Batch find-and-replace with plain or regular-expression matching, optional case-insensitivity and a match counter so you know exactly how many substitutions happened. For renaming repeated tokens across a config, normalising log lines, or any edit that would take fifty manual replaces.',
+    faqs: [
+      { q: 'Plain text or regex mode — which should I use?', a: 'Plain for literal strings (it treats . and * as themselves); regex when you need patterns, anchors or capture groups. The match counter is the fastest way to sanity-check that the pattern hits exactly what you expect.' },
+      { q: 'Why does case-insensitive matching still surprise me?', a: 'Because it also matches variants you did not intend — "ID", "id" and "Id" all match "id". Use it deliberately, and check the counter before pasting the result anywhere.' },
+      { q: 'Can I reference the matched text in the replacement?', a: 'In regex mode, capture groups in the pattern can be reused in the replacement (e.g. reordering "Last, First" to "First Last"). Plain mode replaces with a literal string only.' },
+    ],
   },
 
   '/json-to-get-params': {
@@ -862,6 +1246,12 @@ export const GUIDES: Record<string, ToolGuide> = {
       'Temperature uses conversion formulas rather than a shared coefficient',
     ],
     example: { label: 'Fill in a sample value', text: '100' },
+    about: 'Convert across 11 unit categories — length, area, volume, weight, speed, time, data storage, power, pressure, angle and temperature — with one interface. The everyday answer to "how many GB is 4.7 GiB", "mph to km/h" and whether that 100 kB JSON is actually big.',
+    faqs: [
+      { q: 'What is the difference between kB and KiB?', a: 'kB is decimal (1 kB = 1000 B); KiB is binary (1 KiB = 1024 B). Storage vendors use decimal, operating systems often report binary, and the gap grows with size — hence "missing" disk space.' },
+      { q: 'How precise are the conversions?', a: 'Factors use standard definitions (inch = 25.4 mm exactly, mile = 1.609344 km). For derived categories like speed, the calculation composes exact factors, so precision is limited by your input, not the table.' },
+      { q: 'Why is temperature in its own category?', a: 'Because temperature conversion is not multiplication by a factor — it needs offsets (0 °C = 273.15 K). Treating it like a scaled unit is a classic bug, so it gets dedicated handling.' },
+    ],
   },
 
   '/ascii-table': {
@@ -869,6 +1259,12 @@ export const GUIDES: Record<string, ToolGuide> = {
     steps: ['Type a character (e.g. A) or a code value (e.g. 65, 0x41) in the search box', 'The list filters live', 'Compare against the bases listed for each row'],
     notes: ['Search matches the character, the description, and the decimal and hexadecimal values'],
     example: { label: 'Fill in a sample query', text: 'A' },
+    about: 'The standard ASCII table from 0 to 127 with decimal, hexadecimal, octal and binary values side by side, searchable by character or by code. The quickest way to resolve "what is the hex for newline" or "which character is 0x7F" without opening a full Unicode reference.',
+    faqs: [
+      { q: 'Why does the table stop at 127?', a: 'Classic ASCII defines 128 codes (0–127). Values 128–255 belong to extended encodings like Latin-1, which vary by convention — for those, use the Unicode tool instead.' },
+      { q: 'Which codes are the invisible control characters?', a: '0–31 plus 127 (DEL). They predate screens — BEL, CR, LF and TAB are the ones you still meet daily in logs and file formats.' },
+      { q: 'What is the difference between 0x30 and the digit 0?', a: 'The character "0" has code 48 (0x30); the byte value 0 is the NUL terminator. Confusing the two is a classic C-string bug, which is exactly why this table shows both views at once.' },
+    ],
   },
 
   '/http-headers': {
@@ -876,6 +1272,12 @@ export const GUIDES: Record<string, ToolGuide> = {
     steps: ['Type a field name (e.g. Cookie) or a purpose keyword (e.g. cache, CORS) in the search box', 'The list filters live', 'Each entry shows the field name, direction (request / response) and a short description'],
     notes: ['Search matches the field name, the description and the direction'],
     example: { label: 'Fill in a sample query', text: 'cache' },
+    about: 'A searchable reference of common HTTP request and response headers. Instead of digging through RFCs to remember what Strict-Transport-Security does or which direction a header travels, search by name and read a focused description — with CORS, caching and security headers grouped for fast scanning.',
+    faqs: [
+      { q: 'Which security headers should every site send?', a: 'The usual baseline is Content-Security-Policy, Strict-Transport-Security, X-Content-Type-Options: nosniff and a frame policy (X-Frame-Options or CSP frame-ancestors). Search each one here for what it does.' },
+      { q: 'Which headers matter for CORS?', a: 'Requests trigger Origin; responses need Access-Control-Allow-Origin (plus Allow-Methods/Allow-Headers for preflights). The reference groups these so you can debug a blocked request quickly.' },
+      { q: 'Which headers control caching?', a: 'Cache-Control is the primary switch, with ETag/If-None-Match and Last-Modified/If-Modified-Since driving conditional revalidation. Note that Cache-Control is sent by the server but also honoured by browsers and CDNs.' },
+    ],
   },
 
   '/linux-commands': {
@@ -899,6 +1301,12 @@ export const GUIDES: Record<string, ToolGuide> = {
       'The registration data is returned as the endpoint provides it; different suffixes (.com / .cn / .io …) vary in detail and may not all include an expiry date',
     ],
     example: { label: 'Fill in a sample domain', text: 'example.com' },
+    about: 'Look up registration data for a domain — registrar, creation and expiry dates, status codes and nameservers — using RDAP, the official successor to classic WHOIS. RDAP returns structured, machine-readable responses instead of free-form text, so the results are consistent and easy to scan.',
+    faqs: [
+      { q: 'How is RDAP different from WHOIS?', a: 'Both answer the same questions, but RDAP uses standardised HTTP+JSON endpoints run by registries, replacing the fragmented plain-text WHOIS protocol. This tool speaks RDAP only, which keeps parsing reliable.' },
+      { q: 'Why can some domains not be looked up?', a: 'RDAP coverage is still growing: some country-code registries do not yet expose an RDAP server, in which case the lookup fails even though the domain exists.' },
+      { q: 'Why do I no longer see the owner\'s name and address?', a: 'GDPR and similar rules made registries redact personal contact data. You still get registrar, dates and status — the operational facts — but not private individuals\' details.' },
+    ],
   },
 
   '/http-status-checker': {
@@ -910,11 +1318,23 @@ export const GUIDES: Record<string, ToolGuide> = {
       'Status codes are coloured green for 2xx, orange for 3xx and red for 4xx / 5xx',
     ],
     example: { label: 'Fill in a sample URL', text: 'example.com' },
+    about: 'Check a live URL and see the actual HTTP status code and response headers it returns right now — useful to tell "the site is down" from "the site redirects", to verify a cache purge, or to confirm a security header actually ships in production. Requests run through the DigDevBox API, so the result reflects a server-side fetch, not your local cache.',
+    faqs: [
+      { q: 'Why does the checker show a different result than my browser?', a: 'Browsers send cookies, Accept headers and cached responses. This tool makes a clean, cookie-less request, so what you see is closer to what a search-engine bot or a fresh visitor would get.' },
+      { q: 'The site loads for me but returns 403 here — why?', a: 'Some firewalls block datacenter IPs or non-browser user agents. A 403 from the checker with a working browser often means bot protection, not a broken site.' },
+      { q: 'Can I follow a redirect chain with it?', a: 'The tool reports the final status and headers after the server-side request completes, so permanent and temporary redirects are already resolved — check the response headers to see where you landed.' },
+    ],
   },
 
   '/today-in-history': {
     intro: 'Lists events that happened on this day in history, loading today\'s content automatically when the page opens.',
     steps: ['The page loads automatically when opened', 'Click reload to fetch it again'],
     notes: ['The data comes from this site\'s server-side endpoint, so the site must be deployed; local development will fail to load'],
+    about: 'See what happened on today\'s date in years past — events load automatically when the page opens, fetched live from the DigDevBox API. A small daily-knowledge ritual: open it with your morning coffee, or use it as an icebreaker source for standups and classrooms.',
+    faqs: [
+      { q: 'Where does the event data come from?', a: 'From a curated historical-events dataset served through the site\'s own API, so the page shows fresh, structured entries rather than a static list frozen at build time.' },
+      { q: 'Why do events not cover every year evenly?', a: 'Coverage reflects the source dataset\'s editorial depth — modern and Western-centric events are denser. Treat it as a browsing delight, not a complete historical index.' },
+      { q: 'Does the page need a network connection?', a: 'Yes — events are fetched live when the page opens. If the request fails, the page tells you rather than showing stale data.' },
+    ],
   },
 };
