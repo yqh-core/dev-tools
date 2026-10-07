@@ -107,9 +107,11 @@ describe('otp functions', () => {
 
   describe('buildKeyUri', () => {
     it('build a key uri string', () => {
-      // issuer/account 会走 encodeURIComponent，中文品牌名在 URI 里必然是百分号编码形态
+      // 默认品牌已改为 DigDevBox（ASCII），encodeURIComponent 对它不做任何编码，
+      // 所以期望串是未编码形态。（历史上这里是中文品牌「开发者工具箱」的百分号编码形态，
+      // 品牌改名后实现改了、测试没改 —— 属于品牌改名的历史债，此处只对齐测试。）
       expect(buildKeyUri({ secret: 'JBSWY3DPEHPK3PXP' })).to.eql(
-        'otpauth://totp/%E5%BC%80%E5%8F%91%E8%80%85%E5%B7%A5%E5%85%B7%E7%AE%B1:demo-user?issuer=%E5%BC%80%E5%8F%91%E8%80%85%E5%B7%A5%E5%85%B7%E7%AE%B1&secret=JBSWY3DPEHPK3PXP&algorithm=SHA1&digits=6&period=30',
+        'otpauth://totp/DigDevBox:demo-user?issuer=DigDevBox&secret=JBSWY3DPEHPK3PXP&algorithm=SHA1&digits=6&period=30',
       );
 
       expect(
