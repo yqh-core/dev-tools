@@ -54,6 +54,16 @@ export const GUIDES: Record<string, ToolGuide> = {
       { q: 'How do I get the Base64 string of a file?', a: 'Use the File to Base64 card: drag a file onto the upload area or click to select one, and the string appears in the readonly box below. The Copy button puts it on your clipboard.' },
       { q: 'Is there a file size limit?', a: 'Nothing is enforced, but the conversion happens in browser memory. Images and documents are comfortable; very large files can get slow or hit memory limits — and remember the Base64 text is about a third larger than the original file.' },
     ],
+    relatedNotes: [
+      {
+        slug: 'base64-encoding-guide',
+        title: 'Base64 Encoding Guide: Padding, URLs and Binary-Safe Data',
+        description: 'How Base64 works, why = padding breaks inside URLs, and what binary-safe really means — with online encoders and decoders for both strings and files.',
+        url: 'https://notes.digdevbox.com/posts/base64-encoding-guide',
+        tag: 'Base64',
+      },
+    ],
+
   },
 
   '/base64-string-converter': {
@@ -67,6 +77,16 @@ export const GUIDES: Record<string, ToolGuide> = {
       { q: 'Why does my Base64 break inside a URL?', a: 'The standard alphabet uses + and /, which have special meanings in URLs. Switch on the URL-safe option when decoding such values, and percent-encode the string before putting it into a query parameter.' },
     ],
     example: { label: 'Fill in sample text', text: 'Hello DigDevBox' },
+    relatedNotes: [
+      {
+        slug: 'base64-encoding-guide',
+        title: 'Base64 Encoding Guide: Padding, URLs and Binary-Safe Data',
+        description: 'How Base64 works, why = padding breaks inside URLs, and what binary-safe really means — with online encoders and decoders for both strings and files.',
+        url: 'https://notes.digdevbox.com/posts/base64-encoding-guide',
+        tag: 'Base64',
+      },
+    ],
+
   },
 
   '/basic-auth-generator': {
@@ -228,6 +248,16 @@ export const GUIDES: Record<string, ToolGuide> = {
       { q: 'Why does the converted time shift by hours?', a: 'Timezone interpretation. ISO strings like 2026-10-05T08:00:00Z name an exact moment (Z = UTC), but "2026-10-05 08:00" without a zone is ambiguous and gets read as your local time. A +8h shift almost always means one side treated a zone-less string as UTC and the other as local.' },
       { q: 'Which timestamp format should I store in my database?', a: 'Either UTC ISO 8601 strings or integer Unix timestamps — both are unambiguous. What you must avoid is zone-less datetime strings in local time: they break the moment a server, a user or daylight saving changes the timezone.' },
     ],
+    relatedNotes: [
+      {
+        slug: 'unix-timestamp-guide',
+        title: 'Unix Timestamp Guide: UTC, Milliseconds and the 2038 Problem',
+        description: 'What a Unix timestamp really is, why UTC and local time disagree, seconds versus milliseconds, and what the 2038 problem will do to 32-bit systems.',
+        url: 'https://notes.digdevbox.com/posts/unix-timestamp-guide',
+        tag: 'Date',
+      },
+    ],
+
   },
 
   '/device-information': {
@@ -386,6 +416,16 @@ export const GUIDES: Record<string, ToolGuide> = {
       { q: '301, 302, 307 — what is the practical difference?', a: '301 is permanent and clients may cache it forever; 302 is temporary but legacy clients may switch method to GET; 307 is temporary with the method preserved. For a temporary POST redirect, 307 is the safe modern answer.' },
       { q: 'Is a 4xx my fault or the client\'s?', a: 'Convention: 4xx means the request was bad (bad URL, bad credentials, rate limited) and the client must change something; 5xx means the server failed despite a valid request.' },
     ],
+    relatedNotes: [
+      {
+        slug: 'http-status-codes-guide',
+        title: 'HTTP Status Codes Guide: 2xx, 3xx, 4xx, 5xx and How to Respond',
+        description: 'What each HTTP status class means, why 301 and 302 behave differently, and how to handle 429 rate limiting and 503 outages on both sides of the request.',
+        url: 'https://notes.digdevbox.com/posts/http-status-codes-guide',
+        tag: 'HTTP',
+      },
+    ],
+
   },
 
   '/iban-validator-and-parser': {
@@ -565,6 +605,16 @@ export const GUIDES: Record<string, ToolGuide> = {
       { q: 'Why did my number get quoted?', a: 'YAML infers types: a value like 1.0 or 2024 may be read back as a number, and yes/no/on/off as booleans. To keep the data identical to the source JSON, this tool quotes values that would otherwise be reinterpreted, so "1.0" stays the string "1.0".' },
       { q: 'Can I convert this back to JSON?', a: 'Yes, with the YAML-to-JSON tool. Because YAML is a JSON superset the round trip is lossless for the data model; you only lose the YAML comments, which JSON has no place to store.' },
     ],
+    relatedNotes: [
+      {
+        slug: 'yaml-vs-json-guide',
+        title: 'YAML vs JSON: Syntax Differences, Trade-offs and Parser Traps',
+        description: 'How YAML and JSON differ in syntax and intent, which one to pick for a given file, and the parser traps — indentation, yes/no dates — that break otherwise valid YAML.',
+        url: 'https://notes.digdevbox.com/posts/yaml-vs-json-guide',
+        tag: 'YAML',
+      },
+    ],
+
   },
 
   '/jwt-parser': {
@@ -1068,6 +1118,16 @@ export const GUIDES: Record<string, ToolGuide> = {
       { q: 'Should I encode the whole URL or just the parameter values?', a: 'Only the values. Encoding a full URL turns https:// into https%3A%2F%2F and destroys its structure. Build the URL first, then encode each value you insert into it — or encode the complete URL only when it is itself a value of another parameter (a redirect target, for example).' },
     ],
     example: { label: 'Fill in sample text', text: 'https://example.com/search?q=hello world&page=1' },
+    relatedNotes: [
+      {
+        slug: 'url-encoding-guide',
+        title: 'URL Encoding Guide: Percent-Encoding, encodeURIComponent and Form Traps',
+        description: 'How percent-encoding works, where encodeURIComponent and encodeURI differ, and why a plus sign can quietly turn into a space in your form data.',
+        url: 'https://notes.digdevbox.com/posts/url-encoding-guide',
+        tag: 'URL',
+      },
+    ],
+
   },
 
   '/url-parser': {
@@ -1080,6 +1140,16 @@ export const GUIDES: Record<string, ToolGuide> = {
       { q: 'What does the #fragment part mean for the server?', a: 'Nothing: the fragment is never sent to the server, it stays in the browser (for anchor jumps or, in SPA frameworks, as client-side routing). Two URLs differing only in fragment are the same request to a server.' },
     ],
     example: { label: 'Fill in a sample URL', text: 'https://user:pass@example.com:8443/path/to/page?a=1&b=2#section' },
+    relatedNotes: [
+      {
+        slug: 'url-encoding-guide',
+        title: 'URL Encoding Guide: Percent-Encoding, encodeURIComponent and Form Traps',
+        description: 'How percent-encoding works, where encodeURIComponent and encodeURI differ, and why a plus sign can quietly turn into a space in your form data.',
+        url: 'https://notes.digdevbox.com/posts/url-encoding-guide',
+        tag: 'URL',
+      },
+    ],
+
   },
 
   '/user-agent-parser': {
@@ -1166,6 +1236,16 @@ export const GUIDES: Record<string, ToolGuide> = {
       { q: 'Does the formatter fix wrong indentation?', a: 'It re-emits whatever the parser understood. If your YAML parses, the output comes out with consistent indentation; if the structure itself is ambiguous, parsing fails and points you at the line.' },
       { q: 'Will it preserve my comments and anchors?', a: 'Parse-and-rewrite loses comments in some cases, because comments are not part of the parsed model. Keep a version-controlled copy of commented configs rather than round-tripping through any formatter.' },
     ],
+    relatedNotes: [
+      {
+        slug: 'yaml-vs-json-guide',
+        title: 'YAML vs JSON: Syntax Differences, Trade-offs and Parser Traps',
+        description: 'How YAML and JSON differ in syntax and intent, which one to pick for a given file, and the parser traps — indentation, yes/no dates — that break otherwise valid YAML.',
+        url: 'https://notes.digdevbox.com/posts/yaml-vs-json-guide',
+        tag: 'YAML',
+      },
+    ],
+
   },
 
   '/yaml-to-json-converter': {
@@ -1178,6 +1258,16 @@ export const GUIDES: Record<string, ToolGuide> = {
       { q: 'What happens to YAML comments?', a: 'They are dropped — JSON has no representation for comments, so there is nowhere to put them. If the comments carry meaning (for example a deprecation note), preserve the YAML source alongside the generated JSON.' },
       { q: 'Why did my value turn into a number or boolean?', a: 'YAML auto-types bare words: yes, no, true, false, on and off become booleans, and 1, 1.5 and 1e3 become numbers. If you need them as strings, quote them in the YAML; otherwise the JSON will correctly reflect YAML\'s interpretation.' },
     ],
+    relatedNotes: [
+      {
+        slug: 'yaml-vs-json-guide',
+        title: 'YAML vs JSON: Syntax Differences, Trade-offs and Parser Traps',
+        description: 'How YAML and JSON differ in syntax and intent, which one to pick for a given file, and the parser traps — indentation, yes/no dates — that break otherwise valid YAML.',
+        url: 'https://notes.digdevbox.com/posts/yaml-vs-json-guide',
+        tag: 'YAML',
+      },
+    ],
+
   },
 
   '/yaml-to-toml': {

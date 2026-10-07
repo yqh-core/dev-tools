@@ -46,6 +46,16 @@ export const GUIDES: Record<string, ToolGuide> = {
       { q: '怎么拿到一个文件的 Base64 串？', a: '用 File to Base64 卡片：把文件拖到上传区、或点击选择文件，字符串就出现在下方只读框里，点复制按钮进剪贴板。' },
       { q: '文件大小有上限吗？', a: '没有强制限制，但转换在浏览器内存里进行。图片和文档很轻松；特别大的文件会变慢甚至触顶——而且 Base64 文本比原文件大约多三分之一。' },
     ],
+    relatedNotes: [
+      {
+        slug: 'base64-encoding-guide',
+        title: 'Base64 Encoding Guide: Padding, URLs and Binary-Safe Data',
+        description: 'How Base64 works, why = padding breaks inside URLs, and what binary-safe really means — with online encoders and decoders for both strings and files.',
+        url: 'https://notes.digdevbox.com/posts/base64-encoding-guide',
+        tag: 'Base64',
+      },
+    ],
+
   },
 
   '/base64-string-converter': {
@@ -59,6 +69,16 @@ export const GUIDES: Record<string, ToolGuide> = {
       { q: '为什么我的 Base64 放进 URL 就坏了？', a: '标准字母表里的 + 和 / 在 URL 里有特殊含义。解码这类值时打开本工具的 URL-safe 开关；要放进查询参数，先做一次百分号编码。' },
     ],
     example: { label: '填入示例文本', text: 'Hello DigDevBox' },
+    relatedNotes: [
+      {
+        slug: 'base64-encoding-guide',
+        title: 'Base64 Encoding Guide: Padding, URLs and Binary-Safe Data',
+        description: 'How Base64 works, why = padding breaks inside URLs, and what binary-safe really means — with online encoders and decoders for both strings and files.',
+        url: 'https://notes.digdevbox.com/posts/base64-encoding-guide',
+        tag: 'Base64',
+      },
+    ],
+
   },
 
   '/basic-auth-generator': {
@@ -220,6 +240,16 @@ export const GUIDES: Record<string, ToolGuide> = {
       { q: '换算出来的时间为什么差了几小时？', a: '时区解释问题。像 2026-10-05T08:00:00Z 这样的 ISO 串指明了一个确切时刻（Z = UTC），但「2026-10-05 08:00」这种不带时区的写法有歧义，会被按本地时间理解。差 8 小时几乎总是：一方把无时区字符串按 UTC、另一方按本地时间处理了。' },
       { q: '数据库里该存哪种时间格式？', a: 'UTC 的 ISO 8601 字符串或整数 Unix 时间戳都可以，两者都无歧义。绝对要避开的是本地时间的无时区 datetime 字符串：服务器一换、用户一换、夏令时一切换，它就出问题。' },
     ],
+    relatedNotes: [
+      {
+        slug: 'unix-timestamp-guide',
+        title: 'Unix Timestamp Guide: UTC, Milliseconds and the 2038 Problem',
+        description: 'What a Unix timestamp really is, why UTC and local time disagree, seconds versus milliseconds, and what the 2038 problem will do to 32-bit systems.',
+        url: 'https://notes.digdevbox.com/posts/unix-timestamp-guide',
+        tag: 'Date',
+      },
+    ],
+
   },
 
   '/device-information': {
@@ -378,6 +408,16 @@ export const GUIDES: Record<string, ToolGuide> = {
       { q: '301、302、307 实际差在哪？', a: '301 永久重定向，客户端可能永久缓存；302 临时，但旧客户端可能把方法改成 GET；307 临时且保留原方法。POST 的临时重定向，307 是现代安全答案。' },
       { q: '4xx 是我的锅还是客户端的？', a: '惯例：4xx 表示请求本身有问题（URL 错、凭证错、被限流），客户端需要改；5xx 表示请求合法但服务器自己失败了。' },
     ],
+    relatedNotes: [
+      {
+        slug: 'http-status-codes-guide',
+        title: 'HTTP Status Codes Guide: 2xx, 3xx, 4xx, 5xx and How to Respond',
+        description: 'What each HTTP status class means, why 301 and 302 behave differently, and how to handle 429 rate limiting and 503 outages on both sides of the request.',
+        url: 'https://notes.digdevbox.com/posts/http-status-codes-guide',
+        tag: 'HTTP',
+      },
+    ],
+
   },
 
   '/iban-validator-and-parser': {
@@ -557,6 +597,16 @@ export const GUIDES: Record<string, ToolGuide> = {
       { q: '为什么我的数字被加上了引号？', a: 'YAML 会推断类型：像 1.0 或 2024 这样的值可能被读回成数字，yes/no/on/off 会被读成布尔。为了让数据与源 JSON 完全一致，本工具给会被重新解释的值加引号，于是 "1.0" 仍是字符串 "1.0"。' },
       { q: '能转回 JSON 吗？', a: '可以，用 YAML → JSON 工具。因为 YAML 是 JSON 超集，数据模型的往返是无损的；你只会丢掉 YAML 的注释，JSON 没有存放注释的位置。' },
     ],
+    relatedNotes: [
+      {
+        slug: 'yaml-vs-json-guide',
+        title: 'YAML vs JSON: Syntax Differences, Trade-offs and Parser Traps',
+        description: 'How YAML and JSON differ in syntax and intent, which one to pick for a given file, and the parser traps — indentation, yes/no dates — that break otherwise valid YAML.',
+        url: 'https://notes.digdevbox.com/posts/yaml-vs-json-guide',
+        tag: 'YAML',
+      },
+    ],
+
   },
 
   '/jwt-parser': {
@@ -1060,6 +1110,16 @@ export const GUIDES: Record<string, ToolGuide> = {
       { q: '应该编码整个 URL 还是只编码参数值？', a: '只编码值。编码完整 URL 会把 https:// 变成 https%3A%2F%2F，结构全毁。先构造 URL，再对每个插入的值编码；只有当整个 URL 本身是另一个参数的值时（比如跳转目标）才整体编码。' },
     ],
     example: { label: '填入示例文本', text: 'https://example.com/search?q=你好 world&page=1' },
+    relatedNotes: [
+      {
+        slug: 'url-encoding-guide',
+        title: 'URL Encoding Guide: Percent-Encoding, encodeURIComponent and Form Traps',
+        description: 'How percent-encoding works, where encodeURIComponent and encodeURI differ, and why a plus sign can quietly turn into a space in your form data.',
+        url: 'https://notes.digdevbox.com/posts/url-encoding-guide',
+        tag: 'URL',
+      },
+    ],
+
   },
 
   '/url-parser': {
@@ -1072,6 +1132,16 @@ export const GUIDES: Record<string, ToolGuide> = {
       { q: '#fragment 部分对服务器意味着什么？', a: '什么都不意味：fragment 永远不会发到服务器，它只留在浏览器里（用于锚点跳转，或 SPA 框架的前端路由）。对服务器而言，只差 fragment 的两个 URL 是同一个请求。' },
     ],
     example: { label: '填入示例 URL', text: 'https://user:pass@example.com:8443/path/to/page?a=1&b=2#section' },
+    relatedNotes: [
+      {
+        slug: 'url-encoding-guide',
+        title: 'URL Encoding Guide: Percent-Encoding, encodeURIComponent and Form Traps',
+        description: 'How percent-encoding works, where encodeURIComponent and encodeURI differ, and why a plus sign can quietly turn into a space in your form data.',
+        url: 'https://notes.digdevbox.com/posts/url-encoding-guide',
+        tag: 'URL',
+      },
+    ],
+
   },
 
   '/user-agent-parser': {
@@ -1158,6 +1228,16 @@ export const GUIDES: Record<string, ToolGuide> = {
       { q: '格式化能修复错误的缩进吗？', a: '它重新输出解析器所理解的结构：YAML 能解析，输出就是统一缩进的；结构本身有歧义则解析失败并指出行号。' },
       { q: '注释和锚点会保留吗？', a: '解析重写会丢掉部分注释，因为注释不属于解析模型。带注释的配置请交给版本管理，别依赖任何格式化器做往返。' },
     ],
+    relatedNotes: [
+      {
+        slug: 'yaml-vs-json-guide',
+        title: 'YAML vs JSON: Syntax Differences, Trade-offs and Parser Traps',
+        description: 'How YAML and JSON differ in syntax and intent, which one to pick for a given file, and the parser traps — indentation, yes/no dates — that break otherwise valid YAML.',
+        url: 'https://notes.digdevbox.com/posts/yaml-vs-json-guide',
+        tag: 'YAML',
+      },
+    ],
+
   },
 
   '/yaml-to-json-converter': {
@@ -1170,6 +1250,16 @@ export const GUIDES: Record<string, ToolGuide> = {
       { q: 'YAML 的注释会怎样？', a: '被丢弃——JSON 没有表示注释的方式，无处安放。如果注释承载含义（比如一条弃用说明），在生成 JSON 的同时保留 YAML 源文件。' },
       { q: '为什么我的值变成了数字或布尔？', a: 'YAML 会自动给裸词定型：yes、no、true、false、on、off 变成布尔，1、1.5、1e3 变成数字。如果它们需要是字符串，在 YAML 里加引号；否则 JSON 会正确反映 YAML 的解释。' },
     ],
+    relatedNotes: [
+      {
+        slug: 'yaml-vs-json-guide',
+        title: 'YAML vs JSON: Syntax Differences, Trade-offs and Parser Traps',
+        description: 'How YAML and JSON differ in syntax and intent, which one to pick for a given file, and the parser traps — indentation, yes/no dates — that break otherwise valid YAML.',
+        url: 'https://notes.digdevbox.com/posts/yaml-vs-json-guide',
+        tag: 'YAML',
+      },
+    ],
+
   },
 
   '/yaml-to-toml': {

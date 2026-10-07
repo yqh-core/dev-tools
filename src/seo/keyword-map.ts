@@ -55,6 +55,11 @@ export const KNOWN_NOTE_SLUGS = [
   'jwt-decoder-guide',
   'regex-testing-guide',
   'uuid-vs-ulid-guide',
+  'base64-encoding-guide',
+  'unix-timestamp-guide',
+  'url-encoding-guide',
+  'yaml-vs-json-guide',
+  'http-status-codes-guide',
 ] as const;
 
 /** forge-notes 文章的站点根（`notes.digdevbox.com` 是 DigDevBox 站群的一员）。 */
