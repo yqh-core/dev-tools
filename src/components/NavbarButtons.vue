@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { IconBook, IconInfoCircle, IconMoon, IconSun } from '@tabler/icons-vue';
+import { IconBook, IconInfoCircle, IconKeyboard, IconMoon, IconSun } from '@tabler/icons-vue';
 import { useStyleStore } from '@/stores/style.store';
 
 const styleStore = useStyleStore();
@@ -17,6 +17,18 @@ const { isDarkTheme } = toRefs(styleStore);
       :aria-label="$t('home.nav.blog')"
     >
       <n-icon size="25" :component="IconBook" />
+    </c-button>
+  </c-tooltip>
+  <c-tooltip :tooltip="$t('home.nav.typing')" position="bottom">
+    <c-button
+      circle
+      variant="text"
+      href="https://geek-typing.pages.dev/"
+      target="_blank"
+      rel="noopener"
+      :aria-label="$t('home.nav.typing')"
+    >
+      <n-icon size="25" :component="IconKeyboard" />
     </c-button>
   </c-tooltip>
   <c-tooltip :tooltip="$t('home.nav.about')" position="bottom">

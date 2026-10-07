@@ -59,6 +59,7 @@ home:
     twitterX: 'GitHub 仓库'
     twitterXAccount: 'GitHub 仓库'
     blog: '博客 — 开发者指南与文章'
+    typing: 'Geek Typing — 打字练习与背单词'
     about: '关于 DigDevBox'
     aboutLabel: '关于'
     darkMode: '深色模式'
@@ -99,6 +100,7 @@ network:
   play: '在线播放'
   draw: 'ImageForge'
   notes: 'Notes'
+  typing: 'Geek Typing'
 trust: '工具优先在你的浏览器本地处理数据，不会将输入内容上传到我们的服务器；部分联网功能可能需要访问第三方服务。'
 404:
   notFound: '404 页面不存在'

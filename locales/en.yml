@@ -60,6 +60,7 @@ home:
     twitterX: 'DigDevBox GitHub repository'
     twitterXAccount: 'DigDevBox GitHub repository'
     blog: 'Blog — guides and articles for developers'
+    typing: 'Geek Typing — typing practice and vocabulary drills'
     about: 'About DigDevBox'
     aboutLabel: 'About'
     darkMode: 'Dark mode'
@@ -98,6 +99,7 @@ network:
   play: 'StreamPlay'
   draw: 'ImageForge'
   notes: 'Forge Notes'
+  typing: 'Geek Typing'
 trust: 'Tools process your data locally in your browser and do not upload your input to our servers. Some online features may access third-party services.'
 404:
   notFound: '404 Not Found'
