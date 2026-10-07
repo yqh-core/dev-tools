@@ -48,6 +48,7 @@ export const GUIDES: Record<string, ToolGuide> = {
     intro: 'Encodes a file (image, PDF, …) into a Base64 string so it can be inlined into HTML/CSS or an API payload.',
     steps: ['Click the upload area to pick a file, or drag one in', 'The Base64 string appears on the right', 'Copy it; enable the data-URI option if that is the form you need'],
     notes: ['Base64 inflates the size by roughly a third, so inline large files with care'],
+    example: { label: 'Fill in a sample file name', text: 'quarterly-report' },
     about: 'Base64 and files meet in both directions here. Paste a Base64 string — a full data URI or a bare payload — and the tool rebuilds the original file: common types (PNG, JPEG, GIF, PDF) are recognised from their signatures, the extension field fills itself in, images can be previewed inline, and Download saves the result under the name you choose. The other way around, drop or pick a file and its Base64 string appears below, ready to copy. Both conversions run in your browser, so the practical limit is memory: comfortable for images and documents, less so for large videos.',
     faqs: [
       { q: 'Why did the Extension field fill itself in?', a: 'When your input starts with a data URI prefix or matches a known signature (PNG, JPEG, GIF, PDF), the tool infers the file type and sets the extension for you. Unknown types keep whatever you typed — edit the field manually if the guess is wrong.' },
@@ -123,6 +124,7 @@ export const GUIDES: Record<string, ToolGuide> = {
     intro: 'Times several code snippets side by side to see quickly which implementation is faster.',
     steps: ['Add the implementations you want to compare', 'Click run', 'Read the per-snippet timings and relative ratios'],
     notes: ['Browser-side timing is affected by machine load — avoid drawing conclusions from differences under ~10%'],
+    example: { label: 'Fill in a sample suite name', text: 'JSON parse 10k rows' },
     about: 'A simple online benchmark builder: define tasks (either a piece of code or a fixed duration), run them, and compare execution times in one table. Built for the classic "which approach is faster" question — with enough structure (labels, iterations, relative bars) that results are comparable rather than vibes.',
     faqs: [
       { q: 'How should I structure a fair comparison?', a: 'Keep one variable: same data, same machine, same tab. Run tasks repeatedly and look at steady-state times rather than the first run, which pays JIT and cache warm-up costs.' },
@@ -1434,7 +1436,7 @@ export const GUIDES: Record<string, ToolGuide> = {
       'Data storage uses powers of 1024 (KB = 1024 bytes)',
       'Temperature uses conversion formulas rather than a shared coefficient',
     ],
-    example: { label: 'Fill in a sample value', text: '100' },
+    example: { label: 'Fill in a sample amount to convert', text: '100' },
     about: 'Convert across 11 unit categories — length, area, volume, weight, speed, time, data storage, power, pressure, angle and temperature — with one interface. The everyday answer to "how many GB is 4.7 GiB", "mph to km/h" and whether that 100 kB JSON is actually big.',
     faqs: [
       { q: 'What is the difference between kB and KiB?', a: 'kB is decimal (1 kB = 1000 B); KiB is binary (1 KiB = 1024 B). Storage vendors use decimal, operating systems often report binary, and the gap grows with size — hence "missing" disk space.' },
