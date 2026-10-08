@@ -55,6 +55,7 @@ import { tool as chronometer } from './chronometer';
 import { tool as colorConverter } from './color-converter';
 import { tool as crontabGenerator } from './crontab-generator';
 import { tool as dateTimeConverter } from './date-time-converter';
+import { tool as unixTimestampConverter } from './unix-timestamp-converter';
 import { tool as deviceInformation } from './device-information';
 import { tool as cypher } from './encryption';
 import { tool as etaCalculator } from './eta-calculator';
@@ -116,6 +117,7 @@ export const toolsByCategory: ToolCategory[] = [
     name: 'Converter',
     components: [
       dateTimeConverter,
+      unixTimestampConverter,
       baseConverter,
       romanNumeralConverter,
       base64StringConverter,

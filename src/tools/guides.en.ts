@@ -240,15 +240,38 @@ export const GUIDES: Record<string, ToolGuide> = {
   },
 
   '/date-converter': {
-    intro: 'Converts a time to a Unix timestamp or turns a timestamp back into a readable time, with several output formats.',
+    intro: 'Converts a date between many formats — Unix timestamps, ISO 8601, RFC 3339, RFC 7231, UTC, locale strings, Excel serial numbers and Mongo ObjectIDs.',
     steps: ['Use the current time or enter one manually', 'Read the Unix timestamp and the formatted results', 'Note whether you need seconds or milliseconds'],
     notes: ['Unix timestamps are usually seconds (10 digits), while JavaScript Date.now() is milliseconds (13 digits)'],
     example: { label: 'Paste a sample date', text: '2026-10-05T08:00:00Z' },
-    about: 'A date is one moment wearing many coats, and this tool converts between them: Unix timestamps (seconds or milliseconds), ISO 8601, RFC 3339, UTC strings and locale-formatted strings. Where a format does not state a timezone, your browser\'s local zone is applied — so "now" on this page is the same moment your logs call a different name. The everyday uses: turning a timestamp from a log line into readable local time, checking whether an expiry (a JWT exp, an ISO field from a database) is already in the past, and generating timestamp values for test fixtures.',
+    about: 'A single moment in time wears many coats, and this tool converts between all of them: Unix timestamps (seconds or milliseconds), ISO 8601, RFC 3339 and RFC 7231 strings, UTC, your locale-formatted string, the Excel serial number (days since 1900-01-01), and the leading 4-byte timestamp embedded in a Mongo ObjectID. Where a format names no timezone, your browser local zone is applied — so "now" on this page may read a different wall-clock than a UTC log line for the same instant. Everyday uses: turning a timestamp from a log or database field into a readable local time, checking whether an expiry (a JWT exp, a cache TTL, a Mongo-created document) is already in the past, and generating values for test fixtures.',
     faqs: [
       { q: 'Is my timestamp in seconds or milliseconds?', a: 'Count the digits: 10 digits is seconds (good until the year 2286), 13 digits is milliseconds. Pasting seconds where milliseconds are expected lands you centuries in the future — the wrong scale is usually obvious as soon as you convert.' },
       { q: 'Why does the converted time shift by hours?', a: 'Timezone interpretation. ISO strings like 2026-10-05T08:00:00Z name an exact moment (Z = UTC), but "2026-10-05 08:00" without a zone is ambiguous and gets read as your local time. A +8h shift almost always means one side treated a zone-less string as UTC and the other as local.' },
       { q: 'Which timestamp format should I store in my database?', a: 'Either UTC ISO 8601 strings or integer Unix timestamps — both are unambiguous. What you must avoid is zone-less datetime strings in local time: they break the moment a server, a user or daylight saving changes the timezone.' },
+    ],
+    relatedNotes: [
+      {
+        slug: 'unix-timestamp-guide',
+        title: 'Unix Timestamp Guide: UTC, Milliseconds and the 2038 Problem',
+        description: 'What a Unix timestamp really is, why UTC and local time disagree, seconds versus milliseconds, and what the 2038 problem will do to 32-bit systems.',
+        url: 'https://notes.digdevbox.com/posts/unix-timestamp-guide',
+        tag: 'Date',
+      },
+    ],
+
+  },
+
+  '/unix-timestamp-converter': {
+    intro: 'Converts a Unix epoch timestamp (seconds or milliseconds) into a readable date, or turns a date back into a timestamp.',
+    steps: ['Paste a timestamp or enter a date and let the format auto-detect', 'Read the Unix timestamp in seconds and the milliseconds value', 'Switch the format if you need ISO 8601, RFC 3339, UTC or your locale'],
+    notes: ['Unix timestamps in seconds are 10 digits (good until 2286); milliseconds are 13 digits'],
+    example: { label: 'Paste a sample timestamp', text: '1681333824' },
+    about: 'A Unix timestamp — also called epoch or POSIX time — is the number of seconds (or milliseconds) since 1970-01-01T00:00:00Z, UTC, ignoring leap seconds. Seconds are the common form (10 digits, for example 1681333824 = 2023-04-12 21:10:24 UTC), while JavaScript Date.now() and many APIs use milliseconds (13 digits). The same instant has both forms: 1681333824 seconds and 1681333824000 milliseconds are the exact same moment. This tool takes either, shows it alongside ISO 8601 / RFC 3339 / UTC / locale renderings, and can turn a date back into a timestamp — useful for reading log lines, checking whether a JWT exp or cache TTL has already passed, and generating fixtures.',
+    faqs: [
+      { q: 'Is my timestamp in seconds or milliseconds?', a: 'Count the digits: 10 digits is seconds (good until the year 2286), 13 digits is milliseconds. Pasting seconds where milliseconds are expected lands you centuries in the future — the wrong scale is usually obvious as soon as you convert.' },
+      { q: 'Why does the converted time shift by hours?', a: 'Timezone interpretation. A bare timestamp has no timezone — it is an absolute count of seconds from the epoch — so the rendered UTC / ISO values are always the same instant; the hours only "shift" when you compare against a zone-labelled string.' },
+      { q: 'What happens at the 2038 problem?', a: '32-bit systems store seconds in a signed 32-bit integer, which overflows on 2038-01-19. Modern languages and this tool use 64-bit math, so 1681333824 and far-future timestamps convert correctly; the limit only bites old 32-bit runtimes.' },
     ],
     relatedNotes: [
       {

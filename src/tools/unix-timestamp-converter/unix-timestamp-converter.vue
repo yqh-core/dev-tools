@@ -1,9 +1,7 @@
 <script setup lang="ts">
 import {
   formatISO,
-  formatISO9075,
   formatRFC3339,
-  formatRFC7231,
   fromUnixTime,
   getTime,
   getUnixTime,
@@ -12,16 +10,11 @@ import {
   parseISO,
   parseJSON,
 } from 'date-fns';
-import type { DateFormat, ToDateMapper } from './date-time-converter.types';
+import { useNow } from '@vueuse/core';
+import type { DateFormat, ToDateMapper } from './unix-timestamp-converter.types';
 import {
-  dateToExcelFormat,
-  excelFormatToDate,
-  isExcelFormat,
   isISO8601DateTimeString,
-  isISO9075DateString,
-  isMongoObjectId,
   isRFC3339DateString,
-  isRFC7231DateString,
   isTimestamp,
   isUTCDateString,
   isUnixTimestamp,
@@ -33,37 +26,12 @@ const inputDate = ref('');
 
 const toDate: ToDateMapper = date => new Date(date);
 
+/**
+ * Reduced, epoch-centric format list (reusing the shared datetime predicates).
+ * Epoch seconds and milliseconds are listed first, because this tool owns the
+ * "unix timestamp converter" intent — the broad format zoo lives on /date-converter.
+ */
 const formats: DateFormat[] = [
-  {
-    name: 'JS locale date string',
-    fromDate: date => date.toString(),
-    toDate,
-    formatMatcher: () => false,
-  },
-  {
-    name: 'ISO 8601',
-    fromDate: formatISO,
-    toDate: parseISO,
-    formatMatcher: date => isISO8601DateTimeString(date),
-  },
-  {
-    name: 'ISO 9075',
-    fromDate: formatISO9075,
-    toDate: parseISO,
-    formatMatcher: date => isISO9075DateString(date),
-  },
-  {
-    name: 'RFC 3339',
-    fromDate: formatRFC3339,
-    toDate,
-    formatMatcher: date => isRFC3339DateString(date),
-  },
-  {
-    name: 'RFC 7231',
-    fromDate: formatRFC7231,
-    toDate,
-    formatMatcher: date => isRFC7231DateString(date),
-  },
   {
     name: 'Unix timestamp',
     fromDate: date => String(getUnixTime(date)),
@@ -77,26 +45,32 @@ const formats: DateFormat[] = [
     formatMatcher: date => isTimestamp(date),
   },
   {
+    name: 'ISO 8601',
+    fromDate: formatISO,
+    toDate: parseISO,
+    formatMatcher: date => isISO8601DateTimeString(date),
+  },
+  {
+    name: 'RFC 3339',
+    fromDate: formatRFC3339,
+    toDate,
+    formatMatcher: date => isRFC3339DateString(date),
+  },
+  {
     name: 'UTC format',
     fromDate: date => date.toUTCString(),
     toDate,
     formatMatcher: date => isUTCDateString(date),
   },
   {
-    name: 'Mongo ObjectID',
-    fromDate: date => `${Math.floor(date.getTime() / 1000).toString(16)}0000000000000000`,
-    toDate: objectId => new Date(Number.parseInt(objectId.substring(0, 8), 16) * 1000),
-    formatMatcher: date => isMongoObjectId(date),
-  },
-  {
-    name: 'Excel date/time',
-    fromDate: date => dateToExcelFormat(date),
-    toDate: excelFormatToDate,
-    formatMatcher: isExcelFormat,
+    name: 'JS locale date string',
+    fromDate: date => date.toString(),
+    toDate,
+    formatMatcher: () => false,
   },
 ];
 
-const formatIndex = ref(6);
+const formatIndex = ref(0);
 const now = useNow();
 
 const normalizedDate = computed(() => {
@@ -119,6 +93,12 @@ function onDateInputChanged(value: string) {
   if (matchingIndex !== -1) {
     formatIndex.value = matchingIndex;
   }
+}
+
+/** Fill the input with the current epoch time (seconds) and snap to the Unix timestamp format. */
+function fillNow() {
+  inputDate.value = String(getUnixTime(new Date()));
+  formatIndex.value = 0;
 }
 
 const validation = useValidation({
@@ -155,18 +135,22 @@ function formatDateUsingFormatter(formatter: (date: Date) => string, date?: Date
       <c-input-text
         v-model:value="inputDate"
         autofocus
-        placeholder="Put your date string here..."
+        placeholder="Put your timestamp or date string here..."
         clearable
-        test-id="date-time-converter-input"
+        test-id="unix-timestamp-converter-input"
         :validation="validation"
         @update:value="onDateInputChanged"
       />
+
+      <c-button test-id="unix-timestamp-converter-now" @click="fillNow">
+        Now
+      </c-button>
 
       <c-select
         v-model:value="formatIndex"
         style="flex: 0 0 170px"
         :options="formats.map(({ name }, i) => ({ label: name, value: i }))"
-        data-test-id="date-time-converter-format-select"
+        data-test-id="unix-timestamp-converter-format-select"
       />
     </div>
 

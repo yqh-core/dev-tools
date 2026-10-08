@@ -86,6 +86,7 @@ export const TOOL_CLUSTERS: ToolCluster[] = [
       '/jwt-parser',
       '/base64-string-converter',
       '/date-converter',
+      '/unix-timestamp-converter',
     ],
   },
   {
@@ -181,6 +182,7 @@ export const TOOL_CLUSTERS: ToolCluster[] = [
     id: 'date',
     members: [
       '/date-converter',
+      '/unix-timestamp-converter',
       '/eta-calculator',
       '/chronometer',
     ],

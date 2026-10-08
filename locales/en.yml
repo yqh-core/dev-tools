@@ -364,8 +364,12 @@ tools:
     description: Decode and parse JSON Web Tokens (JWT) online — inspect header, payload and registered claims at a glance.
 
   date-converter:
+    title: Date Converter — Convert Between Date Formats Online
+    description: Convert between date formats online — ISO 8601, RFC 3339, UTC, locale, Excel, Mongo ObjectID and Unix timestamps.
+
+  unix-timestamp-converter:
     title: Unix Timestamp Converter — Epoch to Date & Time Online
-    description: Convert Unix timestamps to human-readable dates and back — epoch time, ISO 8601, UTC and local time zones.
+    description: Convert a Unix epoch timestamp (seconds or milliseconds) to a readable date, or turn a date into a timestamp online.
 
   phone-parser-and-formatter:
     title: Phone parser and formatter

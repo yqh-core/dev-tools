@@ -361,8 +361,12 @@ tools:
     description: 在线解码并解析 JSON Web Token（JWT）— 一目了然查看 Header、Payload 与标准声明。
 
   date-converter:
-    title: Unix 时间戳转换器 — 时间戳与日期在线互转
-    description: Unix 时间戳与日期在线互转 — 支持 epoch、ISO 8601、UTC 与本地时区等多种格式。
+    title: 日期格式转换 — 在线日期格式互转
+    description: 在线在多种日期格式之间互转，支持 ISO 8601、RFC 3339、UTC、本地格式、Excel 序列号、Mongo ObjectID 以及 Unix 时间戳。
+
+  unix-timestamp-converter:
+    title: Unix 时间戳转换 — 在线时间戳转日期
+    description: 将 Unix 时间戳（秒或毫秒）转换为可读日期，或把日期转成时间戳。
 
   phone-parser-and-formatter:
     title: 电话分析器和格式化程序

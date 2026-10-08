@@ -532,6 +532,19 @@ export const SMOKE_CASES = [
     expect: { regex: ['1704067200'], text: ['Unix timestamp', 'ISO 8601'], not: ['Invalid date...'] },
   },
   {
+    path: '/unix-timestamp-converter',
+    name: 'unix-timestamp-converter',
+    category: 'Converter',
+    zhTitle: 'Unix 时间戳转换',
+    tier: 'io',
+    strategy: 'knownVector：1681333824 秒 = 2023-04-12T21:10:24Z（时区无关的事实）',
+    steps: [
+      { fill: { i: 0, text: '1681333824' } },
+      { wait: 900 },
+    ],
+    expect: { regex: ['1681333824', '1681333824000'], text: ['Unix timestamp', 'Timestamp', 'UTC format'], not: ['Invalid date...'] },
+  },
+  {
     path: '/json-to-xml',
     name: 'json-to-xml',
     category: 'Converter',

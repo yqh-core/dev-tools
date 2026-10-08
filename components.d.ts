@@ -237,6 +237,7 @@ declare module '@vue/runtime-core' {
     ToolSeoPage: typeof import('./src/seo/ToolSeoPage.vue')['default']
     UlidGenerator: typeof import('./src/tools/ulid-generator/ulid-generator.vue')['default']
     UnitConverter: typeof import('./src/tools/unit-converter/unit-converter.vue')['default']
+    UnixTimestampConverter: typeof import('./src/tools/unix-timestamp-converter/unix-timestamp-converter.vue')['default']
     UrlEncoder: typeof import('./src/tools/url-encoder/url-encoder.vue')['default']
     UrlParser: typeof import('./src/tools/url-parser/url-parser.vue')['default']
     UserAgentParser: typeof import('./src/tools/user-agent-parser/user-agent-parser.vue')['default']
