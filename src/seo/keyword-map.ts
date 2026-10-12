@@ -97,6 +97,19 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     note: '簇 2 承重墙。关键事实：`prettify` 一词在本次所有 top5 title 里一次都没出现，主流词汇是 formatter / validator / beautify。',
   },
   {
+    path: '/password-generator',
+    keyword: 'password generator',
+    keywords: ['strong password generator', 'random password generator', 'secure password generator', 'password generator with symbols'],
+    intent: 'generate',
+    priority: 'P0',
+    competition: 'very-high',
+    landed: true,
+    // 2026-10-13 新建工具（P3 词表头号目标，OTH/NF 双对手验证缺口）。
+    // title 锁定 locales/en.yml 现值，改 title 须三处同步（en.yml / 本表 / zh.yml）。
+    lockedTitle: 'Password Generator',
+    note: '与 /token-generator 的分工：本页是 crypto.getRandomValues 密码学安全源（可作真实密码），token 页是普通随机源（占位符/邀请码）。OTH 与 NF 均有此工具，属双对手确认缺口。',
+  },
+  {
     path: '/uuid-generator',
     keyword: 'uuid generator',
     keywords: ['uuid v4', 'uuid v7', 'bulk uuid generator', 'uuid validator / decoder'],

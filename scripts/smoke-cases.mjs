@@ -255,6 +255,38 @@ export const SMOKE_CASES = [
     },
   },
   {
+    path: '/password-generator',
+    name: 'password-generator',
+    category: 'Crypto',
+    zhTitle: '密码生成器',
+    tier: 'io',
+    strategy: 'differential+exclusion：初始密码非空可打印；刷新后必须变值；且不含易混淆字符（默认排除 I l 1 O 0 o）',
+    steps: [
+      { wait: 500 },
+      {
+        js: `(function(){
+          var S = window.__smoke;
+          var t = S.controls().find(function(e){ return e.value && e.value.length >= 8; });
+          if (!t) return '没找到 password 输出';
+          window.__t1 = t.value;
+          var bs = [].slice.call(document.querySelectorAll('.tool-content button')).filter(S.vis);
+          if (bs.length < 2) return '按钮不足（期望复制+刷新两个）';
+          bs[bs.length - 1].click();
+          return null;
+        })()`,
+      },
+      { wait: 600 },
+    ],
+    expect: {
+      js: `(function(){
+        var S = window.__smoke;
+        var t = S.controls().find(function(e){ return e.value && e.value.length >= 8; });
+        if (!t) return false;
+        return t.value !== window.__t1 && /^[\\x21-\\x7e]+$/.test(window.__t1) && !/[Il1O0o]/.test(window.__t1);
+      })()`,
+    },
+  },
+  {
     path: '/token-generator',
     name: 'token-generator',
     category: 'Crypto',

@@ -86,6 +86,7 @@ export const ALIASES: Record<string, string[]> = {
   '/text-statistics': ['字数', '统计', '字符数', '字节', '词数', '计数'],
   '/text-to-binary': ['二进制', 'binary', 'ascii', '转换', '01'],
   '/text-to-nato-alphabet': ['音标', '字母', 'nato', '拼写', '对讲'],
+  '/password-generator': ['密码', '口令', '随机密码', '强密码', '生成', 'password'],
   '/text-to-unicode': ['unicode', '码点', '编码', '转义', '字符'],
   '/token-generator': ['随机', '字符串', 'token', '口令', '邀请码', '生成'],
   '/toml-to-json': ['toml', 'json', '转换', '配置'],

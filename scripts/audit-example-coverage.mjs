@@ -105,6 +105,10 @@ const NO_EXAMPLE_WHITELIST = [
     why: '唯一交互是 n-data-table 的 searchable 内部输入框，不在 .tool-content 的直接 input 列表里；findPrimaryInput() 返回 null（探测 mode=no-input）',
   },
   {
+    path: '/password-generator',
+    why: '生成器无内容输入框：唯一文本控件是只读的密码展示 textarea，findPrimaryInput() 不命中（探测 mode=no-input），只有 Copy / Refresh 按钮 —— 与 /random-port-generator 同类',
+  },
+  {
     path: '/password-strength-analyser',
     why: '唯一输入控件是 input[type="password"]，不在 findPrimaryInput() 的选择器内（该选择器只含 text/search/number/无type）—— 探测 mode=no-input',
   },

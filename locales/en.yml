@@ -149,6 +149,22 @@ tools:
     title: Chronometer
     description: Monitor the duration of a thing. Basically a chronometer with simple chronometer features.
 
+  password-generator:
+    title: Password Generator
+    description: Generate strong, secure random passwords online — pick the length (8-128) and character sets, with a cryptographic random source. Ambiguous characters (Il1O0) excluded by default, nothing leaves your browser.
+
+    uppercase: Uppercase (ABC...)
+    lowercase: Lowercase (abc...)
+    numbers: Numbers (123...)
+    symbols: Symbols (!-;...)
+    ambiguous: Include ambiguous (Il1O0)
+    length: Length
+    passwordPlaceholder: 'The password...'
+    copied: Password copied to the clipboard
+    button:
+      copy: Copy
+      refresh: Refresh
+
   token-generator:
     title: Token Generator
     description: Generate random tokens and strings online — pick the length (1-512) and character set (uppercase, lowercase, digits, symbols). Free, instant, nothing leaves your browser.
