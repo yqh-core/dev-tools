@@ -151,7 +151,7 @@ tools:
     description: 监控事物的持续时间。基本上是一种具有简单计时器功能的计时器。
   token-generator:
     title: Token 生成器
-    description: 使用您想要的字符、大写或小写字母、数字和/或符号生成随机字符串。
+    description: 在线生成随机 token 与字符串——自选长度（1-512）与字符集（大小写字母、数字、符号）。免费即时，全程浏览器本地生成。
 
     uppercase: '大写 (ABC...)'
     lowercase: '小写 (abc...)'
@@ -176,8 +176,8 @@ tools:
     description: 使用自动标头检测将JSON转换为CSV。
 
   camera-recorder:
-    title: 摄像机记录器
-    description: 从网络摄像头或照相机拍摄照片或录制视频。
+    title: 摄像头录像机
+    description: 在线使用网络摄像头录像或拍照——免安装、不上传，画面与视频只留在本机直到你主动下载。现代浏览器均可使用。
 
   keycode-info:
     title: Keycode 信息
@@ -203,8 +203,8 @@ tools:
     description: 所有HTTP状态的列表对其名称和含义解释。
 
   sql-prettify:
-    title: SQL 美化和格式化
-    description: 在线格式化和美化您的 SQL 查询（它支持各种 SQL 方言）。
+    title: SQL 美化与格式化
+    description: 粘贴挤成一行的 SQL，立即得到格式化结果——关键字大写、子句缩进、每字段一行。支持 PostgreSQL、MySQL、T-SQL、BigQuery 等 13 种方言，免费浏览器本地运行。
 
   benchmark-builder:
     title: 基准生成器
@@ -338,8 +338,8 @@ tools:
     description: 使用此在线的chmod计算器计算chmod权限和命令。
 
   rsa-key-pair-generator:
-    title: RSA密钥对生成器
-    description: 生成新的随机RSA私钥和公钥pem证书。
+    title: RSA 密钥对生成器
+    description: 在线生成 RSA 公私钥对——PEM 格式、2048 至 8192 位，用于 SSH、TLS 或 JWT RS256。无需安装 OpenSSL，密钥不离开浏览器。
 
   html-wysiwyg-editor:
     title: HTML所见即所得编辑器
@@ -373,8 +373,8 @@ tools:
     description: 解析、验证和格式化电话号码。获取有关电话号码的信息，如国家/地区代码、类型等。
 
   ipv4-subnet-calculator:
-    title: IPv4子网计算器
-    description: 解析IPv4 CIDR块，并获取有关子网络的所有所需信息。
+    title: IPv4 子网计算器
+    description: 输入 CIDR（如 192.168.1.0/24），立即得到完整子网信息——可用主机数、首末地址、掩码与反掩码。为 VPC/VLAN 规划而生，浏览器本地计算。
 
   og-meta-generator:
     title: 开放式图形元生成器
@@ -502,8 +502,8 @@ tools:
     description: "全角↔半角互转，支持整体转换或只转标点（Unicode 固定偏移 0xFEE0），适合中英混排的排版清理。"
 
   morse-code-converter:
-    title: "摩斯电码转换"
-    description: "文本与摩斯电码双向转换，字母用空格分隔、单词用 / 分隔，支持 A–Z、0–9 与常用标点。"
+    title: "摩斯电码转换器"
+    description: "什么是摩斯电码？诞生于 19 世纪 40 年代的点划字母表。文本与摩斯电码双向转换——字母空格分隔、单词 / 分隔，免费即时，浏览器本地完成。"
 
   rmb-uppercase:
     title: "人民币大写转换"

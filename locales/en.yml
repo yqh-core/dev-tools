@@ -150,8 +150,8 @@ tools:
     description: Monitor the duration of a thing. Basically a chronometer with simple chronometer features.
 
   token-generator:
-    title: Token generator
-    description: Generate random string with the chars you want, uppercase or lowercase letters, numbers and/or symbols.
+    title: Token Generator
+    description: Generate random tokens and strings online — pick the length (1-512) and character set (uppercase, lowercase, digits, symbols). Free, instant, nothing leaves your browser.
 
     uppercase: Uppercase (ABC...)
     lowercase: Lowercase (abc...)
@@ -176,8 +176,8 @@ tools:
     description: Convert JSON to CSV with automatic header detection.
 
   camera-recorder:
-    title: Camera recorder
-    description: Take a picture or record a video from your webcam or camera.
+    title: Camera Recorder
+    description: Record video or take photos from your webcam online — no app install, no upload. Frames and clips stay on your machine until you download them. Works in any modern browser.
 
   keycode-info:
     title: Keycode info
@@ -204,8 +204,8 @@ tools:
     description: The list of all HTTP status codes, their name, and their meaning.
 
   sql-prettify:
-    title: SQL prettify and format
-    description: Format and prettify your SQL queries online (it supports various SQL dialects).
+    title: SQL Prettify and Format
+    description: Paste a messy one-line SQL query and get it formatted — keywords upper-cased, clauses indented, one field per line. Supports PostgreSQL, MySQL, T-SQL, BigQuery and 8 more dialects, free in your browser.
 
   benchmark-builder:
     title: Benchmark builder
@@ -340,8 +340,8 @@ tools:
     description: Compute your chmod permissions and commands with this online chmod calculator.
 
   rsa-key-pair-generator:
-    title: RSA key pair generator
-    description: Generate a new random RSA private and public pem certificate key pair.
+    title: RSA Key Pair Generator
+    description: Generate an RSA private/public key pair online — PEM format, 2048 to 8192 bits, for SSH, TLS or JWT RS256. No OpenSSL install, keys never leave your browser.
 
   html-wysiwyg-editor:
     title: HTML WYSIWYG editor
@@ -376,8 +376,8 @@ tools:
     description: Parse, validate and format phone numbers. Get information about the phone number, like the country code, type, etc.
 
   ipv4-subnet-calculator:
-    title: IPv4 subnet calculator
-    description: Parse your IPv4 CIDR blocks and get all the info you need about your subnet.
+    title: IPv4 Subnet Calculator
+    description: Paste a CIDR like 192.168.1.0/24 and get the full subnet breakdown — usable hosts, first/last address, netmask, wildcard. Built for VPC and VLAN planning, free in your browser.
 
   og-meta-generator:
     title: Open graph meta generator
@@ -504,8 +504,8 @@ tools:
     description: "Convert between full-width and half-width characters using the fixed Unicode offset 0xFEE0, or adjust punctuation only."
 
   morse-code-converter:
-    title: "Morse code converter"
-    description: "Encode text into Morse code and decode it back. Letters are separated by spaces and words by a slash."
+    title: "Morse Code Converter"
+    description: "What is Morse code? The dot-and-dash alphabet dating from the 1840s. Encode text to Morse or decode it back — letters separated by spaces, words by a slash, free and instant in your browser."
 
   rmb-uppercase:
     title: "RMB amount in Chinese uppercase"

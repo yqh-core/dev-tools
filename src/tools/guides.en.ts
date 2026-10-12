@@ -155,6 +155,7 @@ export const GUIDES: Record<string, ToolGuide> = {
       { q: 'Why does the browser ask for camera permission?', a: ' getUserMedia requires explicit consent per site. Granting it lets this page show the video locally; recording and downloading are separate actions you control.' },
       { q: 'Which formats are the recordings?', a: 'Video comes out in the container your browser records (typically webm); photos save as images. If a platform rejects the file, convert it — the content is intact.' },
       { q: 'Nothing appears — where do I look first?', a: 'Check that the right camera is selected (many laptops have several), that no other app holds the device exclusively, and that the site runs on HTTPS, which browsers require for camera access.' },
+      { q: "Can I record video online without installing an app?", a: "Yes — this page uses the browser camera API, so recording works with nothing installed. Clips are produced locally and only leave the machine when you download them." }
     ],
   },
 
@@ -503,6 +504,7 @@ export const GUIDES: Record<string, ToolGuide> = {
       { q: 'How many addresses are in a /24?', a: '256 total. Subtracting the network and broadcast addresses leaves 254 usable hosts — this is the most common home-lab and small-office subnet.' },
       { q: 'Why do two addresses disappear from the usable count?', a: 'The lowest address identifies the network itself and the highest is reserved for broadcast, so neither can be assigned to a host. The calculator shows them explicitly so nothing surprises you.' },
       { q: 'What is a wildcard mask for?', a: 'It is the inverted netmask (0.0.0.255 for /24). Access control lists on routers and some firewalls are written with wildcards instead of netmasks, and mixing the two up breaks matching.' },
+      { q: "How do I calculate a subnet mask from CIDR?", a: "Paste the CIDR (192.168.1.0/24) and the netmask, wildcard, host range and usable count are all derived at once — no manual binary math. /24 → 255.255.255.0, /26 → 255.255.255.192, and so on." }
     ],
   },
 
@@ -945,6 +947,7 @@ export const GUIDES: Record<string, ToolGuide> = {
       { q: 'Which key size should I generate?', a: '2048 bits is the floor for compatibility; 4096 if the extra signing/verification cost is acceptable and longevity matters. Everything below 2048 exists in the tool only for testing legacy systems.' },
       { q: 'How do I keep the private key private?', a: 'Never share it, never commit it, and prefer generating it on the machine that will use it. This tool runs locally so the key is not transmitted — but anything pasted into a browser context deserves the same care as a password.' },
       { q: 'Can I use these keys for SSH?', a: 'Yes — an RSA PEM private key converts to OpenSSH format with ssh-keygen. Generate here, then run ssh-keygen -y against it to derive the public line for authorized_keys.' },
+      { q: "How do I generate an RSA key without OpenSSL?", a: "Right here — choose a key size (2048+) and click generate; the private and public keys come out in PEM format, ready for SSH, TLS or JWT RS256, without installing anything." }
     ],
   },
 
@@ -983,6 +986,7 @@ export const GUIDES: Record<string, ToolGuide> = {
       { q: 'Why should I pick the right dialect?', a: 'Dialects differ in keywords, quoting and comment syntax. Formatting with the engine you actually run keeps identifiers like backtick-quoted names or @variables recognised and placed correctly.' },
       { q: 'Does formatting change how my query executes?', a: 'No — whitespace and case are irrelevant to the SQL engine. Formatting is purely for humans; the query plan stays identical.' },
       { q: 'Can it minify SQL back to one line?', a: 'Prettifying is the core job. For a compact form, most developers keep the formatted version as the source of truth and let their tools strip whitespace on deploy.' },
+      { q: "How do I make a slow-query log readable?", a: "Paste the whole one-line statement and let the formatter expand it — the JOIN structure and WHERE conditions become visible at a glance, which is usually where the slow part hides." }
     ],
   },
 
@@ -1095,6 +1099,7 @@ export const GUIDES: Record<string, ToolGuide> = {
       { q: 'Are generated tokens sent anywhere?', a: 'No. The token is produced locally in your browser and never leaves the page, so nothing is uploaded or logged by this tool.' },
       { q: 'Can I use this for password-reset tokens or API keys?', a: 'For low-stakes cases — a temporary password, an invite code, a test fixture — yes. For anything security-sensitive, use a cryptographically strong source instead: this tool uses a regular random number generator, which is good for uniqueness but not for unpredictability against a determined attacker.' },
       { q: 'How do I make a token harder to guess?', a: 'Increase the length and enable more character classes. Entropy grows with length multiplied by alphabet size, so a longer token that mixes letters, digits and symbols is far harder to brute-force than a short one.' },
+      { q: "What is a token?", a: "In everyday dev use, a random string that identifies or protects something: a session ID, an invite code, a temporary password. This tool builds them from the character set and length you choose." }
     ],
   },
 
@@ -1384,6 +1389,7 @@ export const GUIDES: Record<string, ToolGuide> = {
       { q: 'Why are words separated by a slash?', a: 'Morse only has dot/dash and gaps, and text has two levels of separation (letters and words). Written Morse needs a visible word gap, and the slash is the convention — a single space would be ambiguous.' },
       { q: 'Is Morse case-sensitive?', a: 'No — Morse has no case and no punctuation of its own except a few procedural signals. This encoder accepts mixed input and maps every letter to the same code regardless of case.' },
       { q: 'What is the classic SOS sequence?', a: 'Three short, three long, three short: ... --- ... It was chosen because the pattern is unmistakable even under noise, not because it abbreviates anything.' },
+      { q: "What is Morse code?", a: "A letter-encoding system from the 1840s where each character is a sequence of dots and dashes — SOS (... --- ...) is its most famous sequence. Letters are separated by spaces and words by a slash." }
     ],
   },
 
