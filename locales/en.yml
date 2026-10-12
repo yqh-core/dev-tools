@@ -164,8 +164,8 @@ tools:
       copy: Copy
       refresh: Refresh
   percentage-calculator:
-    title: Percentage calculator
-    description: Easily calculate percentages from a value to another value, or from a percentage to a value.
+    title: Percentage Calculator
+    description: What is X% of Y? Find a percentage of a number, work out what percent one value is of another, or compute percentage increase and decrease — with the formula shown for each result.
 
   svg-placeholder-generator:
     title: SVG placeholder generator
@@ -316,8 +316,8 @@ tools:
     description: Parse and convert TOML to JSON.
 
   lorem-ipsum-generator:
-    title: Lorem ipsum generator
-    description: Lorem ipsum is a placeholder text commonly used to demonstrate the visual form of a document or a typeface without relying on meaningful content
+    title: Lorem Ipsum Generator
+    description: Generate lorem ipsum placeholder text — paragraphs, sentences or words — for layouts and mockups. The classic printing-industry dummy text since the 1500s, free and instant, right in your browser.
 
   qrcode-generator:
     title: QR Code generator

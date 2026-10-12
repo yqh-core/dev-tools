@@ -165,7 +165,7 @@ tools:
       refresh: 刷新
   percentage-calculator:
     title: 百分比计算器
-    description: 轻松计算从一个值到另一个值的百分比，或从百分比到值的百分比。
+    description: 一个数的百分之几是多少？求某数占另一数的百分比，或计算增长/下降幅度——每种结果都附上所用公式，免费在线，浏览器本地计算。
 
   svg-placeholder-generator:
     title: SVG 占位符生成器
@@ -314,8 +314,8 @@ tools:
     description: 解析TOML并将其转换为JSON。
 
   lorem-ipsum-generator:
-    title: Lorem ipsum生成器
-    description: Lorem ipsum是一种占位符文本，通常用于演示文档或字体的视觉形式，而不依赖于有意义的内容
+    title: Lorem Ipsum 生成器
+    description: 生成 Lorem ipsum 占位文本——按段落、句子或词数——用于版式设计与原型。自 16 世纪沿用至今的印刷业经典假文，免费即时，浏览器本地生成。
 
   qrcode-generator:
     title: 二维码生成器

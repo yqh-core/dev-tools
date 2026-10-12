@@ -696,6 +696,7 @@ export const GUIDES: Record<string, ToolGuide> = {
     steps: ['Choose paragraphs or a word count', 'Click generate', 'Copy the text'],
     about: 'Generate lorem ipsum placeholder paragraphs, sentences or words to fill a layout with realistic-looking text. Lorem ipsum has been the printing industry\'s dummy text since the 1500s because its letter distribution resembles natural language — the layout reads as "text" without anyone getting distracted by meaning.',
     faqs: [
+      { q: 'What is lorem ipsum?', a: 'Lorem ipsum is the standard placeholder text used in publishing and web design since the 1500s: scrambled pseudo-Latin that fills a layout with realistic-looking words so the design can be judged without real copy distracting the reviewer.' },
       { q: 'Why not just use "text text text" as filler?', a: 'Uniform filler hides typography problems. Lorem ipsum has varied word lengths and rhythm, which exposes cramped spacing, bad measure and weak hierarchy exactly like real copy does.' },
       { q: 'Is lorem ipsum real Latin?', a: 'It derives from a scrambled passage of Cicero\'s "De Finibus Bonorum et Malorum" (circa 45 BC), truncated and garbled over centuries. It looks like Latin; it does not parse as Latin.' },
       { q: 'Should placeholder ship to production?', a: 'No. It is for design and layout review only. A surprising number of "lorem ipsum" screenshots in the wild started as an unfinished page that got deployed.' },
@@ -835,6 +836,7 @@ export const GUIDES: Record<string, ToolGuide> = {
       { q: 'Why does the result need both fields filled?', a: 'Every percentage question involves two known numbers and one unknown; a single input cannot determine anything. Enter both values for your chosen question type and the answer computes immediately.' },
       { q: 'How do I compute a percentage change (not just a share)?', a: 'Use the increase/decrease mode: (new - old) / old × 100. Going from 80 to 100 is +25%; going back from 100 to 80 is -20% — the asymmetry is real and trips up many reports.' },
       { q: 'What is the difference between percentage and percentage points?', a: 'A percentage is a share of a base; percentage points are the arithmetic difference between two shares. Interest moving from 3% to 4% rose one point, but 33% relative.' },
+      { q: 'How do I multiply a percentage by a number, like 0.05 × 2500?', a: 'A percent is just a decimal: 0.05 × 2500 = 12.5, the same as 5% of 2500. To use the calculator, enter 5 (%) and 2500 (value) in "what is P percent of Y" mode — the result, 125, is 5% of 2500.' },
     ],
   },
 
