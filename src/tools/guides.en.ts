@@ -766,11 +766,13 @@ export const GUIDES: Record<string, ToolGuide> = {
     intro: 'Builds numeronyms such as i18n and k8s — first letter, letter count, last letter.',
     steps: ['Enter a long word', 'Get its numeronym', 'Copy and use it'],
     example: { label: 'Fill in a sample word', text: 'internationalization' },
-    about: 'Turn long words into numeronyms — abbreviations where a number counts the omitted middle letters, like i18n for internationalization or k8s for kubernetes. Common in engineering culture for everything that gets typed often; this tool also decodes common ones back to their full words.',
+    about: 'A numeronym is an abbreviation formed by replacing the middle letters of a word with their count, keeping the first and last letter: internationalization becomes i18n (18 letters between the i and the n), kubernetes becomes k8s, accessibility becomes a11y. Engineers adopted numeronyms for words that get typed and read constantly — they are shorter to write, unambiguous in context, and have become standard vocabulary in their fields. Well-known numeronyms include i18n and l10n (internationalization / localization, the classic pair), a11y (accessibility), k8s (Kubernetes), n7m (numeronym itself), c11s and g11n (compliance / globalization). This tool encodes any word into its numeronym form and decodes the established ones back to their full words, so you can check what a term means before using it in a doc, commit message, or issue thread.',
     faqs: [
+      { q: 'What is a numeronym?', a: 'A numeronym is an abbreviation where the letters between the first and last letter of a word are replaced by their count — internationalization → i18n, kubernetes → k8s, accessibility → a11y. The count is the number of omitted middle letters.' },
       { q: 'How is i18n formed?', a: 'First letter + count of the letters in between + last letter: "internationalization" has 18 letters between the leading i and the trailing n. The rule works for any long word.' },
       { q: 'Which numeronyms should I use at work?', a: 'The established ones travel well: i18n, l10n, a11y, k8s, n7m. Inventing new ones for one-off words forces every reader to decode them — use numeronyms for frequency, not for style.' },
       { q: 'Why does accessibility use a11y?', a: 'Same rule — "accessibility" has 11 letters between the a and the y. The tag stuck because it sits nicely next to i18n in engineering discussions about inclusive products.' },
+      { q: 'What do k8s and l10n stand for?', a: 'k8s is Kubernetes (8 letters between k and s), the abbreviation so common it appears in the project logo itself. l10n is localization (10 letters between l and n), usually paired with i18n in software that ships in multiple languages.' },
     ],
   },
 

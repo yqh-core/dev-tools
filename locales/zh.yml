@@ -282,8 +282,8 @@ tools:
     description: 从用户代理字符串中检测和分析浏览器、引擎、操作系统、CPU和设备类型/型号。
 
   numeronym-generator:
-    title: 数字名称生成器
-    description: 数字名是一个用数字构成缩写的词。例如，“i18n”是“国际化”的名词，其中18表示单词中第一个i和最后一个n之间的字母数。
+    title: 数字缩写生成器
+    description: 数字缩写（numeronym）是把中间字母替换为个数的缩写形式——internationalization 缩写为 i18n，kubernetes 为 k8s，accessibility 为 a11y。免费在线生成或解码任意数字缩写，全程在浏览器本地完成。
 
   case-converter:
     title: 大小写转换

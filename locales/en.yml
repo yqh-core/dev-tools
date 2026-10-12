@@ -284,8 +284,8 @@ tools:
     description: Detect and parse Browser, Engine, OS, CPU, and Device type/model from an user-agent string.
 
   numeronym-generator:
-    title: Numeronym generator
-    description: A numeronym is a word where a number is used to form an abbreviation. For example, "i18n" is a numeronym of "internationalization" where 18 stands for the number of letters between the first i and the last n in the word.
+    title: Numeronym Generator
+    description: A numeronym is an abbreviation where the middle letters are replaced by their count — i18n for internationalization, k8s for kubernetes, a11y for accessibility. Generate or decode any numeronym instantly, free, right in your browser.
 
   case-converter:
     title: Case converter
