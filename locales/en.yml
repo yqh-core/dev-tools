@@ -232,8 +232,8 @@ tools:
     description: Prettify your YAML string into a friendly, human-readable format.
 
   eta-calculator:
-    title: ETA calculator
-    description: An ETA (Estimated Time of Arrival) calculator to determine the approximate end time of a task, for example, the end time and duration of a file download.
+    title: ETA Calculator
+    description: What does ETA mean? Estimated Time of Arrival — this calculator projects when your download, build or batch job will finish from current progress, with duration and clock time. Free, runs in your browser.
 
   roman-numeral-converter:
     title: Roman numeral converter

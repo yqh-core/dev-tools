@@ -363,8 +363,10 @@ export const GUIDES: Record<string, ToolGuide> = {
     intro: 'Estimates when a task will finish based on current progress — a clear way to see how much longer a download or batch job needs.',
     steps: ['Enter the amount completed', 'Enter the total amount', 'Read the estimated completion time'],
     example: { label: 'Fill in a sample amount', text: '500' },
-    about: 'Enter the amount of work done and the total, and get the estimated completion time — given your current pace, when does this download, build or batch job actually finish? A tiny calculator that turns two numbers into the answer you keep doing in your head.',
+    about: 'ETA stands for Estimated Time of Arrival — the projected finish time of an ongoing task. This calculator answers it with two inputs: how much of the work is done and how much there is in total. From your current pace it projects the remaining duration and the clock time when your download, build, transfer or batch job will actually finish. The same maths powers the ETA you see in download managers, package trackers and CI pipelines: elapsed time ÷ completed fraction = total time, and the remainder from that gives the finish. Useful whenever a progress bar leaves you doing mental arithmetic.',
     faqs: [
+      { q: 'What does ETA stand for?', a: 'Estimated Time of Arrival — the projected completion time of a task in progress. In logistics it means when a shipment arrives; in computing, when a download, build or job finishes.' },
+      { q: 'How is ETA calculated?', a: 'Divide elapsed time by the completed fraction to project total duration, then subtract elapsed time to get the remainder — or simply read off the projected finish clock time. Constant pace is assumed; see the caveat below.' },
       { q: 'What inputs does it need?', a: 'Two quantities: how much is completed and the total amount, optionally with a start time so the estimate anchors to real elapsed time. From those it projects the remaining duration and the finish time.' },
       { q: 'Why does the ETA jump around during a download?', a: 'Because it extrapolates from instantaneous rate, which fluctuates. Early estimates are wildly optimistic; the number stabilises as more progress accumulates. Judge it near the middle of the job, not the start.' },
       { q: 'Does it assume the rate stays constant?', a: 'Yes — it is a linear projection. If your task accelerates or decelerates (compiling, syncing), treat the output as a running snapshot and re-check as progress advances.' },
@@ -906,6 +908,8 @@ export const GUIDES: Record<string, ToolGuide> = {
       { q: 'Which regex flavor does this use?', a: 'JavaScript (ECMAScript). Everyday syntax is shared with PCRE and Python, but lookbehind, named groups and unicode handling differ between engines — keep the rules of your target language in mind when testing.' },
       { q: 'What do the flags mean?', a: 'g returns all matches instead of stopping at the first one; i ignores case; m makes ^ and $ match line boundaries; s lets the dot match newlines.' },
       { q: 'Is my text sent anywhere?', a: 'No. Matching runs entirely in your browser — nothing you paste ever leaves the page.' },
+      { q: 'How do I test a regex with capture groups?', a: 'Write the groups into your pattern (e.g. (\\d+)-(\\d+)), run it against your text, and each match lists its capture groups with their values — so you can verify not only that the pattern matches, but that the right parts land in the right groups.' },
+      { q: 'Why does my regex work here but fail in my program?', a: 'Usually a flavor or escaping difference: languages disagree on lookbehind, named groups and unicode classes, and string literals often eat a backslash before the regex engine sees it. Test with the same escaping your program uses.' },
     ],
     example: { label: 'Fill in a sample pattern', text: '\\d{3}-\\d{4}' },
     relatedNotes: [

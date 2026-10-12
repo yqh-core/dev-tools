@@ -232,7 +232,7 @@ tools:
 
   eta-calculator:
     title: ETA 计算器
-    description: ETA（估计到达时间）计算器，用于知道任务的近似结束时间，例如下载的结束时刻。
+    description: ETA 是什么？估计到达/完成时间（Estimated Time of Arrival）——按当前进度推算下载、构建或批处理何时结束，同时给出剩余时长与完成时刻。免费，浏览器本地计算。
 
   roman-numeral-converter:
     title: 罗马数字转换器
