@@ -1,12 +1,15 @@
+import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import {
+  compressPdf,
   loadPdf,
   mergePdfs,
   pageCount,
   splitPdf,
   watermarkPdf,
 } from './pdf-lib.service';
-import { PDFDocument } from '@/lib/pdf-lib.esm.min.js';
+import type { ImageRecompressor } from './pdf-lib.service';
+import { PDFDocument, PDFName, PDFRawStream } from '@/lib/pdf-lib.esm.min.js';
 
 /** 造一个 N 页测试 PDF */
 async function makePdf(pages: number): Promise<ArrayBuffer> {
@@ -77,5 +80,102 @@ describe('pdf-lib shared service', () => {
 
   it('pageCount reports correctly', async () => {
     expect(await pageCount(await makePdf(4))).toBe(4);
+  });
+});
+
+/* ============================ compress ============================ */
+
+/** 造一个含真 JPEG 图像（og-image.jpg, DCTDecode）的 1 页 PDF */
+async function makeImagePdf(): Promise<ArrayBuffer> {
+  const jpg = new Uint8Array(readFileSync(new URL('../../../public/og-image.jpg', import.meta.url)));
+  const doc = await PDFDocument.create();
+  const img = await doc.embedJpg(jpg);
+  const p = doc.addPage([300, 300]);
+  p.drawImage(img, { x: 0, y: 0, width: 300, height: 300 });
+  const bytes = await doc.save();
+  return bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer;
+}
+
+/** 列出文档里所有图像流（Subtype=/Image） */
+async function imageStreams(buf: ArrayBuffer) {
+  const doc = await loadPdf(buf);
+  const out: { contents: Uint8Array; width: string }[] = [];
+  for (const [, obj] of doc.context.enumerateIndirectObjects()) {
+    if (obj instanceof PDFRawStream && obj.dict.get(PDFName.of('Subtype'))?.toString() === '/Image') {
+      out.push({
+        contents: obj.contents,
+        width: obj.dict.get(PDFName.of('Width'))?.toString() ?? '?',
+      });
+    }
+  }
+  return out;
+}
+
+const halfSized: ImageRecompressor = async jpeg => ({
+  bytes: jpeg.slice(0, Math.floor(jpeg.length / 2)),
+  width: 600,
+  height: 400,
+});
+
+const bigger: ImageRecompressor = async jpeg => ({
+  bytes: new Uint8Array(jpeg.length + 1024),
+  width: 10,
+  height: 10,
+});
+
+describe('compressPdf', () => {
+  it('text-only pdf: no images scanned, output stays valid and never larger', async () => {
+    const src = await makePdf(2);
+    const r = await compressPdf(src, 'balanced');
+    expect(r.imagesScanned).toBe(0);
+    expect(r.imagesOptimized).toBe(0);
+    expect(r.compressedSize).toBeLessThanOrEqual(r.originalSize);
+    const doc = await loadPdf(r.bytes.buffer.slice(r.bytes.byteOffset, r.bytes.byteOffset + r.bytes.byteLength) as ArrayBuffer);
+    expect(doc.getPageCount()).toBe(2);
+  });
+
+  it('image pdf: default (node) recompressor degrades to structural pass, scans the jpeg', async () => {
+    const src = await makeImagePdf();
+    const r = await compressPdf(src, 'balanced');
+    expect(r.imagesScanned).toBe(1);
+    expect(r.imagesOptimized).toBe(0); // node 无 createImageBitmap → 注入点返回 null
+    expect(r.compressedSize).toBeLessThanOrEqual(r.originalSize);
+  });
+
+  it('injected recompressor replaces stream bytes, updates dims, and Length is recomputed on save', async () => {
+    const src = await makeImagePdf();
+    const before = (await imageStreams(src))[0];
+    const r = await compressPdf(src, 'balanced', halfSized);
+    expect(r.imagesOptimized).toBe(1);
+    const outBuf = r.bytes.buffer.slice(r.bytes.byteOffset, r.bytes.byteOffset + r.bytes.byteLength) as ArrayBuffer;
+    const after = (await imageStreams(outBuf))[0];
+    expect(after.contents.byteLength).toBe(Math.floor(before.contents.byteLength / 2));
+    expect(after.width).toBe('600');
+  });
+
+  it('replacement is rejected when the "optimized" image is not smaller', async () => {
+    const src = await makeImagePdf();
+    const r = await compressPdf(src, 'strong', bigger);
+    expect(r.imagesScanned).toBe(1);
+    expect(r.imagesOptimized).toBe(0);
+  });
+
+  it('second pass over an already-optimized file reports alreadyOptimal with equal sizes', async () => {
+    const src = await makeImagePdf();
+    const first = await compressPdf(src, 'balanced');
+    const second = await compressPdf(
+      first.bytes.buffer.slice(first.bytes.byteOffset, first.bytes.byteOffset + first.bytes.byteLength) as ArrayBuffer,
+      'balanced',
+    );
+    if (second.alreadyOptimal) {
+      expect(second.compressedSize).toBe(second.originalSize);
+    }
+    // 底线断言：无论哪个分支，都不会比输入大
+    expect(second.compressedSize).toBeLessThanOrEqual(second.originalSize);
+  });
+
+  it('garbage input rejects with an error (caller shows it in the alert)', async () => {
+    const junk = new Uint8Array([1, 2, 3, 4, 5]).buffer as ArrayBuffer;
+    await expect(compressPdf(junk, 'balanced')).rejects.toThrow();
   });
 });

@@ -3,6 +3,29 @@
  * 完整类型见官方仓库 src/types —— vendor 文件本身是 min.js 无类型。
  */
 declare module '@/lib/pdf-lib.esm.min.js' {
+  /** 任意可 toString 的 PDF 元素（低层遍历里 dict.get 的返回值形态） */
+  export interface PDFElementLike {
+    toString(): string
+  }
+  export interface PDFName extends PDFElementLike {}
+  export interface PDFNumber extends PDFElementLike {}
+  export interface PDFRef extends PDFElementLike {}
+  export const PDFName: { of(name: string): PDFName }
+  export const PDFNumber: { of(n: number): PDFNumber }
+  export interface PDFDict {
+    get(key: PDFName): PDFElementLike | undefined
+    set(key: PDFName, value: PDFElementLike): PDFDict
+    clone(): PDFDict
+  }
+  export class PDFRawStream {
+    constructor(dict: PDFDict, contents: Uint8Array)
+    readonly dict: PDFDict
+    readonly contents: Uint8Array
+  }
+  export interface PDFContext {
+    enumerateIndirectObjects(): Iterable<[PDFRef, unknown]>
+    assign(ref: PDFRef, object: unknown): PDFRef
+  }
   export interface PDFPage {
     drawText(text: string, options: {
       x: number
@@ -13,9 +36,11 @@ declare module '@/lib/pdf-lib.esm.min.js' {
       opacity?: number
       rotate?: { type: 'degrees'; angle: number }
     }): void
+    drawImage(image: PDFImage, options: { x: number; y: number; width: number; height: number }): void
     getSize(): { width: number; height: number }
   }
   export interface PDFFont { /** opaque handle */ }
+  export interface PDFImage { /** opaque handle */ }
   export interface RGB { red: number; green: number; blue: number }
   export declare class PDFDocument {
     static create(): Promise<PDFDocument>
@@ -27,7 +52,10 @@ declare module '@/lib/pdf-lib.esm.min.js' {
     addPage(page?: PDFPage | [number, number]): PDFPage
     copyPages(src: PDFDocument, indices: number[]): Promise<PDFPage[]>
     embedFont(font: StandardFonts): Promise<PDFFont>
+    embedJpg(jpg: Uint8Array): Promise<PDFImage>
     save(options?: { useObjectStreams?: boolean }): Promise<Uint8Array>
+    /** 低层对象上下文（compress 遍历/替换图像流用；pdf-lib 运行时公开属性） */
+    readonly context: PDFContext
   }
   export type StandardFonts = string
   export function rgb(red: number, green: number, blue: number): RGB

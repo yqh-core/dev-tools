@@ -461,6 +461,27 @@ tools:
     errors:
       needText: 请先输入水印文字。
 
+  pdf-compress:
+    title: PDF 压缩器
+    description: 在线压缩 PDF——重压内嵌照片并重建文件结构，两档强度，实时显示前后体积，绝不越压越大。免费、隐私、浏览器本地完成。
+    pickFile: 选择 PDF 文件
+    levelLabel: 压缩档位
+    balanced: 均衡（推荐）
+    strong: 强力
+    balancedHint: 以屏幕显示质量重压内嵌照片（像素上限约 1800），适合日常发送与存档。
+    strongHint: 更激进（像素上限约 1200，画质肉眼可见下降），适合扫描件、拍照件压到邮箱限额以下。
+    working: 压缩中…
+    button:
+      compress: 压缩 PDF
+      download: 下载 compressed.pdf
+    result:
+      from: '压缩前：'
+      to: '压缩后：'
+      saved: '省掉：'
+    optimalNote: 这个 PDF 已接近最优——正文以文本/矢量为主，可压空间很小。输出即你的原件；本工具保证不会越压越大。
+    errors:
+      tooLarge: 文件超过 80 MB，浏览器内处理不可靠，请使用桌面工具。
+
   pdf-signature-checker:
     title: PDF签名检查器
     description: '验证PDF文件的签名。签名的PDF文件包含一个或多个签名，可用于确定文件的内容在签名后是否已被更改。'

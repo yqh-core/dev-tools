@@ -111,6 +111,7 @@ export const TOOL_CLUSTERS: ToolCluster[] = [
       '/pdf-merge',
       '/pdf-split',
       '/pdf-watermark',
+      '/pdf-compress',
       '/pdf-signature-checker',
     ],
   },

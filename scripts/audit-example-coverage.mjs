@@ -129,6 +129,10 @@ const NO_EXAMPLE_WHITELIST = [
     why: '文件上传型（n-upload 单选 PDF），文本框是水印文字而非工具主输入（文件才是），探测 mode=no-input',
   },
   {
+    path: '/pdf-compress',
+    why: '文件上传型（c-file-upload 单选 PDF），其余控件只有档位 radio-group，findPrimaryInput() 不命中（探测 mode=no-input）',
+  },
+  {
     path: '/random-port-generator',
     why: '无任何输入控件：findPrimaryInput() 返回 null（探测 mode=no-input），只有 Copy / Refresh 按钮',
   },

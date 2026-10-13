@@ -855,6 +855,18 @@ export const GUIDES: Record<string, ToolGuide> = {
     ],
   },
 
+  '/pdf-compress': {
+    intro: 'Shrinks a PDF by recompressing its embedded photos and rebuilding the file structure, with before/after sizes and a never-larger guarantee.',
+    steps: ['Select a PDF file', 'Pick balanced or strong compression', 'Run it and compare the sizes', 'Download the result'],
+    notes: ['If nothing can be saved the original file is returned unchanged — the output is never larger than the input', 'Text-only PDFs are already compact; the savings come from photos', 'Files stay on your device — nothing is uploaded'],
+    about: 'There are two levers behind every PDF size. The image layer: scans, camera shots and inserted photos are usually stored as full-resolution JPEGs, so the tool decodes each one and re-encodes it at lower quality (and, on strong mode, a lower pixel cap). The structural layer: PDFs that went through several edit-save cycles, printer drivers or email forwards accumulate orphaned objects and bloated cross-reference tables — rebuilding the file drops that overhead. What the tool deliberately does not touch: the text and vector layer stays untouched, so letters remain selectable and sharp at any zoom, and lossless screenshots keep their quality. That is also why a text-heavy PDF may shrink only a little — there was simply little fat to cut, and in that case you get your original file back.',
+    faqs: [
+      { q: 'Why did my PDF barely shrink?', a: 'Text and vector drawings are already extremely compact — one page of an article can be a few KB. Size accumulates in images, so a PDF without photos has almost nothing to squeeze. If you are fighting an upload or mailbox limit, splitting the document by page ranges is the alternative.' },
+      { q: 'Will compression make my document look bad?', a: 'Balanced mode keeps images at screen quality and is fine for everyday documents. Strong mode softens photos noticeably at around 1200px — good for scans and receipts, not for print-ready work. Text never degrades, because it is not re-rendered.' },
+      { q: 'Is it safe for confidential PDFs?', a: 'Yes. The whole pipeline runs inside your browser; the file never leaves the device and there is no upload step that could be intercepted.' },
+    ],
+  },
+
   '/pdf-signature-checker': {
     intro: 'Checks whether a PDF carries a digital signature and whether that signature is valid.',
     steps: ['Choose or drag in a PDF file', 'Wait for it to be parsed', 'Read the number of signatures and the verification result'],

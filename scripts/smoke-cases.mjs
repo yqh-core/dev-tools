@@ -242,6 +242,31 @@ export const SMOKE_CASES = [
     expect: { text: ['No signatures found in the provided file.'] },
   },
   {
+    path: '/pdf-compress',
+    name: 'pdf-compress',
+    category: 'Crypto',
+    zhTitle: 'PDF 压缩器',
+    tier: 'io',
+    strategy: '真压断言：上传 3 页含 75KB JPEG 的夹具 PDF（photo-pages.pdf），点 data-test-id=compress-btn（locale 无关；smoke 按 en 渲染，按中文文案点必假失败），等 .tool-content 出现 After 行后解析 Before/After 体积，必须降 ≥10%——只验链路会漏掉图像层未执行类回归',
+    steps: [
+      { upload: { i: 0, file: 'scripts/smoke-fixtures/photo-pages.pdf' } },
+      { clickSel: '[data-test-id="compress-btn"]' },
+      { waitText: { text: 'After:', scope: '.tool-content', ms: 10000 } },
+    ],
+    expect: {
+      text: ['compressed.pdf'],
+      js: `(function(){
+        var t = (document.querySelector('.tool-content') || {}).innerText || '';
+        var b = /Before:\\s*([\\d.]+)\\s*(B|KB|MB)/.exec(t);
+        var a = /After:\\s*([\\d.]+)\\s*(B|KB|MB)/.exec(t);
+        if (!b || !a) return 'NO-LINES';
+        var mult = { B: 1, KB: 1024, MB: 1048576 };
+        var bv = parseFloat(b[1]) * mult[b[2]], av = parseFloat(a[1]) * mult[a[2]];
+        return av < bv * 0.9 ? true : 'NO-SHRINK before=' + bv + ' after=' + av;
+      })()`,
+    },
+  },
+  {
     path: '/rsa-key-pair-generator',
     name: 'rsa-key-pair-generator',
     category: 'Crypto',
