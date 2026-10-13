@@ -95,7 +95,7 @@ const matchedTools = computed<ToolWithCategory[]>(() =>
 const isSearching = computed(() => searchQuery.value.trim().length > 0);
 
 /**
- * 常用工具（Popular Tools）—— 8 个，按真实搜索意图排序。
+ * 常用工具（Start Here / Popular Tools）—— 12 个，按真实搜索意图排序（P1 重排扩容，对齐参考站范式）。
  *
  * 为什么是硬编码清单而不是按访问量排序：站点没有后端，拿不到真实访问统计；
  * 硬编码一份**人工确认过的**清单，比拍脑袋造一个「热度算法」诚实。
@@ -114,7 +114,7 @@ const isSearching = computed(() => searchQuery.value.trim().length > 0);
  *   不白屏」，但**同时会把写错的 path 静默丢掉**：少一张卡不会报错，构建全绿，
  *   线上表现为「Popular 只剩 7 个」这种没人会注意的降级。上一轮就是这么漏掉的。
  *   所以这里在**模块求值期**（SSR 预渲染与客户端首帧都会跑，不依赖任何交互）
- *   直接对着 `tools` 注册表断言：8 个 path 必须全部存在、解析结果必须恰好 8 个。
+ *   直接对着 `tools` 注册表断言：12 个 path 必须全部存在、解析结果必须恰好 12 个。
  *   写错一个字符 → 首页在预渲染阶段就抛错，`npm run build` 直接失败。
  */
 const POPULAR_TOOL_PATHS = [
@@ -126,6 +126,10 @@ const POPULAR_TOOL_PATHS = [
   '/date-converter', // Timestamp Converter（目录是 date-time-converter/）
   '/url-encoder', // URL Encoder
   '/hash-text', // Hash Generator（⛔ 没有 /hash-generator 这个路由）
+  '/password-generator', // Password Generator（2026-10-13 P1 扩容：高频词工具）
+  '/token-generator', // Token Generator
+  '/percentage-calculator', // Percentage Calculator
+  '/sql-prettify', // SQL Formatter
 ];
 
 /**
@@ -162,8 +166,8 @@ function assertPopularToolPaths(paths: string[], tools: ToolWithCategory[]) {
     );
   }
 
-  if (paths.length !== 8) {
-    throw new Error(`[Home.page] POPULAR_TOOL_PATHS 应为 8 个，实际 ${paths.length} 个`);
+  if (paths.length !== 12) {
+    throw new Error(`[Home.page] POPULAR_TOOL_PATHS 应为 12 个，实际 ${paths.length} 个`);
   }
 }
 
@@ -241,6 +245,21 @@ const taskClusters = computed(() =>
 );
 
 /**
+ * 类目入口卡（P1 重排 · 2026-10-13）：Browse by category 的数据源。
+ * 直接消费 toolStore.toolsByCategory（ToolCategory 单一事实源，与侧栏菜单同源），
+ * 每类目取 3 个代表工具 + 真实计数。全量链接在 /tools 目录页。
+ * 计数用 components.length 现算（数字同源纪律 —— 与 hero 徽章的 tools.length 同一来源）。
+ */
+const CATEGORY_SAMPLE_LIMIT = 3;
+const categoriesPreview = computed(() =>
+  toolStore.toolsByCategory.map(cat => ({
+    name: cat.name,
+    count: cat.components.length,
+    sampleTools: cat.components.slice(0, CATEGORY_SAMPLE_LIMIT),
+  })),
+);
+
+/**
  * 首页 Blog 区块的文章卡片 —— **从 guides 的 relatedNotes 反向聚合**（不再手写清单）。
  *
  * ## 为什么改成数据驱动
@@ -288,39 +307,9 @@ const BLOG_POSTS = (() => {
       }
     }
   }
-  return [...byUrl.values()];
+  // P1 重排（2026-10-13）：首页展示上限 10 → 6 —— 首页是入口不是目录，全量在 notes 站。
+  return [...byUrl.values()].slice(0, 6);
 })();
-
-/**
- * Hero CTA（S2）：滚动到分类浏览区。
- * 用 button 而不是 <a href="#home-categories">：vue-router 会对同路径 hash 变化
- * 做路由解析，边界行为不可控。
- *
- * 不用 Element.scrollIntoView 而显式查找最近可滚祖先：本站是 naive-ui 双层
- * n-layout 嵌套（外层菜单 layout + 内层内容 layout），中间隔着 overflow:hidden 层，
- * 真实滚动容器是内层 .n-layout-scroll-container。scrollIntoView 的滚动链在这类
- * 嵌套结构上跨浏览器行为不一致（Chrome/154 实测在 CDP 验证窗口中不推进），
- * 显式祖先查找 + scrollTo 只依赖确定性 API，行为可预期。
- * smooth 动画依赖 rAF；CDP 失焦窗口 rAF 冻结属测试环境限制，真实前台不受影响。
- */
-function scrollToCategories() {
-  const target = document.getElementById('home-categories');
-  if (!target) {
-    return;
-  }
-  let el: HTMLElement | null = target.parentElement;
-  while (el) {
-    const style = getComputedStyle(el);
-    if (/(auto|scroll)/.test(style.overflowY) && el.scrollHeight > el.clientHeight) {
-      const delta = target.getBoundingClientRect().top - el.getBoundingClientRect().top;
-      el.scrollTo({ top: el.scrollTop + delta - 12, behavior: 'smooth' });
-      return;
-    }
-    el = el.parentElement;
-  }
-  // 兜底：结构未知时退回原生行为
-  target.scrollIntoView({ behavior: 'smooth' });
-}
 
 const popularTools = computed(() =>
   POPULAR_TOOL_PATHS
@@ -392,9 +381,9 @@ function onUpdateFavoriteTools() {
           </div>
         </div>
 
-        <button class="hero-cta" type="button" @click="scrollToCategories">
+        <RouterLink class="hero-cta" to="/tools">
           {{ t('home.hero.cta') }} ↓
-        </button>
+        </RouterLink>
       </header>
 
       <div v-if="isSearching" class="search-result-head">
@@ -447,12 +436,11 @@ function onUpdateFavoriteTools() {
         </section>
 
         <!--
-          Browse by task（新增区块）：数据源是 TOOL_CLUSTERS（src/seo/clusters.ts），
-          ⛔ 不另建分类表 —— 簇是单一事实源，构建期强制 en/zh 词条成对，且工具页
-          workflow 区块与 related 推荐都在消费它。
-          簇名走 i18n 词条 clusters.<id>（⛔ 标量 key，非数组 —— 见 WHY_POINT_KEYS 注释）。
-          每个簇展示最多 6 个代表工具的真链接（RouterLink → SSR HTML 里是真 <a href>）。
-          ⚠ 红线：下方「全部分类」区块的 101 个内链一个都不能少，这个区块**新增**而非替代。
+          Browse by category（P1 重排 · 2026-10-13）：
+          数据源是 toolsByCategory（src/tools/index.ts 的 ToolCategory，单一事实源）。
+          每卡只放 类目名 + 计数 + 3 个代表工具链接 —— 全量工具链接迁到 /tools 目录页
+          （那里承接原「全部分类」矩阵的 101 个内链，红线以整站内链不减少的方式延续）。
+          与旧 Browse-by-task 的区别：14 任务簇 → 10 类目卡，认知负担 1 屏内收口。
         -->
         <section id="home-tasks" class="home-block">
           <h2 class="home-block-title">
@@ -463,16 +451,17 @@ function onUpdateFavoriteTools() {
           </p>
           <div class="task-grid">
             <div
-              v-for="cluster in taskClusters"
-              :key="cluster.id"
+              v-for="cat in categoriesPreview"
+              :key="cat.name"
               class="task-card"
             >
               <h3 class="task-card-title">
-                {{ cluster.label }}
+                {{ cat.name }}
+                <span class="task-card-count">{{ cat.count }}</span>
               </h3>
               <div class="task-card-tools">
                 <RouterLink
-                  v-for="tool in cluster.tools"
+                  v-for="tool in cat.sampleTools"
                   :key="tool.path"
                   class="task-chip"
                   :to="tool.path"
@@ -483,6 +472,9 @@ function onUpdateFavoriteTools() {
               </div>
             </div>
           </div>
+          <RouterLink class="home-blog-more" to="/tools">
+            {{ $t('home.tasks.allTools') }} →
+          </RouterLink>
         </section>
 
         <!--
@@ -510,7 +502,6 @@ function onUpdateFavoriteTools() {
               <span class="home-blog-card-tag">{{ post.tag }}</span>
               <span class="home-blog-card-title">{{ post.title }}</span>
               <span class="home-blog-card-desc">{{ post.description }}</span>
-              <span class="home-blog-card-site">notes.digdevbox.com</span>
             </a>
           </div>
           <a class="home-blog-more" href="https://notes.digdevbox.com/" target="_blank" rel="noopener">
@@ -519,35 +510,18 @@ function onUpdateFavoriteTools() {
         </section>
 
         <!--
-          Developer Practice（新增区块）：引流到同站的 geek-typing。
-          ⛔ 不带 ?bank= query —— 跨站 canonical 页面不带 query，带了等于给同一个
-            练习页制造多个「重复内容」入口。
-          ⛔ 不写死统计数字（「6 个词库 9438 词」这类）：geek-typing 是独立部署的长站，
-            数字会变而首页是构建产物 —— 写死就是一个必然过期的值。这与 BLOG_POSTS
-            「文章清单手动维护」是同一类需要人工同步的腐坏点，能不写就不写。
-          ⛔ 不编造用户评价 / 使用人数 / 星级。
-          文案全部走标量词条 home.practice.*（⛔ 数组词条在 SSR 下会渲染成 key 本身）。
+          Developer Practice（P1 缩编 · 2026-10-13）：
+          原独立大区块降为一行式引流 —— 单站导流不值得一个主区块的视觉权重（审计 P1-4）。
+          ⛔ 原有纪律全部继承：不带 query、不写死统计数字、不编造评价。
         -->
-        <section class="home-block">
-          <h2 class="home-block-title">
-            {{ $t('home.practice.title') }}
-          </h2>
-          <p class="home-practice-subtitle">
-            {{ $t('home.practice.subtitle') }}
-          </p>
-          <p class="home-block-text">
-            {{ $t('home.practice.intro') }}
-          </p>
-          <p class="home-practice-topics">
-            {{ $t('home.practice.topics') }}
-          </p>
-          <a
-            class="home-practice-cta"
-            href="https://geek-typing.pages.dev/"
-            target="_blank"
-            rel="noopener"
-          >{{ $t('home.practice.cta') }} →</a>
-        </section>
+        <a
+          class="home-practice-inline"
+          href="https://geek-typing.pages.dev/"
+          target="_blank"
+          rel="noopener"
+        >
+          {{ $t('home.practice.title') }} — {{ $t('home.practice.subtitle') }} →
+        </a>
 
         <!--
           Why DigDevBox（G-01a）。
@@ -646,30 +620,11 @@ function onUpdateFavoriteTools() {
         </div>
 
         <!--
-          分类浏览（S2 紧凑化）。
-          红线：101 个工具内链必须全部保留在 SSR HTML —— 折叠/紧凑只允许
-          通过「chips 密集网格」这种 DOM 全量渲染的方式实现，禁止 v-if 摘链接。
-          Hero CTA 锚点滚到 #home-categories。
+          分类浏览矩阵（P1 重排 · 2026-10-13 迁出）：
+          全量工具内链已迁至 /tools 目录页（ToolsCatalog.vue），该页承接
+          原本区块的全部 101 个内链（整站内链不减少，红线以迁移方式延续）。
+          首页只保留类目入口卡（categoriesPreview，见 home-tasks 区块）。
         -->
-        <div id="home-categories">
-          <template v-for="cat of toolStore.toolsByCategory" :key="cat.name">
-            <h3 class="mb-8px mt-25px text-neutral-600 font-500 dark:text-neutral-400">
-              {{ cat.name }}
-              <span class="cat-count">{{ cat.components.length }}</span>
-            </h3>
-            <div class="cat-chips">
-              <RouterLink
-                v-for="tool in cat.components"
-                :key="tool.path"
-                class="cat-chip"
-                :to="tool.path"
-              >
-                <n-icon :component="tool.icon" size="15" class="cat-chip-icon" />
-                <span class="cat-chip-name">{{ tool.name }}</span>
-              </RouterLink>
-            </div>
-          </template>
-        </div>
 
         <!--
           经典版入口。老站 162 个工具原样保留在 public/legacy/，是独立静态子站，

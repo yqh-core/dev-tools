@@ -34,6 +34,7 @@ const PAGES: Record<StaticRoutePath, () => Promise<{ default: unknown }>> = {
   '/privacy': () => import('./pages/Privacy.vue'),
   '/terms': () => import('./pages/Terms.vue'),
   '/contact': () => import('./pages/Contact.vue'),
+  '/tools': () => import('./pages/ToolsCatalog.vue'),
 };
 
 /**

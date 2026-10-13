@@ -54,6 +54,11 @@ const ZH: Record<string, PageMeta> = {
       '联系DigDevBox：工具使用问题与缺陷反馈、新工具建议、隐私与数据相关咨询、'
       + '广告与商务合作。页内附反馈时需要提供的信息清单。',
   },
+  '/tools': {
+    description:
+      'DigDevBox 全部工具目录 —— 按类目分组的完整工具清单：加密、转换、Web、'
+      + '开发、网络、文本、数学、度量与数据。免费、无需注册、浏览器本地运行。',
+  },
 };
 
 const EN: Record<string, PageMeta> = {
@@ -83,6 +88,11 @@ const EN: Record<string, PageMeta> = {
     description:
       'Contact DigDevBox: tool bugs and feedback, new tool suggestions, privacy and data questions, '
       + 'and advertising or business enquiries, plus what to include in your message.',
+  },
+  '/tools': {
+    description:
+      'All DigDevBox tools in one directory — every tool grouped by category, '
+      + 'from crypto and converters to web, network and text. Free, no signup, running in your browser.',
   },
 };
 

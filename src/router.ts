@@ -54,6 +54,11 @@ export function createAppRouter(history = createWebHistory(config.app.baseUrl)) 
         name: 'contact',
         component: () => import('./pages/Contact.vue'),
       },
+      {
+        path: '/tools',
+        name: 'tools-catalog',
+        component: () => import('./pages/ToolsCatalog.vue'),
+      },
       ...toolsRoutes,
       ...toolsRedirectRoutes,
       ...(config.app.env === 'development' ? demoRoutes : []),

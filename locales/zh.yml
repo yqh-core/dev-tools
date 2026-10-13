@@ -1,7 +1,11 @@
+toolsCatalog:
+  title: "全部工具"
+  subtitle: "DigDevBox 所有工具一览 —— 共 {count} 个，按类目分组，全部免费。"
 site:
   name: "DigDevBox"
   homeTitle: "DigDevBox - 开发者常用在线工具"
   aboutTitle: "关于 - DigDevBox"
+  toolsCatalogTitle: "全部工具 - DigDevBox"
   notFoundTitle: "页面不存在 - DigDevBox"
 
 home:
@@ -33,8 +37,9 @@ home:
     desc: "老站原样保留的 162 个工具，界面朴素、加载轻快，作为新版之外的补充。"
     open: "打开经典版"
   tasks:
-    title: "按任务浏览"
-    intro: "从你要做的事开始 —— 每一组都是完成同一件事所需的工具链。"
+    title: "按类目浏览"
+    intro: "全部工具按用途分组。完整目录见工具页。"
+    allTools: "浏览完整目录"
   practice:
     title: "开发者英语练习"
     subtitle: "学技术英语"
@@ -45,7 +50,7 @@ home:
     newestTools: '最新工具'
     favoriteTools: '我的收藏'
     recentTools: '最近使用'
-    popularTools: '常用工具'
+    popularTools: '从这里开始 — 常用工具'
     allTools: '全部工具'
     favoritesDndToolTip: '拖放重新排列收藏夹'
     clearRecent: '清空最近使用'

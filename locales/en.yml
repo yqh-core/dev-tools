@@ -1,7 +1,11 @@
+toolsCatalog:
+  title: "All tools"
+  subtitle: "Every DigDevBox tool in one place — {count} tools, grouped by category, all free."
 site:
   name: "DigDevBox"
   homeTitle: "DigDevBox - Online Developer Tools"
   aboutTitle: "About - DigDevBox"
+  toolsCatalogTitle: "All Tools - DigDevBox"
   notFoundTitle: "Page Not Found - DigDevBox"
 
 home:
@@ -34,8 +38,9 @@ home:
     desc: "162 tools kept from the older site. Plain-looking but fast to load."
     open: "Open classic site"
   tasks:
-    title: "Browse by task"
-    intro: "Start from what you are trying to do. Each group links the tools that cover one job end to end."
+    title: "Browse by category"
+    intro: "Every tool grouped by what it is for. Full directory on the tools page."
+    allTools: "Browse the full directory"
   practice:
     title: "Developer Practice"
     subtitle: "Learn technical English"
@@ -46,7 +51,7 @@ home:
     newestTools: Newest tools
     favoriteTools: 'Your favorite tools'
     recentTools: 'Recently used'
-    popularTools: 'Popular tools'
+    popularTools: 'Start here — popular tools'
     allTools: 'All the tools'
     favoritesDndToolTip: 'Drag and drop to reorder favorites'
     clearRecent: 'Clear recently used'

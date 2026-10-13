@@ -16,6 +16,7 @@ export const STATIC_ROUTES = [
   { path: '/privacy', changefreq: 'monthly' },
   { path: '/terms', changefreq: 'monthly' },
   { path: '/contact', changefreq: 'monthly' },
+  { path: '/tools', changefreq: 'weekly' },
 ] as const;
 
 /** 静态路由的路径联合类型，`'/about' | '/' | '/contact' | '/privacy' | '/terms'`。 */
