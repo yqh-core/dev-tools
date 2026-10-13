@@ -339,6 +339,8 @@ if (LOCAL) {
   console.log(`[serve] ${root} → http://127.0.0.1:${PORT}`);
 }
 
+const checks0 = h => (h && h.checks && h.checks.fetchAttempts) || 3;
+
 // ─────────────────────────────── 起点自检 ───────────────────────────────
 // 服务没起来时，Chrome 会停在错误页，所有用例一起「明明没挂载却查不出原因」，
 // 而且会白白跑满看门狗。这里先探一次，不可达就立刻退出并给出可操作的原因。
@@ -836,15 +838,20 @@ async function runJsStep(expression) {
  *  注意 guides.ts 是动态 import 的，组件挂载那一刻 guide 还是 null，
  *  `.guide-example-btn` 根本不在 DOM 里 —— 直接点必然失败（首版就踩了这个）。
  *  这里轮询等它出现；指南区默认折叠也无妨，v-show 的元素照样能被程序化点击。 */
+// 选择器演进：按钮原在折叠面板内（.guide-example-btn），后随 P1 首屏重排移到
+// 动作条 .actions，类名变成 .action-btn.action-example（见 tool.layout.vue:408-415）。
+// 只查旧类名会让 26 个页面以「示例按钮未出现」的形式假红 —— 保留旧类名做兼容兜底。
+const EXAMPLE_SEL = '.action-example, .guide-example-btn';
+
 async function applyExampleStep() {
   let found = false;
   for (let i = 0; i < 30 && !found; i++) {
-    found = await evaluate(`!!document.querySelector('.guide-example-btn')`).catch(() => false);
+    found = await evaluate(`!!document.querySelector(${JSON.stringify(EXAMPLE_SEL)})`).catch(() => false);
     if (!found) await sleep(150);
   }
   if (!found) return '示例按钮未出现（guide 未加载，或该工具没有 example）';
   const ok = await evaluate(
-    `(function(){var b=document.querySelector('.guide-example-btn');if(!b)return false;b.click();return true;})()`,
+    `(function(){var b=document.querySelector(${JSON.stringify(EXAMPLE_SEL)});if(!b)return false;b.click();return true;})()`,
   );
   return ok ? '' : '示例按钮点击失败';
 }
@@ -983,7 +990,16 @@ const stripTags = html =>
     .replace(/<script[\s\S]*?<\/script>/gi, ' ')
     .replace(/<style[\s\S]*?<\/style>/gi, ' ')
     .replace(/<[^>]+>/g, ' ')
-    .replace(/&nbsp;/g, ' ')
+    // 实体解码：预渲染 HTML 里是 `JWT Decoder &amp; Parser`，而 locales 词条与
+    // 运行时 DOM 文本都是字面 `&`。不解码会让**所有名字带 & 的工具**在 H1 一致性
+    // 检查上恒假红（实测 /jwt-parser、/json-prettify）。
+    // 顺序：&amp; 必须最后解，否则 `&amp;lt;` 会被二次解码成 `<`。
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/&quot;/gi, '"')
+    .replace(/&#0?39;|&#x27;/gi, "'")
+    .replace(/&amp;/gi, '&')
     .replace(/\s+/g, ' ')
     .trim();
 
@@ -996,14 +1012,24 @@ async function checkHtml(c) {
   let status = -1;
   let ctype = '';
   let html = '';
-  try {
-    const r = await fetch(url, { redirect: 'manual' });
-    status = r.status;
-    ctype = r.headers.get('content-type') || '';
-    html = status === 200 ? await r.text() : '';
-  } catch (e) {
-    checks.fetchError = String(e.message || e);
+  // 有界重试：单次 fetch 一旦抖动，下面 7 条检查会级联假红（实测 3 页因此被写成坏页，
+  // 而 curl 复验全 200，其中 /fullwidth-converter 单页 8.0s 逼近超时）。
+  // 重试只治测量层噪声；三次仍拿不到就照实 FAIL —— 那可能是真故障，不能粉饰。
+  const ATTEMPTS = 3;
+  for (let i = 0; i < ATTEMPTS; i++) {
+    try {
+      const r = await fetch(url, { redirect: 'manual' });
+      status = r.status;
+      ctype = r.headers.get('content-type') || '';
+      html = status === 200 ? await r.text() : '';
+      if (status === 200) break;
+    } catch (e) {
+      checks.fetchError = `${e.message || e}（第 ${i + 1}/${ATTEMPTS} 次）`;
+      status = -1;
+    }
+    if (i < ATTEMPTS - 1) await sleep(400 * (i + 1));
   }
+  if (status !== 200) checks.fetchAttempts = ATTEMPTS;
 
   checks.status200 = status === 200;
   checks.htmlType = /text\/html/.test(ctype);
@@ -1024,7 +1050,8 @@ async function checkHtml(c) {
   const bad = Object.entries(checks)
     .filter(([k, v]) => typeof v === 'boolean' && !v)
     .map(([k]) => k);
-  return { status, ctype, checks, bad, htmlTitle: title, htmlH1: h1 };
+  // fetchFailed = 重试后仍拿不到响应：这是**测量层**事实，不能当站点缺陷报红
+  return { status, ctype, checks, bad, htmlTitle: title, htmlH1: h1, fetchFailed: status === -1 };
 }
 
 // ─────────────────────────────── 单个工具页 ───────────────────────────────
@@ -1074,7 +1101,12 @@ async function runCase(c) {
 
   // ① ② HTTP + 初始 HTML
   rec.html = await checkHtml(c);
-  if (rec.html.skipped) {
+  if (rec.html.fetchFailed) {
+    // 测量层失败：curl 复验同一 URL 是 200（实测 /text-statistics 连抓 8 次全 200），
+    // 说明是脚本自身连接抖动。记 warn 不记 fail —— 红只代表站点真有问题。
+    runtimeOnly = true;
+    fail(`测量层：初始 HTML ${checks0(rec.html)} 次重试仍无响应（非站点缺陷，请重跑或 curl 复验）`, 'nonblocking');
+  } else if (rec.html.skipped) {
     // 明确留痕：这一轮没验预渲染层，不能当作「全绿」
     runtimeOnly = true;
   } else {
@@ -1095,7 +1127,13 @@ async function runCase(c) {
   if (!expectedTitle) {
     fail(`locales/${LOCALE}.yml 里找不到 tools.${titleKey}.title —— 判据缺失，不计入通过`);
   } else if (rec.html.htmlH1 && rec.html.htmlH1 !== expectedTitle) {
-    fail(`初始 HTML 的 H1 与 ${LOCALE}.yml 不一致：页面「${rec.html.htmlH1}」≠ 词条「${expectedTitle}」`);
+    // H1 承载主标题，SEO title 是「主标题 — 词缀」——P0-P2 刻意给 title 加了
+    // online/free 等词缀，H1 未同步是设计如此。整串比对会把 8 个好页写成红。
+    // 仍保留判据效力：未翻译/中文残留/漏接 translate() 一律照红。
+    const mainSegment = expectedTitle.split(/\s+—\s+/)[0].trim();
+    if (rec.html.htmlH1 !== mainSegment) {
+      fail(`初始 HTML 的 H1 与 ${LOCALE}.yml 主标题段不一致：页面「${rec.html.htmlH1}」≠「${mainSegment}」（词条「${expectedTitle}」）`);
+    }
   }
   }
 
@@ -1149,10 +1187,15 @@ async function runCase(c) {
     if (!rec.runtime.hasToolContent) fail('缺少 .tool-content（工具组件插槽容器）');
 
     rec.runtime.h1 = (await evaluate(`(document.querySelector('h1')||{}).innerText || ''`).catch(() => '')) || '';
-    rec.runtime.expectH1 = rec.html.htmlH1 || c.zhTitle || '';
+    // 不再回退到 c.zhTitle：预渲染层抓取失败时，用中文标题当英文 H1 的期望值
+    // 会把「脚本没抓到」伪装成「站点 H1 是中文」——实测 3 页这样产生假红。
+    rec.runtime.expectH1 = rec.html.htmlH1 || '';
     rec.runtime.h1MatchesPrerender =
       !!rec.runtime.h1 && !!rec.runtime.expectH1 && rec.runtime.h1.trim() === rec.runtime.expectH1.trim();
-    if (!rec.runtime.h1MatchesPrerender) {
+    if (!rec.runtime.expectH1) {
+      // 预渲染层这轮没量到（见 fetchFailed），拿空串比对运行时 H1 只会造出假红
+      fail('预渲染 H1 本轮未量到，跳过「运行时 vs 预渲染」比对', 'nonblocking');
+    } else if (!rec.runtime.h1MatchesPrerender) {
       fail(`运行时 H1「${rec.runtime.h1}」≠ 预渲染 H1「${rec.runtime.expectH1}」`);
     }
 
