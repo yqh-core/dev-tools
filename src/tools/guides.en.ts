@@ -819,6 +819,42 @@ export const GUIDES: Record<string, ToolGuide> = {
     ],
   },
 
+  '/pdf-merge': {
+    intro: 'Combines multiple PDF files into one document, preserving upload order.',
+    steps: ['Select two or more PDF files', 'Click merge', 'Download the combined PDF'],
+    notes: ['The output page order is exactly the order you added the files — drag to reorder before merging if needed'],
+    about: 'PDF merge concatenates documents: every page of the first file, then every page of the second, and so on. Because the merge happens by copying the original page objects (not re-rendering), text stays selectable, fonts stay embedded, and page dimensions keep their original sizes — a landscape A3 page stays landscape A3 next to a portrait A4. Typical uses: assembling scanned receipts into one expense file, combining report chapters written separately, or attaching a cover letter to a CV.',
+    faqs: [
+      { q: 'Does merging change the page quality?', a: 'No. Pages are copied as objects, not re-rendered or re-encoded — text, fonts and images are carried over byte-for-byte into the merged file.' },
+      { q: 'Is there a file size or count limit?', a: 'The browser is the only limit: it needs to hold all input files and the output in memory at once. Dozens of typical documents merge fine; hundreds of multi-hundred-megabyte scans may exhaust the tab.' },
+      { q: 'Are my PDFs uploaded anywhere?', a: 'No. Parsing and merging run entirely in your browser — nothing leaves the page, which matters when the documents are contracts or scans of IDs.' },
+    ],
+  },
+
+  '/pdf-split': {
+    intro: 'Splits a PDF into single pages, or extracts a page range into a new document.',
+    steps: ['Select a PDF file', 'Pick a mode — one file per page, or a page range', 'Download the results'],
+    notes: ['Page count is read from the file before you choose a mode, so the range inputs can never go out of bounds'],
+    about: 'PDF split has two common shapes. Split-to-pages turns an N-page document into N single-page PDFs — useful when only one page of a report needs to go to a client, or when a scanner produced a batch that must be filed separately. Extract-range keeps pages X to Y as one new document — the shape for "give me chapter 2" or trimming a signed contract to the pages that matter. Both copy original page objects, so quality is unchanged.',
+    faqs: [
+      { q: 'Why is each split page larger than the original divided by pages?', a: 'Every output file carries its own copy of shared resources (fonts, images on that page) plus a fresh document structure. The per-file overhead is small but real — splitting a 1 MB 50-page scan into 50 files yields slightly more than 1 MB total.' },
+      { q: 'Can I split an encrypted PDF?', a: 'Files with an owner password (restrictions on copy or print) load with restrictions ignored. Files requiring a user password to open cannot be processed — the browser never sees the decrypted content.' },
+      { q: 'How do I reassemble pages in a different order?', a: 'Split to single pages first, then feed the pages into the merge tool in the order you want — the two tools are designed to be used together this way.' },
+    ],
+  },
+
+  '/pdf-watermark': {
+    intro: 'Adds a text watermark to every page of a PDF, with adjustable size, opacity, angle and layout.',
+    steps: ['Select a PDF file', 'Type the watermark text and tune the style', 'Apply and download the result'],
+    notes: ['The source file is never modified — a new PDF is generated with the watermark layer on top'],
+    about: 'A watermark is a semi-transparent text layer stamped over the page content, typically used to mark documents as DRAFT, CONFIDENTIAL, or to credit the recipient ("Prepared for ACME Corp") before distribution. Single-line mode draws one centered rotated line per page — the classic look. Tile mode repeats the text in a grid across the whole page, which survives cropping and partial screenshots better. The watermark is drawn above existing content, so it is visible on top of images and text but, at low opacity, does not prevent reading.',
+    faqs: [
+      { q: 'Can the watermark be removed?', a: 'A text watermark drawn this way is a page annotation like any other content — a determined user with a PDF editor can remove it. It deters casual reuse; it is not DRM.' },
+      { q: 'What opacity should I use?', a: 'The default 0.18 is readable on white without hiding content. For photo-heavy pages, 0.25-0.35 with tile mode keeps the mark visible; above 0.5 the underlying text becomes hard to read.' },
+      { q: 'Does the watermark work on rotated pages?', a: 'The text is placed in page coordinate space, so on a page stored in landscape rotation the watermark follows the page itself — it may appear rotated relative to the viewer. Verify on one page before batch-marking a mixed-orientation document.' },
+    ],
+  },
+
   '/pdf-signature-checker': {
     intro: 'Checks whether a PDF carries a digital signature and whether that signature is valid.',
     steps: ['Choose or drag in a PDF file', 'Wait for it to be parsed', 'Read the number of signatures and the verification result'],

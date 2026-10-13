@@ -23,6 +23,9 @@ import { tool as textDiff } from './text-diff';
 import { tool as emojiPicker } from './emoji-picker';
 import { tool as passwordStrengthAnalyser } from './password-strength-analyser';
 import { tool as passwordGenerator } from './password-generator';
+import { tool as pdfMerge } from './pdf-merge';
+import { tool as pdfSplit } from './pdf-split';
+import { tool as pdfWatermark } from './pdf-watermark';
 import { tool as yamlToToml } from './yaml-to-toml';
 import { tool as jsonToToml } from './json-to-toml';
 import { tool as tomlToYaml } from './toml-to-yaml';
@@ -112,7 +115,7 @@ import { tool as asciiTable } from './ascii-table';
 export const toolsByCategory: ToolCategory[] = [
   {
     name: 'Crypto',
-    components: [tokenGenerator, hashText, bcrypt, uuidGenerator, ulidGenerator, cypher, bip39, hmacGenerator, rsaKeyPairGenerator, passwordStrengthAnalyser, passwordGenerator, pdfSignatureChecker, htpasswdGenerator],
+    components: [tokenGenerator, hashText, bcrypt, uuidGenerator, ulidGenerator, cypher, bip39, hmacGenerator, rsaKeyPairGenerator, passwordStrengthAnalyser, passwordGenerator, pdfSignatureChecker, pdfMerge, pdfSplit, pdfWatermark, htpasswdGenerator],
   },
   {
     name: 'Converter',

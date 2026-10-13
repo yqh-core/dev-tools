@@ -417,6 +417,50 @@ tools:
     title: 设备信息
     description: 获取有关当前设备的信息（屏幕大小、像素比率、用户代理…）
 
+  pdf-merge:
+    title: PDF 合并
+    description: 把多个 PDF 文件按上传顺序合并为一个——合并前即可看到页数。免费、隐私、全程浏览器本地完成。
+    pickFiles: 选择 PDF 文件
+    selected: 已选 {count} 个文件
+    working: 合并中…
+    button:
+      merge: 合并 PDF
+      download: 下载 merged.pdf
+    errors:
+      needTwo: 请至少选择两个 PDF 文件再合并。
+
+  pdf-split:
+    title: PDF 拆分
+    description: 把 PDF 按页拆分为多个单页文件，或提取指定页码范围——页数从文件中读取后再选择。免费、隐私、浏览器本地完成。
+    pickFile: 选择 PDF 文件
+    pageCount: 该文档共 {count} 页。
+    working: 拆分中…
+    mode:
+      label: 拆分模式
+      each: 每页一个 PDF
+      range: 提取页码范围
+    from: 起始页
+    to: 结束页
+    button:
+      split: 拆分 PDF
+
+  pdf-watermark:
+    title: PDF 水印
+    description: 给 PDF 每一页添加文字水印——字号、透明度、角度可调，支持单行或平铺。免费、隐私、浏览器本地完成。
+    pickFile: 选择 PDF 文件
+    text: 水印文字
+    textPlaceholder: 如：机密
+    fontSize: 字号
+    opacity: 透明度
+    angle: 角度
+    tile: 整页平铺
+    working: 处理中…
+    button:
+      apply: 添加水印
+      download: 下载 watermarked.pdf
+    errors:
+      needText: 请先输入水印文字。
+
   pdf-signature-checker:
     title: PDF签名检查器
     description: '验证PDF文件的签名。签名的PDF文件包含一个或多个签名，可用于确定文件的内容在签名后是否已被更改。'
@@ -592,6 +636,7 @@ tool:
   guideExampleApplied: "✓ 已填入"
   guideExampleFailed: "示例无法填入此输入框"
 clusters:
+  pdf: 'PDF 工具'
   json: "JSON 工具"
   yaml: "YAML 与 TOML"
   xml: "XML 工具"

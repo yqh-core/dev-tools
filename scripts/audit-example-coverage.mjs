@@ -117,6 +117,18 @@ const NO_EXAMPLE_WHITELIST = [
     why: '输入是文件上传（input[type=file] + Browse files 按钮），findPrimaryInput() 返回 null（探测 mode=no-input）',
   },
   {
+    path: '/pdf-merge',
+    why: '文件上传型（n-upload 多选 PDF），无文本输入控件，findPrimaryInput() 不命中（mode=no-input）—— 同 /pdf-signature-checker 先例',
+  },
+  {
+    path: '/pdf-split',
+    why: '文件上传型（n-upload 单选 PDF），唯一数字控件是页码 n-input-number 但主输入是文件，探测 mode=no-input',
+  },
+  {
+    path: '/pdf-watermark',
+    why: '文件上传型（n-upload 单选 PDF），文本框是水印文字而非工具主输入（文件才是），探测 mode=no-input',
+  },
+  {
     path: '/random-port-generator',
     why: '无任何输入控件：findPrimaryInput() 返回 null（探测 mode=no-input），只有 Copy / Refresh 按钮',
   },

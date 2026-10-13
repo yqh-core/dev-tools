@@ -420,6 +420,50 @@ tools:
     title: Device information
     description: Get information about your current device (screen size, pixel-ratio, user agent, ...)
 
+  pdf-merge:
+    title: PDF Merge
+    description: Combine multiple PDF files into one — in upload order, page count shown before you start. Free, private, everything happens in your browser.
+    pickFiles: Choose PDF files
+    selected: '{count} files selected'
+    working: Merging…
+    button:
+      merge: Merge PDFs
+      download: Download merged.pdf
+    errors:
+      needTwo: Select at least two PDF files to merge.
+
+  pdf-split:
+    title: PDF Split
+    description: Split a PDF into single pages, or extract a page range — page count is read from the file before you choose. Free, private, runs in your browser.
+    pickFile: Choose a PDF file
+    pageCount: This document has {count} pages.
+    working: Splitting…
+    mode:
+      label: Split mode
+      each: One PDF per page
+      range: Extract a page range
+    from: From page
+    to: To page
+    button:
+      split: Split PDF
+
+  pdf-watermark:
+    title: PDF Watermark
+    description: Add a text watermark to every page of a PDF — adjustable size, opacity, angle, single line or tiled. Free, private, runs in your browser.
+    pickFile: Choose a PDF file
+    text: Watermark text
+    textPlaceholder: e.g. CONFIDENTIAL
+    fontSize: Font size
+    opacity: Opacity
+    angle: Angle
+    tile: Tile across page
+    working: Applying…
+    button:
+      apply: Apply watermark
+      download: Download watermarked.pdf
+    errors:
+      needText: Enter the watermark text first.
+
   pdf-signature-checker:
     title: PDF signature checker
     description: Verify the signatures of a PDF file. A signed PDF file contains one or more signatures that may be used to determine whether the contents of the file have been altered since the file was signed.
@@ -594,6 +638,7 @@ tool:
   guideExampleApplied: "✓ Filled in"
   guideExampleFailed: "Couldn't auto-fill this input"
 clusters:
+  pdf: 'PDF tools'
   json: "JSON tools"
   yaml: "YAML & TOML"
   xml: "XML tools"

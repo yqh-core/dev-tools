@@ -106,6 +106,15 @@ export const TOOL_CLUSTERS: ToolCluster[] = [
     ],
   },
   {
+    id: 'pdf',
+    members: [
+      '/pdf-merge',
+      '/pdf-split',
+      '/pdf-watermark',
+      '/pdf-signature-checker',
+    ],
+  },
+  {
     id: 'regex',
     members: [
       '/regex-tester',
