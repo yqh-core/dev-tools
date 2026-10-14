@@ -1,3 +1,19 @@
+/**
+ * @vitest-environment node
+ *
+ * 为什么这个文件必须跑在 node 环境（而不是 package.json test:unit 全局指定的 jsdom）：
+ *   jsdom 提供的是**另一个 realm 的 ArrayBuffer**。makePdf() 交给服务的字节是
+ *   jsdom-realm 的 ArrayBuffer，而 pdf-lib 内部用 instanceof ArrayBuffer / isView 分流；
+ *   跨 realm 判定全部落空后，它的报错助手把类型名算成 NaN ——
+ *   于是 13 条用例齐报「`pdf` must be of type string or Uint8Array or ArrayBuffer,
+ *   but was actually of type NaN」。
+ *   真实浏览器只有一个 realm，该问题不存在；这是纯测试宿主问题，不是产品缺陷。
+ *   本文件只测服务逻辑（merge/split/watermark/compress/pageCount），不碰任何 DOM，
+ *   所以用 node 环境既正确又更快。
+ *
+ * 反过来说：如果有人把它改回 jsdom 而不去解决 realm 问题，这 13 条会立刻变红 ——
+ * 这是有意的，不是脆弱。
+ */
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import {
