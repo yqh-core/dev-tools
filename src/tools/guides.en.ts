@@ -207,11 +207,17 @@ export const GUIDES: Record<string, ToolGuide> = {
     intro: 'Converts between HEX, RGB, HSL and CSS colour names — useful when editing a design or tuning a theme.',
     steps: ['Type a value in any format, or use the colour picker', 'The other formats update automatically', 'Copy the one you need'],
     example: { label: 'Fill in a sample colour', text: '#ff6600' },
-    about: 'Convert a colour between hex, rgb, hsl and CSS named colours in one place. Design tokens arrive in one format and get consumed in another — a designer hands you #ff6600, the CSS variable wants hsl, the logo spec says the name is "orangered". Also handy for nudging lightness in hsl and seeing all representations update.',
+    notes: [
+      'CMYK and LCH are computed conversions, not values measured from a print proof — check a real profile before sending work to print.',
+      'The colour name is the nearest CSS keyword, which can be visibly off from your actual colour.',
+    ],
+    about: 'Convert one colour into every format you may need it in — hex, rgb, hsl, hwb, lch, cmyk and the nearest CSS colour name — from a single picker, so a design token that arrives as #ff6600 can leave as an hsl() triple or as a print-oriented CMYK quadruple. Conversions run in the browser through Colord; nothing is sent anywhere. Useful exactly where colour formats collide: a brand spec in hex, a CSS custom property in hsl, a Figma export in lch, a print sheet in cmyk.',
     faqs: [
-      { q: 'Why do hex and hsl describe the same colour differently?', a: 'They are coordinate systems, not colours: rgb stores red/green/blue intensities, hsl stores hue/saturation/lightness. Converting is lossless — the rendered pixel is identical.' },
-      { q: 'Which format should I use in CSS?', a: 'Hex for brand constants, hsl when you derive variants (hover = lower lightness, palette = rotate hue) and named colours for prototyping only — the name set is small and imprecise.' },
-      { q: 'Does the tool support alpha transparency?', a: 'The hex input accepts 8-digit (#RRGGBBAA) form. Keep in mind older tooling may expect rgba() instead, so convert with the alpha intact and verify the render.' },
+      { q: 'Why do hex and hsl describe the same colour differently?', a: 'They are different coordinate systems over the same perceived colour. Hex is a compact byte triple for the screen; HSL re-expresses those bytes as hue, saturation and lightness, which is how people actually reason about a colour. Neither is more correct — pick the one your consumer expects.' },
+      { q: 'Which format should I use in CSS?', a: 'Any of them: modern CSS accepts hex, rgb(), hsl(), lch() and the rest. hsl() and lch() are easier to derive variants from (shift the hue or lightness), while hex is the shortest and the most portable across old tooling.' },
+      { q: 'Does the tool support alpha transparency?', a: 'The formats shown are the colour itself. Where a channel is not part of a given format — CMYK and the named colours have no alpha — the transparency is simply not representable there, so carry alpha in the rgba() or hsla() form.' },
+      { q: 'Which formats does it actually output?', a: 'Seven plus a picker: hex, rgb, hsl, hwb, lch, cmyk and a CSS colour name. CMYK, HWB and LCH come from Colord plugins, so they are computed conversions rather than lookups.' },
+      { q: 'The colour name looks wrong for my colour — why?', a: 'It is reporting the closest named CSS colour, not an exact match. Most colours have no CSS name at all, so the name is a hint about what a colour resembles, never a specification. Use hex when the value has to be right.' },
     ],
   },
 
@@ -425,12 +431,19 @@ export const GUIDES: Record<string, ToolGuide> = {
 
   '/html-wysiwyg-editor': {
     intro: 'A WYSIWYG rich-text editor whose HTML source you can grab once you are done editing.',
-    steps: ['Type or paste into the editing area', 'Use the toolbar to adjust formatting', 'Switch to the source view and copy the HTML'],
-    about: 'A full WYSIWYG HTML editor in the browser: format rich text with a toolbar and read the generated HTML source alongside, in real time. Built for drafting emails, CMS snippets and documentation fragments where you want both the visual result and the exact markup it produces.',
+    steps: ['Type or paste into the editing area', 'Use the toolbar to adjust formatting', 'Copy the generated HTML from the panel below'],
+    notes: [
+      'Tables, images and links are outside the loaded schema — they will not appear, however you paste them in.',
+      'The HTML panel is read-only output: copy from it, do not type into it.',
+      'The draft is stored in this browser only, so it survives a reload but not a different device.',
+    ],
+    about: 'A rich-text editor in the browser with the generated HTML shown beside it, run through Prettier so the source stays readable. It is Tiptap with the StarterKit bundle, which means the toolbar covers the paragraph-level building blocks: bold, italic, strikethrough, inline code, code blocks, headings 1–4, bullet and ordered lists, blockquote, horizontal rule, clear formatting and undo/redo. Your draft is kept in browser storage so a reload does not lose it, and nothing is uploaded anywhere.',
     faqs: [
-      { q: 'How clean is the generated HTML?', a: 'It is the standard output of the underlying editor engine — semantic elements with inline styles for formatting. Always review the source tab when the HTML will be pasted into a template with its own CSS.' },
-      { q: 'Can I paste from Word or a web page?', a: 'Yes, and pasting usually carries the source formatting with it (spans, classes, empty paragraphs). For clean HTML, paste, then tidy or re-apply styles from the toolbar.' },
-      { q: 'Does it support tables and images?', a: 'The toolbar covers common structures including tables, lists, links and images. Complex layouts are still better authored as hand-written HTML — a WYSIWYG is for content, not for page scaffolding.' },
+      { q: 'How clean is the generated HTML?', a: 'Cleaner than most. StarterKit renders marks and nodes as plain semantic elements — <strong>, <em>, <h2>, <ul><li>, <pre><code> — without the inline style attributes that Word and page builders leave behind. Prettier then re-indents the result. Review it anyway when the HTML goes into a template with its own CSS.' },
+      { q: 'Can I paste from Word or a web page?', a: 'You can, but the editor does not keep what it does not understand. Content is parsed against the loaded schema, so spans, classes and empty paragraphs from Word are dropped rather than carried over — which is usually what you want. Formatting that survives is the subset the toolbar can produce.' },
+      { q: 'Does it support tables and images?', a: 'No. Only Tiptap StarterKit is loaded, and it has no table, image or link node, so there is no button for them and pasted tables or images are discarded on the way in. For those elements you need hand-written HTML in an editor whose schema includes them.' },
+      { q: 'Can I edit the HTML directly?', a: 'No. The HTML panel is a formatted, copy-only view of what the editor produced — typing there does not feed back into the document. Format with the toolbar, then copy the source out.' },
+      { q: 'Will my text survive a refresh?', a: 'Yes. The document is saved to this browser\'s local storage under the tool\'s own key, so it is still there when you come back. Clearing site data, or switching browser or machine, starts from the default sample text.' },
     ],
   },
 
@@ -687,11 +700,18 @@ export const GUIDES: Record<string, ToolGuide> = {
     intro: 'Sorts, de-duplicates, adds prefixes/suffixes and reverses multi-line text in one go — a big time saver when tidying data.',
     steps: ['Paste the data, one item per line', 'Tick or select the operations you need', 'Copy the processed result'],
     example: { label: 'Fill in a sample list', text: 'banana\napple\ncherry\napple' },
-    about: 'Process column-based text with row-wise transforms: transpose rows and columns, add prefix or suffix, reverse, sort, lowercase, or truncate each value. Paste a column from a spreadsheet, reshape it, and copy the result back — a text-level alternative to fighting with formulas.',
+    notes: [
+      'No transpose and no truncation: the unit of work is the whole line.',
+      'Duplicate removal runs before trimming, so "apple" and "apple " are still two different items.',
+      'Sorting is applied after reversing — with both enabled the sorted order wins.',
+    ],
+    about: 'Clean up a list of items, one per line, without opening a spreadsheet: lowercase everything, drop duplicate lines, reverse the order, sort ascending or descending, trim whitespace off each item, wrap every item with a prefix and suffix (quotes, commas, markup), wrap the finished list once with its own prefix and suffix, choose what separates the values, and decide whether each item keeps its own line. Paste a column out of a spreadsheet, reshape it, paste it back — the text-level alternative to fighting with formulas.',
     faqs: [
-      { q: 'How does transpose handle uneven rows?', a: 'Transposing reshapes rows into columns; rows of different lengths produce ragged columns with gaps. Normalise row lengths first if you need a clean grid.' },
-      { q: 'What is the separator between values?', a: 'Each line is treated as one value by default. For comma- or space-separated data, split it into lines first (or apply the transforms per line) so each value is handled individually.' },
-      { q: 'Can I chain several transforms?', a: 'Yes — the transforms compose in the order you apply them (e.g. sort then prefix). If the result surprises you, clear the toggles and re-apply one at a time to see which step did what.' },
+      { q: 'How do I remove duplicate lines?', a: 'Tick remove duplicates. It runs before trimming, so "apple" and "apple " still count as two different lines. If your data carries stray spaces, expect near-duplicates to survive unless you clean them first.' },
+      { q: 'Do blank lines stay in the output?', a: 'No. After trimming, empty items are dropped, so blank lines and lines that contained only whitespace disappear from the result.' },
+      { q: 'What is the difference between the item prefix and the list prefix?', a: 'The item prefix goes in front of every value; the list prefix goes in front of the finished result once. To build a quoted array, use the item prefix for the quotes and comma, and the list prefix for the opening bracket.' },
+      { q: 'I turned on reverse and sorting — why is the order still sorted?', a: 'Sorting is applied after reversing, so with both enabled the sort wins and the reverse has no visible effect. Pick one of the two.' },
+      { q: 'Can I keep everything on one line?', a: 'Yes — turn off keep line breaks and the separator becomes the only thing between items, so the list collapses into a single line such as "a, b, c".' },
     ],
   },
 
@@ -1117,11 +1137,18 @@ export const GUIDES: Record<string, ToolGuide> = {
     intro: 'Turns text into the NATO phonetic alphabet, so spelling something out over the phone is not misheard.',
     steps: ['Enter the text', 'Read the corresponding words', 'Copy them, or just read them out'],
     example: { label: 'Fill in sample text', text: 'SOS' },
-    about: 'Transcribe text into the NATO phonetic alphabet — A becomes Alfa, B Bravo, 9 Nine — so it can be conveyed reliably over a noisy voice channel. Call centres, aviation, support scripts and tabletop exercises use it to eliminate the B/P and M/N confusions that plague spelled-out letters.',
+    notes: [
+      'Only A–Z is converted; digits, punctuation and spaces are copied through unchanged.',
+      'Codewords are joined with single spaces, so a space in your input shows up as a wider gap.',
+      'Spelling follows the English convention (Alpha, Juliet), not the strict ICAO forms (Alfa, Juliett).',
+    ],
+    about: 'Transcribe letters into the NATO / ICAO spelling alphabet so that reading a reference out loud survives the trip: A becomes Alpha, S becomes Sierra, B becomes Bravo. The mapping covers the 26 Latin letters only — digits, punctuation and spaces are copied through unchanged, so "Call 911" comes out as "Charlie Alpha Lima Lima 9 1 1". Use it for ticket IDs, licence plates, serial numbers, flight codes and support scripts, the places where B/P, M/N and E/I confusion costs a callback.',
     faqs: [
       { q: 'Why not just say the letters louder?', a: 'Because the problem is not volume — it is that B, C, D, E, G, P, T, V, Z all rhyme. Distinct codewords remove the ambiguity entirely, which is why the alphabet is international and standardised.' },
-      { q: 'How are numbers handled?', a: 'Digits have their own standard pronunciations (9 is "niner"). The tool outputs the official word per digit so nothing is left to improvisation.' },
-      { q: 'Does punctuation get encoded?', a: 'No — the alphabet covers letters and digits. Punctuation like "dot" in an email address is spoken by convention; the tool keeps the output to the standard set.' },
+      { q: 'Are digits converted into words?', a: 'No. Only the 26 letters have codewords in this tool, so a digit is copied through as itself — 9 stays "9" rather than becoming "niner". If your channel needs spoken digits, add those words yourself.' },
+      { q: 'What happens to punctuation and spaces?', a: 'They pass through unconverted. Every output item is joined with a single space, so a space in your input produces a wider gap in the result. Nothing is lost: the extra gap is the space itself.' },
+      { q: 'Why does it print "Alpha" and "Juliet"?', a: 'The strict ICAO/NATO spellings are Alfa and Juliett. This table uses the common English forms for those two words; the other 24 codewords match the standard exactly.' },
+      { q: 'Is this the alphabet aviation actually uses?', a: 'Yes for the codewords — Alpha through Zulu is the international spelling alphabet used by aviation, maritime and military radio. What varies between organisations is how digits are spoken (niner vs nine, woe vs one), and this tool does not touch digits at all.' },
     ],
   },
 
