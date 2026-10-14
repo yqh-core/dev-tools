@@ -421,11 +421,18 @@ export const GUIDES: Record<string, ToolGuide> = {
     intro: 'Converts characters such as <, > and & into HTML entities, or reverses the process — used to insert text into a page safely.',
     steps: ['Paste the original text', 'Click escape or unescape', 'Copy the result'],
     example: { label: 'Fill in sample text', text: '<div class="box">Hello & "World"</div>' },
-    about: 'Escape or unescape HTML entities: turn <, >, &, " and \' into &lt;, &gt;, &amp; and friends, or reverse the process. Use it when injecting user content into HTML templates, reading escaped source from a CMS, or debugging markup that renders literally instead of structurally.',
+    notes: [
+      'Only &amp; &lt; &gt; " and \' are converted — named and numeric entities pass through unchanged.',
+      'Escaping already-escaped text produces &amp;amp;amp; — the classic double-escape bug, which this tool makes easy to spot.',
+      'Escaping is not sanitising: it stops markup being broken, it does not make untrusted HTML safe to render.',
+    ],
+    about: 'Escape and unescape the five characters that break markup: &amp; &lt; &gt; &quot; and &#39; are what &amp;, &lt;, &gt;, a double quote and an apostrophe turn into, and the reverse pass puts them back. The scope is deliberately narrow — this is the minimal set that stops a string from breaking out of an attribute or a text node, not a full entity catalogue: named entities like &eacute; and numeric ones like &#233; pass through untouched, because the underlying lodash escape only knows those five. Use it when injecting user text into a template, when a CMS has double-escaped something into &amp;amp;lt;, or when you need to see exactly what a string looks like on the wire.',
     faqs: [
       { q: 'When must I escape HTML?', a: 'Whenever untrusted text becomes part of markup — comments, form values, rich-text imports. Skipping it is how XSS happens; escaping turns a payload into visible text.' },
       { q: 'Why does &amp; appear inside URLs in my HTML?', a: 'Attribute values are parsed as HTML too, so & must be written &amp; inside href. Browsers tolerate the bare ampersand, but validators do not, and some edge cases silently break.' },
       { q: 'What is the difference between named and numeric entities?', a: 'Named ones (&amp;, &lt;) are readable; numeric ones (&#38;, &#x26;) work for every character including those without a name. Both decode to the same character.' },
+      { q: 'Why did &eacute; come back unchanged?', a: 'Because the tool escapes the five characters that break markup, not the whole HTML entity table. &eacute; is already a valid reference — rewriting it would change meaning rather than protect structure. Use a numeric-reference converter for accented characters.' },
+      { q: 'Is escaping enough to stop XSS?', a: 'No. Escaping stops your template being structurally broken; it does nothing inside JavaScript strings or inline event handlers, and it does not sanitise HTML you intend to render as rich content. Reach for a purpose-built sanitiser for that.' },
     ],
   },
 
@@ -486,11 +493,18 @@ export const GUIDES: Record<string, ToolGuide> = {
     intro: 'Converts an IPv4 address into decimal, binary and hexadecimal forms — useful when writing scripts or reading packet dumps.',
     steps: ['Enter the IPv4 address', 'Read the results in each base', 'Copy the format you need'],
     example: { label: 'Fill in a sample address', text: '192.168.1.1' },
-    about: 'An IPv4 address is really just a 32-bit number, and the dotted format you know (192.168.1.1) is only one way to write it. This tool converts an IP into its decimal, binary, hexadecimal and IPv6-mapped forms at once, which is exactly what you need when reading packet dumps, firewall rules or database columns that store IPs as integers.',
+    notes: [
+      'Validation is strict dotted-quad: partial forms like 10.1 or leading-zero octets are rejected rather than silently reinterpreted.',
+      'The decimal form is the 32-bit integer, so 192.168.0.1 and 3232235521 are the same address written differently — some resolvers and browsers accept the numeric form.',
+      'The IPv6 output is the IPv4-mapped representation, not a real IPv6 allocation.',
+    ],
+    about: 'An IPv4 address is really just a 32-bit number, and the dotted form you know (192.168.1.1) is only one way to write it. This tool converts an address into its decimal integer, binary, hexadecimal and IPv6-mapped forms at once, which is exactly what you need when reading flags and masks in packet captures, building a reverse-DNS or PTR name, or debugging a parser that accepted one notation and rejected another. Input is validated as a dotted quad before anything is computed, so a typo produces a complaint rather than a plausible-looking wrong number.',
     faqs: [
       { q: 'Why does 192.168.0.1 equal 3232235521?', a: 'The four octets are one 32-bit number: 192×256³ + 168×256² + 0×256 + 1 = 3232235521. Dotted notation is a convenience for humans; many systems store the plain integer.' },
       { q: 'What is the IPv6 form of an IPv4 address?', a: 'IPv4 addresses can be represented inside IPv6 as a mapped address like ::ffff:c0a8:1 (192.168.0.1). You will meet this form in dual-stack logs and transition mechanisms.' },
       { q: 'Can I open a decimal IP in my browser?', a: 'Often yes — http://3232235521 works in most browsers because the OS resolves it to 192.168.0.1. Some browsers restrict it, so treat it as a debugging trick, not a production pattern.' },
+      { q: 'Why does 10.0.0.256 fail instead of wrapping?', a: 'Because each octet is range-checked before conversion. 256 does not fit in 8 bits, so the tool refuses the input rather than quietly producing a different address — a silent modulo would be far more dangerous than a rejection.' },
+      { q: 'Which forms do network tools actually accept?', a: 'It varies, which is the reason the conversions exist. Command-line tools and resolvers commonly accept the decimal integer and the 0xAABBCCDD hexadecimal form; browsers have historically accepted several notations in the address bar. Application code and modern parsers usually insist on the dotted quad, so treat the other forms as debugging aids rather than as something to publish.' },
     ],
   },
 
@@ -560,11 +574,18 @@ export const GUIDES: Record<string, ToolGuide> = {
     intro: 'Strips the whitespace and newlines out of JSON, compressing it onto one line to save transfer size.',
     steps: ['Paste the formatted JSON', 'Get the minified result', 'Copy and use it'],
     example: { label: 'Fill in sample JSON', text: '{\n  "name": "DigDevBox",\n  "list": [1, 2, 3]\n}' },
-    about: 'Minifying JSON removes everything the machine does not need: indentation, spaces, newlines. The parsed value stays exactly the same, but the file gets smaller and fits on one line — useful for embedding JSON into environment variables, command-line flags, HTML templates or URLs, where whitespace breaks things.',
+    notes: [
+      'Input is parsed as JSON5, so comments and trailing commas survive — but they are gone in the output, because JSON has nowhere to put them.',
+      'Key order is preserved as written; minification does not sort keys.',
+      'Unparsable input yields an empty result, so an empty output means the input was invalid, not that it was already minimal.',
+    ],
+    about: 'Minifying JSON strips everything the machine does not need: indentation, padding spaces and newlines. The parsed value stays exactly the same, but the file gets smaller and fits on one line — useful for embedding a payload in an environment variable, a query parameter or a commit. The input side is more forgiving than the output side: parsing goes through JSON5, so comments, trailing commas, single quotes and unquoted keys are all accepted on the way in, and what comes out is strict, compact JSON. If the input cannot be parsed at all, the result is empty rather than a stack of error text.',
     faqs: [
       { q: 'How much smaller does the file get?', a: 'For formatted JSON typically 20-40%: whitespace is pure overhead. Minifying does not shorten keys or values the way a binary format would — for transfer size, gzip on the transport layer is the next step.' },
       { q: 'Is minified JSON still valid?', a: 'Yes. Whitespace between tokens is not part of the JSON data model. Minifying requires parsing first, so invalid input errors out instead of producing broken output.' },
       { q: 'How do I get it back into readable form?', a: 'Paste it into the JSON formatter and it is re-indented. Minify and format are inverse operations at the presentation level — the data itself never changes.' },
+      { q: 'Does it also prettify, or only minify?', a: 'Only minify — the output is deliberately one line with no indentation. For the readable form there is a separate JSON formatter; keeping the two directions in separate tools makes each one\'s output predictable.' },
+      { q: 'My file had comments in it — where did they go?', a: 'They were accepted on input (JSON5 allows them) and dropped on output, because standard JSON has no comment syntax. If the comments are load-bearing, keep the annotated copy as the source of truth and minify only when shipping.' },
     ],
     relatedNotes: [
       {
@@ -731,11 +752,18 @@ export const GUIDES: Record<string, ToolGuide> = {
     intro: 'Generates MAC addresses in bulk for testing network gear or fabricating test data.',
     example: { label: 'Fill in quantity 10', text: '10' },
     steps: ['Enter how many you need', 'Add a prefix if required', 'Click generate and copy'],
-    about: 'Generate any number of random MAC addresses, optionally prefixed with a specific OUI (the first three bytes that identify a vendor) and in your preferred case. Useful for populating test fixtures, mocking device inventories or exercising address-filtering logic without touching real hardware.',
+    notes: [
+      'The first octet is random unless you pin it, so the generated address may set the multicast or globally-unique bits — it is not forced to be locally-administered unicast.',
+      'A prefix longer than six groups yields more than six octets; the tool does not trim to six.',
+      'These are random values, not allocated addresses: they are safe as fixtures, but they are not reserved by any standard.',
+    ],
+    about: 'Generate random MAC addresses, optionally anchored to a prefix you supply. Type an OUI or the first few octets and the remaining bytes are filled with random values, then joined with your chosen separator and cased the way you want — handy for test fixtures, documentation examples, mock device inventories and UI state that needs a plausible-looking hardware address without reusing a real one. Prefix bytes are used exactly as written and left-padded to two hex digits, so “A” becomes 0A rather than A0.',
     faqs: [
       { q: 'What does the prefix option do?', a: 'The first three bytes (OUI) encode the manufacturer. Setting a prefix makes the generated addresses look like they belong to a given vendor — handy when your system parses or routes on OUI.' },
       { q: 'Are these safe to use in documentation?', a: 'Yes for examples and tests. Do not reuse them to spoof devices on networks you do not own — MAC filtering and logging exist for a reason.' },
       { q: 'Why upper versus lower case?', a: 'IEEE records use colon-separated lower case, while many Windows tools print upper case. The bytes are identical; pick the convention your target system expects to avoid string-comparison bugs.' },
+      { q: 'Why does my prefix of A come back as 0A?', a: 'Because prefix bytes are left-padded to two hex digits, not right-padded: a lone “A” is read as the byte 0x0A. If you meant the address to start with A0, write the prefix as “A0”. The same rule applies to any odd-length prefix, which is why pasting a half-written OUI silently shifts every nibble.' },
+      { q: 'Does the generator keep the address unicast?', a: 'No. Only the bytes you supply as a prefix are controlled; the rest are uniform random over 0-255, which means the least-significant bit of the first octet (multicast) and the second-least-significant bit (locally administered) are decided by chance. Pin the first octet if either property matters to you.' },
     ],
   },
 
@@ -941,11 +969,18 @@ export const GUIDES: Record<string, ToolGuide> = {
   '/random-port-generator': {
     intro: 'Generates a random port number above 1024, for starting local services or writing tests.',
     steps: ['Click generate to get a port', 'Copy and use it', 'Generate again if you need several'],
-    about: 'Draw one or more random port numbers while excluding the well-known range 0–1023, so you never land on ports that require root privileges or collide with system services. Useful for spinning up local dev servers, assigning ephemeral service ports in configs, or picking ports for test harnesses.',
+    notes: [
+      'The range is 1024-65535 inclusive, so 1024 and 65535 can both come back.',
+      'It does not check availability: a random port is unlikely to be in use, but “unlikely” is not “free” — bind and handle the error, or use port 0 to let the OS choose.',
+      'Registered service ports above 1024 (3306 MySQL, 5432 PostgreSQL, 6379 Redis, and so on) are inside the range and can be returned.',
+    ],
+    about: 'Pick a random TCP/UDP port number in the range 1024 to 65535, inclusive — the unprivileged space, deliberately excluding the well-known 0-1023 range that on Unix-like systems requires root to bind. Useful when a local dev server, a test harness, a proxy config or a demo needs a port that will not collide with SSH, HTTP or DNS, and when you want a number you can paste rather than one you have to invent. Refresh for a new value; nothing is checked against your machine, because the tool cannot see it.',
     faqs: [
       { q: 'Why exclude ports 0–1023?', a: 'The well-known range is reserved for system services (SSH 22, HTTP 80…) and binding to it usually requires administrator rights. Random picks there would mostly fail or shadow real services.' },
       { q: 'Does a random port guarantee it is free?', a: 'No — nothing else on your machine claimed it at generation time, but you should still check with netstat or your runtime before binding. The tool gives you a sane candidate, not a reservation.' },
       { q: 'Which range do the numbers come from?', a: 'The registered/ephemeral range above 1023 (up to 65535). For services exposed to others, the conventional registered range is 1024–49151.' },
+      { q: 'Should I just bind port 0 instead?', a: 'When the port genuinely has to be available, yes: binding port 0 asks the kernel to allocate an unused one and you read the number back from the socket. Use this generator when you want a plausible, stable-looking number to paste into a config file or a screenshot, and port 0 when correctness at bind time is what matters.' },
+      { q: 'Why is my database port a possible answer?', a: 'Because 1024-65535 contains both ephemeral/client space and the registered service ports that modern databases live on. If you need a port that will not be mistaken for a service, narrow the search yourself (for example 20000-29999) and re-roll until it lands where you want.' },
     ],
   },
 
@@ -997,11 +1032,18 @@ export const GUIDES: Record<string, ToolGuide> = {
     intro: 'Converts between Roman numerals and Arabic numbers — useful for ordinals and copyright years.',
     steps: ['Enter a number or a Roman numeral on either side', 'The other side updates automatically', 'Copy and use it'],
     example: { label: 'Fill in a sample number', text: '2024' },
-    about: 'Convert between Roman numerals and Arabic numbers in both directions, with validation on the Roman side. Reading years on buildings and film credits (MCMXCIV), parsing chapter or monarch numbering, or generating stylistic numerals — without hand-counting letter values.',
+    notes: [
+      'The supported range is 1 to 3999. Beyond that, classical notation needs a vinculum (overline) to multiply by 1,000, which has no ASCII form.',
+      'Out-of-range numbers return an empty result rather than an error — a blank output can mean “too big”, not “broken”.',
+      'Validation is canonical-form only: IIII is a legitimate historical engraving but not a valid modern numeral.',
+    ],
+    about: 'Convert between Roman numerals and Arabic numbers in both directions, with strict validation on the Roman side. Reading years on buildings and film credits (MCMXCIV), parsing chapter or monarch numbering, or generating stylistic numerals for a design — all from one field. The Roman input is checked against the canonical subtractive form, which means it has to be a numeral this tool itself could have produced: MMMCMXCIX passes, while IIII and VX do not, even though both appear on real clocks and monuments.',
     faqs: [
       { q: 'Why is 4 written IV and not IIII?', a: 'Subtractive notation: a smaller numeral before a larger one subtracts (IV = 5-1, CM = 900). Clock faces traditionally break this rule and print IIII, but standard Roman numerals use subtraction.' },
       { q: 'What is the largest number this handles?', a: 'Standard notation tops out around 3999 (MMMCMXCIX) because there is no classical symbol above M. Anything larger needs vinculum or archaic forms that no modern convention agrees on.' },
       { q: 'Why does my Roman input fail validation?', a: 'Likely an illegal pattern like IC for 99 (must be XCIX) or repeated V, L, D. The validator enforces classical rules so you do not engrave a typo in stone.' },
+      { q: 'Is IIII ever correct?', a: 'On clocks, watch dials and some monuments, yes — IIII is the traditional engraved form, often said to be chosen for visual symmetry with VIII opposite it. It is simply not the subtractive form this tool validates, so treat it as decoration rather than as input.' },
+      { q: 'How would I write 5,000 or 100,000?', a: 'You cannot in plain ASCII. The classical extension places an overline (vinculum) over a numeral to multiply it by 1,000, so V with a bar means 5,000. With no way to render or parse a bar, the tool stops at 3,999.' },
     ],
   },
 
@@ -1099,11 +1141,18 @@ export const GUIDES: Record<string, ToolGuide> = {
     intro: 'Compares two blocks of text line by line to see exactly what changed.',
     steps: ['Paste the original text on the left', 'Paste the new text on the right', 'Review the highlighted additions and removals'],
     example: { label: 'Fill in sample text', text: 'First line\nSecond line\nThird line' },
-    about: 'Paste two texts and see their differences line by line — additions, deletions and unchanged context. The no-install way to compare config exports, log excerpts, code reviews or two versions of a paragraph before you commit to one.',
+    notes: [
+      'The two panes are read-only for comparison purposes; edit the source files, not the diff view, unless you intend the diff view to be your scratch space.',
+      'Because Monaco is a full editor component, this page loads more JavaScript than most tools here — expect a slower first paint on a weak connection.',
+      'Whitespace differences are shown, not ignored: a trailing space or a tab-versus-spaces change registers as a real difference.',
+    ],
+    about: 'Paste two texts and see their differences side by side. The comparison runs in the Monaco diff editor — the same component that powers VS Code — so you get line alignment, inline highlighting of what actually changed inside a line, moved-block detection and familiar keyboard shortcuts, rather than a hand-rolled line-by-line equality check. It is the no-install way to compare config exports, log excerpts, two versions of a paragraph, or a proposed file against the one in production before you commit to either.',
     faqs: [
       { q: 'How does the diff decide lines changed?', a: 'It aligns matching lines and reports the rest as added or removed, in the classic diff style. Rewritten lines usually show as a removal plus an addition rather than a special "changed" marker.' },
       { q: 'Why does a tiny edit show the whole paragraph changed?', a: 'Because the diff is line-based: one changed character makes the whole line differ. Diffing on smaller units (split the paragraph into lines) gives a tighter result.' },
       { q: 'Does whitespace matter?', a: 'Yes — trailing spaces and line-ending differences (CRLF vs LF) count as changes and are a common source of "nothing changed but everything is red". Normalise line endings before comparing if that noise is not what you are hunting.' },
+      { q: 'Does it compare words or lines?', a: 'Both, at different levels. Lines are aligned and classified as added, removed or changed, and changed lines get inline markers showing the exact spans inside them. That is why a one-word edit highlights the word rather than the whole paragraph.' },
+      { q: 'Is anything uploaded to make the comparison?', a: 'No. Both texts stay in your browser and the diff is computed locally, which is the main reason to reach for a web diff tool instead of pasting proprietary config into some random site that offers the same feature.' },
     ],
   },
 
@@ -1156,11 +1205,18 @@ export const GUIDES: Record<string, ToolGuide> = {
     intro: 'Converts text to and from Unicode code points — useful for tracking down mojibake or writing escape sequences.',
     steps: ['Enter the text or the code point sequence', 'The other side shows the converted result', 'Copy and use it'],
     example: { label: 'Fill in sample text', text: 'Hello 你好' },
-    about: 'Parse text into Unicode code points and convert escapes back into text — see exactly which characters a string contains, whether that "identical" name has a zero-width joiner inside, and what \\u escapes in a JSON payload decode to.',
+    notes: [
+      'The numbers are UTF-16 code units, not Unicode code points: characters outside the Basic Multilingual Plane (most emoji) come out as a pair of surrogate references.',
+      'ASCII is escaped too — every character gets a reference, so the output is far longer than the input.',
+      'This tool neither emits nor parses \\uXXXX escapes or &#xNN; hexadecimal forms; only decimal &#NN; is understood.',
+    ],
+    about: 'Turn text into numeric character references and back. Each character becomes &#NN; holding its UTF-16 code-unit value, so “Hello” turns into &#72;&#101;&#108;&#108;&#111;, and the reverse field takes a run of those references and gives the text back. This is the form that survives systems which mangle non-ASCII bytes: paste it into HTML and the browser renders the original characters regardless of the file\'s encoding. Note what it is not — the numbers are code units rather than code points, and the only syntax either direction understands is decimal &#NN;.',
     faqs: [
       { q: 'Why does my "duplicate" username fail a comparison?', a: 'It very likely contains invisible characters — zero-width spaces, joiners or look-alike homoglyphs. Inspecting the code points exposes them; a character that should not be there will stand out immediately.' },
       { q: 'What is the difference between U+ notation and \\u escapes?', a: 'They are two spellings of the same code point: U+1F600 and \\uD83D\\uDE00 (its surrogate pair in JS/JSON) both denote the same emoji. This tool converts between the views so you can paste whichever your context needs.' },
       { q: 'What are combining characters?', a: 'Accents and marks that attach to the previous character instead of standing alone. "é" can be one code point or "e" plus a combining accent — both display the same but compare differently, and this tool shows which one you have.' },
+      { q: 'Why does my emoji turn into two numbers?', a: 'Because it sits outside the Basic Multilingual Plane, so JavaScript stores it as a surrogate pair — two UTF-16 code units. The tool reports both, and reading them back reassembles the emoji correctly. A tool that claims to emit code points would show one larger number instead.' },
+      { q: 'Can it read \\u0048 or &#x48; style escapes?', a: 'No. The reverse pass matches decimal references only. Hexadecimal references mean the same character in HTML and \\uXXXX belongs to JavaScript string syntax rather than HTML, but neither is parsed here.' },
     ],
   },
 
