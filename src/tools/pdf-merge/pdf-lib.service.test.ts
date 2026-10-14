@@ -18,13 +18,14 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import {
   compressPdf,
+  imagesToPdf,
   loadPdf,
   mergePdfs,
   pageCount,
   splitPdf,
   watermarkPdf,
 } from './pdf-lib.service';
-import type { ImageRecompressor } from './pdf-lib.service';
+import type { ImageRecompressor, PdfImageInput } from './pdf-lib.service';
 import { PDFDocument, PDFName, PDFRawStream } from '@/lib/pdf-lib.esm.min.js';
 
 /** 造一个 N 页测试 PDF */
@@ -193,5 +194,88 @@ describe('compressPdf', () => {
   it('garbage input rejects with an error (caller shows it in the alert)', async () => {
     const junk = new Uint8Array([1, 2, 3, 4, 5]).buffer as ArrayBuffer;
     await expect(compressPdf(junk, 'balanced')).rejects.toThrow();
+  });
+});
+
+/* ============================ imagesToPdf（/image-to-pdf 的后端） ============================ *
+ *
+ * 这组用例覆盖的是本工具对外的三句话，每句话各一条断言：
+ *   ① N 张图 → N 页；② 页尺寸 = 图像尺寸 + 2×边距；③ JPEG/PNG 逐字节嵌入、不二次编码。
+ * 断言方式是「把产出的 PDF 再用 pdf-lib 读回来量」，不是量字符串长相 —— 读回链路本身
+ * 由上面 merge/split 那批用例负责，这里复用 pageCount / imageStreams 两个既有工具。
+ *
+ * 声明尺寸（width/height）由调用方给出；真实组件永远传 createImageBitmap 的实际像素，
+ * 这里传什么数值只影响几何断言的期望值，与「是否逐字节」无关，因此用显式数字即可。
+ */
+
+/** 1×1 带 alpha 的 PNG —— 刻意选带 alpha 的，pdf-lib 会拆成 图像+SMask 两个 XObject，
+ *  用来钉死「数 XObject 不等于数页数」这个实测坑不被后来人踩回去。 */
+const PNG_1PX = Uint8Array.from(atob(
+  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
+), c => c.charCodeAt(0));
+
+function toAb(bytes: Uint8Array): ArrayBuffer {
+  return bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer;
+}
+
+/** 逐字节比较，返回第一个不相等的下标（-1 = 完全相同，长度不同则返回较短长度）。
+ *  不用 Buffer：仓库 lint 规则 n/prefer-global/buffer 禁止全局 Buffer，且失败时报的是下标而不是 75KB 数组 diff。 */
+function firstDiff(a: Uint8Array, b: Uint8Array): number {
+  const n = Math.min(a.length, b.length);
+  for (let i = 0; i < n; i++) {
+    if (a[i] !== b[i]) {
+      return i;
+    }
+  }
+  return a.length === b.length ? -1 : n;
+}
+
+describe('imagesToPdf', () => {
+  const jpg = new Uint8Array(readFileSync(new URL('../../../public/og-image.jpg', import.meta.url)));
+
+  const twoImages: PdfImageInput[] = [
+    { bytes: jpg, mime: 'image/jpeg', width: 1200, height: 630 },
+    { bytes: PNG_1PX, mime: 'image/png', width: 200, height: 100 },
+  ];
+
+  it('produces a real PDF with exactly one page per image', async () => {
+    const out = await imagesToPdf(twoImages, 0);
+    expect(String.fromCharCode(...out.slice(0, 5))).toBe('%PDF-');
+    expect(await pageCount(toAb(out))).toBe(2);
+  });
+
+  it('page geometry follows each image size, and margin adds on both sides', async () => {
+    const bare = await imagesToPdf(twoImages, 0);
+    const doc0 = await loadPdf(toAb(bare));
+    const a = doc0.getPage(0).getSize();
+    const b = doc0.getPage(1).getSize();
+    // 逐页不同尺寸是这个工具的明确契约（扫描件/截图不该被拉平），不是缺陷
+    expect([a.width, a.height]).toEqual([1200, 630]);
+    expect([b.width, b.height]).toEqual([200, 100]);
+
+    const padded = await imagesToPdf(twoImages, 36);
+    const doc1 = await loadPdf(toAb(padded));
+    expect([doc1.getPage(0).getSize().width, doc1.getPage(1).getSize().height]).toEqual([1200 + 72, 100 + 72]);
+  });
+
+  it('embeds the JPEG stream byte-for-byte (no second generation of loss)', async () => {
+    const out = await imagesToPdf([twoImages[0]], 0);
+    const streams = await imageStreams(toAb(out));
+    // JPEG 没有 alpha，不该被拆出 SMask；多一个流就是行为变了
+    expect(streams.length).toBe(1);
+    // 真判据：读回来的图像流字节与原文件逐字节相等（firstDiff 给下标，不给 75KB diff）
+    expect(streams[0].contents.length).toBe(jpg.length);
+    expect(firstDiff(streams[0].contents, jpg)).toBe(-1);
+  });
+
+  it('rejects a mime pdf-lib cannot embed directly instead of silently producing a blank page', async () => {
+    await expect(imagesToPdf(
+      [{ bytes: jpg, mime: 'image/webp', width: 10, height: 10 }],
+      0,
+    )).rejects.toThrow(/unsupported image mime/);
+  });
+
+  it('rejects an empty list (caller guards, but the service must not emit a 0-page PDF)', async () => {
+    await expect(imagesToPdf([], 0)).rejects.toThrow(/no images/);
   });
 });

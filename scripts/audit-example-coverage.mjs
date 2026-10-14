@@ -77,6 +77,22 @@ const CURLY_QUOTES = /[“”‘’]/;
  */
 const NO_EXAMPLE_WHITELIST = [
   {
+    path: '/image-crop',
+    why: '必需输入是文件上传（c-file-upload 的 <input type=file>），findPrimaryInput() 命中不到可写文本控件；配 example 会成死按钮',
+  },
+  {
+    path: '/image-color-picker',
+    why: '必需输入是文件上传（c-file-upload 的 <input type=file>），findPrimaryInput() 命中不到可写文本控件；配 example 会成死按钮',
+  },
+  {
+    path: '/favicon-generator',
+    why: '必需输入是文件上传（c-file-upload 的 <input type=file>），findPrimaryInput() 命中不到可写文本控件；配 example 会成死按钮',
+  },
+  {
+    path: '/image-to-pdf',
+    why: '必需输入是文件上传（c-file-upload 的 <input type=file>），findPrimaryInput() 命中不到可写文本控件；配 example 会成死按钮',
+  },
+  {
     path: '/image-resize',
     why: '必需输入是文件不是文本框：主控件为 c-file-upload 的 <input type=file>，findPrimaryInput() 命中不到可写控件；配 example 会填不进图片而成死按钮',
   },

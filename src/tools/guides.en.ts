@@ -867,6 +867,78 @@ export const GUIDES: Record<string, ToolGuide> = {
     ],
   },
 
+  '/image-crop': {
+    intro: 'Drag a selection over an image and crop it to that exact region, exporting at the source resolution rather than a scaled-down copy of what you saw on screen.',
+    steps: ['Pick an image', 'Drag inside the box to move it, or drag a corner to resize; optionally lock a ratio', 'Choose the format and crop'],
+    notes: [
+      'The crop is taken from the original pixels, not from the on-screen preview — a 640px-wide preview of a 4000px photo still crops at full resolution.',
+      'The selection is always clamped inside the image, so you cannot accidentally crop a region that does not exist.',
+      'Available output formats are probed from the browser at runtime; formats a browser cannot genuinely encode are not offered.',
+    ],
+    about: 'Crop a photo to the region you actually want, in the browser, and get back a file whose dimensions are the crop\'s dimensions in the original image. That last part is the difference between this and a naive cropper: the box you drag lives in image coordinates, and the export calls drawImage with a source rectangle on the untouched bitmap, so shrinking the preview to fit your window never shrinks the result. Lock a ratio when the destination demands one — 1:1 for avatars, 4:3 or 3:2 for print crops, 16:9 for social embeds — and the box keeps its proportions while you drag. Re-encoding is unavoidable when you export to JPEG or WebP, so quality is exposed as a slider; PNG export stays lossless and keeps transparency.',
+    faqs: [
+      { q: 'Does cropping reduce image quality?', a: 'The crop itself does not: it selects a rectangle of existing pixels. Quality loss only enters at export, and only for lossy formats. Choose PNG if the crop must stay pixel-exact, and JPEG or WebP when file size matters more.' },
+      { q: 'Why is the exported file smaller than the image I see?', a: 'Because the export is the size of your selection, not of the whole image. The readout next to the box shows the exact output dimensions before you commit.' },
+      { q: 'Can I crop to an exact size like 800×600?', a: 'Crop to the region you want and check the reported selection size, then fine-tune. The preview is scaled to fit the window, so the numbers shown are always the real image pixels, not the on-screen size.' },
+      { q: 'Does it keep transparency?', a: 'Yes when you export to PNG or WebP. Exporting to JPEG flattens transparency onto an opaque background, because JPEG has no alpha channel at all.' },
+      { q: 'Why can I not pick my phone photo?', a: 'If the browser cannot decode the file, nothing can be drawn from it. HEIC from iPhone and most TIFF files fall into that category — convert those first, or use a tool that ships a dedicated decoder.' },
+    ],
+  },
+
+  '/image-color-picker': {
+    intro: 'Click any pixel in an image and read back its exact colour as HEX, RGB and HSL, sampled from the original file rather than from a screenshot of the page.',
+    steps: ['Pick an image', 'Click the pixel you want (the cursor readout shows the coordinate)', 'Copy the HEX value, or read the RGB and HSL forms'],
+    notes: [
+      'The sample is a 1×1 read of the original bitmap, so display scaling never changes the answer.',
+      'Alpha is not reported: a fully transparent PNG pixel returns whatever RGB the file happens to store there, which is often black.',
+      'The image is decoded by the browser, so formats the browser cannot read cannot be sampled.',
+    ],
+    about: 'Find out what colour a pixel in a picture actually is. You click, the tool reads that single pixel out of the decoded original and reports it three ways — HEX for CSS, RGB for design tools, HSL when you are reasoning about the colour as hue and lightness. Because the sample comes from the source bitmap and not from a screenshot of the page, the result is unaffected by how large or small the image happens to be displayed, and it is not contaminated by browser colour management on screen capture. This is the version of an eyedropper that answers a factual question about a file: what is the brand colour in this logo screenshot, what background does this texture use, which hex is that gradient endpoint. Everything happens locally — the image is never uploaded, which matters when the picture is a design mockup that has not shipped.',
+    faqs: [
+      { q: 'Why does the colour I pick look different from what I see?', a: 'You are seeing the pixel through your display profile, gamma and any CSS filters on the page; the tool reports the file\'s stored value. For a single image on a plain page those agree closely, but a colour-managed viewer can shift them.' },
+      { q: 'Why is a transparent area reported as black?', a: 'PNG stores red, green and blue even where alpha is zero, and this tool reads those channels without compositing. A transparent pixel therefore often reports 0,0,0. Composite it over a background first if you need the visible colour.' },
+      { q: 'Can I get the colour at an exact coordinate?', a: 'The coordinate readout shows where you clicked in image pixels, so you can aim deliberately. Very fine targets are easier when you zoom the browser, since the click still maps back to the original pixel grid.' },
+      { q: 'Does it work on photos with compression artefacts?', a: 'Yes, but neighbouring pixels differ: JPEG ringing means a 1×1 sample on a noisy edge is only one sample. Pick a flat area, or average a region if you need a representative colour.' },
+      { q: 'Is my image uploaded anywhere?', a: 'No. The file is decoded in your browser and sampled from the resulting bitmap; there is no network request in this tool.' },
+    ],
+  },
+
+  '/favicon-generator': {
+    intro: 'Turn one square-ish image into a real favicon.ico with 16, 32 and 48px sizes inside it, plus an apple-touch-icon and a 512px PNG, all resized in your browser.',
+    steps: ['Pick an image', 'Choose whether to keep transparency or fill white', 'Generate, then download the .ico and PNGs and paste the HTML snippet'],
+    notes: [
+      'A non-square source is centre-cropped to a square before resizing, so it is never stretched into a distorted icon.',
+      'Sizes above 128px are exported as separate PNGs rather than packed into the .ico, because the ICO width field is a single byte.',
+      'The .ico embeds PNG payloads (the Vista-and-later form), which every current browser accepts.',
+    ],
+    about: 'One picture in, a working icon set out. The tool centre-crops your image to a square, resamples it down to 16, 32 and 48 pixels, and packs all three into a single favicon.ico using the PNG-in-ICO container that modern browsers expect — so a browser picks the size that fits instead of scaling one bitmap and going blurry. It also emits a 180px apple-touch-icon for iOS home screens and a 512px PNG for Android shortcuts and PWA manifests, plus the three lines of HTML that wire them up. Everything is done with the browser\'s own image pipeline and a hand-written ICO header, so nothing is uploaded and there is no server queue: useful exactly when the icon belongs to a project that is not public yet. Resampling uses high-quality smoothing, which is the difference between a legible 16px favicon and a smear.',
+    faqs: [
+      { q: 'Why does my 16px favicon look blurry?', a: 'Usually because a large icon was scaled to 16px in the browser rather than being supplied at 16px. This tool writes real 16, 32 and 48px bitmaps into the .ico so the browser does not have to guess. Very detailed artwork will still suffer at 16px — simplify the source if it does.' },
+      { q: 'Why is 512px not inside the .ico?', a: 'The ICO width field is one byte, so 256 has to be encoded as zero and anything larger does not fit the format at all. The safe, standard route is to ship 512px as a separate PNG and reference it from the manifest.' },
+      { q: 'Do I still need apple-touch-icon?', a: 'Yes if iOS users may add your site to a home screen — that icon is picked up separately from favicon.ico and 180px is the size it wants. It is a PNG, not part of the .ico.' },
+      { q: 'Should my source be square?', a: 'It should be roughly square. A non-square source is centre-cropped here, which protects you from distortion but will cut off whatever sits near the edges. Keep the mark centred with breathing room.' },
+      { q: 'Which HTML do I actually need?', a: 'The snippet shown covers the common case: favicon.ico for tabs and bookmarks, apple-touch-icon for iOS, and the 512px PNG for Android and PWA install prompts. Add a manifest file if you are building an installable app.' },
+    ],
+  },
+
+  '/image-to-pdf': {
+    intro: 'Put one or more images into a single PDF, each on its own page sized to that image, with JPEG carried over unchanged and PNG kept lossless.',
+    steps: ['Pick one or more images', 'Set a page margin if you want white space around the picture', 'Create the PDF and download it'],
+    notes: [
+      'A JPEG goes into the document as its own compressed stream, byte for byte — no second generation of compression.',
+      'A PNG loses no pixels either, but it is re-wrapped in the PDF image encoding, so its share of the output size can differ from the source. WebP, BMP and GIF are converted to PNG in the browser first, which is lossless and often larger.',
+      'Each page takes the pixel dimensions of its image, so a portrait photo and a landscape screenshot end up on differently sized pages.',
+    ],
+    about: 'Combine photos, scans and screenshots into one PDF without a server seeing them. The design choice that matters is what happens to quality: a JPEG is carried into the document unchanged, so a 3MB scan does not come out as a 3MB file with fresh compression artefacts laid on top. A PNG is not lossy-recompressed either — it is decoded and stored in the PDF\'s own lossless image encoding, which costs nothing in quality but can change how many bytes it ends up as. Page geometry follows the image — a page is the image\'s pixel size, one point per pixel — which is what you want for scans and screenshots, and an optional margin adds white space when the document is going to be printed. The whole thing is a single in-browser operation, so a folder of receipts or a batch of whiteboard photos never leaves the machine; the resulting PDF is assembled locally and handed to you as a download.',
+    faqs: [
+      { q: 'Are my images compressed?', a: 'A JPEG is not touched: its compressed bytes are embedded as they are, so output quality equals input quality exactly. A PNG loses nothing either, it is merely stored in a different lossless encoding. Only images that need a format change (WebP, BMP, GIF) go through a re-encode, and that step is lossless.' },
+      { q: 'Why is my PDF much bigger than I expected?', a: 'Because the PDF contains the full-resolution originals rather than thumbnails. That is deliberate — it is what preserves quality — but if you need a small file, resize or compress the images first and then combine them.' },
+      { q: 'Can I make every page the same size, like A4?', a: 'Not in this tool: pages follow each image\'s own dimensions so nothing is stretched or letterboxed. If you need uniform pages, place the images into a document editor and export, or use a print-to-PDF step.' },
+      { q: 'Does the order of images matter?', a: 'Yes — pages appear in the order the files were selected. Check the list shown after picking to confirm the sequence before generating.' },
+      { q: 'Is a scanned document still searchable?', a: 'No. This produces a PDF whose pages are pictures; there is no text layer, so search and copy will not find words. Optical character recognition is a separate step.' },
+    ],
+  },
+
   '/image-resize': {
     intro: 'Resize an image to exact pixel dimensions in the browser, with step-down scaling that keeps detail instead of smearing it.',
     steps: ['Pick an image', 'Enter the target width and height (or keep the aspect ratio locked)', 'Choose the output format and download the result'],

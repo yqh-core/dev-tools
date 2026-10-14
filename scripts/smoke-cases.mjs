@@ -241,23 +241,28 @@ export const SMOKE_CASES = [
     steps: [
       { upload: { i: 0, file: 'scripts/smoke-fixtures/photo-sample.jpg' } },
       { waitSel: { sel: '[data-test-id="source-info"]', ms: 10000 } },
-      { js: `(function(){
+      {
+        js: `(function(){
           var el = document.querySelector('[data-test-id="source-info"]');
           var txt = el ? el.textContent : '';
           if (txt.indexOf('1200') === -1 || txt.indexOf('630') === -1) return '源图信息未显示真实尺寸: ' + txt.slice(0, 80);
           return null;
-        })()` },
+        })()`,
+      },
       { fill: { sel: '[data-test-id="target-width"] .n-input__input-el', text: '600' } },
       { wait: 400 },
-      { js: `(function(){
+      {
+        js: `(function(){
           var h = document.querySelector('[data-test-id="target-height"] .n-input__input-el');
           if (!h) return '找不到高度输入框';
           if (String(h.value) !== '315') return '锁定宽高比未自动换算高度，实际=' + h.value;
           return null;
-        })()` },
+        })()`,
+      },
       { clickSel: '[data-test-id="resize-submit"]' },
       { waitSel: { sel: '[data-test-id="resize-output"]', ms: 20000 } },
-      { js: `(function(){
+      {
+        js: `(function(){
           var img = document.querySelector('[data-test-id="resize-output"]');
           if (!img) return '结果图缺失';
           if (img.naturalWidth !== 600 || img.naturalHeight !== 315) {
@@ -268,7 +273,8 @@ export const SMOKE_CASES = [
           if (!link || (link.href || '').indexOf('blob:') !== 0) return '下载链接不是 blob 产物';
           if (!/\.(png|jpg|jpeg|webp)$/.test(link.getAttribute('download') || '')) return '下载文件名没有正确扩展名';
           return null;
-        })()` },
+        })()`,
+      },
     ],
   },
   {
@@ -285,7 +291,8 @@ export const SMOKE_CASES = [
       { wait: 300 },
       { clickSel: '[data-test-id="compress-submit"]' },
       { waitSel: { sel: '[data-test-id="compress-result"]', ms: 25000 } },
-      { js: `(function(){
+      {
+        js: `(function(){
           var link = document.querySelector('[data-test-id="compress-download"]');
           link = link ? link.closest('a') : null;
           if (!link) return '下载链接缺失';
@@ -311,7 +318,8 @@ export const SMOKE_CASES = [
             return '压缩未产生 ≥10% 可测收益: 夹具 ' + SOURCE_BYTES + 'B → 产物 ' + raw.length + 'B';
           }
           return null;
-        })()` },
+        })()`,
+      },
     ],
   },
   {
@@ -335,16 +343,19 @@ export const SMOKE_CASES = [
     steps: [
       { upload: { i: 0, file: ['scripts/smoke-fixtures/unsigned.pdf', 'scripts/smoke-fixtures/photo-pages.pdf'] } },
       { waitText: { text: '2 files selected', scope: '.tool-content', ms: 8000 } },
-      { js: `(function(){
+      {
+        js: `(function(){
           var b = [].slice.call(document.querySelectorAll('.tool-content button'))
             .find(function(x){ return /merge pdfs/i.test(x.innerText); });
           if (!b) return '找不到 Merge PDFs 按钮';
           if (b.disabled) return '两个文件已登记但按钮仍禁用';
           return null;
-        })()` },
+        })()`,
+      },
       { click: 'Merge PDFs' },
       { waitSel: { sel: 'a[download="merged.pdf"]', ms: 20000 } },
-      { js: `(function(){
+      {
+        js: `(function(){
           var a = document.querySelector('a[download="merged.pdf"]');
           if (!a) return '下载锚点缺失';
           if ((a.href || '').indexOf('blob:') !== 0) return 'href 不是 blob，产物未真正生成：' + a.href;
@@ -358,7 +369,8 @@ export const SMOKE_CASES = [
           var head = String.fromCharCode(u.at(0),u.at(1),u.at(2),u.at(3),u.at(4));
           if (head !== '%PDF-') return '合并结果不是 PDF 头：' + head;
           return null;
-        })()` },
+        })()`,
+      },
     ],
   },
   {
@@ -373,7 +385,8 @@ export const SMOKE_CASES = [
       { waitText: { text: 'has 3 pages', scope: '.tool-content', ms: 10000 } },
       { click: 'Split PDF' },
       { waitSel: { sel: '.tool-content a[download]', ms: 20000 } },
-      { js: `(function(){
+      {
+        js: `(function(){
           var as = [].slice.call(document.querySelectorAll('.tool-content a[download]'));
           if (!as.length) return '拆分后没有任何下载项';
           var blobs = as.filter(function(a){ return (a.href || '').indexOf('blob:') === 0; });
@@ -388,7 +401,8 @@ export const SMOKE_CASES = [
           var head = String.fromCharCode(u.at(0),u.at(1),u.at(2),u.at(3),u.at(4));
           if (head !== '%PDF-') return '首个产物不是 PDF 头：' + head;
           return null;
-        })()` },
+        })()`,
+      },
     ],
   },
   {
@@ -401,15 +415,18 @@ export const SMOKE_CASES = [
     steps: [
       { upload: { i: 0, file: 'scripts/smoke-fixtures/unsigned.pdf' } },
       { fill: { sel: '.tool-content input[placeholder="e.g. CONFIDENTIAL"]', text: 'CONFIDENTIAL' } },
-      { js: `(function(){
+      {
+        js: `(function(){
           var el = document.querySelector('.tool-content input[placeholder="e.g. CONFIDENTIAL"]');
           if (!el) return '找不到水印文本框';
           if (el.value !== 'CONFIDENTIAL') return '文本未真正写入模型，实际值=' + JSON.stringify(el.value);
           return null;
-        })()` },
+        })()`,
+      },
       { click: 'Apply watermark' },
       { waitSel: { sel: 'a[download="watermarked.pdf"]', ms: 20000 } },
-      { js: `(function(){
+      {
+        js: `(function(){
           var a = document.querySelector('a[download="watermarked.pdf"]');
           if (!a) return '下载锚点缺失';
           if ((a.href || '').indexOf('blob:') !== 0) return 'href 不是 blob';
@@ -423,7 +440,8 @@ export const SMOKE_CASES = [
           if (head !== '%PDF-') return '产物不是 PDF 头：' + head;
           if (u.length <= 595) return '产物 ' + u.length + ' 字节未超过输入 595 字节，水印可能没写进去';
           return null;
-        })()` },
+        })()`,
+      },
     ],
   },
   {
@@ -754,7 +772,7 @@ export const SMOKE_CASES = [
     ],
     expect: {
       regex: ['iVBORw0KGgo'],
-      js: `(function(){ var c = document.getElementById('previewContainer'); return !!c && !!c.querySelector('img'); })()`,
+      js: '(function(){ var c = document.getElementById(\'previewContainer\'); return !!c && !!c.querySelector(\'img\'); })()',
     },
   },
   {
@@ -1004,7 +1022,7 @@ export const SMOKE_CASES = [
     steps: [{ wait: 2500 }],
     expect: {
       text: ['original text', 'modified text'],
-      js: `!!document.querySelector('.tool-content .monaco-editor')`,
+      js: '!!document.querySelector(\'.tool-content .monaco-editor\')',
     },
   },
   {
@@ -1861,7 +1879,7 @@ export const SMOKE_CASES = [
     steps: [{ fill: { i: 0, text: 'DE89370400440532013000' } }, { wait: 1000 }],
     expect: {
       text: ['DE'],
-      js: `!!document.querySelector('.tool-content [data-test-id="iban-info"]')`,
+      js: '!!document.querySelector(\'.tool-content [data-test-id="iban-info"]\')',
     },
   },
 
@@ -2057,5 +2075,403 @@ export const SMOKE_CASES = [
         return t.indexOf('米（输入）: 2') >= 0 && t.split('\\n').length >= 3;
       })()`,
     },
+  },
+  /* ===================== B2 §5-B 批次 2：图像四页（量化断言，全部像素级 / 字节级） =====================
+   *
+   * 夹具 scripts/smoke-fixtures/color-quadrants.png = 200×200、四象限各一纯色
+   * （TL #FF0000 / TR #00FF00 / BL #0000FF / BR #FF00FF），生成器已逐像素自证。
+   * 这四个颜色刻意互不相同且都不是黑/透明：空画布读出 (0,0,0,0) 不可能蒙对，
+   * 而「裁剪或取样丢了偏移」这类 bug 会把采样点送进别的象限，颜色立刻错。
+   */
+  {
+    path: '/image-crop',
+    name: 'image-crop',
+    category: 'Images and videos',
+    zhTitle: '图片裁剪',
+    tier: 'io',
+    strategy: '像素级真裁：上传四象限夹具 → 断言默认选区=整图且底图真的解码上屏 → 合成一次 SE 角点拖拽把选区收到图像坐标 (0,0)-(100,100) → 导出必须 100×100 且四角+中心全为 #FF0000。偏移丢失会读到别的象限颜色、空画布会读到 (0,0,0,0)，两条失败路径都被这条断言夹住',
+    steps: [
+      { upload: { i: 0, file: 'scripts/smoke-fixtures/color-quadrants.png' } },
+      { waitSel: { sel: '[data-test-id="source-info"]', ms: 10000 } },
+      {
+        js: `(function(){
+          var el = document.querySelector('[data-test-id="source-info"]');
+          var txt = el ? el.textContent : '';
+          if (txt.indexOf('200') === -1) return '源图信息没显示 200：' + txt.slice(0, 80);
+          var size = document.querySelector('[data-test-id="crop-size"]');
+          var s = size ? size.textContent : '';
+          if (!/200[^0-9]{1,6}200/.test(s)) return '默认选区不是整图 200×200，实际=' + JSON.stringify(s);
+          var img = document.querySelector('[data-test-id="crop-image"]');
+          if (!img || img.naturalWidth !== 200) return '底图未真正解码上屏，naturalWidth=' + (img && img.naturalWidth);
+          return null;
+        })()`,
+      },
+      {
+        // 拖 NW 角点：让选区落到图像 (50,50)-(200,200)，**偏移非零**才有内容可验
+        // ——若导出把源矩形偏移丢了（从 (0,0) 起裁），中心点会从品红变成红，立刻红。
+        drag: { sel: '[data-test-id="crop-box"] .h.nw', host: '[data-test-id="crop-stage"]', to: [0.25, 0.25], steps: 6 },
+      },
+      {
+        js: `(function(){
+          var size = document.querySelector('[data-test-id="crop-size"]');
+          var nums = ((size ? size.textContent : '').match(/\\d+/g) || []).map(Number);
+          if (nums.length < 2) return '读不到选区尺寸：' + JSON.stringify(size && size.textContent);
+          // 期望 150×150；容 ±2 是因为 CDP 落点会取整到设备像素（640px 显示 200px 图，
+          // 1 设备像素 = 0.32 图像像素），这是**测量层**的量化误差，不是产品缺陷。
+          // 真正的判据在下面：导出尺寸必须严格等于工具自报的选区尺寸，像素必须落在对的象限。
+          if (Math.abs(nums[0] - 150) > 2 || Math.abs(nums[1] - 150) > 2) {
+            return '拖拽后选区不在 150×150±2，实际=' + nums[0] + '×' + nums[1];
+          }
+          window.__sel = { w: nums[0], h: nums[1] };
+          return null;
+        })()`,
+      },
+      { clickSel: '[data-test-id="crop-submit"]' },
+      { waitSel: { sel: '[data-test-id="crop-output"]', ms: 20000 } },
+      {
+        js: `(function(){
+          var want = window.__sel || {};
+          var out = document.querySelector('[data-test-id="crop-output"]');
+          if (!out) return '结果图缺失';
+          // 导出尺寸 == 自报选区尺寸：这条**不给任何容差**（自一致，与输入精度无关）
+          if (out.naturalWidth !== want.w || out.naturalHeight !== want.h) {
+            return '导出尺寸与工具自报选区不符：产物 ' + out.naturalWidth + 'x' + out.naturalHeight
+              + ' 自报 ' + want.w + 'x' + want.h;
+          }
+          var c = document.createElement('canvas');
+          c.width = want.w; c.height = want.h;
+          var ctx = c.getContext('2d');
+          ctx.drawImage(out, 0, 0);
+          function at(x, y) { var d = ctx.getImageData(x, y, 1, 1).data; return d[0] + ',' + d[1] + ',' + d[2] + ',' + d[3]; }
+          // 选区 = 源图 (50,50)-(200,200)：中心在 BR（品红），三角落在另外三个象限
+          var checks = [
+            [Math.floor(want.w / 2), Math.floor(want.h / 2), '255,0,255,255', '中心(应=源图 BR 象限 品红)'],
+            [0, 0, '255,0,0,255', '左上(应=源图 (50,50) 红)'],
+            [want.w - 1, 0, '0,255,0,255', '右上(应=源图 TR 青绿)'],
+            [0, want.h - 1, '0,0,255,255', '左下(应=源图 BL 蓝)'],
+          ];
+          for (var i = 0; i < checks.length; i++) {
+            var x = checks[i][0], y = checks[i][1], exp = checks[i][2];
+            var got = at(x, y);
+            if (got !== exp) return checks[i][3] + ' 不是 ' + exp + '，实际=' + got + '（偏移或尺寸错了）';
+          }
+          var a = document.querySelector('[data-test-id="crop-download"]');
+          a = a ? a.closest('a') : null;
+          if (!a || (a.href || '').indexOf('blob:') !== 0) return '下载链接不是 blob 产物';
+          var nm = a.getAttribute('download') || '';
+          if (nm.indexOf('-crop-' + want.w + 'x' + want.h + '.png') === -1) return '下载名未反映真实尺寸：' + nm;
+          return null;
+        })()`,
+      },
+    ],
+  },
+  {
+    path: '/image-color-picker',
+    name: 'image-color-picker',
+    category: 'Images and videos',
+    zhTitle: '图片取色器',
+    tier: 'io',
+    strategy: '两次**非对称**取色钉死坐标映射：点图像 (175,75) 必须报 #00FF00 / rgb(0, 255, 0) / hsl(120, 100%, 50%)，点 (25,125) 必须报 #0000FF / hsl(240, 100%, 50%)。选 x≠y 的点是为了让「xy 互换」这类 bug 必须变红（对称点互换后颜色不变，等于没测）；坐标读数容差 ±1 px——CDP 点击的 clientY 会被取整到设备像素，实测 150 落到 y=149，这是输入栅格化的正常误差，不是产品缺陷',
+    steps: [
+      { upload: { i: 0, file: 'scripts/smoke-fixtures/color-quadrants.png' } },
+      { waitSel: { sel: '[data-test-id="picker-canvas"]', ms: 10000 } },
+      {
+        js: `(function(){
+          var cv = document.querySelector('[data-test-id="picker-canvas"]');
+          if (!cv) return '画布未挂载';
+          if (cv.width !== 200 || cv.height !== 200) return '画布位图尺寸不是原图 200×200，实际=' + cv.width + 'x' + cv.height;
+          return null;
+        })()`,
+      },
+      // from == to 的 drag 就是一次真实点击（按下+抬起同一点），
+      // 不用 dispatchEvent 伪造：伪造点击能过，但用户用的是鼠标。
+      { drag: { sel: '[data-test-id="picker-canvas"]', to: [0.875, 0.375], from: [0.875, 0.375], steps: 1 } },
+      { waitSel: { sel: '[data-test-id="picker-result"]', ms: 8000 } },
+      {
+        js: `(function(){
+          function txt(sel) { var e = document.querySelector(sel); return e ? e.textContent.trim() : ''; }
+          var hex = txt('[data-test-id="copy-hex"]').toUpperCase();
+          var rgb = txt('[data-test-id="value-rgb"]');
+          var hsl = txt('[data-test-id="value-hsl"]');
+          var pos = txt('[data-test-id="picked-pos"]');
+          var nums = (pos.match(/-?\\d+/g) || []).map(Number);
+          if (hex !== '#00FF00') return '(175,75) 取色不是 #00FF00（右上象限），实际=' + hex + ' 读数=' + JSON.stringify(pos);
+          if (rgb !== 'rgb(0, 255, 0)') return 'RGB 表达不对，实际=' + rgb;
+          if (hsl !== 'hsl(120, 100%, 50%)') return 'HSL 表达不对，实际=' + hsl;
+          if (nums.length < 2 || Math.abs(nums[0] - 175) > 1 || Math.abs(nums[1] - 75) > 1) {
+            return '坐标读数不在 (175,75)±1，实际=' + JSON.stringify(pos);
+          }
+          var sw = document.querySelector('[data-test-id="picker-swatch"]');
+          var bg = sw ? String(sw.getAttribute('style') || '') : '';
+          if (!/00ff00|0,\\s*255,\\s*0/i.test(bg)) return '色块背景与报告值不一致：' + bg;
+          return null;
+        })()`,
+      },
+      { drag: { sel: '[data-test-id="picker-canvas"]', to: [0.125, 0.625], from: [0.125, 0.625], steps: 1 } },
+      { wait: 400 },
+      {
+        js: `(function(){
+          function txt(sel) { var e = document.querySelector(sel); return e ? e.textContent.trim() : ''; }
+          var hex = txt('[data-test-id="copy-hex"]').toUpperCase();
+          var hsl = txt('[data-test-id="value-hsl"]');
+          var pos = txt('[data-test-id="picked-pos"]');
+          var nums = (pos.match(/-?\\d+/g) || []).map(Number);
+          if (hex !== '#0000FF') return '第二击 (25,125) 未更新为 #0000FF，实际=' + hex + ' 读数=' + JSON.stringify(pos);
+          if (hsl !== 'hsl(240, 100%, 50%)') return '第二击 HSL 不对，实际=' + hsl;
+          if (nums.length < 2 || Math.abs(nums[0] - 25) > 1 || Math.abs(nums[1] - 125) > 1) {
+            return '第二击坐标读数不在 (25,125)±1，实际=' + JSON.stringify(pos);
+          }
+          return null;
+        })()`,
+      },
+    ],
+  },
+  {
+    path: '/favicon-generator',
+    name: 'favicon-generator',
+    category: 'Images and videos',
+    zhTitle: 'Favicon 生成器',
+    tier: 'io',
+    strategy: '字节级验 ICO 结构：上传 1200×630 非方图（走居中裁方分支）→ 产物 .ico 必须 ICONDIR=00 00 01 00 / count=3、三条目录宽高字节 16/32/48、位平面=1、深度=32、数据偏移是绝对地址且指向 PNG 魔数、内嵌 IHDR 声明的尺寸等于目录尺寸、Σ(头+目录+各流)=文件总长。另断言两张附带 PNG 是 180×180 与 512×512（非方图源若被拉伸则宽高不等）',
+    steps: [
+      { upload: { i: 0, file: 'scripts/smoke-fixtures/photo-sample.jpg' } },
+      { waitSel: { sel: '[data-test-id="source-info"]', ms: 10000 } },
+      {
+        js: `(function(){
+          var el = document.querySelector('[data-test-id="source-info"]');
+          var txt = el ? el.textContent : '';
+          if (txt.indexOf('1200') === -1 || txt.indexOf('630') === -1) return '源图信息未显示 1200×630：' + txt.slice(0, 80);
+          return null;
+        })()`,
+      },
+      { clickSel: '[data-test-id="favicon-submit"]' },
+      { waitSel: { sel: '[data-test-id="ico-summary"]', ms: 25000 } },
+      {
+        js: `(function(){
+          function readBlob(sel) {
+            var btn = document.querySelector(sel);
+            var a = btn ? btn.closest('a') : null;
+            if (!a || (a.href || '').indexOf('blob:') !== 0) return null;
+            var x = new XMLHttpRequest();
+            x.open('GET', a.href, false);
+            x.overrideMimeType('text/plain; charset=x-user-defined');
+            x.send();
+            return { raw: x.responseText || '', name: a.getAttribute('download') || '' };
+          }
+          var got = readBlob('[data-test-id="ico-download"]');
+          if (!got) return 'favicon.ico 下载项缺失或不是 blob';
+          if (got.name !== 'favicon.ico') return '下载名不是 favicon.ico，实际=' + got.name;
+          var raw = got.raw, n = raw.length;
+          function b(i) { return raw.charCodeAt(i) & 0xff; }
+          function u16(i) { return b(i) | (b(i + 1) << 8); }
+          function u32(i) { return ((b(i) | (b(i + 1) << 8) | (b(i + 2) << 16) | (b(i + 3) << 24))) >>> 0; }
+          if (n < 6 + 48) return 'ico 只有 ' + n + ' 字节，装不下 3 条目';
+          if (u16(0) !== 0 || u16(2) !== 1 || u16(4) !== 3) {
+            return 'ICONDIR 不合法：reserved/type/count = ' + u16(0) + '/' + u16(2) + '/' + u16(4);
+          }
+          var want = [16, 32, 48];
+          var cursor = 6 + 3 * 16;
+          for (var i = 0; i < 3; i++) {
+            var d = 6 + i * 16;
+            var w = b(d), h = b(d + 1), planes = u16(d + 4), bits = u16(d + 6);
+            var size = u32(d + 8), off = u32(d + 12);
+            if (w !== want[i] || h !== want[i]) return '条目 ' + i + ' 宽高字节不是 ' + want[i] + '，实际=' + w + 'x' + h;
+            if (planes !== 1 || bits !== 32) return '条目 ' + i + ' 位平面/深度异常：' + planes + '/' + bits;
+            if (off !== cursor) return '条目 ' + i + ' 偏移不是绝对地址：期望 ' + cursor + '，实际 ' + off;
+            if (b(off) !== 0x89 || b(off + 1) !== 0x50 || b(off + 2) !== 0x4e || b(off + 3) !== 0x47) {
+              return '条目 ' + i + ' 指向的不是 PNG 魔数（PNG-in-ICO 形态）';
+            }
+            // 注意字节序：ICO 目录里的 size/offset 是**小端**，但 PNG 的 IHDR 宽高是**大端**。
+            // 这里曾按小端读 IHDR，16 被读成 268435456（0x10000000），是自己写错的断言而非产物问题。
+            var pw = ((b(off + 16) << 24) | (b(off + 17) << 16) | (b(off + 18) << 8) | b(off + 19)) >>> 0;
+            var ph = ((b(off + 20) << 24) | (b(off + 21) << 16) | (b(off + 22) << 8) | b(off + 23)) >>> 0;
+            if (pw !== want[i] || ph !== want[i]) return '条目 ' + i + ' 内嵌 PNG 的 IHDR 是 ' + pw + 'x' + ph + '，应为 ' + want[i];
+            if (size < 60) return '条目 ' + i + ' 声称只有 ' + size + ' 字节，疑似空流';
+            cursor += size;
+          }
+          if (cursor !== n) return '目录 byteLength 不闭合：Σ=' + cursor + ' 实际文件=' + n;
+          return null;
+        })()`,
+      },
+      {
+        js: `(function(){
+          var rows = [].slice.call(document.querySelectorAll('[data-test-id="png-row"] img'));
+          if (rows.length !== 2) return '附带 PNG 数量不是 2，实际=' + rows.length;
+          var got = rows.map(function (im) { return im.naturalWidth + 'x' + im.naturalHeight; });
+          if (got.join(',') !== '180x180,512x512') return '两张 PNG 不是正方形 180/512（非方图被拉伸的话宽高不等）：' + got.join(',');
+          var as = [].slice.call(document.querySelectorAll('[data-test-id="png-row"] a'));
+          var names = as.map(function (a) { return a.getAttribute('download'); });
+          if (names.join(',') !== 'apple-touch-icon.png,icon-512.png') return 'PNG 下载名不对：' + names.join(',');
+          var snippet = document.querySelector('[data-test-id="html-snippet"]');
+          var s = snippet ? snippet.textContent : '';
+          var missing = ['favicon.ico', 'apple-touch-icon.png', 'icon-512.png'].filter(function (k) { return s.indexOf(k) === -1; });
+          if (missing.length) return 'HTML 片段缺少引用：' + missing.join(',');
+          return null;
+        })()`,
+      },
+      // —— 居中裁方的内容判据（补的缺口）——
+      // 上面那条只能看出「产物是正方形」，看不出「内容有没有被拉扁」：
+      // 把 1200×630 直接画进 512×512 同样是 512×512。我自己就先犯过这个错，
+      // 所以换一张 400×200 的判据图：左右边缘各有红/蓝条（在居中裁方窗口之外），
+      // 正中有一块黑（在窗口之内）。裁方做对了 → 边缘白 + 正中黑；
+      // 退化成整幅拉伸 → 边缘出现红/蓝；画布是空的 → 正中不是黑。两头都堵。
+      { upload: { i: 0, file: 'scripts/smoke-fixtures/wide-edge-bars.png' } },
+      { clickSel: '[data-test-id="favicon-submit"]' },
+      { wait: 1500 },
+      {
+        js: `(function(){
+          var im = [].slice.call(document.querySelectorAll('[data-test-id="png-row"] img'))
+            .find(function (x) { return x.naturalWidth === 512; });
+          if (!im) return '没有 512 的 PNG 产物行';
+          var c = document.createElement('canvas');
+          c.width = 512; c.height = 512;
+          var ctx = c.getContext('2d');
+          ctx.drawImage(im, 0, 0);
+          function at(x, y) { var d = ctx.getImageData(x, y, 1, 1).data; return [d[0], d[1], d[2]]; }
+          function kind(p) {
+            var r = p[0], g = p[1], b = p[2];
+            if (r > 200 && g < 80 && b < 80) { return 'RED'; }
+            if (b > 200 && r < 80) { return 'BLUE'; }
+            if (r < 60 && g < 60 && b < 60) { return 'BLACK'; }
+            if (r > 200 && g > 200 && b > 200) { return 'WHITE'; }
+            return 'OTHER(' + r + ',' + g + ',' + b + ')';
+          }
+          var left = kind(at(4, 256)), right = kind(at(507, 256)), centre = kind(at(256, 256));
+          if (centre !== 'BLACK') return '正中不是黑方块（' + centre + '）：裁方后的内容没进图标，或画布是空的';
+          if (left !== 'WHITE' || right !== 'WHITE') {
+            return '图标两侧出现 ' + left + '/' + right + '：源图边缘的红/蓝条本该被居中裁方丢弃，出现即说明整幅被拉成了方形';
+          }
+          return null;
+        })()`,
+      },
+    ],
+  },
+  {
+    path: '/image-to-pdf',
+    name: 'image-to-pdf',
+    category: 'Images and videos',
+    zhTitle: '图片转 PDF',
+    tier: 'io',
+    strategy: '页契约三断言：2 图 + 边距 20 → 产物里 /Type/Page 减去 /Type/Pages = 2；两个 MediaBox 分别是 [0 0 1240 670] 与 [0 0 240 240]（同时证明边距真的作用、页尺寸真的随图）；源 JPEG 的 4096-8191 字节必须在 PDF 里连续命中（逐字节嵌入的正面证据，被重编码则落空）。再单传 1 图复跑，页数必须变回 1，抓「文件列表/结果状态不重置」',
+    steps: [
+      { upload: { i: 0, file: ['scripts/smoke-fixtures/photo-sample.jpg', 'scripts/smoke-fixtures/color-quadrants.png'] } },
+      { waitSel: { sel: '[data-test-id="page-count"]', ms: 10000 } },
+      {
+        js: `(function(){
+          var el = document.querySelector('[data-test-id="page-count"]');
+          var t = el ? el.textContent : '';
+          if (t.indexOf('2') === -1) return '选中计数没有登记两张图：' + JSON.stringify(t);
+          var rows = [].slice.call(document.querySelectorAll('[data-test-id="image-row"]'));
+          if (rows.length !== 2) return '列表行数不是 2，实际=' + rows.length;
+          var txt = rows.map(function (r) { return r.textContent; }).join(' | ');
+          if (txt.indexOf('1200') === -1 || txt.indexOf('630') === -1) return '列表未显示 jpg 真实尺寸：' + txt.slice(0, 120);
+          if (txt.indexOf('200') === -1) return '列表未显示 png 真实尺寸：' + txt.slice(0, 120);
+          if (txt.indexOf('\\u2192') !== -1) return 'jpg/png 都属于可直接嵌入类型，不该出现转码标记：' + txt.slice(0, 120);
+          return null;
+        })()`,
+      },
+      { fill: { sel: '[data-test-id="margin"] .n-input__input-el', text: '20' } },
+      { wait: 300 },
+      {
+        js: `(function(){
+          var el = document.querySelector('[data-test-id="margin"] .n-input__input-el');
+          if (!el || String(el.value) !== '20') return '边距值未真正写进模型，实际=' + (el && el.value);
+          return null;
+        })()`,
+      },
+      { clickSel: '[data-test-id="pdf-submit"]' },
+      { waitSel: { sel: '[data-test-id="pdf-download"]', ms: 25000 } },
+      {
+        js: `(function(){
+          function readBlobUrl(u) {
+            var x = new XMLHttpRequest();
+            x.open('GET', u, false);
+            x.overrideMimeType('text/plain; charset=x-user-defined');
+            x.send();
+            // x-user-defined 把每个字节 b 映射成 U+F700+b。这里统一压回 0~255 的「字节串」，
+            // 否则拿 & 0xff 处理过的 needle 去 indexOf 未处理的 pdf 串，永远不可能命中
+            // ——这是判据自己的假红，不是产品把图像重编码了（实测踩过）。
+            var s = x.responseText || '', out = new Array(s.length);
+            for (var k = 0; k < s.length; k++) { out[k] = String.fromCharCode(s.charCodeAt(k) & 0xff); }
+            return out.join('');
+          }
+          var btn = document.querySelector('[data-test-id="pdf-download"]');
+          var a = btn ? btn.closest('a') : null;
+          if (!a || (a.href || '').indexOf('blob:') !== 0) return 'PDF 下载项缺失或不是 blob';
+          if ((a.getAttribute('download') || '') !== 'images.pdf') return '下载名不是 images.pdf';
+          var pdf = readBlobUrl(a.href);
+          var n = pdf.length;
+          function b(i) { return pdf.charCodeAt(i) & 0xff; }
+          if (n < 70000) return 'PDF 只有 ' + n + ' 字节，装不下 75KB 源图';
+          var head = '';
+          for (var i = 0; i < 5; i++) { head += String.fromCharCode(b(i)); }
+          if (head !== '%PDF-') return '产物头不是 %PDF-，实际=' + JSON.stringify(head);
+          var flat = pdf.replace(/\\s+/g, '');
+          var pages = (flat.split('/Type/Page').length - 1) - (flat.split('/Type/Pages').length - 1);
+          if (pages !== 2) return '页数不是 2（两张图），实际=' + pages;
+          // MediaBox 只能在**未去空白**的原文里取：数字之间的空格是内容不是排版
+          var boxes = [];
+          var re = /\\/MediaBox\\s*\\[\\s*([0-9.\\s]+?)\\s*\\]/g;
+          var m;
+          while ((m = re.exec(pdf))) { boxes.push(m[1].replace(/\\s+/g, ' ').trim()); }
+          if (boxes.join(' | ') !== '0 0 1240 670 | 0 0 240 240') {
+            return 'MediaBox 不符合「图尺寸 + 2×20 边距」：' + boxes.join(' | ');
+          }
+          var f = document.querySelector('.tool-content input[type="file"]');
+          if (!f || !f.files || !f.files[0]) return '找不到源文件 input，无法做逐字节比对';
+          var src = readBlobUrl(URL.createObjectURL(f.files[0]));
+          if (src.length < 10000) return '源 JPEG 读回只有 ' + src.length + ' 字节';
+          // 两边都用同一种「x-user-defined」表示再比：ASCII 原样、高位字节是 U+F7xx。
+          // 之前把 needle 手动 & 0xff 归一了而 pdf 没有 —— 编码空间不一致，永远不可能命中，
+          // 报出来却像「图像被重编码」，是判据自己的假红。取子串最稳。
+          var needle = src.substring(4096, 8192);
+          if (needle.length !== 4096) return 'needle 长度异常=' + needle.length;
+          if (pdf.indexOf(needle) === -1) {
+            return 'JPEG 中段未连续命中 src=' + src.length + ' pdf=' + n
+              + ' 头64字节@' + pdf.indexOf(src.substring(0, 64))
+              + ' DCT=' + (pdf.indexOf('/DCTDecode') > -1)
+              + ' Flate=' + (pdf.indexOf('/FlateDecode') > -1);
+          }
+          return null;
+        })()`,
+      },
+      { upload: { i: 0, file: 'scripts/smoke-fixtures/color-quadrants.png' } },
+      { waitSel: { sel: '[data-test-id="page-count"]', ms: 10000 } },
+      {
+        js: `(function(){
+          var el = document.querySelector('[data-test-id="page-count"]');
+          var t = el ? el.textContent : '';
+          if (t.indexOf('1') === -1 || t.indexOf('2') !== -1) return '换成单图后计数未复位：' + JSON.stringify(t);
+          var rows = document.querySelectorAll('[data-test-id="image-row"]');
+          if (rows.length !== 1) return '单图后列表仍有 ' + rows.length + ' 行';
+          return null;
+        })()`,
+      },
+      { clickSel: '[data-test-id="pdf-submit"]' },
+      { wait: 1500 },
+      {
+        js: `(function(){
+          var btn = document.querySelector('[data-test-id="pdf-download"]');
+          var a = btn ? btn.closest('a') : null;
+          if (!a || (a.href || '').indexOf('blob:') !== 0) return '第二次生成的 PDF 下载项缺失';
+          var x = new XMLHttpRequest();
+          x.open('GET', a.href, false);
+          x.overrideMimeType('text/plain; charset=x-user-defined');
+          x.send();
+          var pdf = x.responseText || '';
+          var flat = pdf.replace(/\\s+/g, '');
+          var pages = (flat.split('/Type/Page').length - 1) - (flat.split('/Type/Pages').length - 1);
+          if (pages !== 1) return '单图重跑页数不是 1，实际=' + pages + '（列表状态未重置进产物）';
+          var boxes = [];
+          var re = /\\/MediaBox\\s*\\[\\s*([0-9.\\s]+?)\\s*\\]/g;
+          var m;
+          while ((m = re.exec(pdf))) { boxes.push(m[1].replace(/\\s+/g, ' ').trim()); }
+          // 边距输入沿用上一步的 20，200×200 的图 → 唯一一页应为 240×240；
+          // 若产物仍带上一轮 1200×630 的状态，这里必然不是这个值
+          if (boxes.join(',') !== '0 0 240 240') return '单图重跑的 MediaBox 不是 0 0 240 240，实际=' + boxes.join(' | ');
+          return null;
+        })()`,
+      },
+    ],
   },
 ];

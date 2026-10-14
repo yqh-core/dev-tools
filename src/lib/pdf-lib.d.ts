@@ -53,6 +53,12 @@ declare module '@/lib/pdf-lib.esm.min.js' {
     copyPages(src: PDFDocument, indices: number[]): Promise<PDFPage[]>
     embedFont(font: StandardFonts): Promise<PDFFont>
     embedJpg(jpg: Uint8Array): Promise<PDFImage>
+    /**
+     * PNG 嵌入。声明补记于 2026-10-14：运行时确实存在
+     * （用 1×1 PNG 实测 embedPng → save() 得到 %PDF- 头、930 字节），
+     * 此前 d.ts 只是漏声明，不是库缺能力。
+     */
+    embedPng(png: Uint8Array): Promise<PDFImage>
     save(options?: { useObjectStreams?: boolean }): Promise<Uint8Array>
     /** 低层对象上下文（compress 遍历/替换图像流用；pdf-lib 运行时公开属性） */
     readonly context: PDFContext

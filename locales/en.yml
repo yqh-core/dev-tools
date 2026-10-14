@@ -508,6 +508,49 @@ tools:
     errors:
       tooLarge: File exceeds 80 MB — browser-side processing would be unreliable. Please use a desktop tool.
 
+  image-crop:
+    title: Image Cropper
+    description: Crop an image to an exact pixel region in your browser — drag the box, lock a ratio, and export at the true source resolution, not a scaled-down copy.
+    pickFile: Choose an image
+    ratio: Aspect ratio
+    ratioFree: Free
+    ratioOriginal: Original
+    selection: Selection
+    format: Output format
+    quality: 'Quality: {q}'
+    button: Crop image
+    buttonDownload: Download cropped image
+  image-color-picker:
+    title: Image Color Picker
+    description: Click any pixel of an image to read its exact colour as HEX, RGB and HSL — sampled from the original file, entirely offline in your browser.
+    pickFile: Choose an image
+    clickHint: Click a pixel to sample it.
+  favicon-generator:
+    title: Favicon Generator
+    description: Turn any image into a real multi-size favicon.ico plus apple-touch-icon and 512px PNG — centre-cropped and resized in your browser, nothing uploaded.
+    pickFile: Choose an image
+    background: Background
+    bgTransparent: Keep transparency
+    bgWhite: Fill white
+    working: Generating…
+    button: Generate icons
+    downloadIco: Download favicon.ico
+    download: Download
+    htmlSnippet: HTML to paste
+    copySnippet: Copy HTML
+  image-to-pdf:
+    title: Images to PDF
+    description: Combine images into one PDF, each on its own page at its own size — JPEG is carried in without re-compression, and everything runs in your browser.
+    pickFile: Choose images
+    selected: '{count} images selected'
+    margin: Page margin (pt)
+    working: Building…
+    button: Create PDF
+    buttonDownload: Download PDF
+    pagesSuffix: pages
+    errors:
+      unreadable: This file could not be decoded as an image
+
   image-resize:
     title: Image Resizer
     description: Resize images online to exact pixel dimensions — step-down scaling keeps detail instead of smearing it, and nothing is uploaded because it all runs in your browser.

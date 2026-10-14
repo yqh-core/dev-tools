@@ -251,3 +251,53 @@ export async function compressPdf(
     alreadyOptimal: false,
   };
 }
+
+/* ============================ images → pdf ============================ */
+
+/** 一张待嵌入的图像：字节 + 真实像素尺寸（尺寸由调用方用 createImageBitmap 取，不靠猜）。 */
+export interface PdfImageInput {
+  bytes: Uint8Array
+  mime: string
+  width: number
+  height: number
+}
+
+/**
+ * 多图合成 PDF：每张一页，页面尺寸取图像像素（1px = 1pt），可选白边。
+ *
+ * 只直接接受 JPEG 与 PNG：pdf-lib 对 JPEG 是**原样嵌入**（DCTDecode 流逐字节不变，
+ * 实测产物里能找到源文件中段 4KB 连续命中），对 PNG 是**无损但换封装**
+ * （解码后按 PDF 的无损编码存，画质不损失；实测源 PNG 的原始字节不在产物里）。
+ * 其余格式由调用方先用 canvas 转成 PNG 再进来（canvas 编 PNG 是真支持的，
+ * 见 src/lib/image-io.ts 的探测结论）。
+ */
+export async function imagesToPdf(images: PdfImageInput[], marginPt = 0): Promise<Uint8Array> {
+  if (images.length === 0) {
+    throw new Error('no images to embed');
+  }
+  const doc = await PDFDocument.create();
+  for (const img of images) {
+    let embedded;
+    if (img.mime === 'image/jpeg') {
+      embedded = await doc.embedJpg(img.bytes);
+    }
+    else if (img.mime === 'image/png') {
+      embedded = await doc.embedPng(img.bytes);
+    }
+    else {
+      throw new Error(`unsupported image mime for direct embedding: ${img.mime}`);
+    }
+    const pageW = img.width + marginPt * 2;
+    const pageH = img.height + marginPt * 2;
+    const page = doc.addPage([pageW, pageH]);
+    page.drawImage(embedded, { x: marginPt, y: marginPt, width: img.width, height: img.height });
+  }
+  // 这里刻意关掉对象流（上面 merge 那条路径留着对象流是有意义的：它重序列化已有文档）。
+  // 理由一：图片型 PDF 的体积由图像流决定，实测 2 页夹具开/关对象流只差 588 B
+  //   （1200×630 JPEG + 1×1 PNG，76719 vs 77307），对本工具动辄几 MB 的产物是噪声。
+  // 理由二：关掉之后页对象与 MediaBox 才是明文，冒烟门禁才能直接断言「N 张图 = N 页、
+  //   页尺寸 = 图像尺寸 + 边距」——本工具的核心契约。对象流开着时这些全被压进流里。
+  //   顺带一个实测坑：带 alpha 的 PNG 会被 pdf-lib 拆成图像 + SMask 两个 XObject，
+  //   所以数 /Subtype /Image 不等于页数，必须数 /Type /Page 再减去 /Type /Pages。
+  return doc.save({ useObjectStreams: false });
+}

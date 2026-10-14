@@ -49,3 +49,5 @@ vite.config.ts.timestamp-*.mjs
 
 # 冒烟测试产物（可疑页截图 + 分片 JSON 报告，含 Chrome profile 目录）
 .smoke-out/
+# smoke 诊断模式的临时输出目录（--out .smoke-out-xxx），一次性产物不入库
+.smoke-out*/

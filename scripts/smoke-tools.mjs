@@ -665,6 +665,13 @@ function classifyConsole() {
       noise.push({ ...rec, why: hit.why });
       continue;
     }
+    // 没有 URL 可归属的连接超时：无法指认是第一方资源（第一方 chunk 失败一定带我们自己的 URL），
+    // 实测本机代理链路掐第三方时就是这个形态 —— 同一次运行里带 URL 的那条已被正确判成 third-party。
+    // 只豁免「空 URL」这一种，带 URL 的超时会照常 blocking，不把真丢的脚本藏起来。
+    if (!url && /net::ERR_CONNECTION_TIMED_OUT|net::ERR_CONNECTION_RESET/.test(text)) {
+      noise.push({ ...rec, why: '空 URL 的连接超时：不可归属到第一方资源，本机代理链路抖动形态（同 run 内带 URL 的同类记录已判 third-party）' });
+      continue;
+    }
     blocking.push(rec);
   }
 
@@ -920,6 +927,83 @@ async function pressKey(spec) {
   return '';
 }
 
+/** 真实指针拖拽（CDP Input.dispatchMouseEvent）。
+ *
+ * 为什么不能用 dispatchEvent(new PointerEvent(...)) 代替：合成事件确实能触发挂在目标上的
+ * handler，但「按下后临时在 window 上挂 move/up」这类交互依赖浏览器输入管线的时序，
+ * 实测合成拖拽不改变组件状态（/image-crop 首跑就是这样：handler 收到了，框却没动）。
+ * 走 Input 域 = 和真实鼠标同一条路径，pointerdown/move/up 与 clientX/clientY 都是浏览器给的。
+ *
+ * spec: { sel, host?, to: [fx, fy], from?, steps?, ms? }
+ *   fx/fy = 0~1 的**比例**，相对 host（默认=sel）的 rect。用比例而不是像素，
+ *   这样窗口尺寸、显示缩放都改不动用例语义。
+ *   起点默认落在 sel 元素中心（例如裁剪框的角点手柄），可用 from 覆盖成 host 的比例坐标。
+ */
+async function dragPointer(spec) {
+  const sel = spec.sel;
+  const hostSel = spec.host || spec.sel;
+  const to = spec.to;
+  if (!Array.isArray(to) || to.length !== 2) {
+    return `drag 需要 to: [fx, fy]，实际=${JSON.stringify(to)}`;
+  }
+  // 1) 先滚进视野。**单独一次 evaluate + 等待**：Input 域坐标是视口相对的，
+  //    而滚动可能是动画提交的（实测：同一次 evaluate 里 scrollIntoView 后立刻量 rect，
+  //    随后派发事件时页面又移了 ~6px，640px 显示 200px 图 → 断言收到 102×102 而不是 100×100）。
+  await evaluate(`(() => {
+    var el = document.querySelector(${JSON.stringify(sel)});
+    if (el) { el.scrollIntoView({ block: 'center', inline: 'center' }); }
+    return 1;
+  })()`);
+  await sleep(150);
+  const geom = await evaluate(`(() => {
+    var el = document.querySelector(${JSON.stringify(sel)});
+    var host = document.querySelector(${JSON.stringify(hostSel)});
+    if (!el || !host) return null;
+    var e = el.getBoundingClientRect(), h = host.getBoundingClientRect();
+    if (!e.width || !e.height || !h.width || !h.height) return null;
+    return { ex: e.left + e.width / 2, ey: e.top + e.height / 2, h: { l: h.left, t: h.top, w: h.width, h: h.height } };
+  })()`);
+  if (!geom) {
+    return `拖拽目标不存在或没有尺寸：sel=${sel} host=${hostSel}`;
+  }
+  const from = Array.isArray(spec.from)
+    ? [geom.h.l + spec.from[0] * geom.h.w, geom.h.t + spec.from[1] * geom.h.h]
+    : [geom.ex, geom.ey];
+  const target = [geom.h.l + to[0] * geom.h.w, geom.h.t + to[1] * geom.h.h];
+  const steps = spec.steps || 5;
+  const ms = spec.ms ?? 20;
+  // 2) 按下前先确认起点真的命中在被拖元素上。没有这一步，坐标算错会退化成
+  //    「事件派发成功但什么都没发生」的静默假通过。
+  const hit = await evaluate(`(() => {
+    var el = document.elementFromPoint(${JSON.stringify(from[0])}, ${JSON.stringify(from[1])});
+    var want = document.querySelector(${JSON.stringify(sel)});
+    if (!el || !want) return 'null';
+    return (el === want || want.contains(el) || el.contains(want)) ? 'ok' : String(el.className || el.tagName);
+  })()`);
+  if (hit !== 'ok') {
+    return `拖拽起点没有命中目标（测量层问题，不是产品缺陷）：起点 ${Math.round(from[0])},${Math.round(from[1])} 命中 ${hit}`;
+  }
+  const at = (x, y, extra) => send('Input.dispatchMouseEvent', {
+    x: Math.round(x * 100) / 100, y: Math.round(y * 100) / 100, button: 'left', clickCount: 1, ...extra,
+  });
+  try {
+    await at(from[0], from[1], { type: 'mouseMoved', buttons: 0 });
+    await sleep(ms);
+    await at(from[0], from[1], { type: 'mousePressed', buttons: 1 });
+    await sleep(ms);
+    for (let i = 1; i <= steps; i++) {
+      const k = i / steps;
+      await at(from[0] + (target[0] - from[0]) * k, from[1] + (target[1] - from[1]) * k, { type: 'mouseMoved', buttons: 1 });
+      await sleep(ms);
+    }
+    await at(target[0], target[1], { type: 'mouseReleased', buttons: 0 });
+  } catch (e) {
+    return `拖拽派发失败：${e.message}`;
+  }
+  await sleep(ms);
+  return '';
+}
+
 /** 选择下拉项。sel 可以是「逗号分隔的候选选择器」——不同工具的下拉实现不同
  *  （本站自研 c-select 用 .c-select-input；naive-ui 用 .n-select），
  *  与其在每个用例里记清楚，不如按顺序试。 */
@@ -956,16 +1040,39 @@ async function uploadFile({ sel, i = 0, file }) {
   for (const abs of absList) {
     if (!fs.existsSync(abs)) return `待上传文件不存在：${abs}`;
   }
-  const { root } = await send('DOM.getDocument', { depth: -1 });
-  const q = await send('DOM.querySelectorAll', {
-    nodeId: root.nodeId,
-    selector: sel || 'input[type="file"]',
-  });
-  const nodeId = q.nodeIds[i];
-  if (!nodeId) return `文件输入未找到：${sel || 'input[type="file"]'}`;
-  await send('DOM.setFileInputFiles', { files: absList, nodeId });
-  await sleep(600);
-  return '';
+  const probeSel = JSON.stringify(sel || 'input[type="file"]');
+  // 有界重试，而不是「setFileInputFiles 之后睡 600ms 然后祈祷」：
+  // 实测同一份用例六次里有一次 waitSel 超时 —— 组件挂载初期会重建 <input>，
+  // 上一轮 DOM.querySelectorAll 拿到的 nodeId 就悬空了，文件静默没落地。
+  for (let attempt = 1; attempt <= 4; attempt++) {
+    const { root } = await send('DOM.getDocument', { depth: -1 });
+    const q = await send('DOM.querySelectorAll', { nodeId: root.nodeId, selector: sel || 'input[type="file"]' });
+    const nodeId = q.nodeIds[i];
+    if (!nodeId) {
+      await sleep(350 * attempt);
+      continue;
+    }
+    try {
+      await send('DOM.setFileInputFiles', { files: absList, nodeId });
+    } catch (e) {
+      await sleep(350 * attempt);
+      continue;
+    }
+    const until = Date.now() + 4000;
+    while (Date.now() < until) {
+      const n = await evaluate(`(() => {
+        var el = document.querySelectorAll(${probeSel})[${i}];
+        return el && el.files ? el.files.length : -1;
+      })()`).catch(() => -1);
+      if (n === absList.length) {
+        await sleep(600);
+        return '';
+      }
+      await sleep(200);
+    }
+    await sleep(350 * attempt);
+  }
+  return `上传后 input.files 始终不是 ${absList.length} 个（测量层：文件没落到控件上，不是站点缺陷）`;
 }
 
 /** 收集页面可见文本 + 所有输入框/下拉的值（只看 innerText 会漏掉工具的输出框） */
@@ -1240,6 +1347,7 @@ async function runCase(c) {
         else if (step.fillLabel) err = await fillByLabel(step.fillLabel);
         else if (step.pick) err = await pickOption(step.pick);
         else if (step.key) err = await pressKey(step.key);
+        else if (step.drag) err = await dragPointer(step.drag);
         else if (step.upload) err = await uploadFile(step.upload);
         else if (step.js) err = await runJsStep(step.js);
         else if (step.wait) await sleep(step.wait);

@@ -503,6 +503,49 @@ tools:
     errors:
       tooLarge: 文件超过 80 MB，浏览器内处理不可靠，请使用桌面工具。
 
+  image-crop:
+    title: 图片裁剪
+    description: 在浏览器里把图片按精确像素区域裁剪——拖动选框、锁定比例，按原图真实分辨率导出，不是缩小后的副本。
+    pickFile: 选择图片
+    ratio: 裁剪比例
+    ratioFree: 自由
+    ratioOriginal: 原图比例
+    selection: 选区
+    format: 输出格式
+    quality: '质量：{q}'
+    button: 裁剪
+    buttonDownload: 下载裁剪结果
+  image-color-picker:
+    title: 图片取色器
+    description: 点击图片任意像素即可读取精确颜色（HEX / RGB / HSL）——取样自原图，完全在浏览器本地完成。
+    pickFile: 选择图片
+    clickHint: 点击任意像素取样。
+  favicon-generator:
+    title: Favicon 生成器
+    description: 用任意一张图片生成真正的多尺寸 favicon.ico，外加 apple-touch-icon 与 512px PNG——先居中裁方再缩放，不上传。
+    pickFile: 选择图片
+    background: 背景
+    bgTransparent: 保留透明
+    bgWhite: 填充白色
+    working: 正在生成…
+    button: 生成图标
+    downloadIco: 下载 favicon.ico
+    download: 下载
+    htmlSnippet: 需要粘贴的 HTML
+    copySnippet: 复制 HTML
+  image-to-pdf:
+    title: 图片转 PDF
+    description: 把图片合成一个 PDF，一图一页、各自成幅——JPEG 原样嵌入不做二次压缩，全程在浏览器内完成。
+    pickFile: 选择图片
+    selected: '已选择 {count} 张图片'
+    margin: 页面留白（pt）
+    working: 正在生成…
+    button: 生成 PDF
+    buttonDownload: 下载 PDF
+    pagesSuffix: 页
+    errors:
+      unreadable: 该文件无法作为图片解码
+
   image-resize:
     title: 图片尺寸调整
     description: 在线把图片调整到精确像素尺寸——采用逐步降采样而非一次性拉伸，细节不糊；全程在浏览器内完成，图片不会上传。

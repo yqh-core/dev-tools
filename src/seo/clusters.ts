@@ -110,6 +110,10 @@ export const TOOL_CLUSTERS: ToolCluster[] = [
     members: [
       '/image-resize',
       '/image-compress',
+      '/image-crop',
+      '/image-color-picker',
+      '/image-to-pdf',
+      '/favicon-generator',
       '/base64-file-converter',
       '/svg-placeholder-generator',
     ],

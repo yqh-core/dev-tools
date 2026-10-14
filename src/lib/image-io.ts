@@ -162,3 +162,44 @@ export function extensionForMime(mimeType: string): string {
     default: return 'png';
   }
 }
+
+/**
+ * 把若干 PNG 打包成一个 .ico（Vista+ 的 PNG-in-ICO 变体）。
+ *
+ * 为什么手写而不是引 zip/ico 库：ICO 结构极小且固定，且引任何依赖当前都会
+ * 触发 pnpm 把 @vueuse/shared 12 重解析到 15（实测），CI 又是 frozen-lockfile。
+ *
+ * 结构：ICONDIR(6B) + N×ICONDIRENTRY(16B) + N×PNG 原始字节。
+ * 注意 width/height 字段是 1 字节，256 要写成 0；本实现限制单边 ≤128 以免歧义。
+ * 偏移量按**文件绝对位置**计，这是 ICO 最容易写错的地方。
+ */
+export function buildIco(pngs: { size: number; bytes: Uint8Array }[]): Uint8Array {
+  const items = pngs.filter(p => p.size >= 1 && p.size <= 128);
+  if (items.length === 0) {
+    throw new Error('buildIco: no usable sizes (each must be 1-128 px)');
+  }
+  const headerSize = 6 + items.length * 16;
+  const total = headerSize + items.reduce((n, p) => n + p.bytes.byteLength, 0);
+  const out = new Uint8Array(total);
+  const view = new DataView(out.buffer);
+
+  view.setUint16(0, 0, true); // reserved
+  view.setUint16(2, 1, true); // type = icon
+  view.setUint16(4, items.length, true);
+
+  let offset = headerSize;
+  items.forEach((p, i) => {
+    const entry = 6 + i * 16;
+    out[entry + 0] = p.size; // width  (0 would mean 256; capped at 128 above)
+    out[entry + 1] = p.size; // height
+    out[entry + 2] = 0; // palette colors
+    out[entry + 3] = 0; // reserved
+    view.setUint16(entry + 4, 1, true); // planes
+    view.setUint16(entry + 6, 32, true); // bit count
+    view.setUint32(entry + 8, p.bytes.byteLength, true);
+    view.setUint32(entry + 12, offset, true); // absolute data offset
+    out.set(p.bytes, offset);
+    offset += p.bytes.byteLength;
+  });
+  return out;
+}

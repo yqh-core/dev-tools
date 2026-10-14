@@ -15,6 +15,10 @@ import { tool as markdownToHtml } from './markdown-to-html';
 import { tool as pdfSignatureChecker } from './pdf-signature-checker';
 import { tool as imageResize } from './image-resize';
 import { tool as imageCompress } from './image-compress';
+import { tool as imageCrop } from './image-crop';
+import { tool as imageColorPicker } from './image-color-picker';
+import { tool as faviconGenerator } from './favicon-generator';
+import { tool as imageToPdf } from './image-to-pdf';
 import { tool as numeronymGenerator } from './numeronym-generator';
 import { tool as macAddressGenerator } from './mac-address-generator';
 import { tool as textToBinary } from './text-to-binary';
@@ -174,7 +178,7 @@ export const toolsByCategory: ToolCategory[] = [
   {
     name: 'Images and videos',
     components: [qrCodeGenerator, wifiQrCodeGenerator, svgPlaceholderGenerator, cameraRecorder,
-      imageResize, imageCompress],
+      imageResize, imageCompress, imageCrop, imageColorPicker, faviconGenerator, imageToPdf],
   },
   {
     name: 'Development',
