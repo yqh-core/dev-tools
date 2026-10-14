@@ -447,7 +447,7 @@ tools:
     title: PDF Merge
     description: Combine multiple PDF files into one — in upload order, page count shown before you start. Free, private, everything happens in your browser.
     pickFiles: Choose PDF files
-    selected: '{count} files selected'
+    selected: '{count} file selected | {count} files selected'
     working: Merging…
     button:
       merge: Merge PDFs
@@ -459,7 +459,7 @@ tools:
     title: PDF Split
     description: Split a PDF into single pages, or extract a page range — page count is read from the file before you choose. Free, private, runs in your browser.
     pickFile: Choose a PDF file
-    pageCount: This document has {count} pages.
+    pageCount: 'This document has {count} page. | This document has {count} pages.'
     working: Splitting…
     mode:
       label: Split mode
@@ -542,12 +542,12 @@ tools:
     title: Images to PDF
     description: Combine images into one PDF, each on its own page at its own size — JPEG is carried in without re-compression, and everything runs in your browser.
     pickFile: Choose images
-    selected: '{count} images selected'
+    selected: '{count} image selected | {count} images selected'
     margin: Page margin (pt)
     working: Building…
     button: Create PDF
     buttonDownload: Download PDF
-    pagesSuffix: pages
+    pagesSuffix: '{count} page | {count} pages'
     errors:
       unreadable: This file could not be decoded as an image
 

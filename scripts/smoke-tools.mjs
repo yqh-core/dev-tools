@@ -1398,6 +1398,23 @@ async function runCase(c) {
   // 断言
   const text = await collectText().catch(() => '');
   rec.assert.textLen = text.length;
+
+  /**
+   * 通用判据：页面上不得出现**未解析的 i18n 键**（形如 tools.image-to-pdf.pickFiles）。
+   * 组件引用了 locales 里不存在的键时，vue-i18n 不抛错、只把键名原样渲染出来 ——
+   * 功能断言全绿、控制台只有一条 warn，用户却看到一行裸键。实测这样漏过一整批
+   * （/image-to-pdf 的上传框标题，靠截图才发现），所以固化成每页都跑的判据。
+   *
+   * 位置很关键：必须放在**交互步骤之后**、用断言阶段已经收集好的全文本来量。
+   * 早先放在挂载检测那一档时，工具正文还没渲染（实测 innerText 只有 238 字符），
+   * 判据对已知坏页面报绿 —— 假绿比假红贵。
+   */
+  const BARE_KEY_RE = /\b(?:tools|seo|clusters|common|nav|pages)\.[A-Za-z0-9_-]+(?:\.[A-Za-z0-9_-]+)+/g;
+  const bareKeys = Array.from(new Set(text.match(BARE_KEY_RE) || [])).slice(0, 6);
+  rec.assert.bareI18nKeys = bareKeys;
+  if (bareKeys.length) {
+    fail(`页面出现未解析的 i18n 键（组件引用了 locales 里没有的键）：${bareKeys.join(' | ')}`);
+  }
   const exp = c.expect || {};
   const missing = (exp.text || []).filter(s => !text.includes(s));
   const forbidden = (exp.not || []).filter(s => text.includes(s));

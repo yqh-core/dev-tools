@@ -134,7 +134,7 @@ const totalInputBytes = computed(() => files.value.reduce((n, f) => n + f.size, 
       <c-file-upload
         multiple
         accept="image/*"
-        :title="t('tools.image-to-pdf.pickFiles')"
+        :title="t('tools.image-to-pdf.pickFile')"
         @files-upload="onFilesUpload"
       />
 
@@ -167,7 +167,7 @@ const totalInputBytes = computed(() => files.value.reduce((n, f) => n + f.size, 
 
       <div v-if="resultUrl" mt-4 data-test-id="pdf-result">
         <p text-sm data-test-id="pdf-summary">
-          {{ rows.length }} {{ t('tools.image-to-pdf.pagesSuffix') }} · {{ formatBytes(totalInputBytes) }} → {{ formatBytes(resultSize) }}
+          {{ t('tools.image-to-pdf.pagesSuffix', { count: rows.length }) }} · {{ formatBytes(totalInputBytes) }} → {{ formatBytes(resultSize) }}
         </p>
         <a :href="resultUrl" download="images.pdf">
           <c-button data-test-id="pdf-download">{{ t('tools.image-to-pdf.buttonDownload') }}</c-button>
