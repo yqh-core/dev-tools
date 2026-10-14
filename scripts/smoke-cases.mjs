@@ -241,6 +241,108 @@ export const SMOKE_CASES = [
     steps: [{ upload: { i: 0, file: 'scripts/smoke-fixtures/unsigned.pdf' } }, { wait: 2500 }],
     expect: { text: ['No signatures found in the provided file.'] },
   },
+
+  {
+    path: '/pdf-merge',
+    name: 'pdf-merge',
+    category: 'Crypto',
+    zhTitle: 'PDF 合并',
+    tier: 'io',
+    strategy: '真合并断言：一次上传 2 个 PDF（按钮启用条件 files.length>=2）→ 断言「2 files selected」文案 → 点 Merge PDFs → 同步读回 blob 验 %PDF- 头与字节下界',
+    steps: [
+      { upload: { i: 0, file: ['scripts/smoke-fixtures/unsigned.pdf', 'scripts/smoke-fixtures/photo-pages.pdf'] } },
+      { waitText: { text: '2 files selected', scope: '.tool-content', ms: 8000 } },
+      { js: `(function(){
+          var b = [].slice.call(document.querySelectorAll('.tool-content button'))
+            .find(function(x){ return /merge pdfs/i.test(x.innerText); });
+          if (!b) return '找不到 Merge PDFs 按钮';
+          if (b.disabled) return '两个文件已登记但按钮仍禁用';
+          return null;
+        })()` },
+      { click: 'Merge PDFs' },
+      { waitSel: { sel: 'a[download="merged.pdf"]', ms: 20000 } },
+      { js: `(function(){
+          var a = document.querySelector('a[download="merged.pdf"]');
+          if (!a) return '下载锚点缺失';
+          if ((a.href || '').indexOf('blob:') !== 0) return 'href 不是 blob，产物未真正生成：' + a.href;
+          var x = new XMLHttpRequest();
+          x.open('GET', a.href, false);
+          x.overrideMimeType('text/plain; charset=x-user-defined');
+          x.send();
+          var raw = x.responseText || '';
+          var u = { length: raw.length, at: function (k) { return raw.charCodeAt(k) & 0xff; } };
+          if (u.length < 900) return '合并结果仅 ' + u.length + ' 字节，小于两个输入的量级';
+          var head = String.fromCharCode(u.at(0),u.at(1),u.at(2),u.at(3),u.at(4));
+          if (head !== '%PDF-') return '合并结果不是 PDF 头：' + head;
+          return null;
+        })()` },
+    ],
+  },
+  {
+    path: '/pdf-split',
+    name: 'pdf-split',
+    category: 'Crypto',
+    zhTitle: 'PDF 拆分',
+    tier: 'io',
+    strategy: '真拆分断言：上传 3 页夹具 → 断言工具自己数出「has 3 pages」（证明真的解析了 PDF）→ 点 Split PDF → 至少 1 个 blob 下载项且 %PDF- 头正确',
+    steps: [
+      { upload: { i: 0, file: 'scripts/smoke-fixtures/photo-pages.pdf' } },
+      { waitText: { text: 'has 3 pages', scope: '.tool-content', ms: 10000 } },
+      { click: 'Split PDF' },
+      { waitSel: { sel: '.tool-content a[download]', ms: 20000 } },
+      { js: `(function(){
+          var as = [].slice.call(document.querySelectorAll('.tool-content a[download]'));
+          if (!as.length) return '拆分后没有任何下载项';
+          var blobs = as.filter(function(a){ return (a.href || '').indexOf('blob:') === 0; });
+          if (!blobs.length) return '有下载项但都不是 blob 产物';
+          var x = new XMLHttpRequest();
+          x.open('GET', blobs[0].href, false);
+          x.overrideMimeType('text/plain; charset=x-user-defined');
+          x.send();
+          var raw = x.responseText || '';
+          var u = { length: raw.length, at: function (k) { return raw.charCodeAt(k) & 0xff; } };
+          if (u.length < 300) return '首个产物仅 ' + u.length + ' 字节';
+          var head = String.fromCharCode(u.at(0),u.at(1),u.at(2),u.at(3),u.at(4));
+          if (head !== '%PDF-') return '首个产物不是 PDF 头：' + head;
+          return null;
+        })()` },
+    ],
+  },
+  {
+    path: '/pdf-watermark',
+    name: 'pdf-watermark',
+    category: 'Crypto',
+    zhTitle: 'PDF 水印',
+    tier: 'io',
+    strategy: '真水印断言：上传 + 填水印文本 → Apply watermark → 读回 blob 验 %PDF- 头，并要求产物严格大于输入 595 字节（否则说明内容没写进去）',
+    steps: [
+      { upload: { i: 0, file: 'scripts/smoke-fixtures/unsigned.pdf' } },
+      { fill: { sel: '.tool-content input[placeholder="e.g. CONFIDENTIAL"]', text: 'CONFIDENTIAL' } },
+      { js: `(function(){
+          var el = document.querySelector('.tool-content input[placeholder="e.g. CONFIDENTIAL"]');
+          if (!el) return '找不到水印文本框';
+          if (el.value !== 'CONFIDENTIAL') return '文本未真正写入模型，实际值=' + JSON.stringify(el.value);
+          return null;
+        })()` },
+      { click: 'Apply watermark' },
+      { waitSel: { sel: 'a[download="watermarked.pdf"]', ms: 20000 } },
+      { js: `(function(){
+          var a = document.querySelector('a[download="watermarked.pdf"]');
+          if (!a) return '下载锚点缺失';
+          if ((a.href || '').indexOf('blob:') !== 0) return 'href 不是 blob';
+          var x = new XMLHttpRequest();
+          x.open('GET', a.href, false);
+          x.overrideMimeType('text/plain; charset=x-user-defined');
+          x.send();
+          var raw = x.responseText || '';
+          var u = { length: raw.length, at: function (k) { return raw.charCodeAt(k) & 0xff; } };
+          var head = String.fromCharCode(u.at(0),u.at(1),u.at(2),u.at(3),u.at(4));
+          if (head !== '%PDF-') return '产物不是 PDF 头：' + head;
+          if (u.length <= 595) return '产物 ' + u.length + ' 字节未超过输入 595 字节，水印可能没写进去';
+          return null;
+        })()` },
+    ],
+  },
   {
     path: '/pdf-compress',
     name: 'pdf-compress',

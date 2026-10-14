@@ -950,8 +950,12 @@ async function pickOption({ sel, text }) {
 }
 
 async function uploadFile({ sel, i = 0, file }) {
-  const abs = path.resolve(REPO, file);
-  if (!fs.existsSync(abs)) return `待上传文件不存在：${abs}`;
+  // file 允许字符串或数组。多文件控件（如 pdf-merge 需要一次给 2 个 PDF）必须一次给全：
+  // 组件的 @files-upload 是替换语义（files.value = list），分两次上传只会留下最后一个。
+  const absList = (Array.isArray(file) ? file : [file]).map((f) => path.resolve(REPO, f));
+  for (const abs of absList) {
+    if (!fs.existsSync(abs)) return `待上传文件不存在：${abs}`;
+  }
   const { root } = await send('DOM.getDocument', { depth: -1 });
   const q = await send('DOM.querySelectorAll', {
     nodeId: root.nodeId,
@@ -959,7 +963,7 @@ async function uploadFile({ sel, i = 0, file }) {
   });
   const nodeId = q.nodeIds[i];
   if (!nodeId) return `文件输入未找到：${sel || 'input[type="file"]'}`;
-  await send('DOM.setFileInputFiles', { files: [abs], nodeId });
+  await send('DOM.setFileInputFiles', { files: absList, nodeId });
   await sleep(600);
   return '';
 }
