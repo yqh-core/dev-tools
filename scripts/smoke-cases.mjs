@@ -379,7 +379,7 @@ export const SMOKE_CASES = [
     category: 'Crypto',
     zhTitle: 'PDF 拆分',
     tier: 'io',
-    strategy: '真拆分断言：上传 3 页夹具 → 断言工具自己数出「has 3 pages」（证明真的解析了 PDF）→ 点 Split PDF → 至少 1 个 blob 下载项且 %PDF- 头正确',
+    strategy: '真拆分断言：上传 3 页夹具 → 断言工具自己数出「has 3 pages」（证明真的解析了 PDF）→ 点 Split PDF → 至少 1 个 blob 下载项且 %PDF- 头正确。末尾再传 1 页夹具验**单数形态**（"has 1 page."，不是 "1 pages."）——这条是复数缺陷 a49276b 的回归锁',
     steps: [
       { upload: { i: 0, file: 'scripts/smoke-fixtures/photo-pages.pdf' } },
       { waitText: { text: 'has 3 pages', scope: '.tool-content', ms: 10000 } },
@@ -403,6 +403,10 @@ export const SMOKE_CASES = [
           return null;
         })()`,
       },
+      // —— 单数形态回归锁（a49276b 修的就是这个）——
+      // 必须带句点：'has 1 page' 是 'has 1 pages' 的前缀，用它会永远为真（假绿）。
+      { upload: { i: 0, file: 'scripts/smoke-fixtures/one-page.pdf' } },
+      { waitText: { text: 'has 1 page.', scope: '.tool-content', ms: 10000 } },
     ],
   },
   {
