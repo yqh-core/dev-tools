@@ -77,6 +77,14 @@ const CURLY_QUOTES = /[“”‘’]/;
  */
 const NO_EXAMPLE_WHITELIST = [
   {
+    path: '/image-resize',
+    why: '必需输入是文件不是文本框：主控件为 c-file-upload 的 <input type=file>，findPrimaryInput() 命中不到可写控件；配 example 会填不进图片而成死按钮',
+  },
+  {
+    path: '/image-compress',
+    why: '同上：唯一必需输入是文件上传，其余为 n-select/n-slider/n-input-number 参数，无文本示例可填',
+  },
+  {
     path: '/camera-recorder',
     why: '无任何输入控件：findPrimaryInput() 返回 null（探测 mode=no-input），页面只有 Start webcam 按钮',
   },

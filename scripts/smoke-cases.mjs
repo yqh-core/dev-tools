@@ -232,6 +232,89 @@ export const SMOKE_CASES = [
     },
   },
   {
+    path: '/image-resize',
+    name: 'image-resize',
+    category: 'Images and videos',
+    zhTitle: '图片尺寸调整',
+    tier: 'io',
+    strategy: '真重采样断言：上传 1200x630 夹具 → 填目标宽 600（锁比例应自动算出高 315）→ 点提交 → 读回 <img> 的 naturalWidth/Height 必须精确等于 600x315，且产物是 blob 且非空。只验结果区出现会漏掉图像层静默不执行',
+    steps: [
+      { upload: { i: 0, file: 'scripts/smoke-fixtures/photo-sample.jpg' } },
+      { waitSel: { sel: '[data-test-id="source-info"]', ms: 10000 } },
+      { js: `(function(){
+          var el = document.querySelector('[data-test-id="source-info"]');
+          var txt = el ? el.textContent : '';
+          if (txt.indexOf('1200') === -1 || txt.indexOf('630') === -1) return '源图信息未显示真实尺寸: ' + txt.slice(0, 80);
+          return null;
+        })()` },
+      { fill: { sel: '[data-test-id="target-width"] .n-input__input-el', text: '600' } },
+      { wait: 400 },
+      { js: `(function(){
+          var h = document.querySelector('[data-test-id="target-height"] .n-input__input-el');
+          if (!h) return '找不到高度输入框';
+          if (String(h.value) !== '315') return '锁定宽高比未自动换算高度，实际=' + h.value;
+          return null;
+        })()` },
+      { clickSel: '[data-test-id="resize-submit"]' },
+      { waitSel: { sel: '[data-test-id="resize-output"]', ms: 20000 } },
+      { js: `(function(){
+          var img = document.querySelector('[data-test-id="resize-output"]');
+          if (!img) return '结果图缺失';
+          if (img.naturalWidth !== 600 || img.naturalHeight !== 315) {
+            return '输出尺寸不是 600x315，实际=' + img.naturalWidth + 'x' + img.naturalHeight;
+          }
+          var a = document.querySelector('[data-test-id="resize-download"]');
+          var link = a ? a.closest('a') : null;
+          if (!link || (link.href || '').indexOf('blob:') !== 0) return '下载链接不是 blob 产物';
+          if (!/\.(png|jpg|jpeg|webp)$/.test(link.getAttribute('download') || '')) return '下载文件名没有正确扩展名';
+          return null;
+        })()` },
+    ],
+  },
+  {
+    path: '/image-compress',
+    name: 'image-compress',
+    category: 'Images and videos',
+    zhTitle: '图片压缩',
+    tier: 'io',
+    strategy: '真压缩量化断言：上传 75KB 夹具 → 设目标体积 20KB → 压缩 → 产物必须 < 源体积的 90%（即降幅≥10%）且 blob 头为 JPEG/RIFF-WEBP 魔数、扩展名与真实类型一致。只验结果出现等于没测',
+    steps: [
+      { upload: { i: 0, file: 'scripts/smoke-fixtures/photo-sample.jpg' } },
+      { waitSel: { sel: '[data-test-id="source-info"]', ms: 10000 } },
+      { fill: { sel: '[data-test-id="target-kb"] .n-input__input-el', text: '20' } },
+      { wait: 300 },
+      { clickSel: '[data-test-id="compress-submit"]' },
+      { waitSel: { sel: '[data-test-id="compress-result"]', ms: 25000 } },
+      { js: `(function(){
+          var link = document.querySelector('[data-test-id="compress-download"]');
+          link = link ? link.closest('a') : null;
+          if (!link) return '下载链接缺失';
+          if ((link.href || '').indexOf('blob:') !== 0) return '产物不是 blob';
+          var x = new XMLHttpRequest();
+          x.open('GET', link.href, false);
+          x.overrideMimeType('text/plain; charset=x-user-defined');
+          x.send();
+          var raw = x.responseText || '';
+          if (raw.length < 1000) return '产物仅 ' + raw.length + ' 字节，疑似空文件';
+          var b = function (i) { return raw.charCodeAt(i) & 0xff; };
+          var isJpeg = b(0) === 0xFF && b(1) === 0xD8;
+          var riff = String.fromCharCode(b(0), b(1), b(2), b(3)) === 'RIFF'
+                  && String.fromCharCode(b(8), b(9), b(10), b(11)) === 'WEBP';
+          if (!isJpeg && !riff) return '产物不是合法 JPEG/WebP，头=' + b(0) + ',' + b(1);
+          var name = link.getAttribute('download') || '';
+          var extOk = (isJpeg && /\.(jpg|jpeg)$/.test(name)) || (riff && /\.webp$/.test(name));
+          if (!extOk) return '扩展名与真实编码类型不符: ' + name;
+          // 不解析 UI 文案（脆且无必要）：直接拿产物字节数对比夹具真实大小 75234 B，
+          // 断言至少 10% 的可测降幅 —— 图像层静默不执行时产物会接近或超过原大小，必红。
+          var SOURCE_BYTES = 75234;
+          if (raw.length >= SOURCE_BYTES * 0.9) {
+            return '压缩未产生 ≥10% 可测收益: 夹具 ' + SOURCE_BYTES + 'B → 产物 ' + raw.length + 'B';
+          }
+          return null;
+        })()` },
+    ],
+  },
+  {
     path: '/pdf-signature-checker',
     name: 'pdf-signature-checker',
     category: 'Crypto',

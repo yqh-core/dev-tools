@@ -508,6 +508,35 @@ tools:
     errors:
       tooLarge: File exceeds 80 MB — browser-side processing would be unreliable. Please use a desktop tool.
 
+  image-resize:
+    title: Image Resizer
+    description: Resize images online to exact pixel dimensions — step-down scaling keeps detail instead of smearing it, and nothing is uploaded because it all runs in your browser.
+    pickFile: Choose an image
+    width: Target width (px)
+    height: Target height (px)
+    lockAspect: Keep aspect ratio
+    format: Output format
+    quality: 'Quality: {q}'
+    working: Resizing…
+    button: Resize image
+    vsSource: vs source
+    previewAlt: Resized image preview
+    buttonDownload: Download resized image
+  image-compress:
+    title: Image Compressor
+    description: Compress JPEG and WebP images online to a quality level or a target file size — lossy re-encoding in your browser, so the file never leaves your machine.
+    pickFile: Choose an image
+    format: Output format
+    quality: 'Quality: {q}'
+    targetSize: Target size in KB (optional)
+    targetSizePlaceholder: e.g. 200
+    working: Compressing…
+    button: Compress image
+    usedQuality: quality used
+    buttonDownload: Download compressed image
+    errors:
+      targetUnreachable: Even the lowest quality could not reach that size. Raise the target, or resize the image first.
+
   pdf-signature-checker:
     title: PDF signature checker
     description: Verify the signatures of a PDF file. A signed PDF file contains one or more signatures that may be used to determine whether the contents of the file have been altered since the file was signed.
@@ -682,6 +711,7 @@ tool:
   guideExampleApplied: "✓ Filled in"
   guideExampleFailed: "Couldn't auto-fill this input"
 clusters:
+  image: "Image tools"
   pdf: 'PDF tools'
   json: "JSON tools"
   yaml: "YAML & TOML"

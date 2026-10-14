@@ -503,6 +503,35 @@ tools:
     errors:
       tooLarge: 文件超过 80 MB，浏览器内处理不可靠，请使用桌面工具。
 
+  image-resize:
+    title: 图片尺寸调整
+    description: 在线把图片调整到精确像素尺寸——采用逐步降采样而非一次性拉伸，细节不糊；全程在浏览器内完成，图片不会上传。
+    pickFile: 选择图片
+    width: 目标宽度（px）
+    height: 目标高度（px）
+    lockAspect: 保持宽高比
+    format: 输出格式
+    quality: 质量：{q}
+    working: 正在调整…
+    button: 调整尺寸
+    vsSource: 相对原图
+    previewAlt: 调整后图片预览
+    buttonDownload: 下载调整后的图片
+  image-compress:
+    title: 图片压缩
+    description: 在线压缩 JPEG 与 WebP，可按质量或按目标体积收敛——有损重编码全部在浏览器里完成，文件不出本机。
+    pickFile: 选择图片
+    format: 输出格式
+    quality: 质量：{q}
+    targetSize: 目标体积（KB，可选）
+    targetSizePlaceholder: 例如 200
+    working: 正在压缩…
+    button: 压缩图片
+    usedQuality: 实际使用质量
+    buttonDownload: 下载压缩后的图片
+    errors:
+      targetUnreachable: 最低质量也无法压到该体积。请放宽目标，或先缩小图片尺寸。
+
   pdf-signature-checker:
     title: PDF签名检查器
     description: '验证PDF文件的签名。签名的PDF文件包含一个或多个签名，可用于确定文件的内容在签名后是否已被更改。'
@@ -678,6 +707,7 @@ tool:
   guideExampleApplied: "✓ 已填入"
   guideExampleFailed: "示例无法填入此输入框"
 clusters:
+  image: "图片工具"
   pdf: 'PDF 工具'
   json: "JSON 工具"
   yaml: "YAML 与 TOML"

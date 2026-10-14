@@ -106,6 +106,15 @@ export const TOOL_CLUSTERS: ToolCluster[] = [
     ],
   },
   {
+    id: 'image',
+    members: [
+      '/image-resize',
+      '/image-compress',
+      '/base64-file-converter',
+      '/svg-placeholder-generator',
+    ],
+  },
+  {
     id: 'pdf',
     members: [
       '/pdf-merge',

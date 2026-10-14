@@ -87,6 +87,8 @@ export const ALIASES: Record<string, string[]> = {
   '/text-to-binary': ['二进制', 'binary', 'ascii', '转换', '01'],
   '/text-to-nato-alphabet': ['音标', '字母', 'nato', '拼写', '对讲'],
   '/password-generator': ['密码', '口令', '随机密码', '强密码', '生成', 'password'],
+  '/image-resize': ['改尺寸', '调整大小', '缩放', '改分辨率', '图片缩小', '图片放大', '改像素', '按尺寸压缩'],
+  '/image-compress': ['压缩图片', '图片瘦身', '减小体积', '降低大小', '压到', 'jpg压缩', 'webp压缩', '图片质量'],
   '/pdf-merge': ['pdf', '合并', '拼接', 'combine'],
   '/pdf-split': ['pdf', '拆分', '分割', '提取', '页面'],
   '/pdf-watermark': ['pdf', '水印', '标记', 'stamp'],

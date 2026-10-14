@@ -867,6 +867,42 @@ export const GUIDES: Record<string, ToolGuide> = {
     ],
   },
 
+  '/image-resize': {
+    intro: 'Resize an image to exact pixel dimensions in the browser, with step-down scaling that keeps detail instead of smearing it.',
+    steps: ['Pick an image', 'Enter the target width and height (or keep the aspect ratio locked)', 'Choose the output format and download the result'],
+    notes: [
+      'Downscaling is done by repeated halving rather than one big jump — a single canvas scale throws away pixels and leaves aliasing.',
+      'Enlarging beyond the original resolution cannot add detail; the result will be softer, not sharper.',
+      'Only formats the browser can genuinely encode are offered — see the question about formats below.',
+    ],
+    about: 'Resize an image to the exact width and height you need, entirely in your browser — the file never leaves your machine. The important part is how the shrinking is done: a canvas will happily scale 4000×3000 straight down to 400×300 in one step, and the browser\'s bilinear sampling simply discards most of the pixels, which shows up as jagged edges and moire on patterns and text. This tool instead halves the image repeatedly until it is within two steps of the target, then does the final adjustment, which is the closest thing to a proper resampling filter you can get without a native library. Output is PNG (lossless), or JPEG/WebP where you control the quality. Formats are offered only if the browser actually encodes them: the spec says an unsupported type should make toBlob return null, but Chrome, Safari and Firefox quietly return a PNG instead, so the option list is probed at runtime rather than assumed.',
+    faqs: [
+      { q: 'Why is my resized photo sharper than one from another resizer?', a: 'Because shrinking happens in repeated halving steps instead of one jump. A single large downscale makes the browser sample too sparsely and drop detail; halving keeps each step close to 2:1 so information is averaged rather than skipped.' },
+      { q: 'Can I make a small image bigger without losing quality?', a: 'No tool can invent detail that was never captured. Enlarging here resamples the existing pixels, so the result is larger but no sharper — expect it to look softer. The exception is pixel art, where nearest-neighbour style scaling keeps hard edges.' },
+      { q: 'Which output formats are available?', a: 'PNG always, plus JPEG and WebP when your browser genuinely encodes them. Formats the browser cannot really produce are not listed at all, rather than being listed and silently producing a different file type.' },
+      { q: 'Why should I resize locally instead of using an online converter?', a: 'Because an ID card, a contract scan or a private photo does not need a second home on someone\'s server. Nothing is uploaded here, so there is no retention policy to trust and no breach to worry about.' },
+      { q: 'What are the size limits?', a: 'The practical ceiling is your device memory, not a server quota. Very large images (roughly beyond 8000 pixels on a side as capped in the fields) can fail in the browser, and the tool reports the failure instead of returning a truncated file.' },
+    ],
+  },
+
+  '/image-compress': {
+    intro: 'Compress a JPEG or WebP image to a quality level you set, or straight down to a target file size, without uploading it anywhere.',
+    steps: ['Pick an image', 'Choose JPEG or WebP and either a quality level or a target size in KB', 'Compress, compare the before and after numbers, and download'],
+    notes: [
+      'This is lossy re-encoding: each pass discards data. Start from the original file rather than re-compressing an already-compressed one.',
+      'PNG output is not offered here because lossless re-encoding rarely shrinks a photo — use the resizer or convert to JPEG/WebP instead.',
+      'A target size that cannot be reached is reported as a failure rather than quietly returning a file that ignores your limit.',
+    ],
+    about: 'Shrink a photo to the size you actually need — either by picking a quality level, or by naming a target file size and letting the tool search for the quality that gets there. Everything runs on your own machine: the image is decoded, re-encoded and handed back without a network request, which matters exactly when the file is the thing you least want copied — documents, receipts, photos of a whiteboard, anything with a face in it. Under the hood it is the browser\'s own JPEG and WebP encoders driven by a quality search: for a target size, the tool bisects the quality range (up to seven attempts) and keeps the highest quality that still fits. That is the same shape of algorithm a desktop "save for web" dialog uses, minus the upload. Expect the honest limits of lossy compression: text and sharp edges start to look noisy before a photograph does, and re-compressing an already-compressed JPEG compounds the damage.',
+    faqs: [
+      { q: 'How much smaller can I make it?', a: 'Photos typically drop to a fraction of their original size at quality 70-80 with little visible change, and further if you accept softer edges. The tool shows before and after numbers so you can judge the trade instead of guessing.' },
+      { q: 'Why is my PNG not getting smaller?', a: 'PNG is lossless, so re-encoding a photo as PNG cannot throw information away — it usually grows. For photographs, convert to JPEG or WebP. PNG is the right choice for flat-colour graphics, screenshots of text and anything needing transparency.' },
+      { q: 'Does the target-size mode always hit my number?', a: 'It returns the highest quality that fits the limit, or fails visibly when even the lowest quality is too large — which usually means the image itself needs resizing first. It will not hand you an oversized file with a reassuring label.' },
+      { q: 'Will compressing damage my image?', a: 'Yes, lossy compression discards data permanently. Keep the original, and avoid re-compressing a file that was already a JPEG — each pass adds its own artefacts on top of the last.' },
+      { q: 'Is it safe for documents with personal information?', a: 'For this tool, yes in the sense that nothing is uploaded: the file is read and rewritten locally by your browser. What you should still not do is paste a sensitive file into an unknown online converter that sends it to a server and tells you to trust its retention policy.' },
+    ],
+  },
+
   '/pdf-merge': {
     intro: 'Combines multiple PDF files into one document, preserving upload order.',
     steps: ['Select two or more PDF files', 'Click merge', 'Download the combined PDF'],
