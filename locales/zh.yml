@@ -80,28 +80,49 @@ home:
     lightMode: '浅色模式'
     mode: '颜色模式'
 about:
-  content: >
+  content: |-
     # 关于 DigDevBox
 
-    DigDevBox汇集了对开发人员和运维人员有用的在线工具，全部在浏览器本地运行，不上传任何数据。如果对您有帮助，欢迎收藏并分享给同事。
+    DigDevBox 是一组轻量的浏览器工具：本站有 107 个面向开发者和日常的实用工具，另有 `/legacy/` 下 162 页经典版存档，保留自本站早期的中文版本。
 
-    本项目基于开源项目 [it-tools](https://github.com/CorentinTh/it-tools)（GPL-3.0 许可）二次开发，在此感谢原作者的贡献。当前版本由 DigDevBox 团队维护。
+    ## 你的数据去了哪里
 
-    ## 技术
+    每个工具都在你的浏览器里完成工作。你粘贴的文本、文件、密钥、密码都在本地处理——不上传、不保存。
 
-    前端采用 Vue 3 + Naive UI，构建工具为 Vite，部署在 Cloudflare Pages。部分工具使用了第三方开源库。
+    有三个工具是例外，因为它们不联网就拿不到结果：
 
-    ## 发现问题？缺少工具？
+    - [WHOIS 查询](/whois-lookup) 要问域名注册局
+    - [HTTP 状态检测](/http-status-checker) 要请求你填入的网址
+    - [历史上的今天](/today-in-history) 要读一份公开数据
 
-    如果需要某个目前没有的工具，欢迎到 [DigDevBox 联系页](https://digdevbox.com/contact) 提交功能建议。
+    这几个会把你输入的值发给第三方服务以取得结果。其余全部留在你本机。
 
-    如果发现 Bug 或某个功能表现异常，也请通过 [DigDevBox 联系页](https://digdevbox.com/contact) 提交问题报告。
+    这里没有账号、不用注册、没有付费墙，服务端也不留你正在处理的内容。
 
-    ## 同站工具
+    ## 谁在做这个站
 
-    - [IP 归属地查询](https://ip.digdevbox.com)
-    - [房贷计算器](https://fangdai.digdevbox.com)
+    DigDevBox 由一个人维护，不是公司也不是团队。站点靠广告维持；这涉及哪些 Cookie 和个性化广告，[隐私政策](/privacy) 里写清楚了。
 
+    ## 代码从哪来
+
+    本项目是开源项目 [it-tools](https://github.com/CorentinTh/it-tools)（GPL-3.0）的 fork，架构的功劳属于原作者。技术栈是 Vue 3、Naive UI 和 Vite，以静态文件形式部署在 Cloudflare Pages。部分工具依赖第三方开源库。
+
+    ## 关于准确性
+
+    每个工具页写的都是这个工具**实际**能做什么——依据是代码，不是「同类工具一般能做什么」。如果某页声明了工具其实没有的能力（转不了的格式、不存在的选项），那是缺陷，不是宣传。请报告，我们会改。
+
+    ## 反馈、报错、想要新工具
+
+    功能建议和缺陷报告请走[联系页](/contact)。
+
+    ## 同站群的其他工具
+
+    - [IP 归属地查询](https://ip.digdevbox.com) — 查一个 IP 解析到哪里
+    - [房贷计算](https://fangdai.digdevbox.com) — 月供与利息
+    - [在线绘图](https://draw.digdevbox.com) — 浏览器里的图片编辑器
+    - [M3U8 播放器](https://play.digdevbox.com) — 浏览器直接播流
+    - [TTS 朗读](https://ttsreader.digdevbox.com) — 把文字转成语音
+    - [锻造笔记](https://notes.digdevbox.com) — 工具与性能方向的长文
 legal:
   siteName: 'DigDevBox'
   privacy: '隐私政策'

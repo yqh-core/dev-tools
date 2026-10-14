@@ -81,26 +81,49 @@ home:
     lightMode: 'Light mode'
     mode: 'Toggle dark/light mode'
 about:
-  content: >
+  content: |-
     # About DigDevBox
 
-    DigDevBox is a collection of handy online tools for developers. Everything runs client-side in your browser - no data is ever uploaded. If you find it useful, feel free to bookmark and share it.
+    DigDevBox is a collection of small browser tools: 107 developer and everyday utilities at this address, plus a 162-page classic archive under `/legacy/` kept from the older Chinese version of the site.
 
-    This project is a fork of the open-source [it-tools](https://github.com/CorentinTh/it-tools) (GPL-3.0), and we are grateful to its author. It is currently maintained by the DigDevBox team.
+    ## Where your data goes
 
-    ## Technologies
+    Every tool does its work in your browser. The text, files, keys and passwords you paste are processed locally — they are not uploaded and not stored.
 
-    Built with Vue 3, Naive UI and Vite, deployed on Cloudflare Pages. Some tools rely on third-party open-source libraries.
+    Three tools are the exception, because they cannot answer without asking someone else:
 
-    ## Found a bug? A tool is missing?
+    - [WHOIS lookup](/whois-lookup) queries the domain registry
+    - [HTTP status checker](/http-status-checker) requests the URL you enter
+    - [Today in history](/today-in-history) reads a public dataset
 
-    Feature requests and bug reports are welcome at the [DigDevBox contact page](https://digdevbox.com/contact).
+    Those send the value you typed to a third-party service in order to produce a result. Everything else stays on your machine.
+
+    There is no account, no sign-up, no paywall, and no server-side copy of what you are working on.
+
+    ## Who runs it
+
+    DigDevBox is maintained by one person, not a company or a team. The site is funded by advertising; what that means for cookies and personalised ads is spelled out in the [Privacy Policy](/privacy).
+
+    ## Where the code comes from
+
+    This project is a fork of the open-source [it-tools](https://github.com/CorentinTh/it-tools) (GPL-3.0), and the credit for its architecture belongs to the original author. Built with Vue 3, Naive UI and Vite, deployed as static files on Cloudflare Pages. Some tools rely on third-party open-source libraries.
+
+    ## A note on accuracy
+
+    Each tool page documents what that tool actually does, read from the code rather than from what a similar-looking tool would do. If a page ever claims a capability the tool does not have — a format it cannot convert, an option that is not there — that is a bug, not marketing. Please report it and it gets fixed.
+
+    ## Feedback, bugs, missing tools
+
+    Feature requests and bug reports are welcome on the [contact page](/contact).
 
     ## Sibling tools
 
-    - [IP Geolocation](https://ip.digdevbox.com)
-    - [Mortgage Calculator](https://fangdai.digdevbox.com)
-
+    - [IP Geolocation](https://ip.digdevbox.com) — where an IP address resolves to
+    - [Mortgage Calculator](https://fangdai.digdevbox.com) — monthly payments and total interest
+    - [Drawing](https://draw.digdevbox.com) — browser image editor
+    - [M3U8 Player](https://play.digdevbox.com) — stream playback in the browser
+    - [TTS Reader](https://ttsreader.digdevbox.com) — turn text into speech
+    - [Forge Notes](https://notes.digdevbox.com) — longer guides on tooling and performance
 legal:
   siteName: 'DigDevBox'
   privacy: 'Privacy Policy'
