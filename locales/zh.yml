@@ -293,7 +293,7 @@ tools:
     description: 将字符串、文件或图像转换为其 Base64 表示形式。
   list-converter:
     title: List 转换器
-    description: 该工具可以处理基于数组的数据，并将各种更改（转置、添加前缀和后缀、反向列表、排序列表、小写值、截断值）应用于每一行。
+    description: 对逐行清单做去重、排序、反转、转小写、去空格、加前后缀。全部在浏览器内完成，不上传数据。
 
   base64-string-converter:
     title: Base64 字符串编码/解码
@@ -337,7 +337,7 @@ tools:
 
   json-prettify:
     title: JSON 格式化与校验 — 在线美化验证 JSON
-    description: 在线格式化与校验 JSON — 即时美化、压缩并发现语法错误，全程在浏览器内完成。
+    description: 在线格式化与校验 JSON — 按指定缩进美化、按键排序、即时发现语法错误，全程在浏览器内完成。
 
   docker-run-to-docker-compose-converter:
     title: Docker Run 到 docker-compose 转换器

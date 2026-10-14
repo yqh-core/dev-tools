@@ -297,7 +297,7 @@ tools:
 
   list-converter:
     title: List converter
-    description: This tool can process column-based data and apply various changes (transpose, add prefix and suffix, reverse list, sort list, lowercase values, truncate values) to each row.
+    description: Remove duplicates, sort, reverse, lowercase, trim and add prefix/suffix to a list, one item per line. Everything runs in your browser — no upload.
 
   base64-string-converter:
     title: Base64 string encoder/decoder
@@ -341,7 +341,7 @@ tools:
 
   json-prettify:
     title: JSON Formatter & Validator — Beautify and Validate JSON Online
-    description: Format and validate JSON online — beautify, minify and spot syntax errors instantly, right in your browser.
+    description: Format and validate JSON online — pretty-print at your indent size, sort keys and spot syntax errors instantly, right in your browser.
 
   docker-run-to-docker-compose-converter:
     title: Docker run to Docker compose converter
