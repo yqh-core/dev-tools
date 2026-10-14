@@ -1045,14 +1045,18 @@ async function uploadFile({ sel, i = 0, file }) {
   // 实测同一份用例六次里有一次 waitSel 超时 —— 组件挂载初期会重建 <input>，
   // 上一轮 DOM.querySelectorAll 拿到的 nodeId 就悬空了，文件静默没落地。
   for (let attempt = 1; attempt <= 4; attempt++) {
-    const { root } = await send('DOM.getDocument', { depth: -1 });
-    const q = await send('DOM.querySelectorAll', { nodeId: root.nodeId, selector: sel || 'input[type="file"]' });
-    const nodeId = q.nodeIds[i];
-    if (!nodeId) {
-      await sleep(350 * attempt);
-      continue;
-    }
+    let nodeId;
     try {
+      // 整段 DOM 调用都要包起来：线上页面导航/重渲之间 root.nodeId 会失效，
+      // 只包 setFileInputFiles 的话 -32000 "Could not find node with given id"
+      // 会当成步骤异常冒出来（打生产实测到过）。
+      const { root } = await send('DOM.getDocument', { depth: -1 });
+      const q = await send('DOM.querySelectorAll', { nodeId: root.nodeId, selector: sel || 'input[type="file"]' });
+      nodeId = q.nodeIds[i];
+      if (!nodeId) {
+        await sleep(350 * attempt);
+        continue;
+      }
       await send('DOM.setFileInputFiles', { files: absList, nodeId });
     } catch (e) {
       await sleep(350 * attempt);
