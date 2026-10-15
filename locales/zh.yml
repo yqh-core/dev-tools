@@ -120,6 +120,7 @@ about:
     - [IP 归属地查询](https://ip.digdevbox.com) — 查一个 IP 解析到哪里
     - [房贷计算](https://fangdai.digdevbox.com) — 月供与利息
     - [在线绘图](https://draw.digdevbox.com) — 浏览器里的图片编辑器
+    - [DigImg 图片压缩](https://img.digdevbox.com) — 浏览器内 AVIF / WebP / JPEG XL 压缩
     - [M3U8 播放器](https://play.digdevbox.com) — 浏览器直接播流
     - [TTS 朗读](https://ttsreader.digdevbox.com) — 把文字转成语音
     - [锻造笔记](https://notes.digdevbox.com) — 工具与性能方向的长文
@@ -134,6 +135,7 @@ network:
   fangdai: '房贷计算器'
   play: '在线播放'
   draw: 'ImageForge'
+  img: '图片压缩'
   notes: 'Notes'
   typing: 'Geek Typing'
 trust: '工具优先在你的浏览器本地处理数据，不会将输入内容上传到我们的服务器；部分联网功能可能需要访问第三方服务。'

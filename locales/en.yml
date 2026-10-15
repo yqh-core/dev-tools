@@ -121,6 +121,7 @@ about:
     - [IP Geolocation](https://ip.digdevbox.com) — where an IP address resolves to
     - [Mortgage Calculator](https://fangdai.digdevbox.com) — monthly payments and total interest
     - [Drawing](https://draw.digdevbox.com) — browser image editor
+    - [DigImg](https://img.digdevbox.com) — AVIF / WebP / JPEG XL compression in the browser
     - [M3U8 Player](https://play.digdevbox.com) — stream playback in the browser
     - [TTS Reader](https://ttsreader.digdevbox.com) — turn text into speech
     - [Forge Notes](https://notes.digdevbox.com) — longer guides on tooling and performance
@@ -135,6 +136,7 @@ network:
   fangdai: 'Mortgage Calculator'
   play: 'StreamPlay'
   draw: 'ImageForge'
+  img: 'Image Compressor'
   notes: 'Forge Notes'
   typing: 'Geek Typing'
 trust: 'Tools process your data locally in your browser and do not upload your input to our servers. Some online features may access third-party services.'
