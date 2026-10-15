@@ -248,7 +248,7 @@ tools:
 
   sql-prettify:
     title: SQL 美化与格式化
-    description: 粘贴挤成一行的 SQL，立即得到格式化结果——关键字大写、子句缩进、每字段一行。支持 PostgreSQL、MySQL、T-SQL、BigQuery 等 13 种方言，免费浏览器本地运行。
+    description: 粘贴 SQL 语句，既可格式化成多行缩进，也可压成一行的压缩版——关键字大写、子句缩进、每字段一行。支持 PostgreSQL、MySQL、T-SQL、BigQuery 等 13 种方言，免费浏览器本地运行。
 
   benchmark-builder:
     title: 基准生成器
@@ -371,7 +371,7 @@ tools:
 
   xml-formatter:
     title: XML 格式化
-    description: 将XML字符串修饰为友好的可读格式。
+    description: XML 美化与压缩——既可以缩进成可读格式，也可以压回单行。
 
   temperature-converter:
     title: 温度转换器
@@ -430,7 +430,7 @@ tools:
 
   hash-text:
     title: Hash 文本
-    description: '使用所需的函数哈希文本字符串：MD5、SHA1、SHA256、SHA224、SHA512、SHA384、SHA3或RIPEMD160'
+    description: '使用所需函数哈希文本：MD5、SHA1、SHA256、SHA224、SHA512、SHA384、SHA3、RIPEMD160，并支持 16 位 MD5 与十六进制大小写输出'
 
   json-to-toml:
     title: JSON 转 TOML
@@ -623,7 +623,7 @@ tools:
 
   text-to-unicode:
     title: 文本转 Unicode
-    description: 解析文本并将其转换为 unicode，反之亦然
+    description: 文本与 unicode 互转——可输出 HTML 实体，也可输出十进制码点列表。
 
   ipv4-range-expander:
     title: IPv4范围扩展器

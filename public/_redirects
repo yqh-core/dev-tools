@@ -102,6 +102,15 @@
 /legacy/webstatus/    /http-status-checker/    301
 /legacy/whois/    /whois-lookup/    301
 /legacy/zipstringtext/    /text-replacer/    301
+
+# 2026-10-16 裁剪 C2b：4 页归并（本页能力已补齐并带单元测试）
+#   md5→hash-text 补了 16 位 MD5 与十六进制大小写；formatxml→xml-formatter 补了压缩；
+#   formatsql→sql-prettify 补了压缩；ascii→text-to-unicode 补了十进制码点列表。
+#   createmeta 不在本批：oggen 会把未知键一律加 og: 前缀，产不出 name=description/robots。
+/legacy/ascii/    /text-to-unicode/    301
+/legacy/formatsql/    /sql-prettify/    301
+/legacy/formatxml/    /xml-formatter/    301
+/legacy/md5/    /hash-text/    301
 /legacy/*    /legacy/:splat   200
 
 # 2026-10-05：删除 `/* /index.html 200` SPA fallback —— 它是软 404 的根源：

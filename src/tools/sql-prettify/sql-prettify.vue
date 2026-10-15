@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { type FormatOptionsWithLanguage, format as formatSQL } from 'sql-formatter';
+import { minifySQL } from './sql-prettify.service';
 import TextareaCopyable from '@/components/TextareaCopyable.vue';
 import { useStyleStore } from '@/stores/style.store';
 
@@ -15,6 +16,7 @@ const config = reactive<FormatOptionsWithLanguage>({
 
 const rawSQL = ref('select field1,field2,field3 from my_table where my_condition;');
 const prettySQL = computed(() => formatSQL(rawSQL.value, config));
+const miniSQL = computed(() => minifySQL(rawSQL.value, config));
 </script>
 
 <template>
@@ -77,6 +79,10 @@ const prettySQL = computed(() => formatSQL(rawSQL.value, config));
   </n-form-item>
   <n-form-item label="Prettify version of your query">
     <TextareaCopyable :value="prettySQL" language="sql" :follow-height-of="inputElement" />
+  </n-form-item>
+
+  <n-form-item label="Minified version of your query">
+    <TextareaCopyable :value="miniSQL" language="sql" :follow-height-of="inputElement" test-id="sql-prettify-minified" />
   </n-form-item>
 </template>
 
