@@ -44,6 +44,25 @@
 /legacy/px2rem/         /px-rem-converter/         301
 
 # 以下 catch-all 必须留在所有具体规则后面（理由见上）
+
+# 2026-10-16 裁剪 C3：14 页下线（中文特供 / 违反零后端 / 低 RPM 百科型）
+#   5 个运营商 DNS 表落到其超集页 alldns，其余落到合集页；静态文件保留，仅用 301 退休，可整体回滚。
+/legacy/dnsdx/    /legacy/alldns/    301
+/legacy/dnsedu/    /legacy/alldns/    301
+/legacy/dnslt/    /legacy/alldns/    301
+/legacy/dnstt/    /legacy/alldns/    301
+/legacy/dnsyd/    /legacy/alldns/    301
+/legacy/autoformat/    /legacy/    301
+/legacy/capital/    /legacy/    301
+/legacy/chaicp/    /legacy/    301
+/legacy/checkweixin/    /legacy/    301
+/legacy/jieri/    /legacy/    301
+/legacy/shaoshuminzu/    /legacy/    301
+/legacy/shizhong/    /legacy/    301
+/legacy/urlthunder/    /legacy/    301
+/legacy/utf8/    /legacy/    301
+
+# 以下 catch-all 必须留在所有具体规则后面
 /legacy/*    /legacy/:splat   200
 
 # 2026-10-05：删除 `/* /index.html 200` SPA fallback —— 它是软 404 的根源：
