@@ -19,7 +19,31 @@
 # ⚠ 不要给 /api/* 加规则：Pages Functions 的匹配优先级高于 _redirects，
 #   加上反而容易在后续改动时把 functions/api/* 屏蔽掉。
 
-# 经典版静态站（自带目录索引，逐文件按原样服务）
+# 经典版静态站
+#
+# ⚠ 顺序即正确性：CF Pages 的 _redirects 第一条命中即生效，而下面这条 `/legacy/*`
+#   是贪婪匹配所有字符的动态规则。任何针对具体 legacy 页的 301 **必须排在它前面**，
+#   否则会被这条 200 rewrite 整个吞掉 —— 部署成功、CI 绿、一个页面都不跳（静默失效）。
+#   2026-10-15 裁剪 C1 的 11 条就按此规则插在本 catch-all 之前。
+
+# 2026-10-15 裁剪 C1：经典单位换算页归并到主站等价页（9 页 → /unit-converter，
+# 温度 → /temperature-converter，px/rem → /px-rem-converter）。
+# 判据来自实测：/unit-converter 的 FACTORS 实现了 长度/面积/体积/重量/速度/时间/
+# 数据存储/功率/压力/角度 十个族，所以只有这十个族对应的 legacy 页可以并；
+# calcforce(力) / calcheat(热量) / calcthickness(密度) 目标页不实现，未列入本批。
+/legacy/calcangle/      /unit-converter/           301
+/legacy/calcarea/       /unit-converter/           301
+/legacy/calcdata/       /unit-converter/           301
+/legacy/calclength/     /unit-converter/           301
+/legacy/calcpower/      /unit-converter/           301
+/legacy/calcpressure/   /unit-converter/           301
+/legacy/calcspeed/      /unit-converter/           301
+/legacy/calctime/       /unit-converter/           301
+/legacy/calcvolume/     /unit-converter/           301
+/legacy/calctemperature/    /temperature-converter/    301
+/legacy/px2rem/         /px-rem-converter/         301
+
+# 以下 catch-all 必须留在所有具体规则后面（理由见上）
 /legacy/*    /legacy/:splat   200
 
 # 2026-10-05：删除 `/* /index.html 200` SPA fallback —— 它是软 404 的根源：
