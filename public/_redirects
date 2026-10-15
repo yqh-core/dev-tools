@@ -63,6 +63,45 @@
 /legacy/utf8/    /legacy/    301
 
 # 以下 catch-all 必须留在所有具体规则后面
+
+# 2026-10-16 裁剪 C2a：经典站 35 页归并到主站等价页（目标页能力已逐条实测核对）
+#   核对报告见 D 盘 work 目录 DigDevBox-C2逐条核对-2026-10-16.md；
+#   另有 5 页待补能力、5 页功能不等价改判替代，均不在本批。
+/legacy/asciicode/    /ascii-table/    301
+/legacy/base64/    /base64-string-converter/    301
+/legacy/calculator/    /math-evaluator/    301
+/legacy/contenttype/    /mime-types/    301
+/legacy/endecodejs/    /encryption/    301
+/legacy/favicon/    /favicon-generator/    301
+/legacy/guid/    /uuid-generator/    301
+/legacy/hexconvert/    /base-converter/    301
+/legacy/hexrgb/    /color-converter/    301
+/legacy/htmlescape/    /html-entities/    301
+/legacy/htpasswd/    /htpasswd-generator/    301
+/legacy/httpheader/    /http-headers/    301
+/legacy/ip2long/    /ipv4-address-converter/    301
+/legacy/json2get/    /json-to-get-params/    301
+/legacy/json2go/    /json-to-code/    301
+/legacy/jsonlrview/    /json-prettify/    301
+/legacy/keyboardcode/    /keycode-info/    301
+/legacy/linuxcmd/    /linux-commands/    301
+/legacy/lishishangdejintian/    /today-in-history/    301
+/legacy/navtiveunicode/    /text-to-unicode/    301
+/legacy/pagecode/    /http-status-codes/    301
+/legacy/password/    /password-generator/    301
+/legacy/quchong/    /list-converter/    301
+/legacy/regexdso/    /regex-memo/    301
+/legacy/regexsucha/    /regex-memo/    301
+/legacy/rmbdaxie/    /rmb-uppercase/    301
+/legacy/subnetmask/    /ipv4-subnet-calculator/    301
+/legacy/txtcount/    /text-statistics/    301
+/legacy/txtreplace/    /text-replacer/    301
+/legacy/unixtime/    /unix-timestamp-converter/    301
+/legacy/urlencode/    /url-encoder/    301
+/legacy/uuid/    /uuid-generator/    301
+/legacy/webstatus/    /http-status-checker/    301
+/legacy/whois/    /whois-lookup/    301
+/legacy/zipstringtext/    /text-replacer/    301
 /legacy/*    /legacy/:splat   200
 
 # 2026-10-05：删除 `/* /index.html 200` SPA fallback —— 它是软 404 的根源：
