@@ -70,7 +70,9 @@ function offenders(): Record<string, string[]> {
       .filter(x => CJK.test(x.l))
       .map(x => `${x.i + 1}: ${x.l.trim().slice(0, 70)}`);
     if (hits.length) {
-      res[path.relative(ROOT, f).replaceAll('\\', '/')] = hits;
+      // 不用 replaceAll：CI 的类型检查走 tsconfig.vitest.json，那份 lib 不含 es2021，
+      // `String.prototype.replaceAll` 会被判 TS2550（本地跑 tsconfig.app.json 则看不出问题）。
+      res[path.relative(ROOT, f).split('\\').join('/')] = hits;
     }
   }
   return res;
