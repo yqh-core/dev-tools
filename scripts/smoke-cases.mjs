@@ -1537,9 +1537,10 @@ export const SMOKE_CASES = [
     name: 'px-rem-converter',
     zhTitle: 'px / rem 转换',
     strategy: 'knownVector：浏览器默认根字号 16px，故 16px 恒等于 1rem',
-    // 按 label 定位：该页「根字号」「小数位」两个 n-input-number 都排在「数值」框前面，
-    // 序号 0 会写进根字号（被 n-input-number 丢弃 → 根字号变空、数值框始终为空 → 无输出）。
-    steps: [{ fillLabel: { label: '数值：', text: '16px' } }, { wait: 800 }],
+    // 按 label 定位：该页 Root font size 与 Decimals 两个 n-input-number 都排在 Values 框前面，
+    // 序号 0 会写进根字号（被 n-input-number 丢弃 → 根字号变空、Values 框始终为空 → 无输出）。
+    // label 文案随界面英文化同步改过：原先是「数值：」。
+    steps: [{ fillLabel: { label: 'Values:', text: '16px' } }, { wait: 800 }],
     expect: { text: ['1rem'] },
   },
 
@@ -2058,8 +2059,8 @@ export const SMOKE_CASES = [
       {
         js: `(function(){
           var S = window.__smoke;
-          var el = document.querySelector('.tool-content input[placeholder="数值"]');
-          if (!el) return '数值输入框未找到';
+          var el = document.querySelector('.tool-content input[placeholder="Value"]');
+          if (!el) return 'Value input box not found';
           S.setVal(el, '2');
           return null;
         })()`,
@@ -2067,7 +2068,7 @@ export const SMOKE_CASES = [
       { wait: 1000 },
     ],
     expect: {
-      text: ['换算结果：'],
+      text: ['Conversion result:'],
       js: `(function(){
         // 输出走 TextareaCopyable → 渲染成 <n-code data-test-id="area-content">，
         // **不是 <textarea>**（原断言按 textarea 找，必然拿不到）。
