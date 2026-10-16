@@ -338,7 +338,7 @@ tools:
 
   html-entities:
     title: 转义html实体
-    description: 转义或unescape html实体（将<、>、&、“和\'替换为其html版本）
+    description: 转义或反转义 HTML 实体（把 <、>、&、“、' 换成其 HTML 写法），并提供一张可搜索的常用字符实体对照表——引号、破折号、货币、数学与希腊字母符号。
 
   json-prettify:
     title: JSON 格式化与校验 — 在线美化验证 JSON

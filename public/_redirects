@@ -124,6 +124,12 @@
 #   + safe/idempotent 标记），故整页 301 过去，不再单独维护一份经典页。
 /legacy/requestmethod/    /http-headers/    301
 
+# 2026-10-17 裁剪 C6：经典站的「HTML 转义字符速查表」并入主站 /html-entities/
+#   该页就是一张实体对照表；主站 html-entities 页原本只有转义/反转义输入框，
+#   现已在下方补一张可搜索的「Common HTML entities reference」表（char/命名/十进制/十六进制），
+#   覆盖对照表需求，故整页 301 过去。
+/legacy/htmlescapechar/    /html-entities/    301
+
 /legacy/*    /legacy/:splat   200
 
 # 2026-10-05：删除 `/* /index.html 200` SPA fallback —— 它是软 404 的根源：

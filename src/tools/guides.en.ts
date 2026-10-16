@@ -418,21 +418,20 @@ export const GUIDES: Record<string, ToolGuide> = {
   },
 
   '/html-entities': {
-    intro: 'Converts characters such as <, > and & into HTML entities, or reverses the process — used to insert text into a page safely.',
-    steps: ['Paste the original text', 'Click escape or unescape', 'Copy the result'],
+    intro: 'Converts characters such as <, > and & into HTML entities (or back), and doubles as a searchable reference table of common HTML character entities.',
+    steps: ['Paste the original text, then click escape or unescape and copy the result', 'Or use the reference table below: search by character, entity name or meaning', 'Each table row gives the character with its named, decimal and hex forms'],
     example: { label: 'Fill in sample text', text: '<div class="box">Hello & "World"</div>' },
     notes: [
-      'Only &amp; &lt; &gt; " and \' are converted — named and numeric entities pass through unchanged.',
+      'Only &amp; &lt; &gt; " and \' are converted by the escape box — named and numeric entities pass through unchanged.',
       'Escaping already-escaped text produces &amp;amp;amp; — the classic double-escape bug, which this tool makes easy to spot.',
       'Escaping is not sanitising: it stops markup being broken, it does not make untrusted HTML safe to render.',
+      'The reference table lists ~38 common named entities with their decimal and hex forms, so you can look up a character instead of converting a whole string.',
     ],
-    about: 'Escape and unescape the five characters that break markup: &amp; &lt; &gt; &quot; and &#39; are what &amp;, &lt;, &gt;, a double quote and an apostrophe turn into, and the reverse pass puts them back. The scope is deliberately narrow — this is the minimal set that stops a string from breaking out of an attribute or a text node, not a full entity catalogue: named entities like &eacute; and numeric ones like &#233; pass through untouched, because the underlying lodash escape only knows those five. Use it when injecting user text into a template, when a CMS has double-escaped something into &amp;amp;lt;, or when you need to see exactly what a string looks like on the wire.',
+    about: 'Two jobs in one page. The escape/unescape boxes handle the five characters that break markup: &amp; &lt; &gt; &quot; and &#39; are what &, <, >, a double quote and an apostrophe turn into, and the reverse pass puts them back — the scope is deliberately the minimal set that stops a string breaking out of an attribute or text node, not a full conversion (named entities like &eacute; pass through untouched). Below that sits a searchable reference of common HTML character entities — quotation marks, dashes, currency and math symbols, Greek letters — each row showing the character with its named, decimal (&#NNN;) and hex (&#xNN;) forms, so when you only need "what is the entity for an em dash" you look it up rather than round-tripping a string.',
     faqs: [
       { q: 'When must I escape HTML?', a: 'Whenever untrusted text becomes part of markup — comments, form values, rich-text imports. Skipping it is how XSS happens; escaping turns a payload into visible text.' },
-      { q: 'Why does &amp; appear inside URLs in my HTML?', a: 'Attribute values are parsed as HTML too, so & must be written &amp; inside href. Browsers tolerate the bare ampersand, but validators do not, and some edge cases silently break.' },
-      { q: 'What is the difference between named and numeric entities?', a: 'Named ones (&amp;, &lt;) are readable; numeric ones (&#38;, &#x26;) work for every character including those without a name. Both decode to the same character.' },
-      { q: 'Why did &eacute; come back unchanged?', a: 'Because the tool escapes the five characters that break markup, not the whole HTML entity table. &eacute; is already a valid reference — rewriting it would change meaning rather than protect structure. Use a numeric-reference converter for accented characters.' },
-      { q: 'Is escaping enough to stop XSS?', a: 'No. Escaping stops your template being structurally broken; it does nothing inside JavaScript strings or inline event handlers, and it does not sanitise HTML you intend to render as rich content. Reach for a purpose-built sanitiser for that.' },
+      { q: 'How do I write an em dash or © as an entity?', a: 'Look it up in the reference table on this page: &mdash; for the em dash, &copy; for copyright. Each entry also gives the decimal and hex numeric forms (&#8212; / &#x2014; and &#169; / &#xA9;), which you can use when a named entity is not supported.' },
+      { q: 'Why does &amp; appear inside URLs?', a: 'An ampersand that separates query parameters is itself a live entity, so escaping it as &amp; is the correct encoding for HTML attribute or text contexts — but the raw & is what the server parses. Escape for the document, not for the request line.' },
     ],
   },
 

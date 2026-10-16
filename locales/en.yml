@@ -342,7 +342,7 @@ tools:
 
   html-entities:
     title: Escape HTML entities
-    description: Escape or unescape HTML entities (replace characters like <,>, &, " and \' with their HTML version)
+    description: Escape or unescape HTML entities (turn <, >, &, " and ' into their HTML form) and look up common characters — quotes, dashes, currency, math and Greek symbols — in a searchable entity reference table.
 
   json-prettify:
     title: JSON Formatter & Validator — Beautify and Validate JSON Online
