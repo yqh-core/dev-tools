@@ -59,3 +59,27 @@ export const httpHeaderEntries: HttpHeaderEntry[] = [
   { name: 'X-Request-Id', dir: 'Request and response', zh: 'Trace ID for a request chain' },
   { name: 'CF-Connecting-IP', dir: 'Request', zh: 'Real client IP that Cloudflare carries when forwarding to the origin' },
 ];
+
+/**
+ * HTTP request methods reference — merged from the retired `/legacy/requestmethod/`
+ * page (2026-10-17 C5). Same "reference table" purpose as the header list above, so it
+ * lives on the same page instead of a standalone tool; the legacy URL 301s here.
+ */
+export interface HttpMethodEntry {
+  name: string
+  safe: string
+  idempotent: string
+  zh: string
+}
+
+export const httpMethodEntries: HttpMethodEntry[] = [
+  { name: 'GET', safe: 'Yes', idempotent: 'Yes', zh: 'Read a resource; parameters go in the URL. Never changes server state.' },
+  { name: 'HEAD', safe: 'Yes', idempotent: 'Yes', zh: 'Like GET but returns headers only, no body — used to check a resource exists or is fresh.' },
+  { name: 'POST', safe: 'No', idempotent: 'No', zh: 'Submit data to be processed; repeated calls may create duplicates (e.g. place another order).' },
+  { name: 'PUT', safe: 'No', idempotent: 'Yes', zh: 'Replace a resource wholesale; sending the same body again yields the same result.' },
+  { name: 'PATCH', safe: 'No', idempotent: 'No', zh: 'Partial update of a resource; whether it is idempotent depends on the server.' },
+  { name: 'DELETE', safe: 'No', idempotent: 'Yes', zh: 'Remove a resource; deleting an already-deleted resource is the same end state.' },
+  { name: 'OPTIONS', safe: 'Yes', idempotent: 'Yes', zh: 'Describe the communication options; browsers send it as the CORS preflight request.' },
+  { name: 'CONNECT', safe: 'No', idempotent: 'No', zh: 'Establish a tunnel to the server, typically for TLS through an HTTP proxy.' },
+  { name: 'TRACE', safe: 'Yes', idempotent: 'Yes', zh: 'Loop back the request for diagnostics; usually disabled because it enables XST attacks.' },
+];

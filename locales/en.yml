@@ -737,8 +737,8 @@ tools:
     description: "A searchable cheat sheet of common Linux commands with what they do and ready-to-use examples."
 
   http-headers:
-    title: "HTTP headers reference"
-    description: "A searchable reference of common HTTP request and response headers, covering CORS, caching and security fields."
+    title: "HTTP headers & request methods"
+    description: "A searchable reference of common HTTP request and response headers plus the nine standard request methods, covering CORS, caching, security fields and safe/idempotent semantics."
 
   ascii-table:
     title: "ASCII table"

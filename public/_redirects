@@ -117,6 +117,13 @@
 /legacy/calcforce/    /unit-converter/    301
 /legacy/calcheat/    /unit-converter/    301
 /legacy/calcthickness/    /unit-converter/    301
+
+# 2026-10-17 裁剪 C5：把经典站的「HTTP 请求方法」参考页并入主站 /http-headers/
+#   该页与请求头表是同一类「协议参考」，主站已在 http-headers 页下方新增
+#   HTTP request methods 表（GET/HEAD/POST/PUT/PATCH/DELETE/OPTIONS/CONNECT/TRACE
+#   + safe/idempotent 标记），故整页 301 过去，不再单独维护一份经典页。
+/legacy/requestmethod/    /http-headers/    301
+
 /legacy/*    /legacy/:splat   200
 
 # 2026-10-05：删除 `/* /index.html 200` SPA fallback —— 它是软 404 的根源：

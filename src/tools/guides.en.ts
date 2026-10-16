@@ -1781,15 +1781,16 @@ export const GUIDES: Record<string, ToolGuide> = {
   },
 
   '/http-headers': {
-    intro: 'A reference for common HTTP request and response headers — to consult when writing APIs or debugging caching and CORS.',
-    steps: ['Type a field name (e.g. Cookie) or a purpose keyword (e.g. cache, CORS) in the search box', 'The list filters live', 'Each entry shows the field name, direction (request / response) and a short description'],
-    notes: ['Search matches the field name, the description and the direction'],
+    intro: 'A reference for common HTTP request and response headers plus the nine standard request methods — to consult when writing APIs or debugging caching, CORS and method semantics.',
+    steps: ['Type a field name (e.g. Cookie) or a purpose keyword (e.g. cache, CORS) in the search box', 'The header list filters live', 'Each entry shows the field name, direction (request / response) and a short description', 'Below the headers, the request-methods table lists each verb with its safe / idempotent flags'],
+    notes: ['Search matches the field name, the description and the direction', 'The request-methods table is always shown under the header reference'],
     example: { label: 'Fill in a sample query', text: 'cache' },
-    about: 'A searchable reference of common HTTP request and response headers. Instead of digging through RFCs to remember what Strict-Transport-Security does or which direction a header travels, search by name and read a focused description — with CORS, caching and security headers grouped for fast scanning.',
+    about: 'A searchable reference of common HTTP request and response headers, joined by a table of the standard request methods. Instead of digging through RFCs to remember what Strict-Transport-Security does, which direction a header travels, or whether PATCH is idempotent, search by name and read a focused description — with CORS, caching and security headers grouped for fast scanning, and GET/POST/PUT/PATCH/DELETE/OPTIONS marked by their safety and idempotency so you pick the right verb, not just the right header.',
     faqs: [
       { q: 'Which security headers should every site send?', a: 'The usual baseline is Content-Security-Policy, Strict-Transport-Security, X-Content-Type-Options: nosniff and a frame policy (X-Frame-Options or CSP frame-ancestors). Search each one here for what it does.' },
       { q: 'Which headers matter for CORS?', a: 'Requests trigger Origin; responses need Access-Control-Allow-Origin (plus Allow-Methods/Allow-Headers for preflights). The reference groups these so you can debug a blocked request quickly.' },
       { q: 'Which headers control caching?', a: 'Cache-Control is the primary switch, with ETag/If-None-Match and Last-Modified/If-Modified-Since driving conditional revalidation. Note that Cache-Control is sent by the server but also honoured by browsers and CDNs.' },
+      { q: 'What is the difference between PUT and PATCH?', a: 'PUT replaces the whole resource, so it is idempotent — sending the same body again yields the same result. PATCH applies a partial update and is not necessarily idempotent; the server decides. The methods table on this page flags each verb as safe and/or idempotent.' },
     ],
   },
 

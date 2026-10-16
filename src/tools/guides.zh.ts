@@ -1778,15 +1778,16 @@ export const GUIDES: Record<string, ToolGuide> = {
   },
 
   '/http-headers': {
-    intro: '常见 HTTP 请求头 / 响应头速查，写接口、排查缓存与 CORS 问题时对照着看。',
-    steps: ['在搜索框里输入字段名（如 Cookie）或用途关键词（如 缓存、CORS）', '列表实时过滤', '每条给出字段名、方向（请求 / 响应）与中文说明'],
-    notes: ['搜索匹配字段名、中文说明与方向'],
+    intro: '常见 HTTP 请求头 / 响应头与九种标准请求方法的速查，写接口、排查缓存与 CORS、选动词时对照着看。',
+    steps: ['在搜索框里输入字段名（如 Cookie）或用途关键词（如 缓存、CORS）', '头部列表实时过滤', '每条给出字段名、方向（请求 / 响应）与中文说明', '头部表下方的请求方法表列出每个动词及其 safe / idempotent 标记'],
+    notes: ['搜索匹配字段名、中文说明与方向', '请求方法表固定展示在头部参考的下方'],
     example: { label: '填入示例查询', text: 'cache' },
-    about: '常见 HTTP 请求头与响应头的可搜索参考。想不起 Strict-Transport-Security 的作用、或分不清某个头属于请求还是响应时，按名字一搜就能读到聚焦的说明——CORS、缓存与安全类头部已分组，扫读很快。',
+    about: '常见 HTTP 请求头与响应头的可搜索参考，并附一张标准请求方法表。想不起 Strict-Transport-Security 的作用、分不清某个头属于请求还是响应、或拿不准 PATCH 是否幂等时，按名字一搜就能读到聚焦的说明——CORS、缓存与安全类头部已分组，GET/POST/PUT/PATCH/DELETE/OPTIONS 也按其安全与幂等标记列出，帮你选对动词而不仅是选对头。',
     faqs: [
       { q: '每个网站都应该下发哪些安全头？', a: '常见基线是 Content-Security-Policy、Strict-Transport-Security、X-Content-Type-Options: nosniff，以及帧策略（X-Frame-Options 或 CSP 的 frame-ancestors）。每个头的作用都可以在这里搜索确认。' },
       { q: 'CORS 相关的头有哪些？', a: '请求侧是 Origin；响应侧需要 Access-Control-Allow-Origin（预检还要 Allow-Methods/Allow-Headers）。参考表把这些归在一组，排查被拦的请求很快。' },
       { q: '控制缓存的是哪些头？', a: 'Cache-Control 是主开关，ETag/If-None-Match 与 Last-Modified/If-Modified-Since 负责条件重验证。注意 Cache-Control 由服务器下发，但浏览器和 CDN 都要遵守它。' },
+      { q: 'PUT 和 PATCH 有什么区别？', a: 'PUT 整体替换资源，因此是幂等的——重复发送同一份请求体结果不变。PATCH 是局部更新，不保证幂等，由服务器决定。本页方法表按 safe 与 idempotent 标注每个动词。' },
     ],
   },
 

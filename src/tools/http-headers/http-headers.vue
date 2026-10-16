@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { httpHeaderEntries } from './http-headers.constants';
+import { httpHeaderEntries, httpMethodEntries } from './http-headers.constants';
 import { useFuzzySearch } from '@/composable/fuzzySearch';
 
 const search = ref('');
@@ -39,5 +39,69 @@ const rows = computed(() => (search.value ? searchResult.value : httpHeaderEntri
     <c-alert v-if="rows.length === 0">
       No matching header. Try another keyword.
     </c-alert>
+
+    <n-h3 mb-2 mt-8>
+      HTTP request methods
+    </n-h3>
+    <div mb-2 text-13px op-60>
+      The nine standard verbs, with whether each is safe and idempotent.
+    </div>
+    <div class="methods-table" mb-2>
+      <div class="methods-row methods-head">
+        <span>Method</span>
+        <span>Safe</span>
+        <span>Idempotent</span>
+        <span>Description</span>
+      </div>
+      <div v-for="m of httpMethodEntries" :key="m.name" class="methods-row">
+        <span class="methods-name">{{ m.name }}</span>
+        <span>{{ m.safe }}</span>
+        <span>{{ m.idempotent }}</span>
+        <span class="methods-desc">{{ m.zh }}</span>
+      </div>
+    </div>
   </div>
 </template>
+
+<style scoped lang="less">
+.methods-table {
+  overflow-x: auto;
+
+  border: 1px solid var(--dd-border);
+  border-radius: var(--dd-radius);
+}
+
+.methods-row {
+  display: grid;
+  gap: 10px;
+  align-items: baseline;
+
+  padding: 9px 12px;
+
+  border-bottom: 1px solid var(--dd-border);
+
+  font-size: 13px;
+  line-height: 1.55;
+
+  grid-template-columns: 78px 52px 92px minmax(220px, 1fr);
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.methods-head {
+  background: var(--dd-surface-2);
+  color: var(--dd-text-soft);
+  font-weight: 600;
+}
+
+.methods-name {
+  font-family: var(--dd-font-mono);
+  font-weight: 700;
+}
+
+.methods-desc {
+  color: var(--dd-text-soft);
+}
+</style>
