@@ -7,7 +7,7 @@ const search = ref('');
 const { searchResult } = useFuzzySearch({
   search,
   data: asciiEntries,
-  options: { keys: [{ name: 'char', weight: 3 }, { name: 'zh', weight: 2 }, 'dec', 'hex'] },
+  options: { keys: [{ name: 'char', weight: 3 }, { name: 'name', weight: 2 }, 'dec', 'hex'] },
 });
 
 const rows = computed(() => (search.value ? searchResult.value : asciiEntries));
@@ -34,8 +34,8 @@ const rows = computed(() => (search.value ? searchResult.value : asciiEntries));
         <span text-13px font-mono op-70>{{ item.oct }}</span>
         <span text-13px font-mono op-70>{{ item.bin }}</span>
       </div>
-      <div v-if="item.zh" mt-1 text-13px op-60>
-        {{ item.zh }}
+      <div v-if="item.name" mt-1 text-13px op-60>
+        {{ item.name }}
       </div>
     </c-card>
 

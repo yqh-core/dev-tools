@@ -588,9 +588,9 @@ export const SMOKE_CASES = [
     category: 'Converter',
     zhTitle: 'ASCII 码表',
     tier: 'io',
-    strategy: 'reference：搜已知码位 65，必须出现 0x41 与对应说明',
+    strategy: 'reference：搜已知码位 65，必须出现 0x41 与对应说明（随界面英文化，原期望值「大写字母 A 起始」改为英文）',
     steps: [{ fill: { i: 0, text: '65' } }, { wait: 500 }],
-    expect: { text: ['0x41', '大写字母 A 起始'] },
+    expect: { text: ['0x41', 'Uppercase letter A'] },
   },
   {
     path: '/base64-string-converter',
