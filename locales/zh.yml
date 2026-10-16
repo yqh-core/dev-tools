@@ -218,6 +218,9 @@ tools:
   json-to-csv:
     title: JSON 转 CSV
     description: 使用自动标头检测将JSON转换为CSV。
+  csv-to-json:
+    title: CSV 转 JSON
+    description: 将 CSV 转换为 JSON 数组，支持带引号字段、字段内换行，并对重名列给出保护。
 
   camera-recorder:
     title: 摄像头录像机

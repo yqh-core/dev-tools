@@ -177,20 +177,20 @@ export const SMOKE_CASES = [
     category: 'Crypto',
     zhTitle: 'htpasswd 生成与校验',
     tier: 'io',
-    strategy: 'roundTrip：生成 htpasswd 行 → 送到校验区 → 必须报「密码匹配」（应用自己的两个方向互证）',
+    strategy: 'roundTrip：生成 htpasswd 行 → 送到校验区 → 必须报「Password matches」（应用自己的两个方向互证）',
     steps: [
-      { fillLabel: { label: '用户名：', text: 'admin' } },
-      { fillLabel: { label: '密码：', text: 'secret' } },
-      { clickExact: '生成' },
-      { waitText: { text: '生成结果', ms: 4000 } },
-      { clickExact: '拿去校验' },
+      { fillLabel: { label: 'Username:', text: 'admin' } },
+      { fillLabel: { label: 'Password:', text: 'secret' } },
+      { clickExact: 'Generate' },
+      { waitText: { text: 'Generated line', ms: 4000, scope: '.tool-content' } },
+      { clickExact: 'Send to verifier' },
       { wait: 400 },
-      { clickExact: '校验' },
-      { waitText: { text: '密码匹配', ms: 4000 } },
+      { clickExact: 'Verify' },
+      { waitText: { text: 'Password matches', ms: 4000, scope: '.tool-content' } },
     ],
-    // 往返互证：生成出的 apr1 行 → 喂给同页校验区 → 必须报「密码匹配」。
-    // 「拿去校验」只在 generated 存在时才渲染，所以 waitText '生成结果' 是这一步的前置条件。
-    expect: { text: ['admin:$apr1$', '密码匹配'], not: ['生成失败', '❌ 密码不匹配'] },
+    // 往返互证：生成出的 apr1 行 → 喂给同页校验区 → 必须报「Password matches」。
+    // Send to verifier 只在 generated 存在时才渲染，所以 waitText 'Generated line' 是这一步的前置条件。
+    expect: { out: ['admin:$apr1$', 'Password matches'], outNot: ['Password does not match'] },
   },
   {
     path: '/password-strength-analyser',
@@ -588,9 +588,9 @@ export const SMOKE_CASES = [
     category: 'Converter',
     zhTitle: 'ASCII 码表',
     tier: 'io',
-    strategy: 'reference：搜已知码位 65，必须出现 0x41 与对应说明（随界面英文化，原期望值「大写字母 A 起始」改为英文）',
+    strategy: 'reference：搜已知码位 65，必须出现 0x41 与对应说明（随界面英文化，原期望值「大写字母 A 起始」对应页面特例分支 Start of uppercase A-Z，而不是 Uppercase letter A）',
     steps: [{ fill: { i: 0, text: '65' } }, { wait: 500 }],
-    expect: { text: ['0x41', 'Uppercase letter A'] },
+    expect: { out: ['0x41', 'Start of uppercase A-Z'] },
   },
   {
     path: '/base64-string-converter',
@@ -931,12 +931,12 @@ export const SMOKE_CASES = [
     category: 'Text',
     zhTitle: '全角半角转换',
     tier: 'io',
-    strategy: 'knownVector：全角 ＡＢＣ１２３ 的码点比半角大 0xFEE0，切到「全角 → 半角」后必须是 ABC123（U+FF01–FF5E 全部落回 ASCII）',
+    strategy: 'knownVector：全角 ＡＢＣ１２３ 的码点比半角大 0xFEE0，切到「Full-width → Half-width」后必须是 ABC123（U+FF01–FF5E 全部落回 ASCII）',
     steps: [
       { applyExample: true },
       { wait: 700 },
-      // 默认模式是「半角 → 全角」，对全角示例是恒等变换 —— 必须显式切到反方向才验得到转换。
-      { click: '全角 → 半角' },
+      // 默认模式是「Half-width → Full-width」，对全角示例是恒等变换 —— 必须显式切到反方向才验得到转换。
+      { click: 'Full-width → Half-width' },
       { wait: 800 },
     ],
     expect: {
@@ -1039,12 +1039,12 @@ export const SMOKE_CASES = [
     steps: [
       { applyExample: true },
       { wait: 700 },
-      { fillLabel: { label: '查找：', text: 'name=' } },
-      { fillLabel: { label: '替换为：', text: 'user=' } },
+      { fillLabel: { label: 'Find:', text: 'name=' } },
+      { fillLabel: { label: 'Replace with:', text: 'user=' } },
       { wait: 900 },
     ],
     expect: {
-      text: ['user=Alice', 'user=Bob', 'user=Carol', '替换次数：'],
+      out: ['user=Alice', 'user=Bob', 'user=Carol', 'Replacements: 3'],
       regex: ['user=Carol'],
     },
   },
@@ -1491,6 +1491,24 @@ export const SMOKE_CASES = [
   },
 
   {
+    path: '/csv-to-json',
+    name: 'csv-to-json',
+    zhTitle: 'CSV 转 JSON',
+    strategy: 'structural：CSV 转 JSON 数组，首行为键名，输出必须同时含键名与该行的值',
+    steps: [
+      { fill: { i: 0, text: 'name,role\nAda,engineer\nGrace,lead' } },
+      { wait: 1000 },
+    ],
+    expect: {
+      // 用 outRegex 而非 text/regex：engineer、lead 在用例自己填的 CSV 里就有，
+      // 拿整页文本比对会恒真（引擎 lint 已点名空转）。JSON 片段只在转换后出现，
+      // 且 outRegex 取值面是工具区文本+控件值，并剔除与输入相同的值。
+      outRegex: ['"name":\\s*"Ada"', '"role":\\s*"engineer"', '"name":\\s*"Grace"'],
+      not: ['Unterminated', 'Could not parse'],
+    },
+  },
+
+  {
     path: '/json-to-csv',
     name: 'json-to-csv',
     zhTitle: 'JSON 转 CSV',
@@ -1716,14 +1734,14 @@ export const SMOKE_CASES = [
     // 同时把断言从 text(regex '200') 收紧为「状态码 200 + 真实响应头」，两者都只可能来自接口。
     steps: [
       { fill: { i: 0, text: 'example.com' } },
-      { click: '检测状态码' },
+      { click: 'Check status code' },
       // scope 限定到工具区：状态区的文案不能靠整页里同名的说明文字满足
-      { waitText: { text: '响应头（', ms: 15000, scope: '.tool-content' } },
+      { waitText: { text: 'Response headers (', ms: 15000, scope: '.tool-content' } },
     ],
     expect: {
-      out: ['状态码', '响应头'],
+      out: ['Status code:', 'Response headers'],
       outRegex: ['\\b200\\b', 'content-type'],
-      outNot: ['检测失败'],
+      outNot: ['Check failed'],
       not: ['Failed to fetch'],
     },
   },
@@ -1836,13 +1854,13 @@ export const SMOKE_CASES = [
       // 返回 true 通过；返回**非空字符串**即失败并把原因打出来（引擎的 js 约定）
       js: `(function(){
         var t = document.querySelector('.tool-content').innerText;
-        if (/加载失败|Failed to fetch|服务返回/.test(t)) return '接口失败：' + t.slice(0, 160);
+        if (/Load failed|Failed to fetch|Service returned HTTP/.test(t)) return '接口失败：' + t.slice(0, 160);
         var hasEvents = /\\b(1[0-9]{3}|20[0-9]{2})\\b/.test(t);
-        var emptyState = /暂无收录|没有查到历史事件/.test(t);
+        var emptyState = /暂无收录|No events recorded/.test(t);
         if (hasEvents || emptyState) return true;
         return '既没有事件也没有空态说明：' + t.slice(0, 160);
       })()`,
-      outNot: ['加载失败'],
+      outNot: ['Load failed'],
       not: ['Failed to fetch'],
     },
   },
@@ -1860,15 +1878,15 @@ export const SMOKE_CASES = [
     // 它们只可能来自接口返回的 raw 文本。
     steps: [
       { fill: { i: 0, text: 'example.com' } },
-      { click: '查询 WHOIS' },
-      // 等**元素**而不是等文案：'注册信息' 这四个字在工具页的「使用说明」里也有，
+      { click: 'Query WHOIS' },
+      // 等**元素**而不是等文案：说明文字在 .tool-content 之外，等文案会被它立刻满足，
       // 而说明在 .tool-content 之外 —— 等文案会被它立刻满足，请求却还在飞
-      // （实测线上：3s 后断言，按钮停在「查询中…」）。结果区只在成功时渲染。
+      // （历史实测：按钮停在 Querying… 时结果区还没挂载）。结果区只在成功时渲染。
       { waitSel: { sel: '.tool-content [data-test-id="area-content"]', ms: 15000 } },
     ],
     expect: {
-      out: ['注册信息', '注册商', '到期时间'],
-      outNot: ['查询失败'],
+      out: ['注册商', '到期时间'],
+      outNot: ['Lookup failed'],
       not: ['Failed to fetch'],
     },
   },
@@ -2075,9 +2093,14 @@ export const SMOKE_CASES = [
         var out = document.querySelector('.tool-content [data-test-id="area-content"]');
         if (!out) return false;
         var t = out.innerText;
-        // 默认 category=长度、fromUnit=米（组件里 ref/FACTORS 的取值）。
-        // 输入 2 米 → 基准行必须是「米（输入）: 2」，且不是只有这一行。
-        return t.indexOf('米（输入）: 2') >= 0 && t.split('\\n').length >= 3;
+        // 默认 category='Length'、fromUnit=unitsOf('Length')[1]='m'（组件里的取值顺序就是输出顺序）。
+        // 输入 2 → 首行回显「2 m」、基准行「m (input): 2」，且 km 行必须是 0.002
+        // —— 独立算一遍换算，防「只有基准行、换算全空」这类假绿。
+        var lines = t.split('\\n');
+        return lines[0] === '2 m'
+          && lines.indexOf('m (input): 2') >= 0
+          && lines.indexOf('km: 0.002') >= 0
+          && lines.length >= 3;
       })()`,
     },
   },

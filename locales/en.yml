@@ -220,6 +220,9 @@ tools:
   json-to-csv:
     title: JSON to CSV
     description: Convert JSON to CSV with automatic header detection.
+  csv-to-json:
+    title: CSV to JSON
+    description: Convert CSV to a JSON array with quoted fields, real newlines and duplicate-column safeguards.
 
   camera-recorder:
     title: Camera Recorder

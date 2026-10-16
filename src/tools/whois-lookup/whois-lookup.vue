@@ -4,11 +4,13 @@
  *
  * 注意：接口只在部署到 Cloudflare Pages 后存在，本地 `vite dev` 下会请求失败，
  * 所以错误文案里要明确写出这一点，避免被误判成工具本身的 bug。
+ *
+ * loading / 错误 / 结果这一组状态改由 `@/composable/toolFetch` 统一持有，
+ * 本页只留两件事：输入怎么归一化，以及 200 之后 payload 怎么解释。
  */
+import { useToolFetch } from '@/composable/toolFetch';
+
 const domain = useStorage('whois-lookup:domain', '');
-const result = ref('');
-const error = ref('');
-const loading = ref(false);
 
 // 用户常把整条 URL 粘进来；这里只取主机名部分
 function normalize(input: string) {
@@ -19,37 +21,17 @@ function normalize(input: string) {
     .replace(/:\d+$/, '');
 }
 
-async function queryWhois() {
-  const d = normalize(domain.value);
-  if (!d) {
-    error.value = 'Enter a domain first';
-    return;
-  }
+const { data, error, isLoading, execute, clear } = useToolFetch<string>({
+  resolveUrl: (input) => {
+    const d = normalize(input);
+    return d ? { url: `/api/whois?domain=${encodeURIComponent(d)}` } : { error: 'Enter a domain first' };
+  },
+  // raw 缺失时退回接口给的 error 文本，再退回占位句 —— 与改造前逐字一致
+  interpret: payload => ({ data: (payload.raw ?? payload.error ?? 'Nothing returned') as string }),
+  errorPrefix: 'Lookup failed',
+});
 
-  error.value = '';
-  result.value = '';
-  loading.value = true;
-  try {
-    const resp = await fetch(`/api/whois?domain=${encodeURIComponent(d)}`);
-    const data = await resp.json().catch(() => null);
-
-    if (!resp.ok || !data) {
-      throw new Error(data?.error ?? `Service returned HTTP ${resp.status}`);
-    }
-    result.value = data.raw ?? data.error ?? 'Nothing returned';
-  }
-  catch (e) {
-    error.value = `Lookup failed: ${e instanceof Error ? e.message : String(e)} (this tool needs the Cloudflare Pages deployment)`;
-  }
-  finally {
-    loading.value = false;
-  }
-}
-
-function clear() {
-  result.value = '';
-  error.value = '';
-}
+const result = computed(() => data.value ?? '');
 </script>
 
 <template>
@@ -63,12 +45,12 @@ function clear() {
       label-align="right"
       raw-text
       clearable
-      @keydown.enter="queryWhois"
+      @keydown.enter="execute(domain)"
     />
 
     <div flex items-center gap-2>
-      <c-button type="primary" :disabled="loading || !domain.trim()" @click="queryWhois">
-        {{ loading ? 'Querying…' : 'Query WHOIS' }}
+      <c-button type="primary" :disabled="isLoading || !domain.trim()" @click="execute(domain)">
+        {{ isLoading ? 'Querying…' : 'Query WHOIS' }}
       </c-button>
       <c-button v-if="result || error" @click="clear">
         Clear

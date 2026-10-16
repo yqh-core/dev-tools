@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { convertArrayToCsv, getHeaders } from './json-to-csv.service';
+import { parseCsv } from '@/utils/csv';
 
 describe('json-to-csv service', () => {
   describe('getHeaders', () => {
@@ -82,8 +83,42 @@ describe('json-to-csv service', () => {
 
       expect(convertArrayToCsv({ array })).toMatchInlineSnapshot(`
         "a,b
-        hello \\\\\\"world\\\\\\",2"
+        \\"hello \\"\\"world\\"\\"\\",2"
       `);
+    });
+
+    // 下面四条是这次修复才补的覆盖：旧实现把换行折成字面 \n、对反斜杠完全不处理，
+    // 而这两类恰恰决定"输出能否被标准读取器读回来"。
+    it('a value containing a newline is quoted, not folded into a literal backslash-n', () => {
+      const csv = convertArrayToCsv({ array: [{ a: 'line1\nline2', b: 2 }] });
+
+      expect(csv).toBe('a,b\n"line1\nline2",2');
+      expect(csv).not.toContain('\\nline2'); // 反证旧行为
+    });
+
+    it('a value containing a backslash is passed through untouched (CSV has no backslash escapes)', () => {
+      const csv = convertArrayToCsv({ array: [{ a: 'C:\\path\\to', b: 2 }] });
+
+      expect(csv).toBe('a,b\nC:\\path\\to,2');
+    });
+
+    it('an empty array yields no header row (unchanged behaviour)', () => {
+      expect(convertArrayToCsv({ array: [] })).toBe('');
+    });
+
+    it('output round-trips through the shared RFC 4180 parser', () => {
+      const array = [
+        { name: 'He said "hi"', note: 'a,b' },
+        { name: 'multi\nline', note: 'plain' },
+        { name: 'C:\\path', note: 'tab\there' },
+      ];
+
+      expect(parseCsv(convertArrayToCsv({ array }))).toEqual([
+        ['name', 'note'],
+        ['He said "hi"', 'a,b'],
+        ['multi\nline', 'plain'],
+        ['C:\\path', 'tab\there'],
+      ]);
     });
   });
 });

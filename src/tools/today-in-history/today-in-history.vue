@@ -1,50 +1,39 @@
 <script setup lang="ts">
 /**
  * 历史上的今天 —— 走本站 Pages Function `/api/today`，进入页面即自动加载。
+ *
+ * 本页没有输入，但有一种「请求成功、结果为空」的形态：数据集是精选的、只覆盖部分日期，
+ * 用户看到空结果时最需要知道的是**为什么空**，所以这里用接口给的 note 走 error 通道展示，
+ * 而不是只丢一句「没查到」。
  */
+import { useToolFetch } from '@/composable/toolFetch';
+
 interface HistoryEvent {
   date: string
   title: string
 }
 
-const events = ref<HistoryEvent[]>([]);
-const error = ref('');
-const loading = ref(false);
+const { data, error, isLoading, execute } = useToolFetch<HistoryEvent[]>({
+  resolveUrl: () => ({ url: '/api/today' }),
+  interpret: (payload) => {
+    const events = (payload.events as HistoryEvent[]) ?? [];
+    return events.length === 0
+      ? { error: (payload.note as string) ?? 'No events recorded for today (the dataset is still growing)', data: events }
+      : { data: events };
+  },
+  errorPrefix: 'Load failed',
+});
 
-async function load() {
-  loading.value = true;
-  error.value = '';
-  events.value = [];
-  try {
-    const resp = await fetch('/api/today');
-    const data = await resp.json().catch(() => null);
+const events = computed(() => data.value ?? []);
 
-    if (!resp.ok || !data) {
-      throw new Error(data?.error ?? `Service returned HTTP ${resp.status}`);
-    }
-    events.value = data.events ?? [];
-    if (events.value.length === 0) {
-      // 用接口给的 note（说明「为什么没有」），而不是只丢一句「没查到」。
-      // 数据集是精选的、只覆盖部分日期，用户看到空结果时最需要知道的正是这一点。
-      error.value = data.note ?? 'No events recorded for today (the dataset is still growing)';
-    }
-  }
-  catch (e) {
-    error.value = `Load failed: ${e instanceof Error ? e.message : String(e)} (this tool needs the Cloudflare Pages deployment)`;
-  }
-  finally {
-    loading.value = false;
-  }
-}
-
-onMounted(load);
+onMounted(() => execute());
 </script>
 
 <template>
   <div flex flex-col gap-3>
     <div flex items-center gap-2>
-      <c-button type="primary" :disabled="loading" @click="load">
-        {{ loading ? 'Loading…' : 'Reload' }}
+      <c-button type="primary" :disabled="isLoading" @click="execute()">
+        {{ isLoading ? 'Loading…' : 'Reload' }}
       </c-button>
       <span text-13px op-60>Loaded automatically once when the page opened</span>
     </div>

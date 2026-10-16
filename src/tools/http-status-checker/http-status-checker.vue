@@ -4,12 +4,42 @@
  *
  * 返回的是「边缘节点看到的」状态码与响应头：与本机 curl 结果可能不同
  * （例如本机被 DNS 缓存或代理影响时），这一点在界面里要说明。
+ *
+ * 本页有一种「部分结果 + 错误」的形态：响应头拿到了但状态码为空时，
+ * 要**同时**显示响应头和一句说明，所以不能压成成功/失败二选一。
+ * toolFetch 的 error 态允许带 data，正是为这种形态留的扩展点。
  */
+import { useToolFetch } from '@/composable/toolFetch';
+
+interface WebStatus {
+  status: number | null
+  headers: Record<string, string>
+}
+
 const url = useStorage('http-status-checker:url', '');
-const status = ref<number | null>(null);
-const headers = ref<Record<string, string>>({});
-const error = ref('');
-const loading = ref(false);
+
+const { data, error, isLoading, execute } = useToolFetch<WebStatus>({
+  resolveUrl: (input) => {
+    const u = input.trim();
+    if (!u) {
+      return { error: 'Enter a URL first' };
+    }
+    // 未写协议时按 https 处理（界面上有这句提示）
+    const withScheme = /^https?:\/\//i.test(u) ? u : `https://${u}`;
+    return { url: `/api/webstatus?url=${encodeURIComponent(withScheme)}` };
+  },
+  interpret: (payload) => {
+    const status = (payload.status as number) ?? null;
+    const headers = (payload.headers as Record<string, string>) ?? {};
+    return status === null
+      ? { error: (payload.error as string) ?? 'The service returned no status code', data: { status, headers } }
+      : { data: { status, headers } };
+  },
+  errorPrefix: 'Check failed',
+});
+
+const status = computed(() => data.value?.status ?? null);
+const headers = computed(() => data.value?.headers ?? {});
 
 const statusTone = computed(() => {
   if (status.value === null) {
@@ -23,42 +53,6 @@ const statusTone = computed(() => {
   }
   return 'text-red';
 });
-
-async function check() {
-  let u = url.value.trim();
-  if (!u) {
-    error.value = 'Enter a URL first';
-    return;
-  }
-  if (!/^https?:\/\//i.test(u)) {
-    u = `https://${u}`;
-  }
-
-  error.value = '';
-  status.value = null;
-  headers.value = {};
-  loading.value = true;
-  try {
-    const resp = await fetch(`/api/webstatus?url=${encodeURIComponent(u)}`);
-    const data = await resp.json().catch(() => null);
-
-    if (!resp.ok || !data) {
-      throw new Error(data?.error ?? `Service returned HTTP ${resp.status}`);
-    }
-    status.value = data.status ?? null;
-    headers.value = data.headers ?? {};
-
-    if (status.value === null) {
-      error.value = data.error ?? 'The service returned no status code';
-    }
-  }
-  catch (e) {
-    error.value = `Check failed: ${e instanceof Error ? e.message : String(e)} (this tool needs the Cloudflare Pages deployment)`;
-  }
-  finally {
-    loading.value = false;
-  }
-}
 
 const headerEntries = computed(() => Object.entries(headers.value));
 const headersText = computed(() => JSON.stringify(headers.value, null, 2));
@@ -75,12 +69,12 @@ const headersText = computed(() => JSON.stringify(headers.value, null, 2));
       label-align="right"
       raw-text
       clearable
-      @keydown.enter="check"
+      @keydown.enter="execute(url)"
     />
 
     <div flex items-center gap-2>
-      <c-button type="primary" :disabled="loading || !url.trim()" @click="check">
-        {{ loading ? 'Checking…' : 'Check status code' }}
+      <c-button type="primary" :disabled="isLoading || !url.trim()" @click="execute(url)">
+        {{ isLoading ? 'Checking…' : 'Check status code' }}
       </c-button>
       <span text-13px op-60>Assumes https when no scheme is given</span>
     </div>

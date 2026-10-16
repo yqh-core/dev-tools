@@ -620,6 +620,33 @@ export const GUIDES: Record<string, ToolGuide> = {
     ],
   },
 
+  '/csv-to-json': {
+    intro: 'Paste CSV and get a JSON array of objects, one per data row, keyed by the header row. Quoted fields, commas and real line breaks inside a cell, doubled quotes, a leading BOM and CRLF endings are all handled.',
+    steps: [
+      'Paste the CSV text into the input box.',
+      'Leave "First row holds the column names" on when the first row is a header; turn it off to get column_1, column_2 keys instead.',
+      'Copy the JSON result.',
+    ],
+    notes: [
+      'Every value becomes a string. Numbers, dates and booleans are not guessed, so 30 stays "30" instead of becoming the number 30.',
+      'A row with more values than the header is not dropped: the extra values are kept under __extra_1, __extra_2 and the row number is reported above the output.',
+      'Duplicate column names are renamed (a, a__2) instead of overwriting each other, and the rename is listed so you can fix the source.',
+      'An empty header cell becomes column_N so no column is lost.',
+      'An unterminated quote is reported as an error with its line number rather than producing a truncated result.',
+    ],
+    about: 'CSV has more conventions than rules. RFC 4180 defines quoted fields, doubled quotes as the escape and CRLF line breaks, but real exports from spreadsheets use semicolons, a UTF-8 BOM or bare LF depending on locale. A converter that just splits on commas quietly corrupts any cell containing a comma or a newline, which is why this tool parses character by character.',
+    faqs: [
+      { q: 'Why are all my numbers strings in the output?', a: 'CSV carries no type information, so guessing that 30 is a number would break values like 007 or a zip code with a leading zero. Every cell stays a string and typing is left to your code.' },
+      { q: 'Can it read an Excel .xlsx file?', a: 'No. An .xlsx is a zipped workbook, not CSV. Save or export as CSV first, then paste the text here.' },
+      { q: 'My file uses semicolons instead of commas.', a: 'Replace the semicolons with commas in a text editor, or export from your spreadsheet app with a comma separator.' },
+      { q: 'What happens to a row with too few values?', a: 'Missing cells become empty strings and the row numbers are listed above the output, so ragged rows stay visible instead of being silently normalised.' },
+    ],
+    example: {
+      label: 'Load an example CSV',
+      text: 'name,role,joined\nAda,engineer,2021-03-02\nGrace,lead,2019-07-11\n',
+    },
+  },
+
   '/json-to-csv': {
     intro: 'Converts a JSON array into a CSV table for Excel or a data-analysis tool.',
     steps: ['Paste the JSON array', 'Check the auto-detected column headers', 'Copy or download the CSV'],

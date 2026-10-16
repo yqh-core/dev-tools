@@ -52,6 +52,7 @@ export const TOOL_CLUSTERS: ToolCluster[] = [
       '/json-minify',
       '/json-diff',
       '/json-to-csv',
+      '/csv-to-json',
       '/json-to-yaml-converter',
       '/yaml-to-json-converter',
       '/json-to-xml',
