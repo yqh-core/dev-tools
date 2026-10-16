@@ -44,7 +44,7 @@ const text = computed(() =>
   <div flex flex-col gap-3>
     <div flex items-center gap-4>
       <div flex items-center gap-2>
-        <span>根字号</span>
+        <span>Root font size</span>
         <n-input-number v-model:value="root" :min="1" :max="100" w-120px>
           <template #suffix>
             px
@@ -52,7 +52,7 @@ const text = computed(() =>
         </n-input-number>
       </div>
       <div flex items-center gap-2>
-        <span>小数位</span>
+        <span>Decimals</span>
         <n-input-number v-model:value="digits" :min="0" :max="10" w-120px />
       </div>
     </div>
@@ -60,7 +60,7 @@ const text = computed(() =>
     <c-buttons-select
       v-model:value="direction"
       :options="directionOptions"
-      label="转换方向："
+      label="Direction:"
       label-position="left"
       label-width="90px"
       label-align="right"
@@ -68,8 +68,8 @@ const text = computed(() =>
 
     <c-input-text
       v-model:value="input"
-      label="数值："
-      placeholder="空格 / 逗号 / 换行分隔，可带 px·rem 单位，如 16px 24px 1.5rem"
+      label="Values:"
+      placeholder="Separated by space / comma / newline, px·rem units allowed, e.g. 16px 24px 1.5rem"
       multiline
       :rows="4"
       raw-text
@@ -80,7 +80,7 @@ const text = computed(() =>
 
     <div v-if="rows.length" mt-1>
       <div mb-1 text-13px op-70>
-        转换结果（rem = px ÷ 根字号）：
+        Result (rem = px / root font size):
       </div>
       <TextareaCopyable :value="text" />
     </div>
