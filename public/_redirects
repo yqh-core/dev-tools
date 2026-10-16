@@ -111,6 +111,12 @@
 /legacy/formatsql/    /sql-prettify/    301
 /legacy/formatxml/    /xml-formatter/    301
 /legacy/md5/    /hash-text/    301
+
+# 2026-10-16 裁剪 C4：力/热量/密度 三页归并到 /unit-converter/
+#   C1 那轮因目标页不实现这三族而撤出；08c723d 补齐三族（kgf/kcal/g/cm³ 等有单测钉住）后才成立。
+/legacy/calcforce/    /unit-converter/    301
+/legacy/calcheat/    /unit-converter/    301
+/legacy/calcthickness/    /unit-converter/    301
 /legacy/*    /legacy/:splat   200
 
 # 2026-10-05：删除 `/* /index.html 200` SPA fallback —— 它是软 404 的根源：

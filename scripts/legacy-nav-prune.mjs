@@ -19,7 +19,7 @@
  * 用法：node scripts/legacy-nav-prune.mjs            # 预演，不写盘
  *       node scripts/legacy-nav-prune.mjs --apply   # 真正写盘
  */
-import { readFileSync, writeFileSync, readdirSync, statSync } from 'node:fs';
+import { readFileSync, writeFileSync, readdirSync, statSync, existsSync } from 'node:fs';
 import { join, resolve, dirname, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -31,7 +31,19 @@ const spec = JSON.parse(readFileSync(join(root, 'scripts', 'legacy-retired.json'
 const retired = new Set(
   Object.entries(spec).filter(([k]) => k !== '_comment').flatMap(([, v]) => v),
 );
-if (retired.size !== 93) { throw new Error(`退休清单条数异常：${retired.size}（期望 93）`); }
+// 不写死总数（写死 93 之后每加一批都要改脚本，只会逼人随手把数字改对——那是假门禁）。
+// 改成两条真有防护力的不变量：组间不得重叠、每个 slug 必须在磁盘上真有这一页。
+const groups = Object.entries(spec).filter(([k]) => k !== '_comment');
+const seenG = new Map();
+for (const [g, list] of groups) {
+  for (const s of list) {
+    if (seenG.has(s)) { throw new Error(`${s} 同时出现在 ${seenG.get(s)} 与 ${g}`); }
+    seenG.set(s, g);
+    if (!existsSync(join(LEG, s, 'index.html'))) { throw new Error(`退休清单里的 ${s} 在磁盘上没有对应页`); }
+  }
+}
+if (retired.size === 0) { throw new Error('退休清单为空，拒绝执行（空清单会让后面的断言全部空转）'); }
+console.log(`退休清单：${groups.length} 组、共 ${retired.size} 个 slug`);
 
 // ⚠ 不能用「<li> 块级匹配」。实测 legacy 导航 HTML 本身是坏的：存在未闭合的
 //    `<li class="dropdown">`，而分类下拉的 toggle 自身就是 `<a href="/legacy/" …>`。
