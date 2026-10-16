@@ -431,6 +431,7 @@ export const GUIDES: Record<string, ToolGuide> = {
     faqs: [
       { q: 'When must I escape HTML?', a: 'Whenever untrusted text becomes part of markup — comments, form values, rich-text imports. Skipping it is how XSS happens; escaping turns a payload into visible text.' },
       { q: 'How do I write an em dash or © as an entity?', a: 'Look it up in the reference table on this page: &mdash; for the em dash, &copy; for copyright. Each entry also gives the decimal and hex numeric forms (&#8212; / &#x2014; and &#169; / &#xA9;), which you can use when a named entity is not supported.' },
+      { q: 'What is the difference between named and numeric entities?', a: 'Named ones (&amp;, &lt;) are readable; numeric ones (&#38;, &#x26;) work for every character, including those without a name. Both decode to the same character, and the reference table shows the three forms side by side.' },
       { q: 'Why does &amp; appear inside URLs?', a: 'An ampersand that separates query parameters is itself a live entity, so escaping it as &amp; is the correct encoding for HTML attribute or text contexts — but the raw & is what the server parses. Escape for the document, not for the request line.' },
     ],
   },
