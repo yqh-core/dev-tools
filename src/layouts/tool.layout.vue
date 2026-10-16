@@ -638,14 +638,14 @@ const shareLabel = computed(() => {
     font-size: 13px;
 
     &:hover {
-      border-color: rgba(24, 160, 88, 0.8);
-      background: rgba(24, 160, 88, 0.1);
+      border-color: color-mix(in srgb, var(--dd-primary) 80%, transparent);
+      background: color-mix(in srgb, var(--dd-primary) 10%, transparent);
     }
   }
 
   .action-example {
-    border-color: rgba(24, 160, 88, 0.8);
-    background: rgba(24, 160, 88, 0.1);
+    border-color: color-mix(in srgb, var(--dd-primary) 80%, transparent);
+    background: color-mix(in srgb, var(--dd-primary) 10%, transparent);
   }
 
   .action-tip {
@@ -703,7 +703,7 @@ const shareLabel = computed(() => {
     padding: 2px 8px;
     border-radius: 4px;
 
-    background: rgba(24, 160, 88, 0.14);
+    background: color-mix(in srgb, var(--dd-primary) 14%, transparent);
     color: inherit;
     font-weight: 500;
   }
@@ -794,7 +794,7 @@ const shareLabel = computed(() => {
     margin-top: 8px;
     padding: 14px 16px;
 
-    border-left: 3px solid rgba(24, 160, 88, 0.6);
+    border-left: 3px solid color-mix(in srgb, var(--dd-primary) 60%, transparent);
     border-radius: 4px;
     background: rgba(128, 128, 128, 0.08);
 

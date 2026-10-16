@@ -649,19 +649,34 @@ function onUpdateFavoriteTools() {
 </template>
 
 <style scoped lang="less">
-/* 首页顶部：页面级标题 + 一句话站点身份说明 + badge 行 + CTA（对应 P0-2 / STEP 4 / S2） */
+/* 首页顶部：把纯文字堆叠升级为一块带品牌色渐晕的门面面板。
+   渐变只用 --dd-primary 的 color-mix 叠在 --dd-surface 上，不引入新硬编码色，
+   明暗两套令牌自动适配（暗色下 --dd-primary=teal-500、--dd-surface=navy）。 */
 .home-hero {
-  margin-bottom: 18px;
+  position: relative;
+  overflow: hidden;
+
+  margin-bottom: 26px;
+  padding: 30px 26px 26px;
+
+  border: 1px solid var(--dd-border);
+  border-radius: var(--dd-radius-lg);
+  background:
+    radial-gradient(120% 130% at 8% -20%, color-mix(in srgb, var(--dd-primary) 16%, transparent), transparent 55%),
+    var(--dd-surface);
+
+  box-shadow: var(--dd-shadow);
 
   .home-hero-title {
-    margin: 0 0 6px;
+    margin: 0 0 8px;
 
-    font-size: 28px;
-    font-weight: 650;
-    line-height: 1.25;
+    font-size: 30px;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
 
     @media (min-width: 640px) {
-      font-size: 34px;
+      font-size: 40px;
     }
   }
 
@@ -670,8 +685,8 @@ function onUpdateFavoriteTools() {
     margin: 0;
 
     font-size: 15px;
-    line-height: 1.65;
-    opacity: 0.65;
+    line-height: 1.7;
+    color: var(--dd-text-soft);
   }
 }
 
@@ -687,27 +702,28 @@ function onUpdateFavoriteTools() {
 }
 
 .hero-badge {
-  padding: 3px 10px;
+  padding: 4px 12px;
 
-  border: 1px solid rgba(128, 128, 128, 0.3);
+  border: 1px solid var(--dd-border);
   border-radius: 999px;
-  background: rgba(128, 128, 128, 0.06);
+  background: var(--dd-surface-2);
 
+  color: var(--dd-text-soft);
   font-size: 12px;
+  font-weight: 500;
   line-height: 1.6;
-  opacity: 0.8;
 }
 
 .hero-badge-strong {
-  border-color: rgba(24, 160, 88, 0.55);
-  background: rgba(24, 160, 88, 0.08);
+  border-color: color-mix(in srgb, var(--dd-primary) 55%, transparent);
+  background: color-mix(in srgb, var(--dd-primary) 8%, transparent);
 
-  color: rgba(16, 128, 67, 1);
+  color: var(--dd-primary);
   font-weight: 500;
   opacity: 1;
 
   .dark & {
-    color: rgba(60, 200, 130, 1);
+    color: var(--dd-primary);
   }
 }
 
@@ -716,11 +732,11 @@ function onUpdateFavoriteTools() {
   margin-top: 12px;
   padding: 6px 14px;
 
-  border: 1px solid rgba(24, 160, 88, 0.55);
+  border: 1px solid color-mix(in srgb, var(--dd-primary) 55%, transparent);
   border-radius: 8px;
   background: transparent;
 
-  color: rgba(16, 128, 67, 1);
+  color: var(--dd-primary);
   cursor: pointer;
 
   font-size: 13px;
@@ -730,11 +746,11 @@ function onUpdateFavoriteTools() {
   transition: background-color 0.2s ease;
 
   &:hover {
-    background: rgba(24, 160, 88, 0.1);
+    background: color-mix(in srgb, var(--dd-primary) 10%, transparent);
   }
 
   .dark & {
-    color: rgba(60, 200, 130, 1);
+    color: var(--dd-primary);
   }
 }
 
@@ -772,8 +788,8 @@ function onUpdateFavoriteTools() {
   transition: border-color 0.15s ease, background-color 0.15s ease;
 
   &:hover {
-    border-color: rgba(24, 160, 88, 0.7);
-    background: rgba(24, 160, 88, 0.05);
+    border-color: color-mix(in srgb, var(--dd-primary) 70%, transparent);
+    background: color-mix(in srgb, var(--dd-primary) 5%, transparent);
   }
 
   .cat-chip-icon {
@@ -791,17 +807,36 @@ function onUpdateFavoriteTools() {
   }
 }
 
+/* 区块标题：统一一个带品牌色竖条的标题样式（#home-popular 的 h2 不在 .home-block 内，
+   所以这里做成顶层选择器覆盖全部区块，而非嵌套在 .home-block 里漏掉 Popular）。 */
+.home-block-title {
+  position: relative;
+  margin: 0 0 10px;
+  padding-left: 12px;
+
+  color: var(--dd-text);
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.35;
+
+  &::before {
+    position: absolute;
+    top: 3px;
+    bottom: 3px;
+    left: 0;
+
+    width: 3px;
+    border-radius: 2px;
+    background: var(--dd-primary);
+
+    content: '';
+  }
+}
+
 /* G-01a：Why DigDevBox + Privacy 两个信任区块。S2：间距收紧、不引入新视觉重量。
    390px 下单列、chip 换行，不引入横向滚动。 */
 .home-block {
-  margin-top: 20px;
-
-  .home-block-title {
-    margin: 0 0 8px;
-
-    font-size: 15px;
-    font-weight: 600;
-  }
+  margin-top: 24px;
 
   .home-block-text {
     max-width: 760px;
@@ -809,8 +844,12 @@ function onUpdateFavoriteTools() {
 
     font-size: 13px;
     line-height: 1.65;
-    opacity: 0.7;
+    color: var(--dd-text-soft);
   }
+}
+
+#home-popular {
+  margin-top: 26px;
 }
 
 .home-blog-list {
@@ -835,34 +874,37 @@ function onUpdateFavoriteTools() {
   align-items: flex-start;
   gap: 6px;
 
-  padding: 12px 14px;
+  padding: 14px 16px;
 
+  background: var(--dd-surface);
   text-decoration: none;
 
-  border: 1px solid rgb(128, 128, 128, 0.18);
-  border-left: 3px solid rgba(24, 160, 88, 0.5);
-  border-radius: 8px;
+  border: 1px solid var(--dd-border);
+  border-left: 3px solid var(--dd-primary);
+  border-radius: var(--dd-radius);
+  box-shadow: var(--dd-shadow);
 
-  transition: border-color ease 0.2s, background-color ease 0.2s;
+  transition: box-shadow 0.2s ease, background-color 0.2s ease, transform 0.2s ease;
 
   &:hover {
-    border-color: rgb(59, 149, 111, 0.65);
-    background: rgba(24, 160, 88, 0.04);
+    background: color-mix(in srgb, var(--dd-primary) 4%, var(--dd-surface));
+    box-shadow: var(--dd-shadow-hover);
+    transform: translateY(-2px);
   }
 
   .home-blog-card-tag {
     padding: 2px 8px;
 
     border-radius: 999px;
-    background: rgba(24, 160, 88, 0.1);
+    background: color-mix(in srgb, var(--dd-primary) 10%, transparent);
 
-    color: rgba(16, 128, 67, 1);
+    color: var(--dd-primary);
     font-size: 11px;
     font-weight: 500;
     line-height: 1.5;
 
     .dark & {
-      color: rgba(60, 200, 130, 1);
+      color: var(--dd-primary);
     }
   }
 
@@ -932,7 +974,7 @@ function onUpdateFavoriteTools() {
     height: 5px;
 
     border-radius: 50%;
-    background: rgba(24, 160, 88, 0.85);
+    background: color-mix(in srgb, var(--dd-primary) 85%, transparent);
 
     content: '';
   }
@@ -957,7 +999,7 @@ function onUpdateFavoriteTools() {
   text-decoration: none;
 
   &:hover {
-    border-color: rgba(24, 160, 88, 0.8);
+    border-color: color-mix(in srgb, var(--dd-primary) 80%, transparent);
   }
 }
 
@@ -978,15 +1020,15 @@ function onUpdateFavoriteTools() {
   width: 100%;
   padding: 14px 18px;
 
-  border: 1px solid rgba(128, 128, 128, 0.35);
+  border: 1px solid var(--dd-border);
   border-radius: 12px;
-  background: rgba(128, 128, 128, 0.06);
+  background: var(--dd-surface-2);
 
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 
   &:focus-within {
-    border-color: rgba(24, 160, 88, 0.8);
-    box-shadow: 0 0 0 3px rgba(24, 160, 88, 0.12);
+    border-color: color-mix(in srgb, var(--dd-primary) 80%, transparent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--dd-primary) 12%, transparent);
   }
 
   .search-icon {
@@ -1058,21 +1100,26 @@ function onUpdateFavoriteTools() {
 }
 
 .task-card {
-  padding: 12px 14px;
+  padding: 16px 16px 15px;
 
-  border: 1px solid rgb(128, 128, 128, 0.18);
-  border-radius: 10px;
+  background: var(--dd-surface);
+  border: 1px solid var(--dd-border);
+  border-radius: var(--dd-radius);
+  box-shadow: var(--dd-shadow);
 
-  transition: border-color 0.2s ease, background-color 0.2s ease;
+  transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
 
   &:hover {
-    border-color: rgba(24, 160, 88, 0.6);
-    background: rgba(24, 160, 88, 0.03);
+    border-color: color-mix(in srgb, var(--dd-primary) 60%, transparent);
+    background: color-mix(in srgb, var(--dd-primary) 3%, var(--dd-surface));
+    box-shadow: var(--dd-shadow-hover);
+    transform: translateY(-2px);
   }
 
   .task-card-title {
     margin: 0 0 8px;
 
+    color: var(--dd-text);
     font-size: 13.5px;
     font-weight: 600;
     line-height: 1.4;
@@ -1106,8 +1153,8 @@ function onUpdateFavoriteTools() {
   transition: border-color 0.15s ease, background-color 0.15s ease;
 
   &:hover {
-    border-color: rgba(24, 160, 88, 0.7);
-    background: rgba(24, 160, 88, 0.06);
+    border-color: color-mix(in srgb, var(--dd-primary) 70%, transparent);
+    background: color-mix(in srgb, var(--dd-primary) 6%, transparent);
   }
 
   .task-chip-icon {
@@ -1147,10 +1194,10 @@ function onUpdateFavoriteTools() {
   margin-top: 10px;
   padding: 7px 16px;
 
-  border: 1px solid rgba(24, 160, 88, 0.55);
+  border: 1px solid color-mix(in srgb, var(--dd-primary) 55%, transparent);
   border-radius: 8px;
 
-  color: rgba(16, 128, 67, 1);
+  color: var(--dd-primary);
   text-decoration: none;
 
   font-size: 13px;
@@ -1159,11 +1206,11 @@ function onUpdateFavoriteTools() {
   transition: background-color 0.2s ease;
 
   &:hover {
-    background: rgba(24, 160, 88, 0.1);
+    background: color-mix(in srgb, var(--dd-primary) 10%, transparent);
   }
 
   .dark & {
-    color: rgba(60, 200, 130, 1);
+    color: var(--dd-primary);
   }
 }
 
@@ -1260,7 +1307,7 @@ function onUpdateFavoriteTools() {
   transition: border-color 0.2s ease, background-color 0.2s ease;
 
   &:hover {
-    border-color: rgba(24, 160, 88, 0.8);
+    border-color: color-mix(in srgb, var(--dd-primary) 80%, transparent);
     background-color: rgba(128, 128, 128, 0.05);
   }
 
