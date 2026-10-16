@@ -16,10 +16,10 @@ import { apr1, apr1Verify } from './apr1';
 type Fmt = 'bcrypt' | 'apr1' | 'sha1' | 'plain';
 
 const FORMATS: { label: string; value: Fmt; hint: string }[] = [
-  { label: 'bcrypt（$2b$，推荐）', value: 'bcrypt', hint: 'Apache 2.4 起推荐；htpasswd -B 生成的就是它' },
-  { label: 'Apache MD5（$apr1$）', value: 'apr1', hint: '经典格式，兼容性最好；htpasswd -m 生成的就是它' },
-  { label: 'SHA1（{SHA}）', value: 'sha1', hint: '仅比明文强一点，Apache 官方明确标注「不安全」' },
-  { label: '明文（勿用于生产）', value: 'plain', hint: '仅 Windows / Netware 支持，调试用' },
+  { label: 'bcrypt ($2b$, recommended)', value: 'bcrypt', hint: 'Recommended since Apache 2.4 — this is what htpasswd -B outputs' },
+  { label: 'Apache MD5 ($apr1$)', value: 'apr1', hint: 'Classic format with the widest compatibility — what htpasswd -m outputs' },
+  { label: 'SHA1 ({SHA})', value: 'sha1', hint: 'Barely stronger than plain text; flagged insecure by Apache itself' },
+  { label: 'Plain text (never for production)', value: 'plain', hint: 'Supported on Windows / Netware only; for debugging' },
 ];
 
 const COSTS = [4, 6, 8, 10, 12];
@@ -56,7 +56,7 @@ async function generate() {
 
   const u = user.value.trim();
   if (!u) {
-    genError.value = '请先填写用户名';
+    genError.value = 'Enter a username first';
     return;
   }
 
@@ -78,7 +78,7 @@ async function generate() {
     generated.value = `${u}:${hash}`;
   }
   catch (e) {
-    genError.value = `生成失败：${e instanceof Error ? e.message : String(e)}`;
+    genError.value = `Generation failed: ${e instanceof Error ? e.message : String(e)}`;
   }
 }
 
@@ -103,9 +103,9 @@ const detected = computed(() => {
     return 'sha1';
   }
   if (h.startsWith('$1$')) {
-    return '$1$ md5-crypt（本工具不支持校验，Apache 也已不推荐）';
+    return '$1$ md5-crypt (this tool cannot verify it, and Apache deprecates it too)';
   }
-  return '明文或未知格式';
+  return 'plain text or unknown format';
 });
 
 async function verify() {
@@ -114,7 +114,7 @@ async function verify() {
 
   const h = parsed.value?.hash ?? '';
   if (!h) {
-    verifyError.value = '请先粘贴一行 .htpasswd 内容（形如 user:$apr1$…）';
+    verifyError.value = 'Paste one .htpasswd line first, e.g. user:$apr1$…';
     return;
   }
 
@@ -135,7 +135,7 @@ async function verify() {
     verifyResult.value = ok ? 'match' : 'mismatch';
   }
   catch (e) {
-    verifyError.value = `校验失败：${e instanceof Error ? e.message : String(e)}`;
+    verifyError.value = `Verification failed: ${e instanceof Error ? e.message : String(e)}`;
   }
 }
 
@@ -150,19 +150,19 @@ function useGenerated() {
 <template>
   <div flex flex-col gap-3>
     <c-alert>
-      用于 Nginx / Apache 的 Basic Auth。生成后把 <code>用户名:哈希</code> 写入 .htpasswd 文件
-      （用 <code>auth_basic_user_file</code> 指向它）。全程本地计算，密码不会离开浏览器。
+      For Nginx / Apache Basic Auth. Write the generated <code>user:hash</code> line into a .htpasswd file
+      (point <code>auth_basic_user_file</code> at it). Everything runs locally — the password never leaves your browser.
     </c-alert>
 
     <div flex flex-col gap-3>
-      <c-input-text v-model:value="user" label="用户名：" placeholder="admin" label-position="left" label-width="110px" label-align="right" raw-text />
-      <c-input-text v-model:value="password" label="密码：" placeholder="密码" label-position="left" label-width="110px" label-align="right" raw-text />
-      <c-select v-model:value="fmt" :options="FORMATS" label="格式：" label-position="left" label-width="110px" label-align="right" />
+      <c-input-text v-model:value="user" label="Username:" placeholder="admin" label-position="left" label-width="110px" label-align="right" raw-text />
+      <c-input-text v-model:value="password" label="Password:" placeholder="Password" label-position="left" label-width="110px" label-align="right" raw-text />
+      <c-select v-model:value="fmt" :options="FORMATS" label="Format:" label-position="left" label-width="110px" label-align="right" />
       <c-input-text
         v-if="fmt === 'apr1'"
         v-model:value="salt"
-        label="盐（留空随机）："
-        placeholder="最多 8 字符"
+        label="Salt (blank = random):"
+        placeholder="Up to 8 characters"
         label-position="left"
         label-width="110px"
         label-align="right"
@@ -172,7 +172,7 @@ function useGenerated() {
         v-if="fmt === 'bcrypt'"
         v-model:value="cost"
         :options="COSTS"
-        label="成本："
+        label="Cost:"
         label-position="left"
         label-width="110px"
         label-align="right"
@@ -180,10 +180,10 @@ function useGenerated() {
 
       <div flex items-center gap-2>
         <c-button type="primary" @click="generate">
-          生成
+          Generate
         </c-button>
         <c-button v-if="fmt === 'apr1'" @click="salt = randomSalt()">
-          随机盐
+          Random salt
         </c-button>
         <span text-13px op-60>{{ activeHint }}</span>
       </div>
@@ -195,12 +195,12 @@ function useGenerated() {
 
     <div v-if="generated" flex flex-col gap-2>
       <div text-13px op-70>
-        生成结果{{ saltUsed ? `（本次使用的盐：${saltUsed}）` : '' }}：
+        Generated line{{ saltUsed ? ` (salt used this time: ${saltUsed})` : '' }}:
       </div>
       <InputCopyable :value="generated" />
       <div>
         <c-button @click="useGenerated">
-          拿去校验
+          Send to verifier
         </c-button>
       </div>
     </div>
@@ -209,12 +209,12 @@ function useGenerated() {
 
     <div flex flex-col gap-3>
       <div text-16px fw-600>
-        校验已有 .htpasswd
+        Verify an existing .htpasswd
       </div>
 
       <c-input-text
         v-model:value="line"
-        label="一行内容："
+        label="Line content:"
         placeholder="admin:$apr1$xxxx$…"
         label-position="left"
         label-width="110px"
@@ -223,8 +223,8 @@ function useGenerated() {
       />
       <c-input-text
         v-model:value="passwordToCheck"
-        label="待验证密码："
-        placeholder="待验证密码"
+        label="Password to check:"
+        placeholder="Password to check"
         label-position="left"
         label-width="110px"
         label-align="right"
@@ -233,9 +233,9 @@ function useGenerated() {
 
       <div flex items-center gap-2>
         <c-button type="primary" @click="verify">
-          校验
+          Verify
         </c-button>
-        <span v-if="parsed" text-13px op-60>识别到格式：{{ detected }}</span>
+        <span v-if="parsed" text-13px op-60>Detected format: {{ detected }}</span>
       </div>
 
       <c-alert v-if="verifyError">
@@ -243,8 +243,8 @@ function useGenerated() {
       </c-alert>
 
       <div v-if="verifyResult" flex items-center gap-2>
-        <span v-if="verifyResult === 'match'" text-green>✅ 密码匹配</span>
-        <span v-else text-red>❌ 密码不匹配</span>
+        <span v-if="verifyResult === 'match'" text-green>Password matches</span>
+        <span v-else text-red>Password does not match</span>
       </div>
     </div>
   </div>

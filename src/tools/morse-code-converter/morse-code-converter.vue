@@ -5,8 +5,8 @@ const input = useStorage('morse-code-converter:input', '');
 const direction = ref<Direction>('encode');
 
 const directionOptions: { label: string; value: Direction }[] = [
-  { label: '文本 → 摩斯电码', value: 'encode' },
-  { label: '摩斯电码 → 文本', value: 'decode' },
+  { label: 'Text → Morse code', value: 'encode' },
+  { label: 'Morse code → Text', value: 'decode' },
 ];
 
 const MORSE: Record<string, string> = {
@@ -88,7 +88,7 @@ const result = computed(() => {
   // 解码侧：接受 | 或 ｜ 作为词间隔的写法
   const cleaned = raw.trim().replace(/[|｜]/g, '/');
   if (!/^[.\-\s/]*$/.test(cleaned)) {
-    return { output: '', error: '输入含非法字符：摩斯电码只能包含 . - 空格 与 /（词间隔）' };
+    return { output: '', error: 'Invalid characters: Morse code accepts only . , - , spaces and / (word separator)' };
   }
   const output = cleaned
     .split('/')
@@ -102,8 +102,8 @@ const result = computed(() => {
   <div flex flex-col gap-3>
     <c-input-text
       v-model:value="input"
-      label="输入内容："
-      placeholder="输入英文字母/数字，或摩斯电码，如 ... --- ..."
+      label="Input:"
+      placeholder="Type letters/digits, or Morse code such as ... --- ..."
       multiline
       :rows="6"
       raw-text
@@ -115,19 +115,19 @@ const result = computed(() => {
     <c-buttons-select
       v-model:value="direction"
       :options="directionOptions"
-      label="转换方向："
+      label="Direction:"
       label-position="left"
       label-width="90px"
       label-align="right"
     />
 
-    <c-alert v-if="result.error" type="warning" title="输入有误">
+    <c-alert v-if="result.error" type="warning" title="Invalid input">
       {{ result.error }}
     </c-alert>
 
     <div v-else-if="result.output" mt-1>
       <div mb-1 text-13px op-70>
-        转换结果：
+        Result:
       </div>
       <TextareaCopyable :value="result.output" />
     </div>

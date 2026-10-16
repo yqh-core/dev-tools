@@ -20,29 +20,54 @@
  * 注意别在注释里写斜杠星或 HTML 注释那几个字面量 —— 打包器会把它们当
  * 真标记处理，本文件第一版就因此被报"未终结的正则表达式"。
  */
-import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
+import process from 'node:process';
 import { describe, expect, it } from 'vitest';
 
 const ROOT = path.resolve(__dirname, '..', '..');
 const TOOLS = path.join(ROOT, 'src', 'tools');
 const BASELINE = path.join(ROOT, 'scripts', 'l10n-cjk-baseline.json');
-// 用转义写区间，不放生僻字符面量：源码里出现私用区/全角字符容易被编辑器与打包器咬坏。
-// 区间含义：扩展A区 + CJK基本区 + 兼容表意 + 中日韩符号标点 + 全角形式。
-const CJK = /[\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF\u3000-\u303F\uFF00-\uFFEF]/;
+// 只判**汉字**区间，不判 CJK 标点与全角形式：
+//   - `split(/[\s,，;；\n]+/)` 里的全角逗号是分词符，不是文案；
+//   - `（−12%）` 这种全角括号是排版瑕疵，另按具体文件单独修，不靠这条泛化规则抓。
+// 把标点纳入会把大量正常代码报成违规，门禁一旦噪声过高，人就会开始忽略它 —— 那比没有门禁更坏。
+const CJK = /[\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF]/;
 
 function stripComments(src: string): string {
   // 先对**全文**剥块注释（跨行），再逐行处理行注释与纯注释行。
-  // 上一版想用状态机逐行处理，结果写出了一条自相矛盾的分支，还容易漏模板里的 <!-- -->。
-  const blocked = src
+  let blocked = src
     .replace(/<!--[\s\S]*?-->/g, ' ')
     .replace(/\/\*[\s\S]*?\*\//g, ' ');
+
+  // 再整块跳过 defineTool 的 keywords 数组：那是站内搜索/SEO 的检索词，中文关键词是
+  // 给中文用户命中用的**功能数据**，不是界面文案，删掉是纯损失。
+  // 必须按块跳：数组常常跨行，只跳 `keywords:` 那一行会漏掉 `'命令',` 这类续行。
+  blocked = blocked.replace(/keywords:\s*\[[\s\S]*?\]/g, 'keywords: []');
+
   return blocked
     .split('\n')
-    // 整行注释直接丢；行尾注释只在「引号里没有 //」时才剥，避免伤到 URL/字符串内容
     .filter(l => !/^\s*(\/\/|\*|#)/.test(l))
-    .map(l => (/[ "'`)]\/\/[^"'`]*$/.test(l) && !/["'`][^"'`]*\/\//.test(l) ? l.replace(/\/\/[^"'`]*$/, '') : l))
+    .map(stripTrailingComment)
     .join('\n');
+}
+
+/**
+ * 剥行尾注释：只在「`//` 之前引号成对」时才认为那是注释。
+ * 这样既能剥掉 `const x = 1; // 中文说明`，又不会伤到
+ * `split('http://…')`、`'https://a//b'`、正则字面量里的 `//`。
+ */
+function stripTrailingComment(line: string): string {
+  const quote = /["'`]/g;
+  const idx = line.indexOf('//');
+  if (idx <= 0) {
+    return line;
+  }
+  if (line.startsWith('://', idx - 1)) {
+    return line; // URL
+  }
+  const quotesBefore = (line.slice(0, idx).match(quote) || []).length;
+  return quotesBefore % 2 === 0 ? line.slice(0, idx) : line;
 }
 
 function toolFiles(): string[] {
@@ -80,6 +105,13 @@ function offenders(): Record<string, string[]> {
 
 describe('英文站界面语言门禁（棘轮）', () => {
   const found = offenders();
+
+  // 基线由本文件自己生成（L10N_UPDATE=1），不再另写一个 Python 生成器 ——
+  // 上一轮就是"门禁一套剥注释逻辑、生成器另一套"，两边对 keywords 的处理不同，
+  // 于是同一个仓库报出 35 文件与 465 行的不一致数字。剥注释的口径只允许有一份。
+  if (process.env.L10N_UPDATE === '1') {
+    writeFileSync(BASELINE, `${JSON.stringify(found, null, 1)}\n`, 'utf8');
+  }
   const baseline: Record<string, string[]> = existsSync(BASELINE)
     ? JSON.parse(readFileSync(BASELINE, 'utf8'))
     : {};
@@ -91,6 +123,22 @@ describe('英文站界面语言门禁（棘轮）', () => {
     expect(stripComments('<span>根字号</span>')).not.toBe('');
     expect(CJK.test(stripComments('  // 根字号是基准\n<span>根字号</span>'))).toBe(true);
     expect(CJK.test(stripComments('  // 这一整行是中文注释，不该被算成违规'))).toBe(false);
+  });
+
+  it('排除规则本身也要能证伪（否则门禁会误伤正常代码）', () => {
+    // 行尾中文注释不该被抓
+    expect(CJK.test(stripComments('const x = 1; // 这是中文注释'))).toBe(false);
+    // 真正的界面文案要被抓
+    expect(CJK.test(stripComments('label="数值：" // 英文站不该有中文标签'))).toBe(true);
+    // URL / 字符串里含 // 时不能误剥
+    expect(stripComments('const u = "https://a//b";')).toContain('https://a//b');
+    // 跨行 keywords 数组整块跳过（站内搜索关键词是数据，不是界面文案）
+    const kw = 'export const tool = defineTool({\n  keywords: [\n    \'px\',\n    \'像素\',\n  ],\n  label: \'根字号\',\n});';
+    const stripped = stripComments(kw);
+    expect(stripped).not.toContain('像素');
+    expect(stripped).toContain('根字号'); // 同文件里的真文案仍要被抓到
+    // 全角标点与分隔符不算「中文界面」
+    expect(CJK.test('split(/[\\s,，;；\\n]+/)')).toBe(false);
   });
 
   it('不允许出现基线之外的新中文（挡住回归）', () => {

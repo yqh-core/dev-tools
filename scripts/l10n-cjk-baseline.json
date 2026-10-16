@@ -43,65 +43,6 @@
   "70: zh = `小写字母 ${String.fromCharCode(i)}`;",
   "73: zh = '标点符号';"
  ],
- "src/tools/ascii-table/ascii-table.vue": [
-  "20: placeholder=\"搜索字符或码值，如 65 / A / 0x41…\"",
-  "26: 共 {{ rows.length }} 条",
-  "43: 没有匹配项。可搜字符（如 A）、十进制（65）或十六进制（0x41）。"
- ],
- "src/tools/ascii-table/index.ts": [
-  "9: keywords: ['ascii', 'ascii table', '码表', '字符', '十进制', '十六进制', '八进制', '"
- ],
- "src/tools/fullwidth-converter/fullwidth-converter.vue": [
-  "8: { label: '半角 → 全角', value: 'to-full' },",
-  "9: { label: '全角 → 半角', value: 'to-half' },",
-  "10: { label: '全角标点 → 半角标点', value: 'punct-to-half' },",
-  "11: { label: '半角标点 → 全角标点', value: 'punct-to-full' },",
-  "21: const PUNCT_FULL = '，。！？；：（）【】“”‘’《》、·—…￥';",
-  "48: label=\"输入文本：\"",
-  "49: placeholder=\"输入要转换的文本，如 ＡＢＣ１２３ 或 abc123\"",
-  "61: label=\"转换方式：\"",
-  "69: 转换结果："
- ],
- "src/tools/fullwidth-converter/index.ts": [
-  "9: keywords: ['fullwidth', 'halfwidth', '全角', '半角', '标点', 'punctuation', "
- ],
- "src/tools/htpasswd-generator/htpasswd-generator.vue": [
-  "10: { label: 'bcrypt（$2b$，推荐）', value: 'bcrypt', hint: 'Apache 2.4 起推荐；htp",
-  "11: { label: 'Apache MD5（$apr1$）', value: 'apr1', hint: '经典格式，兼容性最好；htpass",
-  "12: { label: 'SHA1（{SHA}）', value: 'sha1', hint: '仅比明文强一点，Apache 官方明确标注「不安",
-  "13: { label: '明文（勿用于生产）', value: 'plain', hint: '仅 Windows / Netware 支持，调试",
-  "49: genError.value = '请先填写用户名';",
-  "71: genError.value = `生成失败：${e instanceof Error ? e.message : String(e)}`;",
-  "96: return '$1$ md5-crypt（本工具不支持校验，Apache 也已不推荐）';",
-  "98: return '明文或未知格式';",
-  "107: verifyError.value = '请先粘贴一行 .htpasswd 内容（形如 user:$apr1$…）';",
-  "128: verifyError.value = `校验失败：${e instanceof Error ? e.message : String(e)",
-  "143: 用于 Nginx / Apache 的 Basic Auth。生成后把 <code>用户名:哈希</code> 写入 .htpasswd 文",
-  "144: （用 <code>auth_basic_user_file</code> 指向它）。全程本地计算，密码不会离开浏览器。",
-  "148: <c-input-text v-model:value=\"user\" label=\"用户名：\" placeholder=\"admin\" la",
-  "149: <c-input-text v-model:value=\"password\" label=\"密码：\" placeholder=\"密码\" la",
-  "150: <c-select v-model:value=\"fmt\" :options=\"FORMATS\" label=\"格式：\" label-pos",
-  "154: label=\"盐（留空随机）：\"",
-  "155: placeholder=\"最多 8 字符\"",
-  "165: label=\"成本：\"",
-  "173: 生成",
-  "176: 随机盐",
-  "188: 生成结果{{ saltUsed ? `（本次使用的盐：${saltUsed}）` : '' }}：",
-  "193: 拿去校验",
-  "202: 校验已有 .htpasswd",
-  "207: label=\"一行内容：\"",
-  "216: label=\"待验证密码：\"",
-  "217: placeholder=\"待验证密码\"",
-  "226: 校验",
-  "228: <span v-if=\"parsed\" text-13px op-60>识别到格式：{{ detected }}</span>",
-  "236: <span v-if=\"verifyResult === 'match'\" text-green>✅ 密码匹配</span>",
-  "237: <span v-else text-red>❌ 密码不匹配</span>"
- ],
- "src/tools/htpasswd-generator/index.ts": [
-  "17: 'basic认证',",
-  "18: '密码',",
-  "19: '哈希',"
- ],
  "src/tools/http-headers/http-headers.constants.ts": [
   "8: { name: 'Host', dir: '请求', zh: '目标主机与端口；HTTP/1.1 起必填' },",
   "9: { name: 'User-Agent', dir: '请求', zh: '客户端标识；很多 API 会按它做拦截或限流' },",
@@ -155,64 +96,6 @@
   "57: { name: 'X-Forwarded-Proto', dir: '请求', zh: '原始协议（http/https），用于生成正确回跳",
   "58: { name: 'X-Request-Id', dir: '请求/响应', zh: '链路追踪 ID' },",
   "59: { name: 'CF-Connecting-IP', dir: '请求', zh: 'Cloudflare 回源时携带的真实客户端 IP'"
- ],
- "src/tools/http-headers/http-headers.vue": [
-  "20: placeholder=\"搜索头部字段，如 Cookie / CORS / 缓存…\"",
-  "26: 共 {{ rows.length }} 条",
-  "40: 没有匹配的头部字段，换个关键词试试。"
- ],
- "src/tools/http-headers/index.ts": [
-  "14: '请求头',",
-  "15: '响应头',"
- ],
- "src/tools/http-status-checker/http-status-checker.vue": [
-  "25: error.value = '请先输入网址';",
-  "41: throw new Error(data?.error ?? `服务返回 ${resp.status}`);",
-  "47: error.value = data.error ?? '服务未返回状态码';",
-  "51: error.value = `检测失败：${e instanceof Error ? e.message : String(e)}（该工具需",
-  "66: label=\"网址：\"",
-  "67: placeholder=\"输入网址，如 example.com\"",
-  "78: {{ loading ? '检测中…' : '检测状态码' }}",
-  "80: <span text-13px op-60>未写协议时按 https 处理</span>",
-  "89: <span text-13px op-70>状态码：</span>",
-  "96: <span text-13px op-70>响应头（{{ headerEntries.length }} 项）：</span>"
- ],
- "src/tools/http-status-checker/index.ts": [
-  "9: keywords: ['http', 'status', 'code', '状态码', '响应头', 'headers', '检测', '网"
- ],
- "src/tools/image-compress/image-compress.vue": [
-  "190: <span v-if=\"savings\">（−{{ savings }}）</span>"
- ],
- "src/tools/json-to-code/index.ts": [
-  "9: keywords: ['json', '实体类', 'model', 'interface', 'typescript', 'java', "
- ],
- "src/tools/json-to-code/json-to-code.vue": [
-  "122: parseError.value = '顶层数组的元素不是对象，无法生成实体类';",
-  "130: parseError.value = '顶层必须是 JSON 对象或对象数组';",
-  "135: parseError.value = `JSON 解析失败：${(e as Error).message}`;",
-  "234: label=\"根类名：\"",
-  "244: label=\"目标语言：\"",
-  "252: label=\"JSON：\"",
-  "253: placeholder=\"粘贴 JSON 对象或对象数组，如 [{&quot;id&quot;:1,&quot;name&quot;:&qu",
-  "262: <c-alert v-if=\"parseError\" type=\"warning\" title=\"解析失败\">"
- ],
- "src/tools/json-to-get-params/index.ts": [
-  "9: keywords: ['json', 'query', 'querystring', 'GET', '参数', 'url', 'flatte"
- ],
- "src/tools/json-to-get-params/json-to-get-params.vue": [
-  "8: { label: 'JSON → GET 参数', value: 'to-get' },",
-  "9: { label: 'GET 参数 → JSON', value: 'to-json' },",
-  "73: return { output: '', error: `JSON 解析失败：${(e as Error).message}` };",
-  "102: return { output: '', error: '查询字符串解析失败，请检查是否含非法转义' };",
-  "112: label=\"转换方向：\"",
-  "120: label=\"输入内容：\"",
-  "121: placeholder=\"粘贴 JSON，或查询字符串，如 a=1&b[x]=2\"",
-  "130: <c-alert v-if=\"result.error\" type=\"warning\" title=\"转换失败\">",
-  "136: 转换结果："
- ],
- "src/tools/linux-commands/index.ts": [
-  "14: '命令',",
-  "15: '速查',"
  ],
  "src/tools/linux-commands/linux-commands.constants.ts": [
   "8: { cmd: 'ls', zh: '列出目录内容', eg: 'ls -alh' },",
@@ -334,34 +217,6 @@
   "124: { cmd: 'psql', zh: 'PostgreSQL 客户端', eg: 'psql -U postgres -l' },",
   "125: { cmd: 'openssl', zh: '证书与加密工具', eg: 'openssl s_client -connect x:443'"
  ],
- "src/tools/linux-commands/linux-commands.vue": [
-  "20: placeholder=\"搜索命令或场景，如 grep / 端口 / 磁盘…\"",
-  "26: 共 {{ rows.length }} 条",
-  "40: 没有匹配的命令，换个关键词试试。"
- ],
- "src/tools/morse-code-converter/index.ts": [
-  "9: keywords: ['morse', '摩斯', '摩尔斯', '电码', 'code', 'encode', 'decode', 'te"
- ],
- "src/tools/morse-code-converter/morse-code-converter.vue": [
-  "8: { label: '文本 → 摩斯电码', value: 'encode' },",
-  "9: { label: '摩斯电码 → 文本', value: 'decode' },",
-  "88: const cleaned = raw.trim().replace(/[|｜]/g, '/');",
-  "90: return { output: '', error: '输入含非法字符：摩斯电码只能包含 . - 空格 与 /（词间隔）' };",
-  "104: label=\"输入内容：\"",
-  "105: placeholder=\"输入英文字母/数字，或摩斯电码，如 ... --- ...\"",
-  "117: label=\"转换方向：\"",
-  "123: <c-alert v-if=\"result.error\" type=\"warning\" title=\"输入有误\">",
-  "129: 转换结果："
- ],
- "src/tools/px-rem-converter/index.ts": [
-  "9: keywords: ['px', 'rem', 'css', '像素', '根字号', 'root font size', '响应式', '"
- ],
- "src/tools/px-rem-converter/px-rem-converter.vue": [
-  "22: const tokens = input.value.trim().split(/[\\s,，;；\\n]+/).filter(Boolean)"
- ],
- "src/tools/rmb-uppercase/index.ts": [
-  "9: keywords: ['rmb', 'cny', '人民币', '大写', '金额', '中文大写', '发票', '财务', 'curre"
- ],
  "src/tools/rmb-uppercase/rmb-uppercase.vue": [
   "2: const DIGITS = ['零', '壹', '贰', '叁', '肆', '伍', '陆', '柒', '捌', '玖'];",
   "3: const UNITS = ['', '拾', '佰', '仟'];",
@@ -372,7 +227,6 @@
   "47: if (i > 0 && g[0] === '0' && !out.endsWith('零')) {",
   "48: out += '零';",
   "52: return out.replace(/零{2,}/g, '零').replace(/零+$/, '');",
-  "60: const raw = input.value.trim().replace(/[,，\\s￥¥]/g, '');",
   "65: return { text: '', error: '请输入合法的数字金额，如 1234.56' };",
   "74: const yuanChar = useYuan.value ? '元' : '圆';",
   "78: tail = `${yuanChar}整`;",
@@ -387,39 +241,8 @@
   "116: <c-alert v-if=\"result.error\" type=\"warning\" title=\"输入有误\">",
   "120: <InputCopyable v-else-if=\"result.text\" :value=\"result.text\" label=\"中文大"
  ],
- "src/tools/text-replacer/index.ts": [
-  "9: keywords: ['replace', '替换', '批量替换', '正则替换', 'regex replace', '文本处理', '"
- ],
- "src/tools/text-replacer/text-replacer.vue": [
-  "43: label=\"原文：\"",
-  "44: placeholder=\"粘贴要处理的原文\"",
-  "55: label=\"查找：\"",
-  "56: placeholder=\"要查找的内容\"",
-  "66: label=\"替换为：\"",
-  "67: placeholder=\"留空表示删除\"",
-  "77: 使用正则表达式",
-  "80: 忽略大小写",
-  "84: <c-alert v-if=\"regexInvalid\" type=\"warning\" title=\"正则表达式无效\">",
-  "85: 请检查括号、转义是否正确。",
-  "90: <span>替换次数：<b>{{ count }}</b></span>",
-  "91: <span>原文字符：<b>{{ source.length }}</b></span>",
-  "92: <span>结果字符：<b>{{ output.length }}</b></span>"
- ],
  "src/tools/text-to-unicode/text-to-unicode.vue": [
   "52: <c-input-text v-model:value=\"inputForCodes\" multiline placeholder=\"e.g"
- ],
- "src/tools/today-in-history/index.ts": [
-  "9: keywords: ['today', 'history', '历史上的今天', '今日', '事件', ' anniversary', '"
- ],
- "src/tools/today-in-history/today-in-history.vue": [
-  "21: throw new Error(data?.error ?? `服务返回 ${resp.status}`);",
-  "25: error.value = data.note ?? '今天没有查到历史事件记录（数据集持续完善中）';",
-  "29: error.value = `加载失败：${e instanceof Error ? e.message : String(e)}（该工具需",
-  "43: {{ loading ? '加载中…' : '重新加载' }}",
-  "45: <span text-13px op-60>进入页面时已自动加载一次</span>"
- ],
- "src/tools/unit-converter/index.ts": [
-  "9: keywords: ['unit', '单位', '换算', '转换', '长度', '面积', '重量', '体积', '速度', '压力"
  ],
  "src/tools/unit-converter/unit-converter.vue": [
   "2: const CATEGORIES = ['长度', '面积', '体积', '重量', '速度', '时间', '数据存储', '功率', ",
@@ -519,19 +342,5 @@
   "179: label=\"类别：\"",
   "186: <n-input-number v-model:value=\"amount\" flex-1 :show-button=\"false\" pla",
   "192: 换算结果："
- ],
- "src/tools/whois-lookup/index.ts": [
-  "9: keywords: ['whois', 'rdap', '域名', '注册信息', '备案', '注册商', 'domain', 'regi"
- ],
- "src/tools/whois-lookup/whois-lookup.vue": [
-  "19: error.value = '请先输入域名';",
-  "31: throw new Error(data?.error ?? `服务返回 ${resp.status}`);",
-  "33: result.value = data.raw ?? data.error ?? '无返回内容';",
-  "36: error.value = `查询失败：${e instanceof Error ? e.message : String(e)}（该工具需",
-  "53: label=\"域名：\"",
-  "54: placeholder=\"输入域名，如 example.com\"",
-  "65: {{ loading ? '查询中…' : '查询 WHOIS' }}",
-  "68: 清空",
-  "78: 注册信息："
  ]
 }

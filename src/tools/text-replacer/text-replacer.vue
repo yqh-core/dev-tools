@@ -41,8 +41,8 @@ const output = computed(() => {
   <div flex flex-col gap-3>
     <c-input-text
       v-model:value="source"
-      label="原文："
-      placeholder="粘贴要处理的原文"
+      label="Source text:"
+      placeholder="Paste the text to process"
       multiline
       :rows="6"
       raw-text
@@ -53,8 +53,8 @@ const output = computed(() => {
 
     <c-input-text
       v-model:value="find"
-      label="查找："
-      placeholder="要查找的内容"
+      label="Find:"
+      placeholder="What to look for"
       raw-text
       monospace
       label-position="left"
@@ -64,8 +64,8 @@ const output = computed(() => {
 
     <c-input-text
       v-model:value="replacement"
-      label="替换为："
-      placeholder="留空表示删除"
+      label="Replace with:"
+      placeholder="Leave empty to delete"
       raw-text
       monospace
       label-position="left"
@@ -75,22 +75,22 @@ const output = computed(() => {
 
     <div flex items-center gap-4 pl-90px>
       <n-checkbox v-model:checked="useRegex">
-        使用正则表达式
+        Use regular expression
       </n-checkbox>
       <n-checkbox v-model:checked="ignoreCase">
-        忽略大小写
+        Ignore case
       </n-checkbox>
     </div>
 
-    <c-alert v-if="regexInvalid" type="warning" title="正则表达式无效">
-      请检查括号、转义是否正确。
+    <c-alert v-if="regexInvalid" type="warning" title="Invalid regular expression">
+      Check your groups and escapes.
     </c-alert>
 
     <template v-else-if="find">
       <div flex flex-wrap gap-6 pl-90px text-13px op-80>
-        <span>替换次数：<b>{{ count }}</b></span>
-        <span>原文字符：<b>{{ source.length }}</b></span>
-        <span>结果字符：<b>{{ output.length }}</b></span>
+        <span>Replacements: <b>{{ count }}</b></span>
+        <span>Source characters: <b>{{ source.length }}</b></span>
+        <span>Result characters: <b>{{ output.length }}</b></span>
       </div>
       <TextareaCopyable :value="output" />
     </template>

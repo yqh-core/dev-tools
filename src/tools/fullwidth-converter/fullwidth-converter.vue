@@ -5,10 +5,10 @@ const input = useStorage('fullwidth-converter:input', '');
 const mode = ref<Mode>('to-full');
 
 const modeOptions: { label: string; value: Mode }[] = [
-  { label: '半角 → 全角', value: 'to-full' },
-  { label: '全角 → 半角', value: 'to-half' },
-  { label: '全角标点 → 半角标点', value: 'punct-to-half' },
-  { label: '半角标点 → 全角标点', value: 'punct-to-full' },
+  { label: 'Half-width → Full-width', value: 'to-full' },
+  { label: 'Full-width → Half-width', value: 'to-half' },
+  { label: 'Full-width punctuation → Half-width', value: 'punct-to-half' },
+  { label: 'Half-width punctuation → Full-width', value: 'punct-to-full' },
 ];
 
 // 半角 ! 至 ~ 与全角 ！ 至 ～ 相差固定偏移 0xFEE0；全角空格 U+3000 需单独处理
@@ -47,8 +47,8 @@ const output = computed(() => {
   <div flex flex-col gap-3>
     <c-input-text
       v-model:value="input"
-      label="输入文本："
-      placeholder="输入要转换的文本，如 ＡＢＣ１２３ 或 abc123"
+      label="Input text:"
+      placeholder="Text to convert, e.g. ＡＢＣ１２３ or abc123"
       multiline
       :rows="6"
       raw-text
@@ -60,7 +60,7 @@ const output = computed(() => {
     <c-buttons-select
       v-model:value="mode"
       :options="modeOptions"
-      label="转换方式："
+      label="Mode:"
       label-position="left"
       label-width="90px"
       label-align="right"
@@ -68,7 +68,7 @@ const output = computed(() => {
 
     <div v-if="output" mt-1>
       <div mb-1 text-13px op-70>
-        转换结果：
+        Result:
       </div>
       <TextareaCopyable :value="output" />
     </div>

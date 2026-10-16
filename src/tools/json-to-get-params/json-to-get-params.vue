@@ -5,8 +5,8 @@ const input = useStorage('json-to-get-params:input', '');
 const direction = ref<Direction>('to-get');
 
 const directionOptions: { label: string; value: Direction }[] = [
-  { label: 'JSON → GET 参数', value: 'to-get' },
-  { label: 'GET 参数 → JSON', value: 'to-json' },
+  { label: 'JSON → GET params', value: 'to-get' },
+  { label: 'GET params → JSON', value: 'to-json' },
 ];
 
 /** JSON → 扁平的 [路径, 值] 列表，嵌套层级用方括号表示 */
@@ -70,7 +70,7 @@ const result = computed(() => {
       return { output, error: '' };
     }
     catch (e) {
-      return { output: '', error: `JSON 解析失败：${(e as Error).message}` };
+      return { output: '', error: `JSON parse failed: ${(e as Error).message}` };
     }
   }
 
@@ -100,7 +100,7 @@ const result = computed(() => {
     return { output: JSON.stringify(root, null, 2), error: '' };
   }
   catch {
-    return { output: '', error: '查询字符串解析失败，请检查是否含非法转义' };
+    return { output: '', error: 'The query string could not be parsed; check for invalid escapes' };
   }
 });
 </script>
@@ -110,7 +110,7 @@ const result = computed(() => {
     <c-buttons-select
       v-model:value="direction"
       :options="directionOptions"
-      label="转换方向："
+      label="Direction:"
       label-position="left"
       label-width="90px"
       label-align="right"
@@ -118,8 +118,8 @@ const result = computed(() => {
 
     <c-input-text
       v-model:value="input"
-      label="输入内容："
-      placeholder="粘贴 JSON，或查询字符串，如 a=1&b[x]=2"
+      label="Input:"
+      placeholder="Paste JSON or a query string, e.g. a=1&b[x]=2"
       multiline
       :rows="6"
       raw-text
@@ -128,13 +128,13 @@ const result = computed(() => {
       label-align="right"
     />
 
-    <c-alert v-if="result.error" type="warning" title="转换失败">
+    <c-alert v-if="result.error" type="warning" title="Conversion failed">
       {{ result.error }}
     </c-alert>
 
     <div v-else-if="result.output" mt-1>
       <div mb-1 text-13px op-70>
-        转换结果：
+        Result:
       </div>
       <TextareaCopyable :value="result.output" />
     </div>

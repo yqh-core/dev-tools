@@ -17,13 +17,13 @@ const rows = computed(() => (search.value ? searchResult.value : linuxCommands))
   <div>
     <c-input-text
       v-model:value="search"
-      placeholder="搜索命令或场景，如 grep / 端口 / 磁盘…"
+      placeholder="Search by command or task, e.g. grep / port / disk…"
 
       autofocus raw-text clearable mb-6
     />
 
     <div mb-2 text-13px op-60>
-      共 {{ rows.length }} 条
+      {{ rows.length }} entries
     </div>
 
     <c-card v-for="item of rows" :key="item.cmd" mb-2>
@@ -37,7 +37,7 @@ const rows = computed(() => (search.value ? searchResult.value : linuxCommands))
     </c-card>
 
     <c-alert v-if="rows.length === 0">
-      没有匹配的命令，换个关键词试试。
+      No matching command. Try another keyword.
     </c-alert>
   </div>
 </template>

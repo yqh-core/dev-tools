@@ -77,7 +77,7 @@ describe('json-to-code', () => {
   it('reports a parse error for invalid JSON', () => {
     const { parseError } = generate('{invalid json}');
 
-    expect(parseError).toContain('JSON 解析失败');
+    expect(parseError).toContain('JSON parse failed'); // 界面文案已英文化，断言跟着改（不是回退修复）
   });
 
   it('emits Java output when language is switched', () => {

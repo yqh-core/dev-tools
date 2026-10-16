@@ -22,7 +22,7 @@ function normalize(input: string) {
 async function queryWhois() {
   const d = normalize(domain.value);
   if (!d) {
-    error.value = '请先输入域名';
+    error.value = 'Enter a domain first';
     return;
   }
 
@@ -34,12 +34,12 @@ async function queryWhois() {
     const data = await resp.json().catch(() => null);
 
     if (!resp.ok || !data) {
-      throw new Error(data?.error ?? `服务返回 ${resp.status}`);
+      throw new Error(data?.error ?? `Service returned HTTP ${resp.status}`);
     }
-    result.value = data.raw ?? data.error ?? '无返回内容';
+    result.value = data.raw ?? data.error ?? 'Nothing returned';
   }
   catch (e) {
-    error.value = `查询失败：${e instanceof Error ? e.message : String(e)}（该工具需部署到 Cloudflare Pages 后使用）`;
+    error.value = `Lookup failed: ${e instanceof Error ? e.message : String(e)} (this tool needs the Cloudflare Pages deployment)`;
   }
   finally {
     loading.value = false;
@@ -56,8 +56,8 @@ function clear() {
   <div flex flex-col gap-3>
     <c-input-text
       v-model:value="domain"
-      label="域名："
-      placeholder="输入域名，如 example.com"
+      label="Domain:"
+      placeholder="Enter a domain, e.g. example.com"
       label-position="left"
       label-width="80px"
       label-align="right"
@@ -68,10 +68,10 @@ function clear() {
 
     <div flex items-center gap-2>
       <c-button type="primary" :disabled="loading || !domain.trim()" @click="queryWhois">
-        {{ loading ? '查询中…' : '查询 WHOIS' }}
+        {{ loading ? 'Querying…' : 'Query WHOIS' }}
       </c-button>
       <c-button v-if="result || error" @click="clear">
-        清空
+        Clear
       </c-button>
     </div>
 
@@ -81,7 +81,7 @@ function clear() {
 
     <div v-if="result">
       <div mb-1 text-13px op-70>
-        注册信息：
+        Registration details:
       </div>
       <TextareaCopyable :value="result" />
     </div>

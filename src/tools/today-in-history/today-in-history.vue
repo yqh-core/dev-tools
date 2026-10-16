@@ -20,17 +20,17 @@ async function load() {
     const data = await resp.json().catch(() => null);
 
     if (!resp.ok || !data) {
-      throw new Error(data?.error ?? `服务返回 ${resp.status}`);
+      throw new Error(data?.error ?? `Service returned HTTP ${resp.status}`);
     }
     events.value = data.events ?? [];
     if (events.value.length === 0) {
       // 用接口给的 note（说明「为什么没有」），而不是只丢一句「没查到」。
       // 数据集是精选的、只覆盖部分日期，用户看到空结果时最需要知道的正是这一点。
-      error.value = data.note ?? '今天没有查到历史事件记录（数据集持续完善中）';
+      error.value = data.note ?? 'No events recorded for today (the dataset is still growing)';
     }
   }
   catch (e) {
-    error.value = `加载失败：${e instanceof Error ? e.message : String(e)}（该工具需部署到 Cloudflare Pages 后使用）`;
+    error.value = `Load failed: ${e instanceof Error ? e.message : String(e)} (this tool needs the Cloudflare Pages deployment)`;
   }
   finally {
     loading.value = false;
@@ -44,9 +44,9 @@ onMounted(load);
   <div flex flex-col gap-3>
     <div flex items-center gap-2>
       <c-button type="primary" :disabled="loading" @click="load">
-        {{ loading ? '加载中…' : '重新加载' }}
+        {{ loading ? 'Loading…' : 'Reload' }}
       </c-button>
-      <span text-13px op-60>进入页面时已自动加载一次</span>
+      <span text-13px op-60>Loaded automatically once when the page opened</span>
     </div>
 
     <c-alert v-if="error">

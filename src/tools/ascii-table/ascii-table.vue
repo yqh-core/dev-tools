@@ -17,13 +17,13 @@ const rows = computed(() => (search.value ? searchResult.value : asciiEntries));
   <div>
     <c-input-text
       v-model:value="search"
-      placeholder="搜索字符或码值，如 65 / A / 0x41…"
+      placeholder="Search by character or code, e.g. 65 / A / 0x41…"
 
       autofocus raw-text clearable mb-6
     />
 
     <div mb-2 text-13px op-60>
-      共 {{ rows.length }} 条
+      {{ rows.length }} entries
     </div>
 
     <c-card v-for="item of rows" :key="item.dec" mb-2>
@@ -40,7 +40,7 @@ const rows = computed(() => (search.value ? searchResult.value : asciiEntries));
     </c-card>
 
     <c-alert v-if="rows.length === 0">
-      没有匹配项。可搜字符（如 A）、十进制（65）或十六进制（0x41）。
+      No match. Try a character (A), a decimal code (65) or a hex code (0x41).
     </c-alert>
   </div>
 </template>

@@ -123,7 +123,7 @@ function build(): void {
         mergeModel(obj as { [k: string]: JsonValue }[], root);
       }
       else {
-        parseError.value = '顶层数组的元素不是对象，无法生成实体类';
+        parseError.value = 'The items of the top-level array are not objects, so no class can be generated';
         models.value = [];
       }
     }
@@ -131,12 +131,12 @@ function build(): void {
       buildModel(obj, root);
     }
     else {
-      parseError.value = '顶层必须是 JSON 对象或对象数组';
+      parseError.value = 'The top level must be a JSON object or an array of objects';
       models.value = [];
     }
   }
   catch (e) {
-    parseError.value = `JSON 解析失败：${(e as Error).message}`;
+    parseError.value = `JSON parse failed: ${(e as Error).message}`;
     models.value = [];
   }
 }
@@ -235,7 +235,7 @@ const code = computed(() => {
   <div flex flex-col gap-3>
     <c-input-text
       v-model:value="rootName"
-      label="根类名："
+      label="Root class name:"
       placeholder="Root"
       label-position="left"
       label-width="90px"
@@ -245,7 +245,7 @@ const code = computed(() => {
     <c-buttons-select
       v-model:value="lang"
       :options="LANGS"
-      label="目标语言："
+      label="Target language:"
       label-position="left"
       label-width="90px"
       label-align="right"
@@ -254,7 +254,7 @@ const code = computed(() => {
     <c-input-text
       v-model:value="input"
       label="JSON："
-      placeholder="粘贴 JSON 对象或对象数组，如 [{&quot;id&quot;:1,&quot;name&quot;:&quot;devbox&quot;}]"
+      placeholder="Paste a JSON object or array of objects, e.g. [{&quot;id&quot;:1,&quot;name&quot;:&quot;devbox&quot;}]"
       multiline
       :rows="6"
       raw-text
@@ -263,7 +263,7 @@ const code = computed(() => {
       label-align="right"
     />
 
-    <c-alert v-if="parseError" type="warning" title="解析失败">
+    <c-alert v-if="parseError" type="warning" title="Parse failed">
       {{ parseError }}
     </c-alert>
 

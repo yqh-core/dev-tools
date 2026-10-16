@@ -17,13 +17,13 @@ const rows = computed(() => (search.value ? searchResult.value : httpHeaderEntri
   <div>
     <c-input-text
       v-model:value="search"
-      placeholder="搜索头部字段，如 Cookie / CORS / 缓存…"
+      placeholder="Search by header name, e.g. Cookie / CORS / cache…"
 
       autofocus raw-text clearable mb-6
     />
 
     <div mb-2 text-13px op-60>
-      共 {{ rows.length }} 条
+      {{ rows.length }} entries
     </div>
 
     <c-card v-for="item of rows" :key="item.name" mb-2>
@@ -37,7 +37,7 @@ const rows = computed(() => (search.value ? searchResult.value : httpHeaderEntri
     </c-card>
 
     <c-alert v-if="rows.length === 0">
-      没有匹配的头部字段，换个关键词试试。
+      No matching header. Try another keyword.
     </c-alert>
   </div>
 </template>

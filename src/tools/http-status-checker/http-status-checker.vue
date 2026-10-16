@@ -27,7 +27,7 @@ const statusTone = computed(() => {
 async function check() {
   let u = url.value.trim();
   if (!u) {
-    error.value = '请先输入网址';
+    error.value = 'Enter a URL first';
     return;
   }
   if (!/^https?:\/\//i.test(u)) {
@@ -43,17 +43,17 @@ async function check() {
     const data = await resp.json().catch(() => null);
 
     if (!resp.ok || !data) {
-      throw new Error(data?.error ?? `服务返回 ${resp.status}`);
+      throw new Error(data?.error ?? `Service returned HTTP ${resp.status}`);
     }
     status.value = data.status ?? null;
     headers.value = data.headers ?? {};
 
     if (status.value === null) {
-      error.value = data.error ?? '服务未返回状态码';
+      error.value = data.error ?? 'The service returned no status code';
     }
   }
   catch (e) {
-    error.value = `检测失败：${e instanceof Error ? e.message : String(e)}（该工具需部署到 Cloudflare Pages 后使用）`;
+    error.value = `Check failed: ${e instanceof Error ? e.message : String(e)} (this tool needs the Cloudflare Pages deployment)`;
   }
   finally {
     loading.value = false;
@@ -68,8 +68,8 @@ const headersText = computed(() => JSON.stringify(headers.value, null, 2));
   <div flex flex-col gap-3>
     <c-input-text
       v-model:value="url"
-      label="网址："
-      placeholder="输入网址，如 example.com"
+      label="URL:"
+      placeholder="Enter a URL, e.g. example.com"
       label-position="left"
       label-width="80px"
       label-align="right"
@@ -80,9 +80,9 @@ const headersText = computed(() => JSON.stringify(headers.value, null, 2));
 
     <div flex items-center gap-2>
       <c-button type="primary" :disabled="loading || !url.trim()" @click="check">
-        {{ loading ? '检测中…' : '检测状态码' }}
+        {{ loading ? 'Checking…' : 'Check status code' }}
       </c-button>
-      <span text-13px op-60>未写协议时按 https 处理</span>
+      <span text-13px op-60>Assumes https when no scheme is given</span>
     </div>
 
     <c-alert v-if="error">
@@ -91,14 +91,14 @@ const headersText = computed(() => JSON.stringify(headers.value, null, 2));
 
     <c-card v-if="status !== null">
       <div flex items-baseline gap-3>
-        <span text-13px op-70>状态码：</span>
+        <span text-13px op-70>Status code:</span>
         <span text-32px font-bold :class="statusTone">{{ status }}</span>
       </div>
     </c-card>
 
     <div v-if="headerEntries.length">
       <div mb-1 flex items-center justify-between>
-        <span text-13px op-70>响应头（{{ headerEntries.length }} 项）：</span>
+        <span text-13px op-70>Response headers ({{ headerEntries.length }}):</span>
         <SpanCopyable v-if="headersText" :value="headersText" />
       </div>
       <c-card v-for="[key, value] of headerEntries" :key="key" mb-2>
