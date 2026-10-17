@@ -25,7 +25,8 @@
  *   SMOKE_FAKE_EXAMPLE=1  把示例的期望值改错一位 → applyExample 那一步必须判红
  *   SMOKE_FILL_NOISE=1    示例填入并核对通过后，再把主输入改成一个无关值 →
  *                         用例自己的断言**必须**变红；还绿就说明那些断言不依赖被填入的数据
- *                         （10-18 首次使用就抓出 6 条这样的用例，见台账）
+ *                         （10-18 首次使用抓出 6 条，逐条定性见当条 commit 与台账：
+ *                          其中 4 条是断言弱点，2 条是设计使然，不是一锅端的"缺陷"）
  *
  * 用例可用的 expect 字段
  *   text / regex / not        期望出现的文本、正则、禁止出现的文本
@@ -1042,9 +1043,23 @@ async function applyExampleStep(casePath) {
       if (last && last.value === expectation) {
         /**
          * 绑定探针：`SMOKE_FILL_NOISE=1` 在填充成功之后，把主输入改成一个**与示例无关**的值。
-         * 之后用例自己的断言必须变红 —— 还绿就说明那些断言根本不依赖被填入的数据，
-         * 正是裁定点名的「正确文本填错控件也算通过」那一类。
+         * 之后用例自己的断言必须变红 —— 还绿就说明那些断言不依赖被填入的数据。
          * 这一步不改变正常路径的任何行为（不设环境变量就是空转）。
+         *
+         * 10-18 首跑 27 条：21 红 / 6 绿。逐条定性（不是"6 条都是缺陷"）：
+         *   · /bcrypt               format 级断言（只认 $2[abxy]$dd$ 前缀），设计上就不绑数据；
+         *   · /text-statistics      differential（js 里比 统计值 == 输入长度），换值后依旧成立是**正确行为**；
+         *   · /color-converter      text:['255','102','ff6600'] —— 预渲染 HTML 里本来就有 ff6600，
+         *                           另外两个数在换输入后也不消（见下条同一机制）；
+         *   · /numeronym-generator  text:['i18n'] —— 'i18n' 直接在预渲染 HTML 里，工具不动也算过；
+         *   · /roman-numeral-converter / text-to-nato-alphabet
+         *                           **换输入后旧结果仍留在页面上且没有任何错误提示**：
+         *                           实测 999→CMXCIX，再把输入换成 ZZZ-noise，
+         *                           .tool-content 仍显示 "Arabic to roman CMXCIX … Roman to arabic 42"，
+         *                           hasErrorWord=false。也就是说这类 knownVector 断言测的是
+         *                           「曾经算对过」，不是「现在这份输入算对了」。
+         * 结论：真需要收紧的是 4 条（换通道 + 断言"当前输入的输出"），另外 2 条是设计使然。
+         * 顺带一个产品侧问题留给裁定：无效输入静默保留上一次结果，用户看到的是一个不属于自己的答案。
          */
         if (process.env.SMOKE_FILL_NOISE === '1') {
           await evaluate(`(() => {
