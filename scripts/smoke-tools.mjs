@@ -59,6 +59,7 @@
 
 import fs from 'node:fs';
 import http from 'node:http';
+import * as RULES from './smoke-console-rules.mjs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawn, spawnSync } from 'node:child_process';
@@ -274,35 +275,13 @@ if (LINT.length > BLIND.length) {
 if (!LINT.length) console.log('[lint] 用例静态检查通过：未发现「断言可被自身输入满足」的空转断言');
 if (has('--lint-only')) process.exit(BLIND.length || UNKNOWN_EXPECT.length ? 1 : 0);
 
-// ─────────────────────────────── 噪声白名单 ───────────────────────────────
-// 第三方 host：广告 / 统计 / 字体。这些域报错与被测功能无关。
-const NOISE_HOSTS = [
-  'googlesyndication.com',
-  'doubleclick.net',
-  'googleadservices.com',
-  'google-analytics.com',
-  'googletagservices.com',
-  'gstatic.com',
-  'googleapis.com',
-  'plausible.io',
-  'cloudflareinsights.com',
-  'sentry.io',
-];
-// 同源但可豁免的 pattern。每一条都要写清理由，否则等于把真问题也在沉默里吞掉。
-const NOISE_SAME_ORIGIN = [
-  { re: /\/favicon[^/]*\.(ico|png|svg)(\?|$)/, why: '图标缺失与工具功能无关（含 favicon-32x32.png / favicon-16x16.png 等变体）' },
-  { re: /\/apple-touch-icon|site\.webmanifest|manifest\.json/, why: 'PWA 图标与清单缺失，不影响工具功能' },
-  { re: /\/sw\.js|workbox-|service.?worker/i, why: '无头环境首轮注册 Service Worker 的固有噪声' },
-  { re: /net::ERR_ABORTED/, why: '导航切换时被主动中断的请求，非缺陷' },
-  { re: /net::ERR_NETWORK_CHANGED|net::ERR_INTERNET_DISCONNECTED/, why: '执行环境网络抖动' },
-  { re: /net::ERR_CACHE_MISS/, why: '无缓存首次加载的固有噪声' },
-  {
-    re: /report-only Content Security Policy|frame-ancestors 'self'/,
-    why: 'CSP 处于 report-only 模式（只记录、不阻断）：AdSense iframe 嵌 google.com 触发的日志，非功能缺陷',
-  },
-];
+// 名单与归类规则本体在 `scripts/smoke-console-rules.mjs`（纯函数、可合成输入测试）。
+// 这里只做引擎独有的两件小事：注入 BASE、保留原来的调用形状。
+// ⛔ 不要在引擎里再抄一份名单/规则 —— 出现过「测的和跑的不一样」之后就知道代价。
+const NOISE_HOSTS = RULES.NOISE_HOSTS;
+const NOISE_SAME_ORIGIN = RULES.NOISE_SAME_ORIGIN;
 // 命中即归噪声、且**必须**在报告里单列出来的第三方 URL 判定
-const isThirdParty = url => NOISE_HOSTS.some(h => url.includes(h)) || /^https?:\/\//.test(url) && !url.startsWith(BASE);
+const isThirdParty = url => RULES.isThirdPartyUrl(url, BASE);
 
 // ─────────────────────────────── 静态服务（本地模式） ───────────────────────────────
 const MIME = {
@@ -718,24 +697,17 @@ function classifyConsole() {
   const unattributed = [];
 
   /**
-   * 把一次资源加载失败尽量归到具体 URL 上。
+   * 归属与分级一律走 `smoke-console-rules.mjs`，引擎里不留第二份实现。
    *
-   * 为什么需要：`Network.loadingFailed` 只给 requestId，URL 靠 `requestWillBeSent` 建的表反查。
+   * 为什么：`Network.loadingFailed` 只给 requestId，URL 靠 `requestWillBeSent` 建的表反查。
    * 上一轮页面残留的失败事件会落进这一轮的窗口里，而那张表过去**每条用例开头就清空**，
    * 于是这些事件带着空 URL 进来 —— 空 URL 既可能是「自家 chunk 没了」（必须阻断），
    * 也可能是「本机代理掐了第三方」（属环境）。两者混在一条判据里，怎么判都是错的：
    * 一律阻断 → 代理抖动把 116 个健康页写成红；一律豁免 → 真丢的脚本从此隐身。
-   *
-   * 这里按顺序补救：① 事件自带的 URL；② 同一轮 console 里错误码文字相同的条目
-   * （Chrome 的 "Failed to load resource" 日志条目带 url 字段）。两条都拿不到才叫未归属。
+   * 拆成纯函数之后，「缺失 URL / 已有归属 / 未知归属」三种情况第一次有了可重跑的负向测试
+   * （scripts/smoke-console-rules.test.mjs），不再只能靠真跑一整轮去猜。
    */
-  const attributeFailure = (f) => {
-    if (f.url) return f.url;
-    if (!f.error) return '';
-    const twin = logEntries.find(e => (e.url || '') && (e.text || '').includes(f.error));
-    return twin ? twin.url : '';
-  };
-
+  const ruleCtx = { base: BASE, logEntries, caseNoiseHit };
   for (const e of logEntries) {
     const url = e.url || '';
     const text = e.text || '';
@@ -778,8 +750,9 @@ function classifyConsole() {
       url: exUrl.split('?')[0],
       detail: (x.exception?.description || '').split('\n')[0].slice(0, 200),
     };
-    if (exUrl && isThirdParty(exUrl)) {
-      noise.push({ ...rec, why: 'third-party' });
+    const verdict = RULES.classifyException(x, ruleCtx);
+    if (verdict.kind === 'noise') {
+      noise.push({ ...rec, why: verdict.why });
       continue;
     }
     blocking.push(rec);
@@ -802,42 +775,21 @@ function classifyConsole() {
     blocking.push({ text: `同源${r.type === 'Stylesheet' ? '样式' : '脚本'} HTTP ${r.status}`, url: r.url.split('?')[0] });
   }
   for (const f of loadFailures) {
-    if (f.canceled) continue;
-    if (/ERR_ABORTED/.test(f.error)) continue;
-    // 先把这次失败**尽量**归到具体 URL 上（见 attributeFailure 的注释）。
-    const url = attributeFailure(f);
-    // 归因不到 URL 的失败既不直接判站点缺陷，也不悄悄豁免：单列成 unattributed，
-    // 汇总里报数。「代理掐第三方」与「自家 chunk 丢了」是两件事，不能共用一个结论。
-    if (!url) {
+    // 归属与分级全部走 smoke-console-rules.mjs（那里有合成输入的负向测试）。
+    // 三条不可让步的语义：同源失败永远阻断；归不到 URL 的单列 unattributed（可见，不隐身）；
+    // 站外的绝对 URL 按第三方处理并留下 URL —— 名单只用于文案归类，不是放行开关。
+    const verdict = RULES.classifyLoadFailure(f, ruleCtx);
+    const shown = (verdict.url || '').split('?')[0];
+    if (verdict.kind === 'skip') continue;
+    if (verdict.kind === 'unattributed') {
       unattributed.push({ text: `资源加载失败(未归属): ${f.error}`, type: f.type, error: f.error });
       continue;
     }
-    // 第一方（同源）资源失败**永远阻断** —— 这条不许被任何白名单绕过：
-    // 自家 chunk 丢了就是整页功能没了，用「噪声」把它藏起来是拿用户换绿灯。
-    if (url.startsWith(BASE)) {
-      const hit = NOISE_SAME_ORIGIN.find(n => n.re.test(url) || n.re.test(f.error));
-      if (hit) {
-        noise.push({ text: `资源失败(${hit.why}): ${f.error}`, url: url.split('?')[0], why: hit.why });
-        continue;
-      }
-      const byCase = caseNoiseHit(url, f.error);
-      if (byCase) {
-        noise.push({ text: `资源失败: ${f.error}`, url: url.split('?')[0], why: '用例声明：' + byCase.why });
-        continue;
-      }
-      blocking.push({ text: `同源资源加载失败: ${f.error}`, url: url.split('?')[0] });
+    if (verdict.kind === 'noise') {
+      noise.push({ text: `资源失败(${verdict.why}): ${f.error}`, url: shown, why: verdict.why });
       continue;
     }
-    if (isThirdParty(url)) {
-      noise.push({ text: `第三方资源失败: ${f.error}`, url: url.split('?')[0], why: 'third-party' });
-      continue;
-    }
-    const byCase2 = caseNoiseHit(url, f.error);
-    if (byCase2) {
-      noise.push({ text: `资源失败: ${f.error}`, url: url.split('?')[0], why: '用例声明：' + byCase2.why });
-      continue;
-    }
-    blocking.push({ text: `资源加载失败: ${f.error}`, url: url.split('?')[0] });
+    blocking.push({ text: `${shown.startsWith(BASE) ? '同源资源' : '资源'}加载失败: ${f.error}`, url: shown });
   }
 
   return { blocking, noise, unattributed };
@@ -1042,7 +994,36 @@ async function applyExampleStep(casePath) {
       + '没有期望值就不许把「点了按钮」当成「填对了」（跑 node scripts/gen-example-values.mjs 生成）';
   }
 
-  let before = null;
+  /**
+   * 先清空，再点。
+   *
+   * 两个理由：
+   *   ① 去掉「空转通过」：有的工具默认值就等于自己的示例文本，不清空的话「点完等于示例值」
+   *      在点之前就已经成立 —— 这条断言什么也没证明，却会长绿。
+   *   ② 「点击前的值」必须是真·点击前。上一版我把 before 的采样放在了点击之后的轮询里，
+   *      于是失败信息里的「点击前」其实是点击后，诊断会指错方向。
+   * 与 scripts/verify-example-e2e.mjs 同一个做法（原生 setter + input 事件），两条路径口径一致。
+   */
+  const CLEAR_PRIMARY = `(() => {
+    const el = (${PRIMARY_PICKER})();
+    if (!el) return false;
+    const proto = Object.getPrototypeOf(el);
+    const setter = Object.getOwnPropertyDescriptor(proto, 'value')?.set;
+    if (setter) setter.call(el, ''); else el.value = '';
+    el.dispatchEvent(new Event('input', { bubbles: true }));
+    el.dispatchEvent(new Event('change', { bubbles: true }));
+    return true;
+  })()`;
+  if (!(await evaluate(CLEAR_PRIMARY).catch(() => false))) {
+    return '清空主输入控件失败（控件还没渲染出来？没有控件就没有「填入」这回事）';
+  }
+  await sleep(150);
+  const before = await evaluate(READ_PRIMARY).catch(() => null);
+  if (before && before.value === expectation) {
+    return `清空后主输入仍等于示例值（${JSON.stringify(expectation.slice(0, 40))}）——`
+      + '这条断言在点击之前就已经成立，不能作为证据';
+  }
+
   let last = null;
   for (let attempt = 0; attempt < 3; attempt++) {
     const ok = await evaluate(
@@ -1051,7 +1032,6 @@ async function applyExampleStep(casePath) {
     if (!ok) return '示例按钮点击失败';
     const until = Date.now() + 2500;
     for (;;) {
-      before = before || await evaluate(READ_PRIMARY).catch(() => null);
       last = await evaluate(READ_PRIMARY).catch(() => null);
       if (last && last.value === expectation) {
         return '';
@@ -1062,7 +1042,7 @@ async function applyExampleStep(casePath) {
   }
   const got = last ? `${last.tag}[${last.type}] label=${JSON.stringify(last.label)} value=${JSON.stringify(last.value.slice(0, 60))}` : 'null（没找到主输入控件）';
   const pre = before ? JSON.stringify(before.value.slice(0, 40)) : 'n/a';
-  return `点了 3 次示例，主输入仍未等于 example.text —— 期望 ${JSON.stringify(expectation.slice(0, 60))}，实得 ${got}（点击前 ${pre}）`
+  return `点了 3 次示例，主输入仍未等于 example.text —— 期望 ${JSON.stringify(expectation.slice(0, 60))}，实得 ${got}（清空后 ${pre}）`
     + ' —— 填充没落到该落的控件上，后面的断言读到的会是空值/旧值，不许当成通过';
 }
 
