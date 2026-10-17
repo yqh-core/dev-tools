@@ -2504,6 +2504,94 @@ export const SMOKE_CASES = [
       },
     ],
   },
+  {
+    path: '/nanoid-generator',
+    name: 'nanoid-generator',
+    category: 'Crypto',
+    tier: 'io',
+    strategy: 'knownVector + differential：长度/字符集必须逐行成立，且「重新生成」必须改变输出（防常量随机源）',
+    steps: [
+      { fill: { i: 0, text: '16' } },
+      { wait: 600 },
+      {
+        // 第一步只判「格式 + 字符集」，不碰按钮：把点击和读取分开，
+        // 否则会在 v-if 重渲染的空窗里读到 null（上一版就是这么抛出 Uncaught 的）。
+        js: `(function(){
+          var pre = document.querySelector('.tool-content pre');
+          if (!pre) return '结果区没有出现';
+          var lines = (pre.innerText || '').split('\\n').filter(function(l){ return l.length; });
+          if (lines.length < 2) return '结果区不足两条，差分判据失去意义：' + lines.length;
+          var bad = lines.filter(function(l){ return !/^[A-Za-z0-9_-]{16}$/.test(l); });
+          if (bad.length) return '有 ' + bad.length + ' 行不是 16 位 URL 安全字符（样例: ' + bad[0].slice(0, 20) + '）';
+          window.__nanoidBefore = lines.join('|');
+          var btn = document.querySelector('[data-test-id="refresh"]');
+          if (!btn) return '找不到重新生成按钮';
+          btn.click();
+          return null;
+        })()`,
+      },
+      { wait: 600 },
+      {
+        js: `(function(){
+          var pre = document.querySelector('.tool-content pre');
+          if (!pre) return '点击重新生成后结果区消失';
+          var lines = (pre.innerText || '').split('\\n').filter(function(l){ return l.length; });
+          if (lines.length < 2) return '重新生成后结果不足两条';
+          var bad = lines.filter(function(l){ return !/^[A-Za-z0-9_-]{16}$/.test(l); });
+          if (bad.length) return '重新生成后出现不符合长度/字符集的行';
+          if (window.__nanoidBefore === lines.join('|')) return '重新生成没有改变任何 ID —— 随机源疑似常量';
+          if (new Set(lines).size !== lines.length) return '同一批里出现了重复 ID';
+          return null;
+        })()`,
+      },
+    ],
+    expect: {
+      outRegex: ['[A-Za-z0-9_-]{16}'],
+      not: ['Needs at least two distinct characters', 'Failed to fetch'],
+    },
+  },
+  {
+    path: '/color-contrast-checker',
+    name: 'color-contrast-checker',
+    category: 'Colors',
+    tier: 'io',
+    strategy: 'knownVector + differential：#777/#fff 必须 4.48 且 AA 正文不达标，改一格成 #767676 必须变 4.54 且达标',
+    steps: [
+      { fill: { i: 0, text: '#777777' } },
+      { fill: { i: 1, text: '#ffffff' } },
+      { wait: 600 },
+      {
+        js: `(function(){
+          var box = document.querySelector('.tool-content');
+          var ratio = box.querySelector('[data-test-id="ratio"]');
+          if (!ratio) return '没有出现比值区块（两格已填，应当出结果）';
+          if (!/4\.48/.test(ratio.innerText)) return 'AA 临界灰的比值不是 4.48，实到: ' + ratio.innerText.trim().slice(0, 24);
+          var verdicts = [].slice.call(box.querySelectorAll('[data-test-id="verdict"]')).map(function(e){ return e.innerText.trim(); });
+          if (verdicts.length !== 4) return '判定行应有 4 条（AA 正文/AA 大字/AAA 正文/AAA 大字），实到 ' + verdicts.length;
+          if (verdicts[0] !== 'Fail') return '4.48 不该通过 AA 正文门限（显示值取整会骗人，这里判的是原始比值）';
+          if (verdicts[1] !== 'Pass') return '4.48 应当通过 AA 大字号（3:1）';
+          return null;
+        })()`,
+      },
+      { fill: { i: 0, text: '#767676' } },
+      { wait: 600 },
+      {
+        js: `(function(){
+          var box = document.querySelector('.tool-content');
+          var ratio = box.querySelector('[data-test-id="ratio"]');
+          if (!ratio) return '改色后比值区块消失';
+          if (!/4\.54/.test(ratio.innerText)) return '差一格的比值不是 4.54，实到: ' + ratio.innerText.trim().slice(0, 24);
+          var verdicts = [].slice.call(box.querySelectorAll('[data-test-id="verdict"]')).map(function(e){ return e.innerText.trim(); });
+          if (verdicts[0] !== 'Pass') return '4.54 必须通过 AA 正文，否则门限判定写反或做了取整比较';
+          return null;
+        })()`,
+      },
+    ],
+    expect: {
+      out: ['4.54'],
+      not: ['Two colours needed', 'Failed to fetch'],
+    },
+  },
   // ── 静态内容页（pageKind: 'static'）：/faq 与 /guides/<tool> ──────────────────────
   // 这一档不是工具页：没有 .tool-layout / .tool-content，H1 也不来自 tools.* 词条。
   // 引擎按 pageKind 换了**同等强度**的判据（#app 内渲染出带文字的 h1、

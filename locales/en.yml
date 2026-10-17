@@ -623,6 +623,13 @@ tools:
     title: JSON minify
     description: Minify and compress your JSON by removing unnecessary whitespace.
 
+  nanoid-generator:
+    title: Nano ID Generator — Short, URL-safe Unique IDs Online
+    description: Generate nanoid-style unique IDs online — URL-safe alphabet, any length, batch of up to 200, built with crypto randomness in your browser.
+  color-contrast-checker:
+    title: Color Contrast Checker — WCAG AA and AAA Ratio Test Online
+    description: Check the contrast ratio between two colours against WCAG 2.x AA and AAA thresholds for normal and large text, with a live text preview.
+
   ulid-generator:
     title: ULID Generator — Sortable, Time-Ordered IDs Online
     description: Generate ULIDs online — sortable, time-ordered unique identifiers, ideal for database keys and distributed systems.

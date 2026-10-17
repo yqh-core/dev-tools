@@ -181,6 +181,10 @@ const NO_EXAMPLE_WHITELIST = [
     why: '生成器：example 是「样例输出串」（ULID），但机制是往**输入框**填，而本工具没有内容输入框（首个控件是 amount 数字框）。把 ULID 串塞进 amount 数字框会被 naive-ui 在 blur 时拒掉。生成器无「待处理样本数据」概念，example 不成立 → 豁免，不补。',
   },
   {
+    path: '/nanoid-generator',
+    why: '生成器：同 /uuid-generator —— 没有内容输入框，首个控件是 Length 数字框；把示例 ID 塞进数字框会在 blur 时被 naive-ui 拒掉，example 在此不成立。',
+  },
+  {
     path: '/uuid-generator',
     why: '生成器：同 /ulid-generator，example 是「样例输出串」（UUID v4），但本工具没有内容输入框（首个控件是 count 数字框）。把 UUID 串塞进 count 数字框会被 naive-ui 在 blur 时拒掉。生成器无「待处理样本数据」概念，example 不成立 → 豁免，不补。',
   },

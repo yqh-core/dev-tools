@@ -102,6 +102,7 @@ export const TOOL_CLUSTERS: ToolCluster[] = [
     members: [
       '/uuid-generator',
       '/ulid-generator',
+      '/nanoid-generator',
       '/token-generator',
       '/password-generator',
     ],

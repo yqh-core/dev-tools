@@ -618,6 +618,13 @@ tools:
     title: JSON 压缩
     description: 通过删除不必要的空白来缩小和压缩JSON。
 
+  nanoid-generator:
+    title: Nano ID Generator — Short, URL-safe Unique IDs Online
+    description: 在线生成 nanoid 风格的唯一 ID —— URL 安全字符集、长度可调、一次最多 200 个，随机数由浏览器本地密码学接口产生。
+  color-contrast-checker:
+    title: Color Contrast Checker — WCAG AA and AAA Ratio Test Online
+    description: 按 WCAG 2.x 检查两个颜色的对比度是否达到 AA / AAA 门限（分正文与大字号），并提供真实字号的文字预览。
+
   ulid-generator:
     title: ULID 生成器 — 可排序、按时间有序的在线 ID
     description: 在线生成 ULID — 可排序、按时间有序的唯一标识符，适合数据库主键与分布式系统。

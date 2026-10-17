@@ -23,6 +23,7 @@ import { tool as numeronymGenerator } from './numeronym-generator';
 import { tool as macAddressGenerator } from './mac-address-generator';
 import { tool as textToBinary } from './text-to-binary';
 import { tool as ulidGenerator } from './ulid-generator';
+import { tool as nanoidGenerator } from './nanoid-generator';
 import { tool as ibanValidatorAndParser } from './iban-validator-and-parser';
 import { tool as stringObfuscator } from './string-obfuscator';
 import { tool as textDiff } from './text-diff';
@@ -65,6 +66,7 @@ import { tool as caseConverter } from './case-converter';
 import { tool as chmodCalculator } from './chmod-calculator';
 import { tool as chronometer } from './chronometer';
 import { tool as colorConverter } from './color-converter';
+import { tool as colorContrastChecker } from './color-contrast-checker';
 import { tool as crontabGenerator } from './crontab-generator';
 import { tool as dateTimeConverter } from './date-time-converter';
 import { tool as unixTimestampConverter } from './unix-timestamp-converter';
@@ -123,7 +125,7 @@ import { tool as asciiTable } from './ascii-table';
 export const toolsByCategory: ToolCategory[] = [
   {
     name: 'Crypto',
-    components: [tokenGenerator, hashText, bcrypt, uuidGenerator, ulidGenerator, cypher, bip39, hmacGenerator, rsaKeyPairGenerator, passwordStrengthAnalyser, passwordGenerator, pdfSignatureChecker, pdfMerge, pdfSplit, pdfWatermark, pdfCompress, htpasswdGenerator],
+    components: [tokenGenerator, hashText, bcrypt, uuidGenerator, ulidGenerator, nanoidGenerator, cypher, bip39, hmacGenerator, rsaKeyPairGenerator, passwordStrengthAnalyser, passwordGenerator, pdfSignatureChecker, pdfMerge, pdfSplit, pdfWatermark, pdfCompress, htpasswdGenerator],
   },
   {
     name: 'Converter',
@@ -135,6 +137,7 @@ export const toolsByCategory: ToolCategory[] = [
       base64StringConverter,
       base64FileConverter,
       colorConverter,
+      colorContrastChecker,
       caseConverter,
       textToNatoAlphabet,
       textToBinary,

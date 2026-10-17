@@ -103,6 +103,8 @@ export const ALIASES: Record<string, string[]> = {
   '/toml-to-json': ['toml', 'json', '转换', '配置'],
   '/toml-to-yaml': ['toml', 'yaml', '转换', '配置'],
   '/ulid-generator': ['ulid', 'uuid', '唯一id', '生成', '有序', '主键'],
+  '/nanoid-generator': ['nanoid', 'nano id', '短id', '随机id', '唯一标识', '兑换码', 'url安全'],
+  '/color-contrast-checker': ['对比度', '无障碍', 'wcag', '颜色对比', 'aa', '可读性'],
   '/url-encoder': ['url', '编码', '解码', '百分号', '转义', 'encode', '参数'],
   '/url-parser': ['url', '解析', '拆解', '参数', 'query', '链接'],
   '/user-agent-parser': ['ua', 'user agent', '浏览器', '识别', '解析', '系统'],

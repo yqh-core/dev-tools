@@ -1410,6 +1410,53 @@ export const GUIDES: Record<string, ToolGuide> = {
     ],
   },
 
+  '/nanoid-generator': {
+    intro: 'Generates short, URL-safe random identifiers from a 64-character alphabet, in any length up to 256 and in batches up to 200, using crypto-grade randomness in the browser.',
+    steps: [
+      'Set the length — 21 characters is the default and is what most nanoid implementations use',
+      'Set the quantity if you need a batch',
+      'Pick an alphabet, or type your own if an upstream system restricts the character set',
+      'Copy the list, or regenerate it',
+    ],
+    notes: [
+      'IDs are generated locally; nothing is sent anywhere, so there is no server-side uniqueness guarantee — collision risk is a function of alphabet size and length, not of this page',
+      'A custom alphabet collapses duplicate characters, because a repeated character silently doubles that symbol\'s probability',
+      'Alphabets that are not a power of two discard out-of-range random bytes rather than wrapping them, so the sample stays unbiased',
+    ],
+    about: 'nanoid is an identifier scheme in the same family as UUID and ULID: a random string meant to be unique enough for keys, slugs and tokens. Compared with a UUID v4 (36 characters, hex with hyphens) a 21-character nanoid carries slightly more entropy (about 126 bits against 122) while being short enough to sit in a URL. Compared with a ULID it has no embedded timestamp, so it is not sortable — if you need ordering, use the ULID generator instead.',
+    faqs: [
+      { q: 'How long should an ID be?', a: '21 characters from the 64-character alphabet is the usual default: roughly 126 bits of entropy, which is comfortable for primary keys. Shorten it for user-facing codes only if you can tolerate the higher collision chance, and check the entropy line the page shows.' },
+      { q: 'Are these IDs guaranteed unique?', a: 'No tool can guarantee that on its own. Uniqueness is probabilistic; the generator uses a cryptographically strong random source, which is what makes the probability math hold, but if the IDs are database keys the database still needs a unique constraint.' },
+      { q: 'Why can I choose the alphabet?', a: 'Because downstream systems disagree about what is safe. A URL path, a file name, a base32 secret and a numeric OTP all want different character sets; the length and alphabet together decide how much entropy each ID carries.' },
+      { q: 'Is a nanoid better than a UUID?', a: 'Different trade-off, not better. A nanoid is shorter and URL-friendly; a UUID has no collision risk discussion to redo across languages and libraries and is universally supported by database types. If you interoperate with systems that expect UUID text, keep using the UUID generator.' },
+      { q: 'What is the collision risk at my size?', a: 'Roughly n^2 / 2^(bits+1) after generating n IDs. With a 21-character default that is negligible for anything short of astronomical row counts; with 6 characters from a 36-character alphabet, expect collisions once you are in the low hundreds of thousands.' },
+      { q: 'Does anything get uploaded?', a: 'No. There is no network request in this tool; the page never leaves the browser for generation, and nothing is stored beyond your own local preferences for length, quantity and alphabet.' },
+    ],
+  },
+  '/color-contrast-checker': {
+    intro: 'Computes the WCAG 2.x contrast ratio between a text colour and its background, then reports whether it passes AA and AAA for normal and large text, with live previews at both sizes.',
+    steps: [
+      'Enter the text colour as #rgb, #rrggbb or rgb(r,g,b)',
+      'Enter the background colour it will actually sit on',
+      'Read the ratio and the four threshold rows — the preview shows the real thing at 16px and 24px bold',
+      'Use Swap colours to check the reverse pair, which always gives the same ratio',
+    ],
+    notes: [
+      'Large text means at least 24px, or 18.66px bold — the looser 3:1 threshold applies only at those sizes',
+      'Alpha is ignored: the calculation assumes the colours are opaque, so a translucent overlay must be flattened to a solid colour first',
+      'The verdict compares the unrounded ratio against 4.5 / 3 / 7; the displayed number is rounded to two decimals, which is why a 4.4996 pair fails AA even though it reads 4.50',
+    ],
+    example: { label: 'Fill in a near-miss grey', text: '#777777' },
+    about: 'Contrast here is not an opinion about legibility but a defined quantity: each sRGB channel is linearised, combined into a relative luminance with weights 0.2126 / 0.7152 / 0.0722, and the two luminances are compared as (lighter + 0.05) / (darker + 0.05). WCAG 2.x sets the passing lines at 4.5:1 for normal text under AA, 3:1 for large text, 7:1 and 4.5:1 for the equivalent AAA levels. Two colours one byte apart can straddle a threshold — #767676 on white is 4.54:1 and passes AA, while #777777 is 4.48:1 and does not — which is exactly why eyeballing a swatch is not a review.',
+    faqs: [
+      { q: 'What ratio do I actually need?', a: 'For body text under AA, 4.5:1. Large text (24px, or 18.66px bold) needs 3:1. AAA raises those to 7:1 and 4.5:1. Non-text items such as input borders and icons are held to 3:1 under WCAG 2.1 SC 1.4.11.' },
+      { q: 'Why does my grey fail by a hair?', a: 'Because the threshold is a hard inequality on the unrounded ratio. 4.48 is not 4.5. Nudge the darker channel down one or two steps until the displayed value clears with margin, rather than arguing about rounding.' },
+      { q: 'Does black-on-white always pass?', a: 'The ratio is 21:1, which passes every threshold. What fails in practice is the middle of the range: light greys on white, muted brand colours, and white text on a mid-tone background.' },
+      { q: 'What about colours with opacity?', a: 'Treat them as the solid colour they composite to. Alpha in the input is ignored on purpose — averaging two luminances while the browser blends against whatever is behind them produces a number that is not a WCAG result.' },
+      { q: 'Is a passing ratio accessible?', a: 'It satisfies one requirement. Legibility also depends on font size, weight, letter spacing, and how long the text stays on screen; and colour must never be the only carrier of meaning, which this tool does not judge.' },
+      { q: 'Does my colour pair leave this page?', a: 'No. Both values are computed locally, and the only thing remembered is your last two colours in this browser.' },
+    ],
+  },
   '/ulid-generator': {
     intro: 'Generates ULIDs: unique like a UUID, but sortable by time — friendlier as a database primary key.',
     steps: ['Click generate to get a ULID', 'Generate repeatedly for more', 'Copy and use it'],
