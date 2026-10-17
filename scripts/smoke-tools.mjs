@@ -21,6 +21,12 @@
  *     噪声 noise    = 第三方 host、favicon、SW 注册、net::ERR_ABORTED
  *   每条噪声都带 host/pattern 记录，便于复核白名单是否在掩盖真问题。
  *
+ * 两个只读的证伪 / 绑定探针（不设环境变量时完全空转，不改变任何行为）
+ *   SMOKE_FAKE_EXAMPLE=1  把示例的期望值改错一位 → applyExample 那一步必须判红
+ *   SMOKE_FILL_NOISE=1    示例填入并核对通过后，再把主输入改成一个无关值 →
+ *                         用例自己的断言**必须**变红；还绿就说明那些断言不依赖被填入的数据
+ *                         （10-18 首次使用就抓出 6 条这样的用例，见台账）
+ *
  * 用例可用的 expect 字段
  *   text / regex / not        期望出现的文本、正则、禁止出现的文本
  *   js                        页内断言（返回 false 或字符串=失败，字符串会原样进报告）
@@ -1034,6 +1040,24 @@ async function applyExampleStep(casePath) {
     for (;;) {
       last = await evaluate(READ_PRIMARY).catch(() => null);
       if (last && last.value === expectation) {
+        /**
+         * 绑定探针：`SMOKE_FILL_NOISE=1` 在填充成功之后，把主输入改成一个**与示例无关**的值。
+         * 之后用例自己的断言必须变红 —— 还绿就说明那些断言根本不依赖被填入的数据，
+         * 正是裁定点名的「正确文本填错控件也算通过」那一类。
+         * 这一步不改变正常路径的任何行为（不设环境变量就是空转）。
+         */
+        if (process.env.SMOKE_FILL_NOISE === '1') {
+          await evaluate(`(() => {
+            const el = (${PRIMARY_PICKER})();
+            if (!el) return false;
+            const setter = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(el), 'value')?.set;
+            if (setter) setter.call(el, 'ZZZ-noise-not-the-example'); else el.value = 'ZZZ-noise-not-the-example';
+            el.dispatchEvent(new Event('input', { bubbles: true }));
+            el.dispatchEvent(new Event('change', { bubbles: true }));
+            return true;
+          })()`).catch(() => false);
+          await sleep(600);
+        }
         return '';
       }
       if (Date.now() >= until) break;
