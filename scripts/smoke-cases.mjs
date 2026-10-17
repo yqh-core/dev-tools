@@ -128,7 +128,11 @@ export const SMOKE_CASES = [
     zhTitle: 'Hash 文本',
     tier: 'io',
     strategy: 'knownVector：MD5/SHA1/SHA256("hello world") 的公认测试向量',
-    steps: [{ applyExample: true }, { wait: 700 }],
+    // 摘要渲染在**只读 input** 里（InputCopyable），不是 innerText —— 所以这里不能用
+    // waitText（它只读 .tool-content.innerText，永远等不到摘要，我上一版就犯了这个通道错配）。
+    // 填充是否落地已由引擎在 applyExample 步骤内验（点完必须看到主输入从空变非空，
+    // 否则重试到第三次再判红），这里只留一小段等摘要计算与渲染的时间。
+    steps: [{ applyExample: true }, { wait: 250 }],
     expect: {
       text: [
         '5eb63bbbe01eeed093cb22bb8f5acdc3',
@@ -1533,7 +1537,27 @@ export const SMOKE_CASES = [
     steps: [{ fillLabel: { label: 'Your raw JSON', text: '{"a":1,"b":{"c":2}}' } }, { wait: 1000 }],
     // out 而非 text：期望值写成**带空格**的 `"a": 1`，而输入是不带空格的 `"a":1` ——
     // 只有真的美化过才会有这个空格，输入回显永远给不出它。
-    expect: { out: ['"a": 1', '"c": 2'], not: ['Invalid'] },
+    //
+    // js 这条是 F1（工具页 → 指南文章页入口）在**运行时侧**的判据。
+    // 构建期门禁（build-seo 的 scanToolEntryLinks）判的是预渲染骨架，那一层对爬虫负责；
+    // 这一条判的是 hydration 之后真实面板里的那条链接 —— 两处必须都在，
+    // 否则「骨架有、用户没有」就是违反本项目红线（给抓取器看的句子得真实存在于可见页面）。
+    // 用 textContent 而不是 innerText：指南面板是 v-show，收起时 innerText 为空，
+    // 会把「链接在不在」判成「用户当时展没展开」；也不去点 .guide-toggle，
+    // 因为 guide-seen 写进 localStorage 后，后续用例的面板初值就变了（跨用例状态污染）。
+    expect: {
+      out: ['"a": 1', '"c": 2'],
+      not: ['Invalid'],
+      js: `(function(){
+        var a = document.querySelector('.guide-article-link a');
+        if (!a) return '真实指南面板里没有指向文章页的入口链接（骨架有、面板没有 = 违反同源红线）';
+        var href = a.getAttribute('href') || '';
+        if (href !== '/guides/json-prettify/') return '入口链接 href 不对：' + href;
+        var txt = (a.textContent || '').replace(/\\s+/g, ' ').trim();
+        if (txt !== 'Read the full step-by-step guide for this tool') return '入口链接文案与骨架不同源：' + txt;
+        return true;
+      })()`,
+    },
   },
 
   {

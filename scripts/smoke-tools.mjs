@@ -715,6 +715,26 @@ const caseNoiseHit = (url, text) => CASE_NOISE.find(n => n.re.test(url) || n.re.
 function classifyConsole() {
   const blocking = [];
   const noise = [];
+  const unattributed = [];
+
+  /**
+   * 把一次资源加载失败尽量归到具体 URL 上。
+   *
+   * 为什么需要：`Network.loadingFailed` 只给 requestId，URL 靠 `requestWillBeSent` 建的表反查。
+   * 上一轮页面残留的失败事件会落进这一轮的窗口里，而那张表过去**每条用例开头就清空**，
+   * 于是这些事件带着空 URL 进来 —— 空 URL 既可能是「自家 chunk 没了」（必须阻断），
+   * 也可能是「本机代理掐了第三方」（属环境）。两者混在一条判据里，怎么判都是错的：
+   * 一律阻断 → 代理抖动把 116 个健康页写成红；一律豁免 → 真丢的脚本从此隐身。
+   *
+   * 这里按顺序补救：① 事件自带的 URL；② 同一轮 console 里错误码文字相同的条目
+   * （Chrome 的 "Failed to load resource" 日志条目带 url 字段）。两条都拿不到才叫未归属。
+   */
+  const attributeFailure = (f) => {
+    if (f.url) return f.url;
+    if (!f.error) return '';
+    const twin = logEntries.find(e => (e.url || '') && (e.text || '').includes(f.error));
+    return twin ? twin.url : '';
+  };
 
   for (const e of logEntries) {
     const url = e.url || '';
@@ -772,25 +792,43 @@ function classifyConsole() {
   for (const f of loadFailures) {
     if (f.canceled) continue;
     if (/ERR_ABORTED/.test(f.error)) continue;
-    // 第三方资源超时（广告/统计）与工具功能无关，归噪声并记下 host，便于复核
-    if (isThirdParty(f.url)) {
-      noise.push({ text: `第三方资源失败: ${f.error}`, url: f.url.split('?')[0], why: 'third-party' });
+    // 先把这次失败**尽量**归到具体 URL 上（见 attributeFailure 的注释）。
+    const url = attributeFailure(f);
+    // 归因不到 URL 的失败既不直接判站点缺陷，也不悄悄豁免：单列成 unattributed，
+    // 汇总里报数。「代理掐第三方」与「自家 chunk 丢了」是两件事，不能共用一个结论。
+    if (!url) {
+      unattributed.push({ text: `资源加载失败(未归属): ${f.error}`, type: f.type, error: f.error });
       continue;
     }
-    const hit = NOISE_SAME_ORIGIN.find(n => n.re.test(f.url) || n.re.test(f.error));
-    if (hit) {
-      noise.push({ text: `资源失败(${hit.why}): ${f.error}`, url: f.url.split('?')[0], why: hit.why });
+    // 第一方（同源）资源失败**永远阻断** —— 这条不许被任何白名单绕过：
+    // 自家 chunk 丢了就是整页功能没了，用「噪声」把它藏起来是拿用户换绿灯。
+    if (url.startsWith(BASE)) {
+      const hit = NOISE_SAME_ORIGIN.find(n => n.re.test(url) || n.re.test(f.error));
+      if (hit) {
+        noise.push({ text: `资源失败(${hit.why}): ${f.error}`, url: url.split('?')[0], why: hit.why });
+        continue;
+      }
+      const byCase = caseNoiseHit(url, f.error);
+      if (byCase) {
+        noise.push({ text: `资源失败: ${f.error}`, url: url.split('?')[0], why: '用例声明：' + byCase.why });
+        continue;
+      }
+      blocking.push({ text: `同源资源加载失败: ${f.error}`, url: url.split('?')[0] });
       continue;
     }
-    const byCase = caseNoiseHit(f.url, f.error);
-    if (byCase) {
-      noise.push({ text: `资源失败: ${f.error}`, url: f.url.split('?')[0], why: '用例声明：' + byCase.why });
+    if (isThirdParty(url)) {
+      noise.push({ text: `第三方资源失败: ${f.error}`, url: url.split('?')[0], why: 'third-party' });
       continue;
     }
-    blocking.push({ text: `资源加载失败: ${f.error}`, url: f.url.split('?')[0] });
+    const byCase2 = caseNoiseHit(url, f.error);
+    if (byCase2) {
+      noise.push({ text: `资源失败: ${f.error}`, url: url.split('?')[0], why: '用例声明：' + byCase2.why });
+      continue;
+    }
+    blocking.push({ text: `资源加载失败: ${f.error}`, url: url.split('?')[0] });
   }
 
-  return { blocking, noise };
+  return { blocking, noise, unattributed };
 }
 
 // ─────────────────────────────── 页面交互原语 ───────────────────────────────
@@ -920,6 +958,18 @@ async function runJsStep(expression) {
 // 只查旧类名会让 26 个页面以「示例按钮未出现」的形式假红 —— 保留旧类名做兼容兜底。
 const EXAMPLE_SEL = '.action-example, .guide-example-btn';
 
+/**
+ * 点「示例」按钮。
+ *
+ * 旧实现只看按钮在不在、点没点成功，于是「按钮存在但填充没落到输入框」会被记成
+ * **步骤通过** —— 后面那条断言要么靠固定 sleep 侥幸读到旧值，要么以一堆莫名缺失的
+ * 期望值假红。实测：/hash-text 在同一份 dist 上两轮结果不同（一轮 116/0，一轮报
+ * 「三个摘要都不在」），失败那轮读到的是**空串的摘要**（d41d8cd9… / da39a3ee… /
+ * e3b0c442…），而步骤回执里 err 是空的。27 条用例走这条路径，这个盲区不止它一条。
+ *
+ * 现在补三层：① 等按钮；② 等填充目标（可编辑控件）出现；③ 点完后有界等待
+ * **「主输入框」真的从空变成非空**，没落就重试点击，三次仍不落实则判红并给出前后值。
+ */
 async function applyExampleStep() {
   let found = false;
   for (let i = 0; i < 30 && !found; i++) {
@@ -927,10 +977,63 @@ async function applyExampleStep() {
     if (!found) await sleep(150);
   }
   if (!found) return '示例按钮未出现（guide 未加载，或该工具没有 example）';
-  const ok = await evaluate(
-    `(function(){var b=document.querySelector(${JSON.stringify(EXAMPLE_SEL)});if(!b)return false;b.click();return true;})()`,
-  );
-  return ok ? '' : '示例按钮点击失败';
+
+  /**
+   * 前置条件：填充目标得先存在。
+   * 动作条上的「示例」按钮比工具区的输入控件早出现（两者不在同一个渲染分支上），
+   * 点早了应用侧拿不到输入框引用，点击就石沉大海 —— /hash-text 实测就是这种形态：
+   * 同一份 dist 两轮结果不同，输的那一轮读到的是**空串的摘要**，
+   * 而旧实现把这次点击记成「步骤成功」。所以先等可编辑控件出现。
+   */
+  const EDITABLE_IN_ROOT = `(function(){
+    var root = document.querySelector('.tool-content') || document;
+    return [].slice.call(root.querySelectorAll('input, textarea')).filter(function(e){
+      var r = e.getBoundingClientRect();
+      return r.width > 0 && r.height > 0 && !e.disabled && !e.readOnly;
+    }).length;
+  })()`;
+  let ready = 0;
+  for (let i = 0; i < 40; i++) {
+    ready = await evaluate(EDITABLE_IN_ROOT).catch(() => 0);
+    if (ready > 0) break;
+    await sleep(150);
+  }
+  if (!ready) return '工具区里没有任何可编辑控件，示例无处可填（该页输入区没渲染出来？）';
+
+  /**
+   * 点了之后必须验「填到**该填的那个**控件上」。
+   * 只看「.tool-content 里有没有控件变化」是不够的：实测 /hash-text 有一次
+   * 变化判据满足了、但摘要仍是**空串的摘要** —— 说明值没落到主输入框上。
+   * 所以取「主输入」（工具区里第一个可编辑 textarea，没有就退到第一个可编辑控件）的值，
+   * 要求它从空变成非空。
+   * 落地前允许再点最多 2 次：应用侧示例填充存在偶发不生效（同一份 dist 两轮结果不同），
+   * 这是给 UI 竞态的重试，不是放宽结论 —— 三次都没填上就照红。
+   */
+  const PRIMARY = `(function(){
+    var root = document.querySelector('.tool-content') || document;
+    var eds = [].slice.call(root.querySelectorAll('textarea, input'))
+      .filter(function(e){ var r = e.getBoundingClientRect(); return r.width > 0 && r.height > 0 && !e.disabled && !e.readOnly; });
+    var ta = eds.filter(function(e){ return e.tagName === 'TEXTAREA'; })[0] || eds[0];
+    return ta ? String(ta.value == null ? ta.textContent || '' : ta.value) : null;
+  })()`;
+  const valueBefore = await evaluate(PRIMARY).catch(() => null);
+  let landed = false;
+  let lastErr = '';
+  for (let attempt = 0; attempt < 3 && !landed; attempt++) {
+    const ok = await evaluate(
+      `(function(){var b=document.querySelector(${JSON.stringify(EXAMPLE_SEL)});if(!b)return false;b.click();return true;})()`,
+    );
+    if (!ok) return '示例按钮点击失败';
+    const until = Date.now() + 2500;
+    for (;;) {
+      const v = await evaluate(PRIMARY).catch(() => null);
+      if (typeof v === 'string' && v.trim() && v !== valueBefore) { landed = true; break; }
+      if (Date.now() >= until) break;
+      await sleep(120);
+    }
+    lastErr = `点了 ${attempt + 1} 次示例，主输入框仍是「${String(await evaluate(PRIMARY).catch(() => 'n/a')).slice(0, 40)}」`;
+  }
+  return landed ? '' : `${lastErr} —— 填充未生效（后面的断言会读到空值/旧值，不许当成通过）`;
 }
 
 async function clickButton({ text, exact, sel }) {  const res = await evaluate(`(() => {
@@ -1486,7 +1589,21 @@ async function runCase(c) {
       fail('缺少 .tool-content（工具组件插槽容器）');
     }
 
-    rec.runtime.h1 = (await evaluate(`(document.querySelector('h1')||{}).innerText || ''`).catch(() => '')) || '';
+    // 有界等待再读 H1，而不是读到什么算什么：hydration 中途 `h1` 的 innerText 会短暂为空，
+    // 单次读数会把「还没渲染完」写成「运行时 H1 ≠ 预渲染 H1」的假红（实测 /faq 一次跑这样红，
+    // 同一条用例全量跑又绿 —— 读数依赖时机 = 判据不稳定）。
+    // 等不到非空 H1 仍然照红：这里放宽的是**时机**，不是**结论**。
+    {
+      const h1Deadline = Date.now() + 6000;
+      let h1Now = '';
+      for (;;) {
+        h1Now = (await evaluate(`(document.querySelector('h1')||{}).innerText || ''`).catch(() => '')) || '';
+        if (h1Now.trim() || Date.now() >= h1Deadline) break;
+        await sleep(150);
+      }
+      rec.runtime.h1 = h1Now;
+      rec.runtime.h1WaitedMs = Math.min(6000, Date.now() - (h1Deadline - 6000));
+    }
     // 不再回退到 c.zhTitle：预渲染层抓取失败时，用中文标题当英文 H1 的期望值
     // 会把「脚本没抓到」伪装成「站点 H1 是中文」——实测 3 页这样产生假红。
     rec.runtime.expectH1 = rec.html.htmlH1 || '';
@@ -1680,10 +1797,12 @@ async function runCase(c) {
   let custom = null;
   if (exp.js) {
     try {
-      // 这里**不能**用 !! 强制转布尔：那样「返回一串原因字符串」会被转成 true 而静默通过，
-      // 而 `return null` 会被转成 false 当失败 —— 两种写法都不直观（实测踩过：
-      // /today-in-history 的 js 返回 null 表示「空态也算合法」，被 !! 变成 false 后误报失败）。
-      // 约定与步骤里的 js 一致：返回 false 或**非空字符串**（作为失败原因）即失败。
+      // 约定（与 37 条现存 expect.js 用例一致）：**成功必须返回真值**（推荐直接 `return true`）。
+      // false / null / undefined / 非空字符串 一律算失败 —— 判据没给出「通过」的证据就是没通过，
+      // 不许用「什么都没返回」蒙过这一层。
+      // 这里刻意不用 `!!` 归一：那样「返回一串失败原因」会被转成 true 而静默通过。
+      // （旧注释说「return null 表示空态也算合法」，那是 `!!` 时代的写法；
+      //  现在这么写会被判失败 —— 实测有一条新用例就是这么假红了。）
       custom = await evaluate(`(() => { try { return (${exp.js}); } catch (e) { return 'ERR:' + e.message; } })()`);
     } catch (e) {
       custom = 'ERR:' + (e.message || e);
@@ -1793,8 +1912,11 @@ async function runCase(c) {
   }
 
   // console
-  const { blocking, noise } = classifyConsole();
+  const { blocking, noise, unattributed } = classifyConsole();
   rec.console = { blocking, noise };
+  // 未归属的网络失败单列出来：它既不算站点缺陷，也不算「已确认是第三方」，
+  // 只在汇总里报数。归因规则变松时这个数会涨，看得见才不会把隐身当成修好了。
+  if (unattributed.length) rec.unattributed = unattributed;
   if (blocking.length) fail('影响使用的 console 错误 ' + blocking.length + ' 条');
   if (noise.length) rec.noiseCount = noise.length;
 
