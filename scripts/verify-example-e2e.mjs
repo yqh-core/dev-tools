@@ -287,7 +287,14 @@ await send('Runtime.enable');
 const evaluate = async (expression) => {
   const r = await send('Runtime.evaluate', { expression, returnByValue: true, awaitPromise: true });
   if (r.exceptionDetails) {
-    throw new Error('JS: ' + (r.exceptionDetails.text || ''));
+    // 只打 .text 得到的是一句没用的 "Uncaught" —— 真正的原因在
+    // exceptionDetails.exception.description / value 里。不带上它，
+    // 「页面真抛了」和「我们的表达式取到了 undefined」在报表里长得一模一样，
+    // 于是这种行只能靠重跑碰运气定性（实测 /color-converter 在批量跑里红、单跑绿，
+    // 没有这句就永远说不清是谁的问题）。
+    const d = r.exceptionDetails.exception || {};
+    const detail = String(d.description || d.value || '').split('\n')[0];
+    throw new Error(`JS: ${(r.exceptionDetails.text || '').trim()}${detail ? ` — ${detail.slice(0, 180)}` : ''}`);
   }
   return r.result.value;
 };

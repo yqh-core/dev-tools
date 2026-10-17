@@ -21,6 +21,7 @@
  * 从根上避免两边不一致。因此 public/sitemap.xml 已删除，不要再手工维护。
  */
 import { readFile, writeFile, mkdir, rm } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createServer } from 'vite';
@@ -546,6 +547,48 @@ try {
     throw new Error(`[build-seo] 指南入口相关词条两种语言不齐全：${localeGaps.map(g => `${g.key} 缺 ${g.missingIn}`).join(', ')}`);
   }
   console.log('[guides] 词条成对：入口文案在 en / zh 两侧都在（缺一种就会在另一种语言的页面上漏出键名）');
+
+  // —— 示例填充的两条防漂移判据（applyExample 的「逐字核对」靠它们才成立）——
+  // ① 期望值清单必须与 guides.en.ts 同步：引擎在浏览器外拿不到 TS，只能用派生物，
+  //    派生物过期 = 「拿旧文案去核对新页面」，那种红/绿都不可信。
+  const exampleFixtureFile = join(root, 'scripts/smoke-fixtures/example-values.json');
+  const exampleExpect = existsSync(exampleFixtureFile)
+    ? JSON.parse(await readFile(exampleFixtureFile, 'utf8')).values
+    : null;
+  if (!exampleExpect) {
+    throw new Error('[build-seo] 缺 scripts/smoke-fixtures/example-values.json —— 跑 node scripts/gen-example-values.mjs 生成');
+  }
+  const withExample = TOOL_SEO_PAGES.filter(e => e.guide?.example?.text);
+  const stale = [];
+  for (const e of withExample) {
+    if (exampleExpect[e.path] !== e.guide.example.text) {
+      stale.push(e.path);
+    }
+  }
+  const extraKeys = Object.keys(exampleExpect).filter(k => !withExample.some(e => e.path === k));
+  if (stale.length > 0 || extraKeys.length > 0) {
+    throw new Error(
+      `[build-seo] 示例期望值清单与 guides.en.ts 不一致：待更新 ${stale.length} 条(${stale.slice(0, 5).join(', ')})`
+      + `、多余 ${extraKeys.length} 条(${extraKeys.slice(0, 5).join(', ')}) —— 重新生成 example-values.json`,
+    );
+  }
+  // ② 引擎复刻的「主输入控件」取法必须与应用 findPrimaryInput 的兜底选择器一致。
+  //    两边不一致 = 验的框不是填的框，会出现「填对了却判红」或反过来「填错框也没抓到」。
+  const layoutSrc = await readFile(join(root, 'src/layouts/tool.layout.vue'), 'utf8');
+  const engineSrc = await readFile(join(root, 'scripts/smoke-tools.mjs'), 'utf8');
+  const PRIMARY_SELECTOR = 'input[type="text"], input[type="search"], input[type="number"], input:not([type])';
+  for (const [who, src] of [['tool.layout.vue（应用真正填的框）', layoutSrc], ['smoke-tools.mjs（冒烟验的框）', engineSrc]]) {
+    if (!src.includes(PRIMARY_SELECTOR)) {
+      throw new Error(
+        `[build-seo] ${who} 里没有 findPrimaryInput 的那串选择器（${PRIMARY_SELECTOR}）—— `
+        + '两边一旦漂移，冒烟验的控件就不是应用填的控件',
+      );
+    }
+  }
+  console.log(
+    `[examples] 示例期望值与 guides.en.ts 同步（${withExample.length} 条），`
+    + '且应用与冒烟对「主输入控件」的取法一致',
+  );
 
   // —— F2：可达性按**全部 116 篇**算，不是只算进了 sitemap 的那 81 篇 ——
   // 只喂收录清单会让「未收录 = 不存在」被静默写进结论，孤岛数量永远比真实情况好看。

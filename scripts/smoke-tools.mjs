@@ -766,11 +766,23 @@ function classifyConsole() {
   }
 
   for (const x of exceptions) {
-    blocking.push({
+    // 未捕获异常按**抛它的脚本来自哪里**分流，和另外两条路径同一套归属规则：
+    //   · 同源脚本报错 = 页面自己的代码坏了 → 阻断
+    //   · 第三方脚本报错 = 广告/统计脚本在被掐断的网络里 reject → 噪声，但带 URL 留档
+    // 实测：/ipv4-range-expander 的功能输出完全正确，红的原因是
+    // `Uncaught (in promise) undefined`，url = pagead2.googlesyndication.com/…/show_ads_impl.js。
+    // 不分开就会让 AdSense 的网络抖动冒充「页面坏了」；一分开，同源异常一条都不放过。
+    const exUrl = x.url || ((x.exception || {}).url) || '';
+    const rec = {
       text: ('未捕获异常: ' + (x.text || '')).slice(0, 300),
-      url: (x.url || '').split('?')[0],
+      url: exUrl.split('?')[0],
       detail: (x.exception?.description || '').split('\n')[0].slice(0, 200),
-    });
+    };
+    if (exUrl && isThirdParty(exUrl)) {
+      noise.push({ ...rec, why: 'third-party' });
+      continue;
+    }
+    blocking.push(rec);
   }
 
   // 同源 JS chunk / CSS 加载失败 = 该页功能或版式必然不可用。
@@ -959,18 +971,59 @@ async function runJsStep(expression) {
 const EXAMPLE_SEL = '.action-example, .guide-example-btn';
 
 /**
- * 点「示例」按钮。
- *
- * 旧实现只看按钮在不在、点没点成功，于是「按钮存在但填充没落到输入框」会被记成
- * **步骤通过** —— 后面那条断言要么靠固定 sleep 侥幸读到旧值，要么以一堆莫名缺失的
- * 期望值假红。实测：/hash-text 在同一份 dist 上两轮结果不同（一轮 116/0，一轮报
- * 「三个摘要都不在」），失败那轮读到的是**空串的摘要**（d41d8cd9… / da39a3ee… /
- * e3b0c442…），而步骤回执里 err 是空的。27 条用例走这条路径，这个盲区不止它一条。
- *
- * 现在补三层：① 等按钮；② 等填充目标（可编辑控件）出现；③ 点完后有界等待
- * **「主输入框」真的从空变成非空**，没落就重试点击，三次仍不落实则判红并给出前后值。
+ * 示例文本的唯一事实源是 `src/tools/guides.en.ts`；引擎在浏览器外拿不到 TS，
+ * 所以由 `scripts/gen-example-values.mjs` 派生这份 JSON，并由 build-seo 在构建期
+ * 核对是否过期（示例文案改了但没重新生成 = 构建失败）。
+ * 引擎因此可以要求「点完示例后主输入的值逐字等于 example.text」，
+ * 而不是退而求其次地只看「值变了」。
  */
-async function applyExampleStep() {
+const EXAMPLE_VALUES = (() => {
+  try {
+    const f = path.join(REPO, 'scripts/smoke-fixtures/example-values.json');
+    return JSON.parse(fs.readFileSync(f, 'utf8')).values || {};
+  } catch {
+    return {};
+  }
+})();
+
+/**
+ * 点「示例」按钮，并验**值真的落到该落的那个控件上**。
+ *
+ * 为什么不能只看「点了、值变了」：
+ *   · 旧实现只验「按钮在不在、点没点成功」→「按钮存在但填充没进输入框」会被记成步骤通过。
+ *     实测 /hash-text 在同一份 dist 上两轮结果不同，失败那轮读到的是**空串的摘要**
+ *     （d41d8cd9… / da39a3ee… / e3b0c442…）而步骤回执 err 是空的。
+ *   · 「值变了」同样是弱判据：填错框、只填进一半、被规范化改写，全都算通过。
+ * 所以判据取到最硬的一档：**主输入控件的值逐字等于 guides 里那条 example.text**。
+ *
+ * 主输入控件的取法**逐字复刻** src/layouts/tool.layout.vue 的 findPrimaryInput
+ * （优先「非只读非禁用」的 textarea，没有再退到 text/search/number/无 type 的 input）——
+ * 我们验的控件必须就是应用要填的那个控件，否则「填对了但验错框」会造出假红，
+ * 反过来「填错框但没验到」就是假绿。这条复刻的一致性由 build-seo 的源码检查守着。
+ *
+ * 偶发不落地允许重点（最多 3 次）：这是给 UI 竞态的重试，不是放宽结论；
+ * 三次之后值仍不等于期望就判红，并把控件身份与前后值一起打出来。
+ */
+const PRIMARY_PICKER = `(() => {
+  const root = document.querySelector('.tool-content');
+  if (!root) return null;
+  const tas = Array.from(root.querySelectorAll('textarea'));
+  const editableTA = tas.find(ta => !ta.readOnly && !ta.disabled);
+  if (editableTA) return editableTA;
+  return root.querySelector('input[type="text"], input[type="search"], input[type="number"], input:not([type])');
+})`;
+const READ_PRIMARY = `(() => {
+  const el = (${PRIMARY_PICKER})();
+  if (!el) return null;
+  return {
+    tag: el.tagName.toLowerCase(),
+    type: el.type || '',
+    label: (el.getAttribute('aria-label') || el.placeholder || el.id || '').slice(0, 40),
+    value: String(el.value == null ? el.textContent || '' : el.value),
+  };
+})()`;
+
+async function applyExampleStep(casePath) {
   let found = false;
   for (let i = 0; i < 30 && !found; i++) {
     found = await evaluate(`!!document.querySelector(${JSON.stringify(EXAMPLE_SEL)})`).catch(() => false);
@@ -978,62 +1031,39 @@ async function applyExampleStep() {
   }
   if (!found) return '示例按钮未出现（guide 未加载，或该工具没有 example）';
 
-  /**
-   * 前置条件：填充目标得先存在。
-   * 动作条上的「示例」按钮比工具区的输入控件早出现（两者不在同一个渲染分支上），
-   * 点早了应用侧拿不到输入框引用，点击就石沉大海 —— /hash-text 实测就是这种形态：
-   * 同一份 dist 两轮结果不同，输的那一轮读到的是**空串的摘要**，
-   * 而旧实现把这次点击记成「步骤成功」。所以先等可编辑控件出现。
-   */
-  const EDITABLE_IN_ROOT = `(function(){
-    var root = document.querySelector('.tool-content') || document;
-    return [].slice.call(root.querySelectorAll('input, textarea')).filter(function(e){
-      var r = e.getBoundingClientRect();
-      return r.width > 0 && r.height > 0 && !e.disabled && !e.readOnly;
-    }).length;
-  })()`;
-  let ready = 0;
-  for (let i = 0; i < 40; i++) {
-    ready = await evaluate(EDITABLE_IN_ROOT).catch(() => 0);
-    if (ready > 0) break;
-    await sleep(150);
+  const expected = EXAMPLE_VALUES[casePath];
+  // 证伪开关：`SMOKE_FAKE_EXAMPLE=1` 故意把期望值改错一位。
+  // 这条判据必须炸 —— 不然「逐字核对」只是写在注释里的一句话。
+  const expectation = process.env.SMOKE_FAKE_EXAMPLE === '1' && typeof expected === 'string'
+    ? `${expected}\u0000-seeded-wrong`
+    : expected;
+  if (typeof expectation !== 'string' || !expectation.length) {
+    return `无法核对示例：scripts/smoke-fixtures/example-values.json 里没有 ${casePath} 的 example.text —— `
+      + '没有期望值就不许把「点了按钮」当成「填对了」（跑 node scripts/gen-example-values.mjs 生成）';
   }
-  if (!ready) return '工具区里没有任何可编辑控件，示例无处可填（该页输入区没渲染出来？）';
 
-  /**
-   * 点了之后必须验「填到**该填的那个**控件上」。
-   * 只看「.tool-content 里有没有控件变化」是不够的：实测 /hash-text 有一次
-   * 变化判据满足了、但摘要仍是**空串的摘要** —— 说明值没落到主输入框上。
-   * 所以取「主输入」（工具区里第一个可编辑 textarea，没有就退到第一个可编辑控件）的值，
-   * 要求它从空变成非空。
-   * 落地前允许再点最多 2 次：应用侧示例填充存在偶发不生效（同一份 dist 两轮结果不同），
-   * 这是给 UI 竞态的重试，不是放宽结论 —— 三次都没填上就照红。
-   */
-  const PRIMARY = `(function(){
-    var root = document.querySelector('.tool-content') || document;
-    var eds = [].slice.call(root.querySelectorAll('textarea, input'))
-      .filter(function(e){ var r = e.getBoundingClientRect(); return r.width > 0 && r.height > 0 && !e.disabled && !e.readOnly; });
-    var ta = eds.filter(function(e){ return e.tagName === 'TEXTAREA'; })[0] || eds[0];
-    return ta ? String(ta.value == null ? ta.textContent || '' : ta.value) : null;
-  })()`;
-  const valueBefore = await evaluate(PRIMARY).catch(() => null);
-  let landed = false;
-  let lastErr = '';
-  for (let attempt = 0; attempt < 3 && !landed; attempt++) {
+  let before = null;
+  let last = null;
+  for (let attempt = 0; attempt < 3; attempt++) {
     const ok = await evaluate(
       `(function(){var b=document.querySelector(${JSON.stringify(EXAMPLE_SEL)});if(!b)return false;b.click();return true;})()`,
     );
     if (!ok) return '示例按钮点击失败';
     const until = Date.now() + 2500;
     for (;;) {
-      const v = await evaluate(PRIMARY).catch(() => null);
-      if (typeof v === 'string' && v.trim() && v !== valueBefore) { landed = true; break; }
+      before = before || await evaluate(READ_PRIMARY).catch(() => null);
+      last = await evaluate(READ_PRIMARY).catch(() => null);
+      if (last && last.value === expectation) {
+        return '';
+      }
       if (Date.now() >= until) break;
       await sleep(120);
     }
-    lastErr = `点了 ${attempt + 1} 次示例，主输入框仍是「${String(await evaluate(PRIMARY).catch(() => 'n/a')).slice(0, 40)}」`;
   }
-  return landed ? '' : `${lastErr} —— 填充未生效（后面的断言会读到空值/旧值，不许当成通过）`;
+  const got = last ? `${last.tag}[${last.type}] label=${JSON.stringify(last.label)} value=${JSON.stringify(last.value.slice(0, 60))}` : 'null（没找到主输入控件）';
+  const pre = before ? JSON.stringify(before.value.slice(0, 40)) : 'n/a';
+  return `点了 3 次示例，主输入仍未等于 example.text —— 期望 ${JSON.stringify(expectation.slice(0, 60))}，实得 ${got}（点击前 ${pre}）`
+    + ' —— 填充没落到该落的控件上，后面的断言读到的会是空值/旧值，不许当成通过';
 }
 
 async function clickButton({ text, exact, sel }) {  const res = await evaluate(`(() => {
@@ -1666,7 +1696,7 @@ async function runCase(c) {
       }
       let err = '';
       try {
-        if (step.applyExample) err = await applyExampleStep();
+        if (step.applyExample) err = await applyExampleStep(c.path);
         else if (step.clickSel) err = await clickButton({ sel: step.clickSel });
         else if (step.click !== undefined) err = await clickButton({ text: step.click, exact: false });
         else if (step.clickExact !== undefined) err = await clickButton({ text: step.clickExact, exact: true });
@@ -2058,6 +2088,10 @@ const summary = {
   skip: results.filter(r => r.verdict === 'skip').length,
   htmlLayerSkipped: runtimeOnly,
   staticCount: results.filter(r => r.pageKind === 'static').length,
+  // 未归属的网络失败单列计数：这类事件既不算站点缺陷，也不许悄悄消失。
+  // 归因规则一旦放松，这个数会先涨起来 —— 有这一行才看得见。
+  unattributedCount: results.reduce((n, r) => n + ((r.unattributed || []).length), 0),
+  unattributedCases: results.filter(r => (r.unattributed || []).length).map(r => r.path),
   results,
 };
 fs.writeFileSync(path.join(OUT, `shard-${SHARD_I}.json`), JSON.stringify(summary, null, 1), 'utf-8');
@@ -2068,6 +2102,16 @@ console.log(
   // 否则「114 全绿」里其实一条静态页都没含，就是假覆盖面。
   + `（其中静态内容页 ${summary.staticCount} 条，用例集共 ${all.length} 条）`,
 );
+// 未归属网络失败单独印一行：它不判红，但也不许悄悄消失。
+// 归因规则放松时这个数会先涨，所以它是「有没有把真故障藏起来」的可见指标。
+if (summary.unattributedCount) {
+  console.log(
+    `[smoke] ℹ 未归属网络失败 ${summary.unattributedCount} 条（${summary.unattributedCases.length} 页：`
+    + `${summary.unattributedCases.slice(0, 6).join(', ')}）—— 既不阻断也不并噪声，逐条见 shard JSON 的 unattributed 字段`,
+  );
+} else {
+  console.log('[smoke] ℹ 未归属网络失败 0 条（本轮所有资源失败都能归到同源或第三方）');
+}
 
 /**
  * 覆盖面自证 —— 为什么要单独印这一块：
