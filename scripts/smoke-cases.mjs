@@ -2504,4 +2504,118 @@ export const SMOKE_CASES = [
       },
     ],
   },
+  // ── 静态内容页（pageKind: 'static'）：/faq 与 /guides/<tool> ──────────────────────
+  // 这一档不是工具页：没有 .tool-layout / .tool-content，H1 也不来自 tools.* 词条。
+  // 引擎按 pageKind 换了**同等强度**的判据（#app 内渲染出带文字的 h1、
+  // Vue 实例在位、正文长度过阈值），不是「跳过工具页判据就当绿」。
+  {
+    path: '/faq',
+    name: 'faq',
+    category: 'Guides',
+    pageKind: 'static',
+    expectedH1: 'FAQ',
+    minBodyChars: 800,
+    tier: 'io',
+    strategy: 'structural：目录锚点数 == 小节数、FAQPage JSON-LD 逐条等于可见问答、点目录真的滚动',
+    steps: [
+      {
+        // 不用 expect.text 数「有 9 条问答」—— 整页文本会被侧栏与说明凑数；
+        // 这里数 DOM，并把结构化数据与正文逐条对齐（不同源必红）。
+        js: `(function(){
+          var secs = [].slice.call(document.querySelectorAll('section[id^="faq-"]'));
+          var toc = [].slice.call(document.querySelectorAll('a[href^="#faq-"]'));
+          if (secs.length < 5) return '可见问答只有 ' + secs.length + ' 条';
+          if (toc.length !== secs.length) return '目录 ' + toc.length + ' 条 ≠ 小节 ' + secs.length + ' 条';
+          var dead = toc.filter(function(a){ return !document.getElementById(a.getAttribute('href').slice(1)); });
+          if (dead.length) return '目录有 ' + dead.length + ' 条指向不存在的小节';
+          // 运行时 head 会被 unhead 重组，结构化数据在不在这里读都不算 —— 存在性由
+          // expect.htmlLd 在初始 HTML 层判。这里只做「DOM 结构自洽」的核对。
+          var ld = [].slice.call(document.querySelectorAll('script[type="application/ld+json"]'))
+            .map(function(s){ try { return JSON.parse(s.textContent); } catch (e) { return null; } })
+            .filter(function(x){ return x && x['@type']; });
+          var faq = ld.filter(function(x){ return x['@type'] === 'FAQPage'; })[0];
+          if (faq) {
+            var ents = faq.mainEntity || [];
+            if (ents.length !== secs.length) return 'JSON-LD ' + ents.length + ' 条 ≠ 正文 ' + secs.length + ' 条';
+            var qs = secs.map(function(s){ var h = s.querySelector('h2'); return h ? h.innerText.trim() : ''; });
+            var stray = ents.filter(function(m){ return qs.indexOf((m.name || '').trim()) === -1; });
+            if (stray.length) return 'JSON-LD 里的问题不在正文: ' + (stray[0].name || '').slice(0, 40);
+            var leak = ents.some(function(m){
+              return (m.name || '').indexOf('{{') >= 0 || ((m.acceptedAnswer || {}).text || '').indexOf('{{') >= 0;
+            });
+            if (leak) return '结构化数据里漏出未替换的占位符';
+          }
+          return null;
+        })()`,
+      },
+      {
+        js: `(function(){
+          var a = document.querySelector('a[href="#faq-3"]');
+          if (!a) return '找不到 #faq-3 的目录链接';
+          a.click();
+          return null;
+        })()`,
+      },
+      { wait: 900 },
+      {
+        // 只判 DOM 存在性时「点了目录但页面纹丝不动」也会绿 —— 这条就是抓这个的。
+        // （实测过：缺 scrollBehavior 时 hash 变了、滚动容器一动不转。）
+        js: `(function(){
+          var el = document.getElementById('faq-3');
+          if (!el) return '目标小节不存在';
+          var top = el.getBoundingClientRect().top;
+          if (top > 200) return '点目录后未滚动：#faq-3 仍在视口 ' + Math.round(top) + 'px 处';
+          return null;
+        })()`,
+      },
+    ],
+    expect: {
+      // canonical 与 FAQPage 的一致性在上面 js 步骤里逐条核过了（它们在 <head>）。
+      // expect.text/regex 比的是**运行时 body 文本**，拿 <head> 里的标签写断言永远不会命中 ——
+      // 我第一版就这么写过，造出一条假红。这里只留 body 里真能看见的判据。
+      text: ['Contents', 'Where do I report an accessibility problem?'],
+      // 结构化数据落在初始 HTML 层（爬虫读的就是这份）
+      htmlLd: ['FAQPage'],
+      not: ['Failed to fetch'],
+    },
+  },
+  {
+    path: '/guides/csv-to-json',
+    name: 'guide-csv-to-json',
+    category: 'Guides',
+    pageKind: 'static',
+    expectedH1: 'CSV to JSON — Guide',
+    minBodyChars: 600,
+    tier: 'io',
+    strategy: 'structural：目录与小节一一对应、面包屑回链工具页、示例代码块非空、Article + BreadcrumbList 齐发',
+    steps: [
+      {
+        js: `(function(){
+          var secs = [].slice.call(document.querySelectorAll('article section[id]'));
+          var toc = [].slice.call(document.querySelectorAll('article nav a[href^="#"]'))
+            .concat([].slice.call(document.querySelectorAll('nav a[href^="#what-it-is"], nav a[href^="#how-to-use"], nav a[href^="#faq"]')));
+          if (secs.length < 3) return '文章分节只有 ' + secs.length + ' 节';
+          var ids = secs.map(function(s){ return s.id; });
+          var links = [].slice.call(document.querySelectorAll('a[href^="#"]')).filter(function(a){
+            return ids.indexOf(a.getAttribute('href').slice(1)) >= 0;
+          });
+          if (links.length < 3) return '目录里能对上小节的链接只有 ' + links.length + ' 条';
+          var dup = ids.length !== new Set(ids).size;
+          if (dup) return '小节 id 有重复，锚点会互相盖掉';
+          if (!document.querySelector('a[href="/csv-to-json"]')) return '没有回链到工具页';
+          var pre = document.querySelector('article pre');
+          if (!pre || pre.innerText.trim().length < 10) return '示例代码块是空的';
+          // 结构化数据不在这里判 —— 见 expect.htmlLd 的注释（运行时 head 会被 unhead 重组）
+          return null;
+        })()`,
+      },
+    ],
+    expect: {
+      // canonical 由初始 HTML 层的 canonicalSelf 判；结构化数据由 htmlLd 判（同一层）。
+      // 这里只留 body 里真能看见的小节标题。
+      text: ['A worked example', 'Things that trip people up', 'Questions people ask'],
+      htmlLd: ['Article', 'BreadcrumbList', 'FAQPage'],
+      not: ['Guide not found', 'Failed to fetch'],
+    },
+  },
 ];

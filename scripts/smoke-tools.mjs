@@ -1186,11 +1186,36 @@ async function checkHtml(c) {
   checks.title = title;
   checks.canonical = canonical;
 
+  // 初始 HTML 层的 JSON-LD 类型清单：结构化数据是**给爬虫看的**，只能在预渲染产物上判。
+  // 实测教训：把 `"@type":"Article"` 写进 expect.regex（比的是运行时 body.innerText）
+  // 永远不会命中；写进运行时 js 步骤也不可靠 —— hydration 后 head 会被 unhead 重组，
+  // 同一批页面里 FAQPage 还在、Article 已经不在（这个不对称另开一条待查）。
+  const htmlJsonLd = [...html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)]
+    .map((m) => {
+      try {
+        const parsed = JSON.parse(m[1]);
+        return parsed && parsed['@type'] ? String(parsed['@type']) : null;
+      }
+      catch {
+        return 'UNPARSEABLE';
+      }
+    })
+    .filter(Boolean);
+
   const bad = Object.entries(checks)
     .filter(([k, v]) => typeof v === 'boolean' && !v)
     .map(([k]) => k);
   // fetchFailed = 重试后仍拿不到响应：这是**测量层**事实，不能当站点缺陷报红
-  return { status, ctype, checks, bad, htmlTitle: title, htmlH1: h1, fetchFailed: status === -1 };
+  return {
+    status,
+    ctype,
+    checks,
+    bad,
+    htmlTitle: title,
+    htmlH1: h1,
+    htmlJsonLd,
+    fetchFailed: status === -1,
+  };
 }
 
 // ─────────────────────────────── 单个工具页 ───────────────────────────────
@@ -1205,6 +1230,7 @@ async function runCase(c) {
     tier: c.tier || 'io',
     strategy: c.strategy || '',
     onlineOnly: !!c.onlineOnly,
+    pageKind: c.pageKind || 'tool',
     skipped: false,
     skipReason: '',
     html: null,
@@ -1261,11 +1287,20 @@ async function runCase(c) {
   // 键名用 **path 段**推导，不用用例里的 name：
   //   /base-converter → tools.base-converter.title（而 c.name 是 'integer-base-converter'）
   //   两者对多数工具相同、对少数不同，用 name 会漏判（实测 2 例）。
+  // 静态内容页（pageKind: 'static'）没有 tools.<key>.title 这种词条依据，
+  // 期望 H1 由用例自己用 expectedH1 显式给出；不给就是判据缺失，按红算而不是跳过。
+  if (c.pageKind === 'static') {
+    if (!c.expectedH1) {
+      fail('静态页用例必须自带 expectedH1 —— 没有期望值就不许判这一层通过');
+    } else if (rec.html.htmlH1 !== c.expectedH1) {
+      fail(`初始 HTML 的 H1「${rec.html.htmlH1}」≠ 用例声明的「${c.expectedH1}」`);
+    }
+  }
   const titleKey = c.path.replace(/^\/+|\/+$/g, '');
   const expectedTitle = LOCALE_TITLES[titleKey] ?? LOCALE_TITLES[c.name];
-  if (!expectedTitle) {
+  if (c.pageKind !== 'static' && !expectedTitle) {
     fail(`locales/${LOCALE}.yml 里找不到 tools.${titleKey}.title —— 判据缺失，不计入通过`);
-  } else if (rec.html.htmlH1 && rec.html.htmlH1 !== expectedTitle) {
+  } else if (c.pageKind !== 'static' && rec.html.htmlH1 && rec.html.htmlH1 !== expectedTitle) {
     // H1 承载主标题，SEO title 是「主标题 — 词缀」——P0-P2 刻意给 title 加了
     // online/free 等词缀，H1 未同步是设计如此。整串比对会把 8 个好页写成红。
     // 仍保留判据效力：未翻译/中文残留/漏接 translate() 一律照红。
@@ -1309,21 +1344,45 @@ async function runCase(c) {
     // 本地 --serve-dist 读磁盘挂载是瞬时的，循环会立刻 break，不增加本地耗时。
     // 重依赖工具（如 text-diff 的 Monaco）在 dev 下要慢得多，可用 case.mountTimeout 再放宽。
     let mounted = false;
+    const isStatic = c.pageKind === 'static';
     // mountTimeout 是**显式覆盖**，不再被 0.6×BUDGET 压回去 ——
     // 否则写了 mountTimeout: 45000 也会被 default 的 BUDGET 悄悄截成 12s，等于没写。
     mountMs = c.mountTimeout || 45000;
     const mountDeadline = Date.now() + mountMs;
     while (Date.now() < mountDeadline) {
-      mounted = await evaluate(`!!document.querySelector('.tool-layout')`).catch(() => false);
+      // 静态页没有工具布局容器；改判「#app 内确实渲染出了带文字的 h1」——
+      // 这条能抓到「预渲染壳 + SPA 报错白屏」，不是永远为真的空转断言。
+      mounted = isStatic
+        ? await evaluate(`(() => {
+             const a = document.querySelector('#app');
+             const h = a && a.querySelector('h1');
+             return !!(h && (h.innerText || '').trim().length > 1);
+           })()`).catch(() => false)
+        : await evaluate(`!!document.querySelector('.tool-layout')`).catch(() => false);
       if (mounted) break;
       await sleep(150);
     }
     rec.runtime.mounted = mounted;
-    if (!mounted) fail(`组件未挂载：.tool-layout 在 ${Math.round(mountMs / 1000)}s 内没出现`);
+    if (!mounted) fail(isStatic
+      ? `静态页未渲染出正文：#app 内没有在 ${Math.round(mountMs / 1000)}s 内出现带文字的 h1`
+      : `组件未挂载：.tool-layout 在 ${Math.round(mountMs / 1000)}s 内没出现`);
     else await installHelpers();
 
     rec.runtime.hasToolContent = await evaluate(`!!document.querySelector('.tool-content')`).catch(() => false);
-    if (!rec.runtime.hasToolContent) fail('缺少 .tool-content（工具组件插槽容器）');
+    if (isStatic) {
+      // 静态页没有 .tool-content，这条判据换成「正文真的有内容」：
+      // #app 下可见文本长度过阈值，能抓到「页面存在但正文空」这类薄壳。
+      const bodyLen = await evaluate(`(() => {
+         const a = document.querySelector('#app');
+         return a ? (a.innerText || '').replace(/\\s+/g, ' ').trim().length : 0;
+       })()`).catch(() => 0);
+      rec.runtime.staticBodyLen = bodyLen;
+      if (!(bodyLen >= (c.minBodyChars || 400))) {
+        fail(`静态页正文过短：${bodyLen} 字符（阈值 ${c.minBodyChars || 400}）`);
+      }
+    } else if (!rec.runtime.hasToolContent) {
+      fail('缺少 .tool-content（工具组件插槽容器）');
+    }
 
     rec.runtime.h1 = (await evaluate(`(document.querySelector('h1')||{}).innerText || ''`).catch(() => '')) || '';
     // 不再回退到 c.zhTitle：预渲染层抓取失败时，用中文标题当英文 H1 的期望值
@@ -1339,8 +1398,29 @@ async function runCase(c) {
     }
 
     // ⑤ 客户端是否真的接管了（预渲染骨架必须被替换掉）
-    rec.runtime.skeletonGone = !(await evaluate(`!!document.querySelector('.dd-tool-seo')`).catch(() => true));
-    if (!rec.runtime.skeletonGone) fail('预渲染骨架 .dd-tool-seo 仍在 DOM —— 客户端渲染疑似未接管');
+    if (isStatic) {
+      // 静态页的接管证据用 `.menu-layout`：它是 base.layout 的 MenuLayout 容器，
+      // **只可能由客户端渲染出来** —— 实测预渲染产物里出现 0 次（dist/faq、dist/base-converter 都是 0）。
+      //
+      // 两条踩过的路，都记在这里免得有人再走：
+      //   ① `#app.__vue_app__` —— Vue 只在 dev 构建上挂这个字段，生产产物里永远取不到，
+      //      等于一条不可能通过的判据（--probe 模式跑 dev 时才看得到，最容易骗人）。
+      //   ② 用 `#app 内有 h1` 当挂载完成 —— 预渲染 HTML 本身就有 h1，会立刻为真，
+      //      于是后续步骤在 hydration 中途读 DOM，抓出「找不到目录链接」这类假红。
+      // 所以这里既等它出现（有界轮询），也把它当成接管结论。
+      const shellDeadline = Date.now() + Math.max(6000, mountMs);
+      let shell = false;
+      while (Date.now() < shellDeadline) {
+        shell = await evaluate(`!!document.querySelector('.menu-layout')`).catch(() => false);
+        if (shell) { break; }
+        await sleep(150);
+      }
+      rec.runtime.skeletonGone = shell;
+      if (!shell) fail('静态页客户端未接管：等 .menu-layout（base.layout 容器）超时');
+    } else {
+      rec.runtime.skeletonGone = !(await evaluate(`!!document.querySelector('.dd-tool-seo')`).catch(() => true));
+      if (!rec.runtime.skeletonGone) fail('预渲染骨架 .dd-tool-seo 仍在 DOM —— 客户端渲染疑似未接管');
+    }
 
     rec.runtime.navPresent = await evaluate(
       `!!document.querySelector('.menu-layout, nav, aside')`,
@@ -1443,6 +1523,24 @@ async function runCase(c) {
   const missing = (exp.text || []).filter(s => !text.includes(s));
   const forbidden = (exp.not || []).filter(s => text.includes(s));
   const regexMiss = (exp.regex || []).filter(s => !new RegExp(s, 'm').test(text));
+
+  /**
+   * 初始 HTML 层的 JSON-LD 断言通道（expect.htmlLd）。
+   *
+   * 结构化数据是给爬虫读的，判据就该落在**预渲染产物**上：
+   *   · expect.regex 比的是运行时 body.innerText —— <head> 里的东西永远不在里面；
+   *   · 运行时 querySelectorAll 也不可靠 —— hydration 后 head 由 unhead 重组，
+   *     实测同一批页面里 FAQPage 还在、Article 已经不在。
+   * 所以这一档必须是「初始 HTML 里有没有这个 @type」，而不是「浏览器里还有没有」。
+   */
+  const wantLd = exp.htmlLd || [];
+  const haveLd = (rec.html && rec.html.htmlJsonLd) || [];
+  const ldMissing = wantLd.filter(t => !haveLd.includes(t));
+  const ldExtra = haveLd.filter(t => !wantLd.includes(t) && t !== 'UNPARSEABLE');
+  if (ldMissing.length) { fail(`初始 HTML 的 JSON-LD 缺少：${JSON.stringify(ldMissing)}（实到 ${JSON.stringify(haveLd)}）`); }
+  if (wantLd.length && ldExtra.length) {
+    rec.warnings = [...(rec.warnings || []), `JSON-LD 出现用例未声明的类型：${JSON.stringify(ldExtra)}`];
+  }
 
   /**
    * 输出区断言通道（out / outRegex / outNot）—— 这是本次新增的、也是必须有的。
@@ -1735,12 +1833,16 @@ const summary = {
   warn: results.filter(r => r.verdict === 'warn').length,
   skip: results.filter(r => r.verdict === 'skip').length,
   htmlLayerSkipped: runtimeOnly,
+  staticCount: results.filter(r => r.pageKind === 'static').length,
   results,
 };
 fs.writeFileSync(path.join(OUT, `shard-${SHARD_I}.json`), JSON.stringify(summary, null, 1), 'utf-8');
 
 console.log(
-  `\n[smoke] 分片 ${SHARD_I}/${SHARD_N} 汇总：pass=${summary.pass} fail=${summary.fail} warn=${summary.warn} skip=${summary.skip}`,
+  `\n[smoke] 分片 ${SHARD_I}/${SHARD_N} 汇总：pass=${summary.pass} fail=${summary.fail} warn=${summary.warn} skip=${summary.skip}`
+  // 静态内容页要单独报数：这一档刚加，跑没跑到、跑了几条必须看得见，
+  // 否则「114 全绿」里其实一条静态页都没含，就是假覆盖面。
+  + `（其中静态内容页 ${summary.staticCount} 条，用例集共 ${all.length} 条）`,
 );
 
 /**
