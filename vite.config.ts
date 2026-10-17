@@ -73,7 +73,15 @@ export default defineConfig({
       //    只在 fetch 里测（服务端视角）永远发现不了，必须用真实浏览器验证。
       workbox: {
         globIgnores: ['legacy/**'],
-        navigateFallbackDenylist: [/^\/legacy\//],
+        // /faq 与 /guides/* 必须一起进 denylist。
+        // 实测依据（不是推断）：dist/sw.js 的 NavigationRoute 兜底是
+        //   createHandlerBoundToURL("index.html") + denylist:[/^\/legacy\//]
+        // 而预缓存清单里 "/faq/index.html" 与 "guides/" 都是 0 条 ——
+        // 于是 SW 接管后，用户点开 /guides/xxx 或 /faq 会被兜成首页壳。
+        // 现象在全量冒烟里才现形（单跑 --only 时 SW 还没接管）：
+        //   skeletonGone=true（客户端确实起来了）但 H1 = 首页文案。
+        // 服务端视角（fetch 初始 HTML）永远测不到：预渲染产物本身是对的。
+        navigateFallbackDenylist: [/^\/legacy\//, /^\/faq\/?$/, /^\/guides\//],
       },
       manifest: {
         name: 'DigDevBox',
