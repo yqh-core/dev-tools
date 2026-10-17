@@ -305,7 +305,7 @@ try {
   const { auditKeywordMap } = await vite.ssrLoadModule('/src/seo/keyword-map.ts');
   const { SITE_FAQ_PATH, getSiteFaqs, fillSiteFaq } = await vite.ssrLoadModule('/src/seo/site-faqs.ts');
   const { GUIDE_ARTICLE_PAGES, auditGuideArticles } = await vite.ssrLoadModule('/src/seo/guide-articles.ts');
-  const { scanGuideCrossLinks } = await vite.ssrLoadModule('/src/seo/guide-links.ts');
+  const { scanGuideCrossLinks, scanToolEntryLinks, buildGuideEdgeMap, reachableFrom, guideArticlePath, missingLocaleKeys } = await vite.ssrLoadModule('/src/seo/guide-links.ts');
   const mod = await vite.ssrLoadModule('/src/entry-server.ts');
 
   // —— 数据体检：不通过就让构建失败，而不是少渲染几个页面还说成功 ——
@@ -411,6 +411,7 @@ try {
     const shapePass = p.indexable;
     const novelPasses = ratio >= GUIDE_MIN_NOVEL_RATIO;
     return {
+      route: p.path,
       path: canonicalUrl(p.path),
       novelRatio: ratio,
       shapePass,
@@ -423,7 +424,7 @@ try {
   if (excludedDetail.length > 0) {
     console.log(
       `[guides] 暂不收录清单(带实测值与原因): `
-      + excludedDetail.map(e => `${e.path.replace('/guides/', '')}=${(e.novelRatio * 100).toFixed(0)}%/${e.reason}`).join(' '),
+      + excludedDetail.map(e => `${e.route.replace('/guides/', '')}=${(e.novelRatio * 100).toFixed(0)}%/${e.reason}`).join(' '),
     );
   }
 
@@ -468,6 +469,106 @@ try {
     // 不可能各说各话（写两遍同样的 filter，改一处就会悄悄不一致）。
     ...novelPass.map(({ path }) => ({ loc: canonicalUrl(path), changefreq: 'monthly' })),
   ];
+
+  // —— F1：工具页 → 文章页的入口链接（爬虫发现路径上缺的那条边）——
+  // 判的是**预渲染骨架**，不是 hydration 之后的 DOM：这条边存在的唯一理由就是让不执行 JS
+  // 的抓取器能从工具页走到文章页。运行时才出现的链接对爬虫等于不存在。
+  //
+  // 证伪开关：`GUIDE_FAKE_UNLINKED=1 npm run build` 把第一个工具页 HTML 里的入口链接剥掉，
+  // 这条判据必须让构建失败（纯函数那侧有带对照组的单测，这里证的是调用点真的接上）。
+  const articlePaths = GUIDE_ARTICLE_PAGES.map(p => p.path);
+  if (process.env.GUIDE_FAKE_UNLINKED === '1') {
+    const victim = TOOL_SEO_PAGES.find(t => articlePaths.includes(guideArticlePath(t.path)));
+    const html = rendered.get(victim.path) ?? '';
+    const stripped = html.replace(/<a[^>]*href="\/guides\/[a-z0-9-]+\/?"[^>]*>[\s\S]*?<\/a>/, '<!-- seeded: entry link removed -->');
+    if (stripped === html) {
+      throw new Error(`[build-seo] 证伪模式失败：${victim.path} 的 HTML 里找不到入口链接可剥（判据本身可能空转）`);
+    }
+    rendered.set(victim.path, stripped);
+    console.log(`[guides] 证伪模式：已从 ${victim.path} 剥掉指南入口链接，构建应当失败`);
+  }
+  const entryScan = scanToolEntryLinks(TOOL_SEO_PAGES, path => rendered.get(path) ?? '', articlePaths);
+  if (entryScan.expected === 0) {
+    throw new Error('[build-seo] 入口链接判据没吃到任何数据（expected=0）—— 文章页清单或工具页清单读空了，不许当通过');
+  }
+  if (entryScan.dangling.length > 0) {
+    throw new Error(`[build-seo] 工具页里的指南链接指向未生成的文章：${entryScan.dangling.slice(0, 8).join(', ')}`);
+  }
+  if (entryScan.missing.length > 0) {
+    throw new Error(
+      `[build-seo] ${entryScan.missing.length}/${entryScan.expected} 个工具页的初始 HTML 没有指向自己指南文章的入口链接：`
+      + `${entryScan.missing.slice(0, 8).join(', ')}（预渲染骨架与真实面板必须同时有这条链接）`,
+    );
+  }
+  if (entryScan.linked !== entryScan.expected) {
+    throw new Error(`[build-seo] 入口链接自洽核对失败：linked=${entryScan.linked} ≠ expected=${entryScan.expected}`);
+  }
+  console.log(`[guides] 工具页入口链接 ${entryScan.linked}/${entryScan.expected} 全部就位`);
+
+  // —— 两侧同源的机器判据（预渲染骨架 ↔ hydration 后的真实面板）——
+  // 这条边写在两个文件里：src/seo/ToolSeoPage.vue（给爬虫）与 src/layouts/tool.layout.vue（给用户）。
+  // 任何一侧被改成写死字面量、或各拼各的 href，构建期就该炸 —— 靠人眼盯两个 .vue 迟早会漏，
+  // 而「骨架有、面板没有」这种漂移正好违反本项目红线（给抓取器看的每句都得真实可见）。
+  const [skeletonSrc, panelSrc] = await Promise.all([
+    readFile(join(root, 'src/seo/ToolSeoPage.vue'), 'utf8'),
+    readFile(join(root, 'src/layouts/tool.layout.vue'), 'utf8'),
+  ]);
+  for (const [who, src] of [['src/seo/ToolSeoPage.vue（骨架）', skeletonSrc], ['src/layouts/tool.layout.vue（面板）', panelSrc]]) {
+    if (!src.includes('seo.guideArticleLink')) {
+      throw new Error(`[build-seo] ${who} 没有引用 i18n 键 seo.guideArticleLink —— 两侧不再同源，文案会各漂各的`);
+    }
+    if (!src.includes('guideArticleHref(')) {
+      throw new Error(`[build-seo] ${who} 没有用 guideArticleHref() 拼链接 —— href 一旦各写一份，两侧就可能指到不同 URL`);
+    }
+  }
+  // 行为侧再核一次：骨架里渲染出来的确实是这条词条解析后的文字（不是键名漏翻、不是空串）
+  const entryLabel = label('seo.guideArticleLink');
+  if (!entryLabel || entryLabel.includes('guideArticleLink')) {
+    throw new Error(`[build-seo] seo.guideArticleLink 没解析出文案，拿到的是「${entryLabel}」`);
+  }
+  // 归一化比较而不是拼正则：词条里将来可能有 - ( ) 这类元字符，拼进 RegExp 就是自找的运行期炸点
+  const squeeze = s => s.replace(/>\s+/g, '>').replace(/\s+</g, '<');
+  const labelMissing = TOOL_SEO_PAGES
+    .filter(t => articlePaths.includes(guideArticlePath(t.path)))
+    .filter(t => !squeeze(rendered.get(t.path) ?? '').includes(`>${entryLabel}<`))
+    .map(t => t.path);
+  if (labelMissing.length > 0) {
+    throw new Error(
+      `[build-seo] ${labelMissing.length} 个工具页骨架里的入口链接文案不是 seo.guideArticleLink 的原文：`
+      + `${labelMissing.slice(0, 6).join(', ')}（期望文案「${entryLabel}」）`,
+    );
+  }
+  console.log(`[guides] 骨架与面板同源：两侧都引用 seo.guideArticleLink + guideArticleHref，${entryScan.expected} 页文案逐字一致`);
+  // 中文侧也必须有这条词条：骨架恒按 en 预渲染，zh 缺键时英文页一切正常、
+  // 中文页把键名 `seo.guideArticleLink` 直接渲染到 116 个工具页上。
+  const localeGaps = missingLocaleKeys(['seo.guideArticleLink', 'seo.guideSummary', 'seo.faqTitle'], messages, messagesZh);
+  if (localeGaps.length > 0) {
+    throw new Error(`[build-seo] 指南入口相关词条两种语言不齐全：${localeGaps.map(g => `${g.key} 缺 ${g.missingIn}`).join(', ')}`);
+  }
+  console.log('[guides] 词条成对：入口文案在 en / zh 两侧都在（缺一种就会在另一种语言的页面上漏出键名）');
+
+  // —— F2：可达性按**全部 116 篇**算，不是只算进了 sitemap 的那 81 篇 ——
+  // 只喂收录清单会让「未收录 = 不存在」被静默写进结论，孤岛数量永远比真实情况好看。
+  // 种子 = 爬虫真正能拿到的起点（sitemap 全部条目）；节点 = 全部文章页。
+  const allPages = results.map(item => ({ path: item.path }));
+  const siteEdges = buildGuideEdgeMap(allPages, path => rendered.get(path) ?? '');
+  const seedPaths = sitemapEntries.map(e => {
+    const raw = e.loc.replace(/^https?:\/\/[^/]+/, '');
+    return raw.replace(/\/$/, '') || '/';
+  });
+  const reachable = reachableFrom(seedPaths, siteEdges, articlePaths);
+  const orphans = articlePaths.filter(p => !reachable.has(p));
+  if (orphans.length > 0) {
+    throw new Error(`[build-seo] ${orphans.length} 篇指南文章从任何发现起点都到不了（孤岛）：${orphans.slice(0, 8).join(', ')}`);
+  }
+  // 反事实：把工具→文章这条边拿掉，孤岛会是多少 —— 用来说明 F1 这条边的实际作用
+  const articleOnlyEdges = buildGuideEdgeMap(GUIDE_ARTICLE_PAGES, path => rendered.get(path) ?? '');
+  const reachableNoToolEdge = reachableFrom(seedPaths, articleOnlyEdges, articlePaths);
+  const orphansNoToolEdge = articlePaths.filter(p => !reachableNoToolEdge.has(p));
+  console.log(
+    `[guides] 可达性：${reachable.size}/${articlePaths.length} 篇可发现，孤岛 0；`
+    + `反事实（去掉工具页入口这条边）孤岛 ${orphansNoToolEdge.length} 篇`,
+  );
 
   // —— sitemap 自检 ——
   const seen = new Set();
@@ -535,6 +636,19 @@ try {
         return acc;
       }, {}),
       crossLinkScan: { checked: linkScan.checked, dangling: linkScan.dangling },
+      entryLinks: {
+        expected: entryScan.expected,
+        linked: entryScan.linked,
+        missing: entryScan.missing,
+        dangling: entryScan.dangling,
+      },
+      reachability: {
+        nodes: articlePaths.length,
+        seeds: seedPaths.length,
+        reachable: reachable.size,
+        orphans,
+        orphansWithoutToolEdges: orphansNoToolEdge.length,
+      },
     };
     const policyFile = join(root, '.build/guides-index-policy.json');
     await mkdir(dirname(policyFile), { recursive: true });

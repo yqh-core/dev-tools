@@ -18,12 +18,15 @@
  * 是否要把工具页正文进一步收敛成「只留 intro」以彻底消除重叠，属产品裁定，
  * 会牵动 114 页的预渲染判据，不在本批次内做。
  */
+import { GUIDE_PREFIX, guideArticlePath } from './guide-links';
 import type { ToolSeoEntry } from './tool-page';
 import { TOOL_SEO_PAGES } from './tool-page';
 import type { ToolGuide } from '@/tools/guides.types';
 
-/** 文章路由前缀。工具 `/uuid-generator` → 文章 `/guides/uuid-generator`。 */
-export const GUIDE_PREFIX = '/guides';
+// 前缀与 href 拼法来自零依赖模块 ./guide-links（运行时的 tool.layout.vue 也要拼同一个
+// 链接，不能为了一个常量把 TOOL_SEO_PAGES → 整个工具注册表拖进共享 chunk）。
+// 这里再导出，既有引用方（GuideArticle.vue / entry-server）不必改导入路径。
+export { GUIDE_PREFIX, guideArticlePath };
 /**
  * 指南页进 sitemap 的**形状**条件（不是充分条件，见下）。
  *
@@ -67,10 +70,6 @@ export interface GuideArticlePage {
   sections: GuideSection[]
   /** 是否进 sitemap（见 GUIDE_INDEX_RULE）。为 false 的页面仍然可访问、仍然自指 canonical。 */
   indexable: boolean
-}
-
-export function guideArticlePath(toolPath: string): string {
-  return `${GUIDE_PREFIX}${toolPath}`;
 }
 
 /** 从 guide 现场组装文章分节；没有任何可写内容的工具不出文章页。 */

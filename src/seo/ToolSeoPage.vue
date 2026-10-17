@@ -23,6 +23,9 @@ import { useI18n } from 'vue-i18n';
 import type { ToolSeoEntry } from './tool-page';
 import { usePageSeo } from './use-page-seo';
 
+// href 与 tool.layout.vue 用同一个函数：两侧不允许各写一份 /guides/<slug>/ 字面量
+import { guideArticleHref } from './guide-links';
+
 const props = defineProps<{ entry: ToolSeoEntry }>();
 
 const { entry } = props;
@@ -118,6 +121,17 @@ const box = 'max-width:800px;margin:0 auto;padding:32px 16px;box-sizing:border-b
           </template>
         </dl>
       </section>
+      <!--
+        工具页 → 指南文章页的入口（F1 补的那条边）。
+        与真实面板（tool.layout.vue）用同一个 i18n 键 + 同一个 href 函数，
+        构建期门禁（build-seo 的 scanToolEntryLinks）逐页核这条链接在不在。
+        不做 {name} 插值：骨架恒按 en 渲染，插值会让两侧在非英文界面下逐字不一致。
+      -->
+      <p v-if="entry.guide" class="dd-tool-guide-article" style="margin:14px 0 0;font-size:15px">
+        <a :href="guideArticleHref(entry.path)" style="color:inherit">
+          {{ t('seo.guideArticleLink') }}
+        </a>
+      </p>
     </details>
 
     <p class="dd-tool-category" style="font-size:14px;opacity:.7;margin:0 0 24px">

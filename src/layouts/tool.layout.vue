@@ -15,6 +15,7 @@ import type { Tool } from '@/tools/tools.types';
 import { loadGuides } from '@/tools/guides';
 import type { ToolGuide } from '@/tools/guides';
 import { clusterOf, resolveRelated, resolveWorkflow } from '@/seo/clusters';
+import { guideArticleHref } from '@/seo/guide-links';
 
 const route = useRoute();
 
@@ -477,6 +478,16 @@ const shareLabel = computed(() => {
                 </template>
               </dl>
             </section>
+
+            <!--
+              工具页 → 指南文章页的入口（F1 补的那条边）。
+              与预渲染骨架 src/seo/ToolSeoPage.vue 用**同一个 i18n 键**和**同一个 href 函数**：
+              骨架红线是「给抓取器看的每一句都必须真实存在于用户可见页面上」，
+              两侧各写一份字面量的话，这句话会在某一侧悄悄漂走。
+            -->
+            <p class="guide-article-link">
+              <a :href="guideArticleHref(toolPath)">{{ $t('seo.guideArticleLink') }}</a>
+            </p>
           </div>
         </div>
       </div>

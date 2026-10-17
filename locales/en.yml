@@ -818,4 +818,12 @@ seo:
   faqTitle: "Frequently asked questions"
   categoryLine: "Category: {category}"
   guideMissing: "No usage guide has been written for this tool yet."
+  # 工具页 → 指南文章页的入口文案（与 guideArticle.openTool 是反方向的那一条）。
+  # ⚠ 这一句必须**同时**出现在两处：预渲染骨架（src/seo/ToolSeoPage.vue）与
+  #    hydration 之后的真实指南面板（src/layouts/tool.layout.vue）。
+  #    骨架红线是「给抓取器看的每一句话，都必须在用户展开面板后逐字可见」，
+  #    所以两侧都只引用这个键；任何一侧写死字面量都算违约（构建期有门禁互查）。
+  #    刻意不做 {name} 插值：骨架永远按 en 渲染，而面板按用户当前语言渲染，
+  #    带工具名的文案在中文界面下会与骨架逐字不一致 —— 那正是这条红线要防的形态。
+  guideArticleLink: "Read the full step-by-step guide for this tool"
   leadFallback: "{name} is an online tool in the {category} category of DigDevBox."

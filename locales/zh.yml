@@ -814,4 +814,8 @@ seo:
   faqTitle: "常见问题"
   categoryLine: "所属分类：{category}"
   guideMissing: "（该工具的使用说明尚未编写）"
+  # 与 locales/en.yml 同名键配对：**必须与 en 侧同时存在**，因为这句话要出现在
+  # 预渲染骨架（ToolSeoPage.vue）和 hydration 后的真实指南面板（tool.layout.vue）两处。
+  # 不做 {name} 插值的原因见 en 侧注释（骨架恒按 en 渲染，插值会让两侧逐字不一致）。
+  guideArticleLink: "阅读这个工具的完整分步使用指南"
   leadFallback: "「{name}」是 DigDevBox「{category}」分类下的在线工具。"
