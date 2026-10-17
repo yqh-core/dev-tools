@@ -25,15 +25,18 @@ import type { ToolGuide } from '@/tools/guides.types';
 /** 文章路由前缀。工具 `/uuid-generator` → 文章 `/guides/uuid-generator`。 */
 export const GUIDE_PREFIX = '/guides';
 /**
- * 指南页的 sitemap 收录策略。
+ * 指南页进 sitemap 的**形状**条件（不是充分条件，见下）。
  *
  * 页面一律保持可访问与自指 canonical —— 这里只决定**要不要出现在 sitemap 里**。
- * 依据不是「字段存不存在」（114 篇的 about/faqs 全部都有，见 guide-articles 的构建期打印），
- * 而是「这篇能不能脱离工具界面独立回答一个 how-to 查询」：
- *   步骤 ≥2，且（有可照抄的示例 或 至少 1 条限制/坑说明）。
- * 这条代理可以辩论，但它**只有一处**：调阈值或加白名单都在这里，不用去翻构建脚本。
+ * 依据不是「字段存不存在」：所有文章的 about/faqs 字段都是齐的，字段存在性筛不掉任何东西。
+ * 真正的门槛是两条**同时**成立：
+ *   ① 形状：步骤 ≥2，且（有可照抄的示例 或 至少 1 条限制/坑说明）—— 就是下面这个常量；
+ *   ② 实测信息增量：该篇相对其工具页的「新句占比」过 `scripts/build-seo.mjs`
+ *      里的 `GUIDE_MIN_NOVEL_RATIO`（同一次渲染里量出来，不是抄的）。
+ * 只做 ① 会把「换个标题重排一遍工具页文案」的页面推给爬虫单独发现，
+ * 那是 pSEO 被判薄的典型形态。两条条件都只有**一处**：调阈值在这里和 build-seo，不用翻别的文件。
  */
-export const GUIDE_INDEX_RULE = 'steps>=2 && (example || notes>=1)';
+export const GUIDE_INDEX_RULE = 'steps>=2 && (example || notes>=1) && novelRatio>=threshold';
 
 function isIndexableGuide(guide: ToolGuide) {
   const steps = guide.steps?.length ?? 0;

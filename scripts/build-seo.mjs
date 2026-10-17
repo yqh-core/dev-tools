@@ -213,6 +213,37 @@ function buildBreadcrumbLd(entry, canonical, homeUrl) {
  * 与页面上渲染的是同一份数组；`{{count}}` 走同一个 fillSiteFaq，
  * 所以结构化数据里不会出现与页面不同的工具数。
  */
+
+/**
+ * 文章页的「信息增量」度量 —— sitemap 收录判据（实测驱动，不是字段存在性检查）。
+ *
+ * 做法：把文章与它对应的工具页都取可见文本，按句切分、归一化（去空白、比字符集），
+ * 统计**没在工具页出现过的句子占比**。
+ * 10-17 对 116 篇实测：min 0.20 / max 0.467，**没有任何一篇 >0.5**；
+ * 也就是说按当前结构，每篇文章都有 >=53% 的句子与工具页逐字重复 ——
+ * 「独立 URL」不等于「独立价值」。这条事实写在这里，是为了下一批别再拿
+ * 「页面生成了」当收录理由；要真正独立，得把工具页正文收敛成操作面。
+ */
+const GUIDE_MIN_NOVEL_RATIO = 0.3;
+
+function sentencesOf(html) {
+  const text = textOf(html);
+  return text
+    .split(/(?<=[.!?。！？;；])\s+/)
+    .map(s => s.replace(/[^0-9A-Za-z一-鿿]+/g, '').toLowerCase())
+    .filter(s => s.length >= 12);
+}
+
+function novelRatioOf(articleHtml, toolHtml) {
+  const article = sentencesOf(articleHtml);
+  if (article.length === 0) {
+    return 0;
+  }
+  const onTool = new Set(sentencesOf(toolHtml));
+  const novel = article.filter(s => !onTool.has(s));
+  return novel.length / article.length;
+}
+
 function buildSiteFaqPageLd({ faqs, fill, count }) {
   return JSON.stringify({
     '@context': 'https://schema.org',
@@ -274,6 +305,7 @@ try {
   const { auditKeywordMap } = await vite.ssrLoadModule('/src/seo/keyword-map.ts');
   const { SITE_FAQ_PATH, getSiteFaqs, fillSiteFaq } = await vite.ssrLoadModule('/src/seo/site-faqs.ts');
   const { GUIDE_ARTICLE_PAGES, auditGuideArticles } = await vite.ssrLoadModule('/src/seo/guide-articles.ts');
+  const { scanGuideCrossLinks } = await vite.ssrLoadModule('/src/seo/guide-links.ts');
   const mod = await vite.ssrLoadModule('/src/entry-server.ts');
 
   // —— 数据体检：不通过就让构建失败，而不是少渲染几个页面还说成功 ——
@@ -357,11 +389,84 @@ try {
     results.push({ ...job, html, headTags });
   }
 
+  // —— 文章页信息增量实测：拿同一份渲染结果里的工具页与文章页比句子 ——
+  const rendered = new Map(results.map(item => [item.path, item.html]));
+  const guideNovel = {};
+  for (const page of GUIDE_ARTICLE_PAGES) {
+    guideNovel[page.path] = novelRatioOf(rendered.get(page.path) ?? '', rendered.get(page.toolPath) ?? '');
+  }
+  const ratios = Object.values(guideNovel);
+  const novelPass = GUIDE_ARTICLE_PAGES.filter(p => p.indexable && guideNovel[p.path] >= GUIDE_MIN_NOVEL_RATIO);
+  console.log(
+    `[guides] 信息增量实测：min ${(Math.min(...ratios) * 100).toFixed(1)}%`
+    + ` / 中位 ${(ratios.slice().sort((a, b) => a - b)[ratios.length >> 1] * 100).toFixed(1)}%`
+    + ` / max ${(Math.max(...ratios) * 100).toFixed(1)}%`
+    + `；过门槛(>=${GUIDE_MIN_NOVEL_RATIO * 100}%)且形状合格的 ${novelPass.length}/${GUIDE_ARTICLE_PAGES.length} 篇进 sitemap`,
+  );
+  const notIndexed = GUIDE_ARTICLE_PAGES.filter(p => !novelPass.includes(p));
+  // 每篇被排除都要说清是**哪一条**没过：只看总比例会把「形状不合格但增量很高」
+  // 和「形状合格但和工具页几乎逐字重复」混成一堆，人工复核就没法判。
+  const excludedDetail = notIndexed.map((p) => {
+    const ratio = guideNovel[p.path];
+    const shapePass = p.indexable;
+    const novelPasses = ratio >= GUIDE_MIN_NOVEL_RATIO;
+    return {
+      path: canonicalUrl(p.path),
+      novelRatio: ratio,
+      shapePass,
+      reason: !shapePass && !novelPasses ? 'shape+novelty' : shapePass ? 'novelty' : 'shape',
+    };
+  });
+  const excludedByShape = excludedDetail.filter(e => !e.shapePass).length;
+  console.log(`[guides] 暂不收录 ${notIndexed.length} 篇（仍可访问、canonical 自指）`
+    + `；其中形状条件未过 ${excludedByShape} 篇`);
+  if (excludedDetail.length > 0) {
+    console.log(
+      `[guides] 暂不收录清单(带实测值与原因): `
+      + excludedDetail.map(e => `${e.path.replace('/guides/', '')}=${(e.novelRatio * 100).toFixed(0)}%/${e.reason}`).join(' '),
+    );
+  }
+
+  // —— 文章互链完整性（软 404 判据）——
+  // 指向 /guides/<x> 的链接必须对应一篇真的生成了的文章。这一刻手里有全量清单和全量 HTML，
+  // 是成本最低的判定时机；放过去就得靠线上巡检，而软 404 恰恰是爬虫会反复抓的那类。
+  //
+  // 证伪开关：`GUIDE_FAKE_DANGLING=1 npm run build` 往第一篇文章里塞一条指向不存在
+  // 文章的链接，这条判据**必须**让构建失败。没有这一步，「今天没报」和「判据是摆设」
+  // 在日志里长得一模一样（纯函数那侧已有 5 条单测含对照组，这里证的是调用点真的接上了）。
+  if (process.env.GUIDE_FAKE_DANGLING === '1') {
+    const victim = GUIDE_ARTICLE_PAGES[0].path;
+    rendered.set(victim, `${rendered.get(victim)}<a href="/guides/zz-seeded-dangling">seed</a>`);
+    console.log(`[guides] 证伪模式：已向 ${victim} 注入一条悬空互链，构建应当失败`);
+  }
+  const linkScan = scanGuideCrossLinks(
+    GUIDE_ARTICLE_PAGES,
+    pagePath => rendered.get(pagePath) ?? '',
+  );
+  const linkCheckedSum = Object.values(linkScan.perPage).reduce((a, b) => a + b, 0);
+  if (linkCheckedSum !== linkScan.checked) {
+    throw new Error(`[build-seo] 互链自洽核对失败：逐页合计 ${linkCheckedSum} ≠ 总数 ${linkScan.checked}`);
+  }
+  if (linkScan.checked === 0) {
+    // 「扫到 0 条」不是干净，是判据没吃到数据 —— 宁可红，不许绿。
+    throw new Error('[build-seo] 文章互链扫描一条链接都没匹配到，判据失效（href 形状变了？先量 dist/guides/*/index.html）');
+  }
+  if (linkScan.dangling.length > 0) {
+    throw new Error(
+      `[build-seo] ${linkScan.dangling.length}/${linkScan.checked} 条文章互链指向不存在的文章页（软 404）：`
+      + `${linkScan.dangling.slice(0, 8).join(', ')}`,
+    );
+  }
+  console.log(`[guides] 文章互链 ${linkScan.checked} 条全部命中已生成的文章页`);
+
   const sitemapEntries = [
     ...STATIC_ROUTES.map(({ path, changefreq }) => ({ loc: canonicalUrl(path), changefreq })),
     ...TOOL_SEO_PAGES.map(({ path }) => ({ loc: canonicalUrl(path), changefreq: 'monthly' })),
-    // 收录与否走 src/seo/guide-articles.ts 的 GUIDE_INDEX_RULE（页面本身仍然可访问、仍然自指 canonical）
-    ...GUIDE_ARTICLE_PAGES.filter(page => page.indexable).map(({ path }) => ({ loc: canonicalUrl(path), changefreq: 'monthly' })),
+    // 收录 = 形状下限（guide-articles 的 GUIDE_INDEX_RULE）**且**实测信息增量过门槛。
+    // 页面本身一律仍可访问、canonical 自指；这里只决定要不要交给搜索引擎发现。
+    // 直接复用上面打印过的 novelPass —— 判据只有一处，打印的数字与实际进 sitemap 的条目
+    // 不可能各说各话（写两遍同样的 filter，改一处就会悄悄不一致）。
+    ...novelPass.map(({ path }) => ({ loc: canonicalUrl(path), changefreq: 'monthly' })),
   ];
 
   // —— sitemap 自检 ——
@@ -393,17 +498,48 @@ try {
     + `含 FAQ ${guideAudit.withFaqs} 篇，平均 ${guideAudit.avgSections} 节/篇`,
   );
   // 收录是策略不是必然：打印进/不进 sitemap 的数量与被排除清单，逼人工复核看得见。
+  // 这里必须用 novelPass（形状 + 实测增量两条一起过）而不是 guideAudit.indexable（只有形状），
+  // 否则这行日志会和它自己刚写出去的 sitemap 各说各话。
   console.log(
-    `[guides] sitemap 收录 ${guideAudit.indexable} 篇、暂不收录 ${guideAudit.excluded.length} 篇`
-    + `（规则 ${guideAudit.rule}；不收录的页面仍然可访问）`,
+    `[guides] sitemap 收录 ${novelPass.length} 篇、暂不收录 ${notIndexed.length} 篇`
+    + `（规则 ${guideAudit.rule}，实测门槛 ${GUIDE_MIN_NOVEL_RATIO * 100}%；不收录的页面仍然可访问）`,
   );
-  if (guideAudit.excluded.length > 0) {
-    console.log(`[guides] 暂不收录清单: ${guideAudit.excluded.join(' ')}`);
-  }
+  // 清单只打印一次（带实测值与原因，见上面 excludedDetail）；两处各列一份
+  // 迟早会一份新一份旧，读的人不知道信哪个。
   console.log(
-    `[sitemap] 静态 ${STATIC_ROUTES.length} + 工具 ${TOOL_SEO_PAGES.length} + 指南 ${GUIDE_ARTICLE_PAGES.length}`
+    `[sitemap] 静态 ${STATIC_ROUTES.length} + 工具 ${TOOL_SEO_PAGES.length}`
+    + ` + 指南 ${novelPass.length}/${GUIDE_ARTICLE_PAGES.length}（生成的文章页里过收录门槛的才进）`
     + ` = ${sitemapEntries.length} 条（重定向源不收录，未收录 /legacy/*）`,
   );
+
+  // 把这次收录决策落成机器可读的产物：静态检查（verify 脚本）因此不必自己重算正则，
+  // 只要比对 sitemap 与这份清单；实测值也留在里面，改门槛时能看见当初是按什么定的。
+  //
+  // 刻意写在 dist **外面**：dist 整个会被部署，`/guides/_index-policy.json` 会变成
+  // 任何人都能取到的公开文件（把我们自己的重复度实测值发给竞争对手和爬虫）。
+  if (!DRY_RUN) {
+    const policy = {
+      generatedAt: new Date().toISOString(),
+      rule: guideAudit.rule,
+      minNovelRatio: GUIDE_MIN_NOVEL_RATIO,
+      measured: {
+        min: Math.min(...ratios),
+        median: ratios.slice().sort((a, b) => a - b)[ratios.length >> 1],
+        max: Math.max(...ratios),
+      },
+      generated: GUIDE_ARTICLE_PAGES.length,
+      indexed: novelPass.map(p => canonicalUrl(p.path)),
+      excluded: excludedDetail,
+      excludedTally: excludedDetail.reduce((acc, e) => {
+        acc[e.reason] = (acc[e.reason] || 0) + 1;
+        return acc;
+      }, {}),
+      crossLinkScan: { checked: linkScan.checked, dangling: linkScan.dangling },
+    };
+    const policyFile = join(root, '.build/guides-index-policy.json');
+    await mkdir(dirname(policyFile), { recursive: true });
+    await writeFile(policyFile, `${JSON.stringify(policy, null, 2)}\n`, 'utf8');
+  }
 
   let thinPages = 0;
   for (const { path, kind, html: rawHtml, headTags } of results) {
@@ -471,6 +607,11 @@ try {
     if (kind === 'guide') {
       const gp = GUIDE_ARTICLE_PAGES.find(item => item.path === path);
       if (!out.includes('<h1')) { problems.push('文章页缺 H1'); }
+      // 反向断言：FAQPage 只能出现在真的有 faqs 小节的页面上 —— 缺这条就会「超发」，
+      // 而超发的结构化数据与正文不一致，是搜索结果里最容易被判低质的形态。
+      const hasFaqBlock = gp?.sections.some(s => s.kind === 'faqs');
+      if (hasFaqBlock && !out.includes('"@type":"FAQPage"')) { problems.push('文章页 FAQPage JSON-LD 缺失'); }
+      if (!hasFaqBlock && out.includes('"@type":"FAQPage"')) { problems.push('文章页 FAQPage JSON-LD 超发'); }
       if (!gp || bodyText < 600) { problems.push(`文章页正文过短(${bodyText})`); }
       // H1 比对必须走「可见文本」而不是原始 HTML：`/guides/jwt-parser` 的 h1 是
       // `JWT Decoder & Parser`，插值进 HTML 后 `&` 变成 `&amp;`，
