@@ -24,6 +24,8 @@
     "audit:keyword-map": "node scripts/audit-keyword-map.mjs --check",
     "audit:example": "node scripts/audit-example-coverage.mjs --check",
     "audit:example:falsify": "node scripts/audit-example-coverage.mjs --falsify",
+    "audit:copy-bindings": "node scripts/audit-smoke-copy-bindings.mjs --check",
+    "audit:copy-bindings:falsify": "node scripts/audit-smoke-copy-bindings.mjs --falsify",
     "audit:notes": "node scripts/audit-keyword-map.mjs --check --frontmatter",
     "preview": "vite preview --port 5050",
     "test": "npm run test:unit",

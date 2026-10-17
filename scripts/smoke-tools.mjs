@@ -345,16 +345,40 @@ const checks0 = h => (h && h.checks && h.checks.fetchAttempts) || 3;
 // 服务没起来时，Chrome 会停在错误页，所有用例一起「明明没挂载却查不出原因」，
 // 而且会白白跑满看门狗。这里先探一次，不可达就立刻退出并给出可操作的原因。
 if (!LOCAL) {
+  /**
+   * 探测本身也会失败 —— 2026-10-17 实测：线上 3 条用例刚跑完 25 分钟后，同一 BASE
+   * 被这一步判「不可达」直接 exit 2，而 curl 与裸 node https.get 都稳定 200。
+   * 一次 HEAD 抛出异常就定罪，等于把「测量层抖动」写成「站点故障」，
+   * 而且原来连异常内容都吞了（catch {}），报告里只剩一句结论，无法复核。
+   * 现在：最多 3 次、每次带 15s 超时、逐次打印真实错误，全失败才退出。
+   */
   let reachable = false;
-  try {
-    const r = await fetch(BASE + '/', { method: 'HEAD' });
-    reachable = r.status > 0;
-  } catch {}
+  let lastErr = '';
+  for (let attempt = 1; attempt <= 3 && !reachable; attempt++) {
+    try {
+      const r = await fetch(BASE + '/', { method: 'HEAD', signal: AbortSignal.timeout(15000) });
+      reachable = r.status > 0;
+      if (!reachable) {
+        lastErr = `响应 status=${r.status}`;
+      }
+    }
+    catch (e) {
+      lastErr = `${e.name || 'Error'}: ${e.message || e}`;
+    }
+    if (!reachable) {
+      console.log(`[check] 第 ${attempt}/3 次探测 ${BASE} 未成功 —— ${lastErr}`);
+      if (attempt < 3) {
+        // 不用 sleep()：它在下面第 ~500 行才声明，顶层 await 阶段访问会踩 TDZ
+        await new Promise(r => setTimeout(r, 3000));
+      }
+    }
+  }
   if (!reachable) {
     console.error(
-      `[fatal] ${BASE} 不可达。\n` +
+      `[fatal] ${BASE} 三次探测都不可达（最后一次原因：${lastErr}）。\n` +
         `  如果是 vite dev server：它默认只绑 localhost（在 Windows 上常解析到 ::1），\n` +
-        `  用 127.0.0.1 访问不通 —— 启动时加 --host 127.0.0.1。`,
+        `  用 127.0.0.1 访问不通 —— 启动时加 --host 127.0.0.1。\n` +
+        `  如果 curl 能通而这里不通，那是**测量层**问题（代理/TLS/IPv6），不是站点缺陷 —— 别据此定罪。`,
     );
     for (const s of servers) {
       try {

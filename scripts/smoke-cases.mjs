@@ -806,7 +806,9 @@ export const SMOKE_CASES = [
       { fill: { i: 0, text: '1681333824' } },
       { wait: 900 },
     ],
-    expect: { regex: ['1681333824', '1681333824000'], text: ['Unix timestamp', 'Timestamp', 'UTC format'], not: ['Invalid date...'] },
+    // 原来这里还有 regex:['1681333824'] —— 引擎判为空转：那串数字是我自己填进输入框的值，
+    // 整页文本必然含它，功能好坏都会绿。秒值交给毫秒行去反证（×1000 只有真换算才成立）。
+    expect: { outRegex: ['1681333824000'], text: ['Unix timestamp', 'Timestamp', 'UTC format'], not: ['Invalid date...'] },
   },
   {
     path: '/json-to-xml',
