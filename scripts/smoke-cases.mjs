@@ -2616,6 +2616,71 @@ export const SMOKE_CASES = [
       not: ['Two colours needed', 'Failed to fetch'],
     },
   },
+  {
+    // 中文界面下那条入口链接的**真实文案**取证。
+    // 为什么放在冒烟里而不是用本机 Chrome 看一眼：这个 profile 开着整页自动翻译
+    // （documentElement.class = translated-ltr、数百个 <font> 包裹），
+    // 看到的「阅读该工具的…」其实是 Chrome 把我们写的句子又翻了一遍 —— 拿它当证据会骗人。
+    // 无头浏览器没有翻译扩展，取到的就是应用自己渲染的字符串。
+    //
+    // 顺序说明：运行时 H1 的比对在所有步骤**之前**完成（runCase 里先读 H1 再跑 steps），
+    // 所以这里切换语言不会把「运行时 H1 ≠ 预渲染 H1」搞成假红。
+    path: '/json-prettify',
+    name: 'panel-link-zh',
+    category: 'Formatter',
+    tier: 'io',
+    strategy: 'structural：切到 zh 后，指南面板里的文章入口必须渲染成 locales/zh.yml 那句原文',
+    steps: [
+      {
+        // 语言选择器是 naive-ui 的 c-select；选项节点在收起态也在 DOM 里（hidden），
+        // 程序化点击两处即可切换 —— 不依赖鼠标坐标，也不动 localStorage（本应用不持久化语言）。
+        js: `(function(){
+          var sel = document.querySelector('.c-select');
+          if (!sel) return '页面上找不到语言选择器 .c-select';
+          sel.click();
+          var opts = [].slice.call(document.querySelectorAll('.c-select-dropdown-option'));
+          var zh = opts.filter(function(o){ return (o.textContent || '').indexOf('中文') >= 0; })[0];
+          if (!zh) return '语言选项里没有「中文」（现有选项 ' + opts.map(function(o){ return (o.textContent || '').trim(); }).join('/') + '）';
+          zh.click();
+          return null;
+        })()`,
+      },
+      {
+        // 切换是异步重渲染，等有内容的 h1 出现再往下读（不是等固定时长）。
+        waitText: { text: 'JSON', ms: 6000 },
+      },
+      {
+        js: `(function(){
+          var a = document.querySelector('.guide-article-link a');
+          if (!a) return '切到中文后指南面板里的文章入口链接不见了';
+          var href = a.getAttribute('href') || '';
+          if (href !== '/guides/json-prettify/') return '入口链接 href 变了：' + href;
+          var txt = (a.textContent || '').replace(/\s+/g, ' ').trim();
+          if (txt !== '阅读这个工具的完整分步使用指南') return '入口文案不是 locales/zh.yml 的原文：' + txt;
+          return null;
+        })()`,
+      },
+      {
+        // 复原：把语言切回英文并清掉那个 storage 键，避免污染同一 profile 里的后续用例。
+        js: `(function(){
+          var sel = document.querySelector('.c-select');
+          if (sel) {
+            sel.click();
+            var en = [].slice.call(document.querySelectorAll('.c-select-dropdown-option'))
+              .filter(function(o){ return (o.textContent || '').indexOf('English') >= 0 || (o.textContent || '').trim() === '英语'; })[0];
+            if (en) en.click();
+          }
+          try { localStorage.removeItem('locale'); } catch (e) {}
+          return null;
+        })()`,
+      },
+    ],
+    expect: {
+      // 切语言之后整页都是中文，英文词条断言会假红 —— 这一条只管上面那个 js。
+      not: ['Guide not found'],
+    },
+  },
+
   // ── 静态内容页（pageKind: 'static'）：/faq 与 /guides/<tool> ──────────────────────
   // 这一档不是工具页：没有 .tool-layout / .tool-content，H1 也不来自 tools.* 词条。
   // 引擎按 pageKind 换了**同等强度**的判据（#app 内渲染出带文字的 h1、
