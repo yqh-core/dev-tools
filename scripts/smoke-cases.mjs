@@ -2597,6 +2597,31 @@ export const SMOKE_CASES = [
   // 引擎按 pageKind 换了**同等强度**的判据（#app 内渲染出带文字的 h1、
   // Vue 实例在位、正文长度过阈值），不是「跳过工具页判据就当绿」。
   {
+    // 失败场景：未知 slug 必须是**硬 404**，不能是「200 + 一篇没内容的壳」。
+    // 软 404 比 404 更糟 —— 爬虫会把「未找到」当正文收录，还会反复抓这条链接。
+    //
+    // 线上实测（2026-10-17）：/guides/<未知>/ 与 /<未知>/ 都是 HTTP 404 + 404.html
+    // （1982 字节，H1「Page not found」，`meta robots=noindex`，无任何 JSON-LD）。
+    // 本地 --serve-dist 已改成同一行为（缺文件 → 404.html + 状态 404），
+    // 所以这条**本地就能验**，不再挂 onlineOnly 长期吃灰。
+    //
+    // standalone：404.html 是自包含页面，没有 #app、没有 JS —— 运行时三层对它不适用，
+    // 引擎会显式记「未取证」而不是当作通过。因此本条只允许初始 HTML 层的断言。
+    path: '/guides/this-slug-does-not-exist',
+    name: 'guide-unknown-slug',
+    category: 'Guides',
+    pageKind: 'static',
+    standalone: true,
+    expectStatus: 404,
+    expectedH1: 'Page not found',
+    tier: 'io',
+    strategy: 'structural：未知指南 slug 必须硬 404（状态 + 无 Article/FAQPage 结构化数据），不得渲染成软 404 空壳',
+    steps: [],
+    expect: {
+      htmlNotLd: ['Article', 'FAQPage', 'BreadcrumbList'],
+    },
+  },
+  {
     path: '/faq',
     name: 'faq',
     category: 'Guides',

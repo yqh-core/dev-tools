@@ -46,7 +46,8 @@
  *   --canonical-origin <url>  页面里 canonical 的期望源。**本地跑必须显式传生产域名**，
  *                             否则 canonicalSelf 会拿 127.0.0.1 去比对 → 全量假失败
  *   --locale <code>     期望标题语种，默认 en（本站默认英文）；读 locales/<code>.yml
- *   --serve-dist <dir>  起内置静态服务（含目录 index.html 与 SPA fallback），供本地跑
+ *   --serve-dist <dir>  起内置静态服务（目录 index.html + 与 CF Pages 同构的 404：
+ *                       缺文件回 404.html 并带状态 404，不再假装 200 首页壳）
  *   --port <n>          本地静态服务端口，默认 4192（多分片各自 +n）
  *   --shard i/n         只跑第 i 片（1-based），默认 1/1
  *   --only <a,b>        只跑指定 path 或目录名，逗号分隔
@@ -234,6 +235,32 @@ function lintCases(cases) {
 
 const LINT = lintCases(SMOKE_CASES);
 const BLIND = LINT.filter(x => x.level === 'blind');
+
+/**
+ * 引擎认识的 expect 键 —— 白名单，不是文档。
+ *
+ * 为什么要机器化：`expect.htmlNotLd` 少写一个字母（`htmlNotLdd`）时，取值的代码
+ * 读到 undefined，那条断言**永远不会执行**，而用例照样报绿。这比写错期望值更坏 ——
+ * 后者会红，前者永远不红。新增通道时必须同时加进这里。
+ */
+const KNOWN_EXPECT_KEYS = [
+  'text', 'not', 'regex',
+  'out', 'outRegex', 'outNot',
+  'js', 'htmlLd', 'htmlNotLd',
+  'canvasNonBlank', 'imageData',
+  'consoleNoise',
+];
+const UNKNOWN_EXPECT = SMOKE_CASES
+  .filter(c => c && c.expect)
+  .map(c => ({
+    path: c.path,
+    keys: Object.keys(c.expect).filter(k => !KNOWN_EXPECT_KEYS.includes(k)),
+  }))
+  .filter(x => x.keys.length);
+if (UNKNOWN_EXPECT.length) {
+  console.log(`[lint] ✗ ${UNKNOWN_EXPECT.length} 条用例写了引擎不认识的 expect 键 —— 那条断言不会执行（拼错通道名 = 永久假绿）：`);
+  for (const u of UNKNOWN_EXPECT) console.log(`  ✗ ${u.path}：${u.keys.join(', ')}`);
+}
 if (BLIND.length) {
   console.log(`[lint] ✗ ${BLIND.length} 条用例处于「断言盲区」：全部断言都能被自身输入满足，功能好坏都会绿`);
   for (const b of BLIND) console.log(`  ✗ ${b.path}：${b.vacuous.join('、')} —— 把这些 token 移到 expect.out / outRegex（取工具区文本+控件值，且已剔除与输入完全相同的值），或补一条能证伪的断言`);
@@ -245,7 +272,7 @@ if (LINT.length > BLIND.length) {
   }
 }
 if (!LINT.length) console.log('[lint] 用例静态检查通过：未发现「断言可被自身输入满足」的空转断言');
-if (has('--lint-only')) process.exit(BLIND.length ? 1 : 0);
+if (has('--lint-only')) process.exit(BLIND.length || UNKNOWN_EXPECT.length ? 1 : 0);
 
 // ─────────────────────────────── 噪声白名单 ───────────────────────────────
 // 第三方 host：广告 / 统计 / 字体。这些域报错与被测功能无关。
@@ -325,7 +352,26 @@ if (LOCAL) {
         res.writeHead(404, { 'content-type': 'text/plain' }).end('no index.html');
         return;
       } else {
-        file = path.join(root, 'index.html'); // SPA fallback，与 public/_redirects 的最后一条等价
+        // 文件和目录索引都不存在。
+        //
+        // 这里过去一律回落到 SPA 壳并写 200，理由写着「与 public/_redirects 的最后一条等价」——
+        // 但那是**不成立**的：2026-10-17 实测线上 https://digdevbox.com/guides/<未知>/
+        // 与 /definitely-not-a-page 都是 **HTTP 404 + 404.html（1982 字节，H1「Page not found」）**，
+        // 不是 200 首页壳。本地假装 200 会同时造出两个后果：
+        //   ① 用例路径写错（少一个字母、slug 改名后没同步）不会被发现 —— 它拿到的是首页，
+        //      只要那条用例没断言 H1，就可能一路判绿；
+        //   ② 「未知 slug 必须硬 404」这条失败场景判据在本地永远没法验，只能标 onlineOnly 长期吃灰。
+        // 所以按线上行为来：有 404.html 就照 CF Pages 那样回 404 + 该文件；没有才退回壳。
+        const notFound = path.join(root, '404.html');
+        if (fs.existsSync(notFound)) {
+          res.writeHead(404, {
+            'content-type': 'text/html; charset=utf-8',
+            'cache-control': 'no-store',
+          });
+          fs.createReadStream(notFound).pipe(res);
+          return;
+        }
+        file = path.join(root, 'index.html');
       }
     }
     res.writeHead(200, {
@@ -1154,34 +1200,45 @@ async function checkHtml(c) {
   // 有界重试：单次 fetch 一旦抖动，下面 7 条检查会级联假红（实测 3 页因此被写成坏页，
   // 而 curl 复验全 200，其中 /fullwidth-converter 单页 8.0s 逼近超时）。
   // 重试只治测量层噪声；三次仍拿不到就照实 FAIL —— 那可能是真故障，不能粉饰。
+  // 默认期望 200；用例可用 expectStatus 显式改口（唯一正当用法是 404 页本身 ——
+  // 「未知 slug 必须硬 404」这条判据的通过条件就是**不是** 200）。
+  const wantStatus = c.expectStatus || 200;
   const ATTEMPTS = 3;
   for (let i = 0; i < ATTEMPTS; i++) {
     try {
       const r = await fetch(url, { redirect: 'manual' });
       status = r.status;
       ctype = r.headers.get('content-type') || '';
-      html = status === 200 ? await r.text() : '';
-      if (status === 200) break;
+      html = (status === 200 || status === wantStatus) ? await r.text() : '';
+      if (status === wantStatus) break;
     } catch (e) {
       checks.fetchError = `${e.message || e}（第 ${i + 1}/${ATTEMPTS} 次）`;
       status = -1;
     }
     if (i < ATTEMPTS - 1) await sleep(400 * (i + 1));
   }
-  if (status !== 200) checks.fetchAttempts = ATTEMPTS;
+  if (status !== wantStatus) checks.fetchAttempts = ATTEMPTS;
 
-  checks.status200 = status === 200;
+  checks.statusExpected = status === wantStatus;
   checks.htmlType = /text\/html/.test(ctype);
   checks.hasH1 = /<h1[\s>]/i.test(html);
   const title = (html.match(/<title>([\s\S]*?)<\/title>/i) || [])[1]?.trim() || '';
   checks.titleNonEmpty = !!title;
   const canonical = (html.match(/<link[^>]+rel="canonical"[^>]+href="([^"]*)"/i) || [])[1] || '';
-  checks.canonicalSelf = canonical === CANON_ORIGIN + c.path + '/';
-  checks.adsense = html.includes('ca-pub-7944759654100814');
   const h1 = stripTags((html.match(/<h1[^>]*>([\s\S]*?)<\/h1>/i) || [])[1] || '');
   const bodyText = stripTags(html);
   checks.bodyLen = bodyText.length;
   checks.bodyLongEnough = bodyText.length >= 60;
+  if (wantStatus === 200) {
+    // 「正常内容页」完整性判据：只对 200 生效。
+    checks.canonicalSelf = canonical === CANON_ORIGIN + c.path + '/';
+    checks.adsense = html.includes('ca-pub-7944759654100814');
+  } else {
+    // 非 200 期望（404 一类）：这两条**不适用**，记成字符串而不是布尔 ——
+    // 写 true 是把判据缺失伪装成绿灯，写 false 是必红，两者都不许。
+    checks.canonicalSelf = `n/a（期望 ${wantStatus}，非内容页）`;
+    checks.adsense = `n/a（期望 ${wantStatus}，非内容页）`;
+  }
   checks.h1 = h1;
   checks.title = title;
   checks.canonical = canonical;
@@ -1275,11 +1332,11 @@ async function runCase(c) {
     // 明确留痕：这一轮没验预渲染层，不能当作「全绿」
     runtimeOnly = true;
   } else {
-  if (!rec.html.checks.status200) {
-    fail(`初始 HTML 非 200：实际 ${rec.html.status}${rec.html.status === 308 ? '（尾斜杠规范回归？）' : ''}`);
+  if (!rec.html.checks.statusExpected) {
+    fail(`初始 HTML 状态码非期望（要 ${c.expectStatus || 200}）：实际 ${rec.html.status}${rec.html.status === 308 ? '（尾斜杠规范回归？）' : ''}`);
   }
   for (const k of rec.html.bad) {
-    if (k !== 'status200') fail(`初始 HTML 检查未过：${k}`);
+    if (k !== 'statusExpected') fail(`初始 HTML 检查未过：${k}`);
   }
   // 标题与 locales/<locale>.yml 声明的标题一致性（能抓到「工具定义漏接 translate()」这类缺陷）
   // 期望值以 --locale 为准，不再写死 zh.yml（见文件上方 LOCALE 的说明）
@@ -1309,6 +1366,51 @@ async function runCase(c) {
       fail(`初始 HTML 的 H1 与 ${LOCALE}.yml 主标题段不一致：页面「${rec.html.htmlH1}」≠「${mainSegment}」（词条「${expectedTitle}」）`);
     }
   }
+  }
+
+  /**
+   * 反向通道（expect.htmlNotLd）：「这一页**不该**产出某种结构化数据」。
+   *
+   * 为什么必须有：正向 htmlLd 只抓「少发了」，永远抓不到「超发了」——
+   * 而空壳页 / 未找到页挂着 Article 正是 sitemap 准入最想拦的那类低质形态。
+   *
+   * 放在初始 HTML 层（不是运行时层）有两个原因：
+   *   ① 结构化数据的读者是爬虫，判据落点就该是预渲染产物；
+   *   ② standalone 用例（自包含错误页，无 SPA 运行时）根本不进运行时层，
+   *      放在那边就成了一条永远不会执行的空转断言。
+   * 防空转：haveLd 为空既可能是「真没有」（判通过），也可能是「这轮没拿到 HTML」
+   * （判未取证，不许算绿）—— 两种成因必须分开。
+   */
+  const wantNoLd = (c.expect && c.expect.htmlNotLd) || [];
+  if (wantNoLd.length) {
+    if (rec.html.fetchFailed || rec.html.skipped) {
+      rec.warnings = [...(rec.warnings || []), 'htmlNotLd 反向判据本轮未取证（初始 HTML 没拿到），不计入通过'];
+    } else {
+      const have = rec.html.htmlJsonLd || [];
+      const hit = wantNoLd.filter(t => have.includes(t));
+      if (hit.length) fail(`初始 HTML 出现了不该有的 JSON-LD 类型：${JSON.stringify(hit)}（实到 ${JSON.stringify(have)}）`);
+      rec.assert = rec.assert || {};
+      rec.assert.htmlNotLd = { want: wantNoLd, have };
+    }
+  }
+
+  // standalone：自包含静态页（404 一类），产物里没有 #app、没有 JS，
+  // 运行时三层（挂载 / 正文 / 客户端接管）对它**不适用**。
+  // 这里显式记「未验证」而不是默默跳过 —— 静默跳过会让一条只判了 HTTP 层的用例
+  // 在报表里长得和全层通过的用例一模一样。
+  if (c.standalone) {
+    // standalone 用例不进运行时层，所以任何**只在运行时取值**的断言写了也不会执行。
+    // 与其让它静静躺着当摆设，这里直接判红：要么改用例（把判据挪到初始 HTML 层），
+    // 要么改页面性质（它其实不是自包含页）。
+    const inertKeys = ['text', 'not', 'regex', 'out', 'outRegex', 'outNot', 'js', 'canvasNonBlank', 'imageData']
+      .filter(k => Array.isArray(c.expect?.[k]) ? c.expect[k].length > 0 : Boolean(c.expect?.[k]));
+    if (inertKeys.length) {
+      fail(`standalone 用例写了运行时层断言却不会执行：${inertKeys.join(', ')}（改写到 htmlNotLd / expectedH1，或去掉 standalone）`);
+    }
+    rec.runtime = { applicable: false, reason: 'standalone：自包含静态页，无 SPA 运行时' };
+    rec.warnings = [...(rec.warnings || []), '运行时层不适用（standalone）：本条只验 HTTP 状态 + 初始 HTML'];
+    rec.elapsedMs = Date.now() - t0;
+    return rec;
   }
 
   // ③④⑤ 运行时层
