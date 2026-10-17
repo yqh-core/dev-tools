@@ -35,6 +35,7 @@ const PAGES: Record<StaticRoutePath, () => Promise<{ default: unknown }>> = {
   '/terms': () => import('./pages/Terms.vue'),
   '/contact': () => import('./pages/Contact.vue'),
   '/tools': () => import('./pages/ToolsCatalog.vue'),
+  '/faq': () => import('./pages/Faq.vue'),
 };
 
 /**
@@ -95,6 +96,22 @@ export async function render(path: StaticRoutePath) {
   const { default: Page } = await loader();
 
   return renderPage(Page as Component, path);
+}
+
+/**
+ * 指南文章页预渲染。`path` 必须来自 `src/seo/guide-articles.ts` 的 GUIDE_ARTICLE_PAGES。
+ *
+ * 与工具页不同，这里**要**挂 router（resolveRoute 默认 true）：组件靠 route.params.slug
+ * 定位内容，而 GuideArticle.vue 里没有任何浏览器专有 API，Node 下可以安全渲染。
+ */
+export async function renderGuideArticle(path: string) {
+  const { default: Page } = await import('./pages/GuideArticle.vue');
+  const rendered = await renderPage(Page as Component, path);
+  if (!rendered.html.includes('guide-toc')) {
+    // 渲染成「没找到」分支时目录不会存在 —— 宁可在构建期红，也不要产出一批软 404 文章页。
+    throw new Error(`[entry-server] 指南文章页没有渲染出目录，疑似 slug 未命中: ${path}`);
+  }
+  return rendered;
 }
 
 /** 工具页预渲染。`path` 必须来自 `src/seo/tool-page.ts` 的 TOOL_SEO_PAGES。 */

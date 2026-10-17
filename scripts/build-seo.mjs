@@ -208,6 +208,50 @@ function buildBreadcrumbLd(entry, canonical, homeUrl) {
  * FAQ 内容必须对用户可见（折叠面板即满足），这里的问题在页面上确实由用户
  * 展开后可读，因此不算「结构化数据与页面内容不符」。
  */
+/**
+ * 全站 FAQ 页的 FAQPage —— 问答取自 src/seo/site-faqs.ts，
+ * 与页面上渲染的是同一份数组；`{{count}}` 走同一个 fillSiteFaq，
+ * 所以结构化数据里不会出现与页面不同的工具数。
+ */
+function buildSiteFaqPageLd({ faqs, fill, count }) {
+  return JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqs.map(({ q, a }) => ({
+      '@type': 'Question',
+      name: q,
+      acceptedAnswer: { '@type': 'Answer', text: fill(a, count) },
+    })),
+  });
+}
+
+/** 文章页的 Article 结构化数据（正文语言 = 预渲染语言 en；origin 由调用方注入）。 */
+function buildGuideArticleLd(page, canonical, origin) {
+  return JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: page.entry.h1,
+    description: page.entry.description,
+    inLanguage: 'en',
+    about: { '@type': 'SoftwareApplication', name: page.entry.name, url: origin + page.toolPath + '/' },
+    url: canonical,
+    mainEntityOfPage: { '@type': 'WebPage', '@id': canonical },
+  });
+}
+
+/** 文章页面包屑：首页 → 工具 → 指南。三级，工具页是它的父节点。 */
+function buildGuideBreadcrumbLd(page, canonical, origin) {
+  return JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: origin + '/' },
+      { '@type': 'ListItem', position: 2, name: page.entry.name, item: origin + page.toolPath + '/' },
+      { '@type': 'ListItem', position: 3, name: page.entry.h1, item: canonical },
+    ],
+  });
+}
+
 function buildFaqPageLd(entry) {
   return JSON.stringify({
     '@context': 'https://schema.org',
@@ -228,6 +272,8 @@ try {
   // Keyword Map 的已落地 title 与 locales/en.yml 逐字比对：drift 即构建失败。
   // 判据全部在 src/seo/keyword-map.ts（不在本脚本里），⛔ 本脚本不改任何现有判据。
   const { auditKeywordMap } = await vite.ssrLoadModule('/src/seo/keyword-map.ts');
+  const { SITE_FAQ_PATH, getSiteFaqs, fillSiteFaq } = await vite.ssrLoadModule('/src/seo/site-faqs.ts');
+  const { GUIDE_ARTICLE_PAGES, auditGuideArticles } = await vite.ssrLoadModule('/src/seo/guide-articles.ts');
   const mod = await vite.ssrLoadModule('/src/entry-server.ts');
 
   // —— 数据体检：不通过就让构建失败，而不是少渲染几个页面还说成功 ——
@@ -294,11 +340,16 @@ try {
   const jobs = [
     ...STATIC_ROUTES.map(({ path, changefreq }) => ({ path, changefreq, kind: 'static' })),
     ...TOOL_SEO_PAGES.map(({ path }) => ({ path, changefreq: 'monthly', kind: 'tool' })),
+    ...GUIDE_ARTICLE_PAGES.map(({ path }) => ({ path, changefreq: 'monthly', kind: 'guide' })),
   ];
 
   const results = [];
   for (const job of jobs) {
-    const r = job.kind === 'tool' ? await mod.renderTool(job.path) : await mod.render(job.path);
+    const r = job.kind === 'tool'
+      ? await mod.renderTool(job.path)
+      : job.kind === 'guide'
+        ? await mod.renderGuideArticle(job.path)
+        : await mod.render(job.path);
     const { html = '', headTags = '' } = r ?? {};
     if (!html) {
       throw new Error(`[build-seo] ${job.path} 渲染结果为空`);
@@ -309,6 +360,8 @@ try {
   const sitemapEntries = [
     ...STATIC_ROUTES.map(({ path, changefreq }) => ({ loc: canonicalUrl(path), changefreq })),
     ...TOOL_SEO_PAGES.map(({ path }) => ({ loc: canonicalUrl(path), changefreq: 'monthly' })),
+    // 收录与否走 src/seo/guide-articles.ts 的 GUIDE_INDEX_RULE（页面本身仍然可访问、仍然自指 canonical）
+    ...GUIDE_ARTICLE_PAGES.filter(page => page.indexable).map(({ path }) => ({ loc: canonicalUrl(path), changefreq: 'monthly' })),
   ];
 
   // —— sitemap 自检 ——
@@ -334,9 +387,22 @@ try {
     await writeFile(join(root, 'dist/sitemap.xml'), buildSitemap(sitemapEntries), 'utf8');
   }
 
+  const guideAudit = auditGuideArticles();
   console.log(
-    `[sitemap] 静态 ${STATIC_ROUTES.length} + 工具 ${TOOL_SEO_PAGES.length} = ${sitemapEntries.length} 条`
-    + '（重定向源不收录，未收录 /legacy/*）',
+    `[guides] 文章页 ${guideAudit.total}/${guideAudit.toolTotal} 个工具（只给有使用说明的工具出文章），`
+    + `含 FAQ ${guideAudit.withFaqs} 篇，平均 ${guideAudit.avgSections} 节/篇`,
+  );
+  // 收录是策略不是必然：打印进/不进 sitemap 的数量与被排除清单，逼人工复核看得见。
+  console.log(
+    `[guides] sitemap 收录 ${guideAudit.indexable} 篇、暂不收录 ${guideAudit.excluded.length} 篇`
+    + `（规则 ${guideAudit.rule}；不收录的页面仍然可访问）`,
+  );
+  if (guideAudit.excluded.length > 0) {
+    console.log(`[guides] 暂不收录清单: ${guideAudit.excluded.join(' ')}`);
+  }
+  console.log(
+    `[sitemap] 静态 ${STATIC_ROUTES.length} + 工具 ${TOOL_SEO_PAGES.length} + 指南 ${GUIDE_ARTICLE_PAGES.length}`
+    + ` = ${sitemapEntries.length} 条（重定向源不收录，未收录 /legacy/*）`,
   );
 
   let thinPages = 0;
@@ -352,6 +418,17 @@ try {
         + `\n      <script type="application/ld+json">${buildSoftwareApplicationLd(entry, canonical)}</script>`
         + `\n      <script type="application/ld+json">${buildBreadcrumbLd(entry, canonical, SITE_ORIGIN + '/')}</script>`
       : headTags;
+    const guidePage = kind === 'guide' ? GUIDE_ARTICLE_PAGES.find(item => item.path === path) : undefined;
+    if (guidePage) {
+      pageTags += `\n      <script type="application/ld+json">${buildGuideArticleLd(guidePage, canonical, SITE_ORIGIN)}</script>`;
+      pageTags += `\n      <script type="application/ld+json">${buildGuideBreadcrumbLd(guidePage, canonical, SITE_ORIGIN)}</script>`;
+      if (guidePage.sections.some(s => s.kind === 'faqs')) {
+        pageTags += `\n      <script type="application/ld+json">${buildFaqPageLd(guidePage.entry)}</script>`;
+      }
+    }
+    if (kind === 'static' && path === SITE_FAQ_PATH) {
+      pageTags += `\n      <script type="application/ld+json">${buildSiteFaqPageLd({ faqs: getSiteFaqs('en'), fill: fillSiteFaq, count: TOOL_SEO_PAGES.length })}</script>`;
+    }
     if (entry?.guide?.faqs?.length) {
       pageTags += `\n      <script type="application/ld+json">${buildFaqPageLd(entry)}</script>`;
     }
@@ -391,6 +468,25 @@ try {
     // 少了这条，一旦 #app 替换失效（模板变更等），构建仍然全绿但产出全是空壳。
     const bodyRaw = textOf(html);
     const bodyText = bodyRaw.length;
+    if (kind === 'guide') {
+      const gp = GUIDE_ARTICLE_PAGES.find(item => item.path === path);
+      if (!out.includes('<h1')) { problems.push('文章页缺 H1'); }
+      if (!gp || bodyText < 600) { problems.push(`文章页正文过短(${bodyText})`); }
+      // H1 比对必须走「可见文本」而不是原始 HTML：`/guides/jwt-parser` 的 h1 是
+      // `JWT Decoder & Parser`，插值进 HTML 后 `&` 变成 `&amp;`，
+      // 拿 raw HTML 做子串比对会把正常页面判成缺陷（本批次实测踩过一次）。
+      if (gp?.entry.h1 && !squash(bodyRaw).includes(squash(gp.entry.h1))) { problems.push('文章页 H1 与数据不一致'); }
+      // 与工具页同一条同源判据：FAQ 结构化数据里的问题必须真的在正文里。
+      if (gp?.entry.guide?.faqs?.length) {
+        const squashedGuideBody = squash(bodyRaw);
+        for (const { q } of gp.entry.guide.faqs) {
+          if (!squashedGuideBody.includes(squash(q))) {
+            problems.push(`文章页 FAQ 问题不在正文中: ${q}`);
+            break;
+          }
+        }
+      }
+    }
     if (kind === 'tool') {
       const entry = TOOL_SEO_PAGES.find(item => item.path === path);
       if (!/<h1[\s>]/i.test(html)) { problems.push('缺少 H1'); }
@@ -453,7 +549,7 @@ try {
   }
 
   console.log(
-    `[build-seo] 完成：${results.length} 个页面（静态 ${STATIC_ROUTES.length} + 工具 ${TOOL_SEO_PAGES.length}）`
+    `[build-seo] 完成：${results.length} 个页面（静态 ${STATIC_ROUTES.length} + 工具 ${TOOL_SEO_PAGES.length} + 指南 ${GUIDE_ARTICLE_PAGES.length}）`
     + ` + sitemap（${sitemapEntries.length} 条）。站点源 ${SITE_ORIGIN}`,
   );
   console.log(`[build-seo] 其中正文 < 200 字符的页面：${thinPages} 个（工具页正文不含折叠的使用说明）`);

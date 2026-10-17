@@ -28,6 +28,20 @@ const toolsRedirectRoutes = tools
 export function createAppRouter(history = createWebHistory(config.app.baseUrl)) {
   return createRouter({
     history,
+    // 目录锚点必须自己滚：同路径换 hash 会被 vue-router 当成一次导航接管，
+    // 而它默认不滚动（实测点 /faq 的目录只改了 location.hash，页面一动不动），
+    // 浏览器原生的锚点跳转因此被吞掉。
+    // 另外 naive-ui 的 layout 把滚动放在内部容器（.n-layout-scroll-container）上，
+    // window.scrollTo 对它无效 —— 所以走元素的 scrollIntoView，让它自己找可滚祖先。
+    scrollBehavior: (to) => {
+      if (to.hash && typeof document !== 'undefined') {
+        requestAnimationFrame(() => {
+          document.querySelector(to.hash)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+      }
+      // 其余情况一律返回 undefined：不把页面弹回顶部，保持改造前的导航行为不变。
+      return undefined;
+    },
     routes: [
       {
         path: '/',
@@ -58,6 +72,17 @@ export function createAppRouter(history = createWebHistory(config.app.baseUrl)) 
         path: '/tools',
         name: 'tools-catalog',
         component: () => import('./pages/ToolsCatalog.vue'),
+      },
+      {
+        path: '/faq',
+        name: 'faq',
+        component: () => import('./pages/Faq.vue'),
+      },
+      {
+        // 工具指南文章页：/guides/uuid-converter 这类长尾入口（数据仍来自工具侧 guides）
+        path: '/guides/:slug',
+        name: 'guide-article',
+        component: () => import('./pages/GuideArticle.vue'),
       },
       ...toolsRoutes,
       ...toolsRedirectRoutes,

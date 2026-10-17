@@ -84,7 +84,17 @@ about:
   content: |-
     # About DigDevBox
 
-    DigDevBox is a collection of small browser tools: 107 developer and everyday utilities at this address, plus a 162-page classic archive under `/legacy/` kept from the older Chinese version of the site.
+    DigDevBox is a collection of small browser tools: {count} developer and everyday utilities at this address, plus a classic archive under `/legacy/` kept from the older Chinese version of the site.
+
+    ## What we commit to
+
+    1. **Everything runs in your browser.** Text, files, keys and passwords are processed locally and are
+       never uploaded or stored — the three tools that must ask someone else are named right below.
+    2. **We collect nothing about you.** No account, no sign-in, no paywall, and no feature kept behind one.
+    3. **Free to use, and ads never touch a result.** Pages carry Google AdSense; the ad code has no input
+       into any calculation, and no tool's output changes because you did or did not click an ad.
+    4. **Every tool documents itself.** Each page ships its own instructions and a worked example. If
+       something is wrong, [tell us](/contact) — corrections are how this site gets better.
 
     ## Where your data goes
 
@@ -125,11 +135,31 @@ about:
     - [M3U8 Player](https://play.digdevbox.com) — stream playback in the browser
     - [TTS Reader](https://ttsreader.digdevbox.com) — turn text into speech
     - [Forge Notes](https://notes.digdevbox.com) — longer guides on tooling and performance
+guideArticle:
+  suffix: 'Guide'
+  contents: 'Contents'
+  missingTitle: 'Guide not found'
+  missingBody: 'This guide does not exist. Browse the tool directory to find the tool you need.'
+  exampleHint: 'Copy this into the tool, or open'
+  nextTitle: 'Next steps'
+  openTool: 'Open the {name} tool'
+  feedback: 'Spotted something wrong on this page? Tell us via'
+  sections:
+    what: 'What it is and when to use it'
+    steps: 'How to use it'
+    example: 'A worked example'
+    notes: 'Things that trip people up'
+    faqs: 'Questions people ask'
 legal:
   siteName: 'DigDevBox'
   privacy: 'Privacy Policy'
   terms: 'Terms of Service'
+  faq: 'FAQ'
   contact: 'Contact Us'
+faq:
+  intro: 'Site-level questions about money, data, devices and feedback. Tool-specific gotchas live on each tool page instead, so nothing is answered twice.'
+  contents: 'Contents'
+  more: 'Not covered here? Ask directly, browse everything, or read what we do with data:'
 network:
   label: 'DigDevBox Tools:'
   ip: 'IP Lookup'

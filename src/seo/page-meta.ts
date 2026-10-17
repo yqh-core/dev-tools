@@ -17,6 +17,7 @@
  * 回落英文，不引入机器翻译产物。
  */
 import { SITE_HOST } from './site';
+import { STATIC_ROUTES } from './routes';
 import { TOOL_SEO_PAGES } from './tool-page';
 
 /** 工具数从注册表实时取值：新增/下架工具后 description 自动跟随，不再硬编码。 */
@@ -59,6 +60,11 @@ const ZH: Record<string, PageMeta> = {
       'DigDevBox 全部工具目录 —— 按类目分组的完整工具清单：加密、转换、Web、'
       + '开发、网络、文本、数学、度量与数据。免费、无需注册、浏览器本地运行。',
   },
+  '/faq': {
+    description:
+      'DigDevBox 常见问题：是否收费、粘贴的内容会不会上传、手机上能不能用、'
+      + '工具结果出错或有新工具需求该找谁、无障碍问题反馈给谁、/legacy/ 是什么。',
+  },
 };
 
 const EN: Record<string, PageMeta> = {
@@ -94,6 +100,11 @@ const EN: Record<string, PageMeta> = {
       'All DigDevBox tools in one directory — every tool grouped by category, '
       + 'from crypto and converters to web, network and text. Free, no signup, running in your browser.',
   },
+  '/faq': {
+    description:
+      'DigDevBox FAQ: whether the tools are free, whether what you paste is ever uploaded, '
+      + 'phone usability, and where to send bug reports, tool requests or accessibility problems.',
+  },
 };
 
 const BY_LOCALE: Record<'zh' | 'en', Record<string, PageMeta>> = { zh: ZH, en: EN };
@@ -108,4 +119,22 @@ export function getPageMeta(path: string, locale = 'zh'): PageMeta {
   const table = locale === 'zh' ? ZH : EN;
 
   return table[path] ?? (locale === 'zh' ? ZH['/'] : EN['/'])!;
+}
+
+/**
+ * 每条静态路由都必须在两份表里有自己的 description。
+ *
+ * 回落首页描述本身是「宁可给通用值也不要空」的兜底，但它同时会**吞掉漏写**：
+ * 本文件顶部记录的原始缺陷就是 5 个页面的 description 与首页逐字相同而没人发现。
+ * 判据不该依赖人记得去看 —— 这里把它变成加载期就炸的硬约束。
+ */
+for (const route of STATIC_ROUTES) {
+  for (const [name, table] of [['ZH', ZH], ['EN', EN]] as const) {
+    if (!table[route.path]?.description) {
+      throw new Error(
+        `[page-meta] 静态路由 ${route.path} 在 ${name} 表里没有 description —— `
+        + '补上，别让它静默回落成首页描述（那等于把同一句话发给每个页面）。',
+      );
+    }
+  }
 }

@@ -83,7 +83,17 @@ about:
   content: |-
     # 关于 DigDevBox
 
-    DigDevBox 是一组轻量的浏览器工具：本站有 107 个面向开发者和日常的实用工具，另有 `/legacy/` 下 162 页经典版存档，保留自本站早期的中文版本。
+    DigDevBox 是一组轻量的浏览器工具：本站有 {count} 个面向开发者和日常的实用工具，另有 `/legacy/` 下的经典版存档，保留自本站早期的中文版本。
+
+    ## 四条原则
+
+    1. **一切在你的浏览器里完成。** 你粘贴的文本、文件、密钥、口令都是本地处理，不上传也不留存 ——
+       下方点名的三个工具除外，它们必须向外部查询才能给出答案。
+    2. **不收集你的信息。** 没有账号、不需要注册、没有付费墙，也不会把某个功能锁在付费墙后面。
+    3. **工具免费，广告不参与结果。** 页面挂有 Google AdSense；广告代码对计算没有任何输入，
+       任何工具的输出也不会因为你点或没点广告而改变。
+    4. **每个工具都自带说明。** 每页都写了用法和一个可直接点开的示例。发现错误请
+       [告诉我们](/contact)，这个站就是靠反馈改好的。
 
     ## 你的数据去了哪里
 
@@ -124,11 +134,31 @@ about:
     - [M3U8 播放器](https://play.digdevbox.com) — 浏览器直接播流
     - [TTS 朗读](https://ttsreader.digdevbox.com) — 把文字转成语音
     - [锻造笔记](https://notes.digdevbox.com) — 工具与性能方向的长文
+guideArticle:
+  suffix: '使用指南'
+  contents: '目录'
+  missingTitle: '没有找到这篇指南'
+  missingBody: '该指南不存在。可以从工具目录里找到你要的工具。'
+  exampleHint: '把下面这段复制进工具，或直接打开'
+  nextTitle: '下一步'
+  openTool: '打开「{name}」工具'
+  feedback: '这页有写错的地方？通过'
+  sections:
+    what: '它是什么、什么时候该用'
+    steps: '怎么用'
+    example: '一个可直接照抄的例子'
+    notes: '容易踩的点'
+    faqs: '常见问答'
 legal:
   siteName: 'DigDevBox'
   privacy: '隐私政策'
   terms: '服务条款'
+  faq: '常见问题'
   contact: '联系我们'
+faq:
+  intro: '这一页只回答站点级的问题：收费、数据去向、设备适配、怎么反馈。具体工具的使用注意点仍写在各自的工具页里，两边不重复回答。'
+  contents: '目录'
+  more: '这里没覆盖到？直接联系我们、浏览全部工具，或查看我们如何处理数据：'
 network:
   label: 'DigDevBox 工具箱：'
   ip: 'IP 查询'

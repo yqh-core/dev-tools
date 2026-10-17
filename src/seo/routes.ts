@@ -17,9 +17,10 @@ export const STATIC_ROUTES = [
   { path: '/terms', changefreq: 'monthly' },
   { path: '/contact', changefreq: 'monthly' },
   { path: '/tools', changefreq: 'weekly' },
+  { path: '/faq', changefreq: 'monthly' },
 ] as const;
 
-/** 静态路由的路径联合类型，`'/about' | '/' | '/contact' | '/privacy' | '/terms'`。 */
+/** 静态路由的路径联合类型（`'/' | '/about' | … | '/faq'`，由下面那份清单派生）。 */
 export type StaticRoutePath = (typeof STATIC_ROUTES)[number]['path'];
 
 /** sitemap `<changefreq>` 的取值类型。 */

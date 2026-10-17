@@ -76,6 +76,10 @@ const tools = computed<ToolCategory[]>(() => [
               {{ $t('legal.terms') }}
             </RouterLink>
             <span class="dot">·</span>
+            <RouterLink to="/faq">
+              {{ $t('legal.faq') }}
+            </RouterLink>
+            <span class="dot">·</span>
             <RouterLink to="/contact">
               {{ $t('legal.contact') }}
             </RouterLink>
