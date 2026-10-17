@@ -1045,20 +1045,27 @@ async function applyExampleStep(casePath) {
          * 绑定探针：`SMOKE_FILL_NOISE=1` 在填充成功之后，把主输入改成一个**与示例无关**的值。
          * 之后用例自己的断言必须变红 —— 还绿就说明那些断言不依赖被填入的数据。
          * 这一步不改变正常路径的任何行为（不设环境变量就是空转）。
+         * ⚠ 噪声串不能随手挑：第一版用 'ZZZ-noise-not-the-example'，
+         *   里面含 s/o 两个字母 → NATO 编码自带 Sierra/Oscar，等于探针自己把期望值喂了出来；
+         *   换成不含 s/o/i 的 'QWERTY-42-probe' 才有判别力（实测见台账）。
          *
-         * 10-18 首跑 27 条：21 红 / 6 绿。逐条定性（不是"6 条都是缺陷"）：
+         * 10-18 两跑的结论（第二跑换了噪声串，见下面 ⚠ 那条）：22 红 / 5 绿。
+         * 逐条定性（不是"5 条都是缺陷"）：
          *   · /bcrypt               format 级断言（只认 $2[abxy]$dd$ 前缀），设计上就不绑数据；
          *   · /text-statistics      differential（js 里比 统计值 == 输入长度），换值后依旧成立是**正确行为**；
          *   · /color-converter      text:['255','102','ff6600'] —— 预渲染 HTML 里本来就有 ff6600，
-         *                           另外两个数在换输入后也不消（见下条同一机制）；
+         *                           另两个数是换输入后不重算的旧结果（同下条机制）；
          *   · /numeronym-generator  text:['i18n'] —— 'i18n' 直接在预渲染 HTML 里，工具不动也算过；
-         *   · /roman-numeral-converter / text-to-nato-alphabet
+         *   · /roman-numeral-converter
          *                           **换输入后旧结果仍留在页面上且没有任何错误提示**：
          *                           实测 999→CMXCIX，再把输入换成 ZZZ-noise，
          *                           .tool-content 仍显示 "Arabic to roman CMXCIX … Roman to arabic 42"，
          *                           hasErrorWord=false。也就是说这类 knownVector 断言测的是
          *                           「曾经算对过」，不是「现在这份输入算对了」。
-         * 结论：真需要收紧的是 4 条（换通道 + 断言"当前输入的输出"），另外 2 条是设计使然。
+         *   /text-to-nato-alphabet 第一跑"仍绿"是**探针自己的错**（旧噪声串含 s/o，编码出来就是
+         *     Sierra/Oscar，等于把期望值喂给了用例）；换成 QWERTY-42-probe 后它正确变红。
+         * 结论：真要收紧的是 3 条（color-converter / numeronym-generator / roman-numeral-converter），
+         * 2 条设计使然（bcrypt 只认格式、text-statistics 是差分式，换值后等式照样成立）。
          * 顺带一个产品侧问题留给裁定：无效输入静默保留上一次结果，用户看到的是一个不属于自己的答案。
          */
         if (process.env.SMOKE_FILL_NOISE === '1') {
@@ -1066,7 +1073,7 @@ async function applyExampleStep(casePath) {
             const el = (${PRIMARY_PICKER})();
             if (!el) return false;
             const setter = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(el), 'value')?.set;
-            if (setter) setter.call(el, 'ZZZ-noise-not-the-example'); else el.value = 'ZZZ-noise-not-the-example';
+            if (setter) setter.call(el, 'QWERTY-42-probe'); else el.value = 'QWERTY-42-probe';
             el.dispatchEvent(new Event('input', { bubbles: true }));
             el.dispatchEvent(new Event('change', { bubbles: true }));
             return true;
