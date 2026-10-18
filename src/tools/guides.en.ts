@@ -193,12 +193,16 @@ export const GUIDES: Record<string, ToolGuide> = {
   },
 
   '/chronometer': {
-    intro: 'A clean stopwatch/timer for measuring elapsed time or running pomodoro sessions.',
-    steps: ['Click start', 'Click lap to record split times', 'Click stop to see the total duration'],
-    about: 'A clean stopwatch in your browser: start, pause, lap and reset, with the elapsed time always visible. Useful as a lightweight timer for coding sprints, meeting segments, brewing instructions — anything where opening your phone is a bigger context switch than a spare tab.',
+    intro: 'A clean stopwatch for measuring elapsed time in the browser — start, stop and reset.',
+    steps: ['Click start to begin counting', 'Click stop to freeze the elapsed time', 'Click reset to return to zero'],
+    notes: [
+      'The count is not saved: refreshing the page or navigating away resets it to zero — copy any duration you need before leaving',
+      'While the tab is hidden the on-screen number stops repainting, but the next visible update catches up to the true elapsed time, so the total stays wall-clock accurate',
+    ],
+    about: 'A minimal stopwatch that runs entirely in the page: start to begin counting, stop to freeze the display, reset to return to zero. Useful as a lightweight timer for coding sprints, meeting segments, brewing instructions — anything where opening your phone is a bigger context switch than a spare tab.',
     faqs: [
       { q: 'Does it keep running if I switch tabs?', a: 'Yes — it tracks elapsed wall-clock time rather than counting ticks, so background throttling does not make it lose seconds. Return to the tab and the correct total is shown.' },
-      { q: 'What is the difference between pause and lap?', a: 'Pause freezes the count until you resume; lap records a timestamp while the clock keeps running. Laps give you per-segment times, pause gives you a break.' },
+      { q: 'Is there a lap or split-time feature?', a: 'No — this stopwatch has start, stop and reset only. It tracks a single running total rather than per-segment laps; use reset to zero it between intervals.' },
       { q: 'How accurate is a browser stopwatch?', a: 'It reads the system clock, so accuracy is that of your device — well within what human timing needs. For sub-millisecond engineering measurements, use the benchmark tool instead.' },
     ],
   },
@@ -295,7 +299,11 @@ export const GUIDES: Record<string, ToolGuide> = {
   '/device-information': {
     intro: 'Shows the current device screen size, pixel ratio, User-Agent and more — useful evidence when debugging compatibility issues.',
     steps: ['Open the page to see all the information', 'Copy the fields you need'],
-    about: 'See what your browser tells websites about this device: screen size and pixel ratio, user agent, platform, language, CPU cores, memory hints and more. The quick answer to "what fingerprint am I presenting" and a handy reference when debugging layout or feature-detection issues.',
+    notes: [
+      'The figures are what the browser reports through its own APIs — privacy modes and extensions can round, freeze or spoof them, so treat them as reported values, not ground truth about the hardware',
+      'Anything the browser does not expose, or a hardened browser hides, is shown as "unknown"; the page lists only standard Web API fields',
+    ],
+    about: 'See what your browser tells websites about this device: screen and window size, pixel ratio, colour depth, orientation, user agent, platform and languages. The quick answer to "what fingerprint am I presenting" and a handy reference when debugging layout or feature-detection issues.',
     faqs: [
       { q: 'Do websites really see all of this?', a: 'Yes — every field here is readable by any site\'s JavaScript without permissions. Individually harmless, collectively they form the fingerprint that makes ad tracking possible.' },
       { q: 'Why does my screen size look smaller than my display?', a: 'The values are CSS pixels of the window, not hardware pixels; pixel ratio multiplies them for the physical panel. A 4K screen with DPR 2 reports half the width in CSS pixels.' },
@@ -383,6 +391,10 @@ export const GUIDES: Record<string, ToolGuide> = {
   '/git-memo': {
     intro: 'A cheat sheet of common Git commands for when you have forgotten the exact flags.',
     steps: ['Find the scenario by category', 'Copy the command', 'Replace the placeholders with your own branch or file names'],
+    notes: [
+      'Square-bracketed tokens such as [name], [url] and [commit message] are placeholders — replace them before running; they are not literal arguments',
+      'Several entries rewrite history or move HEAD (amend, reset). Doing that to commits you have already pushed rewrites shared history — keep them for local work, or push with --force-with-lease when you must',
+    ],
     about: 'Git\'s model is simple; its flag surface is not. Everyone re-learns the same half-dozen situations: undoing a commit, squashing before a pull request, un-staging a file, pointing a branch at the right remote. This cheat sheet organises those recurring situations by category and gives one copy-paste command per scenario, with placeholders for the parts that vary (branch names, file names, commit ranges). It is deliberately a reference, not a tutorial: each entry assumes you know what the operation means and just need the exact syntax, so you can get back to work in seconds. For anything beyond the everyday cases — interactive rebase surgery, reflog archaeology, submodule workflows — the entries link the concept name you should search for next.',
     faqs: [
       { q: 'Do I need to change anything before pasting a command?', a: 'Usually yes — the placeholders. Commands are shown with tokens like your-branch or file-name standing in for the values that differ per situation. Replace them with your own branch, file or commit range; the surrounding flags are already correct.' },
@@ -766,6 +778,10 @@ export const GUIDES: Record<string, ToolGuide> = {
   '/lorem-ipsum-generator': {
     intro: 'Generates placeholder text to fill out layouts and visual mockups.',
     steps: ['Choose paragraphs or a word count', 'Click generate', 'Copy the text'],
+    notes: [
+      'Every sentence is exactly the configured word length and words are chosen at random, so the output has no grammar or meaning — it imitates the rhythm of prose, not its structure',
+      'Turn on HTML output to get each paragraph wrapped in a paragraph tag; the default output is plain text with blank lines between paragraphs',
+    ],
     about: 'Generate lorem ipsum placeholder paragraphs, sentences or words to fill a layout with realistic-looking text. Lorem ipsum has been the printing industry\'s dummy text since the 1500s because its letter distribution resembles natural language — the layout reads as "text" without anyone getting distracted by meaning.',
     faqs: [
       { q: 'What is lorem ipsum?', a: 'Lorem ipsum is the standard placeholder text used in publishing and web design since the 1500s: scrambled pseudo-Latin that fills a layout with realistic-looking words so the design can be judged without real copy distracting the reviewer.' },
@@ -834,6 +850,10 @@ export const GUIDES: Record<string, ToolGuide> = {
   '/mime-types': {
     intro: 'Looks up MIME types and file extensions from one another — useful when configuring a server or writing upload validation.',
     steps: ['Enter a MIME type or an extension', 'Read the corresponding form', 'Copy and use it'],
+    notes: [
+      'The mapping is the curated mime-types dataset, not the full IANA registry — brand-new or proprietary types may be missing, so confirm official types against the IANA Media Types registry',
+      'Rows stay hidden until you type a query or turn on "show all": the full table is hundreds of entries, so the default view is empty by design',
+    ],
     about: 'Look up which MIME type matches a file extension and vice versa. Searchable in both directions, so you can resolve "what Content-Type do I send for .woff2" as easily as "which files does audio/mpeg cover". The mapping matters every time you configure a web server, write an upload handler or debug a file that downloads instead of rendering.',
     faqs: [
       { q: 'Why does one extension map to several MIME types?', a: 'Formats accumulate aliases over time (.mp3 maps to audio/mpeg while older stacks expect audio/mp3). Servers expect the canonical one; this tool shows the common mappings so you can pick what your stack accepts.' },
@@ -1122,6 +1142,10 @@ export const GUIDES: Record<string, ToolGuide> = {
   '/regex-memo': {
     intro: 'A cheat sheet of common regular expressions for when you have forgotten the syntax.',
     steps: ['Find the syntax you need by category', 'Copy the fragment', 'Verify it in the Regex Tester'],
+    notes: [
+      'Syntax is JavaScript-flavoured (the \\d, \\w and [...] classes, and groups). Features such as lookbehind and named capture are engine-specific — test in the Regex Tester before assuming another language behaves the same',
+      'This is a construct reference, not a full grammar: less common features such as atomic groups or possessive quantifiers are intentionally out of scope',
+    ],
     about: 'Regex syntax is easy to forget precisely because it is dense: character classes, quantifiers, anchors and groups are all written in punctuation. This cheat sheet collects the constructs you actually reach for — ready-made patterns for emails, URLs and dates, the common character classes, and lookahead examples — so you copy a working starting point instead of rebuilding it from memory.',
     faqs: [
       { q: 'Are these patterns production-ready?', a: 'They are solid starting points for common cases. The classic example: fully RFC-compliant email validation is practically impossible in pure regex — the patterns here cover the pragmatic 99%, not the adversarial 1%.' },
@@ -1460,6 +1484,10 @@ export const GUIDES: Record<string, ToolGuide> = {
   '/ulid-generator': {
     intro: 'Generates ULIDs: unique like a UUID, but sortable by time — friendlier as a database primary key.',
     steps: ['Click generate to get a ULID', 'Generate repeatedly for more', 'Copy and use it'],
+    notes: [
+      'Each ULID is minted independently, so IDs created in the same millisecond are not guaranteed to sort in generation order — use a monotonic ULID factory when strict insertion order matters',
+      'The quantity field is capped at 100 per refresh; generate more by refreshing again',
+    ],
     about: 'A ULID is a 128-bit identifier that is lexicographically sortable: the first 10 characters encode a millisecond timestamp, so sorting ULIDs as strings puts them in creation order. That makes them a drop-in upgrade over a random UUID when the identifier is also used as a database primary key or a sort key — new rows land at the end instead of being scattered. The remaining 16 characters are 80 bits of randomness, so collisions are not a practical concern. ULIDs use Crockford base32 (no I, L, O or U) and are conventionally written uppercase.',
     faqs: [
       { q: 'How is a ULID different from a UUID v4?', a: 'A UUID v4 is random, so its byte order carries no meaning and sorting it tells you nothing about creation time. A ULID puts a millisecond timestamp in its first 10 characters, so lexicographic order equals chronological order — which is exactly what you want from a primary or sort key.' },
