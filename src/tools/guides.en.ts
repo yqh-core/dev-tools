@@ -1051,12 +1051,12 @@ export const GUIDES: Record<string, ToolGuide> = {
   },
 
   '/pdf-signature-checker': {
-    intro: 'Checks whether a PDF carries a digital signature and whether that signature is valid.',
-    steps: ['Choose or drag in a PDF file', 'Wait for it to be parsed', 'Read the number of signatures and the verification result'],
-    notes: ['Having a signature only means a signature field exists — trustworthiness also depends on the certificate chain'],
+    intro: 'Checks whether a PDF carries a digital signature and reports, for each one, its cryptographic integrity, certificate-chain trust and validity window — a technical check, not a legal opinion.',
+    steps: ['Choose or drag in a PDF file', 'Wait for it to be parsed', 'Read the number of signatures and the per-signature result'],
+    notes: ['Having a signature only means a signature field exists — trustworthiness also depends on the certificate chain', 'It does not check certificate revocation (CRL / OCSP) or a trusted signing timestamp, and a passing "verified" is never the same as a legally binding signature'],
     about: 'Verify the digital signatures inside a PDF file: who signed it and whether the content has been altered since signing. The file is processed locally, so confidential contracts can be checked without uploading them to a third party — useful when a counterparty\'s PDF arrives and you need to trust it before acting.',
     faqs: [
-      { q: 'What does a valid signature actually prove?', a: 'Two things: the document bytes have not changed since signing, and the certificate chain ties the signature to an identity (a person or organisation) at signing time. It does not judge whether the signer was trustworthy.' },
+      { q: 'What does a valid signature actually prove?', a: 'Two separate things this tool reports independently: cryptographic integrity (the bytes covered by the signature still match the hash embedded in it) and certificate-chain trust (the signer certificate chains to a root the tool trusts). Neither alone means "legally valid", and without a trusted timestamp it cannot confirm the certificate was valid at the moment of signing.' },
       { q: 'The document opens fine — why is the signature invalid?', a: 'Any edit after signing breaks the byte-range digest, including saving with "print to PDF", annotating, or a converter that rewrites the file. A clean-looking page does not mean untouched bytes.' },
       { q: 'Where can I get a signed PDF to test with?', a: 'Many tax authorities, banks and certification bodies publish sample signed documents. Signing one yourself requires a certificate — the checker is happy with either as input.' },
     ],
