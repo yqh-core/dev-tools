@@ -107,3 +107,63 @@ export function classifyException(x, ctx) {
   if (url && isThirdPartyUrl(url, ctx.base)) return { kind: 'noise', url, why: 'third-party' };
   return { kind: 'blocking', url };
 }
+
+/**
+ * 把一次 `Network.loadingFailed` 固化成**可事后归因**的记录。
+ *
+ * 为什么要单独抽出来：CDP 的 loadingFailed 只给 requestId + errorText，URL 要靠
+ * 之前 requestWillBeSent 建的表反查。查不到时旧实现只留一个空 url 字段，
+ * 于是「第三方 iframe 超时」和「自家导航失败」在日志里长得一模一样 —— 归因链当场断掉
+ * （实测 /safelink-decoder 一条 Document + ERR_CONNECTION_TIMED_OUT 就是这么变成 unattributed 的）。
+ * 这里把能拿到的都留下：requestId、类型、frame/loader、发起方、时间，
+ * 以及一个明确的 `attributed` 标记，让「查到了」和「没查到」可机器区分。
+ *
+ * @param params CDP Network.loadingFailed 的 params
+ * @param meta   requestWillBeSent 侧登记的上下文；没抓到就是 undefined
+ */
+export function recordLoadFailure(params, meta) {
+  const p = params || {};
+  const m = meta || null;
+  return {
+    requestId: p.requestId,
+    url: (m && m.url) || '',
+    // 事件自带的 type 优先（loadingFailed 也有 type），再退回 requestWillBeSent 的
+    type: p.type || (m && m.reqType) || '',
+    error: p.errorText || '',
+    canceled: !!p.canceled,
+    blockReason: p.blockReason || '',
+    attributed: !!m,
+    frameId: (m && m.frameId) || p.frameId || '',
+    loaderId: (m && m.loaderId) || '',
+    initiator: (m && m.initiator) || 'unknown',
+    initiatorUrl: (m && m.initiatorUrl) || '',
+    requestWallTime: (m && m.wallTime) || null,
+    requestMonotonicMs: (m && m.ts) || null,
+    failedAtMonotonicMs: p.timestamp || null,
+    durationMs: (m && m.ts != null && p.timestamp != null) ? +(p.timestamp - m.ts).toFixed(3) : null,
+  };
+}
+
+/**
+ * 把一条归不到 URL 的失败记录，转成**写进产物 JSON 的形态**。
+ * 单独成函数的唯一理由：归因链的价值全在「字段有没有一路带到产物里」。
+ * 采集层补得再全，只要这里写回 {text,type,error} 三个字段，事后仍然无从归因
+ * —— 实测第一轮就犯了这个错。所以字段清单在这里锁死，并由测试盯着。
+ */
+export function describeUnattributed(f) {
+  const r = f || {};
+  return {
+    text: `资源加载失败(未归属): ${r.error || ''}`,
+    error: r.error || '',
+    type: r.type || '',
+    requestId: r.requestId || '',
+    attributed: !!r.attributed,          // 走到这里通常是 false，但把它显式写出来才能区分「没查到」与「忘了记」
+    frameId: r.frameId || '',
+    loaderId: r.loaderId || '',
+    initiator: r.initiator || 'unknown',
+    initiatorUrl: r.initiatorUrl || '',
+    requestWallTime: r.requestWallTime ?? null,
+    failedAtMonotonicMs: r.failedAtMonotonicMs ?? null,
+    durationMs: r.durationMs ?? null,
+  };
+}

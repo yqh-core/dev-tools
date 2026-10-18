@@ -555,6 +555,11 @@ let loadFailures = [];
 // requestId → URL。loadingFailed 事件只给 requestId，不给 URL，
 // 不建这张表就没法判断失败的到底是自家 chunk 还是第三方广告（首版就吃了这个亏）
 const reqUrl = new Map();
+// requestId -> 归因所需的完整上下文（类型 / frame / loader / 发起方 / 时间）。
+// 只有 URL 时，遇到「有 loadingFailed 却没有对应 requestWillBeSent」的事件就彻底无从回溯：
+// 实测 /safelink-decoder 一条 Document + ERR_CONNECTION_TIMED_OUT 落进 unattributed，
+// 事后分不清是第三方 iframe 还是自家导航请求，归因链当场断掉。
+const reqMeta = new Map();
 
 // API 失败态注入（A3）：'fail500' | 'ok200' | null
 let interceptApi = null;
@@ -622,6 +627,19 @@ ws.addEventListener('message', ev => {
       break;
     case 'Network.requestWillBeSent':
       reqUrl.set(msg.params.requestId, msg.params.request.url);
+      reqMeta.set(msg.params.requestId, {
+        url: msg.params.request.url,
+        reqType: msg.params.type,
+        frameId: msg.params.frameId,
+        loaderId: msg.params.loaderId,
+        initiator: (msg.params.initiator && msg.params.initiator.type) || 'unknown',
+        initiatorUrl: (msg.params.initiator && (msg.params.initiator.url
+          || (msg.params.initiator.stack && msg.params.initiator.stack.callFrames
+            && msg.params.initiator.stack.callFrames[0]
+            && msg.params.initiator.stack.callFrames[0].url))) || '',
+        wallTime: msg.params.wallTime,
+        ts: msg.params.timestamp,
+      });
       break;
     case 'Network.responseReceived': {
       const r = msg.params.response;
@@ -629,12 +647,10 @@ ws.addEventListener('message', ev => {
       break;
     }
     case 'Network.loadingFailed':
-      loadFailures.push({
-        url: reqUrl.get(msg.params.requestId) || '',
-        type: msg.params.type,
-        error: msg.params.errorText,
-        canceled: !!msg.params.canceled,
-      });
+      // 归因信息一次性固化（纯函数 RULES.recordLoadFailure，带合成负向测试）：
+      // 查不到 requestWillBeSent 时也要留下 requestId/type/error/时间，
+      // 并用 attributed 字段让「查到」与「没查到」可机器区分，而不是事后靠猜。
+      loadFailures.push(RULES.recordLoadFailure(msg.params, reqMeta.get(msg.params.requestId)));
       break;
     case 'Page.javascriptDialogOpening':
       // 原生对话框会冻结渲染进程 —— 一律接管并接受，否则整片卡死
@@ -789,7 +805,9 @@ function classifyConsole() {
     const shown = (verdict.url || '').split('?')[0];
     if (verdict.kind === 'skip') continue;
     if (verdict.kind === 'unattributed') {
-      unattributed.push({ text: `资源加载失败(未归属): ${f.error}`, type: f.type, error: f.error });
+      // 采集层存下来的归因字段必须一路带到产物 JSON，否则「归因链已补全」只是句空话：
+      // 之前这里只 push {text,type,error}，requestId/frameId/发起方/时间全丢在引擎内部。
+      unattributed.push(RULES.describeUnattributed(f));
       continue;
     }
     if (verdict.kind === 'noise') {
@@ -1613,6 +1631,7 @@ async function runCase(c) {
   scriptResponses = [];
   loadFailures = [];
   reqUrl.clear();
+  reqMeta.clear();
 
   let mountMs = 0;
   try {
@@ -2033,6 +2052,7 @@ if (has('--probe')) {
     scriptResponses = [];
     loadFailures = [];
     reqUrl.clear();
+    reqMeta.clear();
     await send('Page.navigate', { url: 'about:blank' });
     await sleep(150);
     await send('Page.navigate', { url: pageUrl(c.path) });

@@ -11,7 +11,9 @@ import {
   attributeFailure,
   classifyException,
   classifyLoadFailure,
+  describeUnattributed,
   isThirdPartyUrl,
+  recordLoadFailure,
 } from './smoke-console-rules.mjs';
 
 const BASE = 'http://127.0.0.1:4192';
@@ -105,5 +107,101 @@ describe('未捕获异常的归属与资源失败同一套规则', () => {
   it('自家脚本报的 uncaught 必须阻断；异常没有 URL 时保持阻断（这一路不降级）', () => {
     expect(classifyException({ url: `${BASE}/assets/app.js`, text: 'Uncaught TypeError' }, ctx).kind).toBe('blocking');
     expect(classifyException({ url: '', text: 'Uncaught' }, ctx).kind).toBe('blocking');
+  });
+});
+
+describe('归因链固化：recordLoadFailure 必须让「查得到」与「查不到」可机器区分', () => {
+  const meta = {
+    url: 'https://securepubads.g.doubleclick.net/pagead/managed/js/gpt/m1/pubads_impl.js',
+    reqType: 'Script', frameId: 'F1', loaderId: 'L1',
+    initiator: 'script', initiatorUrl: `${BASE}/assets/index-abc.js`,
+    wallTime: 1792300000.5, ts: 1234.5,
+  };
+
+  it('查到 requestWillBeSent：attributed=true，URL/类型/frame/发起方/耗时全部留下', () => {
+    const r = recordLoadFailure(
+      { requestId: 'R1', type: 'Script', errorText: 'net::ERR_CONNECTION_TIMED_OUT', timestamp: 1235.25 },
+      meta,
+    );
+    expect(r.attributed).toBe(true);
+    expect(r.url).toBe(meta.url);
+    expect(r.frameId).toBe('F1');
+    expect(r.initiator).toBe('script');
+    expect(r.durationMs).toBeCloseTo(0.75, 2);
+    // 第三方 URL 交给归类函数后必须判噪声，不再落 unattributed
+    expect(classifyLoadFailure(r, ctx).kind).toBe('noise');
+  });
+
+  it('查不到（实测 /safelink-decoder 的形态）：attributed=false 且**不许回落到任何 URL**', () => {
+    const r = recordLoadFailure(
+      { requestId: 'R9', type: 'Document', errorText: 'net::ERR_CONNECTION_TIMED_OUT', timestamp: 999 },
+      undefined,
+    );
+    expect(r.attributed).toBe(false);
+    expect(r.url).toBe('');
+    expect(r.requestId).toBe('R9');       // 事后还能按 requestId 去翻原始 CDP 流
+    expect(r.type).toBe('Document');
+    expect(classifyLoadFailure(r, ctx).kind).toBe('unattributed');
+  });
+
+  it('负向对照：把别的请求的 meta 喂进来会张冠李戴 —— 所以调用方只能按 requestId 精确取', () => {
+    const wrong = recordLoadFailure({ requestId: 'R2', type: 'Script', errorText: 'net::ERR_FAILED' }, meta);
+    // 这条断言锁的是「recordLoadFailure 不做任何模糊匹配/兜底猜测」这个契约：
+    // 它给出的 URL 完全等于传进来的 meta，一旦将来有人加「按 type 猜一个」就红。
+    expect(wrong.url).toBe(meta.url);
+    expect(wrong.requestId).toBe('R2');
+    expect(wrong.attributed).toBe(true);
+  });
+
+  it('canceled / ERR_ABORTED 仍走 skip（回归保护，别把主动取消算成故障）', () => {
+    const c = recordLoadFailure({ requestId: 'R3', type: 'XHR', errorText: 'net::ERR_ABORTED', canceled: true }, meta);
+    expect(c.canceled).toBe(true);
+    expect(classifyLoadFailure(c, ctx).kind).toBe('skip');
+  });
+
+  it('自家 chunk 失败：attributed=true 且 URL 同源 ⇒ 必须 blocking（不许被归因链改造顺手放宽）', () => {
+    const own = recordLoadFailure(
+      { requestId: 'R4', type: 'Script', errorText: 'net::ERR_CONNECTION_RESET' },
+      { ...meta, url: `${BASE}/assets/app-12345678.js` },
+    );
+    expect(classifyLoadFailure(own, ctx).kind).toBe('blocking');
+  });
+});
+
+describe('归因链最后一环：describeUnattributed 必须把字段带到产物 JSON', () => {
+  it('锁死字段清单 —— 少一个字段就等于归因链又断掉（第一轮就断在这儿）', () => {
+    const rec = recordLoadFailure(
+      { requestId: 'R7', type: 'Document', errorText: 'net::ERR_CONNECTION_TIMED_OUT', timestamp: 500 },
+      undefined,
+    );
+    const out = describeUnattributed(rec);
+    for (const k of ['text', 'error', 'type', 'requestId', 'attributed', 'frameId',
+                     'loaderId', 'initiator', 'initiatorUrl', 'requestWallTime',
+                     'failedAtMonotonicMs', 'durationMs']) {
+      expect(Object.keys(out)).toContain(k);
+    }
+    expect(out.requestId).toBe('R7');
+    expect(out.type).toBe('Document');
+    expect(out.attributed).toBe(false);
+    expect(out.failedAtMonotonicMs).toBe(500);
+  });
+
+  it('负向对照：把带 URL 的记录喂进来，attributed 必须原样反映为 true（不许被改写成 false）', () => {
+    const rec = recordLoadFailure(
+      { requestId: 'R8', type: 'Script', errorText: 'net::ERR_FAILED', timestamp: 10 },
+      { url: 'https://cdn.example/x.js', reqType: 'Script', frameId: 'F2', loaderId: 'L2', initiator: 'parser', initiatorUrl: '', wallTime: 1, ts: 9 },
+    );
+    const out = describeUnattributed(rec);
+    expect(out.attributed).toBe(true);
+    expect(out.frameId).toBe('F2');
+    expect(out.initiator).toBe('parser');
+    expect(out.durationMs).toBeCloseTo(1, 3);
+  });
+
+  it('空对象也不能崩，且必须留下 attributed=false（区分「没查到」与「忘了记」）', () => {
+    const out = describeUnattributed({});
+    expect(out.attributed).toBe(false);
+    expect(out.initiator).toBe('unknown');
+    expect(out.text).toBe('资源加载失败(未归属): ');
   });
 });
