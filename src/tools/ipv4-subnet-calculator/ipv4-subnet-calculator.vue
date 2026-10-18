@@ -93,21 +93,32 @@ function switchToBlock({ count = 1 }: { count?: number }) {
     />
 
     <div v-if="networkInfo">
-      <n-table>
-        <tbody>
-          <tr v-for="{ getValue, label, undefinedFallback } in sections" :key="label">
-            <td font-bold>
-              {{ label }}
-            </td>
-            <td>
-              <SpanCopyable v-if="getValue(networkInfo)" :value="getValue(networkInfo)" />
-              <span v-else op-70>
-                {{ undefinedFallback }}
-              </span>
-            </td>
-          </tr>
-        </tbody>
-      </n-table>
+      <!--
+        滚动壳：与 src/ui/c-table 内部同款（overflow-x-auto 的滚动容器 + max-w-full 收口）。
+        390px 视口实测：这张两列表的固有宽度 389px，比 .tool-content 的内容盒（338px）宽，
+        裸 n-table 顶出视口右侧约 24px，而祖先链上没有任何**可滚**容器（naive-ui 的 .n-table
+        自带 overflow-x: hidden，只裁不滚），于是 22 个单元格里 11 个「滚过也进不了视口」。
+        补壳后重测：该壳 scrollWidth 389 > clientWidth 338，逐格试滚全部可达（11 → 0）。
+        max-w-full 不能省：否则壳自己就比视口宽，等于把溢出往里挪一层。
+        工具页宽表的既有约定见 src/layouts/tool.layout.vue 里 .tool-content > * 的注释。
+      -->
+      <div class="relative max-w-full overflow-x-auto rounded">
+        <n-table>
+          <tbody>
+            <tr v-for="{ getValue, label, undefinedFallback } in sections" :key="label">
+              <td font-bold>
+                {{ label }}
+              </td>
+              <td>
+                <SpanCopyable v-if="getValue(networkInfo)" :value="getValue(networkInfo)" />
+                <span v-else op-70>
+                  {{ undefinedFallback }}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </n-table>
+      </div>
 
       <div mt-3 flex items-center justify-between>
         <c-button @click="switchToBlock({ count: -1 })">
