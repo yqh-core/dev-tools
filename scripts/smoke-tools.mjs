@@ -797,6 +797,18 @@ function classifyConsole() {
     }
     blocking.push({ text: `同源${r.type === 'Stylesheet' ? '样式' : '脚本'} HTTP ${r.status}`, url: r.url.split('?')[0] });
   }
+  if (process.env.SMOKE_FAKE_UNATTRIBUTED === '1') {
+    // 证伪钩子（与 SMOKE_FAKE_EXAMPLE / GUIDE_FAKE_UNLINKED 同一套路）：
+    // 造一条「有 loadingFailed、但 requestWillBeSent 侧查不到」的事件，塞进**真实处理路径**，
+    // 用来端到端证明归因字段能一路走到产物 JSON —— 单测只证明纯函数，不证明接线。
+    // 用独立 errorText 标记，验证脚本据此确认它是种子而非真实网络事件。
+    loadFailures.push(RULES.recordLoadFailure({
+      requestId: 'seeded-unattributed-0001',
+      type: 'Document',
+      errorText: 'net::ERR_SEEDED_NEGATIVE',
+      timestamp: 12345.5,
+    }, undefined));
+  }
   for (const f of loadFailures) {
     // 归属与分级全部走 smoke-console-rules.mjs（那里有合成输入的负向测试）。
     // 三条不可让步的语义：同源失败永远阻断；归不到 URL 的单列 unattributed（可见，不隐身）；
