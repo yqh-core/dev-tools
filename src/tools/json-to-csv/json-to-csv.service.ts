@@ -1,6 +1,6 @@
 import { objectsToCsv, serializeCsv } from '@/utils/csv';
 
-export { getHeaders, convertArrayToCsv };
+export { getHeaders, convertArrayToCsv, csvShapeError };
 
 /**
  * 表头取所有对象键的并集（保持首次出现顺序）。
@@ -35,4 +35,46 @@ function convertArrayToCsv({ array }: { array: Record<string, unknown>[] }): str
   }
 
   return objectsToCsv(array);
+}
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === 'object' && !Array.isArray(value);
+}
+
+function typeName(value: unknown): string {
+  if (value === null) {
+    return 'null';
+  }
+  if (Array.isArray(value)) {
+    return 'an array';
+  }
+  switch (typeof value) {
+    case 'object': return 'an object';
+    case 'number': return 'a number';
+    case 'string': return 'a string';
+    case 'boolean': return 'a boolean';
+    default: return typeof value;
+  }
+}
+
+/**
+ * JSON → CSV 的**输入形状**校验：把「能 JSON.parse 但根本不是对象数组」这种情况
+ * 讲成人话，替代旧实现里 `withDefaultOnError(..., '')` 那种「输入合法、界面无报错、
+ * 结果却静默为空」的失败模式。返回空串表示形状 OK，可交给 convertArrayToCsv。
+ *
+ * 注意：它假设传入的**已经是解析后的值**（解析失败由校验器另一分支处理），
+ * 所以这里只管「是不是对象数组」，不管「是不是合法 JSON」。
+ */
+function csvShapeError(parsed: unknown): string {
+  if (Array.isArray(parsed)) {
+    if (parsed.length === 0) {
+      return '';
+    }
+    const badIndex = parsed.findIndex(item => !isPlainObject(item));
+    if (badIndex === -1) {
+      return '';
+    }
+    return `This CSV converter needs an array of objects, but item #${badIndex + 1} is ${typeName(parsed[badIndex])}.`;
+  }
+  return `This CSV converter needs an array of objects, but the input is ${typeName(parsed)}.`;
 }

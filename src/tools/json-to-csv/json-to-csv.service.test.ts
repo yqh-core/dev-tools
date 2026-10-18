@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { convertArrayToCsv, getHeaders } from './json-to-csv.service';
+import { convertArrayToCsv, getHeaders, csvShapeError } from './json-to-csv.service';
 import { parseCsv } from '@/utils/csv';
 
 describe('json-to-csv service', () => {
@@ -119,6 +119,30 @@ describe('json-to-csv service', () => {
         ['multi\nline', 'plain'],
         ['C:\\path', 'tab\there'],
       ]);
+    });
+  });
+
+  describe('csvShapeError（异常输入的错误提示，替代旧的静默空输出）', () => {
+    it('空数组与对象数组都判定为合法（返回空串）', () => {
+      expect(csvShapeError([])).toBe('');
+      expect(csvShapeError([{ a: 1 }, { b: 2 }])).toBe('');
+    });
+
+    it('非数组的顶层值给出「需要对象数组」并点明实际类型', () => {
+      expect(csvShapeError({ a: 1 })).toMatch(/needs an array of objects.*an object/);
+      expect(csvShapeError(42)).toMatch(/a number/);
+      expect(csvShapeError('hi')).toMatch(/a string/);
+      expect(csvShapeError(null)).toMatch(/null/);
+      expect(csvShapeError(true)).toMatch(/a boolean/);
+    });
+
+    it('数组里混入非对象元素时，指出是第几个、是什么类型', () => {
+      expect(csvShapeError([{ a: 1 }, 5, { b: 2 }])).toMatch(/item #2 is a number/);
+      expect(csvShapeError([['x']])).toMatch(/item #1 is an array/);
+    });
+
+    it('嵌套数组即使顶层是数组也会被拦下（CSV 展平不了嵌套结构）', () => {
+      expect(csvShapeError([1, 2, 3])).toMatch(/item #1 is a number/);
     });
   });
 });

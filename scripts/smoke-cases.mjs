@@ -1518,10 +1518,48 @@ export const SMOKE_CASES = [
     path: '/json-to-csv',
     name: 'json-to-csv',
     zhTitle: 'JSON 转 CSV',
-    strategy: 'structural：对象数组转 CSV，首行必须是表头（键名按出现顺序），其后每行一条记录',
+    strategy: 'structural：对象数组转 CSV，首行必须是表头（键名按出现顺序），其后每行一条记录；'
+      + '外加下载按钮的端到端判据（文件名 + 文件内容都要对）',
     steps: [
       { fill: { i: 0, text: '[{"a":1,"b":2},{"a":3,"b":4}]' } },
       { wait: 1000 },
+      {
+        /**
+         * 下载按钮的持续回归判据（任务1 的尾账，之前只有一次性手工 CDP 检查）。
+         *
+         * 不能只断言「按钮在页面上」——那既不证真下载也不证内容。这里在页面里临时接管
+         * `<a download>` 的点击与 URL.createObjectURL，然后：
+         *   ① 必须真的有一次带 download 属性的锚点被点击；
+         *   ② 文件名必须逐字等于 converted.csv（download-filename + output-language 拼出来的）；
+         *   ③ 落到 blob 里的**字节内容**必须就是转换结果（表头 + 两行数据）。
+         * 钩子只活在这一步里，随后原样还原，不污染后面的用例。
+         */
+        js: `(async function(){
+          var st = { clicks: [], blob: null };
+          var origClick = HTMLAnchorElement.prototype.click;
+          var origCreate = URL.createObjectURL;
+          URL.createObjectURL = function (b) { st.blob = b; return origCreate.call(URL, b); };
+          HTMLAnchorElement.prototype.click = function () {
+            if (this.hasAttribute('download')) { st.clicks.push(this.download || this.getAttribute('download')); return; }
+            return origClick.call(this);
+          };
+          var btn = document.querySelector('[data-test-id="download-button"]');
+          if (!btn) { URL.createObjectURL = origCreate; HTMLAnchorElement.prototype.click = origClick;
+            return '找不到下载按钮 [data-test-id="download-button"]（新增的用户可见入口，掉了就是回归）'; }
+          btn.click();
+          await new Promise(function (r) { setTimeout(r, 300); });
+          URL.createObjectURL = origCreate;
+          HTMLAnchorElement.prototype.click = origClick;
+          if (!st.clicks.length) {
+            return '点了下载按钮，但没有任何 <a download> 被触发（按钮接的是空函数/没绑上）';
+          }
+          if (st.clicks[0] !== 'converted.csv') return '下载文件名不对：' + JSON.stringify(st.clicks[0]);
+          var txt = st.blob && st.blob.text ? await st.blob.text() : '';
+          if (txt.indexOf('a,b') !== 0) return '下载内容第一行不是表头 a,b：' + JSON.stringify(txt.slice(0, 40));
+          if (txt.indexOf('1,2') < 0 || txt.indexOf('3,4') < 0) return '下载内容缺数据行：' + JSON.stringify(txt.slice(0, 60));
+          return null;
+        })()`,
+      },
     ],
     expect: { regex: ['a\\s*,\\s*b'], text: ['1', '3'] },
   },

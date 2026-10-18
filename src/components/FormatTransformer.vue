@@ -12,6 +12,9 @@ const props = withDefaults(
     inputDefault?: string
     outputLabel?: string
     outputLanguage?: string
+    /** 透传给输出区的下载按钮；默认关，已有调用方零影响 */
+    downloadable?: boolean
+    downloadFilename?: string
   }>(),
   {
     transformer: _.identity,
@@ -21,10 +24,12 @@ const props = withDefaults(
     inputPlaceholder: 'Input...',
     outputLabel: 'Output',
     outputLanguage: '',
+    downloadable: false,
+    downloadFilename: 'download',
   },
 );
 
-const { transformer, inputValidationRules, inputLabel, outputLabel, outputLanguage, inputPlaceholder, inputDefault }
+const { transformer, inputValidationRules, inputLabel, outputLabel, outputLanguage, inputPlaceholder, inputDefault, downloadable, downloadFilename }
   = toRefs(props);
 
 const inputElement = ref<typeof CInputText>();
@@ -52,6 +57,12 @@ const output = computed(() => transformer.value(input.value));
     <div mb-5px>
       {{ outputLabel }}
     </div>
-    <textarea-copyable :value="output" :language="outputLanguage" :follow-height-of="inputElement?.inputWrapperRef" />
+    <textarea-copyable
+      :value="output"
+      :language="outputLanguage"
+      :downloadable="downloadable"
+      :download-filename="downloadFilename"
+      :follow-height-of="inputElement?.inputWrapperRef"
+    />
   </div>
 </template>

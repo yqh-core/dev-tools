@@ -26,6 +26,8 @@ const rules: UseValidationRule<string>[] = [
     input-placeholder="Paste your XML content here..."
     output-label="Converted JSON"
     output-language="json"
+    downloadable
+    download-filename="converted"
     :transformer="transformer"
     :input-validation-rules="rules"
   />

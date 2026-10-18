@@ -16,6 +16,10 @@ interface CsvToJsonResult {
   warnings: string[]
   rowCount: number
   columnCount: number
+  /** 解析出的表头（已去重/补列名），供界面渲染数据预览表 */
+  headers: string[]
+  /** 解析出的记录，供界面渲染数据预览表（与 json 字段同源，不二次解析） */
+  rows: Record<string, string>[]
 }
 
 /** 只数记录条数（供界面显示"共几行"，不解析成对象，省一次全量构造） */
@@ -40,7 +44,7 @@ function countCsvRows(csv: string): number {
  * 只有表头没有数据 —— 这几种情况都不丢数据，但必须让用户知道结果不是"原样"的。
  */
 function convertCsvToJson(csv: string, options: CsvToJsonOptions): CsvToJsonResult {
-  const empty: CsvToJsonResult = { json: '', error: '', warnings: [], rowCount: 0, columnCount: 0 };
+  const empty: CsvToJsonResult = { json: '', error: '', warnings: [], rowCount: 0, columnCount: 0, headers: [], rows: [] };
   const text = csv.trim();
 
   if (text === '') {
@@ -89,5 +93,7 @@ function convertCsvToJson(csv: string, options: CsvToJsonOptions): CsvToJsonResu
     warnings,
     rowCount: parsed.rows.length,
     columnCount: parsed.headers.length,
+    headers: parsed.headers,
+    rows: parsed.rows,
   };
 }

@@ -91,6 +91,43 @@ describe('csv-to-json service', () => {
     expect(r.json).toBe('[\n  {\n    "a": "1"\n  }\n]');
   });
 
+  describe('headers / rows（供数据预览表用，与 json 同源）', () => {
+    it('预览表头即去重后的列名，rows 即对象数组本身', () => {
+      const r = convertCsvToJson('name,age\nalice,30\nbob,25', H);
+
+      expect(r.headers).toEqual(['name', 'age']);
+      expect(r.rows).toEqual([
+        { name: 'alice', age: '30' },
+        { name: 'bob', age: '25' },
+      ]);
+    });
+
+    it('重名列下 headers 是改名后的键，预览与 JSON 完全对齐', () => {
+      const r = convertCsvToJson('a,a,b\n1,2,3', H);
+
+      expect(r.headers).toEqual(['a', 'a__2', 'b']);
+      expect(Object.keys(r.rows[0])).toEqual(['a', 'a__2', 'b']);
+    });
+
+    it('短行在 rows 里补了空串，预览不会错位', () => {
+      const r = convertCsvToJson('a,b,c\n1', H);
+
+      expect(r.rows).toEqual([{ a: '1', b: '', c: '' }]);
+    });
+
+    it('无表头时 headers 是按列号生成的键', () => {
+      const r = convertCsvToJson('1,2', NOH);
+
+      expect(r.headers).toEqual(['column_1', 'column_2']);
+      expect(r.rows).toEqual([{ column_1: '1', column_2: '2' }]);
+    });
+
+    it('空输入 / 只有表头时 rows 为空，预览不应渲染表格主体', () => {
+      expect(convertCsvToJson('   ', H).rows).toEqual([]);
+      expect(convertCsvToJson('a,b\n', H).rows).toEqual([]);
+    });
+  });
+
   describe('countCsvRows', () => {
     it('引号内的换行不算新行', () => {
       expect(countCsvRows('a,b\n"x\ny",2')).toBe(2);

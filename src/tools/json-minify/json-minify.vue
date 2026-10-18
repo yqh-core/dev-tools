@@ -21,6 +21,8 @@ const rules: UseValidationRule<string>[] = [
     input-placeholder="Paste your raw JSON here..."
     output-label="Minified version of your JSON"
     output-language="json"
+    downloadable
+    download-filename="minified"
     :input-validation-rules="rules"
     :transformer="transformer"
   />
