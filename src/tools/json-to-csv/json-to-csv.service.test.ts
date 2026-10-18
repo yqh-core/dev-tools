@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { convertArrayToCsv, getHeaders, csvShapeError } from './json-to-csv.service';
+import { convertArrayToCsv, csvShapeError, getHeaders } from './json-to-csv.service';
 import { parseCsv } from '@/utils/csv';
 
 describe('json-to-csv service', () => {

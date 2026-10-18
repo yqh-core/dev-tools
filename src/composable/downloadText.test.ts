@@ -52,7 +52,9 @@ describe('downloadText', () => {
   describe('downloadTextFile', () => {
     let createSpy: ReturnType<typeof vi.fn>;
     let revokeSpy: ReturnType<typeof vi.fn>;
-    let clickedAnchor: HTMLAnchorElement | null;
+    // 存快照而不是 this 本身：`no-this-alias` 是 lint 门的 error 项，
+    // 而且断言只用到 download / href 两个字段，存对象比存活引用更不容易被后续复用骗到。
+    let clickedAnchor: { download: string; href: string } | null;
 
     beforeEach(() => {
       createSpy = vi.fn(() => 'blob:mock-url');
@@ -63,7 +65,7 @@ describe('downloadText', () => {
       vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (
         this: HTMLAnchorElement,
       ) {
-        clickedAnchor = this;
+        clickedAnchor = { download: this.download, href: this.href };
       });
     });
 

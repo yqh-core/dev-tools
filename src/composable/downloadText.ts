@@ -50,10 +50,19 @@ function mimeForLanguage(language?: string): string {
  *  - 没有有效名字时回落到 `defaultName`；
  *  - 结尾没带 `.ext` 时补上，带扩展名但用户写的名里已含点也不会重复补。
  */
+// 控制字符用码位过滤，不写进正则字面量：`no-control-regex` 是 lint 门的 error 项，
+// 而且分开写之后「非法文件名字符」与「控制字符」这两件事在代码上是分开的，读得懂。
+const ILLEGAL_FILENAME_CHARS = /[\\/:*?"<>|]/g;
+
+function stripControlChars(s: string): string {
+  return Array.from(s, (ch) => {
+    const code = ch.codePointAt(0) ?? 0;
+    return code < 0x20 ? '' : ch;
+  }).join('');
+}
+
 function buildDownloadFilename(rawName: string | undefined, extension: string, defaultName = 'download'): string {
-  const cleaned = (rawName ?? '')
-    .replace(/[\\/:*?"<>|\u0000-\u001F]/g, '')
-    .trim();
+  const cleaned = stripControlChars((rawName ?? '').replace(ILLEGAL_FILENAME_CHARS, '')).trim();
 
   const base = cleaned === '' ? defaultName : cleaned;
   const ext = extension.startsWith('.') ? extension : `.${extension}`;
