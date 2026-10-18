@@ -867,7 +867,25 @@ const HELPERS = `(() => {
   return true;
 })()`;
 
-const installHelpers = () => evaluate(HELPERS).catch(() => false);
+/**
+ * 装页内钩子，并**验证它真的在当前文档里活着**。
+ *
+ * 原来是一句 `evaluate(HELPERS).catch(() => false)`，装没装上不看：导航刚提交、
+ * 文档还在换的当口装到旧上下文里，后面每个 `js` / `fillLabel` 步骤都会以
+ * 「window.__smoke 是 undefined」的形式报红，看上去像页面坏了 —— 实测全量跑里的
+ * /encryption 就是这样红的，而它单跑必然绿（跨用例假红）。
+ * 现在装完回读一次确认，最多重试到 3s；装不上就直接判红并说清是取证设施没起来，
+ * 而不是让后面的判据拿着 undefined 猜。
+ */
+async function installHelpers() {
+  for (let i = 0; i < 20; i++) {
+    const ok = await evaluate(`${HELPERS}`).catch(() => false)
+      && await evaluate('!!(window.__smoke && typeof window.__smoke.byLabel === "function")').catch(() => false);
+    if (ok) return true;
+    await sleep(150);
+  }
+  return false;
+}
 
 /**
  * 写入受控输入框。
@@ -914,8 +932,12 @@ async function fillByLabel({ label, text }) {
 /** 用例级脚本出口：表达式返回字符串即视为步骤失败，返回 undefined/null 表示通过。
  *  用页面里的 window.__smoke 做受控写值，或把中间结果挂在 window 上供 expect.js 复核。 */
 async function runJsStep(expression) {
+  // ⚠ 外层必须是 async 并 await：同步 IIFE 里 async 用例返回的是 Promise，
+  //    String(Promise) 得到 "[object Promise]" —— 判据根本没跑完，却被当成失败原因
+  //    （实测：新加的下载内容断言用 async IIFE，就以 [object Promise] 假红）。
+  //    await 对同步表达式无副作用，两条路径同时成立。
   const r = await evaluate(
-    `(() => { try { const v = (${expression}); return v == null ? null : String(v); } catch (e) { return 'JS 异常: ' + e.message; } })()`,
+    `(async () => { try { const v = await (${expression}); return v == null ? null : String(v); } catch (e) { return 'JS 异常: ' + e.message; } })()`,
   );
   return r ? r : '';
 }
@@ -1627,7 +1649,10 @@ async function runCase(c) {
     if (!mounted) fail(isStatic
       ? `静态页未渲染出正文：#app 内没有在 ${Math.round(mountMs / 1000)}s 内出现带文字的 h1`
       : `组件未挂载：.tool-layout 在 ${Math.round(mountMs / 1000)}s 内没出现`);
-    else await installHelpers();
+    else if (!(await installHelpers())) {
+      // 取证设施没起来 = 这一条用例的所有 js / fillLabel 判据都没跑，不能记成通过
+      fail('页内辅助钩子装不上（window.__smoke 不在当前文档），后续判据无法取证');
+    }
 
     rec.runtime.hasToolContent = await evaluate(`!!document.querySelector('.tool-content')`).catch(() => false);
     if (isStatic) {

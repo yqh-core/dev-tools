@@ -332,9 +332,16 @@ export const SMOKE_CASES = [
     category: 'Crypto',
     zhTitle: 'PDF签名检查器',
     tier: 'io',
-    strategy: 'fileUpload：注入一个结构合规的未签名 PDF，断言工具给出明确的「未找到签名」结论（不抛异常）',
+    strategy: 'fileUpload：注入结构合规的未签名 PDF，断言给出「未签名」结论，'
+      + '且必须自带「未签名 ≠ 被篡改」的区分句（任务2 把混报错当缺陷修掉了，文案与语义一起跟上新版）',
+    // 旧版那句 "No signatures found in the provided file." 把「没有签名」和「读不出来」混成一式，
+    // 55ce4f5 之后 UI 改成标题给结论 + 正文显式声明这本身不代表篡改。
+    // 这里既断新文案在，也断旧文案**不再出现** —— 退回去就会红，而不是静默共存。
     steps: [{ upload: { i: 0, file: 'scripts/smoke-fixtures/unsigned.pdf' } }, { wait: 2500 }],
-    expect: { text: ['No signatures found in the provided file.'] },
+    expect: {
+      text: ['No digital signature found', 'does not, by itself, indicate tampering'],
+      not: ['No signatures found in the provided file.'],
+    },
   },
 
   {
