@@ -1,0 +1,206 @@
+{
+  "generatedAt": "2026-10-17T23:50:03.443Z",
+  "mode": "DRY-RUN",
+  "baselineHead": "3a2125f979effda54d6f4d858e5a40ca5c4238dc",
+  "branch": "main",
+  "removalTargets": [
+    {
+      "id": "tool-dir",
+      "op": "removeDir",
+      "path": "src/tools/email-normalizer",
+      "note": "工具本体。漏删 = 页面代码还在，但只要注册表摘掉就不进产物（幽灵文件，必须一起删）。",
+      "status": "ok",
+      "detail": "整目录删除：src/tools/email-normalizer/（email-normalizer.vue, index.ts）",
+      "affectedLines": 80
+    },
+    {
+      "id": "registry-import",
+      "op": "cutLine",
+      "path": "src/tools/index.ts",
+      "note": "注册表 import。漏删 = TS 报 \"defined but never used\"，lint/typecheck 直接红。",
+      "status": "ok",
+      "affectedLines": 1,
+      "lineEnding": "LF",
+      "removedPreview": [
+        "import { tool as emailNormalizer } from './email-normalizer';"
+      ]
+    },
+    {
+      "id": "registry-entry",
+      "op": "cutLine",
+      "path": "src/tools/index.ts",
+      "note": "注册表条目。漏删 = import 已消失 → ReferenceError，构建期崩。",
+      "status": "ok",
+      "affectedLines": 1,
+      "lineEnding": "LF",
+      "removedPreview": [
+        "emailNormalizer,"
+      ]
+    },
+    {
+      "id": "i18n-en",
+      "op": "cutBlock",
+      "path": "locales/en.yml",
+      "note": "英文文案块。漏删 = en.yml 残留孤儿键（build-locales 产物里出现无主条目）。",
+      "status": "ok",
+      "affectedLines": 4,
+      "lineEnding": "CRLF",
+      "removedPreview": [
+        "email-normalizer:",
+        "title: Email Address Normalizer",
+        "description: Normalize email addresses to a standard format for easier comparison, deduplication and data cleaning.",
+        ""
+      ]
+    },
+    {
+      "id": "i18n-zh",
+      "op": "cutBlock",
+      "path": "locales/zh.yml",
+      "note": "中文文案块，同上。zh 的 description 值随版本变化，所以终点锚只钉字段名。",
+      "status": "ok",
+      "affectedLines": 4,
+      "lineEnding": "CRLF",
+      "removedPreview": [
+        "email-normalizer:",
+        "title: 邮箱地址归一化",
+        "description: 把邮箱地址统一成标准格式，方便比对、去重和数据清洗。",
+        ""
+      ]
+    },
+    {
+      "id": "guides-en",
+      "op": "cutBlock",
+      "path": "src/tools/guides.en.ts",
+      "note": "英文 guide（intro/steps/notes/example/about/faqs）。漏删 = guide-articles.ts 的「文章页数 === 有 guide 的工具数」断言在删除当天直接抛错，构建红。",
+      "status": "ok",
+      "affectedLines": 13,
+      "lineEnding": "LF",
+      "removedPreview": [
+        "'/email-normalizer': {",
+        "intro: 'Normalises email addresses into a standard form — useful for de-duplication, cleaning data or matching accounts.",
+        "steps: ['Paste one or more email addresses', 'Read the normalised results', 'Apply the rules you need for + tags, casing",
+        "notes: ['Gmail\\'s dot and + tag rules differ between providers; confirm your own policy before de-duplicating'],",
+        "example: { label: 'Fill in a sample email', text: 'John.Doe+news@Gmail.com' },",
+        "about: 'Normalise a list of email addresses (one per line) so that equivalent addresses collapse into one canonical form",
+        "faqs: [",
+        "{ q: 'Why do john.doe@gmail.com and johndoe@gmail.com match?', a: 'Gmail ignores dots in the local part and treats every",
+        "{ q: 'Is plus-addressing safe to strip for every provider?', a: 'It is safe for Gmail-style providers. Some mail servers",
+        "{ q: 'Does normalisation fix typos?', a: 'No — it folds equivalent spellings, not wrong ones. gmial.com stays wrong; syn",
+        "],",
+        "},",
+        ""
+      ]
+    },
+    {
+      "id": "guides-zh",
+      "op": "cutBlock",
+      "path": "src/tools/guides.zh.ts",
+      "note": "中文 guide，同上。",
+      "status": "ok",
+      "affectedLines": 13,
+      "lineEnding": "LF",
+      "removedPreview": [
+        "'/email-normalizer': {",
+        "intro: '把邮箱地址统一成标准形式，做去重、清洗数据或比对账号时有用。',",
+        "steps: ['粘贴一个或多个邮箱地址', '看归一化后的结果', '按需要处理 + 后缀、大小写、点号等规则'],",
+        "notes: ['Gmail 的点和 + 后缀规则各服务商并不一致，去重前先确认业务口径'],",
+        "example: { label: '填入示例邮箱', text: 'John.Doe+news@Gmail.com' },",
+        "about: '把一批邮箱地址（每行一个）归一化成规范形式——统一小写，并折叠服务商特定的等价别名（比如 Gmail 忽略的点、加号别名），等价地址合并为一个。为去重而生：合并邮件列表、清洗 CRM 导出、对比订阅者名单。',",
+        "faqs: [",
+        "{ q: '为什么 john.doe@gmail.com 和 johndoe@gmail.com 算同一个？', a: 'Gmail 忽略本地部分里的点，且把加号后的内容当标签，两个地址指向同一邮箱。归一化把它们折叠到一起，你的去重才真正去",
+        "{ q: '对所有服务商都去掉加号别名安全吗？', a: '对 Gmail 式服务商安全。有些邮件服务器把加号标签当作真实的不同地址，所以请保留原始名单作为事实来源，归一化结果只用于比对。' },",
+        "{ q: '归一化能修拼写错误吗？', a: '不能——它折叠的是等价写法，不是错误写法。gmial.com 仍然是错的；语法与域名的有效性校验是另一件事。' },",
+        "],",
+        "},",
+        ""
+      ]
+    },
+    {
+      "id": "aliases",
+      "op": "cutLine",
+      "path": "src/tools/aliases.ts",
+      "note": "中文搜索别名。漏删 = 死别名继续把中文查询词映射到不存在的路径（搜索结果点出 404）。",
+      "status": "ok",
+      "affectedLines": 1,
+      "lineEnding": "LF",
+      "removedPreview": [
+        "'/email-normalizer': ['邮箱', '邮件', 'email', '去重', '清洗', '归一化'],"
+      ]
+    },
+    {
+      "id": "smoke-case",
+      "op": "cutBlock",
+      "path": "scripts/smoke-cases.mjs",
+      "note": "冒烟用例。漏删 = 101 条用例 ↔ 101 个页面的双向差集校验变红（用例指向已下线路径）。",
+      "status": "ok",
+      "affectedLines": 9,
+      "lineEnding": "CRLF",
+      "removedPreview": [
+        "{",
+        "path: '/email-normalizer',",
+        "name: 'email-normalizer',",
+        "zhTitle: '邮箱地址归一化',",
+        "strategy: 'knownVector：Gmail 地址的等价规则 —— 本地部分的大小写与点号无意义、+后缀可忽略',",
+        "steps: [{ fill: { i: 0, text: 'User.Name+Tag@Gmail.com' } }, { wait: 1000 }],",
+        "expect: { text: ['username@gmail.com'] },",
+        "},",
+        ""
+      ]
+    },
+    {
+      "id": "example-fixture",
+      "op": "cutLine",
+      "path": "scripts/smoke-fixtures/example-values.json",
+      "note": "示例文本 fixture。正解是删完跑 `node scripts/gen-example-values.mjs` 重生成（count 字段会同步 88→87），手工只删这一行会让 --check 因 count 不符而红。",
+      "status": "ok",
+      "affectedLines": 1,
+      "lineEnding": "LF",
+      "removedPreview": [
+        "\"/email-normalizer\": \"John.Doe+news@Gmail.com\","
+      ]
+    },
+    {
+      "id": "readme-list",
+      "op": "cutLine",
+      "path": "README.md",
+      "note": "README 工具清单。漏删 = 文档里留一条指向 404 的链接。",
+      "status": "ok",
+      "affectedLines": 1,
+      "lineEnding": "LF",
+      "removedPreview": [
+        "- [Email Address Normalizer](https://digdevbox.com/email-normalizer) - Normalize email addresses to a standard format fo"
+      ]
+    },
+    {
+      "id": "npm-dep",
+      "op": "cutLine",
+      "path": "package.json",
+      "note": "npm 依赖（上游 normalize-email 的 fork，仅此一页使用，已 git grep 证实）。⚠ 删这行会让 package.json 与 pnpm-lock.yaml 失配，且本仓库纪律是 lockfile 不随手动（任何 pnpm install 会把 @vueuse/shared 12→15 重解析、CI --frozen-lockfile 必红）。因此依赖摘除必须单独安排一个「锁文件维护窗口」，不与页面删除同批执行。",
+      "status": "ok",
+      "affectedLines": 1,
+      "lineEnding": "CRLF",
+      "removedPreview": [
+        "\"email-normalizer\": \"^1.0.0\","
+      ]
+    }
+  ],
+  "autogeneratedNotTouched": [
+    {
+      "path": "components.d.ts",
+      "how": "unplugin-vue-components 构建期生成，重新 build 后 EmailNormalizer 条目自动消失"
+    },
+    {
+      "path": "dist/**",
+      "how": "预渲染产物；重新构建 + 部署后 /email-normalizer/ 不再存在"
+    }
+  ],
+  "routingTodos": [
+    "删除当天在 public/_redirects 追加处置规则。两种裁定：",
+    "  A) 有替代能力 → `/email-normalizer/    /list-converter/    301`（list-converter 的去重行覆盖其核心场景）；",
+    "  B) 无值得保留的需求信号 → 不加 301，让路径落到 CF 的 404.html（硬 404，不是软 404 —— SPA fallback 已于 2026-10-05 删除）。",
+    "  规则必须排在 `/legacy/*` 与任何 catch-all 之前（_redirects 自上而下，第一条命中即生效）。",
+    "  选 A 还是 B 取决于台账 B 区写的前置条件：先按准入标准②补 SERP 实测。"
+  ],
+  "residualFilesOutsideChecklist": [],
+  "verdict": "TEARDOWN-PATH-PROVEN"
+}

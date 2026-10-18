@@ -562,6 +562,31 @@ const shareLabel = computed(() => {
 
   ::v-deep(& > *) {
     flex: 0 1 600px;
+
+    /**
+     * 移动端「内容被裁掉且滑不到」的根因修复（2026-10-18 线上实测）。
+     *
+     * 症状：`flex-basis: 600px` 在没有 `min-width: 0` 的 flex 容器里，
+     * 子项**收不进内容固有宽度以下**。表格、宽网格这类子项在 390px 视口上
+     * 会撑到 498px / 601px，而父级 `.tool-layout` 只有 390px 且 `justify-content: center`
+     * ——居中意味着两头各溢出约一半，于是**左边也切掉一截，而且没有任何滚动条可拉**
+     * （documentElement.scrollWidth === clientWidth，用户既看不见也滑不到）。
+     *
+     * 线上实测（390px 视口，CDP 真渲染）：
+     *   /mime-types     表宽 601px，left -105 → 左右各切 32px / 105px，966 个单元格不可读
+     *   /http-headers   列表块宽 498px，left -54 → 首列文字左半截不可读
+     *   /token-generator、/mac-address-generator 修复前后都是 0（对照组：证明这把尺子
+     *                                    不是「注入任何 CSS 都变绿」）
+     * 注入 `min-width: 0; max-width: 100%` 后：溢出块 3 → 0、1 → 0，对照组保持 0 → 0。
+     *
+     * ⚠ 这条只是把「块」拉回视口内。真正让**宽表格可读**还需要滚动容器：
+     *   用已经自带 `overflow-x-auto` 的 `c-table`（src/ui/c-table），
+     *   或直接照 http-headers 的 `.methods-table { overflow-x: auto }` 写法。
+     *   裸 `n-table`（无滚动祖先）在新窗口下会收缩到视口宽并被压字，
+     *   所以本仓不再新增裸 n-table 的宽表引用页。
+     */
+    min-width: 0;
+    max-width: 100%;
   }
 }
 
