@@ -137,44 +137,56 @@ watchEffect(
     </c-card>
 
     <c-card title="Matches" mb-1 mt-3>
-      <n-table v-if="results?.length > 0">
-        <thead>
-          <tr>
-            <th scope="col">
-              Index in text
-            </th>
-            <th scope="col">
-              Value
-            </th>
-            <th scope="col">
-              Captures
-            </th>
-            <th scope="col">
-              Groups
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="match of results" :key="match.index">
-            <td>{{ match.index }}</td>
-            <td>{{ match.value }}</td>
-            <td>
-              <ul>
-                <li v-for="capture in match.captures" :key="capture.name">
-                  "{{ capture.name }}" = {{ capture.value }} [{{ capture.start }} - {{ capture.end }}]
-                </li>
-              </ul>
-            </td>
-            <td>
-              <ul>
-                <li v-for="group in match.groups" :key="group.name">
-                  "{{ group.name }}" = {{ group.value }} [{{ group.start }} - {{ group.end }}]
-                </li>
-              </ul>
-            </td>
-          </tr>
-        </tbody>
-      </n-table>
+      <!--
+        滚动壳：与 ipv4-subnet-calculator 同款的 `overflow-x-auto + max-w-full` 收口。
+        「Matches」表有 Index / Value / Captures / Groups 四列，Value 与 Captures 里装的是
+        匹配到的原文和 `"name" = value [start - end]` —— 用常见的邮箱/URL 正则一测，
+        390px 视口下这张表固有宽就到 ~546px（长邮箱更多），右边缘越过视口 ~599px，
+        而祖先链上没有可滚容器（naive-ui 的 .n-table 只 overflow-x:hidden，裁而不滚），
+        实测 6/12 单元格「滚不进视口」（脚本 scripts/probe-mobile-overflow.mjs）。
+        这正是任务1 已给 subnet-calculator 补过、但漏了同族 regex-tester 的那个缺陷。
+        max-w-full 不能省：否则壳自己就比视口宽，等于把溢出往里挪一层。
+      -->
+      <div v-if="results?.length > 0" class="relative max-w-full overflow-x-auto rounded">
+        <n-table>
+          <thead>
+            <tr>
+              <th scope="col">
+                Index in text
+              </th>
+              <th scope="col">
+                Value
+              </th>
+              <th scope="col">
+                Captures
+              </th>
+              <th scope="col">
+                Groups
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="match of results" :key="match.index">
+              <td>{{ match.index }}</td>
+              <td>{{ match.value }}</td>
+              <td>
+                <ul>
+                  <li v-for="capture in match.captures" :key="capture.name">
+                    "{{ capture.name }}" = {{ capture.value }} [{{ capture.start }} - {{ capture.end }}]
+                  </li>
+                </ul>
+              </td>
+              <td>
+                <ul>
+                  <li v-for="group in match.groups" :key="group.name">
+                    "{{ group.name }}" = {{ group.value }} [{{ group.start }} - {{ group.end }}]
+                  </li>
+                </ul>
+              </td>
+            </tr>
+          </tbody>
+        </n-table>
+      </div>
       <c-alert v-else>
         No match
       </c-alert>
