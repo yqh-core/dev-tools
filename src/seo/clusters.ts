@@ -46,6 +46,7 @@ export interface ToolCluster {
  */
 export const TOOL_CLUSTERS: ToolCluster[] = [
   {
+    // JSON 的查看、格式化与常用导出（diff / 转 CSV·代码·URL 参数）。
     id: 'json',
     members: [
       '/json-prettify',
@@ -53,14 +54,20 @@ export const TOOL_CLUSTERS: ToolCluster[] = [
       '/json-diff',
       '/json-to-csv',
       '/csv-to-json',
+      '/json-to-code',
+      '/json-to-get-params',
+    ],
+  },
+  {
+    // JSON ↔ 其它结构化标记格式（YAML / XML / TOML）。
+    id: 'json-convert',
+    members: [
       '/json-to-yaml-converter',
       '/yaml-to-json-converter',
       '/json-to-xml',
       '/xml-to-json',
       '/json-to-toml',
       '/toml-to-json',
-      '/json-to-code',
-      '/json-to-get-params',
     ],
   },
   {
@@ -145,21 +152,34 @@ export const TOOL_CLUSTERS: ToolCluster[] = [
     ],
   },
   {
+    // 图片的处理与产出：缩放 / 压缩 / 裁剪 / 转 PDF / 生成占位图与图标 / 拍摄。
     id: 'image',
     members: [
       '/image-resize',
       '/image-compress',
       '/image-crop',
-      '/image-color-picker',
       '/image-to-pdf',
       '/favicon-generator',
-      '/base64-file-converter',
       '/svg-placeholder-generator',
-      '/qrcode-generator',
-      '/wifi-qrcode-generator',
       '/camera-recorder',
+    ],
+  },
+  {
+    // 取色 / 换算 / 对比度校验：围绕「颜色」这件事。
+    id: 'image-color',
+    members: [
+      '/image-color-picker',
       '/color-converter',
       '/color-contrast-checker',
+    ],
+  },
+  {
+    // 数据 ↔ 图像：二维码生成、文件与 base64 互转。
+    id: 'image-data',
+    members: [
+      '/qrcode-generator',
+      '/wifi-qrcode-generator',
+      '/base64-file-converter',
     ],
   },
   {

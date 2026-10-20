@@ -799,8 +799,11 @@ nav:
   moreTools: "More tools"
 clusters:
   image: "Image tools"
+  image-color: "Color tools"
+  image-data: "QR code & data"
   pdf: 'PDF tools'
   json: "JSON tools"
+  json-convert: "JSON format conversion"
   yaml: "YAML & TOML"
   xml: "XML tools"
   jwt: "JWT tools"

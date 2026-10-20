@@ -795,8 +795,11 @@ nav:
   moreTools: "更多工具"
 clusters:
   image: "图片工具"
+  image-color: "颜色工具"
+  image-data: "二维码与数据"
   pdf: 'PDF 工具'
   json: "JSON 工具"
+  json-convert: "JSON 格式转换"
   yaml: "YAML 与 TOML"
   xml: "XML 工具"
   jwt: "JWT 工具"
