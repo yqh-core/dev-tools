@@ -1,10 +1,8 @@
 <script setup lang="ts">
-import { IconHistory } from '@tabler/icons-vue';
 import { useStorage } from '@vueuse/core';
 import { useThemeVars } from 'naive-ui';
 import { RouterLink, useRoute } from 'vue-router';
 import MenuIconItem from './MenuIconItem.vue';
-import { CLASSIC_SITE_TOOL_COUNT, classicSiteUrl } from '@/classic-site';
 import type { Tool, ToolCategory } from '@/tools/tools.types';
 
 const props = withDefaults(defineProps<{ toolsByCategory?: ToolCategory[] }>(), { toolsByCategory: () => [] });
@@ -78,17 +76,6 @@ const themeVars = useThemeVars();
       </div>
     </n-collapse-transition>
   </div>
-
-  <!--
-    经典版入口（162 个早期工具，由 public/legacy/ 静态提供）。
-    它不在 vue-router 路由表内，所以这里必须是原生 <a>：
-    换成 RouterLink 会被路由接住并落到 404。
-  -->
-  <a class="classic-entry" :href="classicSiteUrl">
-    <n-icon :component="IconHistory" :size="16" />
-    <span class="classic-label">{{ $t('home.classic.entry') }}</span>
-    <span class="classic-count">{{ CLASSIC_SITE_TOOL_COUNT }}</span>
-  </a>
 </template>
 
 <style scoped lang="less">
@@ -130,45 +117,9 @@ const themeVars = useThemeVars();
 }
 
 /*
-  经典版入口。与上方的工具菜单刻意做出区分：虚线边框 + 计数徽标，
-  传达「这是另一套站点（静态子站），不是本页路由」。
+  经典版入口已摘除主站引导（2026-10-20）：/legacy 整站是 zh-CN + noindex，
+  英文界面点它等于把用户丢进纯中文老站。主站不再在侧栏推这个入口；
+  legacy 静态页仍保留、经 /legacy/ 直链可达（public/_redirects 的 catch-all 200 未动）。
+  逐条退役等 legacy 93 条清单裁定。
 */
-.classic-entry {
-  display: flex;
-  align-items: center;
-
-  margin: 14px 6px 10px;
-  padding: 8px 10px;
-  border: 1px dashed v-bind('themeVars.borderColor');
-  border-radius: 6px;
-
-  color: inherit;
-  text-decoration: none;
-  opacity: 0.75;
-
-  transition: opacity 0.2s ease, border-color 0.2s ease;
-
-  &:hover {
-    opacity: 1;
-    border-color: v-bind('themeVars.primaryColor');
-  }
-
-  .classic-label {
-    margin-left: 8px;
-    font-size: 13px;
-  }
-
-  .classic-count {
-    min-width: 20px;
-    margin-left: auto;
-    padding: 0 6px;
-    border-radius: 9px;
-    background-color: v-bind('themeVars.actionColor');
-
-    font-size: 11px;
-    line-height: 18px;
-    text-align: center;
-    opacity: 0.75;
-  }
-}
 </style>

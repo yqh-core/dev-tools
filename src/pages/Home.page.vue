@@ -12,7 +12,6 @@ import { ALIASES } from '@/tools/aliases';
 import { GUIDES } from '@/tools/guides.en';
 import { useFuzzySearch } from '@/composable/fuzzySearch';
 import { TOOL_CLUSTERS } from '@/seo/clusters';
-import { CLASSIC_SITE_TOOL_COUNT, classicSiteUrl } from '@/classic-site';
 import { config } from '@/config';
 import { usePageSeo } from '@/seo/use-page-seo';
 
@@ -630,22 +629,10 @@ function onUpdateFavoriteTools() {
         -->
 
         <!--
-          经典版入口。老站 162 个工具原样保留在 public/legacy/，是独立静态子站，
-          不在 vue-router 路由内，因此这里用原生 <a>（用 RouterLink 会落到 404）。
+          经典版入口已摘除主站引导（2026-10-20）：/legacy 整站 zh-CN + noindex，
+          英文界面点进来等于掉进纯中文老站。老站 162 个工具仍在 public/legacy/、
+          经 /legacy/ 直链可达（_redirects catch-all 未动）；逐条退役等 legacy 93 条清单裁定。
         -->
-        <h3 class="mb-5px mt-25px text-neutral-600 font-500 dark:text-neutral-400">
-          {{ $t('home.classic.entry') }}
-        </h3>
-        <a class="classic-card" :href="classicSiteUrl">
-          <div class="classic-card-main">
-            <span class="classic-card-title">
-              {{ $t('home.classic.entry') }}
-              <span class="classic-card-count">{{ CLASSIC_SITE_TOOL_COUNT }}</span>
-            </span>
-            <span class="classic-card-desc">{{ $t('home.classic.desc') }}</span>
-          </div>
-          <span class="classic-card-go">{{ $t('home.classic.open') }} →</span>
-        </a>
       </template>
     </div>
   </div>
@@ -1291,65 +1278,5 @@ function onUpdateFavoriteTools() {
   }
 }
 
-/*
-  经典版入口卡片。刻意用虚线边框与工具卡片（实线）区分：
-  它通向的是另一套站点，而不是本页的一个工具。
-*/
-.classic-card {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-
-  padding: 14px 16px;
-  border: 1px dashed rgba(128, 128, 128, 0.4);
-  border-radius: 8px;
-
-  color: inherit;
-  text-decoration: none;
-
-  transition: border-color 0.2s ease, background-color 0.2s ease;
-
-  &:hover {
-    border-color: color-mix(in srgb, var(--dd-primary) 80%, transparent);
-    background-color: rgba(128, 128, 128, 0.05);
-  }
-
-  .classic-card-main {
-    display: flex;
-    flex: 1;
-    flex-direction: column;
-    gap: 4px;
-    min-width: 0;
-  }
-
-  .classic-card-title {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 15px;
-    font-weight: 500;
-  }
-
-  .classic-card-count {
-    padding: 0 6px;
-    border-radius: 9px;
-    background-color: rgba(128, 128, 128, 0.16);
-
-    font-size: 11px;
-    font-weight: 400;
-    line-height: 18px;
-    opacity: 0.8;
-  }
-
-  .classic-card-desc {
-    font-size: 13px;
-    opacity: 0.6;
-  }
-
-  .classic-card-go {
-    flex: none;
-    font-size: 13px;
-    opacity: 0.7;
-  }
-}
+/* .classic-card 样式随首页经典入口一并摘除（见模板注释）。 */
 </style>
