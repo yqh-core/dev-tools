@@ -142,7 +142,7 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     priority: 'P1',
     competition: 'high',
     landed: true,
-    lockedTitle: 'Color Contrast Checker — WCAG AA and AAA Ratio Test Online',
+    lockedTitle: 'Color Contrast Checker — Pass or Fail WCAG AA and AAA',
     note: '无障碍评审刚需，与本轮 Contact 的无障碍反馈类型同源；竞品强但查询量大。',
   },
   {
@@ -212,7 +212,7 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     competition: 'low',
     article: 'devops-tools-guide',
     landed: true,
-    lockedTitle: 'Docker Run to Compose Converter — Generate docker-compose.yml Online',
+    lockedTitle: 'Docker Run to Compose Converter — Generate a compose Service from a Command',
     note: '簇 6。差异空间最大：第 1 名是开源项目的 Docker Hub 镜像页，不是任何品牌站。',
   },
   {
@@ -236,7 +236,7 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     competition: 'low',
     article: 'devops-tools-guide',
     landed: true,
-    lockedTitle: 'Crontab Generator — Build Cron Expressions Online',
+    lockedTitle: 'Crontab Generator — Cron Expressions with Plain-English Preview',
     note: '簇 6。⛔ 两个 intent 混杂（crontab generator 含命令+系统字段 vs 纯 5 字段表达式），页面需先做意图分流。',
   },
   {
@@ -258,7 +258,7 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     priority: 'P1',
     competition: 'high',
     landed: true,
-    lockedTitle: 'Base64 Encoder & Decoder — Encode and Decode Text Online',
+    lockedTitle: 'Base64 Encoder & Decoder — Padding, URL-Safe, Binary-Safe',
     note: '簇 7。`base64 decode` 的 top5 里 4 条是教程站，其中一篇的立场是「别用在线工具」⇒ 单位成本最高。',
   },
   {
@@ -269,7 +269,7 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     priority: 'P1',
     competition: 'medium',
     landed: true,
-    lockedTitle: 'Base64 to Image — Decode and Preview Online',
+    lockedTitle: 'Base64 to Image — Online Decode, Preview and Download',
     note: '簇 7。`base64 to image` 在 SERP 上是完全独立的域名集群（5/5 全是该类域名）。',
   },
   {
@@ -291,7 +291,7 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     priority: 'P1',
     competition: 'high',
     landed: true,
-    lockedTitle: 'URL Encoder & Decoder — Percent-Encode URLs Online',
+    lockedTitle: 'URL Encoder & Decoder — Percent-Encoding, encodeURIComponent Pitfalls',
     note: '簇 8。竞争密度全簇最高（同质化新站互相没有护城河，也没有空档）。',
   },
   {

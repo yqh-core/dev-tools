@@ -275,7 +275,7 @@ tools:
     description: Hash and compare text string using bcrypt. Bcrypt is a password-hashing function based on the Blowfish cipher.
 
   crontab-generator:
-    title: Crontab Generator — Build Cron Expressions Online
+    title: Crontab Generator — Cron Expressions with Plain-English Preview
     description: Validate and generate crontab and get the human-readable description of the cron schedule.
 
   http-status-codes:
@@ -327,7 +327,7 @@ tools:
     description: Generate a BIP39 passphrase from an existing or random mnemonic, or get the mnemonic from the passphrase.
 
   base64-file-converter:
-    title: Base64 to Image — Decode and Preview Online
+    title: Base64 to Image — Online Decode, Preview and Download
     description: Convert a string, file, or image into its base64 representation.
 
   list-converter:
@@ -335,7 +335,7 @@ tools:
     description: Remove duplicates, sort, reverse, lowercase, trim and add prefix/suffix to a list, one item per line. Everything runs in your browser — no upload.
 
   base64-string-converter:
-    title: Base64 Encoder & Decoder — Encode and Decode Text Online
+    title: Base64 Encoder & Decoder — Padding, URL-Safe, Binary-Safe
     description: Simply encode and decode strings into their base64 representation.
 
   toml-to-yaml:
@@ -379,7 +379,7 @@ tools:
     description: Format and validate JSON online — pretty-print at your indent size, sort keys and spot syntax errors instantly, right in your browser.
 
   docker-run-to-docker-compose-converter:
-    title: Docker Run to Compose Converter — Generate docker-compose.yml Online
+    title: Docker Run to Compose Converter — Generate a compose Service from a Command
     description: Transforms "docker run" commands into docker-compose files!
 
   mac-address-lookup:
@@ -627,7 +627,7 @@ tools:
     title: Nano ID Generator — Short, URL-safe Unique IDs Online
     description: Generate nanoid-style unique IDs online — URL-safe alphabet, any length, batch of up to 200, built with crypto randomness in your browser.
   color-contrast-checker:
-    title: Color Contrast Checker — WCAG AA and AAA Ratio Test Online
+    title: Color Contrast Checker — Pass or Fail WCAG AA and AAA
     description: Check the contrast ratio between two colours against WCAG 2.x AA and AAA thresholds for normal and large text, with a live text preview.
 
   ulid-generator:
@@ -683,7 +683,7 @@ tools:
     description: Generate and validate time-based OTP (one time password) for multi-factor authentication.
 
   url-encoder:
-    title: URL Encoder & Decoder — Percent-Encode URLs Online
+    title: URL Encoder & Decoder — Percent-Encoding, encodeURIComponent Pitfalls
     description: Encode text to URL-encoded format (also known as "percent-encoded"), or decode from it.
 
   text-to-binary:
@@ -795,6 +795,8 @@ tool:
   guideExampleTip: "Not sure what to enter? Click to fill in a sample value."
   guideExampleApplied: "✓ Filled in"
   guideExampleFailed: "Couldn't auto-fill this input"
+nav:
+  moreTools: "More tools"
 clusters:
   image: "Image tools"
   pdf: 'PDF tools'
@@ -812,6 +814,10 @@ clusters:
   hash: "Hashing & crypto"
   text: "Text tools"
   date: "Date & time"
+  convert: "Unit & data conversion"
+  numeric: "Numbers & numerals"
+  math: "Calculators"
+  parse: "Validators & parsers"
 seo:
   guideSummary: "Steps and notes"
   aboutTitle: "What is {name}?"
