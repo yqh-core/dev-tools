@@ -14,6 +14,7 @@ import type { ToolCategory } from '@/tools/tools.types';
 import { useToolStore } from '@/tools/tools.store';
 import { useTracker } from '@/modules/tracker/tracker.services';
 import CollapsibleToolMenu from '@/components/CollapsibleToolMenu.vue';
+import { groupByPrimaryCluster } from '@/tools/nav-groups';
 
 const themeVars = useThemeVars();
 const styleStore = useStyleStore();
@@ -24,11 +25,18 @@ const { tracker } = useTracker();
 const { t } = useI18n();
 
 const toolStore = useToolStore();
-const { favoriteTools, toolsByCategory } = storeToRefs(toolStore);
+const { favoriteTools } = storeToRefs(toolStore);
+
+// 侧栏按「任务簇」分组（用户任务视角），替代原先的 10 个数据库分类。
+// 簇与成员来自 clusters.ts（单一事实源）；未成簇工具由 groupByPrimaryCluster 归入末尾
+// 兜底组，保证「整站内链不减少」—— 该守恒由 nav-groups.test.ts 的不变式机器锁死，不靠自觉。
+function navGroupLabel(clusterId: string | null) {
+  return clusterId ? t(`clusters.${clusterId}`) : t('nav.moreTools');
+}
 
 const tools = computed<ToolCategory[]>(() => [
   ...(favoriteTools.value.length > 0 ? [{ name: t('tools.categories.favorite-tools'), components: favoriteTools.value }] : []),
-  ...toolsByCategory.value,
+  ...groupByPrimaryCluster(toolStore.tools).map(g => ({ name: navGroupLabel(g.clusterId), components: g.tools })),
 ]);
 </script>
 

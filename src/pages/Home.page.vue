@@ -5,6 +5,7 @@ import Draggable from 'vuedraggable';
 import ColoredCard from '../components/ColoredCard.vue';
 import ToolCard from '../components/ToolCard.vue';
 import { useToolStore } from '@/tools/tools.store';
+import { groupByPrimaryCluster } from '@/tools/nav-groups';
 import type { ToolWithCategory } from '@/tools/tools.types';
 import { toolsWithCategory } from '@/tools/index';
 import { ALIASES } from '@/tools/aliases';
@@ -245,17 +246,19 @@ const taskClusters = computed(() =>
 );
 
 /**
- * 类目入口卡（P1 重排 · 2026-10-13）：Browse by category 的数据源。
- * 直接消费 toolStore.toolsByCategory（ToolCategory 单一事实源，与侧栏菜单同源），
- * 每类目取 3 个代表工具 + 真实计数。全量链接在 /tools 目录页。
- * 计数用 components.length 现算（数字同源纪律 —— 与 hero 徽章的 tools.length 同一来源）。
+ * 类目入口卡（2026-10-20 · 改为任务簇视角）：首页 Browse by category 的数据源。
+ * 消费 groupByPrimaryCluster（与侧栏同源，簇与成员来自 clusters.ts 单一事实源），
+ * 每簇取 3 个代表工具 + 真实计数；未成簇工具归入末尾「更多工具」兜底组。
+ * ⛔ 不再用 toolsByCategory 的 10 个数据库分类 —— 那是「它属于哪类」，
+ *    簇是「用户要干的事」，与侧栏保持同一套任务视角（两处必须同源，否则漂移）。
+ * 计数用工具数现算（数字同源纪律 —— 与 hero 徽章的 tools.length 同一来源）。
  */
 const CATEGORY_SAMPLE_LIMIT = 3;
 const categoriesPreview = computed(() =>
-  toolStore.toolsByCategory.map(cat => ({
-    name: cat.name,
-    count: cat.components.length,
-    sampleTools: cat.components.slice(0, CATEGORY_SAMPLE_LIMIT),
+  groupByPrimaryCluster(toolStore.tools).map(g => ({
+    name: g.clusterId ? t(`clusters.${g.clusterId}`) : t('nav.moreTools'),
+    count: g.tools.length,
+    sampleTools: g.tools.slice(0, CATEGORY_SAMPLE_LIMIT),
   })),
 );
 

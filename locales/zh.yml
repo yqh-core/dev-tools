@@ -791,6 +791,8 @@ tool:
   guideExampleTip: "不确定填什么？点一下自动填一份示例内容。"
   guideExampleApplied: "✓ 已填入"
   guideExampleFailed: "示例无法填入此输入框"
+nav:
+  moreTools: "更多工具"
 clusters:
   image: "图片工具"
   pdf: 'PDF 工具'
@@ -808,6 +810,10 @@ clusters:
   hash: "哈希与加密"
   text: "文本工具"
   date: "日期与时间"
+  convert: "单位与数据换算"
+  numeric: "数字与进制"
+  math: "计算器"
+  parse: "校验与解析"
 seo:
   guideSummary: "操作步骤与注意事项"
   aboutTitle: "「{name}」是什么？"

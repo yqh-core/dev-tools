@@ -105,6 +105,42 @@ export const TOOL_CLUSTERS: ToolCluster[] = [
       '/nanoid-generator',
       '/token-generator',
       '/password-generator',
+      '/otp-generator',
+      '/bip39-generator',
+    ],
+  },
+  {
+    // 单位 / 度量换算。/unit-converter 本身已覆盖长度·重量·温度等族，
+    // 这几个是各自独立的高频换算页，归到同一「换算」任务下。
+    id: 'convert',
+    members: [
+      '/unit-converter',
+      '/temperature-converter',
+      '/px-rem-converter',
+    ],
+  },
+  {
+    // 数制 / 数值表示换算（进制、罗马数字）。
+    id: 'numeric',
+    members: [
+      '/base-converter',
+      '/roman-numeral-converter',
+    ],
+  },
+  {
+    // 计算器类（表达式求值、百分比）。
+    id: 'math',
+    members: [
+      '/math-evaluator',
+      '/percentage-calculator',
+    ],
+  },
+  {
+    // 结构化标识的校验 / 解析（电话、IBAN）。
+    id: 'parse',
+    members: [
+      '/iban-validator-and-parser',
+      '/phone-parser-and-formatter',
     ],
   },
   {
@@ -118,6 +154,11 @@ export const TOOL_CLUSTERS: ToolCluster[] = [
       '/favicon-generator',
       '/base64-file-converter',
       '/svg-placeholder-generator',
+      '/qrcode-generator',
+      '/wifi-qrcode-generator',
+      '/camera-recorder',
+      '/color-converter',
+      '/color-contrast-checker',
     ],
   },
   {
@@ -164,6 +205,7 @@ export const TOOL_CLUSTERS: ToolCluster[] = [
       '/http-status-checker',
       '/http-headers',
       '/user-agent-parser',
+      '/device-information',
       '/mime-types',
       '/basic-auth-generator',
     ],
@@ -202,6 +244,14 @@ export const TOOL_CLUSTERS: ToolCluster[] = [
       '/list-converter',
       '/string-obfuscator',
       '/lorem-ipsum-generator',
+      '/text-to-binary',
+      '/text-to-unicode',
+      '/text-to-nato-alphabet',
+      '/morse-code-converter',
+      '/numeronym-generator',
+      '/fullwidth-converter',
+      '/ascii-text-drawer',
+      '/rmb-uppercase',
     ],
   },
   {
