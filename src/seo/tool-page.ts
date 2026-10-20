@@ -18,7 +18,7 @@
  * 这类机械文案（那是低价值内容政策里的「自动生成内容」形态）。覆盖率由
  * `build-seo.mjs` 打印出来，缺口按待办处理而不是靠凑字数掩盖。
  */
-import { CLUSTER_IDS, TOOL_CLUSTERS, clusterOf, resolveRelated, resolveWorkflow } from './clusters';
+import { CLUSTER_IDS, STANDALONE_ALLOWLIST, TOOL_CLUSTERS, clusterOf, resolveRelated, resolveWorkflow } from './clusters';
 import { KNOWN_NOTE_SLUGS, NOTES_ORIGIN } from './keyword-map';
 import { GUIDES } from '@/tools/guides.en';
 import { GUIDES as GUIDES_ZH } from '@/tools/guides.zh';
@@ -140,6 +140,37 @@ const BY_PATH = new Map(TOOL_SEO_PAGES.map(entry => [entry.path, entry]));
 
 export function getToolSeoEntry(path: string): ToolSeoEntry | undefined {
   return BY_PATH.get(path);
+}
+
+/**
+ * F5 防回归判据：从各页已生成的 related / workflow（与运行时渲染严格同源）反推
+ * 「被链入度」，返回**既没有任何页把它列为相关工具、也不在任何页的工作流里**、
+ * 且不在 allowlist 中的孤立页。
+ *
+ * 纯函数（不抛错、不依赖模块级单例），便于用合成对照组做证伪自检：
+ * 见 `src/seo/orphan-gate.test.ts`。
+ */
+export function findOrphanPages(
+  pages: Pick<ToolSeoEntry, 'path' | 'related' | 'workflow'>[],
+  allowlist: ReadonlySet<string>,
+): { path: string }[] {
+  const relInbound = new Map<string, number>(pages.map(e => [e.path, 0]));
+  const wfInbound = new Map<string, number>(pages.map(e => [e.path, 0]));
+  for (const entry of pages) {
+    for (const r of entry.related) {
+      if (r.path !== entry.path && relInbound.has(r.path)) {
+        relInbound.set(r.path, relInbound.get(r.path)! + 1);
+      }
+    }
+    for (const w of entry.workflow) {
+      if (!w.current && wfInbound.has(w.path)) {
+        wfInbound.set(w.path, wfInbound.get(w.path)! + 1);
+      }
+    }
+  }
+  return pages
+    .filter(e => (relInbound.get(e.path) ?? 0) === 0 && (wfInbound.get(e.path) ?? 0) === 0 && !allowlist.has(e.path))
+    .map(e => ({ path: e.path }));
 }
 
 /**
@@ -266,6 +297,19 @@ export function auditToolSeoData() {
   }
   if (linkProblems.length > 0) {
     throw new Error(`[seo/tool-page] 内链数据有问题: ${linkProblems.join('; ')}`);
+  }
+
+  // —— F5 防回归门禁：孤立页检测 ——
+  // 详见 findOrphanPages 的文档注释。用 TOOL_SEO_PAGES 与运行时严格同源的
+  // related / workflow 产物反推「相关工具入度」和「工作流入度」，把「语境内链孤儿」
+  // 在构建期变成硬失败。
+  const orphans = findOrphanPages(TOOL_SEO_PAGES, STANDALONE_ALLOWLIST);
+  if (orphans.length > 0) {
+    throw new Error(
+      `[seo/tool-page] 存在未被内链覆盖的孤立页:\n  ${orphans
+        .map(o => `${o.path}: 相关工具入度=0 且 工作流入度=0（归簇，或加入 clusters.ts 的 STANDALONE_ALLOWLIST 并写明理由）`)
+        .join('\n  ')}`,
+    );
   }
 
   return {

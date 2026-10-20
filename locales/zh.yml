@@ -802,6 +802,7 @@ clusters:
   json-convert: "JSON 格式转换"
   yaml: "YAML 与 TOML"
   xml: "XML 工具"
+  web-content: "网页内容编辑"
   jwt: "JWT 工具"
   base64: "Base64 工具"
   ids: "ID 生成器"

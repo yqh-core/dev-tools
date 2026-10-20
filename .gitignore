@@ -51,6 +51,8 @@ vite.config.ts.timestamp-*.mjs
 .smoke-out/
 # smoke 诊断模式的临时输出目录（--out .smoke-out-xxx），一次性产物不入库
 .smoke-out*/
+# smoke 运行配置/分片产物（.smoke-rc/shard-*.json），一次性诊断产物不入库、不混入提交
+.smoke-rc/
 
 # 构建期决策清单（.build/guides-index-policy.json：本次哪些指南进 sitemap、实测重复度多少）。
 # 不放进 dist —— dist 整个部署，这份文件会把我们自己的重复度实测值变成公开可取的东西。

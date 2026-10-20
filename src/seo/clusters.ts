@@ -81,11 +81,27 @@ export const TOOL_CLUSTERS: ToolCluster[] = [
     ],
   },
   {
+    // 结构化文本（XML / SQL）的「美化 / 压缩」双面手：同一件事、同一动词，
+    // 归到一个任务簇。F5-02 Group B 修复：原本 /xml-formatter 只在 xml 簇内，
+    // 但 xml 簇的两位 json↔xml 同侪主簇都是更早的 json-convert，导致 xml 簇
+    // 无独立驱动 → /xml-formatter R=W=0（详见孤儿清单 §2）。加入 /sql-prettify
+    // 让本簇有独立驱动者（两者都是本簇 first-occurrence）。
     id: 'xml',
     members: [
       '/xml-formatter',
+      '/sql-prettify',
       '/json-to-xml',
       '/xml-to-json',
+    ],
+  },
+  {
+    // 「写网页内容」这件事的两种入口：Markdown 源码 → HTML，或可视化编辑器 → HTML。
+    // F5-02 Group B 修复：两者此前均无簇，靠同分类兜底又排在 Converter/Web 头部 6 名之外，
+    // 导致 R=W=0。放进同一小簇即互为相关工具。
+    id: 'web-content',
+    members: [
+      '/markdown-to-html',
+      '/html-wysiwyg-editor',
     ],
   },
   {
@@ -127,12 +143,15 @@ export const TOOL_CLUSTERS: ToolCluster[] = [
     ],
   },
   {
-    // 数制 / 数值表示换算（进制、罗马数字、人民币大写）。
+    // 数制 / 数值·字符表示换算（进制、罗马数字、人民币大写、ASCII 码表）。
+    // F5-02 Group B 修复：/ascii-table 无簇、Converter 兜底够不到 → R=W=0。
+    // 它给的就是「十进制 / 十六进制 / 八进制 / 二进制 ↔ 字符」，与进制换算同一任务族。
     id: 'numeric',
     members: [
       '/base-converter',
       '/roman-numeral-converter',
       '/rmb-uppercase',
+      '/ascii-table',
     ],
   },
   {
@@ -144,11 +163,14 @@ export const TOOL_CLUSTERS: ToolCluster[] = [
     ],
   },
   {
-    // 结构化标识的校验 / 解析（电话、IBAN）。
+    // 结构化标识的规范化 / 校验 / 解析（IBAN、电话、邮箱）。
+    // F5-02 Group B 修复：/email-normalizer 无簇 → R=W=0，与 IBAN/电话同属
+    // 「把一类标识符规整成标准形式、便于比对与清洗」。
     id: 'parse',
     members: [
       '/iban-validator-and-parser',
       '/phone-parser-and-formatter',
+      '/email-normalizer',
     ],
   },
   {
@@ -302,6 +324,24 @@ export const TOOL_CLUSTERS: ToolCluster[] = [
     ],
   },
 ];
+
+/**
+ * 显式「独立工具」白名单：这些页**故意不归入任何簇**，因为没有语义合适的近邻，
+ * 硬塞进某个簇反而违反「关联入口要符合用户真实任务」的簇设计原则（见文件头）。
+ *
+ * 它们不靠簇内链获得入度，靠分类兜底的「相关工具」区块即可（若兜底也够不到，
+ * 则由构建门禁 `auditToolSeoData` 拦截）。列在此处的每一个 path 都要写清「为什么没有近邻」，
+ * 由 `tool-page.ts` 的 F5 防回归门禁校验：**白名单之外的孤立页会让 `npm run build` 直接失败。**
+ *
+ * 新增条目的门槛：全站 116 个工具里确实找不到同任务伙伴，而不是「暂时没想好放哪」。
+ */
+export const STANDALONE_ALLOWLIST: ReadonlySet<string> = new Set([
+  // JS 键盘事件码实时查询器：全站唯一一件「按下一个键读 keyCode/code/修饰键」的工具，
+  // 没有别的键码 / 事件调试器与之同任务。
+  '/keycode-info',
+  // 「历史上的今天」：联网资讯型工具，与任何开发者换算 / 转换 / 编码任务都不同源。
+  '/today-in-history',
+]);
 
 /** 主簇索引：path → 第一个包含它的簇（多归属时的取值规则，见文件头）。 */
 const PRIMARY = new Map<string, ToolCluster>();

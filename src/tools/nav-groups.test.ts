@@ -39,18 +39,20 @@ describe('groupByPrimaryCluster — 内链守恒不变式', () => {
 });
 
 describe('groupByPrimaryCluster — 主簇去重（多归属工具只进定义序第一个簇）', () => {
-  it('/yaml-to-json-converter 归 json 主簇，不在 yaml 组重复出现', () => {
+  // 2026-10-20：F5 拆簇后，/yaml-to-json-converter 与 /xml-to-json 在 json-convert 与 yaml/xml 两簇中
+  // 归属 json-convert（定义序在前），测试语义不变、期望簇 id 相应更新。
+  it('/yaml-to-json-converter 归 json-convert 主簇，不在 yaml 组重复出现', () => {
     const groups = groupByPrimaryCluster([t('/yaml-to-json-converter'), t('/yaml-to-toml')]);
     const pathsIn = (id: string) => groups.find(g => g.clusterId === id)?.tools.map(x => x.path) ?? [];
-    expect(pathsIn('json')).toContain('/yaml-to-json-converter');
+    expect(pathsIn('json-convert')).toContain('/yaml-to-json-converter');
     expect(pathsIn('yaml')).not.toContain('/yaml-to-json-converter');
-    // /yaml-to-toml 主簇是 yaml（json 簇没有它）
+    // /yaml-to-toml 主簇是 yaml（json-convert 簇没有它）
     expect(pathsIn('yaml')).toContain('/yaml-to-toml');
   });
 
-  it('/xml-to-json 归 json 主簇（定义序 json 在 xml 之前）', () => {
+  it('/xml-to-json 归 json-convert 主簇（定义序 json-convert 在 xml 之前）', () => {
     const groups = groupByPrimaryCluster([t('/xml-to-json')]);
-    expect(groups.find(g => g.clusterId === 'json')?.tools.map(x => x.path)).toContain('/xml-to-json');
+    expect(groups.find(g => g.clusterId === 'json-convert')?.tools.map(x => x.path)).toContain('/xml-to-json');
     expect(groups.some(g => g.clusterId === 'xml')).toBe(false);
   });
 });
