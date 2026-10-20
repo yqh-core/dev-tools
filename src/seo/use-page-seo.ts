@@ -17,6 +17,7 @@ import { useI18n } from 'vue-i18n';
 
 import { getPageMeta } from './page-meta';
 import { OG_IMAGE, canonicalUrl } from './site';
+import { buildAlternateLinks, ogLocaleTags } from '@/i18n/languages';
 
 /**
  * 品牌主色 —— 同时用于 `<meta name="theme-color">`（手机浏览器地址栏着色）。
@@ -47,7 +48,12 @@ export function usePageSeo(path: string, title: MaybeRef<string>, description?: 
 
   useHead({
     title: pageTitle,
-    link: [{ rel: 'canonical', href: canonical }],
+    link: [
+      { rel: 'canonical', href: canonical },
+      // hreflang：本站单 URL + 客户端切语言，只发已启用主语言的自引用 + x-default；
+      // 注册表 URL_LOCALIZED 置 true 并接分语言 URL 后，此处自动补全全量互链（无需改这里）。
+      ...buildAlternateLinks(canonical),
+    ],
     meta: [
       { name: 'description', content: pageDescription },
       { itemprop: 'name', content: pageTitle },
@@ -59,6 +65,8 @@ export function usePageSeo(path: string, title: MaybeRef<string>, description?: 
       { property: 'og:title', content: pageTitle },
       { property: 'og:description', content: pageDescription },
       { property: 'og:image', content: OG_IMAGE },
+      // og:locale / og:locale:alternate 从语言注册表派生（新增语言自动多出一条 alternate）。
+      ...ogLocaleTags(),
 
       { name: 'twitter:card', content: 'summary_large_image' },
       { name: 'twitter:title', content: pageTitle },

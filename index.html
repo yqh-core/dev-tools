@@ -59,10 +59,10 @@
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7944759654100814" crossorigin="anonymous"></script>
       <!-- adsense:end -->
 
-      <!-- 站点级结构化数据：WebSite + Organization。放在 page-seo 区块**外**，
-           因此预渲染逐页替换时原样保留 —— 每个页面（含 101 个工具页）都带这份
-           站点级声明。页面级的 SoftwareApplication 由 scripts/build-seo.mjs
-           按工具注入，不在这里写死。 -->
+      <!-- Site-level structured data: WebSite + Organization. Placed **outside** the page-seo
+           block so it is preserved verbatim during per-page prerendering — every page (incl. all
+           tool pages) carries this site-level declaration. The page-level SoftwareApplication is
+           injected per tool by scripts/build-seo.mjs, not hardcoded here. -->
       <script type="application/ld+json">
       {
         "@context": "https://schema.org",
