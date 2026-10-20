@@ -275,7 +275,7 @@ tools:
     description: Hash and compare text string using bcrypt. Bcrypt is a password-hashing function based on the Blowfish cipher.
 
   crontab-generator:
-    title: Crontab generator
+    title: Crontab Generator — Build Cron Expressions Online
     description: Validate and generate crontab and get the human-readable description of the cron schedule.
 
   http-status-codes:
@@ -307,7 +307,7 @@ tools:
     description: Generate random port numbers outside of the range of "known" ports (0-1023).
 
   yaml-prettify:
-    title: YAML prettify and format
+    title: YAML Formatter & Validator — Format YAML Online
     description: Prettify your YAML string into a friendly, human-readable format.
 
   eta-calculator:
@@ -319,7 +319,7 @@ tools:
     description: Convert Roman numerals to numbers and convert numbers to Roman numerals.
 
   hmac-generator:
-    title: Hmac generator
+    title: HMAC Generator — Sign Messages with SHA-256 Online
     description: Computes a hash-based message authentication code (HMAC) using a secret key and your favorite hashing function.
 
   bip39-generator:
@@ -327,7 +327,7 @@ tools:
     description: Generate a BIP39 passphrase from an existing or random mnemonic, or get the mnemonic from the passphrase.
 
   base64-file-converter:
-    title: Base64 file converter
+    title: Base64 to Image — Decode and Preview Online
     description: Convert a string, file, or image into its base64 representation.
 
   list-converter:
@@ -335,7 +335,7 @@ tools:
     description: Remove duplicates, sort, reverse, lowercase, trim and add prefix/suffix to a list, one item per line. Everything runs in your browser — no upload.
 
   base64-string-converter:
-    title: Base64 string encoder/decoder
+    title: Base64 Encoder & Decoder — Encode and Decode Text Online
     description: Simply encode and decode strings into their base64 representation.
 
   toml-to-yaml:
@@ -379,7 +379,7 @@ tools:
     description: Format and validate JSON online — pretty-print at your indent size, sort keys and spot syntax errors instantly, right in your browser.
 
   docker-run-to-docker-compose-converter:
-    title: Docker run to Docker compose converter
+    title: Docker Run to Compose Converter — Generate docker-compose.yml Online
     description: Transforms "docker run" commands into docker-compose files!
 
   mac-address-lookup:
@@ -415,7 +415,7 @@ tools:
     description: Degrees temperature conversions for Kelvin, Celsius, Fahrenheit, Rankine, Delisle, Newton, Réaumur, and Rømer.
 
   chmod-calculator:
-    title: Chmod calculator
+    title: Chmod Calculator — Unix File Permissions (755, 644, 777)
     description: Compute your chmod permissions and commands with this online chmod calculator.
 
   rsa-key-pair-generator:
@@ -683,7 +683,7 @@ tools:
     description: Generate and validate time-based OTP (one time password) for multi-factor authentication.
 
   url-encoder:
-    title: Encode/decode URL-formatted strings
+    title: URL Encoder & Decoder — Percent-Encode URLs Online
     description: Encode text to URL-encoded format (also known as "percent-encoded"), or decode from it.
 
   text-to-binary:
