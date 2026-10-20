@@ -51,6 +51,8 @@ vite.config.ts.timestamp-*.mjs
 .smoke-out/
 # smoke 诊断模式的临时输出目录（--out .smoke-out-xxx），一次性产物不入库
 .smoke-out*/
+# smoke 引擎的 rc 分片产物（.smoke-rc/shard-*.json，每次跑都变的实测抓取结果，一次性产物不入库）
+.smoke-rc/
 # smoke 运行配置/分片产物（.smoke-rc/shard-*.json），一次性诊断产物不入库、不混入提交
 .smoke-rc/
 
