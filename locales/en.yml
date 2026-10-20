@@ -375,7 +375,7 @@ tools:
     description: Escape or unescape HTML entities (turn <, >, &, " and ' into their HTML form) and look up common characters — quotes, dashes, currency, math and Greek symbols — in a searchable entity reference table.
 
   json-prettify:
-    title: JSON Formatter & Validator — Beautify and Validate JSON Online
+    title: JSON Formatter & Validator — Beautify, Validate, Diff and Convert
     description: Format and validate JSON online — pretty-print at your indent size, sort keys and spot syntax errors instantly, right in your browser.
 
   docker-run-to-docker-compose-converter:
@@ -439,15 +439,15 @@ tools:
     description: Compare two JSON objects and get the differences between them.
 
   jwt-parser:
-    title: JWT Decoder & Parser — Decode JSON Web Tokens Online
+    title: JWT Decoder & Parser — Inspect Header, Payload and Expiration
     description: Decode and parse JSON Web Tokens (JWT) online — inspect header, payload and registered claims at a glance.
 
   date-converter:
-    title: Date Converter — Convert Between Date Formats Online
+    title: Date Converter — Formats, Time Zones and ISO 8601
     description: Convert between date formats online — ISO 8601, RFC 3339, UTC, locale, Excel, Mongo ObjectID and Unix timestamps.
 
   unix-timestamp-converter:
-    title: Unix Timestamp Converter — Epoch to Date & Time Online
+    title: Unix Timestamp Converter — Epoch to Date, Seconds vs Milliseconds
     description: Convert a Unix epoch timestamp (seconds or milliseconds) to a readable date, or turn a date into a timestamp online.
 
   phone-parser-and-formatter:
@@ -631,7 +631,7 @@ tools:
     description: Check the contrast ratio between two colours against WCAG 2.x AA and AAA thresholds for normal and large text, with a live text preview.
 
   ulid-generator:
-    title: ULID Generator — Sortable, Time-Ordered IDs Online
+    title: ULID Generator — Time-Ordered, Sortable IDs Online
     description: Generate ULIDs online — sortable, time-ordered unique identifiers, ideal for database keys and distributed systems.
 
   string-obfuscator:
@@ -647,7 +647,7 @@ tools:
     description: Simply convert YAML to JSON with this online live converter.
 
   uuid-generator:
-    title: UUID Generator — Free Online UUID v4 Generator
+    title: UUID Generator — v4, v1, v3, v5 and NIL IDs
     description: Generate UUIDs online for free — v4 random, v1 time-based, v3/v5 namespace UUIDs and NIL, with one-click copy.
 
   ipv4-address-converter:
@@ -711,7 +711,7 @@ tools:
     description: A complete regex cheat sheet — common regular expression syntax, quantifiers, flags and character classes with examples.
 
   regex-tester:
-    title: Regex Tester — Test Regular Expressions Online
+    title: Regex Tester — JavaScript Regex Tester Online
     description: Test regular expressions online with live match results — JavaScript flavor, toggle flags and capture groups instantly.
 
   safelink-decoder:

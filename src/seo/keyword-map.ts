@@ -81,7 +81,7 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     competition: 'low',
     article: 'jwt-decoder-guide',
     landed: true,
-    lockedTitle: 'JWT Decoder & Parser — Decode JSON Web Tokens Online',
+    lockedTitle: 'JWT Decoder & Parser — Inspect Header, Payload and Expiration',
     note: '簇 1。关键事实：jwt.io 两次查询均未进 top5；`decoder` 与 `parser` 是两套零重叠的排名域名，两个词都能拿。',
   },
   {
@@ -93,7 +93,7 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     competition: 'high',
     article: 'json-formatting-guide',
     landed: true,
-    lockedTitle: 'JSON Formatter & Validator — Beautify and Validate JSON Online',
+    lockedTitle: 'JSON Formatter & Validator — Beautify, Validate, Diff and Convert',
     note: '簇 2 承重墙。关键事实：`prettify` 一词在本次所有 top5 title 里一次都没出现，主流词汇是 formatter / validator / beautify。',
   },
   {
@@ -120,7 +120,7 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     landed: true,
     // ⛔ 与原文档「建议 Title」列有意不同：落地时去掉了 `& v7`
     //   （本站该页只产 v4，title 承诺 v7 会与页面能力不符）。锁定线上现值。
-    lockedTitle: 'UUID Generator — Free Online UUID v4 Generator',
+    lockedTitle: 'UUID Generator — v4, v1, v3, v5 and NIL IDs',
     note: '簇 3。UUID 侧是单工具强品牌最集中的一簇（uuid.tools / uuidgenerator.co 等域名即关键词）。',
   },
   {
@@ -154,7 +154,7 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     competition: 'low',
     article: 'uuid-vs-ulid-guide',
     landed: true,
-    lockedTitle: 'ULID Generator — Sortable, Time-Ordered IDs Online',
+    lockedTitle: 'ULID Generator — Time-Ordered, Sortable IDs Online',
     note: '簇 3。本轮观察中**最清晰的品牌空档**：ULID 词下 top5 无一个 ULID 专用域名。',
   },
   {
@@ -165,7 +165,7 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     priority: 'P0',
     competition: 'medium',
     landed: true,
-    lockedTitle: 'Date Converter — Convert Between Date Formats Online',
+    lockedTitle: 'Date Converter — Formats, Time Zones and ISO 8601',
     note: '簇 4。本轮已裁定拆分：本页只接管 broad「date format converter」意图（ISO 8601 / RFC 3339 / UTC / locale / Excel / Mongo ObjectID / epoch 全部互转），「unix timestamp converter」意图已迁出到 /unix-timestamp-converter。',
   },
   {
@@ -176,7 +176,7 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     priority: 'P0',
     competition: 'medium',
     landed: true,
-    lockedTitle: 'Unix Timestamp Converter — Epoch to Date & Time Online',
+    lockedTitle: 'Unix Timestamp Converter — Epoch to Date, Seconds vs Milliseconds',
     note: '簇 4。从 /date-converter 拆出的 epoch-centric 页：接管「unix timestamp converter」意图（秒 / 毫秒 epoch ↔ 日期），复用共享 datetime 逻辑。',
   },
   {
@@ -188,7 +188,7 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     competition: 'low',
     article: 'regex-testing-guide',
     landed: true,
-    lockedTitle: 'Regex Tester — Test Regular Expressions Online',
+    lockedTitle: 'Regex Tester — JavaScript Regex Tester Online',
     note: '簇 5。关键事实：regex101.com 与 regexr.com 三次查询均未进 top5。',
   },
   {
