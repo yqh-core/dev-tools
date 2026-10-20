@@ -813,6 +813,8 @@ clusters:
   ip: "Network & IP"
   hash: "Hashing & crypto"
   text: "Text tools"
+  text-encoding: "Text encoding & representation"
+  text-transform: "Text transform & analysis"
   date: "Date & time"
   convert: "Unit & data conversion"
   numeric: "Numbers & numerals"

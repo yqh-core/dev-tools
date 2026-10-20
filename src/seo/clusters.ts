@@ -120,11 +120,12 @@ export const TOOL_CLUSTERS: ToolCluster[] = [
     ],
   },
   {
-    // 数制 / 数值表示换算（进制、罗马数字）。
+    // 数制 / 数值表示换算（进制、罗马数字、人民币大写）。
     id: 'numeric',
     members: [
       '/base-converter',
       '/roman-numeral-converter',
+      '/rmb-uppercase',
     ],
   },
   {
@@ -234,24 +235,41 @@ export const TOOL_CLUSTERS: ToolCluster[] = [
       '/htpasswd-generator',
     ],
   },
+  // —— 原单一 `text` 簇有 15 个成员，而 resolveRelated 按簇内顺序 slice(0, max=6)：
+  //    第 7 位及以后的工具（rmb-uppercase 第15、numeronym-generator 第12、
+  //    morse-code-converter 第11）在任何同簇页的「相关工具」里结构性不出现，
+  //    与语义相关性无关。拆成三个 ≤6 成员的语义小簇修掉该缺陷（F5-01，2026-10-20）。
+  //    三个簇互不相交 ⇒ 主簇归属唯一、workflow 顺序仍在各自任务内成立。
   {
-    id: 'text',
+    // 把文本转成另一种编码 / 表示形式。
+    id: 'text-encoding',
     members: [
-      '/text-diff',
-      '/text-statistics',
-      '/text-replacer',
-      '/case-converter',
-      '/list-converter',
-      '/string-obfuscator',
-      '/lorem-ipsum-generator',
-      '/text-to-binary',
       '/text-to-unicode',
+      '/text-to-binary',
       '/text-to-nato-alphabet',
       '/morse-code-converter',
       '/numeronym-generator',
-      '/fullwidth-converter',
       '/ascii-text-drawer',
-      '/rmb-uppercase',
+    ],
+  },
+  {
+    // 对文本本身做改写与统计。
+    id: 'text-transform',
+    members: [
+      '/case-converter',
+      '/fullwidth-converter',
+      '/text-replacer',
+      '/list-converter',
+      '/string-obfuscator',
+      '/text-statistics',
+    ],
+  },
+  {
+    // 剩下的比较 / 生成类，保持 id 不变以复用既有 en/zh 词条。
+    id: 'text',
+    members: [
+      '/text-diff',
+      '/lorem-ipsum-generator',
     ],
   },
   {

@@ -809,6 +809,8 @@ clusters:
   ip: "网络与 IP"
   hash: "哈希与加密"
   text: "文本工具"
+  text-encoding: "文本编码与表示"
+  text-transform: "文本转换与分析"
   date: "日期与时间"
   convert: "单位与数据换算"
   numeric: "数字与进制"
