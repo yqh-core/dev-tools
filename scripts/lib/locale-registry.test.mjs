@@ -6,7 +6,7 @@
  * 这些用例全部是内存 fixture，不碰仓库文件系统。
  */
 import { describe, expect, it } from 'vitest';
-import { auditRegistry, countLeafStrings, parseRegistry } from './locale-registry.mjs';
+import { auditGuideLocaleCoverage, auditRegistry, countLeafStrings, parseImporterCodes, parseRegistry } from './locale-registry.mjs';
 
 const SOURCE = `
 export const ENABLED_LOCALES = [
@@ -86,5 +86,55 @@ describe('auditRegistry', () => {
 
   it('对照组：空串叶子不算词条（countLeafStrings 只数字符串，但空文件已单独判红）', () => {
     expect(countLeafStrings({ a: { b: '', c: 'x' }, d: 'y' })).toBe(3);
+  });
+});
+
+// ── K4：指南覆盖门禁 ──
+
+describe('parseImporterCodes', () => {
+  it('从 guides.ts 源码解析 GUIDE_IMPORTERS 的 key 列表', () => {
+    const source = `
+const GUIDE_IMPORTERS: Record<string, () => Promise<Record<string, ToolGuide>>> = {
+  en: () => import('./guides.en').then(m => m.GUIDES),
+  zh: () => import('./guides.zh').then(m => m.GUIDES),
+}
+`;
+    expect(parseImporterCodes(source)).toEqual(['en', 'zh']);
+  });
+
+  it('解析不到 block → 返回空数组（让门禁报红而非静默跳过）', () => {
+    expect(parseImporterCodes('export const X = 1;')).toEqual([]);
+  });
+});
+
+describe('auditGuideLocaleCoverage', () => {
+  const EN = ['en', 'zh'];
+
+  it('两语言都有文件且都有 importer → PASS', () => {
+    const r = auditGuideLocaleCoverage({ enabled: EN, guideFiles: ['en', 'zh'], importerCodes: ['en', 'zh'] });
+    expect(r.ok).toBe(true);
+    expect(r.failures).toEqual([]);
+  });
+
+  it('证伪①：注册了 ja 但没有 guides.ja.ts → 红', () => {
+    const r = auditGuideLocaleCoverage({ enabled: ['en', 'zh', 'ja'], guideFiles: ['en', 'zh'], importerCodes: ['en', 'zh'] });
+    expect(r.ok).toBe(false);
+    expect(r.failures.join('\n')).toMatch(/guides\.ja\.ts/);
+  });
+
+  it('证伪②：有文件但 GUIDE_IMPORTERS 没补行 → 红', () => {
+    const r = auditGuideLocaleCoverage({ enabled: EN, guideFiles: ['en', 'zh'], importerCodes: ['en'] });
+    expect(r.ok).toBe(false);
+    expect(r.failures.join('\n')).toMatch(/zh.*GUIDE_IMPORTERS/);
+  });
+
+  it('证伪③：文件不存在且 importer 也没行 → 两条 failure 都报', () => {
+    const r = auditGuideLocaleCoverage({ enabled: ['en', 'ja'], guideFiles: ['en'], importerCodes: ['en'] });
+    expect(r.failures.length).toBe(2);
+  });
+
+  it('不传 importerCodes 时仅检查文件存在性', () => {
+    const r = auditGuideLocaleCoverage({ enabled: EN, guideFiles: ['en', 'zh'] });
+    expect(r.ok).toBe(true);
   });
 });

@@ -137,3 +137,50 @@ export function auditRegistry({ enabled, defaultLocale, fallbackLocale, locales 
 
   return { failures, warnings, stats };
 }
+
+/**
+ * K4 构建期门禁：已启用语言必须有对应的 guides 数据文件且被注册进 GUIDE_IMPORTERS。
+ *
+ * @param {object} input
+ * @param {string[]} input.enabled       ENABLED_LOCALES 里的语言码列表
+ * @param {string[]} input.guideFiles    src/tools/ 目录下实际存在的 `guides.<code>.ts` 对应的 code 集合
+ *                                       （由 CLI 扫描磁盘后传入）
+ * @param {string[]} [input.importerCodes] 从 guides.ts 源码解析出的 GUIDE_IMPORTERS key 列表
+ *                                        （可选；若不提供则仅检查文件存在性）
+ * @returns {{failures: string[], ok: boolean}}
+ */
+export function auditGuideLocaleCoverage({ enabled, guideFiles, importerCodes }) {
+  const failures = [];
+
+  for (const code of enabled) {
+    // 1. 文件必须存在
+    if (!guideFiles.includes(code)) {
+      failures.push(
+        `[K4] 已启用语言 '${code}' 缺少 src/tools/guides.${code}.ts —— `
+        + `loadGuides 会在运行时 throw，构建期必须拦截`,
+      );
+    }
+    // 2. 如果提供了 importerCodes，检查 GUIDE_IMPORTERS 有对应行
+    if (importerCodes && !importerCodes.includes(code)) {
+      failures.push(
+        `[K4] '${code}' 有数据文件但 guides.ts 的 GUIDE_IMPORTERS 里没有对应 import 行`
+        + ` —— Vite 不会为它拆 chunk，loadGuides 运行时会 throw`,
+      );
+    }
+  }
+
+  // 3. 孤儿：有 guides 文件但语言未注册 → 死代码（警告，不阻断）
+  // （暂不报 failure，因为开发者可能先建文件再注册；G1 已管 yml 侧孤儿）
+
+  return { failures, ok: failures.length === 0 };
+}
+
+/**
+ * 从 `src/tools/guides.ts` 源码解析 GUIDE_IMPORTERS 对象的 key 列表。
+ * 用于构建门禁判断"代码里有没有补对应行"。
+ */
+export function parseImporterCodes(source) {
+  const block = source.match(/const GUIDE_IMPORTERS\s*[:=][^{]*\{([\s\S]*?)\n\}/);
+  if (!block) return [];
+  return [...block[1].matchAll(/^\s*(\w+)\s*:/gm)].map(m => m[1]);
+}

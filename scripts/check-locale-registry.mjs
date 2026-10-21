@@ -1,5 +1,5 @@
 /**
- * G1 语言注册表门禁：CLI 壳（I/O 全在这里，判据在 lib/locale-registry.mjs）。
+ * G1 语言注册表门禁 + K4 指南覆盖门禁：CLI 壳（I/O 全在这里，判据在 lib/locale-registry.mjs）。
  *
  * 用法：`npm run i18n:check`
  * 退出码：0 = 全 PASS；1 = 存在 FAIL（构建链里会因此中断）。
@@ -8,7 +8,7 @@ import { readFile, readdir } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parse } from 'yaml';
-import { auditRegistry, parseRegistry } from './lib/locale-registry.mjs';
+import { auditRegistry, auditGuideLocaleCoverage, parseImporterCodes, parseRegistry } from './lib/locale-registry.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -39,9 +39,34 @@ for (const s of stats) {
 }
 for (const w of warnings) console.log(`[i18n] WARN ${w}`);
 
+// ── K4：指南覆盖门禁 ──
+// 扫描 src/tools/ 下实际存在的 guides.<code>.ts 文件
+const toolsDir = join(root, 'src/tools');
+const toolFiles = await readdir(toolsDir);
+const guideFiles = toolFiles
+  .filter(f => /^guides\.(.+)\.ts$/.test(f))
+  .map(f => f.match(/^guides\.(.+)\.ts$/)[1]);
+
+// 从 guides.ts 源码解析 GUIDE_IMPORTERS 的 key
+const guidesSource = await readFile(join(toolsDir, 'guides.ts'), 'utf8');
+const importerCodes = parseImporterCodes(guidesSource);
+
+const guideResult = auditGuideLocaleCoverage({
+  enabled: registry.enabled,
+  guideFiles,
+  importerCodes,
+});
+
+if (guideResult.ok) {
+  console.log(`[i18n] K4 PASS 指南覆盖：${registry.enabled.length} 种已启用语言均有 guides 文件且注册进 GUIDE_IMPORTERS`);
+} else {
+  failures.push(...guideResult.failures);
+}
+
+// ── 汇总 ──
 if (failures.length) {
   console.error(`[i18n] FAIL ${failures.length} 项：`);
   for (const f of failures) console.error(`[i18n]   - ${f}`);
   process.exit(1);
 }
-console.log('[i18n] PASS 注册表与词条文件一致（含空文件/孤儿/结构对齐判据）');
+console.log('[i18n] PASS 注册表与词条文件一致 + 指南覆盖完整（K4）');
