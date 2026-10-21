@@ -6,8 +6,9 @@ import { TOOL_CLUSTERS, clusterOf } from '../seo/clusters';
  * ## 为什么要有这一层
  * 此前侧栏和首页分类卡都按 `toolsByCategory` 的 10 个**数据库分类**（Crypto / Converter /
  * Web …）组织。但用户脑子里想的是任务（「我要转 JSON」「我要弄图片」），不是分类。
- * `TOOL_CLUSTERS` 已经把工具按任务组织成了 17 个簇（还带工作流顺序），只是这份
- * 「任务视角」此前只用在工具页底部的 related / workflow，没用到导航。这里把它接上。
+ * `TOOL_CLUSTERS` 已经把工具按任务组织成了若干任务簇（数量以 `clusters.ts` 为准，
+ * 还带工作流顺序），只是这份「任务视角」此前只用在工具页底部的 related / workflow，
+ * 没用到导航。这里把它接上。
  *
  * ## 两条硬约束（决定了正确性，改动前务必读）
  * 1. **按主簇去重**：一个 path 可以出现在多个簇（`/yaml-to-json-converter` 同时在 json

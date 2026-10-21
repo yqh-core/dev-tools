@@ -733,6 +733,13 @@ export const GUIDES: Record<string, ToolGuide> = {
         url: 'https://notes.digdevbox.com/posts/jwt-decoder-guide',
         tag: 'JWT',
       },
+      {
+        slug: 'base64-encoding-guide',
+        title: 'Base64 Encoding Guide: Padding, URLs and Binary-Safe Data',
+        description: 'How Base64 works, why = padding breaks inside URLs, and what binary-safe really means — with online encoders and decoders for both strings and files.',
+        url: 'https://notes.digdevbox.com/posts/base64-encoding-guide',
+        tag: 'Base64',
+      },
     ],
   },
 
@@ -1222,6 +1229,15 @@ export const GUIDES: Record<string, ToolGuide> = {
       { q: 'SafeLink 是什么，为什么链接长那样？', a: '它是微软的重写器：邮件里的链接被替换成经过微软服务器扫描再转发的 URL。原始地址以查询参数的形式藏在包装层里。' },
       { q: '为什么点击前要先解码？', a: '两个理由：透明（看到真实目标，包括仿冒域名）和省事——解码后的 URL 直达目标，绕开跟踪跳转及其隐私影响。' },
       { q: '解码会绕过什么安全机制吗？', a: '不会。它只是读取包装后的 URL，不碰附件也不影响微软的扫描。你只是选择直达目标，而不经过跳转层。' },
+    ],
+    relatedNotes: [
+      {
+        slug: 'url-encoding-guide',
+        title: 'URL Encoding Guide: Percent-Encoding, encodeURIComponent and Form Traps',
+        description: 'How percent-encoding works, where encodeURIComponent and encodeURI differ, and why a plus sign can quietly turn into a space in your form data.',
+        url: 'https://notes.digdevbox.com/posts/url-encoding-guide',
+        tag: 'URL',
+      },
     ],
   },
 
@@ -1909,6 +1925,15 @@ export const GUIDES: Record<string, ToolGuide> = {
       { q: '为什么检测结果和浏览器不一样？', a: '浏览器会带 Cookie、Accept 头和缓存。本工具发起的是干净的无 Cookie 请求，结果更接近搜索引擎爬虫或新访客看到的样子。' },
       { q: '我自己能打开，这里却返回 403，为什么？', a: '有些防火墙会拦数据中心 IP 或非浏览器 UA。浏览器正常但检测器 403，通常意味着触发了防爬虫策略，而不是站点坏了。' },
       { q: '能跟踪重定向链吗？', a: '工具报告服务端请求完成后的最终状态码与响应头，永久/临时重定向已经解析完毕——看响应头就知道最终落在了哪里。' },
+    ],
+    relatedNotes: [
+      {
+        slug: 'http-status-codes-guide',
+        title: 'HTTP Status Codes Guide: 2xx, 3xx, 4xx, 5xx and How to Respond',
+        description: 'What each HTTP status class means, why 301 and 302 behave differently, and how to handle 429 rate limiting and 503 outages on both sides of the request.',
+        url: 'https://notes.digdevbox.com/posts/http-status-codes-guide',
+        tag: 'HTTP',
+      },
     ],
   },
 

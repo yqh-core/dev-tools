@@ -741,6 +741,13 @@ export const GUIDES: Record<string, ToolGuide> = {
         url: 'https://notes.digdevbox.com/posts/jwt-decoder-guide',
         tag: 'JWT',
       },
+      {
+        slug: 'base64-encoding-guide',
+        title: 'Base64 Encoding Guide: Padding, URLs and Binary-Safe Data',
+        description: 'How Base64 works, why = padding breaks inside URLs, and what binary-safe really means — with online encoders and decoders for both strings and files.',
+        url: 'https://notes.digdevbox.com/posts/base64-encoding-guide',
+        tag: 'Base64',
+      },
     ],
   },
 
@@ -1230,6 +1237,15 @@ export const GUIDES: Record<string, ToolGuide> = {
       { q: 'What is SafeLink, and why do links look like that?', a: 'It is Microsoft\'s rewriter: mail links are replaced with a URL that routes through Microsoft servers for scanning, then forwards you. The original address is inside the wrapper as a query parameter.' },
       { q: 'Why decode before clicking?', a: 'Two reasons: transparency (you see the real destination, including any look-alike domains) and convenience — the decoded URL opens directly, without the tracking hop and its privacy implications.' },
       { q: 'Does decoding bypass any security?', a: 'No. It only reads the wrapped URL; it does not touch attachments or Microsoft\'s scanning. You are simply choosing to visit the destination directly rather than through the redirect.' },
+    ],
+    relatedNotes: [
+      {
+        slug: 'url-encoding-guide',
+        title: 'URL Encoding Guide: Percent-Encoding, encodeURIComponent and Form Traps',
+        description: 'How percent-encoding works, where encodeURIComponent and encodeURI differ, and why a plus sign can quietly turn into a space in your form data.',
+        url: 'https://notes.digdevbox.com/posts/url-encoding-guide',
+        tag: 'URL',
+      },
     ],
   },
 
@@ -1912,6 +1928,15 @@ export const GUIDES: Record<string, ToolGuide> = {
       { q: 'Why does the checker show a different result than my browser?', a: 'Browsers send cookies, Accept headers and cached responses. This tool makes a clean, cookie-less request, so what you see is closer to what a search-engine bot or a fresh visitor would get.' },
       { q: 'The site loads for me but returns 403 here — why?', a: 'Some firewalls block datacenter IPs or non-browser user agents. A 403 from the checker with a working browser often means bot protection, not a broken site.' },
       { q: 'Can I follow a redirect chain with it?', a: 'The tool reports the final status and headers after the server-side request completes, so permanent and temporary redirects are already resolved — check the response headers to see where you landed.' },
+    ],
+    relatedNotes: [
+      {
+        slug: 'http-status-codes-guide',
+        title: 'HTTP Status Codes Guide: 2xx, 3xx, 4xx, 5xx and How to Respond',
+        description: 'What each HTTP status class means, why 301 and 302 behave differently, and how to handle 429 rate limiting and 503 outages on both sides of the request.',
+        url: 'https://notes.digdevbox.com/posts/http-status-codes-guide',
+        tag: 'HTTP',
+      },
     ],
   },
 
