@@ -19,8 +19,9 @@
   ],
   "scripts": {
     "dev": "node scripts/build-dd-tokens.mjs && vite",
-    "build": "node scripts/build-dd-tokens.mjs && vue-tsc --noEmit -p tsconfig.app.json --composite false && vite build && node scripts/build-seo.mjs",
+    "build": "node scripts/check-locale-registry.mjs && node scripts/build-dd-tokens.mjs && vue-tsc --noEmit -p tsconfig.app.json --composite false && vite build && node scripts/build-seo.mjs",
     "tokens:check": "node scripts/build-dd-tokens.mjs --check",
+    "i18n:check": "node scripts/check-locale-registry.mjs",
     "audit:keyword-map": "node scripts/audit-keyword-map.mjs --check",
     "audit:example": "node scripts/audit-example-coverage.mjs --check",
     "audit:example:falsify": "node scripts/audit-example-coverage.mjs --falsify",

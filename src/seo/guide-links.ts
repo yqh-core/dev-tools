@@ -166,29 +166,35 @@ export function scanToolEntryLinks(
 }
 
 /**
- * 检查一批 i18n 键是否**两种语言都在**。
+ * 检查一批 i18n 键是否在**每个已启用语言**里都存在（N-1 配平）。
  *
  * 为什么单独做判据：骨架恒按 en 预渲染，面板按用户当前语言渲染。
  * 一个键只在 en.yml 里有，英文页一切正常、构建也正常，**中文页直接漏出键名**
  * （`t('seo.guideArticleLink')` 渲染成 `seo.guideArticleLink` 这串字）。
  * 这类缺陷肉眼才看得见，界面上不报错 —— 与 guides en/zh 不成对是同一类。
  *
+ * 为什么参数从 (en, zh) 改成 messagesByLocale：原签名把"两种语言"写死，
+ * 加第三种语言时这条判据**自动失明**（P1 报告 K5）。现在调用方从
+ * `ENABLED_LOCALES` 读词条表传入，新增语言自动纳入，无需再改本函数。
+ *
  * 只做「键存在」这一件事；值是否为空串也一起判（空值同样会让句子塌掉）。
  */
 export function missingLocaleKeys(
   keys: readonly string[],
-  en: Record<string, unknown>,
-  zh: Record<string, unknown>,
-): { key: string; missingIn: string }[] {
+  messagesByLocale: Record<string, Record<string, unknown>>,
+): { key: string; missingIn: string[] }[] {
   const pick = (obj: Record<string, unknown>, dotted: string) => dotted
     .split('.')
     .reduce<unknown>((acc, part) => (acc && typeof acc === 'object' ? (acc as Record<string, unknown>)[part] : undefined), obj);
-  const out: { key: string; missingIn: string }[] = [];
+  const locales = Object.keys(messagesByLocale);
+  const out: { key: string; missingIn: string[] }[] = [];
   for (const k of keys) {
-    const hasEn = typeof pick(en, k) === 'string' && (pick(en, k) as string).trim() !== '';
-    const hasZh = typeof pick(zh, k) === 'string' && (pick(zh, k) as string).trim() !== '';
-    if (!hasEn || !hasZh) {
-      out.push({ key: k, missingIn: !hasEn && !hasZh ? 'en+zh' : hasEn ? 'zh' : 'en' });
+    const missing = locales.filter((loc) => {
+      const v = pick(messagesByLocale[loc], k);
+      return !(typeof v === 'string' && v.trim() !== '');
+    });
+    if (missing.length) {
+      out.push({ key: k, missingIn: missing });
     }
   }
   return out;

@@ -188,24 +188,32 @@ describe('missingLocaleKeys', () => {
   const en = { seo: { guideArticleLink: 'Read the full step-by-step guide for this tool', faqTitle: 'FAQ' } };
   const zh = { seo: { guideArticleLink: '阅读这个工具的完整分步使用指南', faqTitle: '常见问题' } };
 
-  it('两侧都有时判干净', () => {
-    expect(missingLocaleKeys(['seo.guideArticleLink', 'seo.faqTitle'], en, zh)).toEqual([]);
+  it('全部已启用语言都有时判干净', () => {
+    expect(missingLocaleKeys(['seo.guideArticleLink', 'seo.faqTitle'], { en, zh })).toEqual([]);
   });
 
   it('对照组：zh 缺键必须点名，且标出缺在哪一侧', () => {
     const zhBroken = { seo: { faqTitle: '常见问题' } };
-    expect(missingLocaleKeys(['seo.guideArticleLink'], en, zhBroken))
-      .toEqual([{ key: 'seo.guideArticleLink', missingIn: 'zh' }]);
+    expect(missingLocaleKeys(['seo.guideArticleLink'], { en, zh: zhBroken }))
+      .toEqual([{ key: 'seo.guideArticleLink', missingIn: ['zh'] }]);
   });
 
   it('空串也算缺（值存在但是空的，句子一样会塌）', () => {
     const zhBlank = { seo: { guideArticleLink: '   ', faqTitle: '常见问题' } };
-    expect(missingLocaleKeys(['seo.guideArticleLink'], en, zhBlank))
-      .toEqual([{ key: 'seo.guideArticleLink', missingIn: 'zh' }]);
+    expect(missingLocaleKeys(['seo.guideArticleLink'], { en, zh: zhBlank }))
+      .toEqual([{ key: 'seo.guideArticleLink', missingIn: ['zh'] }]);
   });
 
   it('嵌套路径取不到中间层时不许抛异常，要报成缺键', () => {
-    expect(missingLocaleKeys(['seo.nope.deeper.link'], en, zh))
-      .toEqual([{ key: 'seo.nope.deeper.link', missingIn: 'en+zh' }]);
+    expect(missingLocaleKeys(['seo.nope.deeper.link'], { en, zh }))
+      .toEqual([{ key: 'seo.nope.deeper.link', missingIn: ['en', 'zh'] }]);
+  });
+
+  // N-1 回归：第三种语言自动纳入判据（旧签名写死 en/zh 时这条会漏）
+  it('第三种语言缺键自动被纳入（证明判据不再二元）', () => {
+    // ja 只翻了一半：有别的键、没有 faqTitle
+    const ja = { seo: { guideArticleLink: 'ステップバイステップガイドを読む' } };
+    expect(missingLocaleKeys(['seo.faqTitle'], { en, zh, ja }))
+      .toEqual([{ key: 'seo.faqTitle', missingIn: ['ja'] }]);
   });
 });

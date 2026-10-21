@@ -26,6 +26,7 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createServer } from 'vite';
 import { parse } from 'yaml';
+import { parseRegistry } from './lib/locale-registry.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const DRY_RUN = process.argv.includes('--dry-run');
@@ -44,7 +45,12 @@ const DRY_RUN = process.argv.includes('--dry-run');
  *   这与「只改 SSG 骨架不改客户端」是同一类缺陷（见 V2 方案 §5.6 / E1-L10N），
  *   只是方向相反。改为从 locales/en.yml 读，词条改了这里自动跟着变，不会漂移。
  */
-const DEFAULT_LOCALE = 'en';
+/**
+ * 语言注册表是唯一事实源：默认语言、已启用语言集合都从 src/i18n/languages.ts 读，
+ * 不在脚本里写死 'en' / 只读 en+zh 两份（P1 报告 K1/K3）。
+ */
+const REGISTRY = parseRegistry(await readFile(join(root, 'src/i18n/languages.ts'), 'utf8'));
+const DEFAULT_LOCALE = REGISTRY.defaultLocale;
 const messages = parse(await readFile(join(root, `locales/${DEFAULT_LOCALE}.yml`), 'utf8'));
 const label = (dotted) => {
   const v = dotted.split('.').reduce((o, k) => (o == null ? o : o[k]), messages);
@@ -61,9 +67,20 @@ const label = (dotted) => {
  * 少一种语言时该语言的 workflow 区块标题会直接显示 key（`clusters.json`），
  * 界面上不报错、肉眼才看得见 —— 与 guides en/zh 不成对是同一类缺陷。
  */
-const messagesZh = parse(await readFile(join(root, 'locales/zh.yml'), 'utf8'));
-const hasZh = (dotted) => {
-  const v = dotted.split('.').reduce((o, k) => (o == null ? o : o[k]), messagesZh);
+/**
+ * 每个已启用语言的词条表（注册表驱动）。
+ *
+ * 原实现只读 locales/zh.yml 并写一个 hasZh()，导致"第三种语言"永远不被检查
+ * （P1 报告 K3）。现在按 ENABLED_LOCALES 逐个读，新增语言自动纳入所有判据。
+ */
+const MESSAGES_BY_LOCALE = Object.fromEntries(
+  await Promise.all(REGISTRY.enabled.map(async (code) => [
+    code,
+    parse(await readFile(join(root, `locales/${code}.yml`), 'utf8')),
+  ])),
+);
+const hasKey = (loc, dotted) => {
+  const v = dotted.split('.').reduce((o, k) => (o == null ? o : o[k]), MESSAGES_BY_LOCALE[loc]);
   return typeof v === 'string' && v.trim().length > 0;
 };
 // 与客户端真实页脚的链接集合一致：首页 / 关于 + 3 个法务页。
@@ -320,12 +337,15 @@ try {
   }
   console.log(`[tools] 知识内容覆盖：about ${audit.withAbout}/${audit.total}，faqs ${audit.withFaqs}/${audit.total}`);
 
-  // 簇名必须两种语言都有：预渲染只走 en，缺 zh 时中文页面的 workflow 标题会直接
-  // 显示成 `clusters.json`（不报错、只有肉眼可见），所以在构建期拦死。
+  // 簇名必须在**每个已启用语言**里都有：预渲染只走默认语言，缺时该语言页面的
+  // workflow 标题会直接显示成 `clusters.json`（不报错、只有肉眼可见），构建期拦死。
   for (const id of audit.clusterIds) {
     label(`clusters.${id}`);
-    if (!hasZh(`clusters.${id}`)) {
-      throw new Error(`[build-seo] locales/zh.yml 缺少词条 clusters.${id}（en 有、zh 没有）`);
+    for (const code of REGISTRY.enabled) {
+      if (code === DEFAULT_LOCALE) continue;
+      if (!hasKey(code, `clusters.${id}`)) {
+        throw new Error(`[build-seo] locales/${code}.yml 缺少词条 clusters.${id}（${DEFAULT_LOCALE} 有、${code} 没有）`);
+      }
     }
   }
   console.log(
@@ -542,7 +562,7 @@ try {
   console.log(`[guides] 骨架与面板同源：两侧都引用 seo.guideArticleLink + guideArticleHref，${entryScan.expected} 页文案逐字一致`);
   // 中文侧也必须有这条词条：骨架恒按 en 预渲染，zh 缺键时英文页一切正常、
   // 中文页把键名 `seo.guideArticleLink` 直接渲染到 116 个工具页上。
-  const localeGaps = missingLocaleKeys(['seo.guideArticleLink', 'seo.guideSummary', 'seo.faqTitle'], messages, messagesZh);
+  const localeGaps = missingLocaleKeys(['seo.guideArticleLink', 'seo.guideSummary', 'seo.faqTitle'], MESSAGES_BY_LOCALE);
   if (localeGaps.length > 0) {
     throw new Error(`[build-seo] 指南入口相关词条两种语言不齐全：${localeGaps.map(g => `${g.key} 缺 ${g.missingIn}`).join(', ')}`);
   }
