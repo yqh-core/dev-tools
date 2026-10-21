@@ -274,14 +274,21 @@ function buildSiteFaqPageLd({ faqs, fill, count }) {
   });
 }
 
-/** 文章页的 Article 结构化数据（正文语言 = 预渲染语言 en；origin 由调用方注入）。 */
+/**
+ * 文章页的 Article 结构化数据。
+ *
+ * K2（2026-10-22）：`inLanguage` 原为字面量 `'en'`，与注册表脱钩 —— 若默认语言
+ * 改成别的，生成的 JSON-LD 会继续谎报英文。改为 `DEFAULT_LOCALE`（由
+ * `scripts/lib/locale-registry.mjs` 解析 `src/i18n/languages.ts` 得出），
+ * 与预渲染语言单一事实源一致。
+ */
 function buildGuideArticleLd(page, canonical, origin) {
   return JSON.stringify({
     '@context': 'https://schema.org',
     '@type': 'Article',
     headline: page.entry.h1,
     description: page.entry.description,
-    inLanguage: 'en',
+    inLanguage: DEFAULT_LOCALE,
     about: { '@type': 'SoftwareApplication', name: page.entry.name, url: origin + page.toolPath + '/' },
     url: canonical,
     mainEntityOfPage: { '@type': 'WebPage', '@id': canonical },
@@ -740,7 +747,7 @@ try {
       }
     }
     if (kind === 'static' && path === SITE_FAQ_PATH) {
-      pageTags += `\n      <script type="application/ld+json">${buildSiteFaqPageLd({ faqs: getSiteFaqs('en'), fill: fillSiteFaq, count: TOOL_SEO_PAGES.length })}</script>`;
+      pageTags += `\n      <script type="application/ld+json">${buildSiteFaqPageLd({ faqs: getSiteFaqs(DEFAULT_LOCALE), fill: fillSiteFaq, count: TOOL_SEO_PAGES.length })}</script>`;
     }
     if (entry?.guide?.faqs?.length) {
       pageTags += `\n      <script type="application/ld+json">${buildFaqPageLd(entry)}</script>`;

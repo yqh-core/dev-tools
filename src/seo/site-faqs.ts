@@ -20,6 +20,8 @@
  * en / zh 必须等长 —— 文件末尾的断言会把这件事变成构建期判据，不靠人记。
  */
 
+import { DEFAULT_LOCALE, normalizeLocale } from '@/i18n/languages';
+
 export interface SiteFaq {
   q: string
   a: string
@@ -112,9 +114,40 @@ if (ZH_FAQS.length !== EN_FAQS.length) {
   );
 }
 
-/** 非 zh 一律回落英文 —— 与法务页、guides 的口径一致，不引入机翻产物。 */
+/**
+ * K2（2026-10-22）：语言 → FAQ 数据的映射，改为**注册表驱动**。
+ *
+ * 此前是 `locale === 'zh' ? ZH_FAQS : EN_FAQS` 的二元分支：新增语言时这一段
+ * 既不会报错、也不会提示，只会静默把日语页面显示成英文 FAQ。
+ * 现在改成映射表 + 注册表归一化：
+ *   - 归一化走 `normalizeLocale`（未启用语言 → 默认语言），与 guides / i18n 同一契约；
+ *   - 新增语言只需在映射表加一行 + 提供 `*_FAQS` 数组，**不加就自动回落默认**，
+ *     而且条数一致性断言（下方）会自动把新语言纳入校验。
+ */
+const FAQS_BY_LOCALE: Record<string, SiteFaq[]> = {
+  en: EN_FAQS,
+  zh: ZH_FAQS,
+};
+
+// N 语言条数一致性：所有已提供 FAQ 数组的语言都必须与默认语言等长。
+// 新增语言时若漏翻某条，这里直接构建失败，而不是渲染出残缺 FAQ。
+const defaultFaqCount = FAQS_BY_LOCALE[DEFAULT_LOCALE].length;
+for (const [code, faqs] of Object.entries(FAQS_BY_LOCALE)) {
+  if (faqs.length !== defaultFaqCount) {
+    throw new Error(
+      `[site-faqs] ${code} 的 FAQ 条数 ${faqs.length} ≠ 默认语言 ${DEFAULT_LOCALE} 的 ${defaultFaqCount}`,
+    );
+  }
+}
+
+/**
+ * 取某语言的站点级 FAQ。
+ * 归一化走注册表（`zh-CN` → `zh`、未启用的 `ja` → 默认语言），
+ * 映射表里没有该语言时回落默认语言 —— 与 guides 的口径一致，不引入机翻产物。
+ */
 export function getSiteFaqs(locale: string): SiteFaq[] {
-  return locale === 'zh' ? ZH_FAQS : EN_FAQS;
+  const code = normalizeLocale(locale);
+  return FAQS_BY_LOCALE[code] ?? FAQS_BY_LOCALE[DEFAULT_LOCALE];
 }
 
 /**
