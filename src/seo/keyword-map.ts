@@ -312,8 +312,8 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     intent: 'format',
     priority: 'P1',
     competition: 'high',
-    landed: false,
-    proposedTitle: 'SQL Formatter — Format and Beautify SQL Online',
+    landed: true,
+    lockedTitle: 'SQL Formatter — Format and Beautify SQL Online',
     note: '簇 9。sqlformat.io 一域名双席位；不打折言数量与报错行列号就没有点击理由。',
   },
   {
@@ -323,8 +323,8 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     intent: 'format',
     priority: 'P2',
     competition: 'medium',
-    landed: false,
-    proposedTitle: 'XML Formatter — Beautify, Validate and Minify XML',
+    landed: true,
+    lockedTitle: 'XML Formatter — Beautify, Validate and Minify XML',
     note: '簇 9。内置「well-formed vs valid(XSD)」的区分说明。',
   },
   {
@@ -334,8 +334,8 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     intent: 'compute',
     priority: 'P2',
     competition: 'high',
-    landed: false,
-    proposedTitle: 'Hash Generator — MD5, SHA-1, SHA-256 Online',
+    landed: true,
+    lockedTitle: 'Hash Generator — MD5, SHA-1, SHA-256 Online',
     note: '簇 10。已完全同质化（hashgenerator.co / freehashgenerator.com 域名即关键词），价值在工具集完整性而非获客。⛔ 路由是 /hash-text，站上没有 /hash-generator。',
   },
   {

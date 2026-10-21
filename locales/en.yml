@@ -283,7 +283,7 @@ tools:
     description: The list of all HTTP status codes, their name, and their meaning.
 
   sql-prettify:
-    title: SQL Prettify and Format
+    title: SQL Formatter — Format and Beautify SQL Online
     description: Paste a messy SQL query and get it formatted — or minified to one line. Keywords upper-cased, clauses indented, one field per line. Supports PostgreSQL, MySQL, T-SQL, BigQuery and 8 more dialects, free in your browser.
 
   benchmark-builder:
@@ -407,7 +407,7 @@ tools:
     description: Generate and download QR codes for quick connections to WiFi networks.
 
   xml-formatter:
-    title: XML formatter
+    title: XML Formatter — Beautify, Validate and Minify XML
     description: Prettify or minify your XML string — human-readable indentation, or strip it back down to a single line.
 
   temperature-converter:
@@ -467,7 +467,7 @@ tools:
     description: Generate your own local, non-routable IP addresses for your network according to RFC4193.
 
   hash-text:
-    title: Hash text
+    title: Hash Generator — MD5, SHA-1, SHA-256 Online
     description: 'Hash a text string using the function you need : MD5, SHA1, SHA256, SHA224, SHA512, SHA384, SHA3 or RIPEMD160 — with 16-digit MD5 and upper/lower-case hex output'
 
   json-to-toml:
