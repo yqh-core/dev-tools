@@ -20,7 +20,7 @@
  * en / zh 必须等长 —— 文件末尾的断言会把这件事变成构建期判据，不靠人记。
  */
 
-import { DEFAULT_LOCALE, normalizeLocale } from '@/i18n/languages';
+import { DEFAULT_LOCALE, ENABLED_LOCALES, normalizeLocale } from '@/i18n/languages';
 
 export interface SiteFaq {
   q: string
@@ -136,6 +136,20 @@ for (const [code, faqs] of Object.entries(FAQS_BY_LOCALE)) {
   if (faqs.length !== defaultFaqCount) {
     throw new Error(
       `[site-faqs] ${code} 的 FAQ 条数 ${faqs.length} ≠ 默认语言 ${DEFAULT_LOCALE} 的 ${defaultFaqCount}`,
+    );
+  }
+}
+
+// 覆盖交叉校验（2026-10-22 P0 收口）：每一种**已启用**语言都必须在 FAQS_BY_LOCALE 里有对应
+// FAQ 数组。此前只遍历 FAQS_BY_LOCALE 已有键（en/zh），无法拦截「注册了 ja 但忘加 ja FAQ」——
+// 那种情况下 getSiteFaqs 会静默 `?? 默认` 回落成英文 FAQ（用户评审点名的假成功路径）。
+// 与 guides 的 K4 门禁同一目标：少了必须构建红，不靠人记。Node 侧另有
+// auditFaqLocaleCoverage（check-locale-registry.mjs）在 CLI 里做同样校验，双保险。
+for (const { code } of ENABLED_LOCALES) {
+  if (!FAQS_BY_LOCALE[code]) {
+    throw new Error(
+      `[site-faqs] '${code}' 已在 ENABLED_LOCALES 启用，但 FAQS_BY_LOCALE 里没有对应 FAQ 数组 —— `
+      + `getSiteFaqs('${code}') 会静默回落成默认语言 FAQ，新增语言必须同时补 FAQ。`,
     );
   }
 }

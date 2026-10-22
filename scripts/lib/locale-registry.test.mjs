@@ -6,7 +6,7 @@
  * 这些用例全部是内存 fixture，不碰仓库文件系统。
  */
 import { describe, expect, it } from 'vitest';
-import { auditGuideLocaleCoverage, auditRegistry, countLeafStrings, parseImporterCodes, parseRegistry } from './locale-registry.mjs';
+import { auditFaqLocaleCoverage, auditGuideLocaleCoverage, auditRegistry, countLeafStrings, parseFaqLocaleCodes, parseImporterCodes, parseRegistry } from './locale-registry.mjs';
 
 const SOURCE = `
 export const ENABLED_LOCALES = [
@@ -136,5 +136,44 @@ describe('auditGuideLocaleCoverage', () => {
   it('不传 importerCodes 时仅检查文件存在性', () => {
     const r = auditGuideLocaleCoverage({ enabled: EN, guideFiles: ['en', 'zh'] });
     expect(r.ok).toBe(true);
+  });
+});
+
+// ── P0 收口：站点级 FAQ 覆盖门禁 ──
+
+describe('parseFaqLocaleCodes', () => {
+  it('从 site-faqs.ts 源码解析 FAQS_BY_LOCALE 的 key 列表', () => {
+    const source = `
+const FAQS_BY_LOCALE: Record<string, SiteFaq[]> = {
+  en: EN_FAQS,
+  zh: ZH_FAQS,
+};
+`;
+    expect(parseFaqLocaleCodes(source)).toEqual(['en', 'zh']);
+  });
+
+  it('解析不到 block → 返回空数组（让门禁报红而非静默跳过）', () => {
+    expect(parseFaqLocaleCodes('export const X = 1;')).toEqual([]);
+  });
+});
+
+describe('auditFaqLocaleCoverage', () => {
+  const EN = ['en', 'zh'];
+
+  it('两启用语言都有 FAQ → PASS', () => {
+    const r = auditFaqLocaleCoverage({ enabled: EN, faqCodes: ['en', 'zh'] });
+    expect(r.ok).toBe(true);
+    expect(r.failures).toEqual([]);
+  });
+
+  it('证伪①（本次缺陷本体）：注册了 ja 但 FAQS_BY_LOCALE 没有 ja → 红', () => {
+    const r = auditFaqLocaleCoverage({ enabled: ['en', 'zh', 'ja'], faqCodes: ['en', 'zh'] });
+    expect(r.ok).toBe(false);
+    expect(r.failures.join('\n')).toMatch(/'ja'.*FAQS_BY_LOCALE/);
+  });
+
+  it('证伪②：faqCodes 解析为空（block 缺失）→ 每个启用语言都报红', () => {
+    const r = auditFaqLocaleCoverage({ enabled: EN, faqCodes: [] });
+    expect(r.failures.length).toBe(2);
   });
 });

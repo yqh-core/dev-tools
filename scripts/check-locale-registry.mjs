@@ -8,7 +8,7 @@ import { readFile, readdir } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parse } from 'yaml';
-import { auditRegistry, auditGuideLocaleCoverage, parseImporterCodes, parseRegistry } from './lib/locale-registry.mjs';
+import { auditFaqLocaleCoverage, auditGuideLocaleCoverage, auditRegistry, parseFaqLocaleCodes, parseImporterCodes, parseRegistry } from './lib/locale-registry.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -63,10 +63,20 @@ if (guideResult.ok) {
   failures.push(...guideResult.failures);
 }
 
+// ── P0 收口：站点级 FAQ 覆盖门禁（site-faqs.ts 的 FAQS_BY_LOCALE）──
+const faqSource = await readFile(join(root, 'src/seo/site-faqs.ts'), 'utf8');
+const faqCodes = parseFaqLocaleCodes(faqSource);
+const faqResult = auditFaqLocaleCoverage({ enabled: registry.enabled, faqCodes });
+if (faqResult.ok) {
+  console.log(`[i18n] FAQ PASS 站点级 FAQ 覆盖：${registry.enabled.join(', ')} 均有 FAQS_BY_LOCALE 条目`);
+} else {
+  failures.push(...faqResult.failures);
+}
+
 // ── 汇总 ──
 if (failures.length) {
   console.error(`[i18n] FAIL ${failures.length} 项：`);
   for (const f of failures) console.error(`[i18n]   - ${f}`);
   process.exit(1);
 }
-console.log('[i18n] PASS 注册表与词条文件一致 + 指南覆盖完整（K4）');
+console.log('[i18n] PASS 注册表与词条文件一致 + 指南覆盖完整（K4）+ 站点级 FAQ 覆盖完整');

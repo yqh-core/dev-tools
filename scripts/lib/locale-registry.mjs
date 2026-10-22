@@ -184,3 +184,37 @@ export function parseImporterCodes(source) {
   if (!block) return [];
   return [...block[1].matchAll(/^\s*(\w+)\s*:/gm)].map(m => m[1]);
 }
+
+/**
+ * 从 `src/seo/site-faqs.ts` 源码解析 FAQS_BY_LOCALE 对象的 key 列表。
+ * 镜像 parseImporterCodes：让 CLI 无需 import TS 模块即可校验 FAQ 覆盖。
+ */
+export function parseFaqLocaleCodes(source) {
+  const block = source.match(/const FAQS_BY_LOCALE\s*[:=][^{]*\{([\s\S]*?)\n\}/);
+  if (!block) return [];
+  return [...block[1].matchAll(/^\s*(\w+)\s*:/gm)].map(m => m[1]);
+}
+
+/**
+ * P0 收口（2026-10-22）：FAQ 覆盖门禁。已启用语言必须有对应的站点级 FAQ 数组。
+ *
+ * 堵住 site-faqs.ts 里 `FAQS_BY_LOCALE[code] ?? 默认` 的静默回落：注册了 ja 却没写
+ * ja 的 FAQ，运行时会把日语页面显示成英文 FAQ —— 与 guides 缺失静默回落是同一类缺陷。
+ *
+ * @param {object} input
+ * @param {string[]} input.enabled  ENABLED_LOCALES 的语言码列表
+ * @param {string[]} input.faqCodes 从 site-faqs.ts 解析出的 FAQS_BY_LOCALE key 列表
+ * @returns {{failures: string[], ok: boolean}}
+ */
+export function auditFaqLocaleCoverage({ enabled, faqCodes }) {
+  const failures = [];
+  for (const code of enabled) {
+    if (!faqCodes.includes(code)) {
+      failures.push(
+        `[FAQ] 已启用语言 '${code}' 在 site-faqs.ts 的 FAQS_BY_LOCALE 里没有对应数组 —— `
+        + `getSiteFaqs 会静默回落成默认语言的 FAQ；新增语言时必须同步补齐 FAQS_BY_LOCALE`,
+      );
+    }
+  }
+  return { failures, ok: failures.length === 0 };
+}
