@@ -524,7 +524,7 @@ function onUpdateFavoriteTools() {
         -->
         <a
           class="home-practice-inline"
-          href="https://geek-typing.pages.dev/"
+          href="https://geek-typing.digdevbox.com/"
           target="_blank"
           rel="noopener"
         >

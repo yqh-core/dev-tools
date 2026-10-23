@@ -191,7 +191,7 @@ const box = 'max-width:800px;margin:0 auto;padding:32px 16px;box-sizing:border-b
         <a href="https://play.digdevbox.com/" style="color:inherit">{{ t('network.play') }}</a> ·
         <a href="https://draw.digdevbox.com/" style="color:inherit">{{ t('network.draw') }}</a> ·
         <a href="https://notes.digdevbox.com/" style="color:inherit">{{ t('network.notes') }}</a> ·
-        <a href="https://geek-typing.pages.dev/" style="color:inherit">{{ t('network.typing') }}</a>
+        <a href="https://geek-typing.digdevbox.com/" style="color:inherit">{{ t('network.typing') }}</a>
       </p>
       <p style="margin:6px 0 0;opacity:.85">
         {{ t('trust') }}

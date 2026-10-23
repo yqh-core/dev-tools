@@ -101,7 +101,7 @@ const tools = computed<ToolCategory[]>(() => [
             <a href="https://draw.digdevbox.com/">{{ $t('network.draw') }}</a> ·
             <a href="https://img.digdevbox.com/">{{ $t('network.img') }}</a> ·
             <a href="https://notes.digdevbox.com/">{{ $t('network.notes') }}</a> ·
-            <a href="https://geek-typing.pages.dev/">{{ $t('network.typing') }}</a>
+            <a href="https://geek-typing.digdevbox.com/">{{ $t('network.typing') }}</a>
           </div>
 
           <div class="footer-trust">

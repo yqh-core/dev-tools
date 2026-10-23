@@ -23,7 +23,7 @@ const { isDarkTheme } = toRefs(styleStore);
     <c-button
       circle
       variant="text"
-      href="https://geek-typing.pages.dev/"
+      href="https://geek-typing.digdevbox.com/"
       target="_blank"
       rel="noopener"
       :aria-label="$t('home.nav.typing')"
