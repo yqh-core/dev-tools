@@ -70,9 +70,8 @@ const ZH: Record<string, PageMeta> = {
 const EN: Record<string, PageMeta> = {
   '/': {
     description:
-      `DigDevBox collects ${TOOL_COUNT} online tools for developers and IT engineers, covering crypto, `
-      + 'converters, web, development, network, text, math, measurement and data. '
-      + 'Most tools run entirely in your browser and never upload your input.',
+      `DigDevBox — ${TOOL_COUNT} free online developer tools: crypto, converters, web, network, text and math. `
+      + 'Everything runs in your browser; your input never leaves your device.',
   },
   '/about': {
     description:
