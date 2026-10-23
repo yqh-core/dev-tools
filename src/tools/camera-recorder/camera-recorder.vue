@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import _ from 'lodash';
+import { isNil } from 'lodash';
 
 import { useMediaRecorder } from './useMediaRecorder';
 
@@ -55,11 +55,11 @@ onRecordAvailable((value) => {
 });
 
 function refreshCurrentDevices() {
-  if (_.isNil(currentCamera) || !cameras.value.find(i => i.deviceId === currentCamera.value)) {
+  if (isNil(currentCamera) || !cameras.value.find(i => i.deviceId === currentCamera.value)) {
     currentCamera.value = cameras.value[0]?.deviceId;
   }
 
-  if (_.isNil(microphones) || !microphones.value.find(i => i.deviceId === currentMicrophone.value)) {
+  if (isNil(microphones) || !microphones.value.find(i => i.deviceId === currentMicrophone.value)) {
     currentMicrophone.value = microphones.value[0]?.deviceId;
   }
 }

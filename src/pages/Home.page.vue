@@ -1,7 +1,11 @@
 <script setup lang="ts">
 import { IconDragDrop, IconHeart, IconSearch, IconX } from '@tabler/icons-vue';
-import { computed, ref } from 'vue';
-import Draggable from 'vuedraggable';
+import { computed, defineAsyncComponent, ref } from 'vue';
+// [B3-experiment E3] vuedraggable(+sortablejs) 静态导入会随 Home 进主 chunk ——
+// 而拖拽 UI 只在 `v-if="favoriteTools.length > 0"`（纯客户端 localStorage，SSR 恒为假）
+// 分支里出现。改成异步组件后只有真正用到收藏拖拽的访问才会下载这个 chunk。
+// 可逆：恢复 `import Draggable from 'vuedraggable';` 即回退。
+const Draggable = defineAsyncComponent(() => import('vuedraggable'));
 import ColoredCard from '../components/ColoredCard.vue';
 import ToolCard from '../components/ToolCard.vue';
 import { useToolStore } from '@/tools/tools.store';

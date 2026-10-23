@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { generateMeta } from '@it-tools/oggen';
-import _ from 'lodash';
+import { chain, pickBy } from 'lodash';
 import { image, ogSchemas, twitter, website } from './og-schemas';
 import { toValidMetaMarkup } from './meta-tag.service';
 import type { OGSchemaType, OGSchemaTypeElementSelect } from './OGSchemaType.type';
@@ -40,12 +40,12 @@ const sections = computed(() => {
 });
 
 const metaTags = computed(() => {
-  const twitterMeta = _.chain(metadata.value)
+  const twitterMeta = chain(metadata.value)
     .pickBy((_value, k) => k.startsWith('twitter:'))
     .mapKeys((_value, k) => k.replace(/^twitter:/, ''))
     .value();
 
-  const otherMeta = _.pickBy(metadata.value, (_value, k) => !k.startsWith('twitter:'));
+  const otherMeta = pickBy(metadata.value, (_value, k) => !k.startsWith('twitter:'));
 
   // oggen 1.3.0 把内容写在 value= 上，那是无效 markup；这页产出的是给人直接粘贴的代码，
   // 所以必须在出口处规范化，并由 meta-tag.service.test.ts 用真实 oggen 输出钉住。

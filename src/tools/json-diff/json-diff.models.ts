@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import { isArray, isEqual, isObject } from 'lodash';
 import type { Difference, DifferenceStatus } from './json-diff.types';
 
 export { diff };
@@ -8,7 +8,7 @@ function diff(
   newObj: unknown,
   { onlyShowDifferences = false }: { onlyShowDifferences?: boolean } = {},
 ): Difference {
-  if (_.isArray(obj) && _.isArray(newObj)) {
+  if (isArray(obj) && isArray(newObj)) {
     return {
       key: '',
       type: 'array',
@@ -19,7 +19,7 @@ function diff(
     };
   }
 
-  if (_.isObject(obj) && _.isObject(newObj)) {
+  if (isObject(obj) && isObject(newObj)) {
     return {
       key: '',
       type: 'object',
@@ -126,7 +126,7 @@ function getStatus(value: unknown, newValue: unknown): DifferenceStatus {
 
   const bothAreObjects = getType(value) === 'object' && getType(newValue) === 'object';
   const bothAreArrays = getType(value) === 'array' && getType(newValue) === 'array';
-  const bothAreDeepEqual = _.isEqual(value, newValue);
+  const bothAreDeepEqual = isEqual(value, newValue);
 
   if (bothAreDeepEqual) {
     return 'unchanged';

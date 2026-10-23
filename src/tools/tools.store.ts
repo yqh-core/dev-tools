@@ -1,7 +1,7 @@
 import { type MaybeRef, get, useStorage } from '@vueuse/core';
 import { defineStore } from 'pinia';
 import type { Ref } from 'vue';
-import _ from 'lodash';
+import { chain } from 'lodash';
 import type { Tool, ToolWithCategory } from './tools.types';
 import { toolsWithCategory } from './index';
 
@@ -42,7 +42,7 @@ export const useToolStore = defineStore('tools', () => {
   }));
 
   const toolsByCategory = computed<ToolCategoryGroup[]>(() => {
-    return _.chain(tools.value)
+    return chain(tools.value)
       .groupBy('category')
       .map((components, name) => ({
         name,

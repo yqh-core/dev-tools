@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import _ from 'lodash';
+import { capitalize } from 'lodash';
 
 const buttonVariants = ['basic', 'text'] as const;
 const buttonTypes = ['default', 'primary', 'warning', 'error'] as const;
@@ -8,7 +8,7 @@ const buttonSizes = ['small', 'medium', 'large'] as const;
 
 <template>
   <div v-for="buttonVariant of buttonVariants" :key="buttonVariant">
-    <h2>{{ _.capitalize(buttonVariant) }}</h2>
+    <h2>{{ capitalize(buttonVariant) }}</h2>
 
     <div v-for="buttonSize of buttonSizes" :key="buttonSize" mb-2>
       <c-button

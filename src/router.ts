@@ -1,6 +1,10 @@
 import { createMemoryHistory, createRouter, createWebHistory } from 'vue-router';
 import { layouts } from './layouts/index';
-import HomePage from './pages/Home.page.vue';
+// [B3-experiment E2] Home 由静态 import 改为路由级动态 import：静态 import 让
+// Home.page.vue 及其依赖（实测：guides.en.ts 239,795 B 源、vuedraggable+sortablejs
+// 274,704 B 源）进入**每个页面**都要下载的主 chunk。预渲染不受影响：
+// src/entry-server.ts 的 PAGES['/'] 本来就是 `() => import('./pages/Home.page.vue')`。
+// 可逆：改回顶部静态 import + 组件引用即回退。
 import NotFound from './pages/404.page.vue';
 import { tools } from './tools';
 import { config } from './config';
@@ -46,7 +50,7 @@ export function createAppRouter(history = createWebHistory(config.app.baseUrl)) 
       {
         path: '/',
         name: 'home',
-        component: HomePage,
+        component: () => import('./pages/Home.page.vue'),
       },
       {
         path: '/about',

@@ -1,5 +1,5 @@
 <script setup lang="ts" generic="T extends unknown">
-import _ from 'lodash';
+import { isArray, map } from 'lodash';
 import type { CLabelProps } from '../c-label/c-label.types';
 import type { CButtonSelectOption } from './c-buttons-select.types';
 
@@ -22,7 +22,7 @@ const emits = defineEmits(['update:value']);
 const { options: rawOptions, size } = toRefs(props);
 
 const options = computed<CButtonSelectOption<T>[]>(() => {
-  if (_.isArray(rawOptions.value)) {
+  if (isArray(rawOptions.value)) {
     return rawOptions.value.map((option: string | CButtonSelectOption<T>) => {
       if (typeof option === 'string') {
         return { label: option, value: option };
@@ -32,7 +32,7 @@ const options = computed<CButtonSelectOption<T>[]>(() => {
     }) as CButtonSelectOption<T>[];
   }
 
-  return _.map(rawOptions.value, (value, label) => ({ label, value })) as CButtonSelectOption<T>[];
+  return map(rawOptions.value, (value, label) => ({ label, value })) as CButtonSelectOption<T>[];
 });
 
 const value = useVModel(props, 'value', emits);

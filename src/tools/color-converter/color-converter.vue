@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Colord } from 'colord';
 import { colord, extend } from 'colord';
-import _ from 'lodash';
+import { forEach } from 'lodash';
 import cmykPlugin from 'colord/plugins/cmyk';
 import hwbPlugin from 'colord/plugins/hwb';
 import namesPlugin from 'colord/plugins/names';
@@ -64,7 +64,7 @@ function updateColorValue(value: Colord | undefined, omitLabel?: string) {
     return;
   }
 
-  _.forEach(formats, ({ value: valueRef, format }, key) => {
+  forEach(formats, ({ value: valueRef, format }, key) => {
     if (key !== omitLabel) {
       valueRef.value = format(value);
     }

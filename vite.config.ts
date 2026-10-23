@@ -1,4 +1,5 @@
-import { resolve } from 'node:path';
+import { dirname, resolve } from 'node:path';
+import { createRequire } from 'node:module';
 import { URL, fileURLToPath } from 'node:url';
 
 import VueI18n from '@intlify/unplugin-vue-i18n/vite';
@@ -18,9 +19,36 @@ import { configDefaults } from 'vitest/config';
 
 const baseUrl = process.env.BASE_URL ?? '/';
 
+// [B3-experiment E1] lodash(CJS) 与 lodash-es(ESM) 同时进包：src 41 处 `import _ from 'lodash'`
+// 带全量 CJS lodash（主 chunk 544,098 B 源），naive-ui 走 lodash-es 再带 118,144 B 重叠模块。
+// 别名把 'lodash' 收敛到 lodash-es。pnpm 严格布局下 lodash-es 不在根 node_modules，
+// 必须经 naive-ui 的依赖树定位（裸 'lodash-es' 已实测 ENOENT，见 b3/e1a 首轮失败日志）。
+const lodashEsDir = dirname(
+  createRequire(import.meta.url).resolve('lodash-es/package.json', {
+    paths: [createRequire(import.meta.url).resolve('naive-ui/package.json')],
+  }),
+);
+
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
+    // [B3-experiment E1b] figue（3.7KB dist）里 `import _ from 'lodash'` 全量默认导入，
+    // 实际只用 10 个函数；不改 node_modules，在构建层把它的默认导入展开为具名，
+    // 让 lodash-es 细粒度模块按用分享。可逆：删除本插件对象即回退。
+    {
+      name: 'b3-figue-lodash-shim',
+      enforce: 'pre',
+      transform(code: string, id: string) {
+        if (!/[\\/]figue[\\/](dist[\\/]index\.mjs|.*\.mjs)$/.test(id)) return null;
+        if (!code.includes("import _ from 'lodash'")) return null;
+        let out = code.replace(
+          /import _ from 'lodash';?/,
+          "import { get, isArray, isFinite, isInteger, isNaN, isNumber, isObject, isString, merge, set } from 'lodash';",
+        );
+        out = out.replace(/\b_\.(get|isArray|isFinite|isInteger|isNaN|isNumber|isObject|isString|merge|set)\b/g, '$1');
+        return out;
+      },
+    },
     VueI18n({
       runtimeOnly: true,
       jitCompilation: true,
@@ -138,6 +166,9 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
+      // [B3-experiment E1] 'lodash'(CJS) 收敛到 lodash-es(ESM)，见文件顶部 lodashEsDir 注释。
+      // 可逆：删掉本行即回退。
+      lodash: lodashEsDir,
     },
   },
   define: {

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import _ from 'lodash';
+import { times } from 'lodash';
 import { generateRandomMacAddress } from './mac-adress-generator.models';
 import { computedRefreshable } from '@/composable/computedRefreshable';
 import { useCopy } from '@/composable/copy';
@@ -41,7 +41,7 @@ const [macAddresses, refreshMacAddresses] = computedRefreshable(() => {
     return '';
   }
 
-  const ids = _.times(amount.value, () => caseTransformer.value(generateRandomMacAddress({
+  const ids = times(amount.value, () => caseTransformer.value(generateRandomMacAddress({
     prefix: macAddressPrefix.value,
     separator: separator.value,
   })));

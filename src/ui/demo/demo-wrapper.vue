@@ -1,10 +1,10 @@
 <script lang="ts" setup>
-import _ from 'lodash';
+import { startCase } from 'lodash';
 import { demoRoutes } from './demo.routes';
 
 const route = useRoute();
 
-const componentName = computed(() => _.startCase(String(route.name).replace(/^c-/, '')));
+const componentName = computed(() => startCase(String(route.name).replace(/^c-/, '')));
 </script>
 
 <template>

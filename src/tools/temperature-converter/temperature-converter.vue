@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import _ from 'lodash';
+import { chain, identity } from 'lodash';
 import {
   convertCelsiusToKelvin,
   convertDelisleToKelvin,
@@ -29,8 +29,8 @@ const units = reactive<
           title: 'Kelvin',
           unit: 'K',
           ref: 0,
-          toKelvin: _.identity,
-          fromKelvin: _.identity,
+          toKelvin: identity,
+          fromKelvin: identity,
         },
         celsius: {
           title: 'Celsius',
@@ -88,7 +88,7 @@ function update(key: TemperatureScale) {
 
   const kelvins = toKelvin(value) ?? 0;
 
-  _.chain(units)
+  chain(units)
     .omit(key)
     .forEach(({ fromKelvin }, index) => {
       // 取到 2 位小数必须**四舍五入**，不能用 Math.floor 截断。

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import _ from 'lodash';
+import { chain, map } from 'lodash';
 import type { HeaderConfiguration } from './c-table.types';
 
 const props = withDefaults(defineProps<{ data?: Record<string, unknown>[]; headers?: HeaderConfiguration ; hideHeaders?: boolean; description?: string }>(), { data: () => [], headers: undefined, hideHeaders: false, description: 'Data table' });
@@ -22,12 +22,12 @@ const headers = computed(() => {
       });
     }
 
-    return _.map(rawHeaders.value, (value, key) => ({
+    return map(rawHeaders.value, (value, key) => ({
       key, label: value,
     }));
   }
 
-  return _.chain(data.value)
+  return chain(data.value)
     .map(row => Object.keys(row))
     .flatten()
     .uniq()

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ulid } from 'ulid';
-import _ from 'lodash';
+import { times } from 'lodash';
 import { computedRefreshable } from '@/composable/computedRefreshable';
 import { useCopy } from '@/composable/copy';
 
@@ -9,7 +9,7 @@ const formats = [{ label: 'Raw', value: 'raw' }, { label: 'JSON', value: 'json' 
 const format = useStorage<typeof formats[number]['value']>('ulid-generator-format', formats[0].value);
 
 const [ulids, refreshUlids] = computedRefreshable(() => {
-  const ids = _.times(amount.value, () => ulid());
+  const ids = times(amount.value, () => ulid());
 
   if (format.value === 'json') {
     return JSON.stringify(ids, null, 2);

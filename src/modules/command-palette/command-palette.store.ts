@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import _ from 'lodash';
+import { chain, sample, take } from 'lodash';
 import type { PaletteOption } from './command-palette.types';
 import { useToolStore } from '@/tools/tools.store';
 import { ALIASES } from '@/tools/aliases';
@@ -33,7 +33,7 @@ export const useCommandPaletteStore = defineStore('command-palette', () => {
       name: 'Random tool',
       description: 'Get a random tool from the list.',
       action: () => {
-        const { path } = _.sample(toolStore.tools)!;
+        const { path } = sample(toolStore.tools)!;
         router.push(path);
       },
       icon: DiceIcon,
@@ -85,7 +85,7 @@ export const useCommandPaletteStore = defineStore('command-palette', () => {
   });
 
   const filteredSearchResult = computed(() =>
-    _.chain(searchResult.value).groupBy('category').mapValues(categoryOptions => _.take(categoryOptions, 5)).value());
+    chain(searchResult.value).groupBy('category').mapValues(categoryOptions => take(categoryOptions, 5)).value());
 
   return {
     filteredSearchResult,

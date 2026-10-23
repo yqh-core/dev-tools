@@ -1,5 +1,5 @@
 import { HmacSHA1, enc } from 'crypto-js';
-import _ from 'lodash';
+import { chain } from 'lodash';
 import { createToken } from '../token-generator/token-generator.service';
 
 export {
@@ -128,7 +128,7 @@ function buildKeyUri({
     period,
   };
 
-  const paramsString = _(params)
+  const paramsString = chain(params)
     .map((value, key) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
     .join('&');
 

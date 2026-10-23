@@ -1,6 +1,6 @@
 import { extension as getExtensionFromMimeType, extension as getMimeTypeFromExtension } from 'mime-types';
 import type { Ref } from 'vue';
-import _ from 'lodash';
+import { find } from 'lodash';
 
 export {
   getMimeTypeFromBase64,
@@ -24,7 +24,7 @@ function getMimeTypeFromBase64({ base64String }: { base64String: string }) {
     return { mimeType: mimeTypeFromBase64 };
   }
 
-  const inferredMimeType = _.find(commonMimeTypesSignatures, (_mimeType, signature) => base64String.startsWith(signature));
+  const inferredMimeType = find(commonMimeTypesSignatures, (_mimeType, signature) => base64String.startsWith(signature));
 
   if (inferredMimeType) {
     return { mimeType: inferredMimeType };

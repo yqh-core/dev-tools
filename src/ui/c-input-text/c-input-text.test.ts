@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { mount, shallowMount } from '@vue/test-utils';
 import { createPinia, setActivePinia } from 'pinia';
-import _ from 'lodash';
+import { get } from 'lodash';
 import CInputText from './c-input-text.vue';
 import { useValidation } from '@/composable/validation';
 
@@ -55,7 +55,7 @@ describe('CInputText', () => {
 
     await wrapper.get('input').setValue('Hello');
 
-    expect(_.get(wrapper.emitted(), 'update:value.0.0')).to.equal('Hello');
+    expect(get(wrapper.emitted(), 'update:value.0.0')).to.equal('Hello');
   });
 
   it('cannot be edited when disabled', async () => {
@@ -67,7 +67,7 @@ describe('CInputText', () => {
 
     await wrapper.get('input').setValue('Hello');
 
-    expect(_.get(wrapper.emitted(), 'update:value')).toBeUndefined();
+    expect(get(wrapper.emitted(), 'update:value')).toBeUndefined();
   });
 
   it('renders a feedback message for invalid rules', async () => {

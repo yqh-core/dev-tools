@@ -1,11 +1,11 @@
 <script lang="ts" setup>
-import _ from 'lodash';
+import { isNil } from 'lodash';
 import type { CKeyValueListItems } from './c-key-value-list.types';
 
 const props = withDefaults(defineProps<{ items?: CKeyValueListItems }>(), { items: () => [] });
 const { items } = toRefs(props);
 
-const formattedItems = computed(() => items.value.filter(item => !_.isNil(item.value) || !item.hideOnNil));
+const formattedItems = computed(() => items.value.filter(item => !isNil(item.value) || !item.hideOnNil));
 </script>
 
 <template>

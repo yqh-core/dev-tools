@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import { chain } from 'lodash';
 
 export { ipv4ToInt, ipv4ToIpv6, isValidIpv4 };
 
@@ -20,7 +20,7 @@ function ipv4ToIpv6({ ip, prefix = '0000:0000:0000:0000:0000:ffff:' }: { ip: str
 
   return (
     prefix
-    + _.chain(ip)
+    + chain(ip)
       .trim()
       .split('.')
       .map(part => Number.parseInt(part).toString(16).padStart(2, '0'))

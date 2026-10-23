@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import { debounce } from 'lodash';
 
 function useDebouncedRef<T>(initialValue: T, delay: number, immediate: boolean = false) {
   const state = ref(initialValue);
@@ -7,7 +7,7 @@ function useDebouncedRef<T>(initialValue: T, delay: number, immediate: boolean =
       track();
       return state.value;
     },
-    set: _.debounce(
+    set: debounce(
       (value) => {
         state.value = value;
         trigger();

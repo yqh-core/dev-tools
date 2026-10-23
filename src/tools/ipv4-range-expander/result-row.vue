@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import _ from 'lodash';
+import { kebabCase } from 'lodash';
 import SpanCopyable from '@/components/SpanCopyable.vue';
 
 const props = withDefaults(defineProps<{ label: string; oldValue?: string; newValue?: string }>(), {
@@ -9,7 +9,7 @@ const props = withDefaults(defineProps<{ label: string; oldValue?: string; newVa
 });
 const { label, oldValue, newValue } = toRefs(props);
 
-const testId = computed(() => _.kebabCase(label.value));
+const testId = computed(() => kebabCase(label.value));
 </script>
 
 <template>

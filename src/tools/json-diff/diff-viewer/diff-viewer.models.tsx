@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import { isNull } from 'lodash';
 import type { ArrayDifference, Difference, ObjectDifference } from '../json-diff.types';
 import { useCopy } from '@/composable/copy';
 
@@ -99,7 +99,7 @@ function ChildrenViewer({
 }
 
 function formatValue(value: unknown) {
-  if (_.isNull(value)) {
+  if (isNull(value)) {
     return 'null';
   }
 

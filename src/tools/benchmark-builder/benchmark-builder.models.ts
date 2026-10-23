@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import { sum } from 'lodash';
 
 export { computeAverage, computeVariance, arrayToMarkdownTable };
 
@@ -7,7 +7,7 @@ function computeAverage({ data }: { data: number[] }) {
     return 0;
   }
 
-  return _.sum(data) / data.length;
+  return sum(data) / data.length;
 }
 
 function computeVariance({ data }: { data: number[] }) {

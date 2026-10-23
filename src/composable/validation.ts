@@ -1,5 +1,5 @@
 import { type MaybeRef, get } from '@vueuse/core';
-import _ from 'lodash';
+import { isNil } from 'lodash';
 import { type Ref, reactive, watch } from 'vue';
 
 type ValidatorReturnType = unknown;
@@ -15,7 +15,7 @@ export function isFalsyOrHasThrown(cb: () => ValidatorReturnType): boolean {
   try {
     const returnValue = cb();
 
-    if (_.isNil(returnValue)) {
+    if (isNil(returnValue)) {
       return true;
     }
 

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import _ from 'lodash';
+import { isEqual, isUndefined } from 'lodash';
 import { diff } from '../json-diff.models';
 import { DiffRootViewer } from './diff-viewer.models';
 import { useAppTheme } from '@/ui/theme/themes';
@@ -13,8 +13,8 @@ const result = computed(() =>
   diff(leftJson.value, rightJson.value, { onlyShowDifferences: onlyShowDifferences.value }),
 );
 
-const jsonAreTheSame = computed(() => _.isEqual(leftJson.value, rightJson.value));
-const showResults = computed(() => !_.isUndefined(leftJson.value) && !_.isUndefined(rightJson.value));
+const jsonAreTheSame = computed(() => isEqual(leftJson.value, rightJson.value));
+const showResults = computed(() => !isUndefined(leftJson.value) && !isUndefined(rightJson.value));
 </script>
 
 <template>

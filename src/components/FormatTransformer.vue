@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import _ from 'lodash';
+import { identity } from 'lodash';
 import type { UseValidationRule } from '@/composable/validation';
 import CInputText from '@/ui/c-input-text/c-input-text.vue';
 
@@ -17,7 +17,7 @@ const props = withDefaults(
     downloadFilename?: string
   }>(),
   {
-    transformer: _.identity,
+    transformer: identity,
     inputValidationRules: () => [],
     inputLabel: 'Input',
     inputDefault: '',

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import _ from 'lodash';
+import { isEmpty, isNil } from 'lodash';
 
 const props = withDefaults(defineProps<{
   multiple?: boolean
@@ -40,7 +40,7 @@ function handleDrop(event: DragEvent) {
 }
 
 function handleUpload(files: FileList | null | undefined) {
-  if (_.isNil(files) || _.isEmpty(files)) {
+  if (isNil(files) || isEmpty(files)) {
     return;
   }
 

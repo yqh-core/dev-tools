@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
-import _ from 'lodash';
+import { chain, isUndefined } from 'lodash';
 import { useCommandPaletteStore } from './command-palette.store';
 import type { PaletteOption } from './command-palette.types';
 
@@ -50,7 +50,7 @@ function handleKeydown(event: KeyboardEvent) {
 
   if (isArrowUpOrDown) {
     const increment = isArrowDown ? 1 : -1;
-    const maxIndex = Math.max(_.chain(filteredSearchResult.value).values().flatten().size().value() - 1, 0);
+    const maxIndex = Math.max(chain(filteredSearchResult.value).values().flatten().size().value() - 1, 0);
 
     selectedOptionIndex.value = Math.min(Math.max(selectedOptionIndex.value + increment, 0), maxIndex);
 
@@ -58,7 +58,7 @@ function handleKeydown(event: KeyboardEvent) {
   }
 
   if (isEnterPressed) {
-    const option = _.chain(filteredSearchResult.value)
+    const option = chain(filteredSearchResult.value)
       .values()
       .flatten()
       .nth(selectedOptionIndex.value)
@@ -69,7 +69,7 @@ function handleKeydown(event: KeyboardEvent) {
 }
 
 function getOptionIndex(option: PaletteOption) {
-  return _.chain(filteredSearchResult.value)
+  return chain(filteredSearchResult.value)
     .values()
     .flatten()
     .findIndex(o => o === option)
@@ -89,7 +89,7 @@ function activateOption(option: PaletteOption) {
     return;
   }
 
-  const closeAfterNavigation = closeOnSelect || _.isUndefined(closeOnSelect);
+  const closeAfterNavigation = closeOnSelect || isUndefined(closeOnSelect);
 
   if (option.to) {
     router.push(option.to);

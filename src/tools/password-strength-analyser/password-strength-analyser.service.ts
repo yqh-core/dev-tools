@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import { chain, identity } from 'lodash';
 
 export { getPasswordCrackTimeEstimation, getCharsetLength };
 
@@ -31,8 +31,8 @@ function getHumanFriendlyDuration({ seconds }: { seconds: number }) {
     { unit: 'second', secondsInUnit: 1, plural: 'seconds' },
   ];
 
-  return _.chain(timeUnits)
-    .map(({ unit, secondsInUnit, plural, format = _.identity }) => {
+  return chain(timeUnits)
+    .map(({ unit, secondsInUnit, plural, format = identity }) => {
       const quantity = Math.floor(seconds / secondsInUnit);
       seconds %= secondsInUnit;
 

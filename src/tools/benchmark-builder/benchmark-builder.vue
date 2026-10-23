@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Plus, Trash } from '@vicons/tabler';
 import { useStorage } from '@vueuse/core';
-import _ from 'lodash';
+import { isNumber } from 'lodash';
 
 import { arrayToMarkdownTable, computeAverage, computeVariance } from './benchmark-builder.models';
 import DynamicValues from './dynamic-values.vue';
@@ -19,7 +19,7 @@ const round = (v: number) => Math.round(v * 1000) / 1000;
 const results = computed(() => {
   return suites.value
     .map(({ data: dirtyData, title }) => {
-      const data = dirtyData.filter(_.isNumber);
+      const data = dirtyData.filter(isNumber);
 
       return {
         title,

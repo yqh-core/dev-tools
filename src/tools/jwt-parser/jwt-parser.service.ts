@@ -1,5 +1,5 @@
 import jwtDecode, { type JwtHeader, type JwtPayload } from 'jwt-decode';
-import _ from 'lodash';
+import { isArray, isNil, isPlainObject, isString, map, toString } from 'lodash';
 import { ALGORITHM_DESCRIPTIONS, CLAIM_DESCRIPTIONS } from './jwt-parser.constants';
 
 export { decodeJwt };
@@ -8,8 +8,8 @@ function decodeJwt({ jwt }: { jwt: string }) {
   const rawHeader = jwtDecode<JwtHeader>(jwt, { header: true });
   const rawPayload = jwtDecode<JwtPayload>(jwt);
 
-  const header = _.map(rawHeader, (value, claim) => parseClaims({ claim, value }));
-  const payload = _.map(rawPayload, (value, claim) => parseClaims({ claim, value }));
+  const header = map(rawHeader, (value, claim) => parseClaims({ claim, value }));
+  const payload = map(rawPayload, (value, claim) => parseClaims({ claim, value }));
 
   return {
     header,
@@ -19,7 +19,7 @@ function decodeJwt({ jwt }: { jwt: string }) {
 
 function parseClaims({ claim, value }: { claim: string; value: unknown }) {
   const claimDescription = CLAIM_DESCRIPTIONS[claim];
-  const formattedValue = _.isPlainObject(value) || _.isArray(value) ? JSON.stringify(value, null, 3) : _.toString(value);
+  const formattedValue = isPlainObject(value) || isArray(value) ? JSON.stringify(value, null, 3) : toString(value);
   const friendlyValue = getFriendlyValue({ claim, value });
 
   return {
@@ -35,7 +35,7 @@ function getFriendlyValue({ claim, value }: { claim: string; value: unknown }) {
     return dateFormatter(value);
   }
 
-  if (claim === 'alg' && _.isString(value)) {
+  if (claim === 'alg' && isString(value)) {
     return ALGORITHM_DESCRIPTIONS[value];
   }
 
@@ -43,7 +43,7 @@ function getFriendlyValue({ claim, value }: { claim: string; value: unknown }) {
 }
 
 function dateFormatter(value: unknown) {
-  if (_.isNil(value)) {
+  if (isNil(value)) {
     return undefined;
   }
 

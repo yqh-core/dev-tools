@@ -8,7 +8,7 @@
  * Every predicate accepts `undefined` (returns false) so it is safe to call on
  * optional / empty input without a guard at the call site.
  */
-import _ from 'lodash';
+import { isNil } from 'lodash';
 
 const ISO8601_REGEX
   = /^([+-]?\d{4}(?!\d{2}\b))((-?)((0[1-9]|1[0-2])(\3([12]\d|0[1-9]|3[01]))?|W([0-4]\d|5[0-2])(-?[1-7])?|(00[1-9]|0[1-9]\d|[12]\d{2}|3([0-5]\d|6[1-6])))([T\s]((([01]\d|2[0-3])((:?)[0-5]\d)?|24:?00)([.,]\d+(?!:))?)?(\17[0-5]\d([.,]\d+)?)?([zZ]|([+-])([01]\d|2[0-3]):?([0-5]\d)?)?)?)?$/;
@@ -23,7 +23,7 @@ const RFC7231_REGEX = /^[A-Za-z]{3},\s[0-9]{2}\s[A-Za-z]{3}\s[0-9]{4}\s[0-9]{2}:
 const EXCEL_FORMAT_REGEX = /^-?\d+(\.\d+)?$/;
 
 function createRegexMatcher(regex: RegExp) {
-  return (date?: string) => !_.isNil(date) && regex.test(date);
+  return (date?: string) => !isNil(date) && regex.test(date);
 }
 
 export const isISO8601DateTimeString = createRegexMatcher(ISO8601_REGEX);
@@ -42,7 +42,7 @@ export const isExcelFormat = createRegexMatcher(EXCEL_FORMAT_REGEX);
  * `toUTCString()`-shaped value, e.g. `Sun, 06 Nov 1994 08:49:37 GMT`).
  */
 export function isUTCDateString(date?: string) {
-  if (_.isNil(date)) {
+  if (isNil(date)) {
     return false;
   }
 

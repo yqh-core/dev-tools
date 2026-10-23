@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import { has, isError, isObject, isString } from 'lodash';
 
 export { getErrorMessageIfThrows };
 
@@ -8,15 +8,15 @@ function getErrorMessageIfThrows(cb: () => unknown) {
     return undefined;
   }
   catch (err) {
-    if (_.isString(err)) {
+    if (isString(err)) {
       return err;
     }
 
-    if (_.isError(err)) {
+    if (isError(err)) {
       return err.message;
     }
 
-    if (_.isObject(err) && _.has(err, 'message')) {
+    if (isObject(err) && has(err, 'message')) {
       return (err as { message: string }).message;
     }
 
