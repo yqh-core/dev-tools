@@ -27,13 +27,13 @@
  *   - 运行期：`tool.layout.vue` / `GuideArticle.vue` 调 `loadGuides(locale)` 取当前语言。
  */
 
-import { ENABLED_LOCALES, DEFAULT_LOCALE, normalizeLocale } from '@/i18n/languages'
-import type { ToolGuide } from './guides.types'
+import type { ToolGuide } from './guides.types';
+import { ENABLED_LOCALES, normalizeLocale } from '@/i18n/languages';
 
-export type { ToolGuide }
+export type { ToolGuide };
 
 /** 已启用语言（派生自注册表，不再硬编码）。 */
-export const GUIDE_LOCALES: readonly string[] = ENABLED_LOCALES.map(l => l.code)
+export const GUIDE_LOCALES: readonly string[] = ENABLED_LOCALES.map(l => l.code);
 
 /**
  * 静态 importer 映射。
@@ -45,14 +45,14 @@ export const GUIDE_LOCALES: readonly string[] = ENABLED_LOCALES.map(l => l.code)
 const GUIDE_IMPORTERS: Record<string, () => Promise<Record<string, ToolGuide>>> = {
   en: () => import('./guides.en').then(m => m.GUIDES),
   zh: () => import('./guides.zh').then(m => m.GUIDES),
-}
+};
 
 /**
  * 运行时快速自检（供 dev-mode 或测试使用，构建门禁在 Node 端另有覆盖）。
  * 返回缺失 guides 文件的已启用语言列表；空数组 = 全部就绪。
  */
 export function assertGuideCoverage(): string[] {
-  return GUIDE_LOCALES.filter(code => !GUIDE_IMPORTERS[code])
+  return GUIDE_LOCALES.filter(code => !GUIDE_IMPORTERS[code]);
 }
 
 /**
@@ -61,14 +61,14 @@ export function assertGuideCoverage(): string[] {
  * 若注册表启用了一种语言但此处没有对应 importer → throw（不静默回落）。
  */
 export async function loadGuides(locale: string): Promise<Record<string, ToolGuide>> {
-  const resolved = normalizeLocale(locale)
-  const importer = GUIDE_IMPORTERS[resolved]
+  const resolved = normalizeLocale(locale);
+  const importer = GUIDE_IMPORTERS[resolved];
   if (!importer) {
     throw new Error(
       `[guides] 语言 '${resolved}' 已在注册表 ENABLED_LOCALES 中启用，`
       + `但缺少 src/tools/guides.${resolved}.ts 或 GUIDE_IMPORTERS 没有对应行。`
-      + ` 构建门禁 (auditGuideLocaleCoverage) 应在 CI 拦截此情况。`,
-    )
+      + ' 构建门禁 (auditGuideLocaleCoverage) 应在 CI 拦截此情况。',
+    );
   }
-  return importer()
+  return importer();
 }
