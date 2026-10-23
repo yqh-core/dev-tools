@@ -1,5 +1,6 @@
 import { createMemoryHistory, createRouter, createWebHistory } from 'vue-router';
 import { layouts } from './layouts/index';
+
 // [B3-experiment E2] Home 由静态 import 改为路由级动态 import：静态 import 让
 // Home.page.vue 及其依赖（实测：guides.en.ts 239,795 B 源、vuedraggable+sortablejs
 // 274,704 B 源）进入**每个页面**都要下载的主 chunk。预渲染不受影响：

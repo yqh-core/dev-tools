@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { findOrphanPages } from './tool-page';
-import { TOOL_SEO_PAGES } from './tool-page';
+import { TOOL_SEO_PAGES, findOrphanPages } from './tool-page';
+
 import { STANDALONE_ALLOWLIST } from './clusters';
 
 // F5 防回归门禁的**证伪自检**：证明 findOrphanPages 既是「摆设的反面」（能判红），
@@ -70,7 +70,7 @@ describe('findOrphanPages — 真实数据当前必须 0 孤立（锁死 F5-02 �
     // 失效白名单比没有白名单更糟：反向自检对不存在的条目「查无此人」会空过，
     // 真实数据测试也因 !allowlist.has(真路径) 匹配不上而失去保护 —— 该页若哪天
     // 掉成 R=W=0，门禁反而拦不住。所以路径存在性必须在门禁链里显式断言。
-    const realPaths = new Set(TOOL_SEO_PAGES.map((e) => e.path));
+    const realPaths = new Set(TOOL_SEO_PAGES.map(e => e.path));
     for (const p of STANDALONE_ALLOWLIST) {
       expect(realPaths.has(p), `STANDALONE_ALLOWLIST 含无效路径：${p}（不存在于 ${realPaths.size} 个工具页中）`).toBe(true);
     }
@@ -102,9 +102,9 @@ describe('findOrphanPages — 真实数据当前必须 0 孤立（锁死 F5-02 �
     for (const allowPath of STANDALONE_ALLOWLIST) {
       const inboundFromOthers = TOOL_SEO_PAGES.some(
         e =>
-          e.path !== allowPath &&
-          (e.related.some(r => r.path === allowPath) ||
-            e.workflow.some(w => w.path === allowPath && !w.current)),
+          e.path !== allowPath
+          && (e.related.some(r => r.path === allowPath)
+            || e.workflow.some(w => w.path === allowPath && !w.current)),
       );
       expect(inboundFromOthers, `${allowPath} 已有外部入度，不该再留在 STANDALONE_ALLOWLIST`).toBe(false);
     }
