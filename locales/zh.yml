@@ -363,7 +363,7 @@ tools:
 
   numeronym-generator:
     title: 数字缩写生成器
-    description: 数字缩写（numeronym）是把中间字母替换为个数的缩写形式——internationalization 缩写为 i18n，kubernetes 为 k8s，accessibility 为 a11y。免费在线生成或解码任意数字缩写，全程在浏览器本地完成。
+    description: 数字缩写（numeronym）是把中间字母替换为个数的缩写形式——internationalization 缩写为 i18n，kubernetes 为 k8s，accessibility 为 a11y。在线为任意单词生成数字缩写，或反查内置词典中已确立的缩写——免费，全程在浏览器本地完成。
 
   case-converter:
     title: 大小写转换

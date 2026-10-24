@@ -368,7 +368,7 @@ tools:
 
   numeronym-generator:
     title: Numeronym Generator
-    description: A numeronym is an abbreviation where the middle letters are replaced by their count — i18n for internationalization, k8s for kubernetes, a11y for accessibility. Generate or decode any numeronym instantly, free, right in your browser.
+    description: A numeronym is an abbreviation where the middle letters are replaced by their count — i18n for internationalization, k8s for kubernetes, a11y for accessibility. Build a numeronym from any word, or look up the established ones in our built-in dictionary — free, right in your browser.
 
   case-converter:
     title: Case converter

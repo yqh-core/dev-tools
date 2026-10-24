@@ -885,15 +885,16 @@ export const GUIDES: Record<string, ToolGuide> = {
 
   '/numeronym-generator': {
     intro: '生成 i18n、k8s 这类「首字母 + 字母数 + 尾字母」的缩写。',
-    steps: ['填一个长单词', '得到缩写形式', '复制使用'],
+    steps: ['填一个长单词，得到缩写形式', '或输入已知缩写（如 k8s）反查原词', '复制使用'],
     example: { label: '填入示例单词', text: 'internationalization' },
-    about: '数字缩写（numeronym）是把单词中间的字母替换为个数、保留首尾字母构成的缩写：internationalization 变成 i18n（i 和 n 之间省略 18 个字母）、kubernetes 变成 k8s、accessibility 变成 a11y。工程师群体对高频输入的词普遍采用这种写法——更短、在上下文中无歧义，并已成为各自领域的标准词汇。常见的数字缩写包括 i18n 与 l10n（国际化/本地化，经典一对）、a11y（无障碍）、k8s（Kubernetes）、n7m（numeronym 自身）、c11s 与 g11n（合规/全球化）。本工具可以把任意单词编码为数字缩写，也能把常见缩写解码回原词——在文档、提交信息或 issue 里使用某个缩写之前，先来这里确认它的含义。',
+    about: '数字缩写（numeronym）是把单词中间的字母替换为个数、保留首尾字母构成的缩写：internationalization 变成 i18n（i 和 n 之间省略 18 个字母）、kubernetes 变成 k8s、accessibility 变成 a11y。工程师群体对高频输入的词普遍采用这种写法——更短、在上下文中无歧义，并已成为各自领域的标准词汇。常见的数字缩写包括 i18n 与 l10n（国际化/本地化，经典一对）、a11y（无障碍）、k8s（Kubernetes）、n7m（numeronym 自身）、c11s 与 g11n（合规/全球化）。本工具可以把任意单词编码为数字缩写；反查方向则内置了一份固定词典（i18n、l10n、a11y、k8s、g11n、c11s、n7m、t11n）——词典之外的缩写会被如实标记为「不在词典内」，而不是被猜测展开。',
     faqs: [
       { q: '什么是数字缩写（numeronym）？', a: '一种把单词首尾字母之间替换为字母个数的缩写——internationalization → i18n、kubernetes → k8s、accessibility → a11y。数字就是被省略的中间字母数。' },
       { q: 'i18n 是怎么构成的？', a: '首字母 + 中间字母数 + 尾字母：「internationalization」首尾 i 和 n 之间有 18 个字母。这条规则对任何长单词都适用。' },
       { q: '工作里该用哪些数字缩写？', a: '用约定俗成的：i18n、l10n、a11y、k8s、n7m。为一时兴起自造缩写会逼每个读者解码——数字缩写为高频服务，不为风格服务。' },
       { q: '无障碍为什么叫 a11y？', a: '同一条规则——「accessibility」首尾 a 和 y 之间 11 个字母。这个标签流行是因为它在工程讨论里能和 i18n 并排出现，指代包容性产品。' },
       { q: 'k8s 和 l10n 分别是什么？', a: 'k8s 是 Kubernetes（k 和 s 之间 8 个字母），这个缩写常见到出现在项目 logo 本身。l10n 是 localization（本地化，l 和 n 之间 10 个字母），在多语言软件里通常与 i18n 成对出现。' },
+      { q: '工具能反查任意数字缩写吗？', a: '不能——生成方向对任意单词有效，但反查只覆盖内置的固定词典（i18n、l10n、a11y、k8s、g11n、c11s、n7m、t11n）。词典之外的缩写会被如实标记为未收录：给未知缩写编造展开是猜测，不是查询。' },
     ],
   },
 
