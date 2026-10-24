@@ -207,6 +207,28 @@ export const GUIDES: Record<string, ToolGuide> = {
     ],
   },
 
+  '/reaction-time-test': {
+    intro: 'A visual reaction-time benchmark: the panel turns from red to green after a random wait, and you click the instant it changes — the tool records how many milliseconds your eye-to-finger loop took.',
+    steps: [
+      'Press Start — the panel turns red and shows "Wait for green…"',
+      'After a random 1.2–4.5 s delay (unpredictable on purpose) the panel turns green',
+      'Click the panel (or press Space/Enter) the instant it turns green; the reading appears in milliseconds',
+      'Clicking while it is still red voids the round — that filters guessing out; repeat for up to five rounds and compare best, median and mean',
+    ],
+    notes: [
+      'The timer starts on the frame where the green panel is actually painted, not when the internal alarm fires — a few milliseconds stricter, and the honest baseline for comparing your own runs',
+      'Every reading carries overhead you cannot remove: monitor refresh, browser event handling and mouse polling add roughly 5–80 ms depending on hardware, so compare between your own runs, not against someone else\'s screenshot',
+      'Touchscreens and mice measure slightly different loops; results live only in the page — nothing is uploaded, and a refresh clears the session',
+    ],
+    about: 'Human visual reaction time to a simple stimulus is typically around 200–300 ms; trained players push below 200 ms, and readings far under 150 ms almost always mean the click was a guess timed against the wait rather than a genuine response. This test uses the same randomised-foreperiod design serious reaction rigs use, because a predictable delay measures anticipation, not reaction.',
+    faqs: [
+      { q: 'What is a normal reaction time?', a: 'For sight-to-click on a desktop setup, roughly 200–300 ms is typical for adults; consistent sub-200 ms is rare and usually reflects practice on this exact task.' },
+      { q: 'Why is my result over 500 ms?', a: 'Distraction, a loaded or power-saving device, a slow display, or simply not trying to be fast. Close other workloads and run five rounds — the best round characterises you, the median characterises your day.' },
+      { q: 'Can I train myself faster with this?', a: 'You will reliably get better at this test — that is practice on the task, not a general speed upgrade. Treat improvements as real within your own history and be sceptical of claims beyond it.' },
+      { q: 'Does the random wait matter that much?', a: 'Yes. With a fixed delay you are timing an anticipated motor program, which can produce sub-150 ms readings that are not reactions at all. Randomising the wait forces genuine stimulus-driven responses.' },
+    ],
+  },
+
   '/color-converter': {
     intro: 'Converts between HEX, RGB, HSL and CSS colour names — useful when editing a design or tuning a theme.',
     steps: ['Type a value in any format, or use the colour picker', 'The other formats update automatically', 'Copy the one you need'],

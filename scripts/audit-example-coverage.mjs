@@ -109,6 +109,10 @@ const NO_EXAMPLE_WHITELIST = [
     why: '无任何输入控件：findPrimaryInput() 返回 null（探测 mode=no-input），只有 Start / Reset 按钮',
   },
   {
+    path: '/reaction-time-test',
+    why: '交互即点击/键盘时序本身：findPrimaryInput() 返回 null（mode=no-input），无可写文本控件；配 example 会成死按钮',
+  },
+  {
     path: '/device-information',
     why: '无任何输入控件：findPrimaryInput() 返回 null（探测 mode=no-input），纯只读展示',
   },

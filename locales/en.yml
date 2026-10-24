@@ -209,6 +209,10 @@ tools:
     title: Chronometer
     description: Monitor the duration of a thing. Basically a chronometer with simple chronometer features.
 
+  reaction-time-test:
+    title: Reaction Time Test
+    description: Measure your visual reaction time in the browser — wait for the panel to turn green and click the instant it does, with best, median and mean over five rounds.
+
   password-generator:
     title: Password Generator
     description: Generate strong, secure random passwords online — pick the length (8-128) and character sets, with a cryptographic random source. Ambiguous characters (Il1O0) excluded by default, nothing leaves your browser.

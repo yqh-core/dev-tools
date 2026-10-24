@@ -51,6 +51,7 @@ import { tool as jsonToYaml } from './json-to-yaml-converter';
 import { tool as ipv6UlaGenerator } from './ipv6-ula-generator';
 import { tool as ipv4AddressConverter } from './ipv4-address-converter';
 import { tool as benchmarkBuilder } from './benchmark-builder';
+import { tool as reactionTimeTest } from './reaction-time-test';
 import { tool as userAgentParser } from './user-agent-parser';
 import { tool as ipv4SubnetCalculator } from './ipv4-subnet-calculator';
 import { tool as dockerRunToDockerComposeConverter } from './docker-run-to-docker-compose-converter';
@@ -217,7 +218,7 @@ export const toolsByCategory: ToolCategory[] = [
   },
   {
     name: 'Measurement',
-    components: [chronometer, temperatureConverter, unitConverter, benchmarkBuilder],
+    components: [chronometer, temperatureConverter, unitConverter, benchmarkBuilder, reactionTimeTest],
   },
   {
     name: 'Text',

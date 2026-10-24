@@ -26,6 +26,7 @@ export const ALIASES: Record<string, string[]> = {
   '/case-converter': ['大小写', '驼峰', 'camel', 'snake', '命名', '转换', '下划线', 'kebab'],
   '/chmod-calculator': ['chmod', '权限', 'linux', 'rwx', '755', '文件权限'],
   '/chronometer': ['计时器', '秒表', '倒计时', '耗时', 'timer', '打点'],
+  '/reaction-time-test': ['反应速度', '反应时间', '手速', '反射神经', 'reaction', '测反应'],
   '/color-converter': ['颜色', '色值', 'rgb', 'hex', 'hsl', '取色', '调色'],
   '/crontab-generator': ['cron', '定时任务', '计划任务', 'crontab', '表达式', '调度'],
   '/date-converter': ['时间戳', '时间', '日期', 'unix', 'timestamp', '格式化时间'],

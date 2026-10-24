@@ -207,6 +207,9 @@ tools:
   chronometer:
     title: 计时器
     description: 监控事物的持续时间。基本上是一种具有简单计时器功能的计时器。
+  reaction-time-test:
+    title: 反应速度测试
+    description: 在浏览器里测量你的视觉反应时间——等面板变绿后第一时间点击，五轮统计最快、中位与平均。
   password-generator:
     title: 密码生成器
     description: 在线生成高强度安全随机密码——自选长度（8-128）与字符集，密码学安全随机源。默认排除易混淆字符（Il1O0），全程浏览器本地生成。

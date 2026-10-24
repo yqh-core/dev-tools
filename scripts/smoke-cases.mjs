@@ -2096,6 +2096,29 @@ export const SMOKE_CASES = [
   },
 
   {
+    path: '/reaction-time-test',
+    name: 'reaction-time-test',
+    zhTitle: '反应速度测试',
+    // 随机前摇上限 4500ms → 固定等 4800ms 保证已变绿；引擎点「Click now!」只可能发生在
+    // ready 帧之后。断言绑定结果卡内的真实毫秒数（>0 且 <5000）：结果未渲染必假红。
+    strategy: 'realInput：Start → 等过随机上限 → 点 Click now! → 结果卡必须出现真实毫秒读数',
+    steps: [
+      { clickExact: 'Start' },
+      { wait: 4800 },
+      { clickExact: 'Click now!' },
+      { wait: 300 },
+    ],
+    expect: {
+      js: `(function(){
+        var el = document.querySelector('[data-test-id="rt-result"]');
+        if (!el) return false;
+        var m = el.innerText.match(/([0-9]+(\\.[0-9]+)?)\\s*ms/);
+        return !!m && Number(m[1]) > 0 && Number(m[1]) < 5000;
+      })()`,
+    },
+  },
+
+  {
     path: '/chronometer',
     name: 'chronometer',
     zhTitle: '计时器',
