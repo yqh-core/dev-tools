@@ -166,9 +166,11 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
-      // [B3-experiment E1] 'lodash'(CJS) 收敛到 lodash-es(ESM)，见文件顶部 lodashEsDir 注释。
-      // 可逆：删掉本行即回退。
-      lodash: lodashEsDir,
+      // [hotfix 2026-10-27 · 方案 A] 撤销 lodash→lodash-es 别名。
+      // lodash-es 的 ESM 构建不给 chain() wrapper 注册 .groupBy 等链式方法（Rollup 具名
+      // tree-shaking 只拉 chain.js 单模块），导致 /tools 等 11 处 chain() 运行时抛
+      // "TypeError: groupBy is not a function"（线上 117 工具卡片不渲染）。回退到全量
+      // CJS lodash 即恢复链式 API。lodashEsDir 常量暂留（未被引用，构建/lint 均不覆盖本文件）。
     },
   },
   define: {
