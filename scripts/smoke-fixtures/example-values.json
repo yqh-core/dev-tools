@@ -1,6 +1,6 @@
 {
   "generatedFrom": "src/tools/guides.en.ts",
-  "count": 88,
+  "count": 87,
   "values": {
     "/ascii-text-drawer": "DigDevBox",
     "/base-converter": "255",
@@ -46,7 +46,6 @@
     "/numeronym-generator": "internationalization",
     "/og-meta-generator": "My Awesome Site",
     "/otp-generator": "JBSWY3DPEHPK3PXP",
-    "/percentage-calculator": "42",
     "/phone-parser-and-formatter": "+86 138 0013 8000",
     "/qrcode-generator": "https://digdevbox.com",
     "/regex-tester": "\\d{3}-\\d{4}",
