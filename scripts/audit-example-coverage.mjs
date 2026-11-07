@@ -192,6 +192,10 @@ const NO_EXAMPLE_WHITELIST = [
     path: '/uuid-generator',
     why: '生成器：同 /ulid-generator，example 是「样例输出串」（UUID v4），但本工具没有内容输入框（首个控件是 count 数字框）。把 UUID 串塞进 count 数字框会被 naive-ui 在 blur 时拒掉。生成器无「待处理样本数据」概念，example 不成立 → 豁免，不补。',
   },
+  {
+    path: '/percentage-calculator',
+    why: 'requires-pair（G-02j 判定）：结果需同时填两个数字输入才产生，只填首个控件 Result 保持空白 —— 配 example 点按钮无可见变化 = 死按钮。方向 C 曾按 number-only 给它补过纯数字 example（42），S1 试点（H-B 实验批次 fbd0bb4）复核确认该控件语义是「需成对」而非「纯数字即可」，example 已移除并回归本白名单。仍在 NUMERIC_INPUT_TOOLS 里登记，那是 DOM 事实（首控件为 n-input-number），与本豁免不冲突。',
+  },
 ];
 
 /**
@@ -589,10 +593,13 @@ function readEntryBlock(text, toolPath) {
 /**
  * 在目标条目里插入或替换一行 example（复用文件自身 eol，见 E7）。
  *
- * 插入点优先选notes 行之后；⛔ 但 notes 是**可选**字段 ——
- *   /random-port-generator 这类条目压根没有 notes 行（首版 falsify 的 M2 就死在这：
- *   变异静默抛错、门禁红了但证明的是「脚本崩了」而不是「E2 能判红」）。
- *   所以没有 notes 时退回「entry 里第一个属性行之后」，只要 entry 有 intro 就一定插得进去。
+ * 替换锚点：已有的单行 `example: {`。
+ * 插入锚点：⛔ **entry 开行的下一行**（对象层），不依赖条目含哪些字段 ——
+ *   旧版曾试「notes 行之后」再退「第一个属性行之后」，两版都错在同一类问题：
+ *   notes/steps/faqs 常是**跨行数组**（`notes: [` 单起一行），插到其开场行之下
+ *   会落进数组内部，esbuild 直接 `Expected "]" but found ":"`（M2 实测死因，
+ *   1160:11 —— 恰是 random-port-generator 的 notes 数组内部）。
+ *   对象层插入对任意字段形状都成立；示例插在最前不影响属性语义。
  */
 function mutateEntry(text, toolPath, buildLine) {
   const { eol, lines, start, end } = readEntryBlock(text, toolPath);
@@ -601,18 +608,7 @@ function mutateEntry(text, toolPath, buildLine) {
     lines[hasExampleIdx] = buildLine(lines[hasExampleIdx].match(/^\s*/)[0]);
   }
   else {
-    const notesIdx = lines.findIndex((l, i) => i > start && i < end && /^\s{4}notes: \[/.test(l));
-    if (notesIdx >= 0) {
-      lines.splice(notesIdx + 1, 0, buildLine('    '));
-    }
-    else {
-      // 退回：entry 内第一个 4 空格缩进的属性行（intro 必有）
-      const firstPropIdx = lines.findIndex((l, i) => i > start && i < end && /^\s{4}(intro|steps|about|faqs):/.test(l));
-      if (firstPropIdx < 0) {
-        throw new Error(`${toolPath} 里找不到任何可作为插入点的属性行（intro/steps/notes/about/faqs 全都没有）`);
-      }
-      lines.splice(firstPropIdx + 1, 0, buildLine('    '));
-    }
+    lines.splice(start + 1, 0, buildLine('    '));
   }
   return lines.join(eol);
 }
