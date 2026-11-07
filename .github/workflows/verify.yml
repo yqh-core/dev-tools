@@ -39,6 +39,13 @@ jobs:
       - name: 安装依赖
         run: pnpm install --frozen-lockfile
 
+      # example 覆盖判据（E1–E8，只读脚本）—— 2026-11-07 接进 CI。
+      # 接线原因：percentage-calculator 的 example 移除曾只登记一处清单，正向基线红了
+      # 也只有手工跑 --check 才看得见；常驻门才算门。--falsify 会临时改写源码，
+      # 不适合放进 push 触发的流水线，证伪由本地/受控运行执行（脚本自身保证还原）。
+      - name: example 覆盖门禁（audit:example --check）
+        run: pnpm run audit:example
+
       - name: 类型检查 + 构建
         run: pnpm run build
 
