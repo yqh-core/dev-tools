@@ -382,6 +382,10 @@ tools:
     title: JSON Formatter & Validator — Beautify, Validate, Diff and Convert
     description: Format and validate JSON online — pretty-print at your indent size, sort keys and spot syntax errors instantly, right in your browser.
 
+  json-workspace:
+    title: JSON Developer Workspace — Format, Query, Tree, Schema & Convert
+    description: A professional JSON workspace — format and validate, explore an interactive tree, query with JSONPath, infer JSON Schema, and convert to YAML or CSV, all in your browser.
+
   docker-run-to-docker-compose-converter:
     title: Docker Run to Compose Converter — Generate a compose Service from a Command
     description: Transforms "docker run" commands into docker-compose files!

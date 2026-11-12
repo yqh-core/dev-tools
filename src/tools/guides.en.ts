@@ -657,6 +657,38 @@ export const GUIDES: Record<string, ToolGuide> = {
     ],
   },
 
+  '/json-workspace': {
+    intro: 'A single workspace for the whole JSON task: format and validate, explore the structure as a collapsible tree, query values with JSONPath, infer a JSON Schema from a sample, and convert to YAML or CSV — without bouncing between five separate tools.',
+    steps: [
+      'Paste or type your JSON into the input box; syntax errors are reported with the parser message.',
+      'Use the Format tab to pretty-print at your chosen indent and optionally sort keys.',
+      'Switch to Tree to expand and collapse the structure, or Query to pull values with a JSONPath like $.store.book[*].title.',
+      'Use Schema to infer a draft-07 schema from the sample, or Transform to export YAML or CSV.',
+    ],
+    notes: [
+      'The Query tab supports $, .key, [\'key\'], [n] (negative indices count from the end), [start:end:step] slices, .* and [*] wildcards, and ..key recursive descent. Filter expressions like ?(@.price) are not supported and raise a clear error rather than silently returning nothing.',
+      'CSV export requires an array of objects; the header is the union of keys across rows. Non-array input is rejected with an explanation instead of producing a malformed file.',
+      'The inferred schema describes the shape of your sample, not a guaranteed contract — review required fields and types before relying on it.',
+    ],
+    about: 'Most JSON work is not a single operation but a chain: you receive a payload, format it to read it, inspect the structure to understand it, extract the few fields you actually need, and then hand the result to another system in YAML or CSV. Doing that across separate tools means pasting the same document repeatedly and losing context at every hop. This workspace keeps one input and lets you move between formatting, a structural tree, JSONPath queries, schema inference and conversion against that same document. The design borrows the idea behind professional data tools — that understanding structure and querying it matter more than pretty-printing alone — while keeping everything in your browser. JSONPath here is a deliberately bounded subset: it covers navigation, wildcards, slices and recursive descent, which handle the overwhelming majority of real extraction tasks, and it fails loudly on unsupported syntax so you never mistake a syntax error for an empty result. Schema inference walks the sample and merges array element types, taking the intersection of object keys for required fields, so a field present in only some records is correctly marked optional.',
+    faqs: [
+      { q: 'How is this different from the JSON Formatter?', a: 'The Formatter focuses on pretty-printing and validation. The workspace adds an interactive tree, JSONPath queries, schema inference and YAML/CSV conversion around the same input, so you can complete a whole task without switching tools.' },
+      { q: 'Which JSONPath features are supported?', a: 'Root $, child .key and [\'key\'], array indices including negatives, [start:end:step] slices, wildcards .* and [*], and recursive descent ..key. Filter expressions ?() and script expressions are not supported and raise an error.' },
+      { q: 'Why does CSV export reject my JSON?', a: 'CSV is a flat table, so export needs an array of objects (one object per row). A single object or an array of scalars has no row structure; reshape it into an array of objects first.' },
+      { q: 'Can I trust the generated schema?', a: 'It is inferred from one sample, so it captures that sample\'s shape. Fields missing from some records become optional, and mixed array element types become anyOf. Treat it as a starting point to review, not a final contract.' },
+    ],
+    example: { label: 'Fill in sample JSON', text: '{"store":{"book":[{"title":"Sayings of the Century","price":8.95},{"title":"Moby Dick","price":8.99}],"bicycle":{"color":"red","price":19.95}}}' },
+    relatedNotes: [
+      {
+        slug: 'json-formatting-guide',
+        title: 'JSON Formatter Guide: Format, Validate and Compare JSON Online',
+        description: 'How to format, validate, minify and compare JSON online — a practical guide to cleaning up API responses, spotting syntax errors and diffing config files.',
+        url: 'https://notes.digdevbox.com/posts/json-formatting-guide',
+        tag: 'JSON',
+      },
+    ],
+  },
+
   '/csv-to-json': {
     intro: 'Paste CSV and get a JSON array of objects, one per data row, keyed by the header row. Quoted fields, commas and real line breaks inside a cell, doubled quotes, a leading BOM and CRLF endings are all handled.',
     steps: [

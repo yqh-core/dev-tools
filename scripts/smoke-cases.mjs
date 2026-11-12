@@ -1606,6 +1606,25 @@ export const SMOKE_CASES = [
   },
 
   {
+    path: '/json-workspace',
+    name: 'json-workspace',
+    zhTitle: 'JSON 开发者工作台',
+    strategy: 'structural：默认 Format 页美化 = 键值对带缩进且冒号后有空格；输入不带空格，只有真美化过才有',
+    steps: [{ fillLabel: { label: 'JSON input', text: '{"a":1,"b":{"c":2}}' } }, { wait: 1000 }],
+    expect: {
+      out: ['"a": 1', '"c": 2'],
+      not: ['Invalid JSON'],
+      js: `(function(){
+        var a = document.querySelector('.guide-article-link a');
+        if (!a) return '真实指南面板里没有指向文章页的入口链接';
+        var href = a.getAttribute('href') || '';
+        if (href !== '/guides/json-workspace/') return '入口链接 href 不对：' + href;
+        return true;
+      })()`,
+    },
+  },
+
+  {
     path: '/linux-commands',
     name: 'linux-commands',
     zhTitle: 'Linux 命令速查',

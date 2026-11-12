@@ -50,6 +50,7 @@ export const TOOL_CLUSTERS: ToolCluster[] = [
     id: 'json',
     members: [
       '/json-prettify',
+      '/json-workspace',
       '/json-minify',
       '/json-diff',
       '/json-to-csv',

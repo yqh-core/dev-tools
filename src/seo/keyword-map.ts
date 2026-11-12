@@ -97,6 +97,18 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     note: '簇 2 承重墙。关键事实：`prettify` 一词在本次所有 top5 title 里一次都没出现，主流词汇是 formatter / validator / beautify。',
   },
   {
+    path: '/json-workspace',
+    keyword: 'json workspace',
+    keywords: ['json path query online', 'json tree viewer', 'json schema generator', 'json to yaml'],
+    intent: 'format',
+    priority: 'P1',
+    competition: 'medium',
+    article: 'json-formatting-guide',
+    landed: true,
+    lockedTitle: 'JSON Developer Workspace — Format, Query, Tree, Schema & Convert',
+    note: '簇 2 扩展。把格式化/树形/JSONPath 查询/schema 推断/转换组合成单一工作台，对标 JSON Crack 的结构理解与数据工作流定位，而非再做一个孤立 formatter。',
+  },
+  {
     path: '/password-generator',
     keyword: 'password generator',
     keywords: ['strong password generator', 'random password generator', 'secure password generator', 'password generator with symbols'],

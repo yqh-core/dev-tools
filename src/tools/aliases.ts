@@ -51,6 +51,7 @@ export const ALIASES: Record<string, string[]> = {
   '/json-diff': ['json', '对比', '差异', 'diff', '比较', '变更'],
   '/json-minify': ['json', '压缩', 'minify', '一行', '精简', '去空格'],
   '/json-prettify': ['json', '格式化', '美化', '缩进', 'pretty', '整理'],
+  '/json-workspace': ['json', '工作台', 'workspace', '查询', 'jsonpath', '树形', 'schema', '转换'],
   '/json-to-csv': ['json', 'csv', '表格', 'excel', '转换', '导出'],
   '/csv-to-json': ['csv', 'json', '表格', '转换', '解析', '导入'],
   '/json-to-toml': ['json', 'toml', '转换', '配置'],

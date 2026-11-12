@@ -649,6 +649,38 @@ export const GUIDES: Record<string, ToolGuide> = {
     ],
   },
 
+  '/json-workspace': {
+    intro: '一个工作台完成整条 JSON 任务：格式化与校验、可折叠树形浏览、JSONPath 查询、从样本推断 JSON Schema、转换为 YAML 或 CSV，不必在五个独立工具之间来回切换。',
+    steps: [
+      '把 JSON 粘贴或输入到输入框，语法错误会带解析器报错信息提示。',
+      '在格式化页按所选缩进美化，可选按键排序。',
+      '切到树形页展开/折叠结构，或在查询页用 $.store.book[*].title 这样的 JSONPath 提取值。',
+      '用 Schema 页从样本推断 draft-07 schema，或用转换页导出 YAML 或 CSV。',
+    ],
+    notes: [
+      '查询页支持 $、.key、[\'key\']、[n]（负下标从末尾计）、[start:end:step] 切片、.* 与 [*] 通配、..key 递归下降。不支持 ?(@.price) 这类过滤表达式，会明确报错而非静默返回空。',
+      'CSV 导出要求对象数组，表头取各行键的并集。非数组输入会带说明被拒绝，而不是产出错误文件。',
+      '推断的 schema 描述的是样本的形状，不是有保证的契约——依赖前请人工确认必填字段与类型。',
+    ],
+    about: '多数 JSON 工作不是单一操作，而是一条链：收到一份载荷，格式化以便阅读，查看结构以便理解，提取真正需要的几个字段，再把结果以 YAML 或 CSV 交给另一个系统。在多个独立工具间做这件事，意味着反复粘贴同一份文档、每一跳都丢失上下文。本工作台保留同一份输入，让你在这份文档上于格式化、结构树、JSONPath 查询、schema 推断与转换之间切换。设计借鉴了专业数据工具的理念——理解结构与查询结构比单纯美化更重要——同时全程留在浏览器内。这里的 JSONPath 是刻意有界的子集：覆盖导航、通配、切片与递归下降，足以处理绝大多数真实提取任务，并对不支持的语法明确报错，让你不会把语法错误误当成空结果。Schema 推断遍历样本并合并数组元素类型，必填字段取对象键的交集，因此只在部分记录中出现的字段会被正确标为可选。',
+    faqs: [
+      { q: '这和 JSON 格式化工具有什么不同？', a: '格式化工具专注美化与校验。工作台在同一份输入周围增加了交互式树形、JSONPath 查询、schema 推断与 YAML/CSV 转换，让你不用切换工具就能完成整条任务。' },
+      { q: '支持哪些 JSONPath 特性？', a: '根 $、子节点 .key 与 [\'key\']、数组下标（含负数）、[start:end:step] 切片、通配 .* 与 [*]、递归下降 ..key。不支持 ?() 过滤表达式与脚本表达式，会报错。' },
+      { q: '为什么 CSV 导出拒绝我的 JSON？', a: 'CSV 是扁平表格，导出需要对象数组（每行一个对象）。单个对象或标量数组没有行结构，请先把它整理成对象数组。' },
+      { q: '生成的 schema 能直接信任吗？', a: '它从单一样本推断，捕捉的是该样本的形状。部分记录缺失的字段会变成可选，混合的数组元素类型会变成 anyOf。把它当作需要审阅的起点，而非最终契约。' },
+    ],
+    example: { label: '填入示例 JSON', text: '{"store":{"book":[{"title":"Sayings of the Century","price":8.95},{"title":"Moby Dick","price":8.99}],"bicycle":{"color":"red","price":19.95}}}' },
+    relatedNotes: [
+      {
+        slug: 'json-formatting-guide',
+        title: 'JSON Formatter Guide: Format, Validate and Compare JSON Online',
+        description: 'How to format, validate, minify and compare JSON online — a practical guide to cleaning up API responses, spotting syntax errors and diffing config files.',
+        url: 'https://notes.digdevbox.com/posts/json-formatting-guide',
+        tag: 'JSON',
+      },
+    ],
+  },
+
   '/csv-to-json': {
     intro: '粘贴 CSV，得到按表头键名的 JSON 数组，每条数据行一个对象。带引号字段、单元格内的逗号与真实换行、双写引号、BOM 与 CRLF 都能处理。',
     steps: [

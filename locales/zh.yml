@@ -377,6 +377,10 @@ tools:
     title: JSON 格式化与校验 — 在线美化验证 JSON
     description: 在线格式化与校验 JSON — 按指定缩进美化、按键排序、即时发现语法错误，全程在浏览器内完成。
 
+  json-workspace:
+    title: JSON 开发者工作台 — 格式化、查询、树形、Schema 与转换
+    description: 专业 JSON 工作台 — 格式化与校验、交互式树形浏览、JSONPath 查询、推断 JSON Schema、转换为 YAML 或 CSV，全程在浏览器内完成。
+
   docker-run-to-docker-compose-converter:
     title: Docker Run 到 docker-compose 转换器
     description: 将 docker run 命令行转换为 docker-compose 文件!
