@@ -657,6 +657,20 @@ export const GUIDES: Record<string, ToolGuide> = {
     ],
   },
 
+  '/api-debugger': {
+    intro: 'Debug an API request end to end in the browser: import a cURL command, send it through a transient edge relay, read status, timing, headers and body, then hand the response straight to the JSON workspace or extract values into variables for the next request.',
+    steps: [
+      'Paste a cURL command and parse it (or build method, URL, headers and body by hand), then Send and inspect the response without leaving the page.',
+    ],
+    example: { label: 'Fill in sample cURL', text: 'curl https://httpbin.org/get -H \'Accept: application/json\'' },
+    notes: [
+      'The relay reuses the same SSRF validation chain as the site status checker: private and reserved IPs, internal hostnames and redirects into private networks are rejected; request bodies are capped at 256 KiB and response bodies at 1 MiB.',
+      'Credentials (Authorization, Cookie, API keys, URL passwords) are stripped from shared cURL by default; they leave your browser only as part of the request you explicitly send.',
+      'Variables use {{name}} placeholders in URL, headers and body; "Extract → variable" pulls a JSONPath value from the response so a login token can feed the next request.',
+    ],
+    about: 'Most browser API clients stop at the response body, which is exactly where the real work starts: pulling a token out of a login response, reshaping a payload, comparing two environments. This workspace keeps the whole chain in one page — cURL in, request out, response into the JSON pipeline — and keeps the safety boundary explicit: the relay validates every hop against private networks, caps body sizes, logs nothing and stores nothing, and sharing a request never includes your credentials by default.',
+  },
+
   '/json-workspace': {
     intro: 'A single workspace for the whole JSON task: format and validate, explore the structure as a collapsible tree, query values with JSONPath, infer a JSON Schema from a sample, and convert to YAML or CSV — without bouncing between five separate tools.',
     steps: [

@@ -649,6 +649,20 @@ export const GUIDES: Record<string, ToolGuide> = {
     ],
   },
 
+  '/api-debugger': {
+    intro: '在浏览器里端到端调试一个 API 请求：导入 cURL 命令、经边缘瞬时中继发送、查看状态码/耗时/响应头/响应体，再把响应直传 JSON 工作台，或提取为变量供下一个请求使用。',
+    steps: [
+      '粘贴 cURL 命令并解析（或手动填写方法、URL、头与体），点击发送，在同一页查看响应。',
+    ],
+    example: { label: '填入示例 cURL', text: 'curl https://httpbin.org/get -H \'Accept: application/json\'' },
+    notes: [
+      '中继复用与本站状态检查器同一套 SSRF 校验链：私网/保留 IP、内网主机名、重定向进私网一律拒绝；请求体上限 256 KiB、响应体上限 1 MiB。',
+      '凭据（Authorization、Cookie、API key、URL 内嵌密码）默认从分享的 cURL 中剔除；只在你显式发送的请求里离开浏览器。',
+      '变量在 URL/头/体中用 {{name}} 占位；「提取→变量」用 JSONPath 从响应取值，登录 token 可直接喂给下一个请求。',
+    ],
+    about: '多数浏览器 API 客户端到响应体就停了，而真正的工作恰恰从那里开始：从登录响应里取 token、重塑 payload、对比两个环境。本工作台把整条链留在同一页——cURL 进、请求出、响应进 JSON 管线——并把安全边界写明白：中继逐跳校验私网、限制体大小、不记录不存储，分享请求默认不含凭据。',
+  },
+
   '/json-workspace': {
     intro: '一个工作台完成整条 JSON 任务：格式化与校验、可折叠树形浏览、JSONPath 查询、从样本推断 JSON Schema、转换为 YAML 或 CSV，不必在五个独立工具之间来回切换。',
     steps: [

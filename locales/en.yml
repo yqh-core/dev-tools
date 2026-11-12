@@ -386,6 +386,10 @@ tools:
     title: JSON Developer Workspace — Format, Query, Tree, Schema & Convert
     description: A professional JSON workspace — format and validate, explore an interactive tree, query with JSONPath, infer JSON Schema, and convert to YAML or CSV, all in your browser.
 
+  api-debugger:
+    title: API Debug Workspace — cURL to Response to Data Pipeline
+    description: Import a cURL command, send the request through a transient edge relay, inspect status, timing, headers and body, then hand the response to the JSON workspace or extract values into variables — all in your browser.
+
   docker-run-to-docker-compose-converter:
     title: Docker Run to Compose Converter — Generate a compose Service from a Command
     description: Transforms "docker run" commands into docker-compose files!

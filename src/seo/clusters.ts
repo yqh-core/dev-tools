@@ -247,6 +247,7 @@ export const TOOL_CLUSTERS: ToolCluster[] = [
     members: [
       '/http-status-codes',
       '/http-status-checker',
+      '/api-debugger',
       '/http-headers',
       '/user-agent-parser',
       '/device-information',

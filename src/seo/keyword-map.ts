@@ -97,6 +97,17 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     note: '簇 2 承重墙。关键事实：`prettify` 一词在本次所有 top5 title 里一次都没出现，主流词汇是 formatter / validator / beautify。',
   },
   {
+    path: '/api-debugger',
+    keyword: 'api debug online',
+    keywords: ['curl import online', 'rest client browser', 'api response viewer', 'send http request online'],
+    intent: 'debug',
+    priority: 'P1',
+    competition: 'medium',
+    article: 'json-formatting-guide',
+    landed: false,
+    note: 'WP-003 阶段 B。cURL→发送→响应→WS-2 闭环；中继复用 webstatus SSRF 校验链；部署与隐私文案须单独授权。guide 形状待收口（steps=1），S1\' 冻结期内不进 sitemap。落地时再补 lockedTitle。',
+  },
+  {
     path: '/json-workspace',
     keyword: 'json workspace',
     keywords: ['json path query online', 'json tree viewer', 'json schema generator', 'json to yaml'],

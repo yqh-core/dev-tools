@@ -82,6 +82,7 @@ import { tool as htmlEntities } from './html-entities';
 import { tool as baseConverter } from './integer-base-converter';
 import { tool as jsonViewer } from './json-viewer';
 import { tool as jsonWorkspace } from './json-workspace';
+import { tool as apiDebugger } from './api-debugger';
 import { tool as jwtParser } from './jwt-parser';
 import { tool as loremIpsumGenerator } from './lorem-ipsum-generator';
 import { tool as mathEvaluator } from './math-evaluator';
@@ -194,6 +195,7 @@ export const toolsByCategory: ToolCategory[] = [
       crontabGenerator,
       jsonViewer,
       jsonWorkspace,
+      apiDebugger,
       jsonMinify,
       jsonToCsv,
       csvToJson,

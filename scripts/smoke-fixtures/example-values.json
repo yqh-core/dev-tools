@@ -1,6 +1,6 @@
 {
   "generatedFrom": "src/tools/guides.en.ts",
-  "count": 88,
+  "count": 89,
   "values": {
     "/ascii-text-drawer": "DigDevBox",
     "/base-converter": "255",
@@ -32,6 +32,7 @@
     "/json-diff": "{ \"name\": \"DigDevBox\", \"version\": 1, \"tags\": [\"a\", \"b\"] }",
     "/json-minify": "{\n  \"name\": \"DigDevBox\",\n  \"list\": [1, 2, 3]\n}",
     "/json-prettify": "{\"name\":\"DigDevBox\",\"tools\":[\"toolbox\",\"devtools\"],\"count\":2}",
+    "/api-debugger": "curl https://httpbin.org/get -H 'Accept: application/json'",
     "/json-workspace": "{\"store\":{\"book\":[{\"title\":\"Sayings of the Century\",\"price\":8.95},{\"title\":\"Moby Dick\",\"price\":8.99}],\"bicycle\":{\"color\":\"red\",\"price\":19.95}}}",
     "/csv-to-json": "name,role,joined\nAda,engineer,2021-03-02\nGrace,lead,2019-07-11\n",
     "/json-to-csv": "[\n  { \"id\": 1, \"name\": \"Alice\", \"score\": 92 },\n  { \"id\": 2, \"name\": \"Bob\", \"score\": 88 }\n]",

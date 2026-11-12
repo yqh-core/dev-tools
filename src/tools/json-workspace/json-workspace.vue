@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import JSON5 from 'json5';
 import { useStorage } from '@vueuse/core';
+import { HANDOFF_KEY } from '../api-debugger/engine';
 import { type NodeParams, type NodeResult, OP_IDS, OP_LABELS, type OpId, PARSE_SOURCES, type PipelineNode, TRANSFORM_TARGETS, TYPE_LANGS, defaultPipeline, makeNode, outputExtension, outputLanguage, runOp } from './pipeline';
 import { LINK_LIMIT, decodeLink, encodeLink, validateState } from './workspace-link';
 import { detectInput } from './smart-detect';
@@ -237,6 +238,21 @@ onMounted(() => {
     }
     catch (err) {
       banner.value = { type: 'error', text: err instanceof Error ? err.message : String(err) };
+    }
+  }
+  else {
+    // WS-1 大响应 handoff（超 deep-link 8KB 上限时走 localStorage，消费一次即删）
+    const stash = localStorage.getItem(HANDOFF_KEY);
+    if (stash) {
+      localStorage.removeItem(HANDOFF_KEY);
+      try {
+        const state = validateState(JSON.parse(stash));
+        nodes.value = state.nodes.map(n => makeNode(n.op, n.input, n.params));
+        banner.value = { type: 'success', text: 'Response received from API Debug.' };
+      }
+      catch {
+        // 非法 stash 忽略，不污染工作台
+      }
     }
   }
 });

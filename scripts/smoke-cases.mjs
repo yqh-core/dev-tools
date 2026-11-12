@@ -1606,6 +1606,22 @@ export const SMOKE_CASES = [
   },
 
   {
+    path: '/api-debugger',
+    name: 'api-debugger',
+    zhTitle: 'API 调试工作台',
+    strategy: 'structural：cURL 解析真跑过才会把 URL 填进请求框；输入文本不含该 URL 值',
+    steps: [
+      { fillLabel: { label: 'Import cURL command', text: 'curl https://api.example.com/users?page=2' } },
+      { click: 'Parse cURL' },
+      { wait: 600 },
+    ],
+    expect: {
+      out: ['https://api.example.com/users?page=2'],
+      not: ['Unknown flag'],
+    },
+  },
+
+  {
     path: '/json-workspace',
     name: 'json-workspace',
     zhTitle: 'JSON 开发者工作台',
