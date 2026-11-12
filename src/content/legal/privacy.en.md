@@ -23,6 +23,10 @@ Two features need to send your input to this site's backend to complete a query:
 
 Both are handled by interfaces deployed on Cloudflare Pages Functions and are used only to complete that query.
 
+### API Debug request relay
+
+API Debug requests are relayed transiently through Cloudflare edge nodes: request and response content is not logged, not stored, and not used for analytics; the relay validates targets against private/reserved addresses and enforces size limits; credentials are sent only to the target address you specify. Shared requests exclude credentials by default.
+
 ### Local storage
 
 This site stores one interface preference (whether the tool guide is expanded) in your browser's localStorage. It stays on your device and is never uploaded.
