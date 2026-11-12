@@ -1626,7 +1626,7 @@ export const SMOKE_CASES = [
     name: 'json-workspace',
     zhTitle: 'JSON 开发者工作台',
     strategy: 'structural：默认 Format 页美化 = 键值对带缩进且冒号后有空格；输入不带空格，只有真美化过才有',
-    steps: [{ fillLabel: { label: 'JSON input', text: '{"a":1,"b":{"c":2}}' } }, { wait: 1000 }],
+    steps: [{ fill: { sel: '[data-test-id="json-input"] textarea', text: '{"a":1,"b":{"c":2}}' } }, { wait: 1000 }],
     expect: {
       out: ['"a": 1', '"c": 2'],
       not: ['Invalid JSON'],
