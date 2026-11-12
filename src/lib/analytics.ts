@@ -96,7 +96,10 @@ export function beaconTransport(endpoint: string): Transport {
   return {
     send(events) {
       try {
-        const blob = new Blob([JSON.stringify(events)], { type: 'application/json' });
+        // 用 text/plain 而非 application/json：sendBeacon 对非简单 content-type 会触发 CORS 预检，
+        // 而 beacon 的异步预检流程在 Chrome 下会卡住导致 POST 永不发出（实测网络层 POST pending）。
+        // text/plain 是简单类型、无预检、立即发出；body 仍是 JSON 串，收集器 request.json() 照常解析。
+        const blob = new Blob([JSON.stringify(events)], { type: 'text/plain;charset=UTF-8' });
         if (typeof navigator !== 'undefined' && navigator.sendBeacon) {
           navigator.sendBeacon(endpoint, blob);
         }
