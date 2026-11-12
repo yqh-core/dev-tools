@@ -41,7 +41,17 @@ export function createAppRouter(history = createWebHistory(config.app.baseUrl)) 
     scrollBehavior: (to) => {
       if (to.hash && typeof document !== 'undefined') {
         requestAnimationFrame(() => {
-          document.querySelector(to.hash)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          // WP-003：hash 可能是工作台 deep-link（#w=<base64url>），不是合法 CSS 选择器，
+          // 直接 querySelector 会抛 SyntaxError（真机验收抓到的控制台报错）。
+          // 选择器非法时安静跳过锚点滚动，不影响 deep-link 的状态恢复。
+          let el: Element | null = null;
+          try {
+            el = document.querySelector(to.hash);
+          }
+          catch {
+            el = null;
+          }
+          el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         });
       }
       // 其余情况一律返回 undefined：不把页面弹回顶部，保持改造前的导航行为不变。

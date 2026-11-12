@@ -178,6 +178,14 @@ export default defineConfig({
   },
   test: {
     exclude: [...configDefaults.exclude, '**/*.e2e.spec.ts'],
+    server: {
+      deps: {
+        // iarna-toml-esm 是 CJS 包壳里装 ESM（无 type:module / .mjs），vitest 的 node
+        // 互操作直接 import 会撞 "Unexpected token 'export'"。按 vitest 官方建议 inline，
+        // 交给 vite 转换。浏览器侧 vite 本就正常处理，此配置只影响测试加载路径。
+        inline: ['iarna-toml-esm'],
+      },
+    },
   },
   build: {
     target: 'esnext',
