@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, onUnmounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import {
   canvasToBlob,
@@ -10,8 +10,16 @@ import {
   loadImageFromFile,
 } from '@/lib/image-io';
 import type { LoadedImage } from '@/lib/image-io';
+import { FunnelTracker, beaconTransport } from '@/lib/analytics';
 
 const { t } = useI18n();
+
+// 测量闭环（2026-11-12 测量第一批授权接入）。测量失败不阻塞产品；端点 metrics.digdevbox.com 由 Worker 收集器承载。
+const tracker = new FunnelTracker('image-compress', beaconTransport('https://metrics.digdevbox.com/collect'));
+tracker.track('visit');
+onUnmounted(() => {
+  tracker.flush();
+});
 
 const source = ref<LoadedImage | null>(null);
 const sourceName = ref('');
@@ -55,6 +63,7 @@ function onFilesUpload(file: File) {
       source.value = img;
       sourceName.value = file.name;
       sourceSize.value = file.size;
+      tracker.track('tool_start');
     })
     .catch((e) => {
       source.value = null;
@@ -133,6 +142,15 @@ function adopt(blob: Blob) {
   resultUrl.value = URL.createObjectURL(blob);
   resultSize.value = blob.size;
   resultType.value = blob.type;
+  // 仅数值 extra，无文件名/内容（隐私红线由 analytics FORBIDDEN_KEYS 守护）
+  tracker.track('tool_success', {
+    outBytes: blob.size,
+    ratio: sourceSize.value > 0 ? +(1 - blob.size / sourceSize.value).toFixed(3) : 0,
+  });
+}
+
+function onDownload() {
+  tracker.track('download');
 }
 
 const downloadName = computed(() => {
@@ -195,7 +213,7 @@ const downloadName = computed(() => {
           · {{ t('tools.image-compress.usedQuality') }} {{ usedQuality }}
         </p>
         <div mt-3>
-          <a :href="resultUrl" :download="downloadName">
+          <a :href="resultUrl" :download="downloadName" @click="onDownload">
             <c-button data-test-id="compress-download">{{ t('tools.image-compress.buttonDownload') }}</c-button>
           </a>
         </div>
