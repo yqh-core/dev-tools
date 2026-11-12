@@ -19,13 +19,13 @@ function csvCell(v: unknown): string {
 
 export function toCsv(value: unknown): string {
   if (!Array.isArray(value)) {
-    throw new TransformError('CSV 导出需要对象数组（[{...}, {...}]）');
+    throw new TransformError('CSV export requires an array of objects ([{...}, {...}])');
   }
   if (value.length === 0) {
     return '';
   }
   if (!value.every(r => r && typeof r === 'object' && !Array.isArray(r))) {
-    throw new TransformError('CSV 导出要求每个元素都是对象');
+    throw new TransformError('CSV export requires every element to be an object');
   }
   const rows = value as Record<string, unknown>[];
   const headers: string[] = [];

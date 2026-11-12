@@ -25,7 +25,7 @@ function isIdentChar(c: string): boolean {
 export function parsePath(path: string): Step[] {
   const p = path.trim();
   if (!p.startsWith('$')) {
-    throw new JsonPathError('JSONPath 必须以 $ 开头');
+    throw new JsonPathError('JSONPath must start with $');
   }
   const steps: Step[] = [];
   let i = 1;
@@ -33,7 +33,7 @@ export function parsePath(path: string): Step[] {
 
   const expect = (c: string) => {
     if (p[i] !== c) {
-      throw new JsonPathError(`期望 ${c}，实际 ${p[i] ?? 'EOF'}`);
+      throw new JsonPathError(`Expected ${c}, got ${p[i] ?? 'EOF'}`);
     }
     i++;
   };
@@ -62,7 +62,7 @@ export function parsePath(path: string): Step[] {
         i++;
       }
       if (p[i] !== q) {
-        throw new JsonPathError('未闭合的引号');
+        throw new JsonPathError('Unclosed quote');
       }
       i++;
       expect(']');
@@ -77,7 +77,7 @@ export function parsePath(path: string): Step[] {
     if (inner.includes(':')) {
       const parts = inner.split(':');
       if (parts.length > 3) {
-        throw new JsonPathError('切片最多 start:end:step');
+        throw new JsonPathError('Slice accepts at most start:end:step');
       }
       const num = (s: string): number | null => (s.trim() === '' ? null : Number(s));
       const start = num(parts[0]);
@@ -86,13 +86,13 @@ export function parsePath(path: string): Step[] {
       const badStart = start !== null && !Number.isInteger(start);
       const badEnd = end !== null && !Number.isInteger(end);
       if (badStart || badEnd || !Number.isInteger(step) || step === 0) {
-        throw new JsonPathError('切片参数非法');
+        throw new JsonPathError('Invalid slice parameters');
       }
       return { kind: 'slice', start, end, step };
     }
     const idx = Number(inner);
     if (!Number.isInteger(idx)) {
-      throw new JsonPathError(`非法下标 ${inner}`);
+      throw new JsonPathError(`Invalid index ${inner}`);
     }
     return { kind: 'index', index: idx };
   };
@@ -117,7 +117,7 @@ export function parsePath(path: string): Step[] {
             i++;
           }
           if (!key) {
-            throw new JsonPathError('.. 后缺少选择器');
+            throw new JsonPathError('Missing selector after ..');
           }
           sel = { kind: 'child', key };
         }
@@ -134,7 +134,7 @@ export function parsePath(path: string): Step[] {
           i++;
         }
         if (!key) {
-          throw new JsonPathError('. 后缺少键名');
+          throw new JsonPathError('Missing key after .');
         }
         steps.push({ kind: 'child', key });
       }
@@ -143,7 +143,7 @@ export function parsePath(path: string): Step[] {
       steps.push(readBracket());
     }
     else {
-      throw new JsonPathError(`无法解析的字符 ${p[i]}（位置 ${i}）`);
+      throw new JsonPathError(`Unexpected character ${p[i]} at position ${i}`);
     }
   }
   return steps;
