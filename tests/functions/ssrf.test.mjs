@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { guardTarget, isBlockedAddress, parseTarget } from './_ssrf.js';
+import { guardTarget, isBlockedAddress, parseTarget } from '../../functions/api/_ssrf.js';
 
 afterEach(() => {
   vi.unstubAllGlobals();

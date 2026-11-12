@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { onRequestPost } from './apiproxy.js';
+import { onRequestPost } from '../../functions/api/apiproxy.js';
 
 afterEach(() => {
   vi.unstubAllGlobals();
