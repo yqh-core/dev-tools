@@ -7,6 +7,7 @@ import { AUTH_HEADER_NAMES, type KV, buildProxyPayload, responseToWorkspaceLink,
 import { type HistoryEntry, type SavedRequest, exportSavedRequest, parseHistory, parseSaved, pushHistory, removeHistory, removeSaved, renameSaved, saveRequest } from './store';
 import { formatBytes, searchBody, utf8Bytes } from './response';
 import { authHeaderPreset, buildUrlWithQuery, parseQueryParams } from './query';
+import { importOpenApi } from './openapi';
 import { buildDownloadFilename, downloadTextFile, mimeForLanguage } from '@/composable/downloadText';
 import TextareaCopyable from '@/components/TextareaCopyable.vue';
 
@@ -141,6 +142,28 @@ function importCurl(): void {
   body.value = r.request.body;
   curlWarnings.value = r.warnings;
   banner.value = 'cURL imported into the request builder.';
+}
+const openapiText = ref('');
+const openapiWarnings = ref<string[]>([]);
+function importOpenApiSpec(): void {
+  importError.value = '';
+  openapiWarnings.value = [];
+  const r = importOpenApi(openapiText.value);
+  openapiWarnings.value = r.warnings;
+  if (r.requests.length === 0) {
+    importError.value = r.warnings[0] ?? 'No requests could be imported from this spec.';
+    return;
+  }
+  let list = saved.value;
+  for (const imp of r.requests) {
+    const res = saveRequest(list, imp.name, imp.request, Date.now(), `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`);
+    if (!res.error) {
+      list = res.list;
+    }
+  }
+  saved.value = list;
+  loadRequest(r.requests[0].request);
+  banner.value = `Imported ${r.requests.length} request(s) from OpenAPI into the collection; first one loaded.`;
 }
 function exportCurl(): void {
   downloadTextFile({ content: toCurl(currentRequest.value), filename: buildDownloadFilename('request', 'sh'), mimeType: 'text/plain' });
@@ -326,6 +349,19 @@ function statusType(s: number): 'success' | 'warning' | 'error' | 'info' {
       {{ importError }}
     </n-alert>
     <n-alert v-for="(w, i) in curlWarnings" :key="i" type="warning" style="margin-top: 6px">
+      {{ w }}
+    </n-alert>
+
+    <!-- OpenAPI 导入（API-008） -->
+    <n-form-item label="Import OpenAPI 3.x spec (JSON / YAML)" :show-feedback="false" style="margin-top: 10px">
+      <c-input-text v-model:value="openapiText" data-test-id="openapi-input" rows="3" multiline monospace spellcheck="false" placeholder="{&quot;openapi&quot;:&quot;3.0.0&quot;,&quot;servers&quot;:[{&quot;url&quot;:&quot;https://api.example.com&quot;}],&quot;paths&quot;:{...}}" />
+    </n-form-item>
+    <div class="row">
+      <n-button size="small" type="primary" data-test-id="openapi-import" @click="importOpenApiSpec">
+        Import to collection
+      </n-button>
+    </div>
+    <n-alert v-for="(w, i) in openapiWarnings" :key="`oa-${i}`" type="warning" style="margin-top: 6px">
       {{ w }}
     </n-alert>
 

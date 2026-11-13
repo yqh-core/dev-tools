@@ -48,6 +48,9 @@ describe('buildUrlWithQuery', () => {
     expect(buildUrlWithQuery('https://x.test/p#frag', [{ name: 'a', value: '1' }])).toBe('https://x.test/p?a=1#frag');
     expect(buildUrlWithQuery('https://x.test/p#frag', [])).toBe('https://x.test/p#frag');
   });
+  it('preserves {{var}} placeholders literally (regression: substitution must still match)', () => {
+    expect(buildUrlWithQuery('https://x.test/', [{ name: 'id', value: '{{userId}}' }])).toBe('https://x.test/?id={{userId}}');
+  });
 });
 
 describe('round-trip conservation (paired)', () => {

@@ -43,7 +43,9 @@ export function buildUrlWithQuery(url: string, params: KV[]): string {
       sp.append(p.name, p.value);
     }
   }
-  const qs = sp.toString();
+  // {{var}} 是模板占位符（发送时才替换），不能被 percent-encode 吃掉，
+  // 否则 substituteVars 匹配不到。URLSearchParams 把 { } 编成 %7B/%7D，这里还原。
+  const qs = sp.toString().replace(/%7B%7B(.*?)%7D%7D/g, '{{$1}}');
   return base + (qs ? `?${qs}` : '') + hash;
 }
 
