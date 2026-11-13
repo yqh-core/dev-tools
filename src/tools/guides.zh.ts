@@ -352,11 +352,11 @@ export const GUIDES: Record<string, ToolGuide> = {
   '/prepare-deployment': {
     intro: '检查项目是否已具备部署条件：粘贴 package.json、锁文件、Dockerfile 与 CI 配置，得到带证据问题清单的四态发布闸门。',
     steps: ['把各项目文件粘贴到对应输入框（全程留在浏览器本地）', '点击「Assess deployment readiness」', '阅读闸门判定与问题清单，导出 JSON 或 Markdown 报告归入发布记录'],
-    notes: ['闸门由问题清单独立推导，不接受自报状态：任一 blocked 问题即 BLOCKED，有警告为 READY_WITH_WARNINGS，全部干净为 READY，无输入为 NOT_ASSESSED', '检查是对粘贴文本的静态启发式规则，与 CI 中运行 Trivy、Checkov、actionlint、Hadolint 互补而非替代'],
+    notes: ['闸门由问题清单独立推导，不接受自报状态：任一 blocked 问题即 BLOCKED，有警告为 READY_WITH_WARNINGS，全部干净为 READY，无输入为 NOT_ASSESSED', '检查是对粘贴文本的静态启发式规则，与 CI 中运行 Trivy、Checkov、actionlint、Hadolint 互补而非替代', '把 Trivy、Checkov 或 Hadolint 的 JSON 粘贴到「Scanner results」框，即可把真实扫描发现聚合进同一闸门；CRITICAL/HIGH 漏洞与检出的密钥会强制 BLOCKED'],
     about: '部署失败很少来自代码本身，而来自代码周围的缺口：每周重建结果都不一样的未固定基础镜像、让安装不可复现的缺失锁文件、以写权限检出不可信 PR 代码的 CI 工作流、以 root 运行的容器。Vercel、Netlify 这类托管平台在接受部署前会跑预检，但那些检查被锁在各自的托管服务里。本工具把同样的思路带给任意项目、任意托管方：粘贴描述项目如何构建与发布的四个文件，它从固定规则集推导出发布闸门——READY、READY_WITH_WARNINGS、BLOCKED 或 NOT_ASSESSED——覆盖可复现构建、固定且非 root 的容器、CI 注入风险与硬编码凭据。每条问题带稳定 ID、命中证据与具体修复建议，整份报告可导出为 JSON 或 Markdown，随发布记录归档。它是发布前质量工作台，不是托管服务：它告诉你上线前该修什么，无论你在哪里上线。',
     faqs: [
       { q: '什么情况判 BLOCKED，什么情况判 READY_WITH_WARNINGS？', a: 'Blocked 是部署阻断项：package.json 格式损坏、缺少锁文件、Dockerfile 没有 FROM、pull_request_target 工作流检出不可信 PR 代码、硬编码凭据。警告是可复现性与最小权限缺口，如基础镜像未固定、没有 USER 指令、缺少 build 脚本、CI 没有测试步骤。任一 blocked 问题都会无视警告直接判 BLOCKED；判定由问题清单推导，不是手工填写。' },
-      { q: '它能替代 Trivy、Checkov、actionlint、Hadolint 吗？', a: '不能。浏览器无法运行这些扫描器，本工具只是对其公开检查规则族做轻量静态实现，作用于你粘贴的文本。把它当快速预检与发布记录生成器；深度漏洞、IaC 与 lint 覆盖仍交给 CI 里的完整扫描器。后续版本将支持导入其 SARIF/JSON 结果，让闸门聚合真实扫描输出。' },
+      { q: '它能替代 Trivy、Checkov、actionlint、Hadolint 吗？', a: '不能。浏览器无法运行这些扫描器，静态规则只是快速预检。深度覆盖请在 CI 跑完整扫描器，并把其 JSON 输出（Trivy、Checkov 或 Hadolint）粘贴到「Scanner results」框——闸门会把这些真实发现与静态检查一起聚合，CRITICAL/HIGH 漏洞或检出的密钥会强制 BLOCKED。SARIF 导入在路线中。' },
       { q: '我的源代码会被上传吗？', a: '不会。全部分析在浏览器本地完成，不向任何服务器发送数据。导出的 JSON 与 Markdown 报告在你的机器上生成，存放位置由你决定。' },
     ],
     example: { label: '填入示例 package.json', text: '{\n  "name": "demo-service",\n  "version": "1.0.0",\n  "engines": { "node": ">=20" },\n  "scripts": { "build": "vite build", "test": "vitest run" }\n}' },

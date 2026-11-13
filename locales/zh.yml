@@ -454,7 +454,7 @@ tools:
 
   prepare-deployment:
     title: 部署准备评估
-    description: 项目发布前的就绪闸门。粘贴 package.json、锁文件、Dockerfile 与 CI 配置，得到 READY / READY_WITH_WARNINGS / BLOCKED / NOT_ASSESSED 四态判定，附带证据的问题清单（可复现构建、镜像固定、非 root 容器、CI 注入风险、硬编码凭据）与可导出的发布报告。对标 Vercel/Netlify 发布前检查，全程浏览器本地运行。
+    description: 项目发布前的就绪闸门。粘贴 package.json、锁文件、Dockerfile 与 CI 配置，或导入 Trivy/Checkov/Hadolint 的 JSON 扫描结果，得到 READY / READY_WITH_WARNINGS / BLOCKED / NOT_ASSESSED 四态判定，附带证据的问题清单（可复现构建、镜像固定、非 root 容器、CI 注入风险、硬编码凭据、真实扫描发现）与可导出的发布报告。对标 Vercel/Netlify 发布前检查，全程浏览器本地运行。
 
   ipv4-subnet-calculator:
     title: IPv4 子网计算器

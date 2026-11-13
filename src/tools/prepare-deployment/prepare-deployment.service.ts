@@ -1,16 +1,17 @@
 /**
- * WP-003 C · Prepare Deployment — 部署准备评估引擎（第一刀）。
+ * WP-003 C · Prepare Deployment — 部署准备评估引擎。
  *
  * 产品参照：Vercel / Netlify 的发布前检查；规则族借鉴 actionlint（CI 注入）、
  * Hadolint（Dockerfile）、Trivy（密钥）的公开检查思路，全部为原创浏览器端实现，
- * 不嵌入任何 GPL 代码。浏览器不能跑这些 CLI，故先做导入文本的静态评估；
- * 后续版本支持导入其 SARIF/JSON 扫描结果（见 CHANGELOG 路线）。
+ * 不嵌入任何 GPL 代码。第一刀做导入文本的静态评估；第二刀聚合真实扫描器输出
+ * （Trivy / Checkov / Hadolint JSON，见 scanner-import.ts），闸门共用同一推导。
  *
  * 设计边界：
  *  · 纯函数，无副作用，全部逻辑可单测（含负控与成对断言）；
  *  · 闸门四态 fail-closed：BLOCKED > READY_WITH_WARNINGS > READY；无输入 = NOT_ASSESSED；
  *  · 每条问题带稳定 ID / 维度 / 严重度 / 证据 / 修复建议，可导出 JSON 与 Markdown。
  */
+import { importScannerResults } from './scanner-import';
 
 export type Gate = 'READY' | 'READY_WITH_WARNINGS' | 'BLOCKED' | 'NOT_ASSESSED';
 export type Severity = 'blocked' | 'warning' | 'info';
@@ -22,6 +23,8 @@ export interface ProjectFiles {
   lockfileName?: string
   dockerfile?: string
   ciYaml?: string
+  /** Trivy / Checkov / Hadolint 的 JSON 输出（第二刀：聚合真实扫描器证据）。 */
+  scannerResults?: string
 }
 
 export interface Issue {
@@ -168,16 +171,20 @@ export function deriveGate(issues: Issue[], hasInput: boolean): Gate {
 }
 
 export function hasAnyInput(files: ProjectFiles): boolean {
-  return Boolean(files.packageJson?.trim() || files.lockfile?.trim() || files.dockerfile?.trim() || files.ciYaml?.trim());
+  return Boolean(files.packageJson?.trim() || files.lockfile?.trim() || files.dockerfile?.trim() || files.ciYaml?.trim() || files.scannerResults?.trim());
 }
 
 export function assessProject(files: ProjectFiles): DeploymentReport {
   const issues = assess(files);
+  // 第二刀：聚合真实扫描器输出（Trivy/Checkov/Hadolint），与静态问题共用同一闸门推导。
+  const scanner = importScannerResults(files.scannerResults ?? '');
+  issues.push(...scanner.issues);
   const assessedFiles = [
     files.packageJson?.trim() ? 'package.json' : null,
     files.lockfile?.trim() ? (files.lockfileName?.trim() || 'lockfile') : null,
     files.dockerfile?.trim() ? 'Dockerfile' : null,
     files.ciYaml?.trim() ? 'CI workflow' : null,
+    files.scannerResults?.trim() ? `scanner results (${scanner.format})` : null,
   ].filter((x): x is string => x !== null);
   return {
     gate: deriveGate(issues, hasAnyInput(files)),

@@ -12,6 +12,7 @@ const lockfile = ref('');
 const lockfileName = ref('');
 const dockerfile = ref('');
 const ciYaml = ref('');
+const scannerResults = ref('');
 
 const report = ref<DeploymentReport | null>(null);
 
@@ -34,6 +35,7 @@ function runAssessment() {
     lockfileName: lockfileName.value,
     dockerfile: dockerfile.value,
     ciYaml: ciYaml.value,
+    scannerResults: scannerResults.value,
   });
 }
 
@@ -86,7 +88,8 @@ function loadSample() {
 <template>
   <c-card title="Project files" mb-4>
     <p class="hint" mb-3>
-      Paste the text of each file (all local, nothing is uploaded). The gate is derived from the findings:
+      Paste the text of each file (all local, nothing is uploaded). Optionally paste Trivy / Checkov / Hadolint
+      JSON to feed real scanner findings into the same gate. The gate is derived from the findings:
       BLOCKED &gt; READY_WITH_WARNINGS &gt; READY; no input means NOT_ASSESSED.
     </p>
     <c-input-text
@@ -145,6 +148,18 @@ function loadSample() {
       :rows="4"
       monospace
       placeholder="GitHub Actions / GitLab CI YAML"
+      mb-2
+    />
+    <c-input-text
+      v-model:value="scannerResults"
+      label="Scanner results"
+      label-position="left"
+      label-width="130px"
+      raw-text
+      multiline
+      :rows="4"
+      monospace
+      placeholder="Optional: paste Trivy / Checkov / Hadolint JSON output — real scanner findings feed the same gate"
       mb-3
     />
     <div flex gap-2>

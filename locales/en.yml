@@ -460,7 +460,7 @@ tools:
 
   prepare-deployment:
     title: Prepare Deployment — Pre-Deploy Readiness Gate for Docker, CI & Lockfiles
-    description: Pre-deployment readiness gate for your project. Paste package.json, lockfile, Dockerfile and CI workflow; get a READY / READY_WITH_WARNINGS / BLOCKED / NOT_ASSESSED verdict with evidence-backed findings (reproducible builds, pinned images, non-root containers, CI injection risks, hardcoded secrets) and an exportable release report. Inspired by Vercel/Netlify preflight checks; runs fully in your browser.
+    description: Pre-deployment readiness gate for your project. Paste package.json, lockfile, Dockerfile and CI workflow, or import Trivy/Checkov/Hadolint JSON; get a READY / READY_WITH_WARNINGS / BLOCKED / NOT_ASSESSED verdict with evidence-backed findings (reproducible builds, pinned images, non-root containers, CI injection risks, hardcoded secrets, real scanner results) and an exportable release report. Inspired by Vercel/Netlify preflight checks; runs fully in your browser.
 
   ipv4-subnet-calculator:
     title: IPv4 Subnet Calculator

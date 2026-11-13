@@ -1448,24 +1448,27 @@ export const SMOKE_CASES = [
     path: '/prepare-deployment',
     name: 'prepare-deployment',
     zhTitle: '部署准备评估',
-    strategy: 'knownVector：仅 package.json 无锁文件必须判 BLOCKED（PD-DEP-002）；健康样例四件齐全必须判 READY 且零问题——闸门由问题清单独立推导，两个状态都走真实 UI 点击',
+    strategy: 'knownVector：仅 package.json 无锁文件必须判 BLOCKED（PD-DEP-002）；健康样例四件齐全必须判 READY 且零问题；再导入 Trivy CRITICAL JSON 必须翻回 BLOCKED（TRIVY 证据）——闸门由问题清单独立推导，三态都走真实 UI 点击。waitText 一律限定闸门徽章 scope（guide 正文含 BLOCKED/READY 字样，整页等文案会被秒满足）；scanner 框用 textarea 专用选择器（默认 EDITABLE 把 lockfile 名单行 input 也计入序号）',
     steps: [
       { fill: { i: 0, text: '{"name":"demo","version":"1.0.0"}' } },
       { clickSel: '[data-test-id="pd-assess"]' },
-      { waitText: { text: 'BLOCKED', ms: 10000, scope: '.tool-content' } },
+      { waitText: { text: 'BLOCKED', ms: 10000, scope: '[data-test-id="pd-gate"]' } },
       {
         js: `(function(){
           return document.querySelector('[data-test-id="pd-issue-PD-DEP-002"]') ? null : 'BLOCKED 原因缺失 PD-DEP-002';
         })()`,
       },
       { clickSel: '[data-test-id="pd-sample"]' },
-      { waitText: { text: 'READY', ms: 10000, scope: '.tool-content' } },
+      { waitText: { text: 'READY', ms: 10000, scope: '[data-test-id="pd-gate"]' } },
+      { fill: { sel: '.tool-content textarea', i: 4, text: '{"Results":[{"Vulnerabilities":[{"VulnerabilityID":"CVE-2024-0001","PkgName":"openssl","Severity":"CRITICAL","Title":"RCE"}]}]}' } },
+      { clickSel: '[data-test-id="pd-assess"]' },
+      { waitText: { text: 'BLOCKED', ms: 10000, scope: '[data-test-id="pd-gate"]' } },
     ],
     expect: {
       js: `(function(){
         var gate = document.querySelector('[data-test-id="pd-gate"]');
-        if (!gate || gate.textContent.trim() !== 'READY') return false;
-        return document.querySelectorAll('[data-test-id^="pd-issue-"]').length === 0;
+        if (!gate || gate.textContent.trim() !== 'BLOCKED') return false;
+        return !!document.querySelector('[data-test-id^="pd-issue-TRIVY-CVE"]');
       })()`,
     },
   },
