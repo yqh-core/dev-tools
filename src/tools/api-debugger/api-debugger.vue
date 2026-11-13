@@ -6,6 +6,7 @@ import { parseCurl, toCurl } from './curl';
 import { AUTH_HEADER_NAMES, type KV, buildProxyPayload, responseToWorkspaceLink, sanitizeForShare, stashHandoff } from './engine';
 import { type HistoryEntry, type SavedRequest, exportSavedRequest, parseHistory, parseSaved, pushHistory, removeHistory, removeSaved, renameSaved, saveRequest } from './store';
 import { formatBytes, searchBody, utf8Bytes } from './response';
+import { authHeaderPreset, buildUrlWithQuery, parseQueryParams } from './query';
 import { buildDownloadFilename, downloadTextFile, mimeForLanguage } from '@/composable/downloadText';
 import TextareaCopyable from '@/components/TextareaCopyable.vue';
 
@@ -28,6 +29,33 @@ const banner = ref('');
 const bearer = ref('');
 const basicUser = ref('');
 const basicPass = ref('');
+const apiKey = ref('');
+
+// ── API-004 请求参数表（URL↔rows 双向；显式 Apply 避免响应式回环）──────
+const queryParams = ref<KV[]>(parseQueryParams(url.value));
+let applyingParams = false;
+function syncParamsFromUrl() {
+  queryParams.value = parseQueryParams(url.value);
+}
+function applyParamsToUrl() {
+  applyingParams = true;
+  url.value = buildUrlWithQuery(url.value, queryParams.value);
+  nextTick(() => {
+    applyingParams = false;
+  });
+}
+watch(url, () => {
+  if (!applyingParams) {
+    syncParamsFromUrl();
+  }
+});
+function setApiKey() {
+  const h = authHeaderPreset('api-key', apiKey.value);
+  if (h) {
+    upsertHeader(h.name, h.value);
+    banner.value = 'X-API-Key header added.';
+  }
+}
 const extractPath = ref('$.');
 const extractName = ref('token');
 const newVarName = ref('');
@@ -311,6 +339,29 @@ function statusType(s: number): 'success' | 'warning' | 'error' | 'info' {
         </n-button>
       </div>
 
+      <n-form-item label="Query params" :show-feedback="false" style="margin-top: 10px">
+        <div class="kv-list" data-test-id="query-params">
+          <div v-for="(p, i) in queryParams" :key="i" class="row">
+            <c-input-text v-model:value="p.name" size="small" monospace placeholder="Name" style="width: 200px" />
+            <c-input-text v-model:value="p.value" size="small" monospace placeholder="Value ({{var}} allowed)" style="flex: 1; min-width: 160px" />
+            <n-button size="tiny" quaternary @click="queryParams.splice(i, 1)">
+              Remove
+            </n-button>
+          </div>
+          <div class="row">
+            <n-button size="tiny" data-test-id="add-param" @click="queryParams.push({ name: '', value: '' })">
+              + Add param
+            </n-button>
+            <n-button size="tiny" data-test-id="params-from-url" @click="syncParamsFromUrl">
+              Load from URL
+            </n-button>
+            <n-button size="tiny" type="primary" data-test-id="params-to-url" @click="applyParamsToUrl">
+              Apply to URL
+            </n-button>
+          </div>
+        </div>
+      </n-form-item>
+
       <n-form-item label="Headers" :show-feedback="false" style="margin-top: 10px">
         <div class="kv-list">
           <div v-for="(h, i) in headers" :key="i" class="row">
@@ -335,6 +386,10 @@ function statusType(s: number): 'success' | 'warning' | 'error' | 'info' {
         <c-input-text v-model:value="basicPass" size="small" type="password" placeholder="pass" style="width: 100px" />
         <n-button size="tiny" @click="setBasic">
           Set Basic
+        </n-button>
+        <c-input-text v-model:value="apiKey" size="small" monospace placeholder="API key" style="width: 160px" />
+        <n-button size="tiny" data-test-id="set-api-key" @click="setApiKey">
+          Set API-Key
         </n-button>
       </div>
 
