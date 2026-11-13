@@ -198,6 +198,69 @@ describe('apiproxy S1 redirect credential policy', () => {
     expect(j.followed).toBe(false);
   });
 
+  // ── S1.1 外部审查整改：完整 Origin 边界（同主机异端口 = 不同 Origin）──
+  it.each([301, 302, 303, 307, 308])('same-host cross-port %i not auto-followed; credentials AND body never reach the other port', async (status) => {
+    const spy = redirectFetch(status, 'https://example.com:8443/collect');
+    vi.stubGlobal('fetch', spy);
+    const r = await onRequestPost({
+      request: mkReq({
+        url: 'https://example.com/api',
+        method: 'POST',
+        body: 'password=SECRET_BODY',
+        headers: [{ name: 'Authorization', value: 'Bearer SECRET' }],
+      }),
+    });
+    expect(r.status).toBe(200);
+    const j = await r.json();
+    expect(j.followed).toBe(false);
+    expect(j.redirect).toBe('https://example.com:8443/collect');
+    expect(j.note).toContain('not auto-followed');
+    // 负控核心：异端口目标零请求——凭据与请求体都没有被转发
+    const portCalls = spy.mock.calls.filter(c => String(c[0]).includes(':8443'));
+    expect(portCalls.length).toBe(0);
+  });
+
+  it('same-host cross-port without credentials also not auto-followed (uniform policy)', async () => {
+    vi.stubGlobal('fetch', redirectFetch(302, 'https://example.com:8443/x'));
+    const r = await onRequestPost({ request: mkReq({ url: 'https://example.com/' }) });
+    const j = await r.json();
+    expect(j.followed).toBe(false);
+  });
+
+  it('same-host http-to-https upgrade no longer auto-followed (Origin differs; explicit resend required)', async () => {
+    const spy = redirectFetch(302, 'https://example.com/final');
+    vi.stubGlobal('fetch', spy);
+    const r = await onRequestPost({
+      request: mkReq({ url: 'http://example.com/', headers: [{ name: 'Authorization', value: 'Bearer X' }] }),
+    });
+    const j = await r.json();
+    expect(j.followed).toBe(false);
+    const targetCalls = spy.mock.calls.filter(c => String(c[0]).startsWith('https://example.com'));
+    expect(targetCalls.length).toBe(0);
+  });
+
+  it('default-port equivalence still followed (https 443 normalized to same Origin)', async () => {
+    const spy = dohAware(vi.fn()
+      .mockResolvedValueOnce(new Response(null, { status: 302, headers: { location: 'https://example.com:443/final' } }))
+      .mockResolvedValueOnce(new Response('ok', { status: 200 })));
+    vi.stubGlobal('fetch', spy);
+    const r = await onRequestPost({ request: mkReq({ url: 'https://example.com/', headers: [{ name: 'Authorization', value: 'Bearer X' }] }) });
+    const j = await r.json();
+    expect(j.followed).toBe(true);
+    const targetCalls = spy.mock.calls.filter(c => !String(c[0]).includes('dns-query') && !String(c[0]).includes('dns.google'));
+    expect(targetCalls[1][1].headers.Authorization).toBe('Bearer X');
+  });
+
+  it('same explicit non-default port still followed (Origin includes port)', async () => {
+    const spy = dohAware(vi.fn()
+      .mockResolvedValueOnce(new Response(null, { status: 302, headers: { location: 'https://example.com:8443/final' } }))
+      .mockResolvedValueOnce(new Response('ok', { status: 200 })));
+    vi.stubGlobal('fetch', spy);
+    const r = await onRequestPost({ request: mkReq({ url: 'https://example.com:8443/' }) });
+    const j = await r.json();
+    expect(j.followed).toBe(true);
+  });
+
   it('unicode body byte cap enforced (String.length under cap, bytes over)', async () => {
     const body = 'é'.repeat(200000);
     const r = await onRequestPost({ request: mkReq({ url: 'https://example.com/', method: 'POST', body }) });

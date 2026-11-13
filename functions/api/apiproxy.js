@@ -155,13 +155,16 @@ export async function onRequestPost({ request }) {
         if (nextParsed.error) {
           return fail(`Redirect rejected: ${nextParsed.error}`, 403);
         }
-        // S1：跨主机重定向与 HTTPS→HTTP 降级不自动跟随——
+        // S1.1（外部审查整改）：自动跟随仅限完全相同 Origin（scheme+host+port，
+        // 默认端口归一化）。原 S1 仅比 hostname，同主机异端口（不同 Origin）会被
+        // 误判为同主机而继续转发凭据/请求体——已收紧。同主机 http→https 升级
+        // 也不再自动跟随（Origin 不同），由用户显式重发。
         // 凭据与请求体只发往用户显式指定的目标；重定向目标返回 UI 由用户显式决定是否重发。
         const curUrl = new URL(current);
         const nextUrl = new URL(nextParsed.url);
-        const crossHost = nextUrl.hostname !== curUrl.hostname;
+        const crossOrigin = nextUrl.origin !== curUrl.origin;
         const downgrade = curUrl.protocol === 'https:' && nextUrl.protocol === 'http:';
-        if (crossHost || downgrade) {
+        if (crossOrigin || downgrade) {
           return Response.json({
             url: current,
             status: resp.status,
@@ -171,9 +174,9 @@ export async function onRequestPost({ request }) {
             elapsedMs: Date.now() - started,
             redirect: nextParsed.url,
             followed: false,
-            note: crossHost
-              ? 'Cross-host redirect not auto-followed; credentials and request body were not forwarded. Send to the redirect target explicitly if intended.'
-              : 'HTTPS-to-HTTP downgrade redirect not auto-followed; credentials and request body were not forwarded.',
+            note: downgrade
+              ? 'HTTPS-to-HTTP downgrade redirect not auto-followed; credentials and request body were not forwarded.'
+              : 'Cross-origin redirect not auto-followed; credentials and request body were not forwarded. Send to the redirect target explicitly if intended.',
           });
         }
         current = nextParsed.url;
