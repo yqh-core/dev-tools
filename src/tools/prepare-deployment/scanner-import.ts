@@ -5,23 +5,28 @@
  * JSON 结果贴进来，闸门据此聚合**真实扫描器输出**，而不只是静态启发式。
  * 这是对标 Vercel/Netlify 预检的关键商业规格：预检结论要能落到真实证据。
  *
- * 支持三种事实上的标准 JSON 形态（按结构自动识别）：
+ * 支持五种事实上的标准形态（按结构自动识别）：
  *   · Trivy   —— { Results: [{ Vulnerabilities / Misconfigurations / Secrets }] }
  *   · Checkov —— { results: { failed_checks: [...] } }
  *   · Hadolint—— [ { code, message, level, line } ]
+ *   · SARIF 2.1.0 —— { version, runs: [{ tool, results }] }（GitHub code scanning 等）
+ *   · actionlint —— 默认文本 file:line:col: message [rule]
  *
  * 严重度映射（公开、可审计，不夸大）：
  *   · Trivy 漏洞 CRITICAL/HIGH → blocked；MEDIUM → warning；LOW/UNKNOWN → info
  *   · Trivy 密钥 → blocked；Trivy 配置错误 → warning
  *   · Checkov 失败检查 → warning（IaC 策略，标准输出无严重度字段）
  *   · Hadolint error → warning；其余 → info
+ *   · SARIF level 语义因工具而异，一律建议级（error/warning→warning，note/none→info）；
+ *     严重度精确闸门用原生 Trivy/Checkov JSON
+ *   · actionlint → warning（CI 正确性）
  *
  * 设计边界：纯函数、无副作用；非法 JSON 不崩溃，转为一条 warning 问题；
  * 未知格式转 info；单次导入上限 200 条，超出截断并留 info 痕迹（防报告洪泛）。
  */
 import type { Issue } from './prepare-deployment.service';
 
-export type ScannerFormat = 'trivy' | 'checkov' | 'hadolint' | 'unknown';
+export type ScannerFormat = 'trivy' | 'checkov' | 'hadolint' | 'sarif' | 'actionlint' | 'unknown';
 
 export interface ScannerImportResult {
   format: ScannerFormat
@@ -52,8 +57,24 @@ export function detectFormat(parsed: unknown): ScannerFormat {
     if (results && Array.isArray(results.failed_checks)) {
       return 'checkov';
     }
+    if (Array.isArray(o.runs) && typeof o.version === 'string' && o.version.startsWith('2.1')) {
+      return 'sarif';
+    }
   }
   return 'unknown';
+}
+
+/** actionlint 默认文本输出：`file:line:col: message [rule]`（可无 rule 后缀）。 */
+const ACTIONLINT_LINE = /^(.+?):(\d+):(\d+):\s+(.+?)(?:\s+\[([a-z][a-z0-9-]*)\])?\s*$/;
+
+export function looksLikeActionlint(text: string): boolean {
+  const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+  if (lines.length === 0) {
+    return false;
+  }
+  // 多数行命中才认（避免把任意含冒号的文本误判）；首行可能是 "..." 汇总，允许少量不命中。
+  const hits = lines.filter(l => ACTIONLINT_LINE.test(l)).length;
+  return hits >= Math.max(1, Math.ceil(lines.length * 0.6));
 }
 
 function trivySeverity(sev: unknown): Issue['severity'] {
@@ -151,6 +172,62 @@ function fromHadolint(parsed: any[], push: (i: Issue) => void): number {
   return n;
 }
 
+/** SARIF 2.1.0：通用静态分析容器（GitHub code scanning / Trivy / Checkov / actionlint 均可产）。
+ *  level 语义因工具而异，故一律按建议处理（error/warning→warning，note/none→info）；
+ *  需要严重度精确闸门时用原生 Trivy/Checkov JSON（见 guide）。 */
+function fromSarif(parsed: Record<string, any>, push: (i: Issue) => void): number {
+  let n = 0;
+  const seen = new Set<string>();
+  for (const run of parsed.runs ?? []) {
+    const tool = String(run?.tool?.driver?.name ?? 'scanner');
+    for (const r of run?.results ?? []) {
+      const rule = String(r?.ruleId ?? 'rule');
+      const level = String(r?.level ?? 'warning').toLowerCase();
+      const sev: Issue['severity'] = (level === 'note' || level === 'none') ? 'info' : 'warning';
+      const loc = r?.locations?.[0]?.physicalLocation;
+      const uri = String(loc?.artifactLocation?.uri ?? '?');
+      const line = String(loc?.region?.startLine ?? '?');
+      let id = `SARIF-${tool}-${rule}-${uri}-${line}`.replace(/[^\w.-]/g, '_');
+      let k = 2;
+      while (seen.has(id)) {
+        id = `SARIF-${tool}-${rule}-${uri}-${line}-${k++}`.replace(/[^\w.-]/g, '_');
+      }
+      seen.add(id);
+      push(issue(id, 'ci', sev,
+        `${tool} ${rule}: ${String(r?.message?.text ?? '').slice(0, 120)}`,
+        `${uri}:${line} (SARIF level: ${level})`,
+        'Review the finding in the source tool; SARIF levels are advisory — use native Trivy/Checkov JSON for severity-precise gating.'));
+      n++;
+    }
+  }
+  return n;
+}
+
+/** actionlint 文本：GitHub Actions 工作流静态检查（CI 正确性，归 warning）。 */
+function fromActionlint(text: string, push: (i: Issue) => void): number {
+  let n = 0;
+  const seen = new Set<string>();
+  for (const raw of text.split('\n')) {
+    const m = ACTIONLINT_LINE.exec(raw.trim());
+    if (!m) {
+      continue;
+    }
+    const [, file, line, col, message, rule] = m;
+    let id = `ACTIONLINT-${rule ?? 'msg'}-${file}-${line}`.replace(/[^\w.-]/g, '_');
+    let k = 2;
+    while (seen.has(id)) {
+      id = `ACTIONLINT-${rule ?? 'msg'}-${file}-${line}-${k++}`.replace(/[^\w.-]/g, '_');
+    }
+    seen.add(id);
+    push(issue(id, 'ci', 'warning',
+      `actionlint${rule ? ` [${rule}]` : ''}: ${message.slice(0, 120)}`,
+      `${file}:${line}:${col}`,
+      'Fix the workflow issue; see https://github.com/rhysd/actionlint rule docs.'));
+    n++;
+  }
+  return n;
+}
+
 /** 导入扫描结果文本 → 问题清单。非法/未知格式不崩溃，转为可见问题。 */
 export function importScannerResults(text: string): ScannerImportResult {
   const trimmed = (text ?? '').trim();
@@ -162,10 +239,26 @@ export function importScannerResults(text: string): ScannerImportResult {
     parsed = JSON.parse(trimmed);
   }
   catch (e) {
+    // 非 JSON：先试 actionlint 文本（它的默认输出不是 JSON），再判解析失败。
+    if (looksLikeActionlint(trimmed)) {
+      const collected: Issue[] = [];
+      let total = 0;
+      const push = (i: Issue) => {
+        if (collected.length < MAX_FINDINGS) {
+          collected.push(i);
+        }
+        total++;
+      };
+      fromActionlint(trimmed, push);
+      if (total > MAX_FINDINGS) {
+        collected.push(issue('SCN-TRUNC-001', 'config', 'info', `Scanner output truncated to ${MAX_FINDINGS} findings`, `${total} findings total, ${MAX_FINDINGS} shown`, 'Fix the highest-severity findings first; re-run the scanner after remediation.'));
+      }
+      return { format: 'actionlint', issues: collected, parsedCount: total };
+    }
     return {
       format: 'unknown',
       parsedCount: 0,
-      issues: [issue('SCN-PARSE-001', 'config', 'warning', 'Scanner results are not valid JSON', String(e).slice(0, 120), 'Paste the raw JSON output of Trivy / Checkov / Hadolint (not a screenshot or truncated text).')],
+      issues: [issue('SCN-PARSE-001', 'config', 'warning', 'Scanner results are not valid JSON or actionlint text', String(e).slice(0, 120), 'Paste the raw JSON output of Trivy / Checkov / Hadolint / SARIF, or actionlint text output.')],
     };
   }
   const format = detectFormat(parsed);
@@ -173,7 +266,7 @@ export function importScannerResults(text: string): ScannerImportResult {
     return {
       format,
       parsedCount: 0,
-      issues: [issue('SCN-FORMAT-001', 'config', 'info', 'Scanner format not recognized', 'expected Trivy {Results:[…]}, Checkov {results:{failed_checks:[…]}}, or Hadolint [{code,message,…}]', 'Export JSON from one of the supported scanners; other formats are ignored rather than guessed.')],
+      issues: [issue('SCN-FORMAT-001', 'config', 'info', 'Scanner format not recognized', 'expected Trivy {Results:[…]}, Checkov {results:{failed_checks:[…]}}, Hadolint [{code,message,…}], SARIF {version,runs:[…]}, or actionlint text', 'Export JSON / SARIF from one of the supported scanners; other formats are ignored rather than guessed.')],
     };
   }
   const collected: Issue[] = [];
@@ -189,6 +282,9 @@ export function importScannerResults(text: string): ScannerImportResult {
   }
   else if (format === 'checkov') {
     fromCheckov(parsed as Record<string, any>, push);
+  }
+  else if (format === 'sarif') {
+    fromSarif(parsed as Record<string, any>, push);
   }
   else {
     fromHadolint(parsed as any[], push);

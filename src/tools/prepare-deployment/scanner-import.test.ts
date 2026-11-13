@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { detectFormat, importScannerResults } from './scanner-import';
+import { detectFormat, importScannerResults, looksLikeActionlint } from './scanner-import';
 import { assessProject } from './prepare-deployment.service';
 
 const TRIVY = JSON.stringify({
@@ -134,5 +134,68 @@ describe('gate integration (paired: same healthy base, scanner flips verdict)', 
   });
   it('scanner-only input is still assessed (not NOT_ASSESSED)', () => {
     expect(assessProject({ scannerResults: HADOLINT }).gate).toBe('READY_WITH_WARNINGS');
+  });
+});
+
+const SARIF = JSON.stringify({
+  version: '2.1.0',
+  runs: [
+    {
+      tool: { driver: { name: 'actionlint' } },
+      results: [
+        { ruleId: 'shellcheck', level: 'error', message: { text: 'SC2086: Double quote to prevent globbing' }, locations: [{ physicalLocation: { artifactLocation: { uri: '.github/workflows/ci.yml' }, region: { startLine: 12 } } }] },
+        { ruleId: 'expr-syntax', level: 'note', message: { text: 'Optional style suggestion' }, locations: [{ physicalLocation: { artifactLocation: { uri: '.github/workflows/ci.yml' }, region: { startLine: 30 } } }] },
+      ],
+    },
+  ],
+});
+const ACTIONLINT_TEXT = '.github/workflows/ci.yml:12:5: SC2086: Double quote to prevent globbing [shellcheck]\n.github/workflows/ci.yml:20:3: property "runs-on" is required [runs-on]\n';
+
+describe('SARIF 2.1.0 (third slice)', () => {
+  it('detects SARIF by version+runs (paired negative)', () => {
+    expect(detectFormat(JSON.parse(SARIF))).toBe('sarif');
+    expect(detectFormat({ version: '2.1.0' })).toBe('unknown');
+    expect(detectFormat({ runs: [] })).toBe('unknown');
+  });
+  it('error/warning → warning, note → info (advisory, paired)', () => {
+    const r = importScannerResults(SARIF);
+    expect(r.format).toBe('sarif');
+    expect(r.issues.find(i => i.id.includes('shellcheck'))?.severity).toBe('warning');
+    expect(r.issues.find(i => i.id.includes('expr-syntax'))?.severity).toBe('info');
+  });
+  it('location lands in evidence (actionable)', () => {
+    const r = importScannerResults(SARIF);
+    expect(r.issues[0].evidence).toContain('ci.yml:12');
+  });
+  it('empty runs → no issues, no crash', () => {
+    const r = importScannerResults(JSON.stringify({ version: '2.1.0', runs: [] }));
+    expect(r.issues).toHaveLength(0);
+    expect(r.parsedCount).toBe(0);
+  });
+  it('healthy + SARIF error → READY_WITH_WARNINGS (advisory does not block)', () => {
+    expect(assessProject({ ...HEALTHY, scannerResults: SARIF }).gate).toBe('READY_WITH_WARNINGS');
+  });
+});
+
+describe('actionlint text (third slice)', () => {
+  it('recognizes line format (paired negative)', () => {
+    expect(looksLikeActionlint(ACTIONLINT_TEXT)).toBe(true);
+    expect(looksLikeActionlint('just some random text')).toBe(false);
+    expect(looksLikeActionlint('')).toBe(false);
+  });
+  it('parses file:line:col + rule into warning issues', () => {
+    const r = importScannerResults(ACTIONLINT_TEXT);
+    expect(r.format).toBe('actionlint');
+    expect(r.parsedCount).toBe(2);
+    expect(r.issues.every(i => i.severity === 'warning' && i.dimension === 'ci')).toBe(true);
+    expect(r.issues[0].evidence).toContain('ci.yml:12:5');
+    expect(r.issues[0].id).toContain('shellcheck');
+  });
+  it('non-JSON non-actionlint → parse warning (not silent)', () => {
+    const r = importScannerResults('hello world without colons');
+    expect(r.issues.some(i => i.id === 'SCN-PARSE-001')).toBe(true);
+  });
+  it('healthy + actionlint → READY_WITH_WARNINGS', () => {
+    expect(assessProject({ ...HEALTHY, scannerResults: ACTIONLINT_TEXT }).gate).toBe('READY_WITH_WARNINGS');
   });
 });

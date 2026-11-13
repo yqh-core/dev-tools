@@ -1448,7 +1448,7 @@ export const SMOKE_CASES = [
     path: '/prepare-deployment',
     name: 'prepare-deployment',
     zhTitle: '部署准备评估',
-    strategy: 'knownVector：仅 package.json 无锁文件必须判 BLOCKED（PD-DEP-002）；健康样例四件齐全必须判 READY 且零问题；再导入 Trivy CRITICAL JSON 必须翻回 BLOCKED（TRIVY 证据）——闸门由问题清单独立推导，三态都走真实 UI 点击。waitText 一律限定闸门徽章 scope（guide 正文含 BLOCKED/READY 字样，整页等文案会被秒满足）；scanner 框用 textarea 专用选择器（默认 EDITABLE 把 lockfile 名单行 input 也计入序号）',
+    strategy: 'knownVector：仅 package.json 无锁文件→BLOCKED(PD-DEP-002)；健康样例→READY 零问题；导入 Trivy CRITICAL→翻回 BLOCKED(TRIVY 证据)；换 SARIF error→READY_WITH_WARNINGS(SARIF 建议级)。四态走真实 UI。waitText 限定闸门徽章 scope（guide 含同名字样会秒满足）；scanner 框用 textarea 专用 sel（默认 EDITABLE 混计单行 input）',
     steps: [
       { fill: { i: 0, text: '{"name":"demo","version":"1.0.0"}' } },
       { clickSel: '[data-test-id="pd-assess"]' },
@@ -1463,12 +1463,15 @@ export const SMOKE_CASES = [
       { fill: { sel: '.tool-content textarea', i: 4, text: '{"Results":[{"Vulnerabilities":[{"VulnerabilityID":"CVE-2024-0001","PkgName":"openssl","Severity":"CRITICAL","Title":"RCE"}]}]}' } },
       { clickSel: '[data-test-id="pd-assess"]' },
       { waitText: { text: 'BLOCKED', ms: 10000, scope: '[data-test-id="pd-gate"]' } },
+      { fill: { sel: '.tool-content textarea', i: 4, text: '{"version":"2.1.0","runs":[{"tool":{"driver":{"name":"actionlint"}},"results":[{"ruleId":"shellcheck","level":"error","message":{"text":"SC2086"},"locations":[{"physicalLocation":{"artifactLocation":{"uri":"ci.yml"},"region":{"startLine":12}}}]}]}]}' } },
+      { clickSel: '[data-test-id="pd-assess"]' },
+      { waitText: { text: 'READY_WITH_WARNINGS', ms: 10000, scope: '[data-test-id="pd-gate"]' } },
     ],
     expect: {
       js: `(function(){
         var gate = document.querySelector('[data-test-id="pd-gate"]');
-        if (!gate || gate.textContent.trim() !== 'BLOCKED') return false;
-        return !!document.querySelector('[data-test-id^="pd-issue-TRIVY-CVE"]');
+        if (!gate || gate.textContent.trim() !== 'READY_WITH_WARNINGS') return false;
+        return !!document.querySelector('[data-test-id^="pd-issue-SARIF-"]');
       })()`,
     },
   },

@@ -88,8 +88,8 @@ function loadSample() {
 <template>
   <c-card title="Project files" mb-4>
     <p class="hint" mb-3>
-      Paste the text of each file (all local, nothing is uploaded). Optionally paste Trivy / Checkov / Hadolint
-      JSON to feed real scanner findings into the same gate. The gate is derived from the findings:
+      Paste the text of each file (all local, nothing is uploaded). Optionally paste Trivy / Checkov / Hadolint / SARIF
+      JSON or actionlint text to feed real scanner findings into the same gate. The gate is derived from the findings:
       BLOCKED &gt; READY_WITH_WARNINGS &gt; READY; no input means NOT_ASSESSED.
     </p>
     <c-input-text
@@ -159,7 +159,7 @@ function loadSample() {
       multiline
       :rows="4"
       monospace
-      placeholder="Optional: paste Trivy / Checkov / Hadolint JSON output — real scanner findings feed the same gate"
+      placeholder="Optional: paste Trivy / Checkov / Hadolint / SARIF JSON or actionlint text — real scanner findings feed the same gate"
       mb-3
     />
     <div flex gap-2>
