@@ -31,7 +31,7 @@ const extractName = ref('token');
 const newVarName = ref('');
 const newVarValue = ref('');
 
-interface ProxyResponse { url: string; status: number; statusText: string; headers: Record<string, string>; body: string; elapsedMs: number }
+interface ProxyResponse { url: string; status: number; statusText: string; headers: Record<string, string>; body: string; elapsedMs: number; redirect?: string; followed?: boolean; note?: string }
 const resp = ref<ProxyResponse | null>(null);
 
 const METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'];
@@ -312,6 +312,15 @@ function statusType(s: number): 'success' | 'warning' | 'error' | 'info' {
         {{ sendError }}
       </n-alert>
       <template v-if="resp">
+        <n-alert v-if="resp.followed === false" type="warning" style="margin-bottom: 8px" data-test-id="redirect-notice">
+          {{ resp.note }}
+          <div class="row" style="margin-top: 6px">
+            <code>{{ resp.redirect }}</code>
+            <n-button size="tiny" data-test-id="use-redirect-target" @click="url = resp.redirect ?? ''">
+              Use redirect target (explicit re-send)
+            </n-button>
+          </div>
+        </n-alert>
         <div class="row" style="margin-bottom: 8px">
           <n-tag :type="statusType(resp.status)" data-test-id="resp-status">
             {{ resp.status }} {{ resp.statusText }}

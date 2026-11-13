@@ -1,22 +1,41 @@
 /**
  * apiproxy _live 集成证据（Node 直调 onRequestPost，真实 fetch/DoH，无 stub）。
- * 用法: node live-apiproxy.mjs   （在 ws-api 目录下跑，ESM import functions）
+ * 用法: node live-apiproxy.mjs   （在 worktree 目录下跑，ESM import functions）
+ * 生产复验: LIVE_BASE=https://digdevbox.com node live-apiproxy.mjs （走真实 TLS，无需 env hack）
+ * TLS 说明：日志中 NODE_TLS_REJECT_UNAUTHORIZED=0 警告来自本机 MITM 出口环境变量（脚本继承），
+ *   非本脚本设置，也不代表生产 Worker 的 TLS 行为；生产 Worker 在 CF 边缘正常校验 TLS。
  */
+import process from 'node:process';
 import { onRequestPost } from './functions/api/apiproxy.js';
 
-const mk = (payload, ip) => new Request('https://digdevbox.com/api/apiproxy', {
-  method: 'POST',
-  headers: { 'content-type': 'application/json', 'cf-connecting-ip': ip },
-  body: JSON.stringify(payload),
-});
+const LIVE_BASE = process.env.LIVE_BASE || '';
+
+function mk(payload, ip) {
+  return new Request('https://digdevbox.com/api/apiproxy', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', 'cf-connecting-ip': ip },
+    body: JSON.stringify(payload),
+  });
+}
+
+function call(payload, ip) {
+  if (LIVE_BASE) {
+    return fetch(`${LIVE_BASE}/api/apiproxy`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'cf-connecting-ip': ip },
+      body: JSON.stringify(payload),
+    });
+  }
+  return onRequestPost({ request: mk(payload, ip) });
+}
 
 const results = [];
 async function t(name, payload, ip, expect) {
-  const r = await onRequestPost({ request: mk(payload, ip) });
+  const r = await call(payload, ip);
   const j = await r.json().catch(() => null);
   const ok = expect(r.status, j);
   results.push({ name, status: r.status, ok, detail: JSON.stringify(j).slice(0, 160) });
-  console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}  [HTTP ${r.status}] ${JSON.stringify(j).slice(0, 120)}`);
+  process.stdout.write(`${ok ? 'PASS' : 'FAIL'}  ${name}  [HTTP ${r.status}] ${JSON.stringify(j).slice(0, 120)}\n`);
 }
 
 // 本地出口只放行 SNI 域名 TLS：纯 IP 连接与 DoH 均被网络层阻断（curl 四组合实测）。
@@ -32,5 +51,5 @@ await t('live method TRACE rejected', { url: 'https://example.com/', method: 'TR
 await t('live redirect-to-private never returns 200', { url: 'https://httpbin.org/redirect-to?url=http%3A%2F%2F127.0.0.1%2F&status_code=302' }, '203.0.113.17', s => s !== 200);
 
 const failed = results.filter(r => !r.ok);
-console.log(`\n==== ${results.length - failed.length}/${results.length} PASS ====`);
+process.stdout.write(`\n==== ${results.length - failed.length}/${results.length} PASS ====\n`);
 process.exit(failed.length ? 1 : 0);
