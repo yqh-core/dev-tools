@@ -8,6 +8,7 @@ import { type HistoryEntry, type SavedRequest, exportSavedRequest, parseHistory,
 import { formatBytes, searchBody, utf8Bytes } from './response';
 import { authHeaderPreset, buildUrlWithQuery, parseQueryParams } from './query';
 import { importOpenApi } from './openapi';
+import { type EnvStore, activeVars, addEnv, deleteEnv, migrateEnv, removeEnvVar, renameEnv, setEnvVar } from './environments';
 import { buildDownloadFilename, downloadTextFile, mimeForLanguage } from '@/composable/downloadText';
 import TextareaCopyable from '@/components/TextareaCopyable.vue';
 
@@ -18,7 +19,34 @@ const method = useStorage('api-debugger:method', 'GET');
 const url = useStorage('api-debugger:url', 'https://httpbin.org/get');
 const headers = useStorage<KV[]>('api-debugger:headers', [{ name: 'Accept', value: 'application/json' }]);
 const body = useStorage('api-debugger:body', '');
-const env = useStorage<Record<string, string>>('api-debugger:env', {});
+// API-005 环境作用域：旧扁平 Record 经 migrateEnv 幂等迁移为 EnvStore，不丢变量。
+const envStore = useStorage<EnvStore>('api-debugger:env', { active: 'Default', envs: { Default: {} } }, undefined, {
+  serializer: { read: (v: string) => migrateEnv(v ? JSON.parse(v) : null), write: (v: EnvStore) => JSON.stringify(v) },
+});
+const env = computed(() => activeVars(envStore.value));
+const envOptions = computed(() => Object.keys(envStore.value.envs).map(n => ({ label: n, value: n })));
+const activeEnv = computed({
+  get: () => envStore.value.active,
+  set: (n: string) => {
+    envStore.value = { ...envStore.value, active: n };
+  },
+});
+const newEnvName = ref('');
+const envRenameDraft = ref(envStore.value.active);
+watch(activeEnv, (n) => {
+  envRenameDraft.value = n;
+});
+function createEnv() {
+  envStore.value = addEnv(envStore.value, newEnvName.value);
+  newEnvName.value = '';
+}
+function removeActiveEnv() {
+  envStore.value = deleteEnv(envStore.value, envStore.value.active);
+}
+function applyRenameEnv() {
+  envStore.value = renameEnv(envStore.value, envStore.value.active, envRenameDraft.value);
+  envRenameDraft.value = envStore.value.active;
+}
 
 const curlText = ref('');
 const curlWarnings = ref<string[]>([]);
@@ -201,14 +229,10 @@ function setBasic(): void {
   }
 }
 function setVar(name: string, value: string): void {
-  if (name.trim()) {
-    env.value = { ...env.value, [name.trim()]: value };
-  }
+  envStore.value = setEnvVar(envStore.value, name, value);
 }
 function removeVar(name: string): void {
-  const next = { ...env.value };
-  delete next[name];
-  env.value = next;
+  envStore.value = removeEnvVar(envStore.value, name);
 }
 function renameVar(oldName: string, newName: string, value: string): void {
   removeVar(oldName);
@@ -439,6 +463,20 @@ function statusType(s: number): 'success' | 'warning' | 'error' | 'info' {
       <h3 class="section-title">
         Variables <span class="hint">use {{ varPlaceholder }} in URL, headers and body; extract from responses below</span>
       </h3>
+      <div class="row" style="margin-bottom: 8px" data-test-id="env-bar">
+        <n-select v-model:value="activeEnv" :options="envOptions" size="small" style="width: 160px" data-test-id="env-select" />
+        <c-input-text v-model:value="envRenameDraft" size="small" style="width: 140px" data-test-id="env-rename" />
+        <n-button size="tiny" data-test-id="env-rename-btn" @click="applyRenameEnv">
+          Rename
+        </n-button>
+        <c-input-text v-model:value="newEnvName" size="small" placeholder="new env" style="width: 120px" data-test-id="env-new-name" />
+        <n-button size="tiny" data-test-id="env-add" @click="createEnv">
+          + Env
+        </n-button>
+        <n-button size="tiny" quaternary data-test-id="env-delete" @click="removeActiveEnv">
+          Delete env
+        </n-button>
+      </div>
       <div class="kv-list">
         <div v-for="row in envRows" :key="row.name" class="row">
           <c-input-text :value="row.name" size="small" monospace style="width: 160px" @update:value="(v: string) => renameVar(row.name, v, row.value)" />
