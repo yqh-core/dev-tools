@@ -4,6 +4,8 @@ import { useStorage } from '@vueuse/core';
 import { JsonPathError, jsonPath } from '../json-workspace/jsonpath';
 import { parseCurl, toCurl } from './curl';
 import { AUTH_HEADER_NAMES, type KV, buildProxyPayload, responseToWorkspaceLink, sanitizeForShare, stashHandoff } from './engine';
+import { type HistoryEntry, type SavedRequest, exportSavedRequest, parseHistory, parseSaved, pushHistory, removeHistory, removeSaved, renameSaved, saveRequest } from './store';
+import { formatBytes, searchBody, utf8Bytes } from './response';
 import { buildDownloadFilename, downloadTextFile, mimeForLanguage } from '@/composable/downloadText';
 import TextareaCopyable from '@/components/TextareaCopyable.vue';
 
@@ -39,6 +41,62 @@ const envRows = computed(() => Object.entries(env.value).map(([name, value]) => 
 const varPlaceholder = '{{name}}';
 const currentRequest = computed(() => ({ method: method.value, url: url.value, headers: headers.value, body: body.value }));
 const hasAuth = computed(() => headers.value.some(h => AUTH_HEADER_NAMES.includes(h.name.trim().toLowerCase())));
+
+// ── API-006 历史与集合（只存本机；导出/分享默认剔除凭据）────────────
+const history = useStorage<HistoryEntry[]>('api-debugger:history', [], undefined, { serializer: { read: (v: string) => parseHistory(v ? JSON.parse(v) : null), write: (v: HistoryEntry[]) => JSON.stringify(v) } });
+const saved = useStorage<SavedRequest[]>('api-debugger:saved', [], undefined, { serializer: { read: (v: string) => parseSaved(v ? JSON.parse(v) : null), write: (v: SavedRequest[]) => JSON.stringify(v) } });
+const saveName = ref('');
+const saveError = ref('');
+const bodyQuery = ref('');
+
+const respBytes = computed(() => resp.value ? utf8Bytes(resp.value.body) : 0);
+const bodyView = computed(() => resp.value ? searchBody(resp.value.body, bodyQuery.value) : null);
+const bodyShown = computed(() => bodyView.value ? bodyView.value.lines.join('\n') : '');
+
+function loadRequest(r: { method: string; url: string; headers: KV[]; body: string }): void {
+  method.value = r.method;
+  url.value = r.url;
+  headers.value = r.headers.map(h => ({ ...h }));
+  body.value = r.body;
+  banner.value = 'Request loaded into the builder.';
+}
+function recordHistory(request: { method: string; url: string; headers: KV[]; body: string }, status: number | null, elapsedMs: number | null, error?: string): void {
+  history.value = pushHistory(history.value, {
+    id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    at: Date.now(),
+    request,
+    status,
+    elapsedMs,
+    error,
+  });
+}
+function saveCurrent(): void {
+  saveError.value = '';
+  const r = saveRequest(saved.value, saveName.value, currentRequest.value, Date.now(), `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`);
+  if (r.error) {
+    saveError.value = r.error;
+    return;
+  }
+  saved.value = r.list;
+  saveName.value = '';
+  banner.value = `Saved "${r.saved?.name}" to your collection (local only).`;
+}
+function exportSaved(s: SavedRequest): void {
+  downloadTextFile({ content: toCurl(exportSavedRequest(s)), filename: buildDownloadFilename(s.name.replace(/[^\w.-]+/g, '-'), 'sh'), mimeType: 'text/plain' });
+  banner.value = 'Exported cURL WITHOUT credentials.';
+}
+function renameSavedInline(s: SavedRequest, name: string): void {
+  const r = renameSaved(saved.value, s.id, name, Date.now());
+  if (r.error) {
+    saveError.value = r.error;
+    return;
+  }
+  saveError.value = '';
+  saved.value = r.list;
+}
+function fmtTime(at: number): string {
+  return new Date(at).toLocaleString();
+}
 
 // ── cURL 导入 / 导出 ─────────────────────────────────────────────
 function importCurl(): void {
@@ -126,6 +184,7 @@ async function send(): Promise<void> {
     sending.value = false;
     return;
   }
+  const snapshot = { ...currentRequest.value, headers: headers.value.filter(h => h.name.trim()).map(h => ({ ...h })) };
   try {
     const r = await fetch('/api/apiproxy', {
       method: 'POST',
@@ -135,13 +194,16 @@ async function send(): Promise<void> {
     const j = await r.json().catch(() => null);
     if (!r.ok) {
       sendError.value = (j && j.error) || `Proxy returned HTTP ${r.status}.`;
+      recordHistory(snapshot, r.status, null, sendError.value);
     }
     else {
       resp.value = j as ProxyResponse;
+      recordHistory(snapshot, resp.value.status, resp.value.elapsedMs);
     }
   }
   catch (e) {
     sendError.value = `Proxy unavailable in this environment (Cloudflare Pages Functions required): ${e instanceof Error ? e.message : String(e)}`;
+    recordHistory(snapshot, null, null, sendError.value);
   }
   finally {
     sending.value = false;
@@ -303,6 +365,69 @@ function statusType(s: number): 'success' | 'warning' | 'error' | 'info' {
       </div>
     </div>
 
+    <!-- API-006 集合（保存的请求） -->
+    <div class="section">
+      <h3 class="section-title">
+        Collection <span class="hint">saved locally in this browser; exports strip credentials</span>
+      </h3>
+      <div class="row">
+        <c-input-text v-model:value="saveName" size="small" placeholder="Name this request" style="width: 220px" data-test-id="save-name" />
+        <n-button size="small" data-test-id="save-request" @click="saveCurrent">
+          Save current request
+        </n-button>
+      </div>
+      <n-alert v-if="saveError" type="error" style="margin-top: 6px" data-test-id="save-error">
+        {{ saveError }}
+      </n-alert>
+      <div v-if="saved.length" class="kv-list" style="margin-top: 8px" data-test-id="saved-list">
+        <div v-for="s in saved" :key="s.id" class="row" data-test-id="saved-item">
+          <c-input-text :value="s.name" size="small" style="width: 180px" @update:value="(v: string) => renameSavedInline(s, v)" />
+          <span class="hint" style="flex: 1; min-width: 160px">{{ s.request.method }} {{ s.request.url }}</span>
+          <n-button size="tiny" data-test-id="saved-load" @click="loadRequest(s.request)">
+            Load
+          </n-button>
+          <n-button size="tiny" data-test-id="saved-export" @click="exportSaved(s)">
+            Export cURL
+          </n-button>
+          <n-button size="tiny" quaternary data-test-id="saved-delete" @click="saved = removeSaved(saved, s.id)">
+            Delete
+          </n-button>
+        </div>
+      </div>
+      <p v-else class="hint">
+        Nothing saved yet. Build a request above, then save it here for reuse.
+      </p>
+    </div>
+
+    <!-- API-006 历史 -->
+    <div class="section">
+      <div class="row" style="justify-content: space-between">
+        <h3 class="section-title" style="margin: 0">
+          History <span class="hint">last {{ history.length }} sends, local only</span>
+        </h3>
+        <n-button v-if="history.length" size="tiny" quaternary data-test-id="clear-history" @click="history = []">
+          Clear
+        </n-button>
+      </div>
+      <div v-if="history.length" class="kv-list" style="margin-top: 8px" data-test-id="history-list">
+        <div v-for="h in history" :key="h.id" class="row" data-test-id="history-item">
+          <n-tag size="small" :type="h.status === null ? 'error' : statusType(h.status)">
+            {{ h.status ?? 'ERR' }}
+          </n-tag>
+          <span class="hint" style="flex: 1; min-width: 180px">{{ h.request.method }} {{ h.request.url }} · {{ fmtTime(h.at) }}{{ h.elapsedMs !== null ? ` · ${h.elapsedMs} ms` : '' }}</span>
+          <n-button size="tiny" data-test-id="history-load" @click="loadRequest(h.request)">
+            Load
+          </n-button>
+          <n-button size="tiny" quaternary @click="history = removeHistory(history, h.id)">
+            Remove
+          </n-button>
+        </div>
+      </div>
+      <p v-else class="hint">
+        Sent requests will appear here for one-click replay.
+      </p>
+    </div>
+
     <!-- 响应 -->
     <div class="section">
       <h3 class="section-title">
@@ -325,13 +450,17 @@ function statusType(s: number): 'success' | 'warning' | 'error' | 'info' {
           <n-tag :type="statusType(resp.status)" data-test-id="resp-status">
             {{ resp.status }} {{ resp.statusText }}
           </n-tag>
-          <span class="hint">{{ resp.elapsedMs }} ms · {{ resp.url }}</span>
+          <span class="hint" data-test-id="resp-meta">{{ resp.elapsedMs }} ms · {{ formatBytes(respBytes) }} · {{ resp.url }}</span>
         </div>
         <details class="resp-headers">
           <summary>Response headers ({{ Object.keys(resp.headers).length }})</summary>
           <pre>{{ JSON.stringify(resp.headers, null, 2) }}</pre>
         </details>
-        <TextareaCopyable :value="resp.body" language="json" data-test-id="resp-body" />
+        <div class="row" style="margin: 8px 0">
+          <c-input-text v-model:value="bodyQuery" size="small" placeholder="Search body (case-insensitive)" style="width: 260px" data-test-id="body-search" />
+          <span v-if="bodyView && bodyQuery.trim()" class="hint" data-test-id="body-search-count">{{ bodyView.matchedLines }} / {{ bodyView.totalLines }} lines · {{ bodyView.occurrences }} matches</span>
+        </div>
+        <TextareaCopyable :value="bodyShown" language="json" data-test-id="resp-body" />
         <div class="row" style="margin-top: 8px">
           <n-button size="small" type="primary" data-test-id="open-ws2" @click="openInWorkspace">
             Open in Work with Data →
