@@ -229,6 +229,18 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     note: '簇 6。竞品几乎不做词汇差异化（title 全是裸功能名），setuid/setgid/sticky 是空档。',
   },
   {
+    path: '/prepare-deployment',
+    keyword: 'deployment readiness checklist',
+    keywords: ['pre-deployment checks', 'dockerfile ci lockfile audit', 'release gate ready blocked'],
+    intent: 'inspect',
+    priority: 'P1',
+    competition: 'low',
+    article: 'devops-tools-guide',
+    landed: true,
+    lockedTitle: 'Prepare Deployment — Pre-Deploy Readiness Gate for Docker, CI & Lockfiles',
+    note: '簇 6（devops）。对标 Vercel/Netlify 发布前检查；差异化在浏览器本地四态闸门+证据报告，竞品多为托管平台内置不独立。',
+  },
+  {
     path: '/crontab-generator',
     keyword: 'crontab generator',
     keywords: ['crontab generator every 5 minutes', '@reboot crontab', 'cron syntax github actions'],

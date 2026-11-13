@@ -452,6 +452,10 @@ tools:
     title: 电话分析器和格式化程序
     description: 解析、验证和格式化电话号码。获取有关电话号码的信息，如国家/地区代码、类型等。
 
+  prepare-deployment:
+    title: 部署准备评估
+    description: 项目发布前的就绪闸门。粘贴 package.json、锁文件、Dockerfile 与 CI 配置，得到 READY / READY_WITH_WARNINGS / BLOCKED / NOT_ASSESSED 四态判定，附带证据的问题清单（可复现构建、镜像固定、非 root 容器、CI 注入风险、硬编码凭据）与可导出的发布报告。对标 Vercel/Netlify 发布前检查，全程浏览器本地运行。
+
   ipv4-subnet-calculator:
     title: IPv4 子网计算器
     description: 输入 CIDR（如 192.168.1.0/24），立即得到完整子网信息——可用主机数、首末地址、掩码与反掩码。为 VPC/VLAN 规划而生，浏览器本地计算。

@@ -215,6 +215,7 @@ declare module '@vue/runtime-core' {
     'PdfWatermark.tool': typeof import('./src/tools/pdf-watermark/pdf-watermark.tool.vue')['default']
     PercentageCalculator: typeof import('./src/tools/percentage-calculator/percentage-calculator.vue')['default']
     PhoneParserAndFormatter: typeof import('./src/tools/phone-parser-and-formatter/phone-parser-and-formatter.vue')['default']
+    PrepareDeployment: typeof import('./src/tools/prepare-deployment/prepare-deployment.vue')['default']
     Privacy: typeof import('./src/pages/Privacy.vue')['default']
     'Privacy.en': typeof import('./src/content/legal/privacy.en.md')['default']
     'Privacy.zh': typeof import('./src/content/legal/privacy.zh.md')['default']

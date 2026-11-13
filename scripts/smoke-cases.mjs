@@ -1445,6 +1445,32 @@ export const SMOKE_CASES = [
   },
 
   {
+    path: '/prepare-deployment',
+    name: 'prepare-deployment',
+    zhTitle: '部署准备评估',
+    strategy: 'knownVector：仅 package.json 无锁文件必须判 BLOCKED（PD-DEP-002）；健康样例四件齐全必须判 READY 且零问题——闸门由问题清单独立推导，两个状态都走真实 UI 点击',
+    steps: [
+      { fill: { i: 0, text: '{"name":"demo","version":"1.0.0"}' } },
+      { clickSel: '[data-test-id="pd-assess"]' },
+      { waitText: { text: 'BLOCKED', ms: 10000, scope: '.tool-content' } },
+      {
+        js: `(function(){
+          return document.querySelector('[data-test-id="pd-issue-PD-DEP-002"]') ? null : 'BLOCKED 原因缺失 PD-DEP-002';
+        })()`,
+      },
+      { clickSel: '[data-test-id="pd-sample"]' },
+      { waitText: { text: 'READY', ms: 10000, scope: '.tool-content' } },
+    ],
+    expect: {
+      js: `(function(){
+        var gate = document.querySelector('[data-test-id="pd-gate"]');
+        if (!gate || gate.textContent.trim() !== 'READY') return false;
+        return document.querySelectorAll('[data-test-id^="pd-issue-"]').length === 0;
+      })()`,
+    },
+  },
+
+  {
     path: '/email-normalizer',
     name: 'email-normalizer',
     zhTitle: '邮箱地址归一化',

@@ -458,6 +458,10 @@ tools:
     title: Phone parser and formatter
     description: Parse, validate and format phone numbers. Get information about the phone number, like the country code, type, etc.
 
+  prepare-deployment:
+    title: Prepare Deployment — Pre-Deploy Readiness Gate for Docker, CI & Lockfiles
+    description: Pre-deployment readiness gate for your project. Paste package.json, lockfile, Dockerfile and CI workflow; get a READY / READY_WITH_WARNINGS / BLOCKED / NOT_ASSESSED verdict with evidence-backed findings (reproducible builds, pinned images, non-root containers, CI injection risks, hardcoded secrets) and an exportable release report. Inspired by Vercel/Netlify preflight checks; runs fully in your browser.
+
   ipv4-subnet-calculator:
     title: IPv4 Subnet Calculator
     description: Paste a CIDR like 192.168.1.0/24 and get the full subnet breakdown — usable hosts, first/last address, netmask, wildcard. Built for VPC and VLAN planning, free in your browser.

@@ -357,6 +357,28 @@ export const GUIDES: Record<string, ToolGuide> = {
     ],
   },
 
+  '/prepare-deployment': {
+    intro: 'Checks whether a project is ready to deploy: paste package.json, a lockfile, a Dockerfile and a CI workflow, and get a four-state release gate with evidence-backed findings.',
+    steps: ['Paste each project file into its field (everything stays in your browser)', 'Click Assess deployment readiness', 'Read the gate verdict and the findings, then export the JSON or Markdown report for your release record'],
+    notes: ['The gate is derived from the findings, never self-reported: any blocked finding forces BLOCKED, warnings give READY_WITH_WARNINGS, a clean pass gives READY, and no input gives NOT_ASSESSED', 'Checks are static heuristics on the pasted text; they complement, not replace, running Trivy, Checkov, actionlint or Hadolint in CI'],
+    about: 'Deploy failures rarely come from the code itself — they come from the gaps around it: an unpinned base image that rebuilds differently every week, a missing lockfile that makes installs unreproducible, a CI workflow that checks out untrusted pull-request code with write permissions, a container running as root. Managed platforms like Vercel and Netlify run preflight checks before they accept a deploy, but those checks are locked inside their hosting. This tool brings the same idea to any project and any host: paste the four files that describe how your project is built and shipped, and it derives a release gate — READY, READY_WITH_WARNINGS, BLOCKED or NOT_ASSESSED — from a fixed rule set covering reproducible builds, pinned and non-root containers, CI injection risks and hardcoded credentials. Every finding carries a stable ID, the offending evidence and a concrete fix, and the whole report exports as JSON or Markdown so it can travel with the release record. It is a pre-deployment quality workbench, not a hosting service: it tells you what to fix before you ship, wherever you ship.',
+    faqs: [
+      { q: 'What makes the gate BLOCKED versus READY_WITH_WARNINGS?', a: 'Blocked findings are deploy-stoppers: a malformed package.json, a missing lockfile, a Dockerfile without FROM, a pull_request_target workflow that checks out untrusted PR code, or a hardcoded credential. Warnings are reproducibility and least-privilege gaps such as an unpinned base image, no USER directive, no build script or no test step in CI. Any blocked finding forces BLOCKED regardless of warnings; the verdict is derived from the findings, not entered by hand.' },
+      { q: 'Does this replace Trivy, Checkov, actionlint or Hadolint?', a: 'No. The browser cannot run those scanners, so this tool applies lightweight static rules inspired by their public check families to the text you paste. Use it as a fast preflight and a release-record generator; keep the full scanners in CI for deep vulnerability, IaC and lint coverage. A future version will import their SARIF/JSON results so the gate can aggregate real scanner output.' },
+      { q: 'Is my source code uploaded anywhere?', a: 'No. All analysis runs locally in your browser; nothing is sent to a server. The exported JSON and Markdown reports are generated on your machine, and you decide where to store them.' },
+    ],
+    example: { label: 'Fill in a sample package.json', text: '{\n  "name": "demo-service",\n  "version": "1.0.0",\n  "engines": { "node": ">=20" },\n  "scripts": { "build": "vite build", "test": "vitest run" }\n}' },
+    relatedNotes: [
+      {
+        slug: 'devops-tools-guide',
+        title: 'DevOps Tools for Everyday Work: Cron, Permissions and Docker Compose',
+        description: 'Everyday DevOps tasks that cost the most time — writing cron expressions, computing chmod permissions, converting docker run commands — with tools for each.',
+        url: 'https://notes.digdevbox.com/posts/devops-tools-guide',
+        tag: 'DevOps',
+      },
+    ],
+  },
+
   '/email-normalizer': {
     intro: 'Normalises email addresses into a standard form — useful for de-duplication, cleaning data or matching accounts.',
     steps: ['Paste one or more email addresses', 'Read the normalised results', 'Apply the rules you need for + tags, casing, dots, etc.'],

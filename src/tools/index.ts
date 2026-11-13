@@ -113,6 +113,7 @@ import { tool as textReplacer } from './text-replacer';
 import { tool as jsonToGetParams } from './json-to-get-params';
 import { tool as unitConverter } from './unit-converter';
 import { tool as jsonToCode } from './json-to-code';
+import { tool as prepareDeployment } from './prepare-deployment';
 
 // —— 第二批：网络类（走 Pages Functions）+ htpasswd + 三张速查表 ——
 import { tool as whoisLookup } from './whois-lookup';
@@ -206,6 +207,7 @@ export const toolsByCategory: ToolCategory[] = [
       pxRemConverter,
       jsonToCode,
       linuxCommands,
+      prepareDeployment,
     ],
   },
   {

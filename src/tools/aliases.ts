@@ -99,6 +99,7 @@ export const ALIASES: Record<string, string[]> = {
   '/pdf-split': ['pdf', '拆分', '分割', '提取', '页面'],
   '/pdf-watermark': ['pdf', '水印', '标记', 'stamp'],
   '/pdf-compress': ['pdf', '压缩', '缩小', '变小', '体积', 'optimize'],
+  '/prepare-deployment': ['部署', '发布', '上线', '检查', '闸门', '就绪', 'deploy', 'release', 'dockerfile', 'ci', '锁文件', '预检'],
   '/text-to-unicode': ['unicode', '码点', '编码', '转义', '字符'],
   '/token-generator': ['随机', '字符串', 'token', '口令', '邀请码', '生成'],
   '/toml-to-json': ['toml', 'json', '转换', '配置'],

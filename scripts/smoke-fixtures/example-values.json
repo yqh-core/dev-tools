@@ -1,6 +1,6 @@
 {
   "generatedFrom": "src/tools/guides.en.ts",
-  "count": 87,
+  "count": 88,
   "values": {
     "/ascii-text-drawer": "DigDevBox",
     "/base-converter": "255",
@@ -16,6 +16,7 @@
     "/date-converter": "2026-10-05T08:00:00Z",
     "/unix-timestamp-converter": "1681333824",
     "/docker-run-to-docker-compose-converter": "docker run -d --name web -p 8080:80 -v /data:/usr/share/nginx/html nginx:latest",
+    "/prepare-deployment": "{\n  \"name\": \"demo-service\",\n  \"version\": \"1.0.0\",\n  \"engines\": { \"node\": \">=20\" },\n  \"scripts\": { \"build\": \"vite build\", \"test\": \"vitest run\" }\n}",
     "/email-normalizer": "John.Doe+news@Gmail.com",
     "/emoji-picker": "smile",
     "/encryption": "This is a message to encrypt",
