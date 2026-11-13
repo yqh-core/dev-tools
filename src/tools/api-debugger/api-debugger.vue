@@ -9,6 +9,7 @@ import { formatBytes, searchBody, utf8Bytes } from './response';
 import { authHeaderPreset, buildUrlWithQuery, parseQueryParams } from './query';
 import { importOpenApi } from './openapi';
 import { type EnvStore, activeVars, addEnv, deleteEnv, migrateEnv, removeEnvVar, renameEnv, setEnvVar } from './environments';
+import { exportCollection, importCollection } from './collection';
 import { buildDownloadFilename, downloadTextFile, mimeForLanguage } from '@/composable/downloadText';
 import TextareaCopyable from '@/components/TextareaCopyable.vue';
 
@@ -192,6 +193,40 @@ function importOpenApiSpec(): void {
   saved.value = list;
   loadRequest(r.requests[0].request);
   banner.value = `Imported ${r.requests.length} request(s) from OpenAPI into the collection; first one loaded.`;
+}
+function exportPostman(): void {
+  if (saved.value.length === 0) {
+    banner.value = 'Collection is empty; save a request first.';
+    return;
+  }
+  downloadTextFile({
+    content: JSON.stringify(exportCollection(saved.value), null, 2),
+    filename: buildDownloadFilename('digdevbox', 'postman_collection.json'),
+    mimeType: 'application/json',
+  });
+  banner.value = 'Exported Postman v2.1 collection (auth headers stripped; re-add them in Postman).';
+}
+const postmanText = ref('');
+const postmanWarnings = ref<string[]>([]);
+function importPostman(): void {
+  importError.value = '';
+  postmanWarnings.value = [];
+  const r = importCollection(postmanText.value);
+  postmanWarnings.value = r.warnings;
+  if (r.requests.length === 0) {
+    importError.value = r.warnings[0] ?? 'No requests could be imported.';
+    return;
+  }
+  let list = saved.value;
+  for (const imp of r.requests) {
+    const res = saveRequest(list, imp.name, imp.request, Date.now(), `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`);
+    if (!res.error) {
+      list = res.list;
+    }
+  }
+  saved.value = list;
+  loadRequest(r.requests[0].request);
+  banner.value = `Imported ${r.requests.length} request(s) from Postman collection; first one loaded.`;
 }
 function exportCurl(): void {
   downloadTextFile({ content: toCurl(currentRequest.value), filename: buildDownloadFilename('request', 'sh'), mimeType: 'text/plain' });
@@ -389,6 +424,19 @@ function statusType(s: number): 'success' | 'warning' | 'error' | 'info' {
       {{ w }}
     </n-alert>
 
+    <!-- Postman 集合导入（API-010） -->
+    <n-form-item label="Import Postman collection (v2.1 JSON)" :show-feedback="false" style="margin-top: 10px">
+      <c-input-text v-model:value="postmanText" data-test-id="postman-input" rows="3" multiline monospace spellcheck="false" placeholder="{&quot;info&quot;:{&quot;schema&quot;:&quot;...v2.1.0...&quot;},&quot;item&quot;:[...]}" />
+    </n-form-item>
+    <div class="row">
+      <n-button size="small" type="primary" data-test-id="postman-import" @click="importPostman">
+        Import Postman collection
+      </n-button>
+    </div>
+    <n-alert v-for="(w, i) in postmanWarnings" :key="`pm-${i}`" type="warning" style="margin-top: 6px">
+      {{ w }}
+    </n-alert>
+
     <!-- 请求构建器 -->
     <div class="section">
       <div class="row">
@@ -504,6 +552,9 @@ function statusType(s: number): 'success' | 'warning' | 'error' | 'info' {
         <c-input-text v-model:value="saveName" size="small" placeholder="Name this request" style="width: 220px" data-test-id="save-name" />
         <n-button size="small" data-test-id="save-request" @click="saveCurrent">
           Save current request
+        </n-button>
+        <n-button size="small" data-test-id="export-postman" @click="exportPostman">
+          Export Postman collection
         </n-button>
       </div>
       <n-alert v-if="saveError" type="error" style="margin-top: 6px" data-test-id="save-error">
