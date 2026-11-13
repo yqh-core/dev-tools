@@ -116,6 +116,7 @@ function importCurl(): void {
 }
 function exportCurl(): void {
   downloadTextFile({ content: toCurl(currentRequest.value), filename: buildDownloadFilename('request', 'sh'), mimeType: 'text/plain' });
+  banner.value = 'Exported the FULL current request, including auth headers and body verbatim. Treat the file as a secret; nothing was stripped.';
 }
 async function shareCurl(): Promise<void> {
   const text = toCurl(sanitizeForShare(currentRequest.value));
@@ -290,7 +291,7 @@ function statusType(s: number): 'success' | 'warning' | 'error' | 'info' {
         Export cURL
       </n-button>
       <n-button size="small" data-test-id="share-curl" @click="shareCurl">
-        Share cURL (no credentials)
+        Share cURL (auth headers stripped)
       </n-button>
     </div>
     <n-alert v-if="importError" type="error" style="margin-top: 8px" data-test-id="curl-error">

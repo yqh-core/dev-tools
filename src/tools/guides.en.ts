@@ -665,7 +665,7 @@ export const GUIDES: Record<string, ToolGuide> = {
     example: { label: 'Fill in sample cURL', text: 'curl https://httpbin.org/get -H \'Accept: application/json\'' },
     notes: [
       'The relay reuses the same SSRF validation chain as the site status checker: private and reserved IPs, internal hostnames and redirects into private networks are rejected; request bodies are capped at 256 KiB and response bodies at 1 MiB.',
-      'Credentials (Authorization, Cookie, API keys, URL passwords) are stripped from shared cURL by default; they leave your browser only as part of the request you explicitly send.',
+      'Credentials (Authorization, Cookie, API keys, URL passwords) are stripped from shared cURL by default, but the request body is NOT sanitized — review it before sharing. History and saved collections keep raw headers in localStorage so requests can be replayed: a known functional trade-off, not secure storage (no protection against XSS or browser-profile leaks). Credentials leave your browser only when you explicitly send or export a request.',
       'Variables use {{name}} placeholders in URL, headers and body; "Extract → variable" pulls a JSONPath value from the response so a login token can feed the next request.',
     ],
     about: 'Most browser API clients stop at the response body, which is exactly where the real work starts: pulling a token out of a login response, reshaping a payload, comparing two environments. This workspace keeps the whole chain in one page — cURL in, request out, response into the JSON pipeline — and keeps the safety boundary explicit: the relay validates every hop against private networks, caps body sizes, logs nothing and stores nothing, and sharing a request never includes your credentials by default.',
