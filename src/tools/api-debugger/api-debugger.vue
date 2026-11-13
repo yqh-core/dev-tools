@@ -83,7 +83,7 @@ function saveCurrent(): void {
 }
 function exportSaved(s: SavedRequest): void {
   downloadTextFile({ content: toCurl(exportSavedRequest(s)), filename: buildDownloadFilename(s.name.replace(/[^\w.-]+/g, '-'), 'sh'), mimeType: 'text/plain' });
-  banner.value = 'Exported cURL WITHOUT credentials.';
+  banner.value = 'Exported cURL: auth headers and URL userinfo stripped. Request body is NOT sanitized — review it before sharing.';
 }
 function renameSavedInline(s: SavedRequest, name: string): void {
   const r = renameSaved(saved.value, s.id, name, Date.now());
@@ -121,7 +121,7 @@ async function shareCurl(): Promise<void> {
   const text = toCurl(sanitizeForShare(currentRequest.value));
   try {
     await navigator.clipboard.writeText(text);
-    banner.value = 'cURL copied WITHOUT credentials (authorization/cookie/api-key headers and URL passwords stripped).';
+    banner.value = 'cURL copied: authorization/cookie/api-key headers and URL passwords stripped. Request body is NOT sanitized — review before sharing.';
   }
   catch (e) {
     banner.value = `Could not copy: ${e instanceof Error ? e.message : String(e)}`;
@@ -368,7 +368,7 @@ function statusType(s: number): 'success' | 'warning' | 'error' | 'info' {
     <!-- API-006 集合（保存的请求） -->
     <div class="section">
       <h3 class="section-title">
-        Collection <span class="hint">saved locally in this browser; exports strip credentials</span>
+        Collection <span class="hint">saved in this browser only, headers stored as entered; exports strip auth headers &amp; URL userinfo, not the body</span>
       </h3>
       <div class="row">
         <c-input-text v-model:value="saveName" size="small" placeholder="Name this request" style="width: 220px" data-test-id="save-name" />
@@ -403,7 +403,7 @@ function statusType(s: number): 'success' | 'warning' | 'error' | 'info' {
     <div class="section">
       <div class="row" style="justify-content: space-between">
         <h3 class="section-title" style="margin: 0">
-          History <span class="hint">last {{ history.length }} sends, local only</span>
+          History <span class="hint">last {{ history.length }} sends, this browser only (headers stored as sent)</span>
         </h3>
         <n-button v-if="history.length" size="tiny" quaternary data-test-id="clear-history" @click="history = []">
           Clear

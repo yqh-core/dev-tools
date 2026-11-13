@@ -96,6 +96,33 @@ describe('saveRequest (collection v1)', () => {
     const update = saveRequest(list, 'req-0', req, 1000, 'id-y');
     expect(update.saved?.id).toBe('id-0');
   });
+
+  it('snapshots the request: editing the original after save does NOT mutate the saved entry (negative control)', () => {
+    const live: ApiRequestState = { method: 'POST', url: 'https://api.x.test/login', headers: [{ name: 'Authorization', value: 'Bearer T1' }], body: '{"p":1}' };
+    const r = saveRequest([], 'Login', live, 100, 'id-1');
+    const savedReq = r.saved!.request;
+    // 快照必须切断引用共享（审查发现：原实现直接存活引用，后续编辑会污染集合）
+    expect(savedReq).not.toBe(live);
+    expect(savedReq.headers).not.toBe(live.headers);
+    // 模拟 UI 原地编辑头值（upsertHeader）/追加头/改 URL 与 body
+    live.headers[0].value = 'Bearer T2-EDITED';
+    live.headers.push({ name: 'X-Added', value: 'later' });
+    live.url = 'https://api.x.test/changed';
+    live.body = '{"p":2}';
+    expect(savedReq.headers).toEqual([{ name: 'Authorization', value: 'Bearer T1' }]);
+    expect(savedReq.url).toBe('https://api.x.test/login');
+    expect(savedReq.body).toBe('{"p":1}');
+    expect(r.list[0].request.headers).toEqual([{ name: 'Authorization', value: 'Bearer T1' }]);
+  });
+
+  it('overwrite path also snapshots (same-name update decoupled from later edits)', () => {
+    const first = saveRequest([], 'Login', req, 100, 'id-1');
+    const live: ApiRequestState = { ...req, url: 'https://api.x.test/v2', headers: [{ name: 'Accept', value: 'application/json' }] };
+    const second = saveRequest(first.list, 'login', live, 200, 'id-2');
+    live.headers[0].value = 'text/plain-EDITED';
+    expect(second.saved?.request.headers).toEqual([{ name: 'Accept', value: 'application/json' }]);
+    expect(second.list[0].request.headers).toEqual([{ name: 'Accept', value: 'application/json' }]);
+  });
 });
 
 describe('renameSaved', () => {

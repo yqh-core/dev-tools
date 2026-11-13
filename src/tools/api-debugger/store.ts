@@ -3,7 +3,8 @@
  *
  * 设计边界：
  *  · 纯函数核心 + 存储适配分离，全部逻辑可单测（含负控）；
- *  · 历史/集合只存本机 localStorage，凭据不出本机；导出/分享一律走 sanitizeForShare；
+ *  · 历史/集合只存本机 localStorage，凭据不出本机；导出/分享一律走 sanitizeForShare
+ *    （剔除凭据头与 URL 内嵌凭据；请求 body 原样保留——导出/分享提示已明示该边界）；
  *  · 不接埋点（测量客户端冻结），不改 apiproxy，不动 WS-2。
  */
 
@@ -45,7 +46,16 @@ export function removeHistory(list: HistoryEntry[], id: string): HistoryEntry[] 
   return list.filter(e => e.id !== id);
 }
 
-/** 保存当前请求；同名（trim 后大小写不敏感）覆盖更新，保留原 id/createdAt。 */
+/** 保存快照深拷贝（外部审查整改 API-006a）：
+ *  调用方传入的可能是响应式活引用（headers 数组后续会被原地编辑），
+ *  直接存引用会让已保存集合随后续编辑静默变化。method/url/body 为字符串不可变，
+ *  headers 逐项拷贝即可切断共享。 */
+export function cloneRequest(request: ApiRequestState): ApiRequestState {
+  return { ...request, headers: request.headers.map(h => ({ ...h })) };
+}
+
+/** 保存当前请求；同名（trim 后大小写不敏感）覆盖更新，保留原 id/createdAt。
+ *  入参请求一律深拷贝为快照，保存后与原请求彻底解耦。 */
 export function saveRequest(
   list: SavedRequest[],
   name: string,
@@ -58,9 +68,10 @@ export function saveRequest(
     return { list, saved: null, error: `Name must be 1-${NAME_MAX} characters.` };
   }
   const trimmed = name.trim();
+  const snapshot = cloneRequest(request);
   const i = list.findIndex(s => s.name.trim().toLowerCase() === trimmed.toLowerCase());
   if (i >= 0) {
-    const updated: SavedRequest = { ...list[i], name: trimmed, request, updatedAt: now };
+    const updated: SavedRequest = { ...list[i], name: trimmed, request: snapshot, updatedAt: now };
     const next = [...list];
     next[i] = updated;
     return { list: next, saved: updated };
@@ -68,7 +79,7 @@ export function saveRequest(
   if (list.length >= cap) {
     return { list, saved: null, error: `Collection is full (${cap}). Delete an entry first.` };
   }
-  const saved: SavedRequest = { id: newId, name: trimmed, request, createdAt: now, updatedAt: now };
+  const saved: SavedRequest = { id: newId, name: trimmed, request: snapshot, createdAt: now, updatedAt: now };
   return { list: [saved, ...list], saved };
 }
 
