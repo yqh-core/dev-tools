@@ -5,6 +5,7 @@ import ColoredCard from '../components/ColoredCard.vue';
 import ToolCard from '../components/ToolCard.vue';
 import { useToolStore } from '@/tools/tools.store';
 import { groupByPrimaryCluster } from '@/tools/nav-groups';
+import { clusterVisual } from '@/tools/cluster-visuals';
 import type { ToolWithCategory } from '@/tools/tools.types';
 import { toolsWithCategory } from '@/tools/index';
 import { ALIASES } from '@/tools/aliases';
@@ -260,11 +261,17 @@ const taskClusters = computed(() =>
  */
 const CATEGORY_SAMPLE_LIMIT = 3;
 const categoriesPreview = computed(() =>
-  groupByPrimaryCluster(toolStore.tools).map(g => ({
-    name: g.clusterId ? t(`clusters.${g.clusterId}`) : t('nav.moreTools'),
-    count: g.tools.length,
-    sampleTools: g.tools.slice(0, CATEGORY_SAMPLE_LIMIT),
-  })),
+  groupByPrimaryCluster(toolStore.tools).map((g) => {
+    const visual = clusterVisual(g.clusterId);
+    return {
+      name: g.clusterId ? t(`clusters.${g.clusterId}`) : t('nav.moreTools'),
+      desc: g.clusterId ? t(`clusterDesc.${g.clusterId}`) : t('clusterDesc.more'),
+      count: g.tools.length,
+      sampleTools: g.tools.slice(0, CATEGORY_SAMPLE_LIMIT),
+      icon: visual.icon,
+      hue: visual.hue,
+    };
+  }),
 );
 
 /**
@@ -462,11 +469,20 @@ function onUpdateFavoriteTools() {
               v-for="cat in categoriesPreview"
               :key="cat.name"
               class="task-card"
+              :style="{ '--cluster-hue': cat.hue }"
             >
-              <h3 class="task-card-title">
-                {{ cat.name }}
+              <div class="task-card-head">
+                <span class="task-card-icon" aria-hidden="true">
+                  <n-icon :component="cat.icon" size="20" />
+                </span>
+                <h3 class="task-card-title">
+                  {{ cat.name }}
+                </h3>
                 <span class="task-card-count">{{ cat.count }}</span>
-              </h3>
+              </div>
+              <p class="task-card-desc">
+                {{ cat.desc }}
+              </p>
               <div class="task-card-tools">
                 <RouterLink
                   v-for="tool in cat.sampleTools"
@@ -1096,29 +1112,75 @@ function onUpdateFavoriteTools() {
 }
 
 .task-card {
+  --cluster-accent: hsl(var(--cluster-hue, 210) 70% 52%);
+
+  position: relative;
   padding: 16px 16px 15px;
 
   background: var(--dd-surface);
   border: 1px solid var(--dd-border);
+  border-left: 3px solid color-mix(in srgb, var(--cluster-accent) 55%, transparent);
   border-radius: var(--dd-radius);
   box-shadow: var(--dd-shadow);
 
   transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
 
   &:hover {
-    border-color: color-mix(in srgb, var(--dd-primary) 60%, transparent);
-    background: color-mix(in srgb, var(--dd-primary) 3%, var(--dd-surface));
+    border-color: color-mix(in srgb, var(--cluster-accent) 60%, transparent);
+    border-left-color: var(--cluster-accent);
+    background: color-mix(in srgb, var(--cluster-accent) 4%, var(--dd-surface));
     box-shadow: var(--dd-shadow-hover);
     transform: translateY(-2px);
   }
 
+  .task-card-head {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin-bottom: 7px;
+  }
+
+  .task-card-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: 34px;
+    height: 34px;
+
+    color: var(--cluster-accent);
+    background: color-mix(in srgb, var(--cluster-accent) 13%, transparent);
+    border-radius: 9px;
+  }
+
   .task-card-title {
-    margin: 0 0 8px;
+    margin: 0;
+    flex: 1 1 auto;
 
     color: var(--dd-text);
     font-size: 13.5px;
     font-weight: 600;
-    line-height: 1.4;
+    line-height: 1.35;
+  }
+
+  .task-card-count {
+    flex: 0 0 auto;
+    padding: 1px 8px;
+
+    font-size: 11.5px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: var(--cluster-accent);
+    background: color-mix(in srgb, var(--cluster-accent) 12%, transparent);
+    border-radius: 999px;
+  }
+
+  .task-card-desc {
+    margin: 0 0 10px;
+
+    color: var(--dd-text-soft);
+    font-size: 12px;
+    line-height: 1.5;
   }
 
   .task-card-tools {
