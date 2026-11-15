@@ -10,6 +10,8 @@
  *  · 不接埋点（测量客户端冻结），不改 apiproxy，不动 WS-2。
  */
 
+import type { Assertion } from './assertions';
+import { cloneAssertions, parseAssertions } from './assertions';
 import type { ApiRequestState } from './engine';
 import { sanitizeForShare } from './engine';
 
@@ -20,6 +22,8 @@ export interface HistoryEntry {
   status: number | null
   elapsedMs: number | null
   error?: string
+  /** API-009：该次发送的断言汇总（无启用断言时缺省）。 */
+  tests?: { passed: number; failed: number }
 }
 
 export interface SavedRequest {
@@ -28,6 +32,8 @@ export interface SavedRequest {
   request: ApiRequestState
   createdAt: number
   updatedAt: number
+  /** API-009：随请求保存的断言快照（本机存储；Postman 导出不携带——不伪造 pm.* 脚本）。 */
+  assertions?: Assertion[]
 }
 
 export const HISTORY_CAP = 50;
@@ -57,13 +63,15 @@ export function cloneRequest(request: ApiRequestState): ApiRequestState {
 }
 
 /** 保存当前请求；同名（trim 后大小写不敏感）覆盖更新，保留原 id/createdAt。
- *  入参请求一律深拷贝为快照，保存后与原请求彻底解耦。 */
+ *  入参请求一律深拷贝为快照，保存后与原请求彻底解耦。
+ *  API-009：assertions 同样深拷贝为快照（缺省 = 不携带断言）。 */
 export function saveRequest(
   list: SavedRequest[],
   name: string,
   request: ApiRequestState,
   now: number,
   newId: string,
+  assertions?: Assertion[],
   cap: number = SAVED_CAP,
 ): { list: SavedRequest[]; saved: SavedRequest | null; error?: string } {
   if (!isValidName(name)) {
@@ -71,9 +79,10 @@ export function saveRequest(
   }
   const trimmed = name.trim();
   const snapshot = cloneRequest(request);
+  const testsSnapshot = assertions === undefined ? undefined : cloneAssertions(assertions);
   const i = list.findIndex(s => s.name.trim().toLowerCase() === trimmed.toLowerCase());
   if (i >= 0) {
-    const updated: SavedRequest = { ...list[i], name: trimmed, request: snapshot, updatedAt: now };
+    const updated: SavedRequest = { ...list[i], name: trimmed, request: snapshot, updatedAt: now, ...(testsSnapshot === undefined ? {} : { assertions: testsSnapshot }) };
     const next = [...list];
     next[i] = updated;
     return { list: next, saved: updated };
@@ -81,7 +90,7 @@ export function saveRequest(
   if (list.length >= cap) {
     return { list, saved: null, error: `Collection is full (${cap}). Delete an entry first.` };
   }
-  const saved: SavedRequest = { id: newId, name: trimmed, request: snapshot, createdAt: now, updatedAt: now };
+  const saved: SavedRequest = { id: newId, name: trimmed, request: snapshot, createdAt: now, updatedAt: now, ...(testsSnapshot === undefined ? {} : { assertions: testsSnapshot }) };
   return { list: [saved, ...list], saved };
 }
 
@@ -128,10 +137,13 @@ export function parseHistory(raw: unknown): HistoryEntry[] {
       return false;
     }
     const h = e as Record<string, unknown>;
+    const testsOk = h.tests === undefined
+      || (!!h.tests && typeof h.tests === 'object' && typeof (h.tests as Record<string, unknown>).passed === 'number' && typeof (h.tests as Record<string, unknown>).failed === 'number');
     return typeof h.id === 'string' && typeof h.at === 'number' && isRequest(h.request)
       && (h.status === null || typeof h.status === 'number')
       && (h.elapsedMs === null || typeof h.elapsedMs === 'number')
-      && (h.error === undefined || typeof h.error === 'string');
+      && (h.error === undefined || typeof h.error === 'string')
+      && testsOk;
   }).slice(0, HISTORY_CAP);
 }
 
@@ -153,7 +165,8 @@ export function parseSaved(raw: unknown): SavedRequest[] {
       continue;
     }
     seen.add(s.id);
-    out.push({ id: s.id, name: s.name, request: s.request as ApiRequestState, createdAt: s.createdAt, updatedAt: s.updatedAt });
+    const assertions = s.assertions === undefined ? undefined : parseAssertions(s.assertions);
+    out.push({ id: s.id, name: s.name, request: s.request as ApiRequestState, createdAt: s.createdAt, updatedAt: s.updatedAt, ...(assertions === undefined ? {} : { assertions }) });
     if (out.length >= SAVED_CAP) {
       break;
     }

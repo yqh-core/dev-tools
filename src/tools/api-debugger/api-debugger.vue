@@ -5,6 +5,7 @@ import { JsonPathError, jsonPath } from '../json-workspace/jsonpath';
 import { parseCurl, toCurl } from './curl';
 import { AUTH_HEADER_NAMES, type KV, buildProxyPayload, responseToWorkspaceLink, sanitizeForShare, stashHandoff } from './engine';
 import { type HistoryEntry, type SavedRequest, exportSavedRequest, parseHistory, parseSaved, pushHistory, removeHistory, removeSaved, renameSaved, saveRequest } from './store';
+import { type Assertion, type AssertionReport, type AssertionType, OPS_BY_TYPE, OP_LABELS, formatReportText, makeAssertion, parseAssertions, runAssertions } from './assertions';
 import { formatBytes, searchBody, utf8Bytes } from './response';
 import { authHeaderPreset, buildUrlWithQuery, parseQueryParams } from './query';
 import { importOpenApi } from './openapi';
@@ -107,18 +108,69 @@ const saveName = ref('');
 const saveError = ref('');
 const bodyQuery = ref('');
 
+// ── API-009 测试断言（结构化 Runner，对标 Postman Tests；不执行任意脚本）──
+const assertions = useStorage<Assertion[]>('api-debugger:assertions', [], undefined, { serializer: { read: (v: string) => parseAssertions(v ? JSON.parse(v) : null), write: (v: Assertion[]) => JSON.stringify(v) } });
+const testReport = ref<AssertionReport | null>(null);
+const testMeta = ref<{ method: string; url: string } | null>(null);
+const testsNote = ref('');
+const ASSERTION_TYPES: { label: string; value: AssertionType }[] = [
+  { label: 'Status code', value: 'status' },
+  { label: 'JSON field', value: 'json' },
+  { label: 'Header', value: 'header' },
+  { label: 'Response time', value: 'time' },
+];
+function newId(): string {
+  return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
+function addAssertion(type: AssertionType = 'status'): void {
+  assertions.value.push(makeAssertion(newId(), type));
+}
+function onAssertionTypeChange(a: Assertion): void {
+  a.operator = OPS_BY_TYPE[a.type][0];
+}
+function opOptions(type: AssertionType): { label: string; value: string }[] {
+  return OPS_BY_TYPE[type].map(op => ({ label: OP_LABELS[op] ?? op, value: op }));
+}
+function needsTarget(a: Assertion): boolean {
+  return a.type === 'json' || a.type === 'header';
+}
+function needsExpected(a: Assertion): boolean {
+  return a.operator !== 'exists' && a.operator !== 'not_exists';
+}
+function reportText(): string {
+  return testReport.value
+    ? formatReportText(testReport.value, { method: testMeta.value?.method, url: testMeta.value?.url, status: resp.value?.status, elapsedMs: resp.value?.elapsedMs })
+    : '';
+}
+async function copyReport(): Promise<void> {
+  try {
+    await navigator.clipboard.writeText(reportText());
+    banner.value = 'Test report copied to clipboard.';
+  }
+  catch (e) {
+    banner.value = `Could not copy: ${e instanceof Error ? e.message : String(e)}`;
+  }
+}
+function downloadReport(): void {
+  downloadTextFile({ content: reportText(), filename: buildDownloadFilename('api-test-report', 'txt'), mimeType: 'text/plain' });
+  banner.value = 'Test report downloaded (assertion results only; no credential headers included).';
+}
+
 const respBytes = computed(() => resp.value ? utf8Bytes(resp.value.body) : 0);
 const bodyView = computed(() => resp.value ? searchBody(resp.value.body, bodyQuery.value) : null);
 const bodyShown = computed(() => bodyView.value ? bodyView.value.lines.join('\n') : '');
 
-function loadRequest(r: { method: string; url: string; headers: KV[]; body: string }): void {
+function loadRequest(r: { method: string; url: string; headers: KV[]; body: string }, loadAssertions?: Assertion[]): void {
   method.value = r.method;
   url.value = r.url;
   headers.value = r.headers.map(h => ({ ...h }));
   body.value = r.body;
+  if (loadAssertions !== undefined) {
+    assertions.value = loadAssertions.map(a => ({ ...a }));
+  }
   banner.value = 'Request loaded into the builder.';
 }
-function recordHistory(request: { method: string; url: string; headers: KV[]; body: string }, status: number | null, elapsedMs: number | null, error?: string): void {
+function recordHistory(request: { method: string; url: string; headers: KV[]; body: string }, status: number | null, elapsedMs: number | null, error?: string, tests?: { passed: number; failed: number }): void {
   history.value = pushHistory(history.value, {
     id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
     at: Date.now(),
@@ -126,11 +178,12 @@ function recordHistory(request: { method: string; url: string; headers: KV[]; bo
     status,
     elapsedMs,
     error,
+    ...(tests === undefined ? {} : { tests }),
   });
 }
 function saveCurrent(): void {
   saveError.value = '';
-  const r = saveRequest(saved.value, saveName.value, currentRequest.value, Date.now(), `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`);
+  const r = saveRequest(saved.value, saveName.value, currentRequest.value, Date.now(), `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, assertions.value);
   if (r.error) {
     saveError.value = r.error;
     return;
@@ -204,7 +257,7 @@ function exportPostman(): void {
     filename: buildDownloadFilename('digdevbox', 'postman_collection.json'),
     mimeType: 'application/json',
   });
-  banner.value = 'Exported Postman v2.1 collection (auth headers stripped; re-add them in Postman).';
+  banner.value = 'Exported Postman v2.1 collection (auth headers stripped; re-add them in Postman). Assertions stay local — Postman uses its own script format.';
 }
 const postmanText = ref('');
 const postmanWarnings = ref<string[]>([]);
@@ -286,6 +339,9 @@ async function send(): Promise<void> {
   extractError.value = '';
   resp.value = null;
   banner.value = '';
+  testReport.value = null;
+  testMeta.value = null;
+  testsNote.value = '';
   const { payload, missing } = buildProxyPayload(
     { ...currentRequest.value, headers: headers.value.filter(h => h.name.trim()) },
     env.value,
@@ -306,15 +362,25 @@ async function send(): Promise<void> {
     if (!r.ok) {
       sendError.value = (j && j.error) || `Proxy returned HTTP ${r.status}.`;
       recordHistory(snapshot, r.status, null, sendError.value);
+      if (assertions.value.some(a => a.enabled)) {
+        testsNote.value = 'Assertions were not run because the request failed.';
+      }
     }
     else {
       resp.value = j as ProxyResponse;
-      recordHistory(snapshot, resp.value.status, resp.value.elapsedMs);
+      // API-009：响应到达后立即顺序执行全部启用断言（真实执行链路，不是独立演示）。
+      const report = runAssertions(assertions.value, resp.value);
+      testReport.value = report;
+      testMeta.value = { method: snapshot.method, url: snapshot.url };
+      recordHistory(snapshot, resp.value.status, resp.value.elapsedMs, undefined, report.total ? { passed: report.passed, failed: report.failed } : undefined);
     }
   }
   catch (e) {
     sendError.value = `Proxy unavailable in this environment (Cloudflare Pages Functions required): ${e instanceof Error ? e.message : String(e)}`;
     recordHistory(snapshot, null, null, sendError.value);
+    if (assertions.value.some(a => a.enabled)) {
+      testsNote.value = 'Assertions were not run because the request failed.';
+    }
   }
   finally {
     sending.value = false;
@@ -506,6 +572,45 @@ function statusType(s: number): 'success' | 'warning' | 'error' | 'info' {
       </n-form-item>
     </div>
 
+    <!-- API-009 测试断言（对标 Postman Tests；结构化断言，不执行任意脚本） -->
+    <div class="section">
+      <h3 class="section-title">
+        Tests <span class="hint">assertions run automatically after each successful send; saved with the request in this browser</span>
+      </h3>
+      <div class="kv-list" data-test-id="assertion-list">
+        <div v-for="(a, i) in assertions" :key="a.id" class="row" data-test-id="assertion-row">
+          <n-checkbox v-model:checked="a.enabled" size="small" data-test-id="assertion-enabled" />
+          <n-select v-model:value="a.type" :options="ASSERTION_TYPES" size="small" style="width: 150px" data-test-id="assertion-type" @update:value="onAssertionTypeChange(a)" />
+          <c-input-text v-if="needsTarget(a)" v-model:value="a.target" size="small" monospace :placeholder="a.type === 'json' ? '$.data.id' : 'header name'" style="width: 180px" data-test-id="assertion-target" />
+          <n-select v-model:value="a.operator" :options="opOptions(a.type)" size="small" style="width: 160px" data-test-id="assertion-operator" />
+          <c-input-text v-if="needsExpected(a)" v-model:value="a.expected" size="small" monospace :placeholder="a.type === 'time' ? 'milliseconds' : 'expected value'" style="width: 170px" data-test-id="assertion-expected" />
+          <n-button size="tiny" quaternary data-test-id="assertion-remove" @click="assertions.splice(i, 1)">
+            Remove
+          </n-button>
+        </div>
+      </div>
+      <div class="row" style="margin-top: 8px">
+        <n-button size="tiny" data-test-id="add-assertion" @click="addAssertion('status')">
+          + Assertion
+        </n-button>
+        <n-button size="tiny" data-test-id="snippet-status" @click="addAssertion('status')">
+          Status = 200
+        </n-button>
+        <n-button size="tiny" data-test-id="snippet-content-type" @click="addAssertion('header')">
+          Content-Type is JSON
+        </n-button>
+        <n-button size="tiny" data-test-id="snippet-time" @click="addAssertion('time')">
+          Time &lt; 1s
+        </n-button>
+        <n-button v-if="assertions.length" size="tiny" quaternary data-test-id="clear-assertions" @click="assertions = []">
+          Clear all
+        </n-button>
+      </div>
+      <p class="hint" style="margin-top: 6px">
+        JSON assertions use JSONPath ($.key, [0], ..recursive). "contains" is a case-sensitive substring match, or element membership on arrays. Expected values accept JSON literals (42, true, null, "text"). Postman pm.* scripts are not executed.
+      </p>
+    </div>
+
     <!-- 变量 -->
     <div class="section">
       <h3 class="section-title">
@@ -564,7 +669,7 @@ function statusType(s: number): 'success' | 'warning' | 'error' | 'info' {
         <div v-for="s in saved" :key="s.id" class="row" data-test-id="saved-item">
           <c-input-text :value="s.name" size="small" style="width: 180px" @update:value="(v: string) => renameSavedInline(s, v)" />
           <span class="hint" style="flex: 1; min-width: 160px">{{ s.request.method }} {{ s.request.url }}</span>
-          <n-button size="tiny" data-test-id="saved-load" @click="loadRequest(s.request)">
+          <n-button size="tiny" data-test-id="saved-load" @click="loadRequest(s.request, s.assertions ?? [])">
             Load
           </n-button>
           <n-button size="tiny" data-test-id="saved-export" @click="exportSaved(s)">
@@ -595,6 +700,9 @@ function statusType(s: number): 'success' | 'warning' | 'error' | 'info' {
           <n-tag size="small" :type="h.status === null ? 'error' : statusType(h.status)">
             {{ h.status ?? 'ERR' }}
           </n-tag>
+          <n-tag v-if="h.tests" size="small" :type="h.tests.failed ? 'error' : 'success'" data-test-id="history-tests">
+            Tests {{ h.tests.passed }}/{{ h.tests.passed + h.tests.failed }}
+          </n-tag>
           <span class="hint" style="flex: 1; min-width: 180px">{{ h.request.method }} {{ h.request.url }} · {{ fmtTime(h.at) }}{{ h.elapsedMs !== null ? ` · ${h.elapsedMs} ms` : '' }}</span>
           <n-button size="tiny" data-test-id="history-load" @click="loadRequest(h.request)">
             Load
@@ -617,6 +725,9 @@ function statusType(s: number): 'success' | 'warning' | 'error' | 'info' {
       <n-alert v-if="sendError" type="error" data-test-id="send-error">
         {{ sendError }}
       </n-alert>
+      <n-alert v-if="testsNote" type="warning" style="margin-top: 6px" data-test-id="tests-note">
+        {{ testsNote }}
+      </n-alert>
       <template v-if="resp">
         <n-alert v-if="resp.followed === false" type="warning" style="margin-bottom: 8px" data-test-id="redirect-notice">
           {{ resp.note }}
@@ -632,6 +743,26 @@ function statusType(s: number): 'success' | 'warning' | 'error' | 'info' {
             {{ resp.status }} {{ resp.statusText }}
           </n-tag>
           <span class="hint" data-test-id="resp-meta">{{ resp.elapsedMs }} ms · {{ formatBytes(respBytes) }} · {{ resp.url }}</span>
+        </div>
+        <!-- API-009 断言结果：汇总 + 逐条定位 + 可读报告 -->
+        <div v-if="testReport && testReport.total" class="test-results" data-test-id="test-results">
+          <div class="row" style="margin-bottom: 6px">
+            <n-tag size="small" :type="testReport.allPassed ? 'success' : 'error'" data-test-id="test-summary">
+              Tests: {{ testReport.passed }}/{{ testReport.total }} passed
+            </n-tag>
+            <n-button size="tiny" data-test-id="copy-report" @click="copyReport">
+              Copy report
+            </n-button>
+            <n-button size="tiny" data-test-id="download-report" @click="downloadReport">
+              Download report
+            </n-button>
+          </div>
+          <div v-for="r in testReport.results" :key="r.id" class="row test-result" data-test-id="test-result-row">
+            <n-tag size="small" :type="r.passed ? 'success' : 'error'">
+              {{ r.passed ? 'PASS' : 'FAIL' }}
+            </n-tag>
+            <span class="hint" style="flex: 1; min-width: 200px"><strong>{{ r.label }}</strong> — {{ r.message }}</span>
+          </div>
         </div>
         <details class="resp-headers">
           <summary>Response headers ({{ Object.keys(resp.headers).length }})</summary>
@@ -680,5 +811,7 @@ function statusType(s: number): 'success' | 'warning' | 'error' | 'info' {
 .kv-list { display: flex; flex-direction: column; gap: 6px; width: 100%; }
 .hint { font-size: 12px; opacity: 0.7; }
 .resp-headers { margin: 8px 0; font-size: 12px; summary { cursor: pointer; opacity: 0.75; } pre { max-height: 200px; overflow: auto; padding: 8px; background: rgba(127, 127, 127, 0.08); border-radius: 4px; } }
+.test-results { margin: 8px 0; padding: 8px; border: 1px solid rgba(127, 127, 127, 0.2); border-radius: 6px; }
+.test-result { margin-top: 4px; }
 .footer-hint { margin-top: 16px; }
 </style>
