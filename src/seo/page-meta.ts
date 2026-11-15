@@ -70,8 +70,8 @@ const ZH: Record<string, PageMeta> = {
 const EN: Record<string, PageMeta> = {
   '/': {
     description:
-      `DigDevBox — ${TOOL_COUNT} free online developer tools: crypto, converters, web, network, text and math. `
-      + 'Everything runs in your browser; your input never leaves your device.',
+      `${TOOL_COUNT} free developer tools — JSON formatter, JWT decoder, regex tester, UUID & timestamp converters. `
+      + 'No signup; tools run locally in your browser by default.',
   },
   '/about': {
     description:
@@ -96,8 +96,8 @@ const EN: Record<string, PageMeta> = {
   },
   '/tools': {
     description:
-      'All DigDevBox tools in one directory — every tool grouped by category, '
-      + 'from crypto and converters to web, network and text. Free, no signup, running in your browser.',
+      `Browse all ${TOOL_COUNT} DigDevBox tools by task: JSON formatting, JWT decoding, UUID/ULID generation, `
+      + 'Base64, regex, cron and Docker converters. Free, no signup, browser-local.',
   },
   '/faq': {
     description:

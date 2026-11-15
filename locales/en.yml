@@ -1,11 +1,11 @@
 toolsCatalog:
   title: "All tools"
-  subtitle: "Every DigDevBox tool in one place — {count} tools, grouped by category, all free."
+  subtitle: "Browse all {count} DigDevBox tools by task: JSON formatting, JWT decoding, UUID/ULID generation, Base64, regex, cron and Docker converters. Free, no signup, browser-local."
 site:
   name: "DigDevBox"
-  homeTitle: "DigDevBox - Online Developer Tools"
+  homeTitle: "Free Online Developer Tools — Private, No Signup {'|'} DigDevBox"
   aboutTitle: "About - DigDevBox"
-  toolsCatalogTitle: "All Tools - DigDevBox"
+  toolsCatalogTitle: "Developer Tools Directory — Free & No Signup {'|'} DigDevBox"
   notFoundTitle: "Page Not Found - DigDevBox"
 
 home:
@@ -27,7 +27,7 @@ home:
     point4: "Browser based: nothing to install, nothing to configure."
   privacy:
     title: "Privacy: where your data goes"
-    local: "Every tool runs locally in your browser by default. What you paste is not uploaded, and there is no account that could be linked to it."
+    local: "Every tool runs locally in your browser by default. What you paste is not uploaded, and there is no account that could be linked to it. No save-to-server — nothing you paste is stored or published by the site; optional share links carry data in the link itself, so tokens and keys stay yours unless you choose to share them."
     networkIntro: "These tools are the exception — they have to query a third-party service to return a result at all:"
   blog:
     title: "From the blog"
@@ -280,7 +280,7 @@ tools:
 
   crontab-generator:
     title: Crontab Generator — Cron Expressions with Plain-English Preview
-    description: Validate and generate crontab and get the human-readable description of the cron schedule.
+    description: Build cron expressions with a plain-English preview — every 5 minutes, weekdays, {'@'}reboot. Validate crontab and GitHub Actions schedules free in your browser.
 
   http-status-codes:
     title: HTTP status codes
@@ -312,7 +312,7 @@ tools:
 
   yaml-prettify:
     title: YAML Formatter & Validator — Format YAML Online
-    description: Prettify your YAML string into a friendly, human-readable format.
+    description: Format and validate YAML online — fix indentation, catch tabs and syntax errors before kubectl or CI rejects your config. Free, runs in your browser.
 
   eta-calculator:
     title: ETA Calculator
@@ -324,7 +324,7 @@ tools:
 
   hmac-generator:
     title: HMAC Generator — Sign Messages with SHA-256 Online
-    description: Computes a hash-based message authentication code (HMAC) using a secret key and your favorite hashing function.
+    description: Generate HMAC signatures online with SHA-256/SHA-512 and a secret key — debug webhook signature mismatches, output hex or Base64. Keys stay in your browser.
 
   bip39-generator:
     title: BIP39 passphrase generator
@@ -340,7 +340,7 @@ tools:
 
   base64-string-converter:
     title: Base64 Encoder & Decoder — Padding, URL-Safe, Binary-Safe
-    description: Simply encode and decode strings into their base64 representation.
+    description: Encode and decode Base64 online — URL-safe base64url, padding options, binary-safe text, with RFC 4648 and atob()/btoa() notes. Free, in your browser.
 
   toml-to-yaml:
     title: TOML to YAML
@@ -392,7 +392,7 @@ tools:
 
   docker-run-to-docker-compose-converter:
     title: Docker Run to Compose Converter — Generate a compose Service from a Command
-    description: Transforms "docker run" commands into docker-compose files!
+    description: Paste a docker run command and get a docker-compose service — ports, volumes and env mapped. Free online decomposerize alternative, in your browser.
 
   mac-address-lookup:
     title: MAC address lookup
@@ -452,7 +452,7 @@ tools:
 
   jwt-parser:
     title: JWT Decoder & Parser — Inspect Header, Payload and Expiration
-    description: Decode and parse JSON Web Tokens (JWT) online — inspect header, payload and registered claims at a glance.
+    description: Decode JWTs online — inspect header, payload, claims and expiration (exp/iat) as readable dates. Your token never leaves your browser. Free, no signup.
 
   date-converter:
     title: Date Converter — Formats, Time Zones and ISO 8601
