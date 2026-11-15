@@ -6,6 +6,7 @@ import { parseCurl, toCurl } from './curl';
 import { AUTH_HEADER_NAMES, type KV, buildProxyPayload, responseToWorkspaceLink, sanitizeForShare, stashHandoff } from './engine';
 import { type HistoryEntry, type SavedRequest, exportSavedRequest, parseHistory, parseSaved, pushHistory, removeHistory, removeSaved, renameSaved, saveRequest } from './store';
 import { type Assertion, type AssertionReport, type AssertionType, OPS_BY_TYPE, OP_LABELS, formatReportText, makeAssertion, parseAssertions, runAssertions } from './assertions';
+import { type CollectionRunSummary, type RequestRunResult, type RunnerResponse, type SendFn, formatCollectionReportText, runCollection } from './runner';
 import { formatBytes, searchBody, utf8Bytes } from './response';
 import { authHeaderPreset, buildUrlWithQuery, parseQueryParams } from './query';
 import { importOpenApi } from './openapi';
@@ -154,6 +155,78 @@ async function copyReport(): Promise<void> {
 function downloadReport(): void {
   downloadTextFile({ content: reportText(), filename: buildDownloadFilename('api-test-report', 'txt'), mimeType: 'text/plain' });
   banner.value = 'Test report downloaded (assertion results only; no credential headers included).';
+}
+
+// ── API-010 集合级批量 Runner（对标 Postman Collection Runner；顺序执行+逐请求断言）──
+const runnerRunning = ref(false);
+const runnerSummary = ref<CollectionRunSummary | null>(null);
+const runnerResults = ref<RequestRunResult[]>([]);
+const runnerError = ref('');
+const stopOnError = ref(true);
+const stopOnFailure = ref(false);
+const runnerDelay = ref('0');
+let runnerSignal: { aborted: boolean } | null = null;
+
+const runnerSend: SendFn = async (payload) => {
+  const r = await fetch('/api/apiproxy', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  const j = await r.json().catch(() => null);
+  if (!r.ok) {
+    throw new Error((j && j.error) || `Proxy returned HTTP ${r.status}.`);
+  }
+  return j as RunnerResponse;
+};
+async function runCollectionNow(): Promise<void> {
+  if (!saved.value.length) {
+    banner.value = 'Collection is empty; save a request first.';
+    return;
+  }
+  runnerRunning.value = true;
+  runnerError.value = '';
+  runnerSummary.value = null;
+  runnerResults.value = [];
+  const signal = { aborted: false };
+  runnerSignal = signal;
+  try {
+    runnerSummary.value = await runCollection(saved.value, env.value, runnerSend, {
+      stopOnError: stopOnError.value,
+      stopOnFailure: stopOnFailure.value,
+      delayMs: Number(runnerDelay.value) || 0,
+      signal,
+      onProgress: (r) => { runnerResults.value = [...runnerResults.value, r]; },
+    });
+  }
+  catch (e) {
+    runnerError.value = e instanceof Error ? e.message : String(e);
+  }
+  finally {
+    runnerRunning.value = false;
+    runnerSignal = null;
+  }
+}
+function cancelRun(): void {
+  if (runnerSignal) {
+    runnerSignal.aborted = true;
+  }
+}
+function runnerReportText(): string {
+  return runnerSummary.value ? formatCollectionReportText(runnerSummary.value) : '';
+}
+async function copyRunnerReport(): Promise<void> {
+  try {
+    await navigator.clipboard.writeText(runnerReportText());
+    banner.value = 'Collection run report copied to clipboard.';
+  }
+  catch (e) {
+    banner.value = `Could not copy: ${e instanceof Error ? e.message : String(e)}`;
+  }
+}
+function downloadRunnerReport(): void {
+  downloadTextFile({ content: runnerReportText(), filename: buildDownloadFilename('collection-run-report', 'txt'), mimeType: 'text/plain' });
+  banner.value = 'Collection run report downloaded (no credential headers included).';
 }
 
 const respBytes = computed(() => resp.value ? utf8Bytes(resp.value.body) : 0);
@@ -683,6 +756,74 @@ function statusType(s: number): 'success' | 'warning' | 'error' | 'info' {
       <p v-else class="hint">
         Nothing saved yet. Build a request above, then save it here for reuse.
       </p>
+
+      <!-- API-010 集合批量 Runner -->
+      <div class="row runner-bar" style="margin-top: 10px">
+        <n-button size="small" type="primary" :loading="runnerRunning" :disabled="!saved.length" data-test-id="run-collection" @click="runCollectionNow">
+          Run collection ({{ saved.length }})
+        </n-button>
+        <n-button v-if="runnerRunning" size="small" data-test-id="cancel-run" @click="cancelRun">
+          Cancel
+        </n-button>
+        <n-checkbox v-model:checked="stopOnError" size="small" data-test-id="runner-stop-on-error">
+          Stop on send error
+        </n-checkbox>
+        <n-checkbox v-model:checked="stopOnFailure" size="small" data-test-id="runner-stop-on-failure">
+          Stop on failed assertion
+        </n-checkbox>
+        <span class="hint">Delay</span>
+        <c-input-text v-model:value="runnerDelay" size="small" monospace placeholder="0" style="width: 80px" data-test-id="runner-delay" />
+        <span class="hint">ms</span>
+      </div>
+      <p class="hint" style="margin-top: 4px">
+        Runs every saved request in order through the edge relay, applying each request's saved assertions. No iterations/data files or pm.* scripts (use Postman/Newman for those).
+      </p>
+      <n-alert v-if="runnerError" type="error" style="margin-top: 6px" data-test-id="runner-error">
+        {{ runnerError }}
+      </n-alert>
+      <div v-if="runnerResults.length" class="test-results" style="margin-top: 8px" data-test-id="runner-results">
+        <div v-if="runnerSummary" class="row" style="margin-bottom: 6px">
+          <n-tag size="small" :type="runnerSummary.allPassed ? 'success' : 'error'" data-test-id="runner-summary">
+            {{ runnerSummary.sent }}/{{ runnerSummary.total }} sent · {{ runnerSummary.failed }} failed · Tests {{ runnerSummary.assertionsPassed }}/{{ runnerSummary.assertionsTotal }}
+          </n-tag>
+          <span class="hint" data-test-id="runner-meta">{{ runnerSummary.totalDurationMs }} ms{{ runnerSummary.avgResponseMs !== null ? ` · avg ${runnerSummary.avgResponseMs} ms` : '' }}{{ runnerSummary.cancelled ? ' · cancelled' : runnerSummary.stoppedEarly ? ' · stopped early' : '' }}</span>
+          <n-button size="tiny" data-test-id="runner-copy-report" @click="copyRunnerReport">
+            Copy report
+          </n-button>
+          <n-button size="tiny" data-test-id="runner-download-report" @click="downloadRunnerReport">
+            Download report
+          </n-button>
+        </div>
+        <div v-for="(r, i) in runnerResults" :key="r.id" class="runner-item" data-test-id="runner-result-row">
+          <div class="row">
+            <n-tag size="small" :type="r.passed ? 'success' : 'error'">
+              {{ r.passed ? 'PASS' : 'FAIL' }}
+            </n-tag>
+            <span class="hint" style="flex: 1; min-width: 180px"><strong>{{ i + 1 }}. {{ r.name }}</strong> · {{ r.method }} {{ r.url }}</span>
+            <n-tag v-if="r.sent" size="small" :type="statusType(r.status ?? 0)">
+              {{ r.status }}
+            </n-tag>
+            <span v-if="r.sent" class="hint">{{ r.elapsedMs }} ms</span>
+            <n-tag v-if="r.report && r.report.total" size="small" :type="r.report.allPassed ? 'success' : 'error'">
+              Tests {{ r.report.passed }}/{{ r.report.total }}
+            </n-tag>
+          </div>
+          <p v-if="r.error" class="hint" style="margin: 2px 0 0; color: var(--n-error-color, #d03050)">
+            {{ r.error }}
+          </p>
+          <details v-if="r.report && r.report.total" style="margin-top: 2px">
+            <summary class="hint">
+              Assertions
+            </summary>
+            <div v-for="a in r.report.results" :key="a.id" class="row test-result">
+              <n-tag size="small" :type="a.passed ? 'success' : 'error'">
+                {{ a.passed ? 'PASS' : 'FAIL' }}
+              </n-tag>
+              <span class="hint" style="flex: 1; min-width: 180px">{{ a.label }} — {{ a.message }}</span>
+            </div>
+          </details>
+        </div>
+      </div>
     </div>
 
     <!-- API-006 历史 -->
@@ -813,5 +954,7 @@ function statusType(s: number): 'success' | 'warning' | 'error' | 'info' {
 .resp-headers { margin: 8px 0; font-size: 12px; summary { cursor: pointer; opacity: 0.75; } pre { max-height: 200px; overflow: auto; padding: 8px; background: rgba(127, 127, 127, 0.08); border-radius: 4px; } }
 .test-results { margin: 8px 0; padding: 8px; border: 1px solid rgba(127, 127, 127, 0.2); border-radius: 6px; }
 .test-result { margin-top: 4px; }
+.runner-bar { align-items: center; }
+.runner-item { padding: 6px 0; border-top: 1px solid rgba(127, 127, 127, 0.15); &:first-of-type { border-top: none; } }
 .footer-hint { margin-top: 16px; }
 </style>

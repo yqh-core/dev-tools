@@ -6,7 +6,7 @@ export const tool = defineTool({
   name: translate('tools.api-debugger.title'),
   path: '/api-debugger',
   description: translate('tools.api-debugger.description'),
-  keywords: ['api debug', 'curl import', 'http request', 'rest client', 'api response', 'jsonpath extract', 'api test', 'response assertions', 'postman tests'],
+  keywords: ['api debug', 'curl import', 'http request', 'rest client', 'api response', 'jsonpath extract', 'api test', 'response assertions', 'postman tests', 'collection runner', 'api regression test'],
   component: () => import('./api-debugger.vue'),
   icon: Api,
 });
