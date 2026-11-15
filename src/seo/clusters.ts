@@ -230,6 +230,7 @@ export const TOOL_CLUSTERS: ToolCluster[] = [
       '/docker-run-to-docker-compose-converter',
       '/linux-commands',
       '/git-memo',
+      '/prepare-deployment',
     ],
   },
   {
