@@ -1,6 +1,6 @@
 # DigDevBox — Developer Tools
 
-**DigDevBox** is a collection of 118 free online tools for developers and DevOps — JSON, JWT, regex, UUID, network and more. Tools run locally in your browser by default; a few require a network query.
+**DigDevBox** is a collection of 120 free online tools for developers and DevOps — JSON, JWT, regex, UUID, network and more. Tools run locally in your browser by default; a few require a network query.
 
 | | |
 | --- | --- |
@@ -21,12 +21,12 @@
 
 ## Why DigDevBox
 
-- **118 utilities across 10 categories** — see the full list below
+- **120 utilities across 10 categories** — see the full list below
 - **No signup, no installation** — open a page and use the tool
 - **Local-first** — most tools process data entirely in your browser; nothing is uploaded (a few tools, e.g. WHOIS lookup and HTTP status checker, query a backend API and are labeled as such)
 - **Open source** — GPLv3, self-hostable as a static site
 
-## All tools (118)
+## All tools (120)
 
 <!-- generated-tools-list:start -->
 ### Crypto
@@ -117,6 +117,8 @@
 - [Random port generator](https://digdevbox.com/random-port-generator) - Generate random port numbers outside of the range of "known" ports (0-1023).
 - [Crontab Generator — Cron Expressions with Plain-English Preview](https://digdevbox.com/crontab-generator) - Validate and generate crontab and get the human-readable description of the cron schedule.
 - [JSON Formatter & Validator — Beautify, Validate, Diff and Convert](https://digdevbox.com/json-prettify) - Format and validate JSON online — pretty-print at your indent size, sort keys and spot syntax errors instantly, right in your browser.
+- [JSON Developer Workspace — Format, Query, Tree, Schema & Convert](https://digdevbox.com/json-workspace) - A professional JSON workspace — format and validate, explore an interactive tree, query with JSONPath, infer JSON Schema, and convert to YAML or CSV, all in your browser.
+- [API Debug Workspace — cURL to Response to Data Pipeline](https://digdevbox.com/api-debugger) - Import a cURL command, send the request through a transient edge relay, inspect status, timing, headers and body, then hand the response to the JSON workspace or extract values into variables — all in your browser.
 - [JSON minify](https://digdevbox.com/json-minify) - Minify and compress your JSON by removing unnecessary whitespace.
 - [JSON to CSV](https://digdevbox.com/json-to-csv) - Convert JSON to CSV with automatic header detection.
 - [CSV to JSON](https://digdevbox.com/csv-to-json) - Convert CSV to a JSON array with quoted fields, real newlines and duplicate-column safeguards.
