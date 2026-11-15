@@ -383,7 +383,7 @@ tools:
 
   api-debugger:
     title: API 调试工作台 — cURL 导入、测试断言、响应直传数据管线
-    description: 导入 cURL 命令、经边缘瞬时中继发送请求，用内置测试断言校验状态码/JSON 字段/响应头/响应时间并生成可读报告，把整个已保存集合当回归套件批量运行，再查看响应或直传 JSON 工作台、提取为变量供下一请求使用，全程在浏览器内完成。
+    description: 导入 cURL 命令、经边缘瞬时中继发送请求，用内置测试断言校验状态码/JSON 字段/响应头/响应时间并生成可读报告，把整个已保存集合当回归套件批量运行，变量按全局/集合/环境分层并对敏感值遮罩保护，再查看响应或直传 JSON 工作台，全程在浏览器内完成。
 
   docker-run-to-docker-compose-converter:
     title: Docker Run 到 docker-compose 转换器

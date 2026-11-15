@@ -10,7 +10,7 @@ import { type CollectionRunSummary, type RequestRunResult, type RunnerResponse, 
 import { formatBytes, searchBody, utf8Bytes } from './response';
 import { authHeaderPreset, buildUrlWithQuery, parseQueryParams } from './query';
 import { importOpenApi } from './openapi';
-import { type EnvStore, activeVars, addEnv, deleteEnv, migrateEnv, removeEnvVar, renameEnv, setEnvVar } from './environments';
+import { type EnvStore, VAR_SCOPES, type VarScope, activeVars, addEnv, deleteEnv, exportableVars, isSecret, migrateEnv, removeScopeVar, renameEnv, scopeOf, scopeVars, setEnvVar, setScopeVar, setSecret } from './environments';
 import { exportCollection, importCollection } from './collection';
 import { buildDownloadFilename, downloadTextFile, mimeForLanguage } from '@/composable/downloadText';
 import TextareaCopyable from '@/components/TextareaCopyable.vue';
@@ -49,6 +49,47 @@ function removeActiveEnv() {
 function applyRenameEnv() {
   envStore.value = renameEnv(envStore.value, envStore.value.active, envRenameDraft.value);
   envRenameDraft.value = envStore.value.active;
+}
+
+// ── API-005 作用域分层（environment > collection > global）+ 敏感值保护 ──────
+const activeScope = ref<VarScope>('environment');
+const scopeOptions = VAR_SCOPES.map(s => ({ label: s === 'environment' ? 'Environment' : s === 'collection' ? 'Collection' : 'Global', value: s }));
+const scopeRows = computed(() => Object.entries(scopeVars(envStore.value, activeScope.value)).map(([name, value]) => ({
+  name,
+  value,
+  secret: isSecret(envStore.value, name),
+  origin: scopeOf(envStore.value, name),
+})));
+const revealed = ref<Set<string>>(new Set());
+function isRevealed(name: string): boolean {
+  return revealed.value.has(name);
+}
+function toggleReveal(name: string): void {
+  const next = new Set(revealed.value);
+  if (next.has(name)) {
+    next.delete(name);
+  }
+  else {
+    next.add(name);
+  }
+  revealed.value = next;
+}
+function setScopeVarUI(name: string, value: string): void {
+  envStore.value = setScopeVar(envStore.value, activeScope.value, name, value);
+}
+function removeScopeVarUI(name: string): void {
+  envStore.value = removeScopeVar(envStore.value, activeScope.value, name);
+}
+function renameScopeVarUI(oldName: string, newName: string, value: string): void {
+  const wasSecret = isSecret(envStore.value, oldName);
+  envStore.value = removeScopeVar(envStore.value, activeScope.value, oldName);
+  envStore.value = setScopeVar(envStore.value, activeScope.value, newName, value);
+  if (wasSecret && newName.trim()) {
+    envStore.value = setSecret(envStore.value, newName.trim(), true);
+  }
+}
+function toggleSecret(name: string): void {
+  envStore.value = setSecret(envStore.value, name, !isSecret(envStore.value, name));
 }
 
 const curlText = ref('');
@@ -97,7 +138,6 @@ interface ProxyResponse { url: string; status: number; statusText: string; heade
 const resp = ref<ProxyResponse | null>(null);
 
 const METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'];
-const envRows = computed(() => Object.entries(env.value).map(([name, value]) => ({ name, value })));
 const varPlaceholder = '{{name}}';
 const currentRequest = computed(() => ({ method: method.value, url: url.value, headers: headers.value, body: body.value }));
 const hasAuth = computed(() => headers.value.some(h => AUTH_HEADER_NAMES.includes(h.name.trim().toLowerCase())));
@@ -392,17 +432,18 @@ function setBasic(): void {
 function setVar(name: string, value: string): void {
   envStore.value = setEnvVar(envStore.value, name, value);
 }
-function removeVar(name: string): void {
-  envStore.value = removeEnvVar(envStore.value, name);
-}
-function renameVar(oldName: string, newName: string, value: string): void {
-  removeVar(oldName);
-  setVar(newName, value);
-}
-function addVar(): void {
-  setVar(newVarName.value, newVarValue.value);
+function addScopeVar(): void {
+  setScopeVarUI(newVarName.value, newVarValue.value);
   newVarName.value = '';
   newVarValue.value = '';
+}
+function exportVars(): void {
+  downloadTextFile({
+    content: JSON.stringify(exportableVars(envStore.value), null, 2),
+    filename: buildDownloadFilename('api-variables', 'json'),
+    mimeType: 'application/json',
+  });
+  banner.value = 'Variables exported (resolved Environment > Collection > Global). Secret values were stripped to empty strings.';
 }
 
 // ── 发送（经 apiproxy 瞬时转发；不记录不存储）─────────────────────
@@ -684,12 +725,21 @@ function statusType(s: number): 'success' | 'warning' | 'error' | 'info' {
       </p>
     </div>
 
-    <!-- 变量 -->
+    <!-- 变量（API-005 作用域分层 + 敏感值保护） -->
     <div class="section">
       <h3 class="section-title">
-        Variables <span class="hint">use {{ varPlaceholder }} in URL, headers and body; extract from responses below</span>
+        Variables <span class="hint">use {{ varPlaceholder }} in URL, headers and body; resolved Environment &gt; Collection &gt; Global</span>
       </h3>
-      <div class="row" style="margin-bottom: 8px" data-test-id="env-bar">
+      <div class="row" style="margin-bottom: 8px" data-test-id="scope-bar">
+        <n-button v-for="opt in scopeOptions" :key="opt.value" size="tiny" :type="activeScope === opt.value ? 'primary' : 'default'" :data-test-id="`scope-${opt.value}`" @click="activeScope = opt.value">
+          {{ opt.label }}
+        </n-button>
+        <n-button size="tiny" data-test-id="export-vars" @click="exportVars">
+          Export variables
+        </n-button>
+        <span class="hint">secrets are masked &amp; stripped from export</span>
+      </div>
+      <div v-if="activeScope === 'environment'" class="row" style="margin-bottom: 8px" data-test-id="env-bar">
         <n-select v-model:value="activeEnv" :options="envOptions" size="small" style="width: 160px" data-test-id="env-select" />
         <c-input-text v-model:value="envRenameDraft" size="small" style="width: 140px" data-test-id="env-rename" />
         <n-button size="tiny" data-test-id="env-rename-btn" @click="applyRenameEnv">
@@ -703,22 +753,40 @@ function statusType(s: number): 'success' | 'warning' | 'error' | 'info' {
           Delete env
         </n-button>
       </div>
-      <div class="kv-list">
-        <div v-for="row in envRows" :key="row.name" class="row">
-          <c-input-text :value="row.name" size="small" monospace style="width: 160px" @update:value="(v: string) => renameVar(row.name, v, row.value)" />
-          <c-input-text :value="row.value" size="small" monospace style="flex: 1; min-width: 160px" @update:value="(v: string) => setVar(row.name, v)" />
-          <n-button size="tiny" quaternary @click="removeVar(row.name)">
+      <div class="kv-list" data-test-id="var-list">
+        <div v-for="row in scopeRows" :key="row.name" class="row" data-test-id="var-row">
+          <c-input-text :value="row.name" size="small" monospace style="width: 160px" data-test-id="var-name" @update:value="(v: string) => renameScopeVarUI(row.name, v, row.value)" />
+          <template v-if="row.secret && !isRevealed(row.name)">
+            <c-input-text value="••••••••" size="small" monospace readonly style="flex: 1; min-width: 160px" data-test-id="var-value-masked" />
+            <n-button size="tiny" data-test-id="var-reveal" @click="toggleReveal(row.name)">
+              Show
+            </n-button>
+          </template>
+          <template v-else>
+            <c-input-text :value="row.value" size="small" monospace style="flex: 1; min-width: 160px" data-test-id="var-value" @update:value="(v: string) => setScopeVarUI(row.name, v)" />
+            <n-button v-if="row.secret" size="tiny" data-test-id="var-hide" @click="toggleReveal(row.name)">
+              Hide
+            </n-button>
+          </template>
+          <n-button size="tiny" :type="row.secret ? 'warning' : 'default'" data-test-id="var-secret-toggle" @click="toggleSecret(row.name)">
+            {{ row.secret ? 'Secret ✓' : 'Make secret' }}
+          </n-button>
+          <n-button size="tiny" quaternary data-test-id="var-remove" @click="removeScopeVarUI(row.name)">
             Remove
           </n-button>
         </div>
         <div class="row">
-          <c-input-text v-model:value="newVarName" size="small" monospace placeholder="name" style="width: 160px" />
-          <c-input-text v-model:value="newVarValue" size="small" monospace placeholder="value" style="flex: 1; min-width: 160px" />
-          <n-button size="tiny" data-test-id="add-var" @click="addVar">
+          <c-input-text v-model:value="newVarName" size="small" monospace placeholder="name" style="width: 160px" data-test-id="new-var-name" />
+          <c-input-text v-model:value="newVarValue" size="small" monospace placeholder="value" style="flex: 1; min-width: 160px" data-test-id="new-var-value" />
+          <n-button size="tiny" data-test-id="add-var" @click="addScopeVar">
             + Add
           </n-button>
         </div>
       </div>
+      <p class="hint" style="margin-top: 6px">
+        {{ activeScope === 'environment' ? `Environment "${activeEnv}" overrides Collection and Global for the same name.` : activeScope === 'collection' ? 'Collection variables are shared across all environments; an environment variable of the same name overrides them.' : 'Global variables apply everywhere unless overridden by Collection or Environment.' }}
+        Secret values stay in this browser, are masked here, and export as empty strings — they are still substituted into requests you send.
+      </p>
     </div>
 
     <!-- API-006 集合（保存的请求） -->
