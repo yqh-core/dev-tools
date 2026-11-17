@@ -23,7 +23,7 @@ export interface ScriptSnapshot {
   environment: Record<string, string>
   iterationData: Record<string, string>
   local: Record<string, string>
-  info: { event: 'prerequest' | 'test'; iteration: number; counter: number }
+  info: { event: 'prerequest' | 'test'; iteration: number; counter: number; requestName: string }
 }
 
 /** Worker→主线程的写回（主线程负责应用到真实 store；不信任脚本自述的"成功"）。 */
@@ -64,7 +64,9 @@ export interface PmApi {
   test(name: string, fn: () => void): void
   expect(actual: unknown): any
   sendRequest(urlOrReq: unknown, cb?: (err: unknown, res: unknown) => void): Promise<any>
-  cookie: any
+  cookies: (...args: unknown[]) => never
+  cookieJar: (...args: unknown[]) => never
+  execution: (...args: unknown[]) => never
   unsupported(feature: string): never
 }
 
@@ -187,6 +189,9 @@ export function createPmAPI(snap: ScriptSnapshot, io: RuntimeIO) {
     },
   }
 
+  const unsupported = (feature: string): never => {
+    throw new ExpectError(`pm.${feature} is not supported by API Studio script runtime yet (see PM_SUPPORT_MATRIX.md). Use the documented pm.* subset or pm.sendRequest.`);
+  };
   const pm: Record<string, unknown> = {
     info: { event: snap.info.event, iteration: snap.info.iteration, counter: snap.info.counter, requestName: '' },
     event: { response, request },
@@ -223,7 +228,10 @@ export function createPmAPI(snap: ScriptSnapshot, io: RuntimeIO) {
       }
       catch (e) { cb?.(e, null); throw e }
     },
-    cookie: { get: (_n: string) => undefined, put: (_o: unknown) => {}, jar: null },
+    // fail-closed：pm.cookie / pm.execution 未实现就显式报错，绝不静默 no-op 伪装支持
+  cookies: unsupported as unknown as never,
+  cookieJar: unsupported as unknown as never,
+  execution: unsupported as unknown as never,
     /** 未逐条实现的 API 一律显式失败（fail-closed），不静默 no-op 伪装支持。 */
     unsupported: (feature: string): never => { throw new ExpectError(`pm.${feature} is not supported by API Studio script runtime yet`) },
   }
@@ -238,3 +246,56 @@ export function createPmAPI(snap: ScriptSnapshot, io: RuntimeIO) {
 }
 
 export const EXPECT_ERROR_NAME = 'ExpectError'
+
+/* ---------- 沙箱网络中和（A5 P0：Worker 无 DOM ≠ 无网络） ----------
+ * 威胁模型：用户脚本运行在专用 module Worker 内，但仍可调用 fetch / XHR / WebSocket /
+ * EventSource / importScripts / 子 Worker / BroadcastChannel / caches / indexedDB /
+ * navigator.sendBeacon —— 全部是数据外传或逃逸通道。中和策略：
+ *   1. 在用户代码 eval 之前，把上述全局替换为"读取即抛错"的访问器（fail-closed）；
+ *   2. 唯一合法网络路径 = pm.sendRequest → outbox → 宿主经既有 apiproxy（同源端点、目标策略、
+ *      超时与审计在宿主侧）；
+ *   3. 已知局限（如实记录，不伪装成不可绕边界）：中和是运行时全局替换，未来新增的 Worker
+ *      API 不在清单内即失效；主线程侧另有 message 类型白名单兜底（未知消息一律忽略）。
+ *   本函数纯函数化以便单测负控；worker 启动时安装。
+ */
+export const SANDBOX_BLOCKED_GLOBALS = [
+  'fetch', 'XMLHttpRequest', 'WebSocket', 'EventSource',
+  'importScripts', 'Worker', 'SharedWorker', 'BroadcastChannel',
+  'caches', 'indexedDB', 'Notification', 'open',
+] as const;
+
+export function installSandboxGuards(scope: Record<string, unknown>): string[] {
+  const installed: string[] = [];
+  for (const k of SANDBOX_BLOCKED_GLOBALS) {
+    try {
+      Object.defineProperty(scope, k, {
+        configurable: true,
+        get() {
+          throw new Error(`[api-studio sandbox] ${k} is disabled inside the script sandbox. Network access is only allowed via pm.sendRequest (host-controlled outbox).`);
+        },
+      });
+      installed.push(k);
+    }
+    catch {
+      // 该运行时不存在此全局（如 module Worker 无 importScripts）——补定义同样 fail-closed
+      try {
+        Object.defineProperty(scope, k, { configurable: true, get: () => { throw new Error(`[api-studio sandbox] ${k} is disabled.`); } });
+        installed.push(k + ':absent');
+      }
+      catch { /* 非 configurable 且不存在——记录但不阻断 */ }
+    }
+  }
+  // navigator.sendBeacon：保留 navigator，其余 beacon 通道中和
+  try {
+    const nav = scope.navigator;
+    if (nav && typeof nav === 'object' && !('sendBeacon' in nav === false)) {
+      Object.defineProperty(nav, 'sendBeacon', {
+        configurable: true,
+        get() { throw new Error('[api-studio sandbox] navigator.sendBeacon is disabled inside the script sandbox.'); },
+      });
+      installed.push('navigator.sendBeacon');
+    }
+  }
+  catch { /* navigator 不可扩展时忽略 */ }
+  return installed;
+}

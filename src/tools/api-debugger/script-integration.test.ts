@@ -117,4 +117,16 @@ describe('runner 脚本生命周期', () => {
     expect(sent.headers.some(h => h.name === 'X-Script')).toBe(true);
     expect(s.request.headers.length).toBe(0);
   });
+
+  it('snapshot.info.requestName 由 runner 注入真实请求名（A4 pm.info 契约）', async () => {
+    const send = vi.fn(async () => resp());
+    let seenName = '';
+    const runScript: RunScriptFn = async (_c, snap: ScriptSnapshot) => {
+      seenName = snap.info.requestName;
+      return { outcome: outcome(), timedOut: false };
+    };
+    const s = saved('Login flow', { scriptEvents: { test: 'pm.test' } });
+    await runCollection([s], {}, send as never, { runScript });
+    expect(seenName).toBe('Login flow');
+  });
 });

@@ -145,7 +145,7 @@ export async function runCollection(
       response: response ? { status: response.status, statusText: response.statusText, headers: response.headers, body: response.body, responseTime: response.elapsedMs } : null,
       globals: { ...layers.globals }, collection: { ...layers.collection }, environment: { ...env },
       iterationData: { ...(opts.iterationData ?? {}) }, local: { ...layers.local },
-      info: { event, iteration: opts.iteration ?? 0, counter: i + 1 },
+      info: { event, iteration: opts.iteration ?? 0, counter: i + 1, requestName: s.name },
     });
 
     let scriptTests: ScriptTestResult[] | undefined;

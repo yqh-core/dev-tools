@@ -14,7 +14,7 @@ function snap(patch: Partial<ScriptSnapshot> = {}): ScriptSnapshot {
     environment: { e: '1', shared: 'ENV' },
     iterationData: { d: '1', shared: 'DATA' },
     local: {},
-    info: { event: 'test', iteration: 0, counter: 1 },
+    info: { event: 'test', iteration: 0, counter: 1, requestName: 'unit-req' },
     ...patch,
   };
 }
@@ -96,7 +96,7 @@ describe('pm.test / pm.expect fail-closed', () => {
 
 describe('response / request 面', () => {
   it('prerequest 事件时 pm.response 为 null（不误造对象）', () => {
-    const s = snap({ response: null, info: { event: 'prerequest', iteration: 0, counter: 1 } }); const { io } = mkIO(s);
+    const s = snap({ response: null, info: { event: 'prerequest', iteration: 0, counter: 1, requestName: 'unit-req' } }); const { io } = mkIO(s);
     const { pm } = createPmAPI(s, io);
     expect(pm.response).toBeNull();
   });

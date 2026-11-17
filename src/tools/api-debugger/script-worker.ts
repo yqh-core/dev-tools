@@ -5,7 +5,7 @@
  * 超时与资源控制由主线程（script-sandbox.ts）terminate 负责；
  * pm.sendRequest 不在 Worker 直发网络，而是消息往返主线程的 apiproxy（权限控制在宿主）。
  */
-import { createPmAPI, type ScriptSnapshot, type RuntimeIO, type ScriptOutcomeData } from './script-runtime';
+import { createPmAPI, installSandboxGuards, type ScriptSnapshot, type RuntimeIO, type ScriptOutcomeData } from './script-runtime';
 
 interface RunMsg { type: 'run'; nonce: number; code: string; snapshot: ScriptSnapshot }
 interface SendResponseMsg { type: 'sendResponse'; reqId: number; ok: boolean; result?: unknown; error?: string }
@@ -13,8 +13,19 @@ interface SendResponseMsg { type: 'sendResponse'; reqId: number; ok: boolean; re
 const pendingSends = new Map<number, { resolve: (v: unknown) => void; reject: (e: unknown) => void }>();
 let reqSeq = 0;
 
+// A5 P0：在用户代码 eval 之前中和全部网络/持久化/子 Worker 逃逸通道；
+// 自身协议通道（postMessage）先抓引用再封锁全局，outbox 是唯一网络路径。
+const rawPostMessage = (self as unknown as Worker).postMessage.bind(self);
+installSandboxGuards(self as unknown as Record<string, unknown>);
+try {
+  (self as unknown as Record<string, unknown>).postMessage = () => {
+    throw new Error('[api-studio sandbox] direct postMessage from script is disabled. Use pm.* APIs only.');
+  };
+}
+catch { /* postMessage 不可配置时保留 raw 通道语义 */ }
+
 function postOut(message: Record<string, unknown>, transfer?: Transferable[]) {
-  (self as unknown as Worker).postMessage(message, transfer ?? []);
+  rawPostMessage(message, transfer ?? []);
 }
 
 self.onmessage = (e: MessageEvent<RunMsg | SendResponseMsg>) => {
