@@ -190,7 +190,7 @@ export function createPmAPI(snap: ScriptSnapshot, io: RuntimeIO) {
   }
 
   const unsupported = (feature: string): never => {
-    throw new ExpectError(`pm.${feature} is not supported by API Studio script runtime yet (see PM_SUPPORT_MATRIX.md). Use the documented pm.* subset or pm.sendRequest.`);
+    throw new ExpectError(`pm.${feature} is not supported by API Studio script runtime yet (see docs/api-studio/PM_SUPPORT_MATRIX.md). Use the documented pm.* subset or pm.sendRequest.`);
   };
   const pm: Record<string, unknown> = {
     info: { event: snap.info.event, iteration: snap.info.iteration, counter: snap.info.counter, requestName: '' },
