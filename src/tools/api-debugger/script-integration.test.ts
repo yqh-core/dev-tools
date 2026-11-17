@@ -118,6 +118,33 @@ describe('runner 脚本生命周期', () => {
     expect(s.request.headers.length).toBe(0);
   });
 
+  it('取消语义：末行执行中 abort → summary.cancelled=true（单行集合可取消）', async () => {
+    const send = vi.fn(async () => resp());
+    const signal = { aborted: false };
+    const runScript: RunScriptFn = async () => {
+      await new Promise(r => setTimeout(r, 30));
+      signal.aborted = true; // 模拟用户在脚本执行中点取消
+      return { outcome: outcome(), timedOut: false };
+    };
+    const s = saved('cancel-row', { scriptEvents: { test: 'pm.test' } });
+    const sum = await runCollection([s], {}, send as never, { runScript, signal });
+    expect(sum.cancelled).toBe(true);
+  });
+
+  it('空响应守卫：send 返回 null → 干净错误，test 脚本仍跑（pm.response=null）', async () => {
+    const send = vi.fn(async () => null as unknown as RunnerResponse);
+    let sawNull = false;
+    const runScript: RunScriptFn = async (_c, snap: ScriptSnapshot) => {
+      sawNull = snap.response === null;
+      return { outcome: outcome({ tests: [{ name: 'still ran', passed: true }] }), timedOut: false };
+    };
+    const s = saved('nullresp', { scriptEvents: { test: 'pm.test' } });
+    const sum = await runCollection([s], {}, send as never, { runScript });
+    expect(sum.results[0].error).toContain('no usable response');
+    expect(sawNull).toBe(true);
+    expect(sum.results[0].scriptTests?.[0].name).toBe('still ran');
+  });
+
   it('snapshot.info.requestName 由 runner 注入真实请求名（A4 pm.info 契约）', async () => {
     const send = vi.fn(async () => resp());
     let seenName = '';

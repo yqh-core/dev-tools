@@ -164,6 +164,11 @@ export async function runCollection(
     else {
       try {
         const resp = await send(payload);
+        // 空响应守卫：代理返回非 JSON/空体（本地预览、502-HTML 兜底页）时，
+        // 干净失败而非让 runAssertions 对 null 崩出 TypeError。
+        if (!resp || typeof resp.status !== 'number') {
+          throw new Error('Executor returned no usable response (proxy empty or non-JSON). Check the proxy route and upstream availability.');
+        }
         const report = runAssertions(s.assertions ?? [], resp, now());
         if (opts.runScript && s.scriptEvents?.test) {
           const r2 = await opts.runScript(s.scriptEvents.test, snapshotFor('test', resp), send);
@@ -176,7 +181,19 @@ export async function runCollection(
         result = { ...base, sent: true, status: resp.status, elapsedMs: resp.elapsedMs, report, ...(scriptTests ? { scriptTests } : {}), ...(scriptError ? { scriptError } : {}), passed: report.allPassed && scriptOk };
       }
       catch (e) {
-        result = { ...base, sent: false, status: null, elapsedMs: null, error: e instanceof Error ? e.message : String(e), report: null, ...(scriptTests ? { scriptTests } : {}), passed: false };
+        // Postman 语义：请求本身失败时 test 脚本仍执行（pm.response 为 null）。
+        // 失败路径的 envWrites 同样应用（如重试脚本写回退标记），mutation 无意义故不取。
+        if (opts.runScript && s.scriptEvents?.test && !scriptError) {
+          try {
+            const r2 = await opts.runScript(s.scriptEvents.test, snapshotFor('test', null), send);
+            if (r2.outcome.tests.length) scriptTests = r2.outcome.tests.map(t => ({ name: t.name, passed: t.passed, ...(t.error ? { error: t.error } : {}) }));
+            if (r2.timedOut) scriptError = 'test script killed (timeout)';
+            else if (r2.error) scriptError = 'test script error: ' + r2.error;
+            applyWrites(r2.outcome);
+          }
+          catch { /* 沙箱层错误已由 r2 承载 */ }
+        }
+        result = { ...base, sent: false, status: null, elapsedMs: null, error: e instanceof Error ? e.message : String(e), report: null, ...(scriptTests ? { scriptTests } : {}), ...(scriptError ? { scriptError } : {}), passed: false };
       }
     }
     if (!result.sent && scriptError && !result.error) result.error = scriptError;
@@ -196,6 +213,9 @@ export async function runCollection(
     }
   }
 
+  // 取消语义补全：末行执行中（含脚本在沙箱内跑）点取消，run 也如实标 cancelled，
+  // 不要求"下一轮迭代开头"才看见取消（单行集合同样可取消）。
+  if (opts.signal?.aborted) { cancelled = true; }
   const finishedAt = now();
   const sentResults = results.filter(r => r.sent);
   const failed = results.filter(r => !r.passed).length;

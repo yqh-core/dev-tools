@@ -36,6 +36,10 @@ export function exportCollection(saved: SavedRequest[], name = 'DigDevBox Collec
     info: { name, schema: POSTMAN_SCHEMA },
     item: saved.map((s) => {
       const req: ApiRequestState = stripAuth ? sanitizeForShare(s.request) : s.request;
+      // API-011：脚本事件导出为 Postman v2.1 event（exec 按行数组）——导入/导出往返不丢脚本
+      const events: { listen: string; script: { exec: string[] } }[] = [];
+      if (s.scriptEvents?.prerequest) events.push({ listen: 'prerequest', script: { exec: s.scriptEvents.prerequest.split('\n') } });
+      if (s.scriptEvents?.test) events.push({ listen: 'test', script: { exec: s.scriptEvents.test.split('\n') } });
       return {
         name: s.name,
         request: {
@@ -44,6 +48,7 @@ export function exportCollection(saved: SavedRequest[], name = 'DigDevBox Collec
           url: toPostmanUrl(req.url),
           ...(req.body ? { body: { mode: 'raw', raw: req.body } } : {}),
         },
+        ...(events.length ? { event: events } : {}),
       };
     }),
   };

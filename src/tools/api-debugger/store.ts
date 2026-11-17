@@ -75,6 +75,7 @@ export function saveRequest(
   newId: string,
   assertions?: Assertion[],
   cap: number = SAVED_CAP,
+  scriptEvents?: { prerequest?: string; test?: string },
 ): { list: SavedRequest[]; saved: SavedRequest | null; error?: string } {
   if (!isValidName(name)) {
     return { list, saved: null, error: `Name must be 1-${NAME_MAX} characters.` };
@@ -82,9 +83,14 @@ export function saveRequest(
   const trimmed = name.trim();
   const snapshot = cloneRequest(request);
   const testsSnapshot = assertions === undefined ? undefined : cloneAssertions(assertions);
+  // API-011：脚本事件只持久化非空字符串（prerequest/test），脏字段不落盘
+  const cleanScripts: { prerequest?: string; test?: string } = {};
+  if (typeof scriptEvents?.prerequest === 'string' && scriptEvents.prerequest.trim()) cleanScripts.prerequest = scriptEvents.prerequest;
+  if (typeof scriptEvents?.test === 'string' && scriptEvents.test.trim()) cleanScripts.test = scriptEvents.test;
+  const scriptsSnapshot = Object.keys(cleanScripts).length ? cleanScripts : undefined;
   const i = list.findIndex(s => s.name.trim().toLowerCase() === trimmed.toLowerCase());
   if (i >= 0) {
-    const updated: SavedRequest = { ...list[i], name: trimmed, request: snapshot, updatedAt: now, ...(testsSnapshot === undefined ? {} : { assertions: testsSnapshot }) };
+    const updated: SavedRequest = { ...list[i], name: trimmed, request: snapshot, updatedAt: now, ...(testsSnapshot === undefined ? {} : { assertions: testsSnapshot }), ...(scriptsSnapshot === undefined ? {} : { scriptEvents: scriptsSnapshot }) };
     const next = [...list];
     next[i] = updated;
     return { list: next, saved: updated };
@@ -92,7 +98,7 @@ export function saveRequest(
   if (list.length >= cap) {
     return { list, saved: null, error: `Collection is full (${cap}). Delete an entry first.` };
   }
-  const saved: SavedRequest = { id: newId, name: trimmed, request: snapshot, createdAt: now, updatedAt: now, ...(testsSnapshot === undefined ? {} : { assertions: testsSnapshot }) };
+  const saved: SavedRequest = { id: newId, name: trimmed, request: snapshot, createdAt: now, updatedAt: now, ...(testsSnapshot === undefined ? {} : { assertions: testsSnapshot }), ...(scriptsSnapshot === undefined ? {} : { scriptEvents: scriptsSnapshot }) };
   return { list: [saved, ...list], saved };
 }
 
@@ -168,7 +174,13 @@ export function parseSaved(raw: unknown): SavedRequest[] {
     }
     seen.add(s.id);
     const assertions = s.assertions === undefined ? undefined : parseAssertions(s.assertions);
-    out.push({ id: s.id, name: s.name, request: s.request as ApiRequestState, createdAt: s.createdAt, updatedAt: s.updatedAt, ...(assertions === undefined ? {} : { assertions }) });
+    // API-011：脚本事件只做白名单形状校验（字符串），不执行、不信任任何函数字段
+    const se = s.scriptEvents as { prerequest?: unknown; test?: unknown } | undefined;
+    const scriptEvents = (se && typeof se === 'object' &&
+      (typeof se.prerequest === 'string' || typeof se.test === 'string'))
+      ? { ...(typeof se.prerequest === 'string' ? { prerequest: se.prerequest } : {}), ...(typeof se.test === 'string' ? { test: se.test } : {}) }
+      : undefined;
+    out.push({ id: s.id, name: s.name, request: s.request as ApiRequestState, createdAt: s.createdAt, updatedAt: s.updatedAt, ...(assertions === undefined ? {} : { assertions }), ...(scriptEvents === undefined ? {} : { scriptEvents }) });
     if (out.length >= SAVED_CAP) {
       break;
     }
