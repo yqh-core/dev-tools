@@ -11,6 +11,9 @@ import { sanitizeForShare } from './engine';
 import type { SavedRequest } from './store';
 import type { ImportedRequest } from './openapi';
 
+/** Postman v2.1 的 pre-request/test 事件文本（folder 继承后的合并结果）。 */
+export interface ScriptEvents { prerequest?: string; test?: string }
+
 export const POSTMAN_SCHEMA = 'https://schema.getpostman.com/json/collection/v2.1.0/collection.json';
 
 function toPostmanUrl(raw: string): Record<string, unknown> {
@@ -62,14 +65,36 @@ export function importCollection(text: string): { requests: ImportedRequest[]; w
     return { requests: [], warnings: ['Not a Postman collection (missing item array).'] };
   }
   const requests: ImportedRequest[] = [];
-  const walk = (items: any[], prefix: string) => {
+  const extractEvents = (item: any, inherited: ScriptEvents | null): ScriptEvents | null => {
+    const out: ScriptEvents = {};
+    const take = (evs: any[], listen: 'prerequest' | 'test'): string | undefined => {
+      const parts: string[] = [];
+      for (const ev of evs) {
+        if (ev && ev.listen === listen && ev.script) {
+          const exec = Array.isArray(ev.script.exec) ? ev.script.exec : (typeof ev.script.exec === 'string' ? [ev.script.exec] : []);
+          const body = exec.filter((l: unknown) => typeof l === 'string').join('\n');
+          if (body.trim()) parts.push(body);
+        }
+      }
+      return parts.length ? parts.join('\n') : undefined;
+    };
+    const evs = Array.isArray(item?.event) ? item.event : [];
+    // Postman 执行序：folder 继承在前、request 自身在后
+    const pre = [inherited?.prerequest, take(evs, 'prerequest')].filter(Boolean).join('\n');
+    const test = [inherited?.test, take(evs, 'test')].filter(Boolean).join('\n');
+    if (pre) out.prerequest = pre;
+    if (test) out.test = test;
+    return (out.prerequest || out.test) ? out : null;
+  };
+
+  const walk = (items: any[], prefix: string, inherited: ScriptEvents | null = null) => {
     for (const it of items) {
       if (!it || typeof it !== 'object') {
         continue;
       }
       const name = prefix ? `${prefix} / ${it.name ?? 'item'}` : String(it.name ?? 'item');
       if (Array.isArray(it.item)) {
-        walk(it.item, name);
+        walk(it.item, name, extractEvents(it, inherited));
         continue;
       }
       const req = it.request;
@@ -82,7 +107,8 @@ export function importCollection(text: string): { requests: ImportedRequest[]; w
         ? req.header.filter((h: any) => h && h.key).map((h: any) => ({ name: String(h.key), value: String(h.value ?? '') }))
         : [];
       const body = typeof req.body?.raw === 'string' ? req.body.raw : '';
-      requests.push({ name, request: { method, url, headers, body } });
+      const events = extractEvents(it, inherited);
+      requests.push({ name, request: { method, url, headers, body }, ...(events ? { scriptEvents: events } : {}) });
     }
   };
   walk(doc.item, '');

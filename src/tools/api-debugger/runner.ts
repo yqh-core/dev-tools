@@ -8,13 +8,22 @@
  *  · stopOnError（发送失败即停，默认开，对齐 Postman 默认）/ stopOnFailure（断言失败即停，默认关）
  *    两档分离，语义对齐 postman-runtime stopOnError / stopOnFailure；
  *  · 请求间延迟 delayMs、运行中取消 signal、逐请求进度 onProgress；
- *  · 不做：迭代/数据文件参数化、pm.* 脚本、拖拽改序、cookie jar、运行中改写 env（诚实边界，MVP 覆盖核心回归任务）；
+ *  · API-011 起：pm.* 脚本生命周期（pre-request/test、folder 继承事件、分层变量、运行中写 env）
+ *    经注入的 runScript 沙箱回调执行；API-012 起支持 iterationData 数据行。
+ *    仍不做：拖拽改序、cookie jar（登记在总控板队列）；
+ *  · 未注入 runScript 且请求无 scriptEvents 时，行为与 API-010 历史版本一致（回归保护）。
  *  · 报告只含请求方法/URL/状态/断言结果，不携带凭据头。
  */
 
 import { type AssertionReport, runAssertions } from './assertions';
 import { type KV, buildProxyPayload } from './engine';
 import type { SavedRequest } from './store';
+import type { ScriptSnapshot, ScriptOutcomeData } from './script-runtime';
+
+/** API-011：沙箱执行回调由宿主注入（浏览器=script-sandbox Worker；单测=stub）。 */
+export type RunScriptFn = (code: string, snapshot: ScriptSnapshot, send: SendFn) => Promise<{ outcome: ScriptOutcomeData; error?: string; timedOut: boolean }>;
+
+export interface ScriptTestResult { name: string; passed: boolean; error?: string }
 
 export interface RunnerResponse {
   url: string
@@ -34,6 +43,13 @@ export type SendFn = (payload: RunnerPayload) => Promise<RunnerResponse>;
 export interface RunnerOptions {
   stopOnError?: boolean
   stopOnFailure?: boolean
+  /** API-011：pm.* 脚本执行钩子（未提供=完全不跑脚本，行为与历史版本一致）。 */
+  runScript?: RunScriptFn
+  /** API-011：变量分层起始快照（environment 用函数参数 env）。 */
+  variableLayers?: { globals?: Record<string, string>; collection?: Record<string, string>; local?: Record<string, string> }
+  /** API-012：本次迭代的数据行（CSV/JSON 一行），作为 iterationData 层。 */
+  iterationData?: Record<string, string>
+  iteration?: number
   delayMs?: number
   signal?: { aborted: boolean }
   onProgress?: (result: RequestRunResult, index: number, total: number) => void
@@ -51,7 +67,10 @@ export interface RequestRunResult {
   elapsedMs: number | null
   error?: string
   report: AssertionReport | null
-  /** sent 且（有断言则全过；无断言视为通过——与 Postman「无测试则发送成功即过」一致）。 */
+  /** API-011：pm.test 结果（无脚本事件则缺省）。 */
+  scriptTests?: ScriptTestResult[]
+  scriptError?: string
+  /** sent 且（有断言则全过；无断言视为通过——与 Postman「无测试则发送成功即过」一致）且脚本测试全过。 */
   passed: boolean
 }
 
@@ -62,6 +81,9 @@ export interface CollectionRunSummary {
   failed: number
   assertionsPassed: number
   assertionsTotal: number
+  scriptTestsPassed: number
+  scriptTestsTotal: number
+  scriptErrors: number
   totalDurationMs: number
   avgResponseMs: number | null
   allPassed: boolean
@@ -98,20 +120,66 @@ export async function runCollection(
     const s = saved[i];
     const base = { id: s.id, name: s.name, method: s.request.method, url: s.request.url };
     let result: RequestRunResult;
-    const { payload, missing } = buildProxyPayload(s.request, env);
+    // 运行期分层（Postman 优先级 local > data > environment > collection > globals）
+    const layers = {
+      globals: { ...(opts.variableLayers?.globals ?? {}) },
+      collection: { ...(opts.variableLayers?.collection ?? {}) },
+      local: { ...(opts.variableLayers?.local ?? {}) },
+    };
+    const workingReq = { ...s.request, headers: [...s.request.headers], body: s.request.body };
+    const applyWrites = (outcome: ScriptOutcomeData) => {
+      for (const w of outcome.envWrites) {
+        const target = w.layer === 'environment' ? env : w.layer === 'globals' ? layers.globals : w.layer === 'collection' ? layers.collection : layers.local;
+        if (w.value === null) delete target[w.name]; else target[w.name] = w.value;
+      }
+    };
+    const takeMutations = (outcome: ScriptOutcomeData) => {
+      if (outcome.requestMutations.headers) workingReq.headers = outcome.requestMutations.headers as KV[];
+      if (typeof outcome.requestMutations.body === 'string') workingReq.body = outcome.requestMutations.body;
+      if (typeof outcome.requestMutations.url === 'string') workingReq.url = outcome.requestMutations.url;
+      if (typeof outcome.requestMutations.method === 'string') workingReq.method = outcome.requestMutations.method;
+    };
+    const mergedForSubstitution = (): Record<string, string> => ({ ...layers.globals, ...layers.collection, ...env, ...(opts.iterationData ?? {}), ...layers.local });
+    const snapshotFor = (event: 'prerequest' | 'test', response: RunnerResponse | null): ScriptSnapshot => ({
+      request: { method: workingReq.method, url: workingReq.url, headers: workingReq.headers.map(h => ({ name: h.name, value: h.value })), body: workingReq.body },
+      response: response ? { status: response.status, statusText: response.statusText, headers: response.headers, body: response.body, responseTime: response.elapsedMs } : null,
+      globals: { ...layers.globals }, collection: { ...layers.collection }, environment: { ...env },
+      iterationData: { ...(opts.iterationData ?? {}) }, local: { ...layers.local },
+      info: { event, iteration: opts.iteration ?? 0, counter: i + 1 },
+    });
+
+    let scriptTests: ScriptTestResult[] | undefined;
+    let scriptError: string | undefined;
+    if (opts.runScript && s.scriptEvents?.prerequest) {
+      const r = await opts.runScript(s.scriptEvents.prerequest, snapshotFor('prerequest', null), send);
+      if (r.timedOut) scriptError = 'pre-request script killed (timeout)';
+      else if (r.error) scriptError = 'pre-request script error: ' + r.error;
+      applyWrites(r.outcome); takeMutations(r.outcome);
+    }
+
+    const { payload, missing } = buildProxyPayload(workingReq, mergedForSubstitution());
     if (missing.length) {
-      result = { ...base, sent: false, status: null, elapsedMs: null, error: `Missing variables: ${missing.join(', ')}. Define them in the Variables panel.`, report: null, passed: false };
+      result = { ...base, sent: false, status: null, elapsedMs: null, error: 'Missing variables: ' + missing.join(', ') + '. Define them in the Variables panel.', report: null, passed: false };
     }
     else {
       try {
         const resp = await send(payload);
         const report = runAssertions(s.assertions ?? [], resp, now());
-        result = { ...base, sent: true, status: resp.status, elapsedMs: resp.elapsedMs, report, passed: report.allPassed };
+        if (opts.runScript && s.scriptEvents?.test) {
+          const r2 = await opts.runScript(s.scriptEvents.test, snapshotFor('test', resp), send);
+          if (r2.outcome.tests.length) scriptTests = r2.outcome.tests.map(t => ({ name: t.name, passed: t.passed, ...(t.error ? { error: t.error } : {}) }));
+          if (r2.timedOut) scriptError = (scriptError ? scriptError + ' | ' : '') + 'test script killed (timeout)';
+          else if (r2.error) scriptError = (scriptError ? scriptError + ' | ' : '') + 'test script error: ' + r2.error;
+          applyWrites(r2.outcome);
+        }
+        const scriptOk = !scriptError && (scriptTests ?? []).every(t => t.passed);
+        result = { ...base, sent: true, status: resp.status, elapsedMs: resp.elapsedMs, report, ...(scriptTests ? { scriptTests } : {}), ...(scriptError ? { scriptError } : {}), passed: report.allPassed && scriptOk };
       }
       catch (e) {
-        result = { ...base, sent: false, status: null, elapsedMs: null, error: e instanceof Error ? e.message : String(e), report: null, passed: false };
+        result = { ...base, sent: false, status: null, elapsedMs: null, error: e instanceof Error ? e.message : String(e), report: null, ...(scriptTests ? { scriptTests } : {}), passed: false };
       }
     }
+    if (!result.sent && scriptError && !result.error) result.error = scriptError;
     results.push(result);
     opts.onProgress?.(result, i, saved.length);
 
@@ -133,6 +201,9 @@ export async function runCollection(
   const failed = results.filter(r => !r.passed).length;
   const assertionsTotal = results.reduce((n, r) => n + (r.report?.total ?? 0), 0);
   const assertionsPassed = results.reduce((n, r) => n + (r.report?.passed ?? 0), 0);
+  const scriptTestsTotal = results.reduce((n, r) => n + (r.scriptTests?.length ?? 0), 0);
+  const scriptTestsPassed = results.reduce((n, r) => n + (r.scriptTests?.filter(t => t.passed).length ?? 0), 0);
+  const scriptErrors = results.filter(r => r.scriptError).length;
   const avgResponseMs = sentResults.length
     ? Math.round(sentResults.reduce((n, r) => n + (r.elapsedMs ?? 0), 0) / sentResults.length)
     : null;
@@ -143,6 +214,9 @@ export async function runCollection(
     failed,
     assertionsPassed,
     assertionsTotal,
+    scriptTestsPassed,
+    scriptTestsTotal,
+    scriptErrors,
     totalDurationMs: finishedAt - startedAt,
     avgResponseMs,
     allPassed: failed === 0 && !cancelled,
@@ -180,6 +254,10 @@ export function formatCollectionReportText(summary: CollectionRunSummary): strin
       for (const a of r.report.results) {
         lines.push(`       [${a.passed ? 'PASS' : 'FAIL'}] ${a.label} — ${a.message}`);
       }
+    }
+    if (r.scriptError) lines.push('       [SCRIPT] ' + r.scriptError);
+    for (const t of r.scriptTests ?? []) {
+      lines.push('       [' + (t.passed ? 'PASS' : 'FAIL') + '] pm.test: ' + t.name + (t.error ? ' — ' + t.error : ''));
     }
   });
   return lines.join('\n');

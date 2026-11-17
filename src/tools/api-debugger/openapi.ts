@@ -14,7 +14,12 @@ import { parse as parseYaml } from 'yaml';
 import type { ApiRequestState, KV } from './engine';
 import { buildUrlWithQuery } from './query';
 
-export interface ImportedRequest { name: string; request: ApiRequestState }
+export interface ImportedRequest {
+  name: string
+  request: ApiRequestState
+  /** API-011：Postman pre-request/test 事件文本（可选；执行走隔离 Worker）。 */
+  scriptEvents?: { prerequest?: string; test?: string }
+}
 export interface OpenApiImportResult { requests: ImportedRequest[]; warnings: string[]; source: 'json' | 'yaml' | 'unknown' }
 
 const METHODS = ['get', 'post', 'put', 'patch', 'delete', 'head', 'options', 'trace'];

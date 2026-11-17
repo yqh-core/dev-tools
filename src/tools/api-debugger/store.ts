@@ -32,8 +32,10 @@ export interface SavedRequest {
   request: ApiRequestState
   createdAt: number
   updatedAt: number
-  /** API-009：随请求保存的断言快照（本机存储；Postman 导出不携带——不伪造 pm.* 脚本）。 */
+  /** API-009：随请求保存的断言快照（本机存储）。 */
   assertions?: Assertion[]
+  /** API-011：Postman 导入的 pre-request/test 脚本文本（本机保存；执行走隔离 Worker）。 */
+  scriptEvents?: { prerequest?: string; test?: string }
 }
 
 export const HISTORY_CAP = 50;
