@@ -11,6 +11,26 @@
 
 import type { CollectionRunSummary } from './runner';
 
+/** E3 终审 P0-2：secret 值级脱敏。secretValues=已标记敏感的变量**值**集合
+ *  （环境 secret 标记 / CLI env 文件 secret:true 由调用方收集后传入）。
+ *  三层口径如实声明：①结构面保证（字段不进报告）②消息截断（display/expect 上限）
+ *  ③本层：已标记 secret 的值在报告文本面扫描替换。未标记的任意值引擎无法预知——
+ *  不假装全知扫描（边界登记，不正称）。 */
+export interface ReportRedactOptions {
+  secretValues?: string[]
+}
+
+export function redactText(text: string, secretValues?: string[]): string {
+  if (!secretValues?.length) return text;
+  let out = text;
+  for (const v of secretValues) {
+    if (typeof v === 'string' && v.length > 3 && out.includes(v)) {
+      out = out.split(v).join('[REDACTED-Secret]');
+    }
+  }
+  return out;
+}
+
 export interface RunReportMeta {
   runId: string
   apiStudioVersion: string
@@ -41,9 +61,12 @@ export interface RunReport {
     durationMs: number
   }
   dataFile: { type: string; rows: number; columnsCount: number } | null
-  /** 安全摘要（机器可读的脱敏声明，非口头承诺）。 */
+  /** 安全摘要（机器可读的脱敏声明，非口头承诺。终审 P0-02：secretsExcluded 不再硬编码——
+   *  值级脱敏管道是否启用由本次运行是否提供已标记 secret 值决定；scope 显式声明口径。
+   *  结构面排除（环境值/数据行值/体/头值不序列化）恒真，与值级管道独立）。 */
   security: {
-    secretsExcluded: true
+    secretsExcluded: boolean
+    secretRedactionScope: 'marked-secret-values' | 'none'
     envValuesExcluded: true
     dataRowValuesExcluded: true
     requestResponseBodiesExcluded: true
@@ -69,7 +92,8 @@ export interface RunReport {
   }[]
 }
 
-export function buildRunReport(summary: CollectionRunSummary, meta: RunReportMeta): RunReport {
+export function buildRunReport(summary: CollectionRunSummary, meta: RunReportMeta, opts: ReportRedactOptions = {}): RunReport {
+  const sv = opts.secretValues;
   return {
     version: 1,
     meta,
@@ -94,8 +118,10 @@ export function buildRunReport(summary: CollectionRunSummary, meta: RunReportMet
       durationMs: summary.totalDurationMs,
     },
     dataFile: summary.dataFile ? { ...summary.dataFile } : null,
+    /** 安全摘要（机器可读的脱敏声明，非口头承诺）。终审 P0-02：值级管道启用与否如实派生。 */
     security: {
-      secretsExcluded: true,
+      secretsExcluded: Boolean(sv && sv.length),
+      secretRedactionScope: sv && sv.length ? 'marked-secret-values' : 'none',
       envValuesExcluded: true,
       dataRowValuesExcluded: true,
       requestResponseBodiesExcluded: true,
@@ -108,15 +134,16 @@ export function buildRunReport(summary: CollectionRunSummary, meta: RunReportMet
       requests: it.results.map(r => ({
         name: r.name,
         method: r.method,
-        url: r.url,
+        // 终审 P0-02：URL 同样过值级脱敏（secret 出现在 query/path 时不留原始全文）
+        url: redactText(r.url, sv),
         sent: r.sent,
         status: r.status,
         elapsedMs: r.elapsedMs,
         passed: r.passed,
-        ...(r.error ? { error: r.error } : {}),
-        ...(r.scriptError ? { scriptError: r.scriptError } : {}),
-        assertions: (r.report?.results ?? []).map(a => ({ label: a.label, passed: a.passed, message: a.message })),
-        scriptTests: (r.scriptTests ?? []).map(t => ({ name: t.name, passed: t.passed, ...(t.error ? { error: t.error } : {}) })),
+        ...(r.error ? { error: redactText(r.error, sv) } : {}),
+        ...(r.scriptError ? { scriptError: redactText(r.scriptError, sv) } : {}),
+        assertions: (r.report?.results ?? []).map(a => ({ label: a.label, passed: a.passed, message: redactText(a.message, sv) })),
+        scriptTests: (r.scriptTests ?? []).map(t => ({ name: t.name, passed: t.passed, ...(t.error ? { error: redactText(t.error, sv) } : {}) })),
       })),
     })),
   };
@@ -165,7 +192,7 @@ export function toJUnitXml(report: RunReport): string {
   lines.push(`    <property name="runId" value="${esc(report.meta.runId)}"/>`);
   lines.push(`    <property name="result" value="${report.summary.allPassed ? 'ALL PASSED' : 'FAILURES PRESENT'}"/>`);
   lines.push(`    <property name="dataFile" value="${report.dataFile ? `${report.dataFile.type} rows=${report.dataFile.rows}` : 'none'}"/>`);
-  lines.push(`    <property name="security" value="secrets/env/data/bodies/header-values excluded by default"/>`);
+  lines.push(`    <property name="security" value="secrets: ${report.security.secretsExcluded ? 'marked-values-redacted' : 'none (structural exclusions only)'}; env/data-row/body/header-values excluded structurally"/>`);
   lines.push(`  </properties>`);
   for (const { iteration, r } of rows) {
     const classname = `iteration ${iteration} · ${esc(r.name)}`;

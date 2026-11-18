@@ -27,6 +27,7 @@
  */
 
 import { type AssertionReport, runAssertions } from './assertions';
+import { redactText, type ReportRedactOptions } from './report';
 import { type KV, buildProxyPayload } from './engine';
 import type { SavedRequest } from './store';
 import type { DataFile } from './datafiles';
@@ -265,7 +266,10 @@ export async function runCollection(
       globalIdx++;
 
       if (stopOnError && !result.sent) { stoppedEarly = true; break; }
-      if (stopOnFailure && result.sent && result.report && !result.report.allPassed) { stoppedEarly = true; break; }
+    // --bail 口径修正（终审 P0）：pm.test 失败/脚本错误同样即停——result.passed 已含
+    // scriptOk 语义（report.allPassed && scriptOk）。原检查只覆盖结构化断言
+    // （result.report.allPassed），pm.test 失败时 report.allPassed=true 不触发即停。
+    if (stopOnFailure && result.sent && !result.passed) { stoppedEarly = true; break; }
       const isLastRequestOfLastRound = round === roundCount - 1 && i === saved.length - 1;
       if (delayMs > 0 && !isLastRequestOfLastRound && !opts.signal?.aborted) {
         await sleep(delayMs);
@@ -319,8 +323,10 @@ export async function runCollection(
   };
 }
 
-/** 可读纯文本运行报告（复制/下载共用）。脱敏：不含凭据头、数据行值、环境变量值、响应体。 */
-export function formatCollectionReportText(summary: CollectionRunSummary): string {
+/** 可读纯文本运行报告（复制/下载共用）。脱敏：不含凭据头、数据行值、环境变量值、响应体。
+ *  E3 终审 P0-2：已标记 secret 值时，错误/脚本错误/断言消息/pm.test 错误文本面扫描替换。 */
+export function formatCollectionReportText(summary: CollectionRunSummary, opts: ReportRedactOptions = {}): string {
+  const sv = opts.secretValues;
   const lines: string[] = [];
   lines.push(`API Studio collection run report — ${new Date(summary.finishedAt).toISOString()}`);
   const dataLine = summary.dataFile
@@ -346,20 +352,20 @@ export function formatCollectionReportText(summary: CollectionRunSummary): strin
     }
     for (const r of it.results) {
       n++;
-      const head = `[${n}] ${r.passed ? 'PASS' : 'FAIL'} ${r.name} (${r.method} ${r.url})`;
+      const head = `[${n}] ${r.passed ? 'PASS' : 'FAIL'} ${r.name} (${r.method} ${redactText(r.url, sv)})`;
       const meta = r.sent ? ` → ${r.status} (${r.elapsedMs} ms)${r.report && r.report.total ? ` · Tests ${r.report.passed}/${r.report.total}` : ''}` : ' → NOT SENT';
       lines.push(head + meta);
       if (r.error) {
-        lines.push(`       ${r.error}`);
+        lines.push(`       ${redactText(r.error, sv)}`);
       }
       if (r.report) {
         for (const a of r.report.results) {
-          lines.push(`       [${a.passed ? 'PASS' : 'FAIL'}] ${a.label} — ${a.message}`);
+          lines.push(`       [${a.passed ? 'PASS' : 'FAIL'}] ${a.label} — ${redactText(a.message, sv)}`);
         }
       }
-      if (r.scriptError) lines.push(`       [SCRIPT] ${r.scriptError}`);
+      if (r.scriptError) lines.push(`       [SCRIPT] ${redactText(r.scriptError, sv)}`);
       for (const t of r.scriptTests ?? []) {
-        lines.push(`       [${t.passed ? 'PASS' : 'FAIL'}] pm.test: ${t.name}${t.error ? ` — ${t.error}` : ''}`);
+        lines.push(`       [${t.passed ? 'PASS' : 'FAIL'}] pm.test: ${t.name}${t.error ? ` — ${redactText(t.error, sv)}` : ''}`);
       }
     }
   }

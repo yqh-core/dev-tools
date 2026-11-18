@@ -3,7 +3,7 @@
  * 顺序锁：B 阶段暴露过 store 头插致逆序执行缺陷——此处锁导入顺序=执行顺序。
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { mkdtempSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, writeFileSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { CliRunError, executeRun, loadCollectionRequests, loadEnvironment, loadIterationData } from './run';
@@ -164,4 +164,22 @@ describe('executeRun（stub send/runScript）', () => {
   it('前置失败：集合缺失 → CliRunError load（main 译为退出码 2）', async () => {
     await expect(executeRun(baseArgs({ collectionPath: join(tmpDir(), 'absent.json') }), { runScript: passingScript as never, send: stubSend as never })).rejects.toBeInstanceOf(CliRunError);
   });
+
+  it('E3 secret 值级 redact 端到端（env 文件 secret 标记 → stub 脚本失败消息含值 → 落盘 JSON 无值有替换标记）', async () => {
+    const dir = tmpDir();
+    writeFileSync(join(dir, 'c.json'), COLLECTION);
+    // baseUrl/email 必须齐：缺变量 → 请求不发送 → runScript 不触发 → 夹具空洞（首轮失败根因）。
+    writeFileSync(join(dir, 'env.json'), JSON.stringify({ name: 'cli-test', values: [
+      { key: 'baseUrl', value: 'https://upstream.example.test', enabled: true },
+      { key: 'email', value: 'alice@example.test', enabled: true },
+      { key: 'apiToken', value: 'SK-CLI-PLANT-9f3', enabled: true, secret: true },
+    ] }));
+    const failingScript = async () => ({ outcome: { tests: [{ name: 't', passed: false, error: 'expected 200 got 500; token=SK-CLI-PLANT-9f3' }], envWrites: [], requestMutations: {}, logs: [], sendRequests: [], asyncPending: false }, timedOut: false });
+    const reportPath = join(dir, 'report.json');
+    const r = await executeRun(baseArgs({ collectionPath: join(dir, 'c.json'), environmentFile: join(dir, 'env.json'), reporters: ['json'], reportJsonPath: reportPath }), { runScript: failingScript as never, send: stubSend as never });
+    expect(r.exit).toBe(1);
+    const written = JSON.parse(readFileSync(reportPath, 'utf8'));
+    expect(JSON.stringify(written)).not.toContain('SK-CLI-PLANT-9f3');
+    expect(JSON.stringify(written)).toContain('[REDACTED-Secret]');
+  }, 20000);
 });

@@ -1,8 +1,14 @@
-# API Studio 脚本执行顺序契约 v1（2026-11-17）
+# API Studio 脚本执行顺序契约 v1.1（2026-11-18：E5 异步生命周期增补）
 
 本文件是**版本化产品契约**（任务书 A3 要求：顺序不凭记忆臆造，写成契约并用真实样例测试）。
 实现：`src/tools/api-debugger/collection.ts`（importCollection 的 preChain/testChain 合并）。
 测试：`collection-scripts.test.ts`（含同序拼接负控）。
+
+## 变更记录
+
+- v1.1（2026-11-18，终审 P1-04/E5）：增补「异步脚本生命周期」节——pm.test 回调 Promise、
+  顶层 await、outbox 完成等待、单一终态。执行顺序本体不变。
+- v1（2026-11-17）：初始版本。
 
 ## 执行顺序（对标 Postman 官方执行序，核验日 2026-11-17）
 
@@ -28,6 +34,21 @@
   生成 `event: [{listen, script:{exec}}]` —— 导入 → 导出 → 再导入逐字节一致
   （`a1-closure.test.ts` 往返断言锚定）。
 - 无脚本的请求不生成 `event` 键。
+
+## 异步脚本生命周期（v1.1 增补；终审 P1-04/E5）
+
+对每一段脚本（prerequest/test，含集合级叠加段），沙箱执行包装为 async 函数并遵守：
+
+1. **顶层 await 支持**：用户脚本可 `await pm.sendRequest(...)`；脚本未完成不出具结论。
+2. **pm.test 回调可为 async**：回调返回 Promise 时，该 test 的成败在 **settled 后**才定
+   （拒绝=该 test 失败并带原因）；同步回调路径行为不变（双模 flushTests，零回归）。
+3. **outbox 完成等待**：fire-and-forget 的 `pm.sendRequest`（未 await）——其响应到达前
+   不发 `done`（响应回填脚本后续逻辑）；无内部硬上限，宿主 5s 墙钟 terminate 是唯一预算口径。
+4. **单一终态**：完成/超时/取消只有一种终态——`done` 消息每轮 run 至多发一次；超时由宿主
+   kill 整个 worker（进行中的其他 run 如实标 timedOut，不双重预算）；nonce 防陈旧回填
+   （迟到 done 不覆盖新 run）。
+5. **回调与 Promise 双通道**：pm.sendRequest 的 callback 触发计入生命周期（cb 先于
+   promise settle 调用）；桥失败如实 reject 传播为脚本错误（不伪造 ERROR 占位响应）。
 
 ## 与 Postman 的已知差异（如实登记，不冒充完整兼容）
 

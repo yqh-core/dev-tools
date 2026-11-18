@@ -5,6 +5,7 @@
  * pm.sendRequest 的桥接到宿主注入的 send（走既有 apiproxy allowlist，凭据不回给脚本）。
  */
 import type { ScriptSnapshot, ScriptOutcomeData } from './script-runtime';
+import { truncateResponseBody } from './script-runtime';
 import type { RunnerResponse } from './runner';
 
 export interface SandboxRunResult { outcome: ScriptOutcomeData; error?: string; timedOut: boolean }
@@ -29,7 +30,15 @@ function ensureWorker(): Worker {
         if (!run) { return; }
         const spec = d.spec as { url: string; method?: string; header?: { name: string; value: string }[]; body?: string };
         void run.send({ url: String(spec.url), method: String(spec.method ?? 'GET'), headers: spec.header ?? [], body: String(spec.body ?? '') })
-          .then(res => worker?.postMessage({ type: 'sendResponse', reqId: d.reqId, ok: true, result: { code: res.status, status: res.statusText, responseTime: res.elapsedMs } }))
+          .then(res => {
+            // 终审 P1-03/P1-04：桥回填完整响应面；响应体字节级截断（脚本面不接收无界响应体）
+            const t = truncateResponseBody(res.body);
+            worker?.postMessage({ type: 'sendResponse', reqId: d.reqId, ok: true, result: {
+              code: res.status, status: String(res.status), statusText: res.statusText,
+              headers: Object.entries(res.headers).map(([name, value]) => ({ name, value })),
+              body: t.body, responseTime: res.elapsedMs, truncated: t.truncated,
+            } });
+          })
           .catch(err => worker?.postMessage({ type: 'sendResponse', reqId: d.reqId, ok: false, error: String(err).slice(0, 200) }));
         return;
       }

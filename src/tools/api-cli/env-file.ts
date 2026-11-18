@@ -9,7 +9,7 @@
  *   CLI 无本地变量存储，歧义输入一律 fail-closed（C4：不得偷偷回退任何凭据）。
  */
 
-export type EnvParseResult = { ok: true; name?: string; env: Record<string, string> } | { ok: false; error: string };
+export type EnvParseResult = { ok: true; name?: string; env: Record<string, string>; secretNames: string[] } | { ok: false; error: string };
 
 export function parseEnvironmentFile(text: string, filename: string): EnvParseResult {
   if (typeof text !== 'string') return { ok: false, error: 'Environment file content must be text.' };
@@ -27,6 +27,7 @@ export function parseEnvironmentFile(text: string, filename: string): EnvParseRe
   // 形态 1：Postman environment v2.1（values 数组）
   if (Array.isArray(obj.values)) {
     const env: Record<string, string> = {};
+    const secretNames: string[] = [];
     for (const entry of obj.values) {
       if (!entry || typeof entry !== 'object' || Array.isArray(entry)) {
         return { ok: false, error: `Environment file "${filename}": every values entry must be an object.` };
@@ -37,10 +38,11 @@ export function parseEnvironmentFile(text: string, filename: string): EnvParseRe
         return { ok: false, error: `Environment file "${filename}": values entries require a non-empty string "key".` };
       }
       env[rec.key] = rec.value === undefined || rec.value === null ? '' : String(rec.value);
+      if (rec.secret === true) secretNames.push(rec.key);
     }
-    return { ok: true, name: typeof obj.name === 'string' ? obj.name : undefined, env };
+    return { ok: true, name: typeof obj.name === 'string' ? obj.name : undefined, env, secretNames };
   }
-  // 形态 2：扁平键值表
+  // 形态 2：扁平键值表（无 secret 标记机制——空集合）
   const env: Record<string, string> = {};
   for (const [k, v] of Object.entries(obj)) {
     if (v === undefined || v === null) continue;
@@ -49,5 +51,5 @@ export function parseEnvironmentFile(text: string, filename: string): EnvParseRe
     }
     env[k] = String(v);
   }
-  return { ok: true, env };
+  return { ok: true, env, secretNames: [] };
 }

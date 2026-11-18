@@ -94,8 +94,8 @@ export function loadCollectionRequests(collectionPath: string): { requests: Save
 }
 
 /** 环境加载：-e 文件（Postman environment v2.1 或扁平表）；命名环境 fail-closed（CLI 无本地存储）。 */
-export function loadEnvironment(environmentFile: string | undefined): { env: Record<string, string>; name?: string } {
-  if (!environmentFile) return { env: {} };
+export function loadEnvironment(environmentFile: string | undefined): { env: Record<string, string>; name?: string; secretNames: string[] } {
+  if (!environmentFile) return { env: {}, secretNames: [] };
   let text: string;
   try {
     text = readFileSync(environmentFile, 'utf8');
@@ -107,7 +107,7 @@ export function loadEnvironment(environmentFile: string | undefined): { env: Rec
   if (!r.ok) {
     throw new CliRunError(r.error, 'load');
   }
-  return { env: r.env, name: r.name };
+  return { env: r.env, name: r.name, secretNames: r.secretNames };
 }
 
 /** 数据文件加载：严格解析 fail-closed（与浏览器同引擎）。 */
@@ -181,7 +181,9 @@ function writeReportFile(path: string, content: string): void {
 /** run 命令编排。返回退出分类结果；所有失败路径可识别（C5）。 */
 export async function executeRun(args: CliArgs, opts: ExecuteRunOptions = {}): Promise<ExecuteRunResult> {
   const { requests, warnings, label } = loadCollectionRequests(args.collectionPath);
-  const { env, name: envName } = loadEnvironment(args.environmentFile);
+  const { env, name: envName, secretNames } = loadEnvironment(args.environmentFile);
+  // E3 终审 P0-2：已标记 secret 的环境变量**值**收集（报告 redact 用；CLI env 文件 secret:true 标记）
+  const secretValues = secretNames.filter(n => env[n] !== undefined).map(n => env[n]);
   const iteration = loadIterationData(args.iterationDataFile);
   for (const w of warnings) {
     process.stderr.write(`[collection warning] ${w}\n`);
@@ -216,7 +218,7 @@ export async function executeRun(args: CliArgs, opts: ExecuteRunOptions = {}): P
     startedAt: new Date(summary.startedAt).toISOString(),
     finishedAt: new Date(summary.finishedAt).toISOString(),
   };
-  const report = buildRunReport(summary, meta);
+  const report = buildRunReport(summary, meta, { secretValues });
 
   let reportWriteFailed = false;
   let firstWriteError: string | undefined;
@@ -235,7 +237,7 @@ export async function executeRun(args: CliArgs, opts: ExecuteRunOptions = {}): P
   };
   // cli reporter：stdout 仅放最终文本报告（进度在 stderr），CI 日志可完整重定向
   if (args.reporters.includes('cli')) {
-    process.stdout.write(formatCollectionReportText(summary) + '\n');
+    process.stdout.write(formatCollectionReportText(summary, { secretValues }) + '\n');
   }
   tryWrite(args.reportJsonPath, JSON.stringify(report, null, 2), 'json');
   tryWrite(args.reportJunitPath, toJUnitXml(report), 'junit');

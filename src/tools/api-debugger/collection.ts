@@ -97,29 +97,49 @@ export function importCollection(text: string): { requests: ImportedRequest[]; w
   };
   const docPre = takeEvents(doc.event, 'prerequest');
   const docTest = takeEvents(doc.event, 'test');
+  for (const ev of doc.event ?? []) {
+    if (ev && typeof ev === 'object' && typeof ev.listen === 'string' && ev.listen !== 'prerequest' && ev.listen !== 'test') {
+      warnings.push(`Collection event listen "${ev.listen}" is not prerequest/test — ignored (Postman v2.1 subset).`);
+    }
+  }
 
   const walk = (items: any[], prefix: string, preChain: string[], testChain: string[]) => {
     for (const it of items) {
       if (!it || typeof it !== 'object') {
+        // 终审 P1-06：未知/损坏条目不静默跳过——进 warning 列表（UI 可见）
+        warnings.push(`Non-object entry in item array (prefix: "${prefix || 'collection'}") — skipped.`);
         continue;
       }
       const name = prefix ? `${prefix} / ${it.name ?? 'item'}` : String(it.name ?? 'item');
       const ownPre = takeEvents(it.event, 'prerequest');
       const ownTest = takeEvents(it.event, 'test');
+      for (const ev of it.event ?? []) {
+        if (ev && typeof ev === 'object' && typeof ev.listen === 'string' && ev.listen !== 'prerequest' && ev.listen !== 'test') {
+          warnings.push(`Request "${name}" event listen "${ev.listen}" is not prerequest/test — ignored (Postman v2.1 subset).`);
+        }
+      }
       if (Array.isArray(it.item)) {
         walk(it.item, name, ownPre ? [...preChain, ownPre] : preChain, ownTest ? [ownTest, ...testChain] : testChain);
         continue;
       }
       const req = it.request;
       if (!req || typeof req !== 'object') {
+        warnings.push(`Item "${name}" is neither a folder (no item array) nor a request (no request object) — skipped.`);
         continue;
+      }
+      if (req.auth !== undefined) {
+        warnings.push(`Request "${name}" declares auth — auth is not applied by the importer (declare headers explicitly).`);
+      }
+      // 终审 P1-06：非 raw body 模式（urlencoded/formdata/graphql/file/binary）不静默丢弃——进 warning
+      const body = typeof req.body?.raw === 'string' ? req.body.raw : '';
+      if (req.body && typeof req.body === 'object' && typeof req.body.raw !== 'string') {
+        warnings.push(`Request "${name}" body mode "${String((req.body as any).mode ?? 'unknown')}" is not imported (only raw string bodies) — re-enter the body manually.`);
       }
       const method = String(req.method ?? 'GET').toUpperCase();
       const url = typeof req.url === 'string' ? req.url : String(req.url?.raw ?? '');
       const headers: KV[] = Array.isArray(req.header)
         ? req.header.filter((h: any) => h && h.key).map((h: any) => ({ name: String(h.key), value: String(h.value ?? '') }))
         : [];
-      const body = typeof req.body?.raw === 'string' ? req.body.raw : '';
       // 契约 v1：prerequest = 外层链 + 自身；test = 自身 + 外层链（内层先跑）
       const pre = [...preChain, ...(ownPre ? [ownPre] : [])].filter(Boolean).join('\n');
       const test = [...(ownTest ? [ownTest] : []), ...testChain].filter(Boolean).join('\n');

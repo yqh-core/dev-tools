@@ -232,7 +232,7 @@ function evaluate(a: Assertion, resp: AssertableResponse, json: JsonParse | null
       if (a.operator === 'eq') {
         return value === a.expected
           ? pass(display(value), `Header "${a.target}" equals the expected value.`)
-          : fail(display(value), `Expected header "${a.target}" to equal "${a.expected}", got "${value}".`);
+          : fail(display(value), `Expected header "${a.target}" to equal "${a.expected}", got "${display(value)}".`);
       }
       if (a.operator === 'ne') {
         return value !== a.expected
@@ -242,7 +242,7 @@ function evaluate(a: Assertion, resp: AssertableResponse, json: JsonParse | null
       // contains
       return value.includes(a.expected)
         ? pass(display(value), `Header "${a.target}" contains "${a.expected}".`)
-        : fail(display(value), `Expected header "${a.target}" to contain "${a.expected}", got "${value}".`);
+        : fail(display(value), `Expected header "${a.target}" to contain "${a.expected}", got "${display(value)}".`);
     }
     case 'json': {
       if (!json || !json.ok) {

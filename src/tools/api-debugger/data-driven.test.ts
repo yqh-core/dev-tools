@@ -127,6 +127,19 @@ describe('B 停止与取消', () => {
     expect(sum.sent).toBe(1); // attempted=1（首轮断言失败即停）
   });
 
+  it('stopOnFailure 对 pm.test 失败同样即停（终审 P0-3 --bail 修复锁：原检查只覆盖结构化断言）', async () => {
+    let calls = 0;
+    const runScript: RunScriptFn = async () => {
+      calls++;
+      return { outcome: { tests: [{ name: 'must fail', passed: false, error: 'boom' }], envWrites: [], requestMutations: {}, logs: [], sendRequests: [], asyncPending: false }, timedOut: false };
+    };
+    // 请求带 test 脚本事件（否则 mergedTest 为空，runScript 不会被调用——夹具教训）
+    const sum = await runCollection([saved('r', {}, { test: 'pm.test("t", () => {});' }), saved('r2')], {}, vi.fn(async () => resp()) as never, { runScript, stopOnFailure: true });
+    expect(sum.stoppedEarly).toBe(true);
+    expect(calls).toBe(1); // 第 1 个请求 pm.test 失败 → 第 2 个请求不执行（--bail 语义）
+    expect(sum.sent).toBe(1);
+  });
+
   it('取消：signal 在轮间 abort → cancelled=true 且不再开新轮', async () => {
     const signal = { aborted: false };
     let rounds = 0;

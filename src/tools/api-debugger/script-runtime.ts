@@ -14,9 +14,33 @@
 
 export interface ScriptKV { name: string; value: string }
 
-/** A-018 outbox 资源上限（任务书 A5：过量消息/异常大对象有明确上限，fail-closed 不静默丢）。 */
-export const OUTBOX_MAX_QUEUED = 50;
+/** A-018 outbox 资源上限（任务书 A5：过量消息/异常大对象有明确上限，fail-closed 不静默丢）。
+ *  终审 P1-03 口径明确化：OUTBOX_MAX_SENDS=**累计发送数**上限（非 pending——outcome.sendRequests
+ *  只增不清，旧名 MAX_QUEUED 误导）；spec 上限按 **UTF-8 字节**（非 UTF-16 码元数）。 */
+export const OUTBOX_MAX_SENDS = 100;
 export const OUTBOX_SPEC_MAX_BYTES = 1_000_000;
+/** 宿主桥回填响应体截断上限（字节）——脚本面不接收无界响应体（终审 P1-03）。 */
+export const RESPONSE_BODY_MAX_BYTES = 1_000_000;
+/** 单次脚本运行 console 捕获总量上限（字节）——超出后丢弃并标记，不静默无限增长。 */
+export const CONSOLE_TOTAL_MAX_BYTES = 262_144;
+/** 断言/错误消息展示上限（字符）——脱敏三层口径的第 2 层（截断）；值级替换在报告层 redactText。 */
+export const DISPLAY_CAP = 200;
+
+const te = new TextEncoder();
+/** spec 的 UTF-8 字节数（终审 P1-03：原 JSON.stringify.length 是 UTF-16 码元数，口径不符）。 */
+export function specByteLength(spec: unknown): number {
+  return te.encode(JSON.stringify(spec ?? '')).byteLength;
+}
+/** 字符串 UTF-8 字节数（console 累计上限计量用）。 */
+export function utf8Bytes(s: string): number {
+  return te.encode(s).byteLength;
+}
+/** 响应体字节级截断（多字节字符尾部不完整序列由 TextDecoder 非 fatal 丢弃，不冒充完整内容）。 */
+export function truncateResponseBody(body: string, max = RESPONSE_BODY_MAX_BYTES): { body: string; truncated: boolean } {
+  const bytes = te.encode(body);
+  if (bytes.byteLength <= max) return { body, truncated: false };
+  return { body: new TextDecoder().decode(bytes.slice(0, max)) + `\n[truncated at ${max} bytes by sandbox response cap]`, truncated: true };
+}
 
 /** 主线程→Worker 的快照（全部可结构化克隆；不含函数/凭据引用）。 */
 export interface ScriptSnapshot {
@@ -77,22 +101,78 @@ export interface PmApi {
 export interface RuntimeIO {
   outcome: ScriptOutcomeData
   console: (...args: unknown[]) => void
-  /** 由宿主注入的真实发送桥（Worker 内为消息往返；纯测试注入 stub）。 */
-  sendRequest: (spec: { url: string; method?: string; header?: ScriptKV[]; body?: string }) => Promise<{ code: number; status: string; responseTime: number }>
+  /**
+   * 由宿主注入的真实发送桥（Worker 内为消息往返；纯测试注入 stub）。
+   * 终审 P1-04：桥回填**完整响应面**（status/statusText/headers/body/responseTime），
+   * 响应体经 truncateResponseBody 字节级截断；未声明的字段不暴露（访问即 undefined，
+   * 支持矩阵见 docs/api-studio/PM_SUPPORT_MATRIX.md pm.sendRequest 行）。
+   */
+  sendRequest: (spec: { url: string; method?: string; header?: ScriptKV[]; body?: string }) => Promise<BridgeResponse>
+}
+
+/** 宿主桥→脚本面的响应形状（pm.sendRequest 的 then/callback 入参由运行时包装成 Postman 风格视图）。 */
+export interface BridgeResponse {
+  code: number
+  status: string
+  statusText?: string
+  headers?: ScriptKV[]
+  body?: string
+  responseTime?: number
+  truncated?: boolean
+}
+
+/** pm.sendRequest 返回值包装（Postman 风格视图：code/status/headers.get/text/json/responseTime/size）。 */
+function wrapBridgeResponse(res: BridgeResponse) {
+  const body = res.body ?? '';
+  const headers = res.headers ?? [];
+  const lower = (n: string) => n.toLowerCase();
+  return {
+    code: res.code,
+    status: res.status ?? String(res.code),
+    statusText: res.statusText ?? '',
+    headers: {
+      get: (n: string) => headers.find(h => lower(h.name) === lower(n))?.value,
+      has: (n: string) => headers.some(h => lower(h.name) === lower(n)),
+      all: () => headers.map(h => ({ key: h.name, value: h.value })),
+      count: () => headers.length,
+    },
+    text: () => body,
+    json: () => JSON.parse(body),
+    responseTime: res.responseTime ?? 0,
+    size: body.length,
+    ...(res.truncated ? { truncated: true as const } : {}),
+  };
 }
 
 const STR = (v: unknown): string => typeof v === 'string' ? v : String(v ?? '')
+/** 展示截断（终审 P0-02 第 2 层口径：断言/错误消息面截断 actual/expected；值级替换在报告层）。 */
+const disp = (v: unknown): string => {
+  let s: string;
+  try { s = JSON.stringify(v) ?? String(v) } catch { s = String(v) }
+  return s.length > DISPLAY_CAP ? s.slice(0, DISPLAY_CAP) + `…(+${s.length - DISPLAY_CAP} chars)` : s;
+};
 
-/** 作用域链读取（Postman 优先级；local 是脚本本次运行的临时层）。 */
-function readVar(snap: ScriptSnapshot, layerOrder: (keyof Pick<ScriptSnapshot, 'globals' | 'collection' | 'environment' | 'iterationData' | 'local'>)[], name: string): string | undefined {
-  for (const layer of layerOrder) {
-    const v = snap[layer][name]
-    if (v !== undefined) return v
+/**
+ * 变量解析优先级（Postman 语义；终审 P1-01：唯一权威序——resolveVariable 供
+ * get/has/replaceIn/toObject 共用；请求插值（runner mergedForSubstitution）由
+ * consistency 五层同名矩阵锁证明与此序等价）。
+ */
+export const VARIABLE_PRECEDENCE = ['local', 'iterationData', 'environment', 'collection', 'globals'] as const;
+export type VarLayerName = (typeof VARIABLE_PRECEDENCE)[number];
+
+/** 先命中先返回；undefined 不遮蔽更低优先级层（Postman：未定义=穿透）。 */
+export function resolveVariable(snap: ScriptSnapshot, name: string): string | undefined {
+  for (const layer of VARIABLE_PRECEDENCE) {
+    const v = snap[layer][name];
+    if (v !== undefined) return v;
   }
-  return undefined
+  return undefined;
 }
 
-/* ---------- pm.expect 最小断言子集（fail-closed：不认识的链式方法抛错=测试失败） ---------- */
+/* ---------- pm.expect 最小断言子集（fail-closed：不认识的链式方法抛错=测试失败） ----------
+ * 终审 P0-02：消息面 actual/expected 一律经 disp() 截断（DISPLAY_CAP）——旧实现全量
+ * JSON.stringify(actual)，secret 经 pm.expect(secret) 失败消息完整进报告。已标记 secret
+ * 的值级替换在报告层 redactText（第 3 层）；截断是第 2 层；结构面不序列化是第 1 层。 */
 class ExpectError extends Error {}
 
 function buildExpect(actual: unknown) {
@@ -102,30 +182,30 @@ function buildExpect(actual: unknown) {
   chain.to = self(); (chain as any).be = self(); (chain as any).been = self(); (chain as any).is = self()
   chain.and = self(); (chain as any).has = self(); (chain as any).with = self(); (chain as any).that = self()
   chain.not = {
-    equal: (x: unknown) => assert(String(actual) !== String(x), `expected ${JSON.stringify(actual)} not to equal ${JSON.stringify(x)}`),
-    exist: () => assert(actual === null || actual === undefined, `expected value not to exist but got ${JSON.stringify(actual)}`),
+    equal: (x: unknown) => assert(String(actual) !== String(x), `expected ${disp(actual)} not to equal ${disp(x)}`),
+    exist: () => assert(actual === null || actual === undefined, `expected value not to exist but got ${disp(actual)}`),
   }
-  chain.equal = (x: unknown) => { assert(actual === x, `expected ${JSON.stringify(actual)} to equal ${JSON.stringify(x)}`); return self() }
-  chain.eql = (x: unknown) => { assert(JSON.stringify(actual) === JSON.stringify(x), `expected deep equality between ${JSON.stringify(actual)} and ${JSON.stringify(x)}`); return self() }
+  chain.equal = (x: unknown) => { assert(actual === x, `expected ${disp(actual)} to equal ${disp(x)}`); return self() }
+  chain.eql = (x: unknown) => { assert(JSON.stringify(actual) === JSON.stringify(x), `expected deep equality between ${disp(actual)} and ${disp(x)}`); return self() }
   chain.include = (x: unknown) => {
     const ok = typeof actual === 'string' ? actual.includes(String(x)) : Array.isArray(actual) ? actual.map(String).includes(String(x)) : false
-    assert(ok, `expected ${JSON.stringify(actual)} to include ${JSON.stringify(x)}`); return self()
+    assert(ok, `expected ${disp(actual)} to include ${disp(x)}`); return self()
   }
-  chain.match = (re: RegExp) => { assert(re.test(STR(actual)), `expected ${JSON.stringify(actual)} to match ${re}`); return self() }
-  chain.above = (n: number) => { assert(Number(actual) > n, `expected ${JSON.stringify(actual)} to be above ${n}`); return self() }
-  chain.below = (n: number) => { assert(Number(actual) < n, `expected ${JSON.stringify(actual)} to be below ${n}`); return self() }
-  chain.ok = () => { assert(!!actual, `expected ${JSON.stringify(actual)} to be truthy`); return self() }
-  chain.true = () => { assert(actual === true, `expected true, got ${JSON.stringify(actual)}`); return self() }
-  chain.null = () => { assert(actual === null, `expected null, got ${JSON.stringify(actual)}`); return self() }
+  chain.match = (re: RegExp) => { assert(re.test(STR(actual)), `expected ${disp(actual)} to match ${re}`); return self() }
+  chain.above = (n: number) => { assert(Number(actual) > n, `expected ${disp(actual)} to be above ${n}`); return self() }
+  chain.below = (n: number) => { assert(Number(actual) < n, `expected ${disp(actual)} to be below ${n}`); return self() }
+  chain.ok = () => { assert(!!actual, `expected ${disp(actual)} to be truthy`); return self() }
+  chain.true = () => { assert(actual === true, `expected true, got ${disp(actual)}`); return self() }
+  chain.null = () => { assert(actual === null, `expected null, got ${disp(actual)}`); return self() }
   chain.exist = () => { assert(actual !== null && actual !== undefined, 'expected value to exist'); return self() }
   chain.lengthOf = (n: number) => { const len = (actual as { length?: number })?.length; assert(len === n, `expected length ${n}, got ${String(len)}`); return self() }
   chain.property = (name: string, val?: unknown) => {
     const v = (actual as Record<string, unknown>)?.[name]
-    assert(v !== undefined, `expected property ${JSON.stringify(name)}`)
-    if (val !== undefined) assert(String(v) === String(val), `expected property ${name}=${JSON.stringify(val)}, got ${JSON.stringify(v)}`)
+    assert(v !== undefined, `expected property ${disp(name)}`)
+    if (val !== undefined) assert(String(v) === String(val), `expected property ${name}=${disp(val)}, got ${disp(v)}`)
     return self()
   }
-  chain.oneOf = (arr: unknown[]) => { assert(Array.isArray(arr) && arr.some(x => String(x) === String(actual)), `expected ${JSON.stringify(actual)} to be one of ${JSON.stringify(arr)}`); return self() }
+  chain.oneOf = (arr: unknown[]) => { assert(Array.isArray(arr) && arr.some(x => String(x) === String(actual)), `expected ${disp(actual)} to be one of ${disp(arr)}`); return self() }
   chain.a = (t: string) => { assert((t === 'number' ? typeof actual === 'number' : t === 'string' ? typeof actual === 'string' : t === 'array' ? Array.isArray(actual) : t === 'object' ? typeof actual === 'object' : false), `expected type ${t}`); return self() }
   chain.have = self(); chain.with = self()
   return chain
@@ -135,11 +215,12 @@ function buildExpect(actual: unknown) {
 export function createPmAPI(snap: ScriptSnapshot, io: RuntimeIO) {
   const { outcome } = io
   const tests: ScriptOutcomeData['tests'] = []
+  const pendingTests: Promise<void>[] = [] // E5 异步断言（pm.test 回调返回 Promise）等待收集
   const varList = (layer: keyof Pick<ScriptSnapshot, 'globals' | 'collection' | 'environment' | 'iterationData' | 'local'>) =>
     Object.entries(snap[layer]).map(([key, value]) => ({ key, value }))
 
   const makeVarLayer = (layer: 'globals' | 'collection' | 'environment') => ({
-    get: (name: string) => readVar(snap, [layer], name),
+    get: (name: string) => snap[layer][name],
     set: (name: string | { key: string; value: string } | Record<string, string>, value?: string) => {
       if (typeof name === 'string') { outcome.envWrites.push({ layer, name, value: STR(value) }); snap[layer][name] = STR(value) }
       else if (Array.isArray(name)) { for (const v of name) { outcome.envWrites.push({ layer, name: v.key, value: STR(v.value) }); snap[layer][v.key] = STR(v.value) } }
@@ -204,40 +285,59 @@ export function createPmAPI(snap: ScriptSnapshot, io: RuntimeIO) {
     environment: makeVarLayer('environment'),
     collectionVariables: makeVarLayer('collection'),
     globals: makeVarLayer('globals'),
-    iterationData: { get: (n: string) => readVar(snap, ['iterationData'], n), has: (n: string) => snap.iterationData[n] !== undefined, toObject: () => varList('iterationData'), count: () => Object.keys(snap.iterationData).length },
+    iterationData: { get: (n: string) => snap.iterationData[n], has: (n: string) => snap.iterationData[n] !== undefined, toObject: () => varList('iterationData'), count: () => Object.keys(snap.iterationData).length },
     variables: {
-      get: (n: string) => readVar(snap, ['local', 'iterationData', 'environment', 'collection', 'globals'], n),
+      get: (n: string) => resolveVariable(snap, n),
       set: (n: string, v: string) => { outcome.envWrites.push({ layer: 'local', name: n, value: STR(v) }); snap.local[n] = STR(v) },
       unset: (n: string) => { outcome.envWrites.push({ layer: 'local', name: n, value: null }); delete snap.local[n] },
-      has: (n: string) => readVar(snap, ['local', 'iterationData', 'environment', 'collection', 'globals'], n) !== undefined,
+      has: (n: string) => resolveVariable(snap, n) !== undefined,
       toObject: () => {
+        // 与 resolveVariable 同序：高优先级覆盖低优先级（先赋低优先级，后赋高优先级）
         const merged: Record<string, string> = {}
-        for (const layer of ['globals', 'collection', 'environment', 'iterationData', 'local'] as const) Object.assign(merged, snap[layer])
+        for (const layer of [...VARIABLE_PRECEDENCE].reverse()) Object.assign(merged, snap[layer])
         return Object.entries(merged).map(([key, value]) => ({ key, value }))
       },
-      replaceIn: (text: string) => STR(text).replace(/{{\s*([\w.-]+)\s*}}/g, (_m, name: string) => readVar(snap, ['local', 'iterationData', 'collection', 'environment', 'globals'], name) ?? ''),
+      replaceIn: (text: string) => STR(text).replace(/{{\s*([\w.-]+)\s*}}/g, (_m, name: string) => resolveVariable(snap, name) ?? ''),
     },
-    test: (name: string, fn: () => void) => {
-      try { fn(); tests.push({ name, passed: true }) }
+    test: (name: string, fn: () => void | Promise<void>) => {
+      try {
+        const r = fn();
+        if (r && typeof (r as PromiseLike<void>).then === 'function') {
+          // E5 异步断言（终审 P1-2）：settled 后才定成败——Postman 沙箱语义，
+          // 脚本未完成结论不出具（同步路径行为不变，回归锁保护）。
+          pendingTests.push(Promise.resolve(r).then(
+            () => { tests.push({ name, passed: true }) },
+            (e: unknown) => { tests.push({ name, passed: false, error: e instanceof Error ? e.message : String(e) }) },
+          ));
+        }
+        else {
+          tests.push({ name, passed: true })
+        }
+      }
       catch (e) { tests.push({ name, passed: false, error: e instanceof Error ? e.message : String(e) }) }
     },
     expect: (actual: unknown) => buildExpect(actual),
     sendRequest: async (urlOrReq: unknown, cb?: (err: unknown, res: unknown) => void) => {
-      const spec = typeof urlOrReq === 'string' ? { url: urlOrReq } : urlOrReq as RuntimeIO['outcome']['sendRequests'][number]
-      // A-018 资源上限（fail-closed：拒绝而非静默丢、不假装成功；无限循环由 5s terminate 兜底已测）
-      if (outcome.sendRequests.length >= OUTBOX_MAX_QUEUED) {
-        const e = new Error(`pm.sendRequest outbox queue limit (${OUTBOX_MAX_QUEUED} pending) exceeded — host aborting to protect resources.`);
+      let spec = typeof urlOrReq === 'string' ? { url: urlOrReq } : urlOrReq as RuntimeIO['outcome']['sendRequests'][number];
+      // Postman 同口径：outbox URL 经同一 resolver 做 {{}} 插值（终审 P1-01 单源序；E2E S14c 实弹）
+      spec = { ...spec, url: STR(spec.url).replace(/{{\s*([\w.-]+)\s*}}/g, (_m, n: string) => resolveVariable(snap, n) ?? '') };
+      // A-018/终审 P1-03 资源上限（fail-closed：拒绝而非静默丢、不假装成功；无限循环由 5s terminate 兜底已测）
+      // 口径：OUTBOX_MAX_SENDS=单脚本**累计**发送数上限；spec 上限按 UTF-8 字节（非码元数）。
+      if (outcome.sendRequests.length >= OUTBOX_MAX_SENDS) {
+        const e = new Error(`pm.sendRequest cumulative send limit (${OUTBOX_MAX_SENDS} per script run) exceeded — host aborting to protect resources.`);
         cb?.(e, null); throw e;
       }
-      if (JSON.stringify(spec).length > OUTBOX_SPEC_MAX_BYTES) {
-        const e = new Error(`pm.sendRequest spec exceeds ${OUTBOX_SPEC_MAX_BYTES} bytes (URL+headers+body) — host aborting to protect resources.`);
+      const bytes = specByteLength(spec);
+      if (bytes > OUTBOX_SPEC_MAX_BYTES) {
+        const e = new Error(`pm.sendRequest spec exceeds ${OUTBOX_SPEC_MAX_BYTES} UTF-8 bytes (got ${bytes}; URL+headers+body) — host aborting to protect resources.`);
         cb?.(e, null); throw e;
       }
       outcome.sendRequests.push(spec)
       try {
         const res = await io.sendRequest(spec)
-        cb?.(null, res)
-        return res
+        const wrapped = wrapBridgeResponse(res); // 终审 P1-04：Postman 风格响应视图（text/json/headers.get…）
+        cb?.(null, wrapped);
+        return wrapped;
       }
       catch (e) { cb?.(e, null); throw e }
     },
@@ -255,7 +355,13 @@ export function createPmAPI(snap: ScriptSnapshot, io: RuntimeIO) {
     error: (...a: unknown[]) => io.console(...a),
     debug: (...a: unknown[]) => io.console(...a),
   }
-  return { pm: pm as unknown as PmApi, console: consoleShim, flushTests: () => { outcome.tests.push(...tests) } }
+  // E5 双模 flushTests：同步脚本路径（pendingTests 空）立即 push——现有调用零回归；
+  // 异步断言路径返回 Promise（worker 统一 await；同步调用方不 await 也已拿到结果）。
+  const flushTests = (): void | Promise<void> => {
+    if (pendingTests.length === 0) { outcome.tests.push(...tests); return; }
+    return Promise.allSettled(pendingTests).then(() => { outcome.tests.push(...tests) });
+  };
+  return { pm: pm as unknown as PmApi, console: consoleShim, flushTests };
 }
 
 export const EXPECT_ERROR_NAME = 'ExpectError'
@@ -267,14 +373,26 @@ export const EXPECT_ERROR_NAME = 'ExpectError'
  *   1. 在用户代码 eval 之前，把上述全局替换为"读取即抛错"的访问器（fail-closed）；
  *   2. 唯一合法网络路径 = pm.sendRequest → outbox → 宿主经既有 apiproxy（同源端点、目标策略、
  *      超时与审计在宿主侧）；
- *   3. 已知局限（如实记录，不伪装成不可绕边界）：中和是运行时全局替换，未来新增的 Worker
- *      API 不在清单内即失效；主线程侧另有 message 类型白名单兜底（未知消息一律忽略）。
+ *   3. 终审 P0-01/P1-09 补强：Function 构造器 / eval 读取即抛（直接构造逃逸闭合）。
+ *      **WebAssembly 试列后实证排除**：worker_threads 引导期存在无 JS 栈的原生 WebAssembly
+ *      读（getter 抛错致 bundle 加载即炸，干净目录冒烟捕获）——原生读不可中和，列它反而
+ *      破坏沙箱自身启动；WASM 内存面 DoS 由宿主 resourceLimits（maxOldGenerationSizeMb）
+ *      上限兜住。WASM 无宿主导入即无 fs/net 能力，非外传通道。
+ *      **如实登记的残余**：原型链混淆（''.constructor.constructor + 拆分字符串）在
+ *      worker_threads 下仍可达动态 import——进程内 JS 沙箱无法对恶意代码闭环（Node 官方
+ *      Permission Model 同样实证不拦模块加载）；对恶意代码的完整闭环需 OS 边界隔离
+ *      （独立低权限子进程/容器），登记为产品决策项。定位=开发工具脚本环境 + fail-closed
+ *      守卫，不正称"不可绕边界"。
+ *   4. 已知局限（如实记录，不伪装成不可绕边界）：静态模块护栏是正则，混淆构造可绕过；
+ *      中和是运行时全局替换，未来新增的 Worker API 不在清单内即失效；主线程侧另有 message
+ *      类型白名单兜底（未知消息一律忽略）。
  *   本函数纯函数化以便单测负控；worker 启动时安装。
  */
 export const SANDBOX_BLOCKED_GLOBALS = [
   'fetch', 'XMLHttpRequest', 'WebSocket', 'EventSource',
   'importScripts', 'Worker', 'SharedWorker', 'BroadcastChannel',
   'caches', 'indexedDB', 'Notification', 'open',
+  'Function', 'eval',
 ] as const;
 
 export function installSandboxGuards(scope: Record<string, unknown>): string[] {

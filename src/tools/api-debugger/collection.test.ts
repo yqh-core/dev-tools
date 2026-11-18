@@ -77,4 +77,28 @@ describe('negative controls', () => {
     expect(importCollection('{"foo":1}').warnings.join(' ')).toContain('Postman');
     expect(importCollection(JSON.stringify({ item: [] })).warnings.join(' ')).toContain('No requests');
   });
+  // 终审 P1-06：未知/不支持条目不静默跳过——全部进 warning 列表（矩阵判据见 IMPORT_FIELD_MATRIX.md）
+  it('P1-06 非对象条目/无 request 无 item 条目/未知 listen/非 raw body/请求级 auth → warnings', () => {
+    const col = JSON.stringify({
+      item: [
+        null,
+        { name: 'Ghost', description: 'no request no folder' },
+        { name: 'W', event: [{ listen: 'unknownListen', script: { exec: ['pm.test("t",()=>{});'] } }], request: { method: 'GET', url: 'https://x.test/w' } },
+        { name: 'F', request: { method: 'GET', url: 'https://x.test/f', body: { mode: 'formdata', urlencoded: [] }, auth: { type: 'bearer' } } },
+      ],
+    });
+    const r = importCollection(col);
+    const w = r.warnings.join(' ');
+    expect(r.requests.map(q => q.name)).toEqual(['W', 'F']); // 两个坏条目不进请求面
+    expect(w).toContain('Non-object entry');
+    expect(w).toContain('neither a folder');
+    expect(w).toContain('listen "unknownListen"');
+    expect(w).toContain('body mode "formdata"');
+    expect(w).toContain('declares auth');
+  });
+  it('P1-06 集合级未知 listen 也进 warning', () => {
+    const col = JSON.stringify({ event: [{ listen: 'prerequest' }, { listen: 'other', script: { exec: ['1;'] } }], item: [{ name: 'A', request: { method: 'GET', url: 'https://x.test/' } }] });
+    const w = importCollection(col).warnings.join(' ');
+    expect(w).toContain('Collection event listen "other"');
+  });
 });

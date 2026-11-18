@@ -12,7 +12,7 @@ import { buildRunReport, toJUnitXml, type RunReportMeta } from './report';
 import { formatBytes, searchBody, utf8Bytes } from './response';
 import { authHeaderPreset, buildUrlWithQuery, parseQueryParams } from './query';
 import { importOpenApi } from './openapi';
-import { type EnvStore, VAR_SCOPES, type VarScope, activeVars, addEnv, deleteEnv, exportableVars, isSecret, migrateEnv, removeScopeVar, renameEnv, scopeOf, scopeVars, setEnvVar, setScopeVar, setSecret } from './environments';
+import { type EnvStore, VAR_SCOPES, type VarScope, activeVars, addEnv, collectSecretValues, deleteEnv, exportableVars, isSecret, migrateEnv, removeScopeVar, renameEnv, scopeOf, scopeVars, setEnvVar, setScopeVar, setSecret } from './environments';
 import { exportCollection, importCollection } from './collection';
 import { runScriptIsolated } from './script-sandbox';
 import { buildDownloadFilename, downloadTextFile, mimeForLanguage } from '@/composable/downloadText';
@@ -273,7 +273,7 @@ function cancelRun(): void {
   }
 }
 function runnerReportText(): string {
-  return runnerSummary.value ? formatCollectionReportText(runnerSummary.value) : '';
+  return runnerSummary.value ? formatCollectionReportText(runnerSummary.value, { secretValues: secretValues.value }) : '';
 }
 async function copyRunnerReport(): Promise<void> {
   try {
@@ -369,6 +369,9 @@ function resolveIterations(): number | null {
 
 /** 与 package.json version 同步（报告 meta 的信息性字段）。 */
 const API_STUDIO_VERSION = '2026.01.22-v2';
+/** E3 终审 P0-2：已标记 secret 的环境变量值集合（报告 redact 用——值级扫描；
+ *  未标记的任意值引擎无法预知，不假装全知扫描，边界如实登记）。 */
+const secretValues = computed(() => collectSecretValues(envStore.value));
 function runnerReportMeta(): RunReportMeta {
   return {
     runId: lastRunId.value,
@@ -384,7 +387,7 @@ function downloadRunnerJsonReport(): void {
     return;
   }
   const ok = downloadTextFile({
-    content: JSON.stringify(buildRunReport(runnerSummary.value, runnerReportMeta()), null, 2),
+    content: JSON.stringify(buildRunReport(runnerSummary.value, runnerReportMeta(), { secretValues: secretValues.value }), null, 2),
     filename: buildDownloadFilename('api-studio-run', 'json'),
     mimeType: 'application/json',
   });
@@ -395,7 +398,7 @@ function downloadRunnerJunitReport(): void {
     return;
   }
   const ok = downloadTextFile({
-    content: toJUnitXml(buildRunReport(runnerSummary.value, runnerReportMeta())),
+    content: toJUnitXml(buildRunReport(runnerSummary.value, runnerReportMeta(), { secretValues: secretValues.value })),
     filename: buildDownloadFilename('api-studio-run', 'xml'),
     mimeType: 'application/xml',
   });
@@ -456,7 +459,7 @@ function saveCurrent(): void {
   }
   saved.value = r.list;
   saveName.value = '';
-  banner.value = `Saved "${r.saved?.name}" to your collection (local only).`;
+  banner.value = `Saved "${r.saved?.name}" to your collection (browser localStorage).`;
 }
 function exportSaved(s: SavedRequest): void {
   downloadTextFile({ content: toCurl(exportSavedRequest(s)), filename: buildDownloadFilename(s.name.replace(/[^\w.-]+/g, '-'), 'sh'), mimeType: 'text/plain' });
@@ -881,7 +884,7 @@ function statusType(s: number): 'success' | 'warning' | 'error' | 'info' {
     <!-- API-011 脚本（pm.*）：保存在请求上，由 Collection Runner 在隔离 Worker 沙箱内执行 -->
     <div class="section" data-test-id="scripts-section">
       <h3 class="section-title">
-        Scripts <span class="hint">pm.* pre-request / test — run by the Collection Runner in an isolated Worker (no DOM, 5 s timeout, network only via controlled pm.sendRequest outbox)</span>
+        Scripts <span class="hint">pm.* pre-request / test — run by the Collection Runner in an isolated Worker (no DOM, 5 s timeout, module-load/Function/eval guards plus runtime global neutralization; within the guard surface, network is only reachable via the controlled pm.sendRequest outbox)</span>
       </h3>
       <div class="row" style="margin-bottom: 4px" data-test-id="collection-scripts-bar">
         <n-tag size="small" type="info">Collection</n-tag>
@@ -1030,7 +1033,7 @@ function statusType(s: number): 'success' | 'warning' | 'error' | 'info' {
           </tbody>
         </table>
         <p class="hint" style="margin: 4px 0 0">
-          Preview shows your local file content (values truncated at 40 chars). The file never leaves this browser; row values are excluded from iteration displays, logs and reports — only column names and row counts appear there.
+          Preview shows your local file content (values truncated at 40 chars). The file is parsed in your browser; row values are substituted into requests and sent to the upstream by the runner (host-side) — they are excluded from iteration displays, logs and reports; only column names and row counts appear there.
         </p>
       </div>
       <!-- API-010 集合批量 Runner -->
@@ -1053,7 +1056,7 @@ function statusType(s: number): 'success' | 'warning' | 'error' | 'info' {
         <span class="hint">ms</span>
       </div>
       <p class="hint" style="margin-top: 4px">
-        Runs every saved request in order through the edge relay, applying each request's saved assertions. With a data file, each row drives one iteration (an explicit round count overrides; more rounds than rows cycles them). pm.* scripts run in the isolated Worker sandbox; network only via the apiproxy outbox.
+        Runs every saved request in order through the edge relay, applying each request's saved assertions. With a data file, each row drives one iteration (an explicit round count overrides; more rounds than rows cycles them). pm.* scripts run in the isolated Worker sandbox; network in the guard surface only via the apiproxy outbox. Request execution is host-side: this page relays through the same-origin /api proxy (the CLI connects directly) — scripts never hold the network stack.
       </p>
       <n-alert v-if="runnerError" type="error" style="margin-top: 6px" data-test-id="runner-error">
         {{ runnerError }}

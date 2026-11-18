@@ -33,6 +33,15 @@ describe('parseEnvironmentFile', () => {
     if (r.ok) expect(r.env).toEqual({});
   });
 
+  it('E3 secret 标记收集（Postman values secret:true → secretNames；扁平表无标记机制=空集合）', () => {
+    const r = parseEnvironmentFile(JSON.stringify({ values: [{ key: 'token', value: 'T', enabled: true, secret: true }, { key: 'plain', value: 'P', enabled: true }] }), 'e.json');
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    expect(r.secretNames).toEqual(['token']);
+    const flat = parseEnvironmentFile('{"a":"1"}', 'f.json');
+    if (flat.ok) expect(flat.secretNames).toEqual([]);
+  });
+
   it.each([
     ['非法 JSON', 'not-json'],
     ['顶层数组', '[1,2]'],

@@ -9,6 +9,7 @@ import { mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { runCollection } from '../api-debugger/runner';
+import { createPmAPI, type ScriptSnapshot } from '../api-debugger/script-runtime';
 import type { SavedRequest } from '../api-debugger/store';
 import { executeRun } from './run';
 import type { CliArgs } from './args';
@@ -83,5 +84,31 @@ describe('C-004 浏览器/CLI 双跑一致性', () => {
     expect(cli.summary?.iterationCount).toBe(2);
     expect(cli.summary?.scriptTestsTotal).toBe(2); // C1 每轮一次 pm.test
     expect(cli.summary?.dataFile).toEqual(browserSum.dataFile);
+  }, 30000);
+
+  it('终审 P1-01 五层同名矩阵：runtime resolveVariable 与 runner 请求插值同序（iterationData > environment > collection > globals）', async () => {
+    // runtime 侧（createPmAPI：local > iterationData > environment > collection > globals）
+    const s: ScriptSnapshot = {
+      request: { method: 'GET', url: 'https://x/', headers: [], body: '' },
+      response: null,
+      globals: { shared: 'GLOB' }, collection: { shared: 'COLL' }, environment: { shared: 'ENV' },
+      iterationData: { shared: 'DATA' }, local: {},
+      info: { event: 'test', iteration: 1, counter: 1, requestName: 'matrix' },
+    };
+    const outcome = { tests: [], envWrites: [], requestMutations: {}, logs: [], sendRequests: [], asyncPending: false };
+    const { pm } = createPmAPI(s, { outcome, console: () => {}, sendRequest: async () => ({ code: 200, status: 'OK' }) });
+    expect(pm.variables.get('shared')).toBe('DATA');
+    pm.variables.set('shared', 'LOCAL');
+    expect(pm.variables.get('shared')).toBe('LOCAL');
+    // runner 插值侧（mergedForSubstitution 同序；无 local 写入时 dataRow 胜 environment）
+    const saved: SavedRequest = { id: 'm', name: 'M', request: { method: 'GET', url: 'https://x/?v={{shared}}', headers: [], body: '' }, createdAt: 1, updatedAt: 1 };
+    const sent: string[] = [];
+    const send = async (p: { url: string }) => { sent.push(p.url); return { url: p.url, status: 200, statusText: 'OK', headers: {}, body: '{}', elapsedMs: 1 }; };
+    await runCollection([saved], { shared: 'ENV' }, send as never, {
+      runScript: vi.fn(async () => ({ outcome: { tests: [], envWrites: [], requestMutations: {}, logs: [], sendRequests: [], asyncPending: false }, timedOut: false })) as never,
+      variableLayers: { globals: { shared: 'GLOB' }, collection: { shared: 'COLL' } },
+      dataFile: { columns: ['shared'], rows: [{ shared: 'DATA' }] }, dataFileType: 'csv',
+    });
+    expect(sent[0]).toContain('v=DATA'); // 与 runtime 侧同 winner
   }, 30000);
 });

@@ -15,7 +15,7 @@ node dist-cli/api-studio-cli.mjs --version
 npx api-studio --help
 ```
 
-产物审计判据：构建脚本 fail-closed 验证**零外置 npm 导入**（json5/iarna-toml-esm 等全部内联；Node 内置模块除外）——`node_modules` 不在场的目录也能运行。
+产物审计判据：构建脚本 fail-closed 验证**零外置 npm 导入**（静态 import/export-from、require()、**副作用裸导入** `import "pkg"`、动态 import() 四种形态全覆盖；json5/iarna-toml-esm 等全部内联；Node 内置模块除外），并**在干净临时目录真实 spawn `node api-studio-cli.mjs --version` 实弹冒烟**（终审 P1-07：旧审计正则曾漏掉副作用裸导入形态，交付产物在干净目录 ERR_MODULE_NOT_FOUND yaml——静态审计 + 实弹冒烟双门禁补齐；`yaml/xml-js/lodash` 经 json-workspace 图手术从 CLI 图中剔除）。
 
 ## 运行
 
@@ -46,13 +46,18 @@ api-studio run ./collections/smoke.json \
 
 真实映射引擎参数（非无效别名），支持矩阵与测试锚点见 [NEWMAN-COMPAT.md](./NEWMAN-COMPAT.md)。
 
-## 安全边界（与浏览器沙箱同契约）
+## 沙箱边界（终审 P0-01/P1-09 后如实定位，不上调）
 
-- `pm.*` 脚本在**独立 worker_threads 沙箱**执行（传输层与浏览器 module Worker 独立实现，pm 语义与守卫共用同一 `script-runtime` 源码）；
-- 沙箱内 `fetch/XHR/WebSocket/EventSource/importScripts/Worker/BroadcastChannel/caches/indexedDB/Notification/open/sendBeacon` 读取即抛错（Node worker 有真实 fetch——守卫中和即生效）；
-- 脚本唯一网络路径 = `pm.sendRequest` outbox → 宿主 CLI 直连发送（浏览器侧走同源 apiproxy relay；**传输层差异，执行语义一致**——C3 口径）；
+- `pm.*` 脚本在**独立 worker_threads 沙箱**执行（传输层与浏览器 module Worker 独立实现，pm 语义与守卫共用同一 `script-runtime`/`script-worker` 源码）；
+- **定位 = 开发工具的脚本执行环境 + fail-closed 守卫，不是恶意代码安全边界**。对恶意代码的完整闭环需 OS 边界隔离（独立低权限子进程/容器、默认 deny 网络、进程组 kill、配额）——路线已登记为产品决策项；
+- 执行前**静态模块护栏**：脚本文本含 `import(`/`require(` → 明文拒绝（Postman 沙箱同口径：用户脚本无模块系统）。已知局限：正则扫描，混淆构造可绕过文本层；
+- **运行时中和**（读取即抛）：fetch/XHR/WebSocket/EventSource/importScripts/Worker/BroadcastChannel/caches/indexedDB/Notification/open/sendBeacon/**Function 构造器/eval**；CLI 侧额外中和 `process`（环境变量/进程/文件逃逸面）——CI Secret 不经沙箱可执行面：secret 经环境文件由**宿主侧**加载与替换，脚本只能经 pm.* 变量层读到用户自己声明的值；
+- WebAssembly 不列入守卫（实证：worker_threads 引导期存在原生 WebAssembly 读，列入反而破坏沙箱自身启动；无宿主导入即无 fs/net 能力，内存面由 resourceLimits 兜底）；
+- **资源限额**：5s 墙钟 terminate 整个 worker 并重建；`resourceLimits` 堆 512MiB/64MiB（超限 V8 杀 worker，宿主如实承载）；outbox 累计发送 100/脚本运行、单 spec 1MB（UTF-8 字节）、宿主桥响应体 1MB 字节级截断、console 捕获 256KB/轮；
+- **如实登记的残余**（实弹探针 P11 实证可达）：原型链混淆（`''.constructor.constructor` + 拆分字符串）在 worker_threads 下仍可构造动态 import——进程内 JS 沙箱无法对恶意代码闭环，Node 官方 Permission Model 同样实证不拦模块加载。部署建议：CI 中以独立低权限身份/容器运行 CLI，CI Secret 只经宿主侧环境文件注入；
+- 网络唯一路径 = `pm.sendRequest` outbox → 宿主 CLI 直连发送（浏览器侧走同源 apiproxy relay；**传输层差异，执行语义一致**——C3 口径）。沙箱守卫面内"仅 outbox 可联网"成立，不对恶意代码作边界承诺；
 - 不支持的 pm API fail-closed 显式抛错（见 [PM_SUPPORT_MATRIX](../api-studio/PM_SUPPORT_MATRIX.md)）；
-- 报告默认不含 Secret/Authorization/Cookie/API Key/环境变量值/数据行值/请求响应体/响应头值（列名与行计数可见）。
+- 报告默认不含 Secret/Authorization/Cookie/API Key/环境变量值/数据行值/请求响应体/响应头值；**已标记 secret 的值**在 JSON/JUnit/stdout 三面值级替换（含 URL 面），未标记任意值不假装全知扫描（三层口径见 report.ts）。
 
 ## 文档
 

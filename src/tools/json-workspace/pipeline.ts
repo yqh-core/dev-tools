@@ -16,64 +16,18 @@ import { parse as tomlParse, stringify as tomlStringify } from 'iarna-toml-esm';
 import { formatJson } from '../json-viewer/json.models';
 import { diff } from '../json-diff/json-diff.models';
 import type { Difference } from '../json-diff/json-diff.types';
-import { type Lang, inferModels, renderCode } from '../json-to-code/json-to-code.models';
+import { inferModels, renderCode } from '../json-to-code/json-to-code.models';
 import { inferSchemaDocument } from './schema';
 import { jsonPath } from './jsonpath';
 import { TransformError, toCsv } from './transform';
 import { csvToObjects } from '@/utils/csv';
+import { DEFAULT_INPUT, makeNode, type NodeParams, type NodeResult, type OpId, type PipelineNode } from './pipeline-defs';
 
-export type OpId = 'format' | 'minify' | 'tree' | 'query' | 'transform' | 'schema' | 'types' | 'diff' | 'parse';
-export type TransformTarget = 'yaml' | 'csv' | 'xml' | 'toml';
-export type ParseSource = 'yaml' | 'csv' | 'xml' | 'toml' | 'env';
-
-export const OP_IDS: OpId[] = ['format', 'minify', 'tree', 'query', 'transform', 'schema', 'types', 'diff', 'parse'];
-export const TRANSFORM_TARGETS: TransformTarget[] = ['yaml', 'csv', 'xml', 'toml'];
-export const PARSE_SOURCES: ParseSource[] = ['yaml', 'csv', 'xml', 'toml', 'env'];
-export const TYPE_LANGS: Lang[] = ['ts', 'cs', 'java', 'go'];
-
-export const OP_LABELS: Record<OpId, string> = {
-  format: 'Format / Validate',
-  minify: 'Minify',
-  tree: 'Tree view',
-  query: 'Query (JSONPath)',
-  transform: 'Transform',
-  schema: 'Infer Schema',
-  types: 'Generate Types',
-  diff: 'Diff (two inputs)',
-  parse: 'Parse to JSON',
-};
-
-export interface NodeParams {
-  indent?: number
-  sort?: boolean
-  query?: string
-  target?: TransformTarget
-  lang?: Lang
-  rootName?: string
-  other?: string
-  source?: ParseSource
-}
-
-/**
- * 管线节点。inputOverride 有值 = 该步输入被用户钉住（脱链）；
- * 无值 = 活链，输入自动取上一步输出（node 0 永远有 override，即原始输入）。
- */
-export interface PipelineNode {
-  uid: string
-  op: OpId
-  params: NodeParams
-  inputOverride?: string
-}
-
-export type NodeResult = { ok: true; output: string } | { ok: false; error: string };
-
-export const DEFAULT_INPUT = '{\n  "store": {\n    "book": [\n      { "title": "Sayings of the Century", "price": 8.95 },\n      { "title": "Moby Dick", "price": 8.99 }\n    ],\n    "bicycle": { "color": "red", "price": 19.95 }\n  }\n}';
-
-let uidCounter = 0;
-export function makeNode(op: OpId, inputOverride?: string, params: NodeParams = {}): PipelineNode {
-  uidCounter += 1;
-  return { uid: `n${Date.now().toString(36)}${uidCounter}`, op, params, ...(inputOverride !== undefined ? { inputOverride } : {}) };
-}
+// 纯定义（类型/常量/节点工厂）移入 pipeline-defs 叶模块——CLI 图只经 defs 取 makeNode，
+// 不再把转换工具链（yaml/xml-js/lodash/json5/toml）拖进 CLI bundle（终审 P1-07 图手术）。
+// 此处全量 re-export：UI/测试既有导入路径零改动。
+export { DEFAULT_INPUT, makeNode, OP_IDS, OP_LABELS, PARSE_SOURCES, TRANSFORM_TARGETS, TYPE_LANGS } from './pipeline-defs';
+export type { NodeParams, NodeResult, OpId, ParseSource, PipelineNode, TransformTarget } from './pipeline-defs';
 
 export function defaultPipeline(): PipelineNode[] {
   return [makeNode('format', DEFAULT_INPUT, { indent: 2, sort: false })];

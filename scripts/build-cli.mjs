@@ -8,10 +8,12 @@
  * 不做「源码层面已处理」的假声明。
  */
 import { build } from 'vite';
-import { readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync, mkdtempSync, copyFileSync } from 'node:fs';
 import { builtinModules } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { tmpdir } from 'node:os';
+import { spawnSync } from 'node:child_process';
 
 const root = dirname(fileURLToPath(import.meta.url)); // scripts/ 的上一级 = 仓库根（下方 join 校正）
 const repoRoot = dirname(root);
@@ -63,15 +65,30 @@ const worker = readFileSync('dist-cli/api-studio-cli-worker.mjs', 'utf8');
 if (!worker.includes('installSandboxGuards')) {
   throw new Error('[build-cli] worker bundle missing sandbox guards — script-worker logic not inlined?');
 }
-// 外置 npm 导入审计：两个产物中除 node: 与 Node 内置模块（无前缀形态合法）外不得有裸导入。
-// 正则限定 import/export/require 语境——模板字符串里的 from '...' 是假阳性，须排除。
+// 外置 npm 导入审计（fail-closed）：静态 import/export...from、require()、
+// **副作用裸导入** `import "pkg";`（终审 P1-07 实测命中形态——旧审计正则漏掉它，
+// 交付产物在干净目录 ERR_MODULE_NOT_FOUND yaml，此处必须全覆盖）、动态 import("pkg")。
 const BUILTIN = new Set(builtinModules);
-const bareRe = /(?:\bimport\s+[\s\S]{0,300}?\bfrom|\bexport\s+[\s\S]{0,300}?\bfrom)\s*\(?\s*['"]([^'"]+)['"]|\brequire\(\s*['"]([^'"]+)['"]\s*\)/g;
+const bareRe = /(?:\bimport\s+[\s\S]{0,300}?\bfrom|\bexport\s+[\s\S]{0,300}?\bfrom)\s*\(?\s*['"]([^'"]+)['"]|\brequire\(\s*['"]([^'"]+)['"]\s*\)|(?:^|\n)\s*import\s*\(?\s*['"]([^'"]+)['"]\s*\)?\s*;|\bimport\(\s*['"]([^'"]+)['"]\s*\)/g;
 for (const f of [mainPath, 'dist-cli/api-studio-cli-worker.mjs']) {
   const text = readFileSync(f, 'utf8');
-  const bad = [...text.matchAll(bareRe)].map(m => m[1] ?? m[2]).filter(id => id && !id.startsWith('node:') && !BUILTIN.has(id));
+  const bad = [...text.matchAll(bareRe)].map(m => m[1] ?? m[2] ?? m[3] ?? m[4]).filter(id => id && !id.startsWith('node:') && !BUILTIN.has(id) && !id.startsWith('.'));
   if (bad.length) {
     throw new Error(`[build-cli] external npm import(s) left in ${f}: ${[...new Set(bad)].join(', ')} — clean-env run would break`);
   }
 }
-console.log('[build-cli] dist-cli/api-studio-cli.mjs + api-studio-cli-worker.mjs OK (zero external npm imports)');
+// —— 干净目录实弹验收（终审 P1-07 验收口径：不在原仓库 node_modules 下冒充独立 bundle）——
+// 复制到无 node_modules 的临时目录，真实 spawn node 解析执行；任何外置残留在此暴露。
+const cleanDir = mkdtempSync(join(tmpdir(), 'api-studio-cli-clean-'));
+for (const f of ['api-studio-cli.mjs', 'api-studio-cli-worker.mjs']) {
+  copyFileSync(join(repoRoot, 'dist-cli', f), join(cleanDir, f));
+}
+const smoke = spawnSync(process.execPath, ['api-studio-cli.mjs', '--version'], { cwd: cleanDir, encoding: 'utf8' });
+if (smoke.status !== 0) {
+  throw new Error(`[build-cli] clean-directory smoke failed (exit=${smoke.status}): ${smoke.stderr.slice(0, 400)}`);
+}
+const smokeWorker = spawnSync(process.execPath, ['api-studio-cli-worker.mjs'], { cwd: cleanDir, encoding: 'utf8' });
+if (smokeWorker.status !== 0) {
+  throw new Error(`[build-cli] worker bundle clean-directory load failed (exit=${smokeWorker.status}): ${smokeWorker.stderr.slice(0, 400)}`);
+}
+console.log(`[build-cli] dist-cli/api-studio-cli.mjs + api-studio-cli-worker.mjs OK (zero external npm imports; clean-dir smoke: "${smoke.stdout.trim()}")`);

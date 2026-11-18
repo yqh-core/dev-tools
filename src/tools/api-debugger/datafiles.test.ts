@@ -3,7 +3,7 @@
  * 负控证明"该红的红"（如 split(',') 实现会在带逗号引号字段上立刻暴露）。
  */
 import { describe, expect, it } from 'vitest';
-import { dataFileSummary, parseCsvData, parseDataFile, parseJsonData, previewRows } from './datafiles';
+import { DATA_FILE_MAX_BYTES, DATA_MAX_COLUMNS, DATA_MAX_FIELD_BYTES, DATA_MAX_ROWS, dataFileSummary, parseCsvData, parseDataFile, parseJsonData, previewRows } from './datafiles';
 
 const TASKBOOK_SAMPLE = 'email,expectedRole,caseId\nalice@example.test,admin,case-001\nbob@example.test,reader,case-002\ncharlie@example.test,editor,case-003\n';
 
@@ -58,6 +58,24 @@ describe('CSV 严格解析（RFC 4180）', () => {
   it('负控：只有表头无数据行 → error', () => {
     expect(parseCsvData('a,b\n').ok).toBe(false);
   });
+  it('负控：未闭合引号（CSV 在引号字段内结束）→ error（终审 P1-1 边界）', () => {
+    const r = parseCsvData('a,b\n"x,1\n');
+    expect(r.ok).toBe(false);
+    if (r.ok) return;
+    expect(r.error).toMatch(/Unterminated quoted field/);
+  });
+  it('负控：裸引号（非引用字段中间）→ error（终审 P1-1 边界）', () => {
+    const r = parseCsvData('a,b\nab"cd,1\n');
+    expect(r.ok).toBe(false);
+    if (r.ok) return;
+    expect(r.error).toMatch(/bare quote/);
+  });
+  it('负控：引用字段闭合后多余字符 → error（终审 P1-1 边界）', () => {
+    const r = parseCsvData('a,b\n"x"y,1\n');
+    expect(r.ok).toBe(false);
+    if (r.ok) return;
+    expect(r.error).toMatch(/characters after a closed quoted field/);
+  });
 });
 
 describe('JSON 严格解析', () => {
@@ -103,5 +121,49 @@ describe('分发与安全摘要', () => {
     const p = previewRows(r.data);
     expect(p.rows).toHaveLength(5);
     expect(p.rows[0][0].endsWith('…')).toBe(true);
+  });
+});
+
+describe('终审 P1-02 资源上限（fail-closed：超限明确报错，不静默截断/修补）', () => {
+  it('CSV 文件字节上限', () => {
+    const r = parseCsvData('a\n' + 'x'.repeat(DATA_FILE_MAX_BYTES) + '\n');
+    expect(r.ok).toBe(false);
+    if (r.ok) return;
+    expect(r.error).toContain('file size');
+  });
+  it('CSV 行数上限', () => {
+    const rows = Array.from({ length: DATA_MAX_ROWS + 1 }, (_, i) => `r${i}`).join('\n');
+    const r = parseCsvData('a\n' + rows + '\n');
+    expect(r.ok).toBe(false);
+    if (r.ok) return;
+    expect(r.error).toContain('row count');
+  });
+  it('CSV 列数上限', () => {
+    const r = parseCsvData(Array.from({ length: DATA_MAX_COLUMNS + 1 }, (_, i) => `c${i}`).join(',') + '\n1\n');
+    expect(r.ok).toBe(false);
+    if (r.ok) return;
+    expect(r.error).toContain('column count');
+  });
+  it('CSV 单字段字节上限', () => {
+    const r = parseCsvData('a\n"' + 'x'.repeat(DATA_MAX_FIELD_BYTES + 1) + '"\n');
+    expect(r.ok).toBe(false);
+    if (r.ok) return;
+    expect(r.error).toContain('field bytes');
+  });
+  it('JSON 行数/列数/字段字节上限', () => {
+    const many = JSON.stringify(Array.from({ length: DATA_MAX_ROWS + 1 }, () => ({ a: '1' })));
+    expect(parseJsonData(many).ok).toBe(false);
+    const wideRow: Record<string, string> = {};
+    for (let i = 0; i <= DATA_MAX_COLUMNS; i++) wideRow[`c${i}`] = '1';
+    expect(parseJsonData(JSON.stringify([wideRow])).ok).toBe(false);
+    const fat = JSON.stringify([{ a: 'x'.repeat(DATA_MAX_FIELD_BYTES + 1) }]);
+    const r = parseJsonData(fat);
+    expect(r.ok).toBe(false);
+    if (r.ok) return;
+    expect(r.error).toContain('field bytes');
+  });
+  it('负控：上限内的合法文件不受影响（限制不误伤）', () => {
+    expect(parseCsvData(TASKBOOK_SAMPLE).ok).toBe(true);
+    expect(parseJsonData('[{"a":"1"}]').ok).toBe(true);
   });
 });

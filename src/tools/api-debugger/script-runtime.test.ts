@@ -21,7 +21,7 @@ function snap(patch: Partial<ScriptSnapshot> = {}): ScriptSnapshot {
 
 function mkIO(s: ScriptSnapshot) {
   const outcome = { tests: [], envWrites: [], requestMutations: {}, logs: [] as string[], sendRequests: [], asyncPending: false };
-  const io: RuntimeIO = { outcome, console: (...a) => outcome.logs.push(a.map(String).join(' ')), sendRequest: vi.fn(async () => ({ code: 201, status: 'Created', responseTime: 5 })) };
+  const io: RuntimeIO = { outcome, console: (...a) => outcome.logs.push(a.map(String).join(' ')), sendRequest: vi.fn(async () => ({ code: 201, status: 'Created', statusText: 'Created', headers: [{ name: 'Content-Type', value: 'application/json' }], body: '{"ok":1}', responseTime: 5 })) };
   return { io, outcome };
 }
 
@@ -35,6 +35,27 @@ describe('作用域优先级（Postman 规则：local > data > environment > col
     const s = snap({ iterationData: {} }); const { io } = mkIO(s);
     const { pm } = createPmAPI(s, io);
     expect(pm.variables.get('shared')).toBe('ENV');
+  });
+  it('终审 P1-01 五层同名矩阵：get/has/replaceIn/toObject 全部同序（local > data > env > collection > globals）', () => {
+    const s = snap({ globals: { g: '1', shared: 'GLOB' } }); const { io } = mkIO(s);
+    const { pm } = createPmAPI(s, io);
+    // 无 local 写入：iterationData(DATA) > environment(ENV) > collection(COLL) > globals(GLOB)
+    const to = () => pm.variables.toObject() as { key: string; value: string }[];
+    expect(pm.variables.get('shared')).toBe('DATA');
+    expect(pm.variables.has('shared')).toBe(true);
+    expect(pm.variables.replaceIn('{{shared}}')).toBe('DATA');
+    expect(to().find(e => e.key === 'shared')?.value).toBe('DATA');
+    // local 写入后立刻最高优先
+    pm.variables.set('shared', 'LOCAL');
+    expect(pm.variables.get('shared')).toBe('LOCAL');
+    expect(pm.variables.has('shared')).toBe(true);
+    expect(pm.variables.replaceIn('x={{shared}}')).toBe('x=LOCAL');
+    expect(to().find(e => e.key === 'shared')?.value).toBe('LOCAL');
+  });
+  it('终审 P1-01 负控：toObject 不被低优先级层遮蔽（去掉 data 层后 ENV 胜 COLL）', () => {
+    const s = snap({ iterationData: {} }); const { io } = mkIO(s);
+    const { pm } = createPmAPI(s, io);
+    expect((pm.variables.toObject() as { key: string; value: string }[]).find(e => e.key === 'shared')?.value).toBe('ENV');
   });
   it('脚本内 set 只进 local 且立刻最高优先（负控：不得回写 environment）', () => {
     const s = snap(); const { io } = mkIO(s);
@@ -55,6 +76,15 @@ describe('作用域优先级（Postman 规则：local > data > environment > col
     const s = snap(); const { io } = mkIO(s);
     const { pm } = createPmAPI(s, io);
     expect(pm.variables.replaceIn('v={{shared}} g={{g}}')).toBe('v=DATA g=1');
+  });
+
+  it('同名 get/replaceIn 口径一致：environment>collection（终审 P0-4 修复锁；修复前 replaceIn 返回 COLL）', () => {
+    const s = snap({ iterationData: { d: '1' } }); // 移除 data 层 shared，冲突只剩 collection=COLL vs environment=ENV
+    const { io } = mkIO(s);
+    const { pm } = createPmAPI(s, io);
+    expect(pm.variables.get('shared')).toBe('ENV');
+    expect(pm.variables.has('shared')).toBe(true);
+    expect(pm.variables.replaceIn('{{shared}}')).toBe('ENV');
   });
 });
 
@@ -81,6 +111,21 @@ describe('pm.test / pm.expect fail-closed', () => {
     pm.test('unknown matcher', () => (pm.expect(1) as any).toBeMagical());
     flushTests();
     expect(io.outcome.tests[0].passed).toBe(false);
+  });
+
+  it('E5 异步断言：pm.test 回调返回 Promise——settled 后才定成败（终审 P1-2；同步路径双模不变）', async () => {
+    const s = snap(); const { io } = mkIO(s);
+    const { pm, flushTests } = createPmAPI(s, io);
+    pm.test('async pass', async () => { await Promise.resolve(); });
+    pm.test('async fail', async () => { throw new Error('late boom'); });
+    // 未 settled 前不出结论（延迟语义锁；拒绝按注册序断言——rejected 立即 settled 的用例会先落地）
+    expect(io.outcome.tests).toHaveLength(0);
+    await flushTests();
+    const byName = (n: string) => io.outcome.tests.find(t => t.name === n);
+    expect(io.outcome.tests).toHaveLength(2);
+    expect(byName('async pass')?.passed).toBe(true);
+    expect(byName('async fail')?.passed).toBe(false);
+    expect(byName('async fail')?.error).toContain('late boom');
   });
   it('include / match / above / oneOf', () => {
     const s = snap(); const { io } = mkIO(s);
@@ -125,22 +170,45 @@ describe('sendRequest 经宿主桥（权限在宿主侧）', () => {
     expect((got as { code: number }).code).toBe(201);
   });
 
-  it('A-018 outbox 队列上限 fail-closed（第 51 条拒绝，cb 收到错误，不静默丢不假装成功）', async () => {
+  it('终审 P1-04：pm.sendRequest 返回 Postman 风格响应视图（text/json/headers.get/statusText/truncated）', async () => {
     const s = snap(); const { io } = mkIO(s);
     const { pm } = createPmAPI(s, io);
-    for (let i = 0; i < 50; i++) await pm.sendRequest(`https://api.test/q${i}`);
-    expect(io.outcome.sendRequests).toHaveLength(50);
-    let cbErr: unknown = null;
-    await expect(pm.sendRequest('https://api.test/overflow', (e: unknown) => { cbErr = e })).rejects.toThrow(/outbox queue limit/);
-    expect(cbErr).toBeTruthy(); // cb 与 promise 双通道都如实承载
-    expect(io.outcome.sendRequests).toHaveLength(50); // 拒绝不计入
+    const res = await pm.sendRequest('https://api.test/token');
+    expect(res.code).toBe(201);
+    expect(res.status).toBe('Created');
+    expect(res.statusText).toBe('Created');
+    expect(res.headers.get('content-type')).toBe('application/json');
+    expect(res.text()).toBe('{"ok":1}');
+    expect(res.json()).toEqual({ ok: 1 });
+    expect(res.responseTime).toBe(5);
+    expect(res.size).toBe(8); // '{"ok":1}' = 8 chars
+    expect(res.truncated).toBeUndefined();
   });
 
-  it('A-018 outbox 单 spec 字节上限 fail-closed（异常大对象）', async () => {
+  it('终审 P1-01/P1-04：outbox URL 经同一 resolver 插值（{{}} 在 pm.sendRequest 中解析）', async () => {
+    const s = snap({ environment: { baseUrl: 'https://env.test' } }); const { io } = mkIO(s);
+    const { pm } = createPmAPI(s, io);
+    await pm.sendRequest('{{baseUrl}}/path?x={{missing}}');
+    expect(io.outcome.sendRequests).toHaveLength(1);
+    expect(io.outcome.sendRequests[0].url).toBe('https://env.test/path?x=');
+  });
+
+  it('A-018/终审 P1-03 outbox 累计发送上限 fail-closed（第 101 条拒绝，cb 收到错误，不静默丢不假装成功）', async () => {
+    const s = snap(); const { io } = mkIO(s);
+    const { pm } = createPmAPI(s, io);
+    for (let i = 0; i < 100; i++) await pm.sendRequest(`https://api.test/q${i}`);
+    expect(io.outcome.sendRequests).toHaveLength(100);
+    let cbErr: unknown = null;
+    await expect(pm.sendRequest('https://api.test/overflow', (e: unknown) => { cbErr = e })).rejects.toThrow(/cumulative send limit/);
+    expect(cbErr).toBeTruthy(); // cb 与 promise 双通道都如实承载
+    expect(io.outcome.sendRequests).toHaveLength(100); // 拒绝不计入
+  });
+
+  it('A-018 outbox 单 spec UTF-8 字节上限 fail-closed（异常大对象）', async () => {
     const s = snap(); const { io } = mkIO(s);
     const { pm } = createPmAPI(s, io);
     const big = 'x'.repeat(1_000_001);
-    await expect(pm.sendRequest({ url: 'https://api.test/big', body: big })).rejects.toThrow(/exceeds 1000000 bytes/);
+    await expect(pm.sendRequest({ url: 'https://api.test/big', body: big })).rejects.toThrow(/exceeds 1000000 UTF-8 bytes/);
     expect(io.outcome.sendRequests).toHaveLength(0);
   });
 });

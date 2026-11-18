@@ -9,6 +9,7 @@
  */
 /// <reference types="node" />
 import { Worker } from 'node:worker_threads';
+import { truncateResponseBody } from '../api-debugger/script-runtime';
 import type { ScriptSnapshot, ScriptOutcomeData } from '../api-debugger/script-runtime';
 import type { RunnerResponse } from '../api-debugger/runner';
 
@@ -35,14 +36,25 @@ export function createSandboxRunScript(workerUrl: URL, timeoutMs = 5000): CliRun
 
   function ensureWorker(): Worker {
     if (!worker) {
-      worker = new Worker(workerUrl, {});
+      // 终审 P0-01 资源限额（worker_threads resourceLimits）：堆面上限 512MiB，
+      // 超限 V8 杀 worker → onDead 如实承载（'sandbox worker exited'），不静默续跑。
+      // CPU/墙钟由主线程 5s terminate 兜底（同一超时口径）。
+      worker = new Worker(workerUrl, { resourceLimits: { maxOldGenerationSizeMb: 512, maxYoungGenerationSizeMb: 64 } });
       worker.on('message', (d: any) => {
         if (d?.type === 'sendRequest') {
           const run = active.get(d.nonce);
           if (!run) return;
           const spec = d.spec ?? {};
           void run.send({ url: String(spec.url), method: String(spec.method ?? 'GET'), headers: Array.isArray(spec.header) ? spec.header : [], body: String(spec.body ?? '') })
-            .then(res => { worker?.postMessage({ type: 'sendResponse', reqId: d.reqId, ok: true, result: { code: res.status, status: res.statusText, responseTime: res.elapsedMs } }); })
+            .then(res => {
+              // 终审 P1-03/P1-04：桥回填完整响应面；响应体字节级截断（脚本面不接收无界响应体）
+              const t = truncateResponseBody(res.body);
+              worker?.postMessage({ type: 'sendResponse', reqId: d.reqId, ok: true, result: {
+                code: res.status, status: String(res.status), statusText: res.statusText,
+                headers: Object.entries(res.headers).map(([name, value]) => ({ name, value })),
+                body: t.body, responseTime: res.elapsedMs, truncated: t.truncated,
+              } });
+            })
             .catch(err => worker?.postMessage({ type: 'sendResponse', reqId: d.reqId, ok: false, error: String(err instanceof Error ? err.message : err).slice(0, 200) }));
           return;
         }
