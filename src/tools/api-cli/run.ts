@@ -11,8 +11,8 @@
  * 3 报告写入失败 / 4 用法错误。
  */
 /// <reference types="node" />
-import { readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
-import { basename, join } from 'node:path';
+import { readFileSync, readdirSync, statSync, writeFileSync, mkdirSync } from 'node:fs';
+import { basename, dirname, join } from 'node:path';
 import { importCollection } from '../api-debugger/collection';
 import type { ImportedRequest } from '../api-debugger/openapi';
 import { parseDataFile, type DataFile } from '../api-debugger/datafiles';
@@ -225,6 +225,9 @@ export async function executeRun(args: CliArgs, opts: ExecuteRunOptions = {}): P
   const tryWrite = (path: string | undefined, content: string, kind: string) => {
     if (!path) return;
     try {
+      // 终审 07 指令 C-006：报告父目录自动创建（干净 runner 上 writeFileSync 不建父目录→exit 3 与断言失败混淆；
+      // GA 示例 mkdir -p 与本口径双保险。父路径是文件时 mkdir 抛错→如实 exit 3，S5 锁口径不变）。
+      mkdirSync(dirname(path), { recursive: true });
       writeReportFile(path, content);
       process.stderr.write(`[report] ${kind} written: ${path}\n`);
     }

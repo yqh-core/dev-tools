@@ -50,8 +50,21 @@
 5. **回调与 Promise 双通道**：pm.sendRequest 的 callback 触发计入生命周期（cb 先于
    promise settle 调用）；桥失败如实 reject 传播为脚本错误（不伪造 ERROR 占位响应）。
 
-## 与 Postman 的已知差异（如实登记，不冒充完整兼容）
+## 变量生命周期隔离矩阵（终审 A-007 判据；F 批次增补）
 
+| 层 | 请求内 | 请求间 | 轮间 | 取消/失败后 | 写入面 |
+|---|---|---|---|---|---|
+| local（pm.variables.set） | 本次请求脚本可读写 | **每请求重置**（不串请求） | 每轮重置 | 不持久 | 仅脚本运行期 |
+| iterationData | 本轮可读 | 每轮由数据行重新注入 | 行循环（轮数>行数时取模循环） | 不持久 | 宿主注入，脚本只读 |
+| environment | 可读写（pm.environment.set） | 宿主 env 引用跨请求持久 | 跨轮持久 | 取消/失败不影响已写入 | envWrites→宿主分层应用 |
+| collection | 可读写 | 持久 | 持久 | 同上 | 同上 |
+| globals | 可读写 | 持久 | 持久 | 同上 | 同上 |
+
+- 重试语义：产品无自动重试（失败即停或继续由 stop 开关决定）——「重试后」行为=用户手动重跑，变量层按上表（local/iterationData 重置、持久层保留）。
+- 取消：进行中脚本 5s terminate 整个 worker；已写入持久层保留（Postman 同口径）；取消轮剩余行标 skipped 不计入失败（B3 口径）。
+- 锁：script-runtime.test 作用域组（含五层同名矩阵）、data-driven.test 跨轮持久/重置/取消、runner-collection-scripts.test 层叠、consistency.test 双端同 fixture。
+
+## 与 Postman 的已知差异（如实登记，不冒充完整兼容）
 - `pm.execution.setNextRequest` 等流程控制 API 未实现（fail-closed 显式报错，见 PM_SUPPORT_MATRIX）。
 - 集合级 pre-request 在 Postman 中对每个请求执行——本实现按同样语义并入链内，行为一致。
 - 样例验证方法：任务书包 `samples/api-studio-smoke.postman_collection.v2.1.json`

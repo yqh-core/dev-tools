@@ -161,6 +161,20 @@ describe('executeRun（stub send/runScript）', () => {
     expect(seenUrls).toEqual(['https://upstream.example.test/a?email=alice@example.test', 'https://upstream.example.test/b', 'https://upstream.example.test/a?email=bob@example.test', 'https://upstream.example.test/b']);
   }, 20000);
 
+  it('C-006 报告父目录自动创建（嵌套路径写入成功，无需 workflow 预 mkdir；终审 07 指令）', async () => {
+    const dir = tmpDir();
+    writeFileSync(join(dir, 'c.json'), COLLECTION);
+    // baseUrl+email 齐夹具（缺变量→请求不发送→exit 1 假象，首轮失败根因同 E3 锁）
+    writeFileSync(join(dir, 'env.json'), JSON.stringify({ name: 'cli-mkdir', values: [
+      { key: 'baseUrl', value: 'https://upstream.example.test', enabled: true },
+      { key: 'email', value: 'alice@example.test', enabled: true },
+    ] }));
+    const nested = join(dir, 'fresh-reports', 'sub', 'run.json');
+    const r = await executeRun(baseArgs({ collectionPath: join(dir, 'c.json'), environmentFile: join(dir, 'env.json'), reporters: ['json'], reportJsonPath: nested }), { runScript: passingScript as never, send: stubSend as never });
+    expect(r.exit).toBe(0);
+    expect(readFileSync(nested, 'utf8').length).toBeGreaterThan(0);
+  }, 20000);
+
   it('前置失败：集合缺失 → CliRunError load（main 译为退出码 2）', async () => {
     await expect(executeRun(baseArgs({ collectionPath: join(tmpDir(), 'absent.json') }), { runScript: passingScript as never, send: stubSend as never })).rejects.toBeInstanceOf(CliRunError);
   });
