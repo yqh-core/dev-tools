@@ -28,9 +28,9 @@ if (!('args' in parsed)) {
 }
 
 try {
-  // 产物布局：main 与 worker bundle 同目录（scripts/build-cli.mjs 双入口构建保证）。
-  const workerUrl = new URL('./api-studio-cli-worker.mjs', import.meta.url);
-  const result = await executeRun(parsed.args, { workerUrl });
+  // 产物布局：main 与沙箱子进程 bundle 同目录（scripts/build-cli.mjs 构建保证）。
+  const sandboxUrl = new URL('./api-studio-cli-child.mjs', import.meta.url);
+  const result = await executeRun(parsed.args, { sandboxUrl });
   process.exit(result.exit);
 }
 catch (e) {

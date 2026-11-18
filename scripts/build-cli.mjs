@@ -13,13 +13,14 @@ import { builtinModules } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { spawnSync } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 
 const root = dirname(fileURLToPath(import.meta.url)); // scripts/ 的上一级 = 仓库根（下方 join 校正）
 const repoRoot = dirname(root);
 const entries = [
   { input: 'src/tools/api-cli/main.ts', out: 'api-studio-cli.mjs', emptyOutDir: true },
-  { input: 'src/tools/api-cli/worker-entry.ts', out: 'api-studio-cli-worker.mjs', emptyOutDir: false },
+  // G2：沙箱=隔离子进程（api-studio-cli-child.mjs）；worker_threads 入口（worker-entry.ts）已退役删除。
+  { input: 'src/tools/api-cli/sandbox-child-entry.ts', out: 'api-studio-cli-child.mjs', emptyOutDir: false },
 ];
 
 for (const e of entries) {
@@ -55,40 +56,52 @@ if (!main.startsWith('#!')) {
 }
 
 // —— 产物侧判据（fail-closed）——
-if (!existsSync(mainPath) || !existsSync('dist-cli/api-studio-cli-worker.mjs')) {
-  throw new Error('[build-cli] missing bundle output (main and/or worker)');
+if (!existsSync(mainPath) || !existsSync('dist-cli/api-studio-cli-child.mjs')) {
+  throw new Error('[build-cli] missing bundle output (main and/or sandbox child)');
 }
-if (!main.includes('api-studio-cli-worker.mjs')) {
-  throw new Error('[build-cli] main bundle does not reference the worker bundle');
+if (!main.includes('api-studio-cli-child.mjs')) {
+  throw new Error('[build-cli] main bundle does not reference the sandbox child bundle');
 }
-const worker = readFileSync('dist-cli/api-studio-cli-worker.mjs', 'utf8');
+const worker = readFileSync('dist-cli/api-studio-cli-child.mjs', 'utf8');
 if (!worker.includes('installSandboxGuards')) {
-  throw new Error('[build-cli] worker bundle missing sandbox guards — script-worker logic not inlined?');
+  throw new Error('[build-cli] sandbox child bundle missing sandbox guards — script-worker logic not inlined?');
 }
 // 外置 npm 导入审计（fail-closed）：静态 import/export...from、require()、
 // **副作用裸导入** `import "pkg";`（终审 P1-07 实测命中形态——旧审计正则漏掉它，
 // 交付产物在干净目录 ERR_MODULE_NOT_FOUND yaml，此处必须全覆盖）、动态 import("pkg")。
 const BUILTIN = new Set(builtinModules);
 const bareRe = /(?:\bimport\s+[\s\S]{0,300}?\bfrom|\bexport\s+[\s\S]{0,300}?\bfrom)\s*\(?\s*['"]([^'"]+)['"]|\brequire\(\s*['"]([^'"]+)['"]\s*\)|(?:^|\n)\s*import\s*\(?\s*['"]([^'"]+)['"]\s*\)?\s*;|\bimport\(\s*['"]([^'"]+)['"]\s*\)/g;
-for (const f of [mainPath, 'dist-cli/api-studio-cli-worker.mjs']) {
+for (const f of [mainPath, 'dist-cli/api-studio-cli-child.mjs']) {
   const text = readFileSync(f, 'utf8');
   const bad = [...text.matchAll(bareRe)].map(m => m[1] ?? m[2] ?? m[3] ?? m[4]).filter(id => id && !id.startsWith('node:') && !BUILTIN.has(id) && !id.startsWith('.'));
   if (bad.length) {
     throw new Error(`[build-cli] external npm import(s) left in ${f}: ${[...new Set(bad)].join(', ')} — clean-env run would break`);
   }
 }
-// —— 干净目录实弹验收（终审 P1-07 验收口径：不在原仓库 node_modules 下冒充独立 bundle）——
+// —— 干净目录实弹验收（终审 P1-07 口径 + G2 子进程沙箱协议 round-trip）——
 // 复制到无 node_modules 的临时目录，真实 spawn node 解析执行；任何外置残留在此暴露。
+const MINIMAL_SNAPSHOT = {
+  request: { method: 'GET', url: 'about:blank', headers: [], body: '' },
+  response: null, globals: {}, collection: {}, environment: {}, iterationData: {}, local: {},
+  info: { event: 'test', iteration: 1, counter: 1, requestName: 'build-smoke' },
+};
 const cleanDir = mkdtempSync(join(tmpdir(), 'api-studio-cli-clean-'));
-for (const f of ['api-studio-cli.mjs', 'api-studio-cli-worker.mjs']) {
+for (const f of ['api-studio-cli.mjs', 'api-studio-cli-child.mjs']) {
   copyFileSync(join(repoRoot, 'dist-cli', f), join(cleanDir, f));
 }
 const smoke = spawnSync(process.execPath, ['api-studio-cli.mjs', '--version'], { cwd: cleanDir, encoding: 'utf8' });
 if (smoke.status !== 0) {
   throw new Error(`[build-cli] clean-directory smoke failed (exit=${smoke.status}): ${smoke.stderr.slice(0, 400)}`);
 }
-const smokeWorker = spawnSync(process.execPath, ['api-studio-cli-worker.mjs'], { cwd: cleanDir, encoding: 'utf8' });
-if (smokeWorker.status !== 0) {
-  throw new Error(`[build-cli] worker bundle clean-directory load failed (exit=${smokeWorker.status}): ${smokeWorker.stderr.slice(0, 400)}`);
+// G2 安全边界产物实弹：子进程沙箱协议 round-trip（run→done）——加载退出码不冒充协议可用
+const childSmoke = spawn(process.execPath, [join(cleanDir, 'api-studio-cli-child.mjs')], { stdio: ['ignore', 'pipe', 'pipe', 'ipc'], cwd: cleanDir });
+const childOk = await new Promise(resolve => {
+  const timer = setTimeout(() => { try { childSmoke.kill('SIGKILL') } catch {} resolve(false) }, 8000);
+  childSmoke.on('message', d => { if (d?.type === 'done') { clearTimeout(timer); try { childSmoke.kill() } catch {} resolve(true) } });
+  childSmoke.on('exit', () => { clearTimeout(timer); resolve(false) });
+  childSmoke.send({ type: 'run', nonce: 1, code: 'pm.test("child-smoke", () => pm.expect(1).to.equal(1));', snapshot: MINIMAL_SNAPSHOT }); // ChildProcess IPC API = send（非 Worker postMessage）
+});
+if (!childOk) {
+  throw new Error('[build-cli] sandbox child bundle protocol smoke failed (run→done round-trip)');
 }
-console.log(`[build-cli] dist-cli/api-studio-cli.mjs + api-studio-cli-worker.mjs OK (zero external npm imports; clean-dir smoke: "${smoke.stdout.trim()}")`);
+console.log(`[build-cli] dist-cli/api-studio-cli.mjs + api-studio-cli-child.mjs OK (zero external npm imports; clean-dir smoke: "${smoke.stdout.trim()}"; child protocol round-trip OK)`);

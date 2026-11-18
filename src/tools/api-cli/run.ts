@@ -40,12 +40,12 @@ export interface ExecuteRunResult {
 }
 
 export interface ExecuteRunOptions {
-  /** 单测注入 stub；缺省=真实 worker_threads 沙箱（E2E 验证真链）。 */
+  /** 单测注入 stub；缺省=真实沙箱执行器 */
   runScript?: CliRunScriptFn
-  /** 单测注入 send stub；缺省=真实直连 fetch（buildCliSend）。 */
+  /** 单测注入 send stub；缺省=真实直连 fetch（buildCliSend） */
   send?: SendFn
-  /** 沙箱 worker 文件 URL；缺省由 main 入口按产物布局注入。 */
-  workerUrl?: URL
+  /** G2 沙箱入口 URL（缺省=隔离子进程 bundle api-studio-cli-child.mjs：进程边界+干净 env+空 cwd+组 kill+内存软上限）。 */
+  sandboxUrl?: URL
 }
 
 /** 集合加载：文件=Postman v2.1 JSON；目录=按文件名排序合并多集合（C2 示例口径）。 */
@@ -193,7 +193,8 @@ export async function executeRun(args: CliArgs, opts: ExecuteRunOptions = {}): P
   }
 
   const send = opts.send ?? buildCliSend(args.requestTimeoutMs);
-  const runScript = opts.runScript ?? createSandboxRunScript(opts.workerUrl ?? new URL('./worker-entry.ts', import.meta.url));
+  // G2：缺省=隔离子进程沙箱（api-studio-cli-child.mjs，与 main 注入同产物布局）
+  const runScript = opts.runScript ?? createSandboxRunScript(opts.sandboxUrl ?? new URL('./api-studio-cli-child.mjs', import.meta.url));
   let progress = 0;
   const summary = await runCollection(requests, env, send, {
     stopOnError: args.stopOnError,

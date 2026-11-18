@@ -4,10 +4,10 @@
 
 ## 沙箱定位（终审 P0-01/P1-09 后如实声明，不上调）
 
-- **定位 = 开发工具的脚本执行环境 + fail-closed 守卫，不是恶意代码安全边界**。完整恶意代码闭环需 OS 边界隔离（独立低权限子进程/容器、默认 deny 网络、进程组 kill、配额）——该路线已登记为产品决策项。
-- 传输：浏览器 = 专用 module Worker；CLI = worker_threads。**两边共用同一 `script-runtime`（pm 语义与守卫）与同一 `script-worker`（协议+静态护栏）**。
-- 超时：5s 墙钟 terminate 整个 worker 并重建（无法只杀一段脚本）；进行中其他 run 如实标 timedOut。
-- CLI 侧 worker 带 `resourceLimits`（堆 512MiB/64MiB）——超限 V8 杀 worker，宿主 onDead 如实承载。
+- **定位 = 开发工具的脚本执行环境 + fail-closed 守卫 + OS 进程边界（G2），不是恶意代码安全边界**。构造器链逃逸后的同账户 fs/直接网络面残余——完整闭环需容器/VM/独立账户（裁定①批准路线的第二阶段，基础设施决策）。
+- 传输：浏览器 = 专用 module Worker（OS 线程边界）；CLI = **隔离子进程（G2：OS 进程边界——干净最小 env/空 cwd/进程组 kill/rss 软上限 512MiB/墙钟 5s 整树 kill）**。两边共用同一 `script-runtime`（pm 语义与守卫）与同一 `script-worker`（协议+静态护栏）源码。
+- 超时：5s 墙钟 kill 整个子进程树（无法只杀一段脚本；POSIX 进程组/Windows taskkill /T）；超时/崩溃后重建；进行中其他 run 如实标 timedOut。
+- CLI 侧子进程带 rss 软上限 512MiB（宿主轮询 tasklist/ps，超限整树 kill 如实标记）；CI Secret 面=边界闭合（干净 spawn env，S16b 实弹）。
 - 网络唯一路径 = `pm.sendRequest` outbox → 宿主（浏览器走同源 apiproxy relay；CLI 直连；目标策略/超时/审计在宿主）。
 
 ## SUPPORTED
@@ -25,7 +25,7 @@
 | `pm.test(name, fn)` | fn 抛错 = 测试失败并带原因；**fn 可为 async——settled 后才定成败（E5）；顶层 await 支持；未 settle 不出结论**；结果进 summary 与报告 | script-runtime.test（同步+异步双模）/ E2E S14 |
 | `pm.expect` 子集 | to.be/been/is/and/has/with/that 链；equal/eql/include/match/above/below/ok/true/null/exist/lengthOf/property/oneOf/a；`not` 支持 equal/exist；**G1 严格消息口径（yqh 裁定②）：失败消息不格式化 actual/expected 原始值——只承载操作符/类型/安全字段路径/安全标量；label 与测试名承载定位** | script-runtime.test（G1 植物负控+类型正控） |
 | `pm.sendRequest` | outbox → 宿主桥；Promise 与 callback 双形态；**返回 Postman 风格响应视图**（code/status/statusText/headers.get/has/all/count/text/json/responseTime/size/truncated）；桥失败如实 reject 传播为脚本错误；**资源上限（fail-closed）：累计发送 100/脚本运行、单 spec 1MB（UTF-8 字节）、宿主桥响应体 1MB 字节级截断、console 捕获 256KB/轮** | script-runtime.test（含上限负控）/ 探针矩阵 P12-P16 |
-| `pm.*` 全矩阵（CLI 侧） | 浏览器 Worker 与 CLI worker_threads **共用同一 script-runtime/script-worker 源码**；CLI 侧额外中和 `process` 全局（env/mainModule.require 逃逸面读取即抛）；模块加载静态护栏两边同源代码 | cli 单测 + CLI E2E（S13/S13b/S14）+ 探针矩阵 |
+| `pm.*` 全矩阵（CLI 侧） | 浏览器=module Worker（OS 线程边界）；CLI=**隔离子进程（G2 OS 进程边界：干净最小 env/空 cwd/进程组 kill/rss 软上限/墙钟整树 kill）**；pm 语义与守卫共用同一 script-runtime/script-worker 源码；CLI 侧额外中和 process 全局（env/mainModule.require 逃逸面读取即抛）；模块加载静态护栏两边同源 | cli 单测（传输抽象分层锁：夹具 Worker + 假子进程真实 spawn）+ CLI E2E（S13/S13b/S14/S16）+ 探针矩阵（**子进程传输实弹** 15 PASS/0 FAIL/1 RESIDUAL） |
 
 ## PARTIAL
 
