@@ -65,7 +65,9 @@ next = next
   .replace(/## All tools \(\d+\)/, `## All tools (${total})`);
 
 if (CHECK) {
-  if (next !== original) {
+  // EOL 不敏感比较（Windows 检出会注入 CRLF，纯行尾差异不是漂移——否则构建门禁误红）
+  const stripEol = s => s.replace(/\r\n/g, '\n');
+  if (stripEol(next) !== stripEol(original)) {
     console.error(`[sync-readme] DRIFT: README is out of sync with the tool registry (${total} tools, ${categories.length} categories). Run: node scripts/sync-readme.mjs`);
     process.exit(1);
   }
@@ -73,7 +75,7 @@ if (CHECK) {
   process.exit(0);
 }
 
-if (next === original) {
+if (next.replace(/\r\n/g, '\n') === original.replace(/\r\n/g, '\n')) {
   console.log(`[sync-readme] already in sync (${total} tools, ${categories.length} categories).`);
 } else {
   writeFileSync(README, next);
