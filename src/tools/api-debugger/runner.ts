@@ -300,7 +300,7 @@ export async function runCollection(
 /** 可读纯文本运行报告（复制/下载共用）。脱敏：不含凭据头、数据行值、环境变量值、响应体。 */
 export function formatCollectionReportText(summary: CollectionRunSummary): string {
   const lines: string[] = [];
-  lines.push(`DigDevBox collection run report — ${new Date(summary.finishedAt).toISOString()}`);
+  lines.push(`API Studio collection run report — ${new Date(summary.finishedAt).toISOString()}`);
   const dataLine = summary.dataFile
     ? `Data file: ${summary.dataFile.type} · ${summary.dataFile.rows} rows × ${summary.iterationCount} iteration(s)${summary.iterationCount > summary.dataFile.rows ? ' (row cycle)' : ''}`
     : 'Data file: none (single iteration)';
