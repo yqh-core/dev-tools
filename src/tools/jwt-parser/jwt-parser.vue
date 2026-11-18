@@ -30,7 +30,7 @@ const validation = useValidation({
 
 <template>
   <c-card>
-    <c-input-text v-model:value="rawJwt" label="JWT to decode" :validation="validation" placeholder="Put your token here..." rows="5" multiline raw-text autofocus mb-3 />
+    <c-input-text v-model:value="rawJwt" label="Token" :validation="validation" placeholder="Paste a JWT. It stays in this browser, and the signature is not checked." rows="5" multiline raw-text autofocus mb-3 />
 
     <n-table v-if="validation.isValid">
       <tbody>

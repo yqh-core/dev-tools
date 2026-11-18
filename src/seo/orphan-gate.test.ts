@@ -76,11 +76,10 @@ describe('findOrphanPages — 真实数据当前必须 0 孤立（锁死 F5-02 �
     }
   });
 
-  it('白名单非空（清空会让反向自检 0 迭代假通过）', () => {
-    // vitest 的 for 循环体 0 次迭代 = 测试静默绿；此处给反向自检补一个
-    // 不依赖循环的对照组：当前恰好 2 条豁免（keycode-info / today-in-history），
-    // 若将来有人删除白名单，先在这里变红，而不是让 §反向自检 空转。
-    expect(STANDALONE_ALLOWLIST.size).toBeGreaterThan(0);
+  it('下线 keycode-info 与 today-in-history 之后，白名单为空', () => {
+    // 空 Set 的 for 循环不会跑。这里把「现在就是空的」写成断言，
+    // 反向自检才不会在没人注意时变成空转。再往白名单加路径时，改这个数字并写明理由。
+    expect(STANDALONE_ALLOWLIST.size).toBe(0);
   });
 
   it('116 页里，非豁免工具全部至少有一个语境入口', () => {
@@ -92,11 +91,6 @@ describe('findOrphanPages — 真实数据当前必须 0 孤立（锁死 F5-02 �
   it('白名单里的页确实是真的“无近邻”（防止白名单变成藏污纳垢的兜底）', () => {
     // 反向自检：STANDALONE_ALLOWLIST 每个成员在真实数据里必须 R=W=0，
     // 否则它早该归簇、不该躺在白名单里。
-    const asPage = (e: typeof TOOL_SEO_PAGES[number]): Page => ({
-      path: e.path,
-      related: e.related,
-      workflow: e.workflow,
-    });
     // 去掉 allowlist 后，这些页**本应**被判为孤立——用「只喂它自己 + 一个对照」来验证
     // 它在真实 related/workflow 里确实没有外部入度。
     for (const allowPath of STANDALONE_ALLOWLIST) {

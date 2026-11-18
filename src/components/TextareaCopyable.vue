@@ -71,7 +71,9 @@ function handleDownload() {
 <template>
   <div style="overflow-x: hidden; width: 100%">
     <c-card relative>
+      <pre v-if="value.length > 100000" class="plain-output" data-test-id="area-content">{{ value }}</pre>
       <n-scrollbar
+        v-else
         x-scrollable
         trigger="none"
         :style="height ? `min-height: ${height - 40 /* card padding */ + 10 /* negative margin compensation */}px` : ''"
@@ -105,5 +107,15 @@ function handleDownload() {
 ::v-deep(.n-scrollbar) {
   padding-bottom: 10px;
   margin-bottom: -10px;
+}
+
+.plain-output {
+  max-height: 480px;
+  overflow: auto;
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: var(--dd-font-mono, ui-monospace, monospace);
+  font-size: 13px;
 }
 </style>

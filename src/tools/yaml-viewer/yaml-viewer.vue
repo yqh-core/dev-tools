@@ -19,7 +19,19 @@ const rawYamlValidation = useValidation({
   rules: [
     {
       validator: v => v === '' || yaml.parse(v),
-      message: 'Provided YAML is not valid.',
+      message: 'Invalid YAML: {0}',
+      getErrorMessage: (value) => {
+        try {
+          yaml.parse(value);
+          return '';
+        }
+        catch (error) {
+          const detail = error as { linePos?: { line: number; col: number }[]; message?: string };
+          const pos = detail.linePos?.[0];
+          const where = pos ? `Line ${pos.line}, column ${pos.col}. ` : '';
+          return `${where}${detail.message ?? 'This YAML could not be parsed.'}`;
+        }
+      },
     },
   ],
 });
@@ -38,14 +50,14 @@ const rawYamlValidation = useValidation({
   </div>
 
   <n-form-item
-    label="Your raw YAML"
+    label="YAML"
     :feedback="rawYamlValidation.message"
     :validation-status="rawYamlValidation.status"
   >
     <c-input-text
       ref="inputElement"
       v-model:value="rawYaml"
-      placeholder="Paste your raw YAML here..."
+      placeholder="Paste YAML"
       rows="20"
       multiline
       autocomplete="off"

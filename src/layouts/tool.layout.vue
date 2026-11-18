@@ -10,7 +10,7 @@ import SponsorSlot from '@/components/SponsorSlot.vue';
 import ToolCard from '@/components/ToolCard.vue';
 import { useToolStore } from '@/tools/tools.store';
 import type { Tool } from '@/tools/tools.types';
-import { OG_IMAGE, canonicalUrl } from '@/seo/site';
+import { canonicalUrl, ogImageUrl } from '@/seo/site';
 import { buildAlternateLinks, ogLocaleTags } from '@/i18n/languages';
 import { readDraft, writeDraft } from '@/utils/tool-draft';
 
@@ -160,12 +160,12 @@ const head = computed<HeadObject>(() => {
       { property: 'og:type', content: 'website' },
       { property: 'og:title', content: pageTitle },
       { property: 'og:description', content: toolDescription.value },
-      { property: 'og:image', content: OG_IMAGE },
+      { property: 'og:image', content: ogImageUrl(toolPath.value) },
       ...ogLocaleTags(),
       { name: 'twitter:card', content: 'summary_large_image' },
       { name: 'twitter:title', content: pageTitle },
       { name: 'twitter:description', content: toolDescription.value },
-      { name: 'twitter:image', content: OG_IMAGE },
+      { name: 'twitter:image', content: ogImageUrl(toolPath.value) },
       { name: 'twitter:image:alt', content: toolTitle.value },
     ],
   };
@@ -454,6 +454,74 @@ watch(toolPath, () => {
  * 无用户手势、权限被拒时都会抛错，静默吞掉会让用户以为已经复制成功，
  * 粘贴时才发现是旧内容。失败也要明说（文案里告诉他从地址栏复制）。
  */
+const fileInput = ref<HTMLInputElement | null>(null);
+const intakeMessage = ref('');
+const urlOpen = ref(false);
+const urlValue = ref('');
+const INTAKE_MAX = 2 * 1024 * 1024;
+
+function fillPrimary(text: string, label: string) {
+  const el = findPrimaryInput();
+  if (!el) {
+    intakeMessage.value = t('intake.noInput');
+    return;
+  }
+  setInputValue(el, text);
+  intakeMessage.value = t('intake.loaded', { name: label });
+}
+
+async function onIntakeFile(file: File | undefined) {
+  if (!file) {
+    return;
+  }
+  if (file.size > INTAKE_MAX) {
+    intakeMessage.value = t('intake.tooBig');
+    return;
+  }
+  try {
+    fillPrimary(await file.text(), file.name);
+  }
+  catch {
+    intakeMessage.value = t('intake.urlFail');
+  }
+}
+
+function onFileChange(event: Event) {
+  const input = event.target as HTMLInputElement;
+  onIntakeFile(input.files?.[0]).catch(() => {
+    intakeMessage.value = t('intake.urlFail');
+  });
+  input.value = '';
+}
+
+function onDrop(event: DragEvent) {
+  onIntakeFile(event.dataTransfer?.files?.[0]).catch(() => {
+    intakeMessage.value = t('intake.urlFail');
+  });
+}
+
+async function loadFromUrl() {
+  const url = urlValue.value.trim();
+  if (!url) {
+    return;
+  }
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(String(response.status));
+    }
+    const text = await response.text();
+    if (text.length > INTAKE_MAX) {
+      intakeMessage.value = t('intake.tooBig');
+      return;
+    }
+    fillPrimary(text, url);
+  }
+  catch {
+    intakeMessage.value = t('intake.urlFail');
+  }
+}
+
 const shareState = ref<'idle' | 'done' | 'failed'>('idle');
 
 async function shareLink() {
@@ -579,6 +647,23 @@ const shareLabel = computed(() => {
           <span v-if="exampleFailed" class="action-tip action-tip--error">{{ $t('tool.guideExampleFailed') }}</span>
         </div>
 
+        <div class="intake">
+          <button class="action-btn" type="button" @click="fileInput?.click()">
+            {{ $t('intake.upload') }}
+          </button>
+          <button class="action-btn" type="button" @click="urlOpen = !urlOpen">
+            {{ $t('intake.url') }}
+          </button>
+          <input ref="fileInput" class="intake-file" type="file" @change="onFileChange">
+          <label v-if="urlOpen" class="intake-url">
+            <input v-model="urlValue" type="url" :placeholder="$t('intake.urlPlaceholder')" @keydown.enter.prevent="loadFromUrl">
+            <button class="action-btn" type="button" @click="loadFromUrl">
+              {{ $t('intake.load') }}
+            </button>
+          </label>
+          <span class="action-tip">{{ intakeMessage || $t('intake.drop') }}</span>
+        </div>
+
         <div v-if="guide" class="guide">
           <button
             class="guide-toggle"
@@ -647,7 +732,7 @@ const shareLabel = computed(() => {
       </div>
     </div>
 
-    <div class="tool-content">
+    <div class="tool-content" @dragover.prevent @drop.prevent="onDrop">
       <slot />
     </div>
 
@@ -850,6 +935,37 @@ const shareLabel = computed(() => {
   .action-tip--error {
     opacity: 1;
     color: var(--error-color, #d03050);
+  }
+}
+
+.intake {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.intake-file {
+  display: none;
+}
+
+.intake-url {
+  display: flex;
+  flex: 1 1 220px;
+  gap: 8px;
+  min-width: 0;
+
+  input {
+    flex: 1;
+    min-width: 0;
+    padding: 5px 10px;
+    border: 1px solid var(--dd-border);
+    border-radius: 4px;
+    background: var(--dd-surface);
+    color: inherit;
+    font: inherit;
+    font-size: 13px;
   }
 }
 

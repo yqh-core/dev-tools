@@ -25,6 +25,7 @@ import { existsSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createServer } from 'vite';
+import sharp from 'sharp';
 import { parse } from 'yaml';
 import { parseRegistry } from './lib/locale-registry.mjs';
 
@@ -110,6 +111,30 @@ const vite = await createServer({
 });
 
 /** 替换模板片段。headTags/正文里可能含 `$`，必须用函数式替换，否则会被当反向引用解释。 */
+function escapeXml(value) {
+  return String(value).replace(/[&<>"]/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
+}
+
+/** 每页一张 1200×630 PNG，文件名与 src/seo/site.ts 的 ogImageUrl 对齐。 */
+async function writeOgImage(pagePath, title, kicker) {
+  const slug = String(pagePath).replace(/^\/+|\/+$/g, '') || 'home';
+  const file = join(root, 'dist/og', `${slug}.png`);
+  const heading = escapeXml(String(title).replace(/\s+/g, ' ').trim().slice(0, 48));
+  const eyebrow = escapeXml(String(kicker).replace(/\s+/g, ' ').trim().slice(0, 42));
+  const svg = `<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="630" fill="#0b1220"/>
+  <circle cx="1080" cy="80" r="220" fill="#134e4a"/>
+  <rect x="64" y="64" width="72" height="72" rx="16" fill="#14b8a6"/>
+  <text x="80" y="110" fill="#04201d" font-family="DejaVu Sans, sans-serif" font-size="26" font-weight="700">DB</text>
+  <text x="64" y="220" fill="#5eead4" font-family="DejaVu Sans, sans-serif" font-size="28">${eyebrow}</text>
+  <text x="64" y="330" fill="#f8fafc" font-family="DejaVu Sans, sans-serif" font-size="60">${heading}</text>
+  <text x="64" y="540" fill="#94a3b8" font-family="DejaVu Sans, sans-serif" font-size="28">digdevbox.com</text>
+</svg>`;
+  await mkdir(dirname(file), { recursive: true });
+  await sharp(Buffer.from(svg)).png().toFile(file);
+}
+
 function replaceOnce(haystack, needle, value) {
   if (!haystack.includes(needle)) {
     throw new Error(`[build-seo] 模板里找不到待替换片段: ${needle.slice(0, 60)}`);
@@ -863,6 +888,9 @@ try {
     if (!DRY_RUN) {
       await mkdir(dirname(file), { recursive: true });
       await writeFile(file, out, 'utf8');
+      const ogTitle = entry?.h1 || guidePage?.entry?.h1 || (path === '/' ? 'Free online developer tools' : path);
+      const ogKicker = entry?.category || (guidePage ? 'Guide' : 'DigDevBox');
+      await writeOgImage(path, ogTitle, ogKicker);
     }
 
     if (bodyText < 200) { thinPages += 1; }

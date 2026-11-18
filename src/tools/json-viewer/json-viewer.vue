@@ -6,6 +6,7 @@ import { withDefaultOnError } from '@/utils/defaults';
 import { useValidation } from '@/composable/validation';
 import TextareaCopyable from '@/components/TextareaCopyable.vue';
 import JsonTreeView from '@/components/JsonTreeView.vue';
+import { describeJsonProblem } from '@/utils/text-error';
 
 const inputElement = ref<HTMLElement>();
 
@@ -14,7 +15,7 @@ const indentSize = useStorage('json-prettify:indent-size', 3);
 const sortKeys = useStorage('json-prettify:sort-keys', true);
 const cleanJson = computed(() => withDefaultOnError(() => formatJson({ rawJson, indentSize, sortKeys }), ''));
 
-const viewMode = useStorage<'pretty' | 'tree'>('json-prettify:view', 'pretty');
+const viewMode = useStorage<'pretty' | 'tree' | 'minify'>('json-prettify:view', 'pretty');
 const parsed = computed(() => {
   try {
     return rawJson.value.trim() === '' ? undefined : JSON5.parse(rawJson.value);
@@ -24,18 +25,51 @@ const parsed = computed(() => {
   }
 });
 
+const minified = computed(() => (parsed.value === undefined ? '' : JSON.stringify(parsed.value)));
+
+const jsonProblem = computed(() => {
+  if (rawJson.value.trim() === '') {
+    return null;
+  }
+  try {
+    JSON5.parse(rawJson.value);
+    return null;
+  }
+  catch (error) {
+    return describeJsonProblem(rawJson.value, error);
+  }
+});
+
 watch(parsed, (value) => {
-  if (value === undefined && viewMode.value === 'tree') {
+  if (value === undefined && viewMode.value !== 'pretty') {
     viewMode.value = 'pretty';
   }
 });
+
+function jumpToError() {
+  const problem = jsonProblem.value;
+  const input = inputElement.value as { selectRange?: (start: number, end: number) => void } | null;
+  if (!problem || !input?.selectRange) {
+    return;
+  }
+  input.selectRange(problem.start, problem.end);
+}
 
 const rawJsonValidation = useValidation({
   source: rawJson,
   rules: [
     {
       validator: v => v === '' || JSON5.parse(v),
-      message: 'Provided JSON is not valid.',
+      message: 'Invalid JSON: {0}',
+      getErrorMessage: (value) => {
+        try {
+          JSON5.parse(value);
+          return '';
+        }
+        catch (error) {
+          return describeJsonProblem(value, error).message;
+        }
+      },
     },
   ],
 });
@@ -54,14 +88,14 @@ const rawJsonValidation = useValidation({
   </div>
 
   <n-form-item
-    label="Your raw JSON"
+    label="JSON"
     :feedback="rawJsonValidation.message"
     :validation-status="rawJsonValidation.status"
   >
     <c-input-text
       ref="inputElement"
       v-model:value="rawJson"
-      placeholder="Paste your raw JSON here..."
+      placeholder="Paste JSON. A file drop works too."
       rows="20"
       multiline
       autocomplete="off"
@@ -70,8 +104,11 @@ const rawJsonValidation = useValidation({
       spellcheck="false"
       monospace
     />
+    <button v-if="jsonProblem" class="json-jump" type="button" @click="jumpToError">
+      Show the error
+    </button>
   </n-form-item>
-  <n-form-item label="Prettified version of your JSON">
+  <n-form-item label="Result">
     <div class="json-views">
       <div class="json-view-switch" role="tablist" aria-label="JSON view">
         <button type="button" role="tab" :aria-selected="viewMode === 'pretty'" :class="{ on: viewMode === 'pretty' }" @click="viewMode = 'pretty'">
@@ -87,6 +124,9 @@ const rawJsonValidation = useValidation({
         >
           Tree
         </button>
+        <button type="button" role="tab" :aria-selected="viewMode === 'minify'" :class="{ on: viewMode === 'minify' }" :disabled="parsed === undefined" @click="viewMode = 'minify'">
+          Minify
+        </button>
       </div>
       <TextareaCopyable
         v-show="viewMode === 'pretty'"
@@ -97,6 +137,13 @@ const rawJsonValidation = useValidation({
         :follow-height-of="inputElement"
       />
       <JsonTreeView v-if="viewMode === 'tree' && parsed !== undefined" :data="parsed" />
+      <TextareaCopyable
+        v-if="viewMode === 'minify'"
+        :value="minified"
+        language="json"
+        downloadable
+        download-filename="minified"
+      />
     </div>
   </n-form-item>
 </template>
@@ -141,5 +188,17 @@ const rawJsonValidation = useValidation({
       opacity: 0.45;
     }
   }
+}
+
+.json-jump {
+  margin-top: 8px;
+  padding: 4px 10px;
+  border: 1px solid var(--dd-danger, #dc2626);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--dd-danger, #dc2626);
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
 }
 </style>

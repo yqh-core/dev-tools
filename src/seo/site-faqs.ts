@@ -37,7 +37,7 @@ const ZH_FAQS: SiteFaq[] = [
   },
   {
     q: '我粘贴的文本、上传的文件、输入的密钥会被传到服务器吗？',
-    a: '不会。绝大多数工具在您的浏览器里本地完成计算，输入内容不出本机，也不写进任何本站存储。只有三个工具必须向外查询才能给出答案：[WHOIS 查询](/whois-lookup) 问域名注册数据、[HTTP 状态检测](/http-status-checker) 请求您填入的网址、[历史上的今天](/today-in-history) 取一份公开数据集 —— 它们也只向本站自己的服务发请求。更完整的处理说明见[隐私政策](/privacy)。',
+    a: '不会。绝大多数工具在浏览器里算完，粘贴的内容不会上传，本站也不留副本。只有两个工具必须发请求才有结果：[WHOIS 查询](/whois-lookup) 查域名注册信息，[HTTP 状态检测](/http-status-checker) 访问你填的网址。请求发到本站自己的服务。完整说明见[隐私政策](/privacy)。',
   },
   {
     q: '手机上能用吗？',
@@ -76,7 +76,7 @@ const EN_FAQS: SiteFaq[] = [
   },
   {
     q: 'Is the text, file or key I paste sent to a server?',
-    a: 'No. Most tools compute entirely in your browser — your input never leaves the machine and is never written to any storage we control. Three tools must ask something outside your browser to answer at all: [WHOIS lookup](/whois-lookup) queries domain registration data, [HTTP status checker](/http-status-checker) requests the URL you enter, and [On this day](/today-in-history) reads a public dataset. Those requests go to this site\'s own service, not to third parties. Full details are in the [privacy policy](/privacy).',
+    a: 'No. Almost every tool runs in your browser. What you paste is not uploaded, and we do not keep a copy of it. Two tools have to send a request: [WHOIS lookup](/whois-lookup) asks the domain registry, and [HTTP status checker](/http-status-checker) requests the URL you enter. Those calls go to this site\'s own service. Details are in the [privacy policy](/privacy).',
   },
   {
     q: 'Does it work on a phone?',

@@ -26,6 +26,12 @@ export const SITE_NAME = 'DigDevBox';
 /** 社交卡片图（相对站点根）。带上版本号便于更换后绕过平台缓存。 */
 export const OG_IMAGE = `${SITE_ORIGIN}/og-image.jpg?v=2`;
 
+/** 每个页面一张构建期生成的 PNG。slug 与 dist/og/<slug>.png 对齐。 */
+export function ogImageUrl(path: string): string {
+  const slug = path.replace(/^\/+|\/+$/g, '') || 'home';
+  return `${SITE_ORIGIN}/og/${slug}.png`;
+}
+
 /**
  * 把任意路由路径规范化成唯一形式：以 `/` 开头；非根路径以 `/` 结尾。
  *

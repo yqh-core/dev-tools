@@ -216,7 +216,7 @@ assertPopularToolPaths(POPULAR_TOOL_PATHS, toolsWithCategory);
  *
  * ⚠ 新增任何会发外部请求的工具，必须同步加到这里，否则首页的隐私声明就是假的。
  */
-const NETWORK_TOOL_PATHS = ['/whois-lookup', '/http-status-checker', '/today-in-history'];
+const NETWORK_TOOL_PATHS = ['/whois-lookup', '/http-status-checker'];
 
 const networkTools = computed(() =>
   NETWORK_TOOL_PATHS
@@ -382,6 +382,19 @@ function onUpdateFavoriteTools() {
         <p class="home-hero-subtitle">
           {{ $t('home.hero.subtitle', { count: toolStore.tools.length }) }}
         </p>
+        <div class="hero-cats" aria-label="Categories">
+          <RouterLink
+            v-for="cat in categoriesPreview.slice(0, 8)"
+            :key="cat.name"
+            class="hero-cat"
+            :style="{ '--cluster-hue': cat.hue }"
+            :to="cat.sampleTools[0]?.path || '/tools'"
+          >
+            <n-icon :component="cat.icon" size="16" />
+            <span>{{ cat.name }}</span>
+          </RouterLink>
+        </div>
+
         <ul class="hero-badges">
           <li class="hero-badge hero-badge-strong">
             {{ t('home.hero.badgeFree') }}
@@ -707,13 +720,13 @@ function onUpdateFavoriteTools() {
   .home-hero-title {
     margin: 0 0 8px;
 
-    font-size: 30px;
-    font-weight: 700;
-    line-height: 1.2;
-    letter-spacing: -0.01em;
+    font-size: 36px;
+    font-weight: 720;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
 
     @media (min-width: 640px) {
-      font-size: 40px;
+      font-size: 56px;
     }
   }
 
@@ -728,6 +741,33 @@ function onUpdateFavoriteTools() {
 }
 
 /* S2：badge 行。真实能力三条（Free / No signup / 计数），不放 browser-only。 */
+.hero-cats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 18px 0 4px;
+}
+
+.hero-cat {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border: 1px solid hsl(var(--cluster-hue) 40% 80%);
+  border-radius: 999px;
+  background: hsl(var(--cluster-hue) 70% 96%);
+  color: hsl(var(--cluster-hue) 40% 24%);
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+
+  .dark & {
+    border-color: hsl(var(--cluster-hue) 30% 28%);
+    background: hsl(var(--cluster-hue) 24% 16%);
+    color: hsl(var(--cluster-hue) 70% 78%);
+  }
+}
+
 .hero-badges {
   display: flex;
   flex-wrap: wrap;

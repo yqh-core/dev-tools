@@ -129,6 +129,15 @@ function blur() {
   }
 }
 
+function selectRange(start: number, end: number) {
+  const el = textareaRef.value ?? inputRef.value;
+  if (!el) {
+    return;
+  }
+  el.focus();
+  el.setSelectionRange(start, end);
+}
+
 onMounted(() => {
   if (autofocus.value) {
     focus();
@@ -139,6 +148,7 @@ defineExpose({
   inputWrapperRef,
   focus,
   blur,
+  selectRange,
 });
 </script>
 

@@ -1,5 +1,83 @@
 # 主站改造记录（2026-11-18）
 
+## 站长修正（本轮按此执行）
+
+- 目标市场是美国 / 英文用户。不做 `/zh/` 独立 URL，也不为中文再预渲染一套 HTML。可抓取正文保持英文。界面里的中文只留给语言切换器，不新增可索引中文页。
+- 不新增大批页面或 guides。SEO 扩页保持冻结。工作放在现有工具的质量和体验上。
+- 分析客户端冻结：没有新埋点，没有改用户身份或存储方式，没有接入 Plausible 或其他分析服务。广告位 id 与 Plausible 密钥继续留空。
+
+## 下线（301 到仍在线上的最近工具）
+
+源码目录还在，路由已从 `src/tools/index.ts` 拿掉，`public/_redirects` 同时覆盖工具页和 `/guides/...`（带不带尾斜杠都有）。guides 旧条目留在文件里，避免为下线去改写说明正文；`auditToolSeoData` 用 `src/tools/retired.ts` 把这些 path 当成已退休。
+
+| 下线 | 301 到 | 原因 |
+| --- | --- | --- |
+| /today-in-history | /date-converter/ | 不是开发者工具，还要联网 |
+| /reaction-time-test | /eta-calculator/ | 反应测试，没有开发者搜索需求 |
+| /chronometer | /eta-calculator/ | 秒表，和 ETA 重复且更弱 |
+| /benchmark-builder | /eta-calculator/ | 手工计时，输出粗糙 |
+| /camera-recorder | /image-compress/ | 摄像头录制，不是代码工具，包也很重 |
+| /text-to-nato-alphabet | /text-to-unicode/ | 北约音标，开发者搜索量可忽略 |
+| /numeronym-generator | /slugify-string/ | 玩具缩写 |
+| /string-obfuscator | /hash-text/ | 遮一截字符串，哈希已经覆盖「不要明文」 |
+| /keycode-info | /device-information/ | 按键码查询，需求被设备信息页盖住 |
+| /html-wysiwyg-editor | /markdown-to-html/ | 编辑器又重又糙，写内容用 Markdown |
+| /random-port-generator | /token-generator/ | 随机端口是一次性数字 |
+| /svg-placeholder-generator | /image-resize/ | 占位图需求低，缩放仍在 |
+| /roman-numeral-converter | /base-converter/ | 罗马数字不是开发者日常换算 |
+| /morse-code-converter | /text-to-unicode/ | 摩尔斯电码，编码玩具 |
+| /email-normalizer | /list-converter/ | 邮箱归一被列表去重盖住，仓库里早有下线草案 |
+| /ipv6-ula-generator | /ipv4-subnet-calculator/ | ULA 生成极窄，子网计算器是网络规划入口 |
+
+留下并加强的高频工具：JSON（含 minify / 树 / 错误定位）、Base64、JWT、正则（原有可视化）、Cron、时间戳（date-converter 与 unix-timestamp 都留着，它们打的词不一样）、URL、Hash（新增按文件字节计算）、UUID、YAML/JSON/CSV、Diff、颜色（加大色块）、SQL（非法语句不再把页面打崩，并显示解析错误）。
+
+JSON minify 这个独立页留下了。它在关键词表里是 JSON 簇的一条，而且 "json minify" 是独立检索词，并进格式化页会丢这个入口。
+
+## 体验
+
+- 每个有文本框的工具页都能上传文件、从 URL 载入、把文本文件拖进去。单份上限 2 MB。URL 在浏览器里拉，跨域失败会说明原因，不走新的后端。
+- JSON 格式化：Pretty / Tree / Minify。JSON5 报错带位置，"Show the error" 会选中出错的字符。超过 10 万字符的高亮输出改成纯文本，避免 highlight.js 卡住。
+- YAML 报错带行号和列号。SQL 格式化失败时显示 sql-formatter 的错误，不再让计算属性抛出去。
+- Hash 增加「Hash a file」，用文件字节做摘要，上限 8 MB，不上传。
+- 颜色转换顶部加一块 96px 色板。
+- 首页标题加大，Hero 下有 8 个分类入口（簇图标 + 色相）。工具卡片的图标收到统一的圆角色块里，颜色跟任务簇走。
+- 构建期用 sharp 给每个预渲染页面写 `dist/og/<slug>.png`（1200×630）。`og:image` 和 `twitter:image` 指向这张图，不再全站共用一张 jpg。
+
+## 三轮对照复盘（对照 2026-11-18 总复盘包）
+
+对照文件：`reports/02`、`reports/04` 的 P1-A，`tables/04` 主站行，`tables/05` 的 B05/B20，`tables/06` 的 GROWTH-MATRIX。API Studio 的 B06–B15 不在本仓库改运行时。
+
+### 第一轮：计划与阻塞
+
+- P1-A「不扩目录充数」：已下线 16 个低需求工具并 301，工具数从 120 收到 104。没有新工具页，没有新 guide。
+- P1-A「高意图工具要有说明、示例、限制、错误恢复、FAQ、相关工具」：原有 guides 还在。本轮给 JSON / YAML / SQL 补了能看懂的错误，给所有文本工具加了上传、拖放和从 URL 载入。
+- P1-A「不说全站都在本地」：关于页、FAQ 和首页隐私段改成点名 WHOIS 与 HTTP 状态检测。不再提已下线的「历史上的今天」。
+- B05 最新 GSC/CF 流量：没有账号，不能补。不编造数字。
+- B20 分析客户端冻结：没有新事件，没有改身份或存储，没有接 Plausible。
+- B06–B15 API Studio：没有改 runner、脚本、变量、CSV、报告或 CLI。入口文案可以以后再统一，这轮不碰 `src/tools/api-debugger/` 的运行时代码。
+
+### 第二轮：竞品差距矩阵
+
+矩阵对主站的判断是：目录广度有用，但竞争力不靠工具数量；缺的是品牌权威、外链、真实美国流量、复访、付费/API/团队，以及工具级抽测。
+
+- 能在这个仓库做的抽测：JSON 树/压缩/错误定位、文件哈希、YAML 行列、SQL 错误、颜色色板、大文件不走高亮。这些是对 JSONLint / 格式化站的功能差距，不是流量差距。
+- 外链、排名、复访、付费：没有一方数据，也不在这次改代码能证明的范围。记为未做，不写成已完成。
+- 矩阵写「历史 117 工具」。当前注册表是 104。差出来的是这轮下线，不是漏计。
+
+### 第三轮：文案和还没到商业手感的地方
+
+- 改了首页四条理由、隐私段、赞助句，以及 JSON、YAML、SQL、JWT、Base64、哈希、CSV、URL、日期、时间戳这些说明。去掉 “Simply convert”、“right in your browser”、“nothing leaves your browser” 这种每页复读。
+- 高意图工具的输入标签改成短句：JSON、YAML、SQL、Token、Text。JWT 写明不校验签名。
+- 没改 keyword map 锁死的 `<title>`。没重写 82 篇 guides 正文：那是已有说明，整篇重写会变成新的 SEO 正文，和冻结冲突。
+- 还没到的：没有在真实手机上做键盘和读屏验收；没有 Lighthouse 分数；OG 图是构建期纯色卡片，不是设计师出的每工具插画。这些需要站长在线上或设计稿上决定。
+
+## 明确没做
+
+- 没有 `/zh/` 路由，没有中文预渲染，没有改 hreflang 为多 URL。
+- 没有新的 guide 文章，没有新的工具页。
+- 没有 Plausible、没有新的分析事件。
+
+
 事实记录。对照的是这些公开站点当时能看到的产品形态：it-tools.tech、CyberChef、transform.tools、jsonformatter.org、10015.io，以及 codebeautify / DevUtils / 在线工具类站点的公开页面结构。
 
 ## 对标结论
