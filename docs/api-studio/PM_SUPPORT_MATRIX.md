@@ -21,9 +21,9 @@
 | `pm.iterationData` get/has/toObject/count | Runner 每轮注入数据行（CSV RFC 4180 严格四态解析 / JSON 顶层数组，fail-closed；文件/行/列/字段字节上限见数据文件节）；读取优先级同 resolver；每轮重置不串轮 | datafiles.test / data-driven.test / B 浏览器 E2E |
 | `pm.request` url/method/headers(get/upsert/add/remove/all/has/count)/body(toString/update) | mutation 只作用本次发送，不回写存储 | script-integration.test |
 | `pm.response` code/status/text/json/headers(get/all/has/count)/responseTime/size | prerequest 阶段为 null（与 Postman 一致）；请求失败时 test 脚本仍以 null 执行 | script-integration.test 空响应 guard |
-| `pm.info` event/iteration/counter/requestName | requestName 由 Runner 注入真实请求名 | script-integration.test |
+| `pm.info` event/iteration/counter/requestName | requestName 由 Runner 注入真实请求名（G1 更正：原实现硬编码空串——矩阵声称曾领先代码，G1 闭环并加锁） | script-runtime.test（G1 requestName 锁） |
 | `pm.test(name, fn)` | fn 抛错 = 测试失败并带原因；**fn 可为 async——settled 后才定成败（E5）；顶层 await 支持；未 settle 不出结论**；结果进 summary 与报告 | script-runtime.test（同步+异步双模）/ E2E S14 |
-| `pm.expect` 子集 | to.be/been/is/and/has/with/that 链；equal/eql/include/match/above/below/ok/true/null/exist/lengthOf/property/oneOf/a；`not` 支持 equal/exist；**失败消息面 actual/expected 经 DISPLAY_CAP=200 截断（第 2 层口径）** | script-runtime.test |
+| `pm.expect` 子集 | to.be/been/is/and/has/with/that 链；equal/eql/include/match/above/below/ok/true/null/exist/lengthOf/property/oneOf/a；`not` 支持 equal/exist；**G1 严格消息口径（yqh 裁定②）：失败消息不格式化 actual/expected 原始值——只承载操作符/类型/安全字段路径/安全标量；label 与测试名承载定位** | script-runtime.test（G1 植物负控+类型正控） |
 | `pm.sendRequest` | outbox → 宿主桥；Promise 与 callback 双形态；**返回 Postman 风格响应视图**（code/status/statusText/headers.get/has/all/count/text/json/responseTime/size/truncated）；桥失败如实 reject 传播为脚本错误；**资源上限（fail-closed）：累计发送 100/脚本运行、单 spec 1MB（UTF-8 字节）、宿主桥响应体 1MB 字节级截断、console 捕获 256KB/轮** | script-runtime.test（含上限负控）/ 探针矩阵 P12-P16 |
 | `pm.*` 全矩阵（CLI 侧） | 浏览器 Worker 与 CLI worker_threads **共用同一 script-runtime/script-worker 源码**；CLI 侧额外中和 `process` 全局（env/mainModule.require 逃逸面读取即抛）；模块加载静态护栏两边同源代码 | cli 单测 + CLI E2E（S13/S13b/S14）+ 探针矩阵 |
 

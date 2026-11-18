@@ -1,9 +1,12 @@
 /**
  * API-012/B3+B4 · 运行报告引擎（JSON + JUnit XML）。
  *
- * 脱敏（任务书 B3 硬要求）：报告**默认**不含 Secret、Authorization、Cookie、API Key、
+ * 脱敏（任务书 B3 硬要求；终审 P0-02/G1 裁定②）：报告**默认**不含 Secret、Authorization、Cookie、API Key、
  * 环境变量值、数据行值、请求/响应体、响应头值。URL 是用户自己书写的请求定义的一部分
  * （Postman 报告同样包含 URL），但 header 值一律不进报告。
+ * 三层口径如实声明：①结构面保证（字段不进报告）②**严格消息口径**（G1：断言/脚本错误消息面不打印
+ * 原始 actual/expected 值——操作符/类型/路径/安全标量 only）③本层：已标记 secret 的值在报告文本面
+ * 扫描替换（用户脚本自有 throw 文本/上游错误原文等第三方文本面的纵深防御）。
  *
  * JUnit 映射（B4）：HTTP 4xx/5xx 本身**不是**测试失败——断言失败/脚本错误/请求错误才是；
  * 服务响应状态记录在 testcase 的 classname/属性中。取消的剩余轮次映射为 skipped。

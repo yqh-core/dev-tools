@@ -103,7 +103,31 @@ describe('pm.test / pm.expect fail-closed', () => {
     pm.test('wrong status', () => pm.expect(pm.response.code).to.equal(500));
     flushTests();
     expect(io.outcome.tests[0].passed).toBe(false);
-    expect(io.outcome.tests[0].error).toContain('to equal');
+    expect(io.outcome.tests[0].error).toContain('operator=equal');
+  });
+  it('终审裁定② G1 严格消息：失败消息不格式化原始 actual/expected（植物负控+类型信息正控）', () => {
+    const s = snap({ environment: { apiKey: 'SK-G1-PLANT-3m9', shared: 'ENV' } }); const { io } = mkIO(s);
+    const { pm, flushTests } = createPmAPI(s, io);
+    pm.test('secret expect fail', () => pm.expect(pm.variables.get('apiKey')).to.equal('different'));
+    pm.test('obj expect fail', () => pm.expect(pm.response.json()).to.have.property('name', 'yqh-wrong'));
+    flushTests();
+    const err0 = io.outcome.tests[0].error ?? '';
+    const err1 = io.outcome.tests[1].error ?? '';
+    // 植物值零回显（uniform 口径：安全标量如状态码同样不回显）
+    expect(err0).not.toContain('SK-G1-PLANT-3m9');
+    expect(err0).toContain('operator=equal');
+    expect(err0).toContain('actual type=string');
+    // property 路径安全（用户配置面），值不回显
+    expect(err1).toContain('property path "name"');
+    expect(err1).not.toContain('yqh');
+    expect(err1).not.toContain('SK-G1-PLANT-3m9');
+  });
+  it('终审裁定② G1：pm.info.requestName 真实注入（可定位性）', () => {
+    const s = snap({ info: { event: 'test', iteration: 2, counter: 3, requestName: 'req-42' } }); const { io } = mkIO(s);
+    const { pm } = createPmAPI(s, io);
+    expect(pm.info.requestName).toBe('req-42');
+    expect(pm.info.iteration).toBe(2);
+    expect(pm.info.counter).toBe(3);
   });
   it('不认识的链式方法抛 TypeError → test 失败而非静默通过', () => {
     const s = snap(); const { io } = mkIO(s);

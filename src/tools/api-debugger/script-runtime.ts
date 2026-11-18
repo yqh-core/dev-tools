@@ -23,8 +23,6 @@ export const OUTBOX_SPEC_MAX_BYTES = 1_000_000;
 export const RESPONSE_BODY_MAX_BYTES = 1_000_000;
 /** 单次脚本运行 console 捕获总量上限（字节）——超出后丢弃并标记，不静默无限增长。 */
 export const CONSOLE_TOTAL_MAX_BYTES = 262_144;
-/** 断言/错误消息展示上限（字符）——脱敏三层口径的第 2 层（截断）；值级替换在报告层 redactText。 */
-export const DISPLAY_CAP = 200;
 
 const te = new TextEncoder();
 /** spec 的 UTF-8 字节数（终审 P1-03：原 JSON.stringify.length 是 UTF-16 码元数，口径不符）。 */
@@ -145,12 +143,6 @@ function wrapBridgeResponse(res: BridgeResponse) {
 }
 
 const STR = (v: unknown): string => typeof v === 'string' ? v : String(v ?? '')
-/** 展示截断（终审 P0-02 第 2 层口径：断言/错误消息面截断 actual/expected；值级替换在报告层）。 */
-const disp = (v: unknown): string => {
-  let s: string;
-  try { s = JSON.stringify(v) ?? String(v) } catch { s = String(v) }
-  return s.length > DISPLAY_CAP ? s.slice(0, DISPLAY_CAP) + `…(+${s.length - DISPLAY_CAP} chars)` : s;
-};
 
 /**
  * 变量解析优先级（Postman 语义；终审 P1-01：唯一权威序——resolveVariable 供
@@ -170,9 +162,14 @@ export function resolveVariable(snap: ScriptSnapshot, name: string): string | un
 }
 
 /* ---------- pm.expect 最小断言子集（fail-closed：不认识的链式方法抛错=测试失败） ----------
- * 终审 P0-02：消息面 actual/expected 一律经 disp() 截断（DISPLAY_CAP）——旧实现全量
- * JSON.stringify(actual)，secret 经 pm.expect(secret) 失败消息完整进报告。已标记 secret
- * 的值级替换在报告层 redactText（第 3 层）；截断是第 2 层；结构面不序列化是第 1 层。 */
+ * G1 严格消息口径（yqh 裁定②）：消息面**默认不格式化 actual/expected 原始值**——只承载断言类型/
+ * 失败原因/操作符/安全字段路径/类型信息/安全标量（阈值/长度/候选数）。原始值不留消息面
+ * （UI/stdout/JSON/JUnit/下载报告全安全）；label/测试名承载定位信息。
+ * 值级脱敏（报告层 redactText）保留为纵深防御——用户脚本自有 throw 文本/上游错误原文等第三方文本面。 */
+function typeName(v: unknown): string {
+  return v === null ? 'null' : Array.isArray(v) ? 'array' : typeof v;
+}
+const STRICT_TAIL = ' Raw values are not printed by default (security default; marked-secret values are additionally redacted at the report layer).';
 class ExpectError extends Error {}
 
 function buildExpect(actual: unknown) {
@@ -182,31 +179,31 @@ function buildExpect(actual: unknown) {
   chain.to = self(); (chain as any).be = self(); (chain as any).been = self(); (chain as any).is = self()
   chain.and = self(); (chain as any).has = self(); (chain as any).with = self(); (chain as any).that = self()
   chain.not = {
-    equal: (x: unknown) => assert(String(actual) !== String(x), `expected ${disp(actual)} not to equal ${disp(x)}`),
-    exist: () => assert(actual === null || actual === undefined, `expected value not to exist but got ${disp(actual)}`),
+    equal: (x: unknown) => assert(String(actual) !== String(x), `Assertion failed: inequality not satisfied (operator=not.equal; actual type=${typeName(actual)}, expected type=${typeName(x)}).${STRICT_TAIL}`),
+    exist: () => assert(actual === null || actual === undefined, `Assertion failed: expected absence but value exists (operator=not.exist; actual type=${typeName(actual)}).`),
   }
-  chain.equal = (x: unknown) => { assert(actual === x, `expected ${disp(actual)} to equal ${disp(x)}`); return self() }
-  chain.eql = (x: unknown) => { assert(JSON.stringify(actual) === JSON.stringify(x), `expected deep equality between ${disp(actual)} and ${disp(x)}`); return self() }
+  chain.equal = (x: unknown) => { assert(actual === x, `Assertion failed: equality not satisfied (operator=equal; actual type=${typeName(actual)}, expected type=${typeName(x)}).${STRICT_TAIL}`); return self() }
+  chain.eql = (x: unknown) => { assert(JSON.stringify(actual) === JSON.stringify(x), `Assertion failed: deep equality not satisfied (operator=eql; actual type=${typeName(actual)}, expected type=${typeName(x)}).${STRICT_TAIL}`); return self() }
   chain.include = (x: unknown) => {
     const ok = typeof actual === 'string' ? actual.includes(String(x)) : Array.isArray(actual) ? actual.map(String).includes(String(x)) : false
-    assert(ok, `expected ${disp(actual)} to include ${disp(x)}`); return self()
+    assert(ok, `Assertion failed: inclusion not satisfied (operator=include; actual type=${typeName(actual)}).${STRICT_TAIL}`); return self()
   }
-  chain.match = (re: RegExp) => { assert(re.test(STR(actual)), `expected ${disp(actual)} to match ${re}`); return self() }
-  chain.above = (n: number) => { assert(Number(actual) > n, `expected ${disp(actual)} to be above ${n}`); return self() }
-  chain.below = (n: number) => { assert(Number(actual) < n, `expected ${disp(actual)} to be below ${n}`); return self() }
-  chain.ok = () => { assert(!!actual, `expected ${disp(actual)} to be truthy`); return self() }
-  chain.true = () => { assert(actual === true, `expected true, got ${disp(actual)}`); return self() }
-  chain.null = () => { assert(actual === null, `expected null, got ${disp(actual)}`); return self() }
-  chain.exist = () => { assert(actual !== null && actual !== undefined, 'expected value to exist'); return self() }
-  chain.lengthOf = (n: number) => { const len = (actual as { length?: number })?.length; assert(len === n, `expected length ${n}, got ${String(len)}`); return self() }
+  chain.match = (re: RegExp) => { assert(re.test(STR(actual)), `Assertion failed: regex match not satisfied (operator=match; actual type=string).${STRICT_TAIL}`); return self() }
+  chain.above = (n: number) => { assert(Number(actual) > n, `Assertion failed: numeric order (operator=above; threshold=${n}; actual type=${typeName(actual)}).${STRICT_TAIL}`); return self() }
+  chain.below = (n: number) => { assert(Number(actual) < n, `Assertion failed: numeric order (operator=below; threshold=${n}; actual type=${typeName(actual)}).${STRICT_TAIL}`); return self() }
+  chain.ok = () => { assert(!!actual, `Assertion failed: truthiness (operator=ok; actual type=${typeName(actual)}).`); return self() }
+  chain.true = () => { assert(actual === true, `Assertion failed: expected true (operator=true; actual type=${typeName(actual)}).`); return self() }
+  chain.null = () => { assert(actual === null, `Assertion failed: expected null (operator=null; actual type=${typeName(actual)}).`); return self() }
+  chain.exist = () => { assert(actual !== null && actual !== undefined, `Assertion failed: expected value to exist (operator=exist; actual type=${typeName(actual)}).`); return self() }
+  chain.lengthOf = (n: number) => { const len = (actual as { length?: number })?.length; assert(len === n, `Assertion failed: length (operator=lengthOf; expected length=${n}, actual length=${len === undefined ? 'n/a' : len}).`); return self() }
   chain.property = (name: string, val?: unknown) => {
     const v = (actual as Record<string, unknown>)?.[name]
-    assert(v !== undefined, `expected property ${disp(name)}`)
-    if (val !== undefined) assert(String(v) === String(val), `expected property ${name}=${disp(val)}, got ${disp(v)}`)
+    assert(v !== undefined, `Assertion failed: property path "${name}" not present (operator=property).`)
+    if (val !== undefined) assert(String(v) === String(val), `Assertion failed: property path "${name}" value mismatch (operator=property; actual type=${typeName(v)}, expected type=${typeName(val)}).${STRICT_TAIL}`)
     return self()
   }
-  chain.oneOf = (arr: unknown[]) => { assert(Array.isArray(arr) && arr.some(x => String(x) === String(actual)), `expected ${disp(actual)} to be one of ${disp(arr)}`); return self() }
-  chain.a = (t: string) => { assert((t === 'number' ? typeof actual === 'number' : t === 'string' ? typeof actual === 'string' : t === 'array' ? Array.isArray(actual) : t === 'object' ? typeof actual === 'object' : false), `expected type ${t}`); return self() }
+  chain.oneOf = (arr: unknown[]) => { assert(Array.isArray(arr) && arr.some(x => String(x) === String(actual)), `Assertion failed: membership (operator=oneOf; actual type=${typeName(actual)}, candidates=${arr.length}).${STRICT_TAIL}`); return self() }
+  chain.a = (t: string) => { assert((t === 'number' ? typeof actual === 'number' : t === 'string' ? typeof actual === 'string' : t === 'array' ? Array.isArray(actual) : t === 'object' ? typeof actual === 'object' : false), `Assertion failed: type (operator=a; expected type=${t}, actual type=${typeName(actual)}).`); return self() }
   chain.have = self(); chain.with = self()
   return chain
 }
@@ -278,7 +275,7 @@ export function createPmAPI(snap: ScriptSnapshot, io: RuntimeIO) {
     throw new ExpectError(`pm.${feature} is not supported by API Studio script runtime yet (see docs/api-studio/PM_SUPPORT_MATRIX.md). Use the documented pm.* subset or pm.sendRequest.`);
   };
   const pm: Record<string, unknown> = {
-    info: { event: snap.info.event, iteration: snap.info.iteration, counter: snap.info.counter, requestName: '' },
+    info: { event: snap.info.event, iteration: snap.info.iteration, counter: snap.info.counter, requestName: snap.info.requestName },
     event: { response, request },
     request,
     response,
