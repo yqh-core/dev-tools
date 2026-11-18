@@ -21,6 +21,7 @@
 | `pm.test(name, fn)` | fn 抛错 = 测试失败并带原因；结果进 summary 与报告 | 191/191 |
 | `pm.expect` 子集 | to.be/been/is/and/has/with/that 链；equal/eql/include/match/above/below/ok/true/null/exist/lengthOf/property/oneOf/a；`not` 支持 equal/exist | script-runtime.test |
 | `pm.sendRequest` | outbox → 宿主 apiproxy；Promise 与 callback 双形态 | script-runtime.test |
+| `pm.*` 全矩阵（CLI 侧） | 浏览器 Worker 沙箱与 CLI worker_threads 沙箱**共用同一 script-runtime 源码**（pm 语义/守卫/超时 kill 同契约）；传输层独立实现（C 阶段） | cli 单测（真 worker_threads 协议/outbox/超时/崩溃承载）+ CLI E2E（fetch 逃逸守卫负控+while(true) 5s kill） |
 
 ## PARTIAL
 
