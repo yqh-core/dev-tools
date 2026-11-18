@@ -187,6 +187,8 @@ search:
   clear: 'Clear search'
   found: 'Found {count} tools matching "{query}"'
   empty: 'No tools match "{query}". Try another wording, such as "format", "convert" or "generate".'
+  shortcut: 'Ctrl/⌘ K'
+  palettePlaceholder: 'Search tools and commands'
 tools:
   categories:
     favorite-tools: 'Your favorite tools'
@@ -806,6 +808,13 @@ tool:
   actionShare: "Share"
   actionShareDone: "Link copied"
   actionShareFailed: "Copy failed — copy it from the address bar"
+  actionShareX: "Share on X"
+  actionShareNative: "Share…"
+  actionRestore: "Restore last input"
+  shortcutHint: "Press ? for instructions. Search is in the top bar."
+  sponsorLabel: "Sponsor"
+  sponsorBody: "DigDevBox stays free. This slot is for a sponsor and never reads what you paste."
+  sponsorCta: "Advertise or sponsor"
   guideExpand: "How do I use this tool?"
   guideCollapse: "Hide instructions"
   guideExampleTip: "Not sure what to enter? Click to fill in a sample value."

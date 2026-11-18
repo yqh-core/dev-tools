@@ -186,6 +186,8 @@ search:
   clear: '清空搜索'
   found: '找到 {count} 个匹配「{query}」的工具'
   empty: '没有找到匹配「{query}」的工具，换个说法试试（如「格式化」「转换」「生成」）'
+  shortcut: 'Ctrl/⌘ K'
+  palettePlaceholder: '搜索工具或命令'
 tools:
   categories:
     favorite-tools: '我的收藏'
@@ -801,6 +803,13 @@ tool:
   actionShare: "分享"
   actionShareDone: "链接已复制"
   actionShareFailed: "复制失败，请从地址栏复制"
+  actionShareX: "分享到 X"
+  actionShareNative: "系统分享…"
+  actionRestore: "恢复上次输入"
+  shortcutHint: "按 ? 打开使用说明。搜索在顶栏。"
+  sponsorLabel: "赞助"
+  sponsorBody: "DigDevBox 保持免费。这个位置留给赞助，不会读取你粘贴的内容。"
+  sponsorCta: "投放或赞助"
   guideExpand: "怎么用这个工具？"
   guideCollapse: "收起使用说明"
   guideExampleTip: "不确定填什么？点一下自动填一份示例内容。"

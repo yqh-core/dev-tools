@@ -12,7 +12,7 @@ const props = withDefaults(
     inputDefault?: string
     outputLabel?: string
     outputLanguage?: string
-    /** 透传给输出区的下载按钮；默认关，已有调用方零影响 */
+    /** 透传给输出区的下载按钮。默认开。 */
     downloadable?: boolean
     downloadFilename?: string
   }>(),
@@ -24,7 +24,7 @@ const props = withDefaults(
     inputPlaceholder: 'Input...',
     outputLabel: 'Output',
     outputLanguage: '',
-    downloadable: false,
+    downloadable: true,
     downloadFilename: 'download',
   },
 );

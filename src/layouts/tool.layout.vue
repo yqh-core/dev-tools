@@ -1,14 +1,18 @@
 <script lang="ts" setup>
-import { computed, ref, watch } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { RouterLink, useRoute } from 'vue-router';
 import { useHead } from '@vueuse/head';
 import type { HeadObject } from '@vueuse/head';
 
 import BaseLayout from './base.layout.vue';
 import FavoriteButton from '@/components/FavoriteButton.vue';
+import SponsorSlot from '@/components/SponsorSlot.vue';
 import ToolCard from '@/components/ToolCard.vue';
 import { useToolStore } from '@/tools/tools.store';
 import type { Tool } from '@/tools/tools.types';
+import { OG_IMAGE, canonicalUrl } from '@/seo/site';
+import { buildAlternateLinks, ogLocaleTags } from '@/i18n/languages';
+import { readDraft, writeDraft } from '@/utils/tool-draft';
 
 // 入口模块本身不含数据（只导出类型 + 按语言加载的函数），
 // 两份说明各自是懒加载 chunk，不会把几十 KB 文案打进主包。
@@ -134,19 +138,38 @@ const toolH1 = computed<string>(() => toolTitle.value.split(' — ')[0]);
  * 与 SSG 骨架（`ToolSeoPage`）读同一批 `tools.<key>.title/description` 词条，
  * 所以两边逐字一致，切中文时标题也跟着变中文。
  */
-const head = computed<HeadObject>(() => ({
-  title: `${toolTitle.value} - ${t('site.name')}`,
-  meta: [
-    {
-      name: 'description',
-      content: toolDescription.value,
-    },
-    {
-      name: 'keywords',
-      content: ((route.meta.keywords ?? []) as string[]).join(','),
-    },
-  ],
-}));
+const head = computed<HeadObject>(() => {
+  const pageTitle = `${toolTitle.value} - ${t('site.name')}`;
+  const canonical = canonicalUrl(toolPath.value);
+  return {
+    title: pageTitle,
+    link: [
+      { rel: 'canonical', href: canonical },
+      ...buildAlternateLinks(canonical),
+    ],
+    meta: [
+      {
+        name: 'description',
+        content: toolDescription.value,
+      },
+      {
+        name: 'keywords',
+        content: ((route.meta.keywords ?? []) as string[]).join(','),
+      },
+      { property: 'og:url', content: canonical },
+      { property: 'og:type', content: 'website' },
+      { property: 'og:title', content: pageTitle },
+      { property: 'og:description', content: toolDescription.value },
+      { property: 'og:image', content: OG_IMAGE },
+      ...ogLocaleTags(),
+      { name: 'twitter:card', content: 'summary_large_image' },
+      { name: 'twitter:title', content: pageTitle },
+      { name: 'twitter:description', content: toolDescription.value },
+      { name: 'twitter:image', content: OG_IMAGE },
+      { name: 'twitter:image:alt', content: toolTitle.value },
+    ],
+  };
+});
 useHead(head);
 
 /**
@@ -312,6 +335,10 @@ function applyExample() {
   }, 0);
 }
 
+const hasDraft = ref(false);
+const canNativeShare = ref(false);
+let draftTimer: ReturnType<typeof setTimeout> | undefined;
+
 /** 清空：换下一份数据时不用逐字选中删除。 */
 function clearInput() {
   const el = findPrimaryInput();
@@ -319,7 +346,106 @@ function clearInput() {
     return;
   }
   setInputValue(el, '');
+  try {
+    writeDraft(localStorage, toolPath.value, '');
+    hasDraft.value = false;
+  }
+  catch {
+    // 隐私模式写不进草稿，清空输入本身已经完成
+  }
 }
+
+function refreshDraftFlag() {
+  try {
+    hasDraft.value = readDraft(localStorage, toolPath.value) != null;
+  }
+  catch {
+    hasDraft.value = false;
+  }
+}
+
+function persistDraftFromDom() {
+  const el = findPrimaryInput();
+  if (!el) {
+    return;
+  }
+  try {
+    writeDraft(localStorage, toolPath.value, el.value);
+    hasDraft.value = readDraft(localStorage, toolPath.value) != null;
+  }
+  catch {
+    // 配额或隐私模式：工具照常使用，只是没有草稿
+  }
+}
+
+function onDraftInput(event: Event) {
+  const root = document.querySelector('.tool-content');
+  const target = event.target;
+  if (!root || !(target instanceof Node) || !root.contains(target)) {
+    return;
+  }
+  const el = findPrimaryInput();
+  if (!el || target !== el) {
+    return;
+  }
+  if (draftTimer) {
+    clearTimeout(draftTimer);
+  }
+  draftTimer = setTimeout(persistDraftFromDom, 400);
+}
+
+function restoreDraft() {
+  let value: string | null = null;
+  try {
+    value = readDraft(localStorage, toolPath.value);
+  }
+  catch {
+    return;
+  }
+  const el = findPrimaryInput();
+  if (!value || !el) {
+    return;
+  }
+  setInputValue(el, value);
+}
+
+function isEditableTarget(target: EventTarget | null) {
+  const el = target as HTMLElement | null;
+  if (!el || !el.tagName) {
+    return false;
+  }
+  return el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT' || el.isContentEditable;
+}
+
+function onWindowKeydown(event: KeyboardEvent) {
+  if (event.key !== '?' || event.ctrlKey || event.metaKey || event.altKey || isEditableTarget(event.target)) {
+    return;
+  }
+  if (!guide.value) {
+    return;
+  }
+  event.preventDefault();
+  guideOpen.value = !guideOpen.value;
+}
+
+onMounted(() => {
+  canNativeShare.value = typeof navigator.share === 'function';
+  refreshDraftFlag();
+  document.addEventListener('input', onDraftInput, true);
+  window.addEventListener('keydown', onWindowKeydown);
+});
+
+onBeforeUnmount(() => {
+  if (draftTimer) {
+    clearTimeout(draftTimer);
+  }
+  document.removeEventListener('input', onDraftInput, true);
+  window.removeEventListener('keydown', onWindowKeydown);
+});
+
+watch(toolPath, () => {
+  refreshDraftFlag();
+});
 
 /**
  * 分享：把当前工具页链接复制到剪贴板。
@@ -358,6 +484,24 @@ async function shareLink() {
   setTimeout(() => {
     shareState.value = 'idle';
   }, 2000);
+}
+
+function shareOnX() {
+  const url = `https://twitter.com/intent/tweet?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(toolTitle.value)}`;
+  window.open(url, '_blank', 'noopener,noreferrer');
+}
+
+async function shareNative() {
+  if (typeof navigator.share !== 'function') {
+    await shareLink();
+    return;
+  }
+  try {
+    await navigator.share({ title: toolTitle.value, url: window.location.href });
+  }
+  catch {
+    // 用户取消系统分享面板不算失败
+  }
 }
 
 const shareLabel = computed(() => {
@@ -421,7 +565,17 @@ const shareLabel = computed(() => {
           <button class="action-btn" type="button" @click="shareLink">
             {{ shareLabel }}
           </button>
+          <button class="action-btn" type="button" @click="shareOnX">
+            {{ $t('tool.actionShareX') }}
+          </button>
+          <button v-if="canNativeShare" class="action-btn" type="button" @click="shareNative">
+            {{ $t('tool.actionShareNative') }}
+          </button>
+          <button v-if="hasDraft" class="action-btn" type="button" @click="restoreDraft">
+            {{ $t('tool.actionRestore') }}
+          </button>
           <span v-if="guide?.example" class="action-tip">{{ $t('tool.guideExampleTip') }}</span>
+          <span class="action-tip">{{ $t('tool.shortcutHint') }}</span>
           <span v-if="exampleFailed" class="action-tip action-tip--error">{{ $t('tool.guideExampleFailed') }}</span>
         </div>
 
@@ -497,6 +651,8 @@ const shareLabel = computed(() => {
       <slot />
     </div>
 
+    <SponsorSlot placement="tool" />
+
     <!--
       工作流链条：告诉用户「这件事的完整流程长什么样」，并给相邻步骤可直接点的入口。
       与相关工具的区别 —— related 是「你可能还需要什么」（排除自身、可兜底），
@@ -559,9 +715,11 @@ const shareLabel = computed(() => {
   align-items: flex-start;
   flex-wrap: wrap;
   gap: 16px;
+  max-width: 1100px;
+  margin: 0 auto;
 
   ::v-deep(& > *) {
-    flex: 0 1 600px;
+    flex: 1 1 460px;
 
     /**
      * 移动端「内容被裁掉且滑不到」的根因修复（2026-10-18 线上实测）。
@@ -591,7 +749,7 @@ const shareLabel = computed(() => {
 }
 
 .tool-layout {
-  max-width: 600px;
+  max-width: 1100px;
   margin: 0 auto;
   box-sizing: border-box;
 

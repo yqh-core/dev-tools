@@ -18,7 +18,7 @@ const props = withDefaults(
     language?: string
     copyPlacement?: 'top-right' | 'bottom-right' | 'outside' | 'none'
     copyMessage?: string
-    /** 是否在复制按钮旁边再给一个「下载」按钮。默认关，避免动到已有 25 个调用方的版面。 */
+    /** 复制按钮旁边的下载。默认开：格式化/转换类输出都应该能存成文件。 */
     downloadable?: boolean
     /** 下载文件名（不含扩展名时按 language 自动补） */
     downloadFilename?: string
@@ -32,7 +32,7 @@ const props = withDefaults(
     language: 'txt',
     copyPlacement: 'top-right',
     copyMessage: 'Copy to clipboard',
-    downloadable: false,
+    downloadable: true,
     downloadFilename: 'download',
     downloadMimeType: undefined,
     downloadTestId: 'download-button',

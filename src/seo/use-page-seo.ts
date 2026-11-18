@@ -72,6 +72,7 @@ export function usePageSeo(path: string, title: MaybeRef<string>, description?: 
       { name: 'twitter:title', content: pageTitle },
       { name: 'twitter:description', content: pageDescription },
       { name: 'twitter:image', content: OG_IMAGE },
+      { name: 'twitter:image:alt', content: pageTitle },
     ],
   });
 }
