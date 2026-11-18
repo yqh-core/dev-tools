@@ -61,4 +61,23 @@ describe('createSandboxRunScript（worker_threads 真传输）', () => {
     expect(r.error).toMatch(/sandbox worker (error|exited)/);
     expect(r.timedOut).toBe(false);
   }, 10000);
+
+  it('nonce 竞态负控：迟到的旧 run done 不回填新 run（A-017；nonce 精确匹配+active 删除）', async () => {
+    const run = createSandboxRunScript(fixtureUrl, 300);
+    const late = run('LATE', snapshot, noopSend); // 夹具 400ms 后才回 done；300ms 超时先 resolve
+    const r2 = await run('echo', snapshot, noopSend); // 新 run 先完成
+    expect(r2.timedOut).toBe(false);
+    expect(r2.outcome.tests).toHaveLength(1); // 新 run 结果完好（迟到 done 被 nonce 匹配忽略）
+    const r1 = await late;
+    expect(r1.timedOut).toBe(true); // 旧 run 如实标超时，不伪装成功
+    expect(r1.outcome.tests).toHaveLength(0);
+  }, 10000);
+
+  it('outbox 桥失败承载（宿主 send reject → sendResponse ok:false → done error 如实，不假绿）', async () => {
+    const send = async () => { throw new Error('upstream unreachable (fixture)'); };
+    const run = createSandboxRunScript(fixtureUrl);
+    const r = await run('OUTBOX_FAIL', snapshot, send as never);
+    expect(r.error).toMatch(/outbox bridge rejected/); // 失败经协议如实回传脚本层
+    expect(r.outcome.sendRequests).toHaveLength(1); // outbox 记录保留（可追溯）
+  }, 10000);
 });

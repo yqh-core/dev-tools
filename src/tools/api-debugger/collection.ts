@@ -31,9 +31,15 @@ function toPostmanUrl(raw: string): Record<string, unknown> {
   }
 }
 
-export function exportCollection(saved: SavedRequest[], name = 'DigDevBox Collection', stripAuth = true): Record<string, unknown> {
+export function exportCollection(saved: SavedRequest[], name = 'DigDevBox Collection', stripAuth = true, collectionScripts?: { prerequest?: string; test?: string }): Record<string, unknown> {
+  // A-002/A-003：手动集合级脚本导出为 Postman doc 级事件（round-trip 闭合：
+  // 导出 doc 级 → 导入时按契约 v1.1 合并进各请求执行链，语义不丢）。
+  const docEvents: { listen: string; script: { exec: string[] } }[] = [];
+  if (collectionScripts?.prerequest?.trim()) docEvents.push({ listen: 'prerequest', script: { exec: collectionScripts.prerequest.split('\n') } });
+  if (collectionScripts?.test?.trim()) docEvents.push({ listen: 'test', script: { exec: collectionScripts.test.split('\n') } });
   return {
     info: { name, schema: POSTMAN_SCHEMA },
+    ...(docEvents.length ? { event: docEvents } : {}),
     item: saved.map((s) => {
       const req: ApiRequestState = stripAuth ? sanitizeForShare(s.request) : s.request;
       // API-011：脚本事件导出为 Postman v2.1 event（exec 按行数组）——导入/导出往返不丢脚本

@@ -14,6 +14,10 @@
 
 export interface ScriptKV { name: string; value: string }
 
+/** A-018 outbox 资源上限（任务书 A5：过量消息/异常大对象有明确上限，fail-closed 不静默丢）。 */
+export const OUTBOX_MAX_QUEUED = 50;
+export const OUTBOX_SPEC_MAX_BYTES = 1_000_000;
+
 /** 主线程→Worker 的快照（全部可结构化克隆；不含函数/凭据引用）。 */
 export interface ScriptSnapshot {
   request: { method: string; url: string; headers: ScriptKV[]; body: string }
@@ -220,6 +224,15 @@ export function createPmAPI(snap: ScriptSnapshot, io: RuntimeIO) {
     expect: (actual: unknown) => buildExpect(actual),
     sendRequest: async (urlOrReq: unknown, cb?: (err: unknown, res: unknown) => void) => {
       const spec = typeof urlOrReq === 'string' ? { url: urlOrReq } : urlOrReq as RuntimeIO['outcome']['sendRequests'][number]
+      // A-018 资源上限（fail-closed：拒绝而非静默丢、不假装成功；无限循环由 5s terminate 兜底已测）
+      if (outcome.sendRequests.length >= OUTBOX_MAX_QUEUED) {
+        const e = new Error(`pm.sendRequest outbox queue limit (${OUTBOX_MAX_QUEUED} pending) exceeded — host aborting to protect resources.`);
+        cb?.(e, null); throw e;
+      }
+      if (JSON.stringify(spec).length > OUTBOX_SPEC_MAX_BYTES) {
+        const e = new Error(`pm.sendRequest spec exceeds ${OUTBOX_SPEC_MAX_BYTES} bytes (URL+headers+body) — host aborting to protect resources.`);
+        cb?.(e, null); throw e;
+      }
       outcome.sendRequests.push(spec)
       try {
         const res = await io.sendRequest(spec)

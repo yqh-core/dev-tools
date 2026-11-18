@@ -157,6 +157,9 @@ const assertions = useStorage<Assertion[]>('api-debugger:assertions', [], undefi
 // API-011：当前请求的 pm.* 脚本文本（保存进 SavedRequest.scriptEvents；执行走隔离 Worker 沙箱）
 const preScript = ref('');
 const testScript = ref('');
+// A-002/A-003：集合级脚本（独立一层事件；运行叠加进每请求链——pre 最外先执行/test 最后执行；
+// 导出为 Postman doc 级事件；导入集合的 doc 级脚本已合并进各请求链，本区为手动管理层）
+const collectionScripts = useStorage<{ prerequest: string; test: string }>('api-debugger:collection-scripts', { prerequest: '', test: '' });
 const testReport = ref<AssertionReport | null>(null);
 const testMeta = ref<{ method: string; url: string } | null>(null);
 const testsNote = ref('');
@@ -250,6 +253,7 @@ async function runCollectionNow(): Promise<void> {
       dataFile: dataFile.value ?? undefined,
       dataFileType: dataFile.value ? dataFileType.value : undefined,
       iterations: rounds,
+      collectionScripts: { prerequest: collectionScripts.value.prerequest, test: collectionScripts.value.test },
       onProgress: (r) => { runnerResults.value = [...runnerResults.value, r]; },
       // API-011：pm.* 脚本在隔离 Worker 沙箱执行；网络只走宿主 apiproxy（outbox）
       runScript: (code, snapshot) => runScriptIsolated(code, snapshot, runnerSend),
@@ -515,7 +519,7 @@ function exportPostman(): void {
     return;
   }
   downloadTextFile({
-    content: JSON.stringify(exportCollection(saved.value), null, 2),
+    content: JSON.stringify(exportCollection(saved.value, 'DigDevBox Collection', true, { prerequest: collectionScripts.value.prerequest, test: collectionScripts.value.test }), null, 2),
     filename: buildDownloadFilename('digdevbox', 'postman_collection.json'),
     mimeType: 'application/json',
   });
@@ -879,7 +883,13 @@ function statusType(s: number): 'success' | 'warning' | 'error' | 'info' {
       <h3 class="section-title">
         Scripts <span class="hint">pm.* pre-request / test — run by the Collection Runner in an isolated Worker (no DOM, 5 s timeout, network only via controlled pm.sendRequest outbox)</span>
       </h3>
-      <div class="row" style="margin-bottom: 4px"><strong>Pre-request</strong> <span class="hint">before send; set variables or mutate this request</span></div>
+      <div class="row" style="margin-bottom: 4px" data-test-id="collection-scripts-bar">
+        <n-tag size="small" type="info">Collection</n-tag>
+        <span class="hint">集合级脚本（独立一层：pre-request 先于各请求链执行，test 后于各请求链执行；导出为 Postman doc 级事件。导入集合的 doc 级脚本已按契约合并进各请求链——见各请求面板）</span>
+      </div>
+      <n-input v-model:value="collectionScripts.prerequest" type="textarea" :rows="3" monospace placeholder='pm.variables.set("fixtureRun", "api-studio-smoke");' data-test-id="collection-script-prerequest" />
+      <n-input v-model:value="collectionScripts.test" type="textarea" :rows="3" monospace placeholder='pm.test("collection-level", () => {});' data-test-id="collection-script-test" style="margin-top: 6px" />
+      <div class="row" style="margin: 8px 0 4px"><strong>Pre-request</strong> <span class="hint">before send; set variables or mutate this request</span></div>
       <n-input v-model:value="preScript" type="textarea" :rows="5" monospace placeholder='pm.environment.set("token", "abc");' data-test-id="script-prerequest" />
       <div class="row" style="margin: 8px 0 4px"><strong>Test</strong> <span class="hint">after response — also when the request failed (pm.response is null)</span></div>
       <n-input v-model:value="testScript" type="textarea" :rows="5" monospace placeholder='pm.test("status 200", () => pm.expect(pm.response.code).to.equal(200));' data-test-id="script-test" />

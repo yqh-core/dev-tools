@@ -124,6 +124,25 @@ describe('sendRequest 经宿主桥（权限在宿主侧）', () => {
     expect(io.sendRequest).toHaveBeenCalledTimes(1);
     expect((got as { code: number }).code).toBe(201);
   });
+
+  it('A-018 outbox 队列上限 fail-closed（第 51 条拒绝，cb 收到错误，不静默丢不假装成功）', async () => {
+    const s = snap(); const { io } = mkIO(s);
+    const { pm } = createPmAPI(s, io);
+    for (let i = 0; i < 50; i++) await pm.sendRequest(`https://api.test/q${i}`);
+    expect(io.outcome.sendRequests).toHaveLength(50);
+    let cbErr: unknown = null;
+    await expect(pm.sendRequest('https://api.test/overflow', (e: unknown) => { cbErr = e })).rejects.toThrow(/outbox queue limit/);
+    expect(cbErr).toBeTruthy(); // cb 与 promise 双通道都如实承载
+    expect(io.outcome.sendRequests).toHaveLength(50); // 拒绝不计入
+  });
+
+  it('A-018 outbox 单 spec 字节上限 fail-closed（异常大对象）', async () => {
+    const s = snap(); const { io } = mkIO(s);
+    const { pm } = createPmAPI(s, io);
+    const big = 'x'.repeat(1_000_001);
+    await expect(pm.sendRequest({ url: 'https://api.test/big', body: big })).rejects.toThrow(/exceeds 1000000 bytes/);
+    expect(io.outcome.sendRequests).toHaveLength(0);
+  });
 });
 
 describe('unsupported 显式失败（不静默 no-op 伪装支持）', () => {

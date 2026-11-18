@@ -9,6 +9,10 @@
  *    两档分离，语义对齐 postman-runtime stopOnError / stopOnFailure；
  *  · 请求间延迟 delayMs、运行中取消 signal、逐请求进度 onProgress；
  *  · API-011：pm.* 脚本生命周期经注入的 runScript 沙箱回调执行；
+ *  · API-011/A-002/A-003（D 批次盘查补缺）：集合级脚本经 collectionScripts 选项叠加执行——
+ *    完整 prerequest 序 = 集合级（手动，最外先执行）→ doc/folder 级（导入时合并入请求文本）→
+ *    request 级；test 序反之（内先外后，集合级最后执行）。prerequest 段的 pm.test 结果同样计入
+ *    scriptTests（Postman 语义，徽章/报告/JUnit 不分阶段）。
  *  · API-012（B 阶段）：数据文件驱动多轮迭代。迭代语义契约 v1.1（与 docs/api-studio/SCRIPT-CONTRACT.md 同步）：
  *      - 轮数 = 显式 iterations > 0 ? iterations : 数据行数；轮数 > 行数 → 行循环取用（cycle）；
  *        轮数 < 行数 → 只跑前 N 行；无数据文件 → 单轮（与 API-010 逐键一致）。
@@ -64,6 +68,10 @@ export interface RunnerOptions {
   iterationData?: Record<string, string>
   /** @deprecated 同上；轮次由编排器赋值。 */
   iteration?: number
+  /** A-002/A-003：手动管理的集合级脚本（浏览器 UI 集合脚本区）。独立一层事件，
+   *  按契约 v1.1 叠加执行：prerequest 在请求链之前（外先内后）、test 在请求链之后
+   *  （内先外后）——与 Postman 三层事件语义一致。CLI 无手动入口（边界登记）。 */
+  collectionScripts?: { prerequest?: string; test?: string }
   delayMs?: number
   signal?: { aborted: boolean }
   onProgress?: (result: RequestRunResult, index: number, total: number) => void
@@ -153,6 +161,9 @@ export async function runCollection(
     globals: { ...(opts.variableLayers?.globals ?? {}) },
     collection: { ...(opts.variableLayers?.collection ?? {}) },
   };
+  // A-002/A-003 集合级脚本（手动集合脚本区；独立一层事件，契约 v1.1 叠加执行）
+  const colPre = opts.collectionScripts?.prerequest?.trim() ? opts.collectionScripts.prerequest : '';
+  const colTest = opts.collectionScripts?.test?.trim() ? opts.collectionScripts.test : '';
 
   for (let round = 0; round < roundCount; round++) {
     if (opts.signal?.aborted) { cancelled = true; break; }
@@ -163,6 +174,13 @@ export async function runCollection(
       if (opts.signal?.aborted) { cancelled = true; break; }
       const s = saved[i];
       const base = { id: s.id, name: s.name, method: s.request.method, url: s.request.url };
+      // 集合级脚本叠加（Postman 三层事件语义；调用方保证文本来源不重复）：
+      //   prerequest = 集合级（外，先执行）+ 请求链（内，后执行）
+      //   test       = 请求链（内，先执行）+ 集合级（外，后执行）
+      const reqPre = s.scriptEvents?.prerequest ?? '';
+      const reqTest = s.scriptEvents?.test ?? '';
+      const mergedPre = colPre ? (reqPre ? `${colPre}\n${reqPre}` : colPre) : reqPre;
+      const mergedTest = colTest ? (reqTest ? `${reqTest}\n${colTest}` : colTest) : reqTest;
       // local 每次请求重置；iterationData 每轮重置（契约 v1.1）
       const layers = { globals: persistent.globals, collection: persistent.collection, local: {} as Record<string, string> };
       const workingReq = { ...s.request, headers: [...s.request.headers], body: s.request.body };
@@ -189,10 +207,14 @@ export async function runCollection(
 
       let scriptTests: RequestRunResult['scriptTests'];
       let scriptError: string | undefined;
-      if (opts.runScript && s.scriptEvents?.prerequest) {
-        const r = await opts.runScript(s.scriptEvents.prerequest, snapshotFor('prerequest', null), send);
+      if (opts.runScript && mergedPre) {
+        const r = await opts.runScript(mergedPre, snapshotFor('prerequest', null), send);
         if (r.timedOut) scriptError = 'pre-request script killed (timeout)';
         else if (r.error) scriptError = 'pre-request script error: ' + r.error;
+        // Postman 语义：prerequest 阶段的 pm.test 结果同样计入（徽章/报告/JUnit 不分阶段）。
+        // D 批次盘查补缺：原实现丢弃 pre 段 tests——跨段断言（如集合 pre 写标记、请求 pre 断言）
+        // 的结果不可见，判据级缺口。
+        if (r.outcome.tests.length) scriptTests = r.outcome.tests.map(t => ({ name: t.name, passed: t.passed, ...(t.error ? { error: t.error } : {}) }));
         applyWrites(r.outcome); takeMutations(r.outcome);
       }
 
@@ -210,9 +232,9 @@ export async function runCollection(
             throw new Error('Executor returned no usable response (proxy empty or non-JSON). Check the proxy route and upstream availability.');
           }
           const report = runAssertions(s.assertions ?? [], resp, now());
-          if (opts.runScript && s.scriptEvents?.test) {
-            const r2 = await opts.runScript(s.scriptEvents.test, snapshotFor('test', resp), send);
-            if (r2.outcome.tests.length) scriptTests = r2.outcome.tests.map(t => ({ name: t.name, passed: t.passed, ...(t.error ? { error: t.error } : {}) }));
+          if (opts.runScript && mergedTest) {
+            const r2 = await opts.runScript(mergedTest, snapshotFor('test', resp), send);
+            if (r2.outcome.tests.length) scriptTests = [...(scriptTests ?? []), ...r2.outcome.tests.map(t => ({ name: t.name, passed: t.passed, ...(t.error ? { error: t.error } : {}) }))];
             if (r2.timedOut) scriptError = (scriptError ? scriptError + ' | ' : '') + 'test script killed (timeout)';
             else if (r2.error) scriptError = (scriptError ? scriptError + ' | ' : '') + 'test script error: ' + r2.error;
             applyWrites(r2.outcome);
@@ -223,10 +245,10 @@ export async function runCollection(
         catch (e) {
           // Postman 语义：请求本身失败时 test 脚本仍执行（pm.response 为 null）。
           // 失败路径的 envWrites 同样应用（如重试脚本写回退标记），mutation 无意义故不取。
-          if (opts.runScript && s.scriptEvents?.test && !scriptError) {
+          if (opts.runScript && mergedTest && !scriptError) {
             try {
-              const r2 = await opts.runScript(s.scriptEvents.test, snapshotFor('test', null), send);
-              if (r2.outcome.tests.length) scriptTests = r2.outcome.tests.map(t => ({ name: t.name, passed: t.passed, ...(t.error ? { error: t.error } : {}) }));
+              const r2 = await opts.runScript(mergedTest, snapshotFor('test', null), send);
+              if (r2.outcome.tests.length) scriptTests = [...(scriptTests ?? []), ...r2.outcome.tests.map(t => ({ name: t.name, passed: t.passed, ...(t.error ? { error: t.error } : {}) }))];
               if (r2.timedOut) scriptError = 'test script killed (timeout)';
               else if (r2.error) scriptError = 'test script error: ' + r2.error;
               applyWrites(r2.outcome);

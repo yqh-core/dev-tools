@@ -27,3 +27,23 @@ Object.defineProperty(g, 'onmessage', {
 if (parentPort) {
   parentPort.on('message', (data: any) => { messageHandler?.({ data }); });
 }
+
+// CLI 沙箱进程面中和（C-005/A5-CLI 边界：限制环境变量/进程/文件）：
+// Node worker 的 process 全局含 env（CI Secrets 泄露面）与 mainModule.require（进程/文件逃逸面）。
+// 用户脚本无合法用途（pm.* 语义不需要 process）——读取即抛 fail-closed，与浏览器守卫同口径。
+// 本 shim 只在 worker 内执行（主线程不受影响）；worker 引导自身不经 process（parentPort 已就位）。
+if (!g.__apiStudioProcessGuarded) {
+  try {
+    Object.defineProperty(g, 'process', {
+      configurable: true,
+      get() {
+        throw new Error('[api-studio sandbox] process is disabled inside the script sandbox. Environment, filesystem and process APIs are not accessible from user scripts (host-controlled pm.sendRequest outbox only).');
+      },
+    });
+    g.__apiStudioProcessGuarded = true;
+  }
+  catch {
+    // process 不可配置=中和失败：拒绝执行用户脚本（fail-closed，不带病运行）
+    throw new Error('[api-studio sandbox] FATAL: cannot neutralize process global — refusing to run user scripts without the guard.');
+  }
+}

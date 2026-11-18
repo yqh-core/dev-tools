@@ -20,8 +20,8 @@
 | `pm.info` event/iteration/counter/requestName | requestName 由 Runner 注入真实请求名 | script-integration.test |
 | `pm.test(name, fn)` | fn 抛错 = 测试失败并带原因；结果进 summary 与报告 | 191/191 |
 | `pm.expect` 子集 | to.be/been/is/and/has/with/that 链；equal/eql/include/match/above/below/ok/true/null/exist/lengthOf/property/oneOf/a；`not` 支持 equal/exist | script-runtime.test |
-| `pm.sendRequest` | outbox → 宿主 apiproxy；Promise 与 callback 双形态 | script-runtime.test |
-| `pm.*` 全矩阵（CLI 侧） | 浏览器 Worker 沙箱与 CLI worker_threads 沙箱**共用同一 script-runtime 源码**（pm 语义/守卫/超时 kill 同契约）；传输层独立实现（C 阶段） | cli 单测（真 worker_threads 协议/outbox/超时/崩溃承载）+ CLI E2E（fetch 逃逸守卫负控+while(true) 5s kill） |
+| `pm.sendRequest` | outbox → 宿主 apiproxy；Promise 与 callback 双形态；**outbox 资源上限（A-018）：待决队列 50 / 单 spec 1MB（URL+headers+body），超限 fail-closed 不静默丢** | script-runtime.test（含队列/字节上限负控 2 条） |
+| `pm.*` 全矩阵（CLI 侧） | 浏览器 Worker 沙箱与 CLI worker_threads 沙箱**共用同一 script-runtime 源码**（pm 语义/守卫/超时 kill 同契约）；传输层独立实现（C 阶段）；CLI 侧额外中和 `process` 全局（环境变量/进程/文件逃逸面读取即抛——A5-CLI/C-005：worker_threads 有真 process，守卫即生效）；outbox 上限共享（队列 50/spec 1MB） | cli 单测（真 worker_threads 协议/outbox 桥/超时/崩溃承载/nonce 迟到 done 竞态负控/outbox 失败承载）+ CLI E2E（fetch 守卫负控+while(true) 5s kill+S13/S13b process 面负控） |
 
 ## PARTIAL
 
