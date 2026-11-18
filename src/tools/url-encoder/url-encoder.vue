@@ -39,22 +39,22 @@ const { copy: copyDecoded } = useCopy({ source: decodeOutput, text: 'Decoded str
   <c-card title="Encode">
     <c-input-text
       v-model:value="encodeInput"
-      label="Your string :"
+      label="Text"
       :validation="encodedValidation"
       multiline
       autosize
-      placeholder="The string to encode"
+      placeholder="Text to encode"
       rows="2"
       mb-3
     />
 
     <c-input-text
-      label="Your string encoded :"
+      label="Encoded"
       :value="encodeOutput"
       multiline
       autosize
       readonly
-      placeholder="Your string encoded"
+      placeholder="Percent-encoded text"
       rows="2"
       mb-3
     />
@@ -68,22 +68,22 @@ const { copy: copyDecoded } = useCopy({ source: decodeOutput, text: 'Decoded str
   <c-card title="Decode">
     <c-input-text
       v-model:value="decodeInput"
-      label="Your encoded string :"
+      label="Encoded text"
       :validation="decodeValidation"
       multiline
       autosize
-      placeholder="The string to decode"
+      placeholder="Text to decode"
       rows="2"
       mb-3
     />
 
     <c-input-text
-      label="Your string decoded :"
+      label="Decoded"
       :value="decodeOutput"
       multiline
       autosize
       readonly
-      placeholder="Your string decoded"
+      placeholder="Decoded text"
       rows="2"
       mb-3
     />

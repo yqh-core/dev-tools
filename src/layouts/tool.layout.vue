@@ -872,18 +872,20 @@ const shareLabel = computed(() => {
     width: 100%;
 
     .n-h1 {
-      opacity: 0.9;
-      font-size: 40px;
-      font-weight: 400;
       margin: 0;
-      line-height: 1;
+      color: var(--dd-text);
+      font-size: 34px;
+      font-weight: 650;
+      letter-spacing: -0.03em;
+      line-height: 1.15;
     }
 
     .separator {
-      width: 200px;
-      height: 2px;
-      background: rgb(161, 161, 161);
-      opacity: 0.2;
+      width: 72px;
+      height: 3px;
+      border-radius: 2px;
+      background: var(--dd-primary);
+      opacity: 1;
 
       margin: 10px 0;
     }

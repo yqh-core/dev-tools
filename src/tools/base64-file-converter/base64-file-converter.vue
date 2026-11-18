@@ -101,7 +101,7 @@ async function onUpload(file: File) {
     <c-input-text
       v-model:value="base64Input"
       multiline
-      placeholder="Put your base64 file string here..."
+      placeholder="Paste Base64, or drop a file"
       rows="5"
       :validation="base64InputValidation"
       mb-2

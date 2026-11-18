@@ -107,7 +107,7 @@ const sections: UserAgentResultSection[] = [
       v-model:value="ua"
       label="User agent string"
       multiline
-      placeholder="Put your user-agent here..."
+      placeholder="Paste a user-agent"
       clearable
       raw-text
       rows="2"
