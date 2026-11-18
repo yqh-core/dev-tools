@@ -6,7 +6,9 @@ import { parseCurl, toCurl } from './curl';
 import { AUTH_HEADER_NAMES, type KV, buildProxyPayload, responseToWorkspaceLink, sanitizeForShare, stashHandoff } from './engine';
 import { SAVED_CAP, type HistoryEntry, type SavedRequest, exportSavedRequest, parseHistory, parseSaved, pushHistory, removeHistory, removeSaved, renameSaved, saveRequest } from './store';
 import { type Assertion, type AssertionReport, type AssertionType, OPS_BY_TYPE, OP_LABELS, formatReportText, makeAssertion, parseAssertions, runAssertions } from './assertions';
-import { type CollectionRunSummary, type RequestRunResult, type RunnerResponse, type SendFn, formatCollectionReportText, runCollection } from './runner';
+import { type CollectionRunSummary, type IterationSummary, type RequestRunResult, type RunnerResponse, type SendFn, formatCollectionReportText, runCollection } from './runner';
+import { type DataFile, parseDataFile, previewRows } from './datafiles';
+import { buildRunReport, toJUnitXml, type RunReportMeta } from './report';
 import { formatBytes, searchBody, utf8Bytes } from './response';
 import { authHeaderPreset, buildUrlWithQuery, parseQueryParams } from './query';
 import { importOpenApi } from './openapi';
@@ -197,8 +199,8 @@ async function copyReport(): Promise<void> {
   }
 }
 function downloadReport(): void {
-  downloadTextFile({ content: reportText(), filename: buildDownloadFilename('api-test-report', 'txt'), mimeType: 'text/plain' });
-  banner.value = 'Test report downloaded (assertion results only; no credential headers included).';
+  const ok = downloadTextFile({ content: reportText(), filename: buildDownloadFilename('api-test-report', 'txt'), mimeType: 'text/plain' });
+  banner.value = ok ? 'Test report downloaded (assertion results only; no credential headers included).' : 'Download failed: report content was empty (no file written).';
 }
 
 // ── API-010 集合级批量 Runner（对标 Postman Collection Runner；顺序执行+逐请求断言）──
@@ -228,10 +230,15 @@ async function runCollectionNow(): Promise<void> {
     banner.value = 'Collection is empty; save a request first.';
     return;
   }
+  const rounds = resolveIterations();
+  if (rounds === null) {
+    return;
+  }
   runnerRunning.value = true;
   runnerError.value = '';
   runnerSummary.value = null;
   runnerResults.value = [];
+  lastRunId.value = `run-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
   const signal = { aborted: false };
   runnerSignal = signal;
   try {
@@ -240,6 +247,9 @@ async function runCollectionNow(): Promise<void> {
       stopOnFailure: stopOnFailure.value,
       delayMs: Number(runnerDelay.value) || 0,
       signal,
+      dataFile: dataFile.value ?? undefined,
+      dataFileType: dataFile.value ? dataFileType.value : undefined,
+      iterations: rounds,
       onProgress: (r) => { runnerResults.value = [...runnerResults.value, r]; },
       // API-011：pm.* 脚本在隔离 Worker 沙箱执行；网络只走宿主 apiproxy（outbox）
       runScript: (code, snapshot) => runScriptIsolated(code, snapshot, runnerSend),
@@ -271,9 +281,137 @@ async function copyRunnerReport(): Promise<void> {
   }
 }
 function downloadRunnerReport(): void {
-  downloadTextFile({ content: runnerReportText(), filename: buildDownloadFilename('collection-run-report', 'txt'), mimeType: 'text/plain' });
-  banner.value = 'Collection run report downloaded (no credential headers included).';
+  const ok = downloadTextFile({ content: runnerReportText(), filename: buildDownloadFilename('collection-run-report', 'txt'), mimeType: 'text/plain' });
+  banner.value = ok ? 'Collection run report downloaded (no credential headers included).' : 'Download failed: report content was empty (no file written).';
 }
+
+// ── API-012/B 数据驱动运行（B1 数据文件 / B2 迭代 / B3+B4 报告下载）────────
+// 数据文件只在本机用 FileReader 读取、内存解析（永不上传）；报告、日志与迭代显示
+// 默认不含数据行值——只有列名与行计数（脱敏口径见 report.ts / datafiles.ts）。
+const dataFilePicker = ref<HTMLInputElement | null>(null);
+const dataFile = ref<DataFile | null>(null);
+const dataFileType = ref<'csv' | 'json'>('csv');
+const dataFileName = ref('');
+const dataFileError = ref('');
+const iterationsInput = ref('');
+const iterationsError = ref('');
+const lastRunId = ref('');
+
+const dataFilePreview = computed(() => (dataFile.value ? previewRows(dataFile.value) : null));
+
+/** 迭代计划（输入即校验；非法输入 fail-closed，不静默回退默认值）。 */
+const iterationPlan = computed(() => {
+  const rows = dataFile.value?.rows.length ?? 0;
+  if (!rows) {
+    return { rounds: 1, note: iterationsInput.value.trim() ? 'iterations require a data file — running a single round' : 'no data file — single round' };
+  }
+  const raw = iterationsInput.value.trim();
+  if (!raw) {
+    return { rounds: rows, note: `default: one round per data row (${rows})` };
+  }
+  const n = Number(raw);
+  if (!Number.isInteger(n) || n <= 0) {
+    return { rounds: -1, note: 'must be a positive integer (empty = one round per data row)' };
+  }
+  if (n > rows) {
+    return { rounds: n, note: `${n} rounds > ${rows} rows — rows are reused in cycle (round % rows)` };
+  }
+  return { rounds: n, note: n > 1 ? `${n} explicit rounds` : 'single round' };
+});
+
+function onDataFilePicked(e: Event): void {
+  const input = e.target as HTMLInputElement;
+  const file = input.files?.[0];
+  input.value = ''; // 允许重新选择同名文件
+  dataFileError.value = '';
+  if (!file) {
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = () => {
+    const r = parseDataFile(file.name, String(reader.result ?? ''));
+    if (!r.ok) {
+      dataFileError.value = r.error;
+      dataFile.value = null;
+      dataFileName.value = '';
+      return;
+    }
+    dataFile.value = r.data;
+    dataFileType.value = file.name.toLowerCase().endsWith('.json') ? 'json' : 'csv';
+    dataFileName.value = file.name;
+    iterationsInput.value = ''; // 行数变了，默认轮数（=行数）随之重置
+    iterationsError.value = '';
+    banner.value = `Data file loaded: ${r.data.rows.length} rows × ${r.data.columns.length} columns (parsed locally, never uploaded; values are redacted from reports and logs).`;
+  };
+  reader.onerror = () => { dataFileError.value = 'Could not read the file (local read failed).'; };
+  reader.readAsText(file);
+}
+function clearDataFile(): void {
+  dataFile.value = null;
+  dataFileName.value = '';
+  dataFileError.value = '';
+  iterationsInput.value = '';
+  iterationsError.value = '';
+}
+/** @returns 计划轮数；非法输入返回 null（调用方中止运行并展示错误）。 */
+function resolveIterations(): number | null {
+  if (iterationPlan.value.rounds < 0) {
+    iterationsError.value = 'Iterations must be a positive integer (empty = one round per data row).';
+    return null;
+  }
+  iterationsError.value = '';
+  return iterationPlan.value.rounds;
+}
+
+/** 与 package.json version 同步（报告 meta 的信息性字段）。 */
+const API_STUDIO_VERSION = '2026.01.22-v2';
+function runnerReportMeta(): RunReportMeta {
+  return {
+    runId: lastRunId.value,
+    apiStudioVersion: API_STUDIO_VERSION,
+    collectionName: `API Studio saved collection (${saved.value.length} requests)`,
+    environmentName: envStore.value.active,
+    startedAt: runnerSummary.value ? new Date(runnerSummary.value.startedAt).toISOString() : '',
+    finishedAt: runnerSummary.value ? new Date(runnerSummary.value.finishedAt).toISOString() : '',
+  };
+}
+function downloadRunnerJsonReport(): void {
+  if (!runnerSummary.value) {
+    return;
+  }
+  const ok = downloadTextFile({
+    content: JSON.stringify(buildRunReport(runnerSummary.value, runnerReportMeta()), null, 2),
+    filename: buildDownloadFilename('api-studio-run', 'json'),
+    mimeType: 'application/json',
+  });
+  banner.value = ok ? 'JSON run report downloaded (secrets, env values, data row values, bodies and header values excluded by default).' : 'Download failed: report content was empty (no file written).';
+}
+function downloadRunnerJunitReport(): void {
+  if (!runnerSummary.value) {
+    return;
+  }
+  const ok = downloadTextFile({
+    content: toJUnitXml(buildRunReport(runnerSummary.value, runnerReportMeta())),
+    filename: buildDownloadFilename('api-studio-run', 'xml'),
+    mimeType: 'application/xml',
+  });
+  banner.value = ok ? 'JUnit XML report downloaded (CI-parseable; HTTP 4xx/5xx with passing assertions is not a failure).' : 'Download failed: report content was empty (no file written).';
+}
+
+/** 结果显示：运行中=扁平行（实时追加）；完成后按迭代分组（B2：每轮隔离可见，列名级脱敏）。 */
+const runnerGroups = computed<IterationSummary[]>(() => {
+  if (runnerSummary.value) {
+    return runnerSummary.value.iterations;
+  }
+  return runnerResults.value.length ? [{ iteration: 1, dataRowColumns: null, dataRowIndex: null, results: runnerResults.value }] : [];
+});
+/** 运行中的实时轮次指示（已完成数 ÷ 每轮请求数）。 */
+const liveIteration = computed(() => {
+  if (!runnerRunning.value || !saved.value.length) {
+    return null;
+  }
+  return Math.floor(runnerResults.value.length / saved.value.length) + 1;
+});
 
 const respBytes = computed(() => resp.value ? utf8Bytes(resp.value.body) : 0);
 const bodyView = computed(() => resp.value ? searchBody(resp.value.body, bodyQuery.value) : null);
@@ -850,6 +988,41 @@ function statusType(s: number): 'success' | 'warning' | 'error' | 'info' {
         Nothing saved yet. Build a request above, then save it here for reuse.
       </p>
 
+      <!-- API-012/B1 数据文件 + B2 迭代（本地 FileReader 解析，不上传；值不进报告/日志） -->
+      <div class="row" style="margin-top: 10px" data-test-id="datafile-bar">
+        <input ref="dataFilePicker" type="file" accept=".csv,.json" class="visually-hidden-file" data-test-id="datafile-input" @change="onDataFilePicked" />
+        <n-button size="tiny" data-test-id="datafile-pick" @click="dataFilePicker?.click()">
+          Choose data file (.csv/.json)
+        </n-button>
+        <n-button v-if="dataFile" size="tiny" quaternary data-test-id="datafile-clear" @click="clearDataFile">
+          Remove data file
+        </n-button>
+        <span v-if="dataFile" class="hint" data-test-id="datafile-summary">{{ dataFileName }} · {{ dataFile.rows.length }} rows × {{ dataFile.columns.length }} columns → iterationData layer</span>
+        <span class="hint">Iterations</span>
+        <c-input-text v-model:value="iterationsInput" size="small" monospace placeholder="default = rows" style="width: 110px" data-test-id="runner-iterations" :disabled="!dataFile" />
+        <span class="hint" data-test-id="iteration-plan">{{ iterationPlan.note }}</span>
+      </div>
+      <n-alert v-if="dataFileError" type="error" style="margin-top: 6px" data-test-id="datafile-error">
+        {{ dataFileError }}
+      </n-alert>
+      <n-alert v-if="iterationsError" type="error" style="margin-top: 6px" data-test-id="iterations-error">
+        {{ iterationsError }}
+      </n-alert>
+      <div v-if="dataFilePreview" class="datafile-preview" style="margin-top: 6px" data-test-id="datafile-preview">
+        <table>
+          <thead>
+            <tr><th v-for="c in dataFilePreview.columns" :key="c">{{ c }}</th></tr>
+          </thead>
+          <tbody>
+            <tr v-for="(row, ri) in dataFilePreview.rows" :key="ri">
+              <td v-for="(v, ci) in row" :key="ci">{{ v }}</td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="hint" style="margin: 4px 0 0">
+          Preview shows your local file content (values truncated at 40 chars). The file never leaves this browser; row values are excluded from iteration displays, logs and reports — only column names and row counts appear there.
+        </p>
+      </div>
       <!-- API-010 集合批量 Runner -->
       <div class="row runner-bar" style="margin-top: 10px">
         <n-button size="small" type="primary" :loading="runnerRunning" :disabled="!saved.length" data-test-id="run-collection" @click="runCollectionNow">
@@ -858,6 +1031,7 @@ function statusType(s: number): 'success' | 'warning' | 'error' | 'info' {
         <n-button v-if="runnerRunning" size="small" data-test-id="cancel-run" @click="cancelRun">
           Cancel
         </n-button>
+        <span v-if="liveIteration" class="hint" data-test-id="runner-live-iteration">Running iteration {{ liveIteration }}…</span>
         <n-checkbox v-model:checked="stopOnError" size="small" data-test-id="runner-stop-on-error">
           Stop on send error
         </n-checkbox>
@@ -869,30 +1043,40 @@ function statusType(s: number): 'success' | 'warning' | 'error' | 'info' {
         <span class="hint">ms</span>
       </div>
       <p class="hint" style="margin-top: 4px">
-        Runs every saved request in order through the edge relay, applying each request's saved assertions. No iterations/data files or pm.* scripts (use Postman/Newman for those).
+        Runs every saved request in order through the edge relay, applying each request's saved assertions. With a data file, each row drives one iteration (an explicit round count overrides; more rounds than rows cycles them). pm.* scripts run in the isolated Worker sandbox; network only via the apiproxy outbox.
       </p>
       <n-alert v-if="runnerError" type="error" style="margin-top: 6px" data-test-id="runner-error">
         {{ runnerError }}
       </n-alert>
-      <div v-if="runnerResults.length" class="test-results" style="margin-top: 8px" data-test-id="runner-results">
+      <div v-if="runnerResults.length || runnerSummary" class="test-results" style="margin-top: 8px" data-test-id="runner-results">
         <div v-if="runnerSummary" class="row" style="margin-bottom: 6px">
           <n-tag size="small" :type="runnerSummary.allPassed ? 'success' : 'error'" data-test-id="runner-summary">
-            {{ runnerSummary.sent }}/{{ runnerSummary.total }} sent · {{ runnerSummary.failed }} failed · Tests {{ runnerSummary.assertionsPassed }}/{{ runnerSummary.assertionsTotal }}{{ runnerSummary.scriptTestsTotal ? ` · pm.test ${runnerSummary.scriptTestsPassed}/${runnerSummary.scriptTestsTotal}` : '' }}
+            {{ runnerSummary.sent }}/{{ runnerSummary.total }} sent · {{ runnerSummary.failed }} failed · Tests {{ runnerSummary.assertionsPassed }}/{{ runnerSummary.assertionsTotal }}{{ runnerSummary.scriptTestsTotal ? ` · pm.test ${runnerSummary.scriptTestsPassed}/${runnerSummary.scriptTestsTotal}` : '' }} · Iterations {{ runnerSummary.iterationCount }}{{ runnerSummary.dataFile ? ` · Data ${runnerSummary.dataFile.type} ${runnerSummary.dataFile.rows}r/${runnerSummary.dataFile.columnsCount}c` : '' }}
           </n-tag>
-          <span class="hint" data-test-id="runner-meta">{{ runnerSummary.totalDurationMs }} ms{{ runnerSummary.avgResponseMs !== null ? ` · avg ${runnerSummary.avgResponseMs} ms` : '' }}{{ runnerSummary.cancelled ? ' · cancelled' : runnerSummary.stoppedEarly ? ' · stopped early' : '' }}</span>
+          <span class="hint" data-test-id="runner-meta">{{ runnerSummary.totalDurationMs }} ms{{ runnerSummary.avgResponseMs !== null ? ` · avg ${runnerSummary.avgResponseMs} ms` : '' }}{{ runnerSummary.cancelled ? ' · cancelled' : runnerSummary.stoppedEarly ? ' · stopped early' : '' }}{{ runnerSummary.dataFile ? ` · data file: ${runnerSummary.dataFile.type} ${runnerSummary.dataFile.rows} rows × ${runnerSummary.dataFile.columnsCount} columns` : '' }}</span>
           <n-button size="tiny" data-test-id="runner-copy-report" @click="copyRunnerReport">
             Copy report
           </n-button>
           <n-button size="tiny" data-test-id="runner-download-report" @click="downloadRunnerReport">
             Download report
           </n-button>
+          <n-button size="tiny" data-test-id="runner-download-json" @click="downloadRunnerJsonReport">
+            JSON report
+          </n-button>
+          <n-button size="tiny" data-test-id="runner-download-junit" @click="downloadRunnerJunitReport">
+            JUnit XML
+          </n-button>
         </div>
-        <div v-for="(r, i) in runnerResults" :key="r.id" class="runner-item" data-test-id="runner-result-row">
+        <template v-for="g in runnerGroups" :key="g.iteration">
+          <div class="runner-iteration-head" data-test-id="runner-iteration-head">
+            Iteration {{ runnerSummary ? g.iteration : (liveIteration ?? g.iteration) }}<span class="hint">{{ g.dataRowIndex !== null ? ` · data row ${g.dataRowIndex + 1}` : '' }}{{ g.dataRowColumns ? ` · columns: ${g.dataRowColumns.join(', ')}` : (dataFile ? ` · columns: ${dataFile.columns.join(', ')}` : '') }}</span>
+          </div>
+          <div v-for="(r, ri) in g.results" :key="r.id" class="runner-item" data-test-id="runner-result-row">
           <div class="row">
             <n-tag size="small" :type="r.passed ? 'success' : 'error'">
               {{ r.passed ? 'PASS' : 'FAIL' }}
             </n-tag>
-            <span class="hint" style="flex: 1; min-width: 180px"><strong>{{ i + 1 }}. {{ r.name }}</strong> · {{ r.method }} {{ r.url }}</span>
+            <span class="hint" style="flex: 1; min-width: 180px"><strong>{{ ri + 1 }}. {{ r.name }}</strong> · {{ r.method }} {{ r.url }}</span>
             <n-tag v-if="r.sent" size="small" :type="statusType(r.status ?? 0)">
               {{ r.status }}
             </n-tag>
@@ -922,6 +1106,7 @@ function statusType(s: number): 'success' | 'warning' | 'error' | 'info' {
             </div>
           </details>
         </div>
+        </template>
       </div>
     </div>
 
@@ -1055,5 +1240,11 @@ function statusType(s: number): 'success' | 'warning' | 'error' | 'info' {
 .test-result { margin-top: 4px; }
 .runner-bar { align-items: center; }
 .runner-item { padding: 6px 0; border-top: 1px solid rgba(127, 127, 127, 0.15); &:first-of-type { border-top: none; } }
+.runner-iteration-head { padding: 8px 0 2px; font-size: 12px; font-weight: 600; }
+.visually-hidden-file { position: absolute; left: -9999px; top: auto; width: 1px; height: 1px; overflow: hidden; }
+.datafile-preview { max-height: 180px; overflow: auto; border: 1px solid rgba(127, 127, 127, 0.2); border-radius: 6px; }
+.datafile-preview table { border-collapse: collapse; width: 100%; font-size: 12px; }
+.datafile-preview th, .datafile-preview td { border: 1px solid rgba(127, 127, 127, 0.2); padding: 3px 8px; text-align: left; max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.datafile-preview th { background: rgba(127, 127, 127, 0.08); }
 .footer-hint { margin-top: 16px; }
 </style>

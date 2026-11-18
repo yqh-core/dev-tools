@@ -1,4 +1,4 @@
-# API Studio pm.* 支持矩阵（2026-11-17，增量 A 收口）
+# API Studio pm.* 支持矩阵（2026-11-18，增量 A+B 收口）
 
 状态词：`SUPPORTED`（有实现+测试）/ `PARTIAL`（子集，边界注明）/ `UNSUPPORTED`（fail-closed 显式报错，不静默 no-op）。
 沙箱：专用 module Worker（无 DOM）；5s 超时 terminate+重建；nonce 防陈旧回填；
@@ -14,7 +14,7 @@
 | `pm.collectionVariables` | 同上（collection 层） | 同上 |
 | `pm.globals` | 同上（globals 层） | 同上 |
 | `pm.variables` get/set/unset/has/toObject/count/replaceIn | `set` 只写本次运行 local 层；读取优先级 local>data>environment>collection>globals（含同名负控） | script-runtime.test 作用域组 |
-| `pm.iterationData` get/has/toObject/count | 语义已定义；数据文件注入在 B 阶段（CSV/JSON）接入 | 待 B 阶段测试 |
+| `pm.iterationData` get/has/toObject/count | Runner 每轮注入数据行（CSV RFC 4180 严格解析 / JSON 顶层数组，fail-closed）；读取优先级 local>iterationData>environment>collection>globals；每轮重置不串轮 | datafiles.test / data-driven.test（默认轮数·循环·隔离）/ B 浏览器 E2E |
 | `pm.request` url/method/headers(get/upsert/add/remove/all/has/count)/body(toString/update) | mutation 只作用本次发送，不回写存储 | script-integration.test |
 | `pm.response` code/status/text/json/headers(get/all/has/count)/responseTime/size | prerequest 阶段为 null（与 Postman 一致）；请求失败时 test 脚本仍以 null 执行 | script-integration.test 空响应守卫 |
 | `pm.info` event/iteration/counter/requestName | requestName 由 Runner 注入真实请求名 | script-integration.test |
@@ -26,7 +26,6 @@
 
 | API | 现状 | 收口条件 |
 |---|---|---|
-| `pm.iterationData` | 语义完整，数据注入未接 | B 阶段 CSV/JSON 迭代上线 + 跨轮隔离测试 |
 | `pm.expect` | 常用断言子集，非 chai 全量 | 按用户任务增量补；每补一条加正反例 |
 | `pm.cookies` / `pm.cookieJar` | fail-closed 抛 unsupported | 有真实 cookie 业务需求+隔离方案后再实现 |
 

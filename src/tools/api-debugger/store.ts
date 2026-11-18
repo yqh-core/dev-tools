@@ -99,7 +99,11 @@ export function saveRequest(
     return { list, saved: null, error: `Collection is full (${cap}). Delete an entry first.` };
   }
   const saved: SavedRequest = { id: newId, name: trimmed, request: snapshot, createdAt: now, updatedAt: now, ...(testsSnapshot === undefined ? {} : { assertions: testsSnapshot }), ...(scriptsSnapshot === undefined ? {} : { scriptEvents: scriptsSnapshot }) };
-  return { list: [saved, ...list], saved };
+  // 集合顺序 = 插入顺序（Postman 集合语义：文档 item 顺序即运行顺序）。
+  // 旧实现头插（最新在前）使"导入循环/手动保存"落盘的集合在 Runner 中**逆序**执行——
+  // 跨请求数据流（请求 01 的 test 脚本写 env，供请求 02 替换）随之断裂。
+  // 历史面板另有 pushHistory 保持 newest-first，不受影响。
+  return { list: [...list, saved], saved };
 }
 
 export function removeSaved(list: SavedRequest[], id: string): SavedRequest[] {
