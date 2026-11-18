@@ -23,7 +23,7 @@ if ('version' in parsed && parsed.version) {
   process.exit(0);
 }
 if (!('args' in parsed)) {
-  process.stderr.write(`用法错误：${'error' in parsed ? parsed.error : '未知参数'}\n\n见 api-studio --help\n`);
+  process.stderr.write(`Usage error: ${'error' in parsed ? parsed.error : 'unknown argument'}\n\nSee api-studio --help\n`);
   process.exit(4);
 }
 
@@ -35,9 +35,9 @@ try {
 }
 catch (e) {
   if (e instanceof CliRunError) {
-    process.stderr.write(`CLI 运行失败（${e.kind}）：${e.message}\n`);
+    process.stderr.write(`CLI run failed (${e.kind}): ${e.message}\n`);
     process.exit(e.kind === 'write' ? 3 : 2);
   }
-  process.stderr.write(`CLI 意外错误：${e instanceof Error ? e.stack ?? e.message : String(e)}\n`);
+  process.stderr.write(`CLI unexpected error: ${e instanceof Error ? e.stack ?? e.message : String(e)}\n`);
   process.exit(2);
 }

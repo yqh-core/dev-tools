@@ -888,7 +888,7 @@ function statusType(s: number): 'success' | 'warning' | 'error' | 'info' {
       </h3>
       <div class="row" style="margin-bottom: 4px" data-test-id="collection-scripts-bar">
         <n-tag size="small" type="info">Collection</n-tag>
-        <span class="hint">集合级脚本（独立一层：pre-request 先于各请求链执行，test 后于各请求链执行；导出为 Postman doc 级事件。导入集合的 doc 级脚本已按契约合并进各请求链——见各请求面板）</span>
+        <span class="hint">Collection-level scripts (a separate layer: pre-request runs before each request chain, test after; exported as Postman doc-level events. Doc-level scripts from imported collections are merged into each request chain per the contract — see each request panel)</span>
       </div>
       <n-input v-model:value="collectionScripts.prerequest" type="textarea" :rows="3" monospace placeholder='pm.variables.set("fixtureRun", "api-studio-smoke");' data-test-id="collection-script-prerequest" />
       <n-input v-model:value="collectionScripts.test" type="textarea" :rows="3" monospace placeholder='pm.test("collection-level", () => {});' data-test-id="collection-script-test" style="margin-top: 6px" />

@@ -65,7 +65,7 @@ export function parseArgs(argv: string[]): { ok: true; args: CliArgs } | { ok: f
   const positionals: string[] = [];
   let i = 0;
   const needValue = (flag: string): string => {
-    if (i >= argv.length) throw new Error(`缺少参数值：${flag} <value>`);
+    if (i >= argv.length) throw new Error(`Missing value for ${flag} <value>`);
     return argv[i++];
   };
   try {
@@ -92,19 +92,19 @@ export function parseArgs(argv: string[]): { ok: true; args: CliArgs } | { ok: f
         case '-n':
         case '--iteration-count': {
           const v = needValue(a);
-          if (!isPositiveInt(v)) throw new Error(`${a} 必须是正整数（收到 "${v}"）`);
+          if (!isPositiveInt(v)) throw new Error(`${a} must be a positive integer (received "${v}")`);
           out.iterations = Number(v);
           break;
         }
         case '--timeout-request': {
           const v = needValue(a);
-          if (!isPositiveInt(v)) throw new Error(`${a} 必须是正整数毫秒（收到 "${v}"）`);
+          if (!isPositiveInt(v)) throw new Error(`${a} must be a positive integer in milliseconds (received "${v}")`);
           out.requestTimeoutMs = Number(v);
           break;
         }
         case '--delay-request': {
           const v = needValue(a);
-          if (!/^\d+$/.test(v)) throw new Error(`${a} 必须是非负整数毫秒（收到 "${v}"）`);
+          if (!/^\d+$/.test(v)) throw new Error(`${a} must be a non-negative integer in milliseconds (received "${v}")`);
           out.delayMs = Number(v);
           break;
         }
@@ -121,7 +121,7 @@ export function parseArgs(argv: string[]): { ok: true; args: CliArgs } | { ok: f
           const v = needValue(a);
           const parts = v.split(',').map(s => s.trim()).filter(Boolean);
           if (!parts.length || parts.some(p => !REPORTERS.includes(p as ReporterKind))) {
-            throw new Error(`--reporters 必须是 ${REPORTERS.join(',')} 的逗号子集（收到 "${v}"）`);
+            throw new Error(`--reporters must be a comma-separated subset of ${REPORTERS.join(',')} (received "${v}")`);
           }
           out.reporters = [...new Set(parts)] as ReporterKind[];
           break;
@@ -137,7 +137,7 @@ export function parseArgs(argv: string[]): { ok: true; args: CliArgs } | { ok: f
           break;
         default:
           if (a.startsWith('-')) {
-            throw new Error(`未知参数：${a}（见 --help）`);
+            throw new Error(`Unknown argument: ${a} (see --help)`);
           }
           positionals.push(a);
       }
@@ -147,64 +147,64 @@ export function parseArgs(argv: string[]): { ok: true; args: CliArgs } | { ok: f
     return { ok: false, error: e instanceof Error ? e.message : String(e) };
   }
   if (positionals.length !== 1) {
-    return { ok: false, error: '需要恰好一个位置参数：Collection 路径（Postman v2.1 JSON 文件或目录）。见 --help。' };
+    return { ok: false, error: 'Exactly one positional argument is required: the collection path (a Postman v2.1 JSON file or a directory). See --help.' };
   }
   out.collectionPath = positionals[0];
   // report 路径与 reporter 选择的 fail-closed 校验（不给无效组合跑到运行结束才报）
   if (out.reportJsonPath && !out.reporters.includes('json')) {
-    return { ok: false, error: '--report-json 已指定但 --reporters 不含 json。' };
+    return { ok: false, error: '--report-json was given but --reporters does not include json.' };
   }
   if (out.reportJunitPath && !out.reporters.includes('junit')) {
-    return { ok: false, error: '--report-junit 已指定但 --reporters 不含 junit。' };
+    return { ok: false, error: '--report-junit was given but --reporters does not include junit.' };
   }
   if (out.reporters.includes('json') && !out.reportJsonPath) {
-    return { ok: false, error: '--reporters 含 json 但未指定 --report-json 输出路径。' };
+    return { ok: false, error: '--reporters includes json but --report-json output path was not given.' };
   }
   if (out.reporters.includes('junit') && !out.reportJunitPath) {
-    return { ok: false, error: '--reporters 含 junit 但未指定 --report-junit 输出路径。' };
+    return { ok: false, error: '--reporters includes junit but --report-junit output path was not given.' };
   }
   return { ok: true, args: out };
 }
 
-export const HELP_TEXT = `API Studio CLI ${CLI_VERSION} — 数据驱动 API 集合运行器（与浏览器 Runner 共用同一套 Runtime/Runner 核心语义，任务书 §5/§8）
+export const HELP_TEXT = `API Studio CLI ${CLI_VERSION} — data-driven API collection runner (one Runtime/Runner core shared with the browser Runner; task book §5/§8)
 
-用法：
-  api-studio run <collection.json|目录> [选项]
+Usage:
+  api-studio run <collection.json|directory> [options]
   api-studio --help | --version
 
-位置参数：
-  <collection>        Postman Collection v2.1 JSON 文件路径；或目录（按文件名排序合并运行）
+Positional:
+  <collection>        Postman Collection v2.1 JSON file path; or a directory (merged and run in filename order)
 
-环境与数据：
-  -e, --environment <file.json>   环境文件（Postman environment v2.1 {values:[{key,value,enabled}]} 或扁平 {k:v}）。
-                                  命名环境（Newman 从 Postman 应用取）在本 CLI fail-closed：CLI 无本地变量存储。
-  -d, --iteration-data <file>     数据文件（CSV RFC 4180 / JSON 顶层数组对象），每行一轮迭代（pm.iterationData）
-  -n, --iteration-count <N>       显式迭代轮数（默认=数据行数；无数据文件=1；轮数>行数时行循环取用）
+Environment & data:
+  -e, --environment <file.json>   Environment file (Postman environment v2.1 {values:[{key,value,enabled}]} or flat {k:v}).
+                                  Named environments (Newman reads them from the Postman app) are fail-closed here: the CLI has no local variable storage.
+  -d, --iteration-data <file>     Data file (CSV RFC 4180 / JSON top-level array of objects); each row drives one iteration (pm.iterationData)
+  -n, --iteration-count <N>       Explicit iteration count (default = row count; 1 with no data file; rows cycle when count > rows)
 
-执行控制：
-  --timeout-request <ms>          单请求超时（默认 30000；超时计入 request_error，退出码 1）
-  --delay-request <ms>            请求间隔（默认 0）
-  --stop-on-error / --no-stop-on-error   发送失败即停整个运行（默认开，对齐 Postman runtime）
-  --bail                          断言失败即停（Newman --bail 语义 → 引擎 stopOnFailure）
-  --ci                            非交互 CI 模式（紧凑进度；歧义输入一律 fail-closed）
+Execution control:
+  --timeout-request <ms>          Per-request timeout (default 30000; timeouts count as request_error, exit code 1)
+  --delay-request <ms>            Delay between requests (default 0)
+  --stop-on-error / --no-stop-on-error   Stop the whole run on send failure (default on; matches Postman runtime)
+  --bail                          Stop on assertion failure (Newman --bail semantics -> engine stopOnFailure)
+  --ci                            Non-interactive CI mode (compact progress; ambiguous input always fail-closed)
 
-报告（reporter 输出全部脱敏：Secret/Authorization/Cookie/API Key/环境变量值/数据行值/请求响应体/响应头值默认不进报告）：
-  --reporters <cli,json,junit>    reporter 选择（默认 cli 仅 stdout）
-  --report-json <path>            JSON 报告落盘（需 reporters 含 json；version=1 schema）
-  --report-junit <path>           JUnit XML 落盘（需 reporters 含 junit；CI 可解析，失败定位到迭代/请求/断言）
+Reports (all reporter output is redacted by default: Secret/Authorization/Cookie/API Key/environment values/data row values/request & response bodies/response header values never enter reports):
+  --reporters <cli,json,junit>    Reporter selection (default cli, stdout only)
+  --report-json <path>            JSON report on disk (requires reporters incl. json; version=1 schema)
+  --report-junit <path>           JUnit XML on disk (requires reporters incl. junit; CI-parseable; failures locate to iteration/request/assertion)
 
-退出码（文档化契约）：
-  0  运行完成且全部通过
-  1  运行完成但存在失败（断言失败/脚本错误/请求错误/超时/取消）
-  2  运行未完成（集合/环境/数据文件格式错误或加载失败——前置 fail-closed）
-  3  报告写入失败（运行本身可能已通过）
-  4  用法错误
+Exit codes (documented contract):
+  0  Run completed, all passed
+  1  Run completed with failures (assertion/script/request error/timeout/cancel)
+  2  Run not completed (collection/environment/data file format error or load failure - front fail-closed)
+  3  Report write failed (the run itself may have passed)
+  4  Usage error
 
-Newman 常见参数兼容（真实映射引擎参数，支持矩阵见 docs/api-cli/NEWMAN-COMPAT.md）：
+Newman flag compatibility (real engine parameter mapping; support matrix: docs/api-cli/NEWMAN-COMPAT.md):
   -e ✔ · -d ✔ · -n ✔ · --bail ✔ · --timeout-request ✔ · --delay-request ✔ · --reporters ✔
 
-安全边界（与浏览器沙箱同契约）：
-  pm.* 脚本在独立 worker_threads 沙箱执行；fetch/XHR/WebSocket 等网络全局读取即抛错；
-  脚本唯一网络路径 = pm.sendRequest outbox → 宿主 CLI 直接发送（浏览器侧走同源 apiproxy relay，
-  CLI 侧直连——传输层差异，执行语义一致）；不支持 API fail-closed 显式抛错。
+Security boundary (same contract as the browser sandbox):
+  pm.* scripts run in an isolated subprocess sandbox; network globals like fetch/XHR/WebSocket throw on read;
+  the only network path for scripts = pm.sendRequest outbox -> the host CLI sends directly (the browser side uses the same-origin
+  apiproxy relay, the CLI side connects directly - transport difference, identical execution semantics); unsupported pm APIs fail closed with explicit errors.
 `.trimEnd();
