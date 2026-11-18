@@ -40,7 +40,7 @@ export interface CliArgs {
   ci: boolean
 }
 
-export type CliParseResult = { ok: true; args: CliArgs } | { ok: false; error: string }
+export type CliParseResult = { ok: true; args: CliArgs } | { ok: false; error: string };
 
 export const CLI_VERSION = '2026.01.22-v2';
 
@@ -65,7 +65,9 @@ export function parseArgs(argv: string[]): { ok: true; args: CliArgs } | { ok: f
   const positionals: string[] = [];
   let i = 0;
   const needValue = (flag: string): string => {
-    if (i >= argv.length) throw new Error(`Missing value for ${flag} <value>`);
+    if (i >= argv.length) {
+      throw new Error(`Missing value for ${flag} <value>`);
+    }
     return argv[i++];
   };
   try {
@@ -92,19 +94,25 @@ export function parseArgs(argv: string[]): { ok: true; args: CliArgs } | { ok: f
         case '-n':
         case '--iteration-count': {
           const v = needValue(a);
-          if (!isPositiveInt(v)) throw new Error(`${a} must be a positive integer (received "${v}")`);
+          if (!isPositiveInt(v)) {
+            throw new Error(`${a} must be a positive integer (received "${v}")`);
+          }
           out.iterations = Number(v);
           break;
         }
         case '--timeout-request': {
           const v = needValue(a);
-          if (!isPositiveInt(v)) throw new Error(`${a} must be a positive integer in milliseconds (received "${v}")`);
+          if (!isPositiveInt(v)) {
+            throw new Error(`${a} must be a positive integer in milliseconds (received "${v}")`);
+          }
           out.requestTimeoutMs = Number(v);
           break;
         }
         case '--delay-request': {
           const v = needValue(a);
-          if (!/^\d+$/.test(v)) throw new Error(`${a} must be a non-negative integer in milliseconds (received "${v}")`);
+          if (!/^\d+$/.test(v)) {
+            throw new Error(`${a} must be a non-negative integer in milliseconds (received "${v}")`);
+          }
           out.delayMs = Number(v);
           break;
         }

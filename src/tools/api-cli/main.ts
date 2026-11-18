@@ -7,15 +7,16 @@
  * 用法：api-studio run <collection.json|目录> [选项]；api-studio --help | --version
  */
 /// <reference types="node" />
-import { parseArgs, HELP_TEXT } from './args';
-import { executeRun, CliRunError } from './run';
+import process from 'node:process';
+import { HELP_TEXT, parseArgs } from './args';
+import { CliRunError, executeRun } from './run';
 import { API_STUDIO_CLI_VERSION } from './version';
 
 const argv = process.argv.slice(2);
 const parsed = parseArgs(argv);
 
 if ('help' in parsed && parsed.help) {
-  process.stdout.write(HELP_TEXT + '\n');
+  process.stdout.write(`${HELP_TEXT}\n`);
   process.exit(0);
 }
 if ('version' in parsed && parsed.version) {

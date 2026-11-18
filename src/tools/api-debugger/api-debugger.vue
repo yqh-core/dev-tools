@@ -4,11 +4,11 @@ import { useStorage } from '@vueuse/core';
 import { JsonPathError, jsonPath } from '../json-workspace/jsonpath';
 import { parseCurl, toCurl } from './curl';
 import { AUTH_HEADER_NAMES, type KV, buildProxyPayload, responseToWorkspaceLink, sanitizeForShare, stashHandoff } from './engine';
-import { SAVED_CAP, type HistoryEntry, type SavedRequest, exportSavedRequest, parseHistory, parseSaved, pushHistory, removeHistory, removeSaved, renameSaved, saveRequest } from './store';
+import { type HistoryEntry, SAVED_CAP, type SavedRequest, exportSavedRequest, parseHistory, parseSaved, pushHistory, removeHistory, removeSaved, renameSaved, saveRequest } from './store';
 import { type Assertion, type AssertionReport, type AssertionType, OPS_BY_TYPE, OP_LABELS, formatReportText, makeAssertion, parseAssertions, runAssertions } from './assertions';
 import { type CollectionRunSummary, type IterationSummary, type RequestRunResult, type RunnerResponse, type SendFn, formatCollectionReportText, runCollection } from './runner';
 import { type DataFile, parseDataFile, previewRows } from './datafiles';
-import { buildRunReport, toJUnitXml, type RunReportMeta } from './report';
+import { type RunReportMeta, buildRunReport, toJUnitXml } from './report';
 import { formatBytes, searchBody, utf8Bytes } from './response';
 import { authHeaderPreset, buildUrlWithQuery, parseQueryParams } from './query';
 import { importOpenApi } from './openapi';
@@ -206,6 +206,22 @@ function downloadReport(): void {
   banner.value = ok ? 'Test report downloaded (assertion results only; no credential headers included).' : 'Download failed: report content was empty (no file written).';
 }
 
+// ── API-012/B 数据驱动运行（B1 数据文件 / B2 迭代 / B3+B4 报告下载）────────
+// 数据文件只在本机用 FileReader 读取、内存解析（永不上传）；报告、日志与迭代显示
+// 默认不含数据行值——只有列名与行计数（脱敏口径见 report.ts / datafiles.ts）。
+// 状态声明前移：runCollectionNow / runnerReportMeta 引用先于定义（no-use-before-define 闭合）。
+const dataFilePicker = ref<HTMLInputElement | null>(null);
+const dataFile = ref<DataFile | null>(null);
+const dataFileType = ref<'csv' | 'json'>('csv');
+const dataFileName = ref('');
+const dataFileError = ref('');
+const iterationsInput = ref('');
+const iterationsError = ref('');
+const lastRunId = ref('');
+/** E3 终审 P0-2：已标记 secret 的环境变量值集合（报告 redact 用——值级扫描；
+ *  未标记的任意值引擎无法预知，不假装全知扫描，边界如实登记）。 */
+const secretValues = computed(() => collectSecretValues(envStore.value));
+
 // ── API-010 集合级批量 Runner（对标 Postman Collection Runner；顺序执行+逐请求断言）──
 const runnerRunning = ref(false);
 const runnerSummary = ref<CollectionRunSummary | null>(null);
@@ -289,18 +305,6 @@ function downloadRunnerReport(): void {
   banner.value = ok ? 'Collection run report downloaded (no credential headers included).' : 'Download failed: report content was empty (no file written).';
 }
 
-// ── API-012/B 数据驱动运行（B1 数据文件 / B2 迭代 / B3+B4 报告下载）────────
-// 数据文件只在本机用 FileReader 读取、内存解析（永不上传）；报告、日志与迭代显示
-// 默认不含数据行值——只有列名与行计数（脱敏口径见 report.ts / datafiles.ts）。
-const dataFilePicker = ref<HTMLInputElement | null>(null);
-const dataFile = ref<DataFile | null>(null);
-const dataFileType = ref<'csv' | 'json'>('csv');
-const dataFileName = ref('');
-const dataFileError = ref('');
-const iterationsInput = ref('');
-const iterationsError = ref('');
-const lastRunId = ref('');
-
 const dataFilePreview = computed(() => (dataFile.value ? previewRows(dataFile.value) : null));
 
 /** 迭代计划（输入即校验；非法输入 fail-closed，不静默回退默认值）。 */
@@ -347,7 +351,9 @@ function onDataFilePicked(e: Event): void {
     iterationsError.value = '';
     banner.value = `Data file loaded: ${r.data.rows.length} rows × ${r.data.columns.length} columns (parsed locally, never uploaded; values are redacted from reports and logs).`;
   };
-  reader.onerror = () => { dataFileError.value = 'Could not read the file (local read failed).'; };
+  reader.onerror = () => {
+    dataFileError.value = 'Could not read the file (local read failed).';
+  };
   reader.readAsText(file);
 }
 function clearDataFile(): void {
@@ -369,9 +375,6 @@ function resolveIterations(): number | null {
 
 /** 与 package.json version 同步（报告 meta 的信息性字段）。 */
 const API_STUDIO_VERSION = '2026.01.22-v2';
-/** E3 终审 P0-2：已标记 secret 的环境变量值集合（报告 redact 用——值级扫描；
- *  未标记的任意值引擎无法预知，不假装全知扫描，边界如实登记）。 */
-const secretValues = computed(() => collectSecretValues(envStore.value));
 function runnerReportMeta(): RunReportMeta {
   return {
     runId: lastRunId.value,
@@ -450,8 +453,12 @@ function recordHistory(request: { method: string; url: string; headers: KV[]; bo
 function saveCurrent(): void {
   saveError.value = '';
   const scriptEvents: { prerequest?: string; test?: string } = {};
-  if (preScript.value.trim()) scriptEvents.prerequest = preScript.value;
-  if (testScript.value.trim()) scriptEvents.test = testScript.value;
+  if (preScript.value.trim()) {
+    scriptEvents.prerequest = preScript.value;
+  }
+  if (testScript.value.trim()) {
+    scriptEvents.test = testScript.value;
+  }
   const r = saveRequest(saved.value, saveName.value, currentRequest.value, Date.now(), `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, assertions.value, SAVED_CAP, Object.keys(scriptEvents).length ? scriptEvents : undefined);
   if (r.error) {
     saveError.value = r.error;
@@ -887,15 +894,21 @@ function statusType(s: number): 'success' | 'warning' | 'error' | 'info' {
         Scripts <span class="hint">pm.* pre-request / test — run by the Collection Runner in an isolated Worker (no DOM, 5 s timeout, module-load/Function/eval guards plus runtime global neutralization; within the guard surface, network is only reachable via the controlled pm.sendRequest outbox)</span>
       </h3>
       <div class="row" style="margin-bottom: 4px" data-test-id="collection-scripts-bar">
-        <n-tag size="small" type="info">Collection</n-tag>
+        <n-tag size="small" type="info">
+          Collection
+        </n-tag>
         <span class="hint">Collection-level scripts (a separate layer: pre-request runs before each request chain, test after; exported as Postman doc-level events. Doc-level scripts from imported collections are merged into each request chain per the contract — see each request panel)</span>
       </div>
-      <n-input v-model:value="collectionScripts.prerequest" type="textarea" :rows="3" monospace placeholder='pm.variables.set("fixtureRun", "api-studio-smoke");' data-test-id="collection-script-prerequest" />
-      <n-input v-model:value="collectionScripts.test" type="textarea" :rows="3" monospace placeholder='pm.test("collection-level", () => {});' data-test-id="collection-script-test" style="margin-top: 6px" />
-      <div class="row" style="margin: 8px 0 4px"><strong>Pre-request</strong> <span class="hint">before send; set variables or mutate this request</span></div>
-      <n-input v-model:value="preScript" type="textarea" :rows="5" monospace placeholder='pm.environment.set("token", "abc");' data-test-id="script-prerequest" />
-      <div class="row" style="margin: 8px 0 4px"><strong>Test</strong> <span class="hint">after response — also when the request failed (pm.response is null)</span></div>
-      <n-input v-model:value="testScript" type="textarea" :rows="5" monospace placeholder='pm.test("status 200", () => pm.expect(pm.response.code).to.equal(200));' data-test-id="script-test" />
+      <n-input v-model:value="collectionScripts.prerequest" type="textarea" :rows="3" monospace placeholder="pm.variables.set(&quot;fixtureRun&quot;, &quot;api-studio-smoke&quot;);" data-test-id="collection-script-prerequest" />
+      <n-input v-model:value="collectionScripts.test" type="textarea" :rows="3" monospace placeholder="pm.test(&quot;collection-level&quot;, () => {});" data-test-id="collection-script-test" style="margin-top: 6px" />
+      <div class="row" style="margin: 8px 0 4px">
+        <strong>Pre-request</strong> <span class="hint">before send; set variables or mutate this request</span>
+      </div>
+      <n-input v-model:value="preScript" type="textarea" :rows="5" monospace placeholder="pm.environment.set(&quot;token&quot;, &quot;abc&quot;);" data-test-id="script-prerequest" />
+      <div class="row" style="margin: 8px 0 4px">
+        <strong>Test</strong> <span class="hint">after response — also when the request failed (pm.response is null)</span>
+      </div>
+      <n-input v-model:value="testScript" type="textarea" :rows="5" monospace placeholder="pm.test(&quot;status 200&quot;, () => pm.expect(pm.response.code).to.equal(200));" data-test-id="script-test" />
       <p class="hint" style="margin-top: 6px">
         Supported: pm.environment / collectionVariables / globals / variables / iterationData / request / response / info / test / expect subset / sendRequest. Unsupported pm.* APIs fail closed (throw) — never silently no-op. Saved with the request; exported to Postman v2.1 events.
       </p>
@@ -1003,7 +1016,7 @@ function statusType(s: number): 'success' | 'warning' | 'error' | 'info' {
 
       <!-- API-012/B1 数据文件 + B2 迭代（本地 FileReader 解析，不上传；值不进报告/日志） -->
       <div class="row" style="margin-top: 10px" data-test-id="datafile-bar">
-        <input ref="dataFilePicker" type="file" accept=".csv,.json" class="visually-hidden-file" data-test-id="datafile-input" @change="onDataFilePicked" />
+        <input ref="dataFilePicker" type="file" accept=".csv,.json" class="visually-hidden-file" data-test-id="datafile-input" @change="onDataFilePicked">
         <n-button size="tiny" data-test-id="datafile-pick" @click="dataFilePicker?.click()">
           Choose data file (.csv/.json)
         </n-button>
@@ -1024,11 +1037,17 @@ function statusType(s: number): 'success' | 'warning' | 'error' | 'info' {
       <div v-if="dataFilePreview" class="datafile-preview" style="margin-top: 6px" data-test-id="datafile-preview">
         <table>
           <thead>
-            <tr><th v-for="c in dataFilePreview.columns" :key="c">{{ c }}</th></tr>
+            <tr>
+              <th v-for="c in dataFilePreview.columns" :key="c">
+                {{ c }}
+              </th>
+            </tr>
           </thead>
           <tbody>
             <tr v-for="(row, ri) in dataFilePreview.rows" :key="ri">
-              <td v-for="(v, ci) in row" :key="ci">{{ v }}</td>
+              <td v-for="(v, ci) in row" :key="ci">
+                {{ v }}
+              </td>
             </tr>
           </tbody>
         </table>
@@ -1085,40 +1104,40 @@ function statusType(s: number): 'success' | 'warning' | 'error' | 'info' {
             Iteration {{ runnerSummary ? g.iteration : (liveIteration ?? g.iteration) }}<span class="hint">{{ g.dataRowIndex !== null ? ` · data row ${g.dataRowIndex + 1}` : '' }}{{ g.dataRowColumns ? ` · columns: ${g.dataRowColumns.join(', ')}` : (dataFile ? ` · columns: ${dataFile.columns.join(', ')}` : '') }}</span>
           </div>
           <div v-for="(r, ri) in g.results" :key="r.id" class="runner-item" data-test-id="runner-result-row">
-          <div class="row">
-            <n-tag size="small" :type="r.passed ? 'success' : 'error'">
-              {{ r.passed ? 'PASS' : 'FAIL' }}
-            </n-tag>
-            <span class="hint" style="flex: 1; min-width: 180px"><strong>{{ ri + 1 }}. {{ r.name }}</strong> · {{ r.method }} {{ r.url }}</span>
-            <n-tag v-if="r.sent" size="small" :type="statusType(r.status ?? 0)">
-              {{ r.status }}
-            </n-tag>
-            <span v-if="r.sent" class="hint">{{ r.elapsedMs }} ms</span>
-            <n-tag v-if="r.report && r.report.total" size="small" :type="r.report.allPassed ? 'success' : 'error'">
-              Tests {{ r.report.passed }}/{{ r.report.total }}
-            </n-tag>
-            <n-tag v-if="r.scriptTests && r.scriptTests.length" size="small" :type="r.scriptTests.every(t => t.passed) ? 'success' : 'error'">
-              pm.test {{ r.scriptTests.filter(t => t.passed).length }}/{{ r.scriptTests.length }}
-            </n-tag>
-          </div>
-          <p v-if="r.error" class="hint" style="margin: 2px 0 0; color: var(--n-error-color, #d03050)">
-            {{ r.error }}
-          </p>
-          <p v-if="r.scriptError" class="hint" style="margin: 2px 0 0; color: var(--n-error-color, #d03050)" data-test-id="runner-script-error">
-            Script: {{ r.scriptError }}
-          </p>
-          <details v-if="r.report && r.report.total" style="margin-top: 2px">
-            <summary class="hint">
-              Assertions
-            </summary>
-            <div v-for="a in r.report.results" :key="a.id" class="row test-result">
-              <n-tag size="small" :type="a.passed ? 'success' : 'error'">
-                {{ a.passed ? 'PASS' : 'FAIL' }}
+            <div class="row">
+              <n-tag size="small" :type="r.passed ? 'success' : 'error'">
+                {{ r.passed ? 'PASS' : 'FAIL' }}
               </n-tag>
-              <span class="hint" style="flex: 1; min-width: 180px">{{ a.label }} — {{ a.message }}</span>
+              <span class="hint" style="flex: 1; min-width: 180px"><strong>{{ ri + 1 }}. {{ r.name }}</strong> · {{ r.method }} {{ r.url }}</span>
+              <n-tag v-if="r.sent" size="small" :type="statusType(r.status ?? 0)">
+                {{ r.status }}
+              </n-tag>
+              <span v-if="r.sent" class="hint">{{ r.elapsedMs }} ms</span>
+              <n-tag v-if="r.report && r.report.total" size="small" :type="r.report.allPassed ? 'success' : 'error'">
+                Tests {{ r.report.passed }}/{{ r.report.total }}
+              </n-tag>
+              <n-tag v-if="r.scriptTests && r.scriptTests.length" size="small" :type="r.scriptTests.every(t => t.passed) ? 'success' : 'error'">
+                pm.test {{ r.scriptTests.filter(t => t.passed).length }}/{{ r.scriptTests.length }}
+              </n-tag>
             </div>
-          </details>
-        </div>
+            <p v-if="r.error" class="hint" style="margin: 2px 0 0; color: var(--n-error-color, #d03050)">
+              {{ r.error }}
+            </p>
+            <p v-if="r.scriptError" class="hint" style="margin: 2px 0 0; color: var(--n-error-color, #d03050)" data-test-id="runner-script-error">
+              Script: {{ r.scriptError }}
+            </p>
+            <details v-if="r.report && r.report.total" style="margin-top: 2px">
+              <summary class="hint">
+                Assertions
+              </summary>
+              <div v-for="a in r.report.results" :key="a.id" class="row test-result">
+                <n-tag size="small" :type="a.passed ? 'success' : 'error'">
+                  {{ a.passed ? 'PASS' : 'FAIL' }}
+                </n-tag>
+                <span class="hint" style="flex: 1; min-width: 180px">{{ a.label }} — {{ a.message }}</span>
+              </div>
+            </details>
+          </div>
         </template>
       </div>
     </div>
