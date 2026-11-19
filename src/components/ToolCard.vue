@@ -2,6 +2,7 @@
 import { useThemeVars } from 'naive-ui';
 import FavoriteButton from './FavoriteButton.vue';
 import type { Tool } from '@/tools/tools.types';
+import { normalizePath } from '@/seo/site';
 
 const props = defineProps<{ tool: Tool & { category: string } }>();
 const { tool } = toRefs(props);
@@ -9,7 +10,7 @@ const theme = useThemeVars();
 </script>
 
 <template>
-  <router-link :to="tool.path" class="decoration-none">
+  <router-link :to="normalizePath(tool.path)" class="decoration-none">
     <c-card class="h-full transition transition-duration-0.5s !border-2px !hover:border-primary">
       <div flex items-center justify-between>
         <n-icon class="text-neutral-400 dark:text-neutral-600" size="40" :component="tool.icon" />

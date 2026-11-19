@@ -60,6 +60,6 @@ This site is maintained by an individual and we do not promise a response time. 
 
 ## Other pages
 
-- [Privacy Policy](/privacy)
-- [Terms of Service](/terms)
-- [About](/about)
+- [Privacy Policy](/privacy/)
+- [Terms of Service](/terms/)
+- [About](/about/)

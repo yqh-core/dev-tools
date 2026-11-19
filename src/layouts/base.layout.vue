@@ -15,6 +15,7 @@ import { useToolStore } from '@/tools/tools.store';
 import { useTracker } from '@/modules/tracker/tracker.services';
 import CollapsibleToolMenu from '@/components/CollapsibleToolMenu.vue';
 import { groupByPrimaryCluster } from '@/tools/nav-groups';
+import { normalizePath } from '@/seo/site';
 
 const themeVars = useThemeVars();
 const styleStore = useStyleStore();
@@ -70,25 +71,25 @@ const tools = computed<ToolCategory[]>(() => [
         <div class="footer">
           <div>
             © {{ new Date().getFullYear() }}
-            <c-link href="https://www.digdevbox.com">
+            <c-link href="https://www.digdevbox.com/">
               digdevbox.com
             </c-link>
           </div>
 
           <div class="footer-legal">
-            <RouterLink to="/privacy">
+            <RouterLink :to="normalizePath('/privacy')">
               {{ $t('legal.privacy') }}
             </RouterLink>
             <span class="dot">·</span>
-            <RouterLink to="/terms">
+            <RouterLink :to="normalizePath('/terms')">
               {{ $t('legal.terms') }}
             </RouterLink>
             <span class="dot">·</span>
-            <RouterLink to="/faq">
+            <RouterLink :to="normalizePath('/faq')">
               {{ $t('legal.faq') }}
             </RouterLink>
             <span class="dot">·</span>
-            <RouterLink to="/contact">
+            <RouterLink :to="normalizePath('/contact')">
               {{ $t('legal.contact') }}
             </RouterLink>
           </div>
@@ -128,7 +129,7 @@ const tools = computed<ToolCategory[]>(() => [
         </c-tooltip>
 
         <c-tooltip :tooltip="$t('home.uiLib')" position="bottom">
-          <c-button v-if="config.app.env === 'development'" to="/c-lib" circle variant="text" :aria-label="$t('home.uiLib')">
+          <c-button v-if="config.app.env === 'development'" :to="normalizePath('/c-lib')" circle variant="text" :aria-label="$t('home.uiLib')">
             <icon-mdi:brush-variant text-20px />
           </c-button>
         </c-tooltip>

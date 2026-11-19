@@ -4,6 +4,7 @@ import { useThemeVars } from 'naive-ui';
 import { RouterLink, useRoute } from 'vue-router';
 import MenuIconItem from './MenuIconItem.vue';
 import type { Tool, ToolCategory } from '@/tools/tools.types';
+import { normalizePath } from '@/seo/site';
 
 const props = withDefaults(defineProps<{ toolsByCategory?: ToolCategory[] }>(), { toolsByCategory: () => [] });
 const { toolsByCategory } = toRefs(props);
@@ -13,7 +14,7 @@ const route = useRoute();
 // 而菜单项的 key 是工具注册表里的 path（不带斜杠）。不归一化 ⇒ 当前工具项永远不高亮。
 const currentPath = computed<string>(() => route.path.replace(/\/+$/, '') || '/');
 
-const makeLabel = (tool: Tool) => () => h(RouterLink, { to: tool.path }, { default: () => tool.name });
+const makeLabel = (tool: Tool) => () => h(RouterLink, { to: normalizePath(tool.path) }, { default: () => tool.name });
 const makeIcon = (tool: Tool) => () => h(MenuIconItem, { tool });
 
 const collapsedCategories = useStorage<Record<string, boolean>>(

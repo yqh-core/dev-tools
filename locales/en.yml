@@ -94,7 +94,7 @@ about:
     3. **Free to use, and ads never touch a result.** Pages carry Google AdSense; the ad code has no input
        into any calculation, and no tool's output changes because you did or did not click an ad.
     4. **Every tool documents itself.** Each page ships its own instructions and a worked example. If
-       something is wrong, [tell us](/contact) — corrections are how this site gets better.
+       something is wrong, [tell us](/contact/) — corrections are how this site gets better.
 
     ## Where your data goes
 
@@ -102,9 +102,9 @@ about:
 
     Three tools are the exception, because they cannot answer without asking someone else:
 
-    - [WHOIS lookup](/whois-lookup) queries the domain registry
-    - [HTTP status checker](/http-status-checker) requests the URL you enter
-    - [Today in history](/today-in-history) reads a public dataset
+    - [WHOIS lookup](/whois-lookup/) queries the domain registry
+    - [HTTP status checker](/http-status-checker/) requests the URL you enter
+    - [Today in history](/today-in-history/) reads a public dataset
 
     Those send the value you typed to a third-party service in order to produce a result. Everything else stays on your machine.
 
@@ -112,7 +112,7 @@ about:
 
     ## Who runs it
 
-    DigDevBox is maintained by one person, not a company or a team. The site is funded by advertising; what that means for cookies and personalised ads is spelled out in the [Privacy Policy](/privacy).
+    DigDevBox is maintained by one person, not a company or a team. The site is funded by advertising; what that means for cookies and personalised ads is spelled out in the [Privacy Policy](/privacy/).
 
     ## Where the code comes from
 
@@ -124,7 +124,7 @@ about:
 
     ## Feedback, bugs, missing tools
 
-    Feature requests and bug reports are welcome on the [contact page](/contact).
+    Feature requests and bug reports are welcome on the [contact page](/contact/).
 
     ## Sibling tools
 

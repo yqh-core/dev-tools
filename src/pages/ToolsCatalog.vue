@@ -2,6 +2,7 @@
 import { useI18n } from 'vue-i18n';
 import { usePageSeo } from '@/seo/use-page-seo';
 import { useToolStore } from '@/tools/tools.store';
+import { normalizePath } from '@/seo/site';
 
 /**
  * /tools 全量目录页（P1 重排 · 2026-10-13 新建）。
@@ -46,7 +47,7 @@ const toolStore = useToolStore();
             v-for="tool in cat.components"
             :key="tool.path"
             class="catalog-card"
-            :to="tool.path"
+            :to="normalizePath(tool.path)"
           >
             <n-icon :component="tool.icon" size="18" class="catalog-card-icon" />
             <div class="catalog-card-body">
