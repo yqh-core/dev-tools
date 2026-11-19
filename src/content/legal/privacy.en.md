@@ -58,4 +58,4 @@ This page will be updated if that changes.
 
 ## Contact
 
-For questions about this policy, you can reach us via the email on our [contact page](/contact).
+For questions about this policy, you can reach us via the email on our [contact page](/contact/).
