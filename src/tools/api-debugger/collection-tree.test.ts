@@ -15,6 +15,7 @@ import {
   findRequestNode,
   firstRequestNode,
   folderMoveOptions,
+  loadCollectionTree,
   mergeImportedTree,
   mergeScriptEvents,
   migrateLegacyCollection,
@@ -24,6 +25,7 @@ import {
   reparentNode,
   requestPathLabel,
   scriptChain,
+  serializeCollectionTree,
   uniqueNodeId,
   updateFolderScripts,
   updateRequestNode,
@@ -279,5 +281,42 @@ describe('树互操作 round-trip（importCollectionTree ↔ exportCollectionTre
     const { tree } = importCollectionTree(nestedDoc);
     expect(scriptChain(tree, 'req-login').pre).toBe('COLL-PRE');
     expect(scriptChain(tree, 'req-login').test).toBe('FOLDER-TEST');
+  });
+});
+
+describe('持久化（serializeCollectionTree / loadCollectionTree）', () => {
+  it('tree round-trip：序列化后读回等价，不迁移', () => {
+    const t = sampleTree();
+    const { tree, migrated } = loadCollectionTree(serializeCollectionTree(t), null, null);
+    expect(migrated).toBe(false);
+    expect(countRequests(tree)).toBe(3);
+    expect(findNode(tree, 'rA1')?.node.name).toBe('a1');
+  });
+
+  it('无 tree 键但有旧 flat saved → 升树（migrated=true），集合脚本入根', () => {
+    const savedJson = JSON.stringify([
+      { id: 'one', name: 'one', request: req('https://x.test/1'), createdAt: 1, updatedAt: 1, scriptEvents: { prerequest: 'p1' } },
+      { id: 'two', name: 'two', request: req('https://x.test/2'), createdAt: 1, updatedAt: 1 },
+    ]);
+    const { tree, migrated } = loadCollectionTree(null, savedJson, JSON.stringify({ prerequest: 'COLL', test: '' }));
+    expect(migrated).toBe(true);
+    expect(countRequests(tree)).toBe(2);
+    expect(tree.scripts).toEqual({ prerequest: 'COLL' });
+    expect(findRequestNode(tree, 'one')!.scripts).toEqual({ prerequest: 'p1' });
+  });
+
+  it('tree 键有效时优先于旧 flat（即便 saved 也在）不迁移', () => {
+    const treeJson = serializeCollectionTree(sampleTree());
+    const savedJson = JSON.stringify([{ id: 'x', name: 'x', request: req(), createdAt: 1, updatedAt: 1 }]);
+    const { migrated } = loadCollectionTree(treeJson, savedJson, null);
+    expect(migrated).toBe(false);
+  });
+
+  it('脏 tree JSON + 无 saved → 空集合，不抛不静默接受脏数据', () => {
+    const { tree, migrated } = loadCollectionTree('{bad json', null, null);
+    expect(migrated).toBe(false);
+    expect(countRequests(tree)).toBe(0);
+    const { tree: t2 } = loadCollectionTree(JSON.stringify({ nope: 1 }), null, null);
+    expect(countRequests(t2)).toBe(0);
   });
 });

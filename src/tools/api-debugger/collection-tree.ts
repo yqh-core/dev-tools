@@ -10,7 +10,7 @@
  *  · ID 口径：导入取 Postman `_postman_id ?? id`，缺失用 path+name 确定性哈希（重导入幂等）；手动保存 newNodeId()。
  */
 import type { ApiRequestState } from './engine';
-import { NAME_MAX, SAVED_CAP, type SavedRequest, cloneRequest, isValidName } from './store';
+import { NAME_MAX, SAVED_CAP, type SavedRequest, cloneRequest, isValidName, parseSaved } from './store';
 import { type Assertion, cloneAssertions, parseAssertions } from './assertions';
 import type { ImportedRequest } from './openapi';
 
@@ -588,6 +588,55 @@ export function parseCollectionTree(raw: unknown): CollectionNode | null {
   }
   const scripts = parseScriptEvents(n.scripts);
   return { id, name, items, ...(scripts ? { scripts } : {}) };
+}
+
+// ── 持久化（localStorage 契约；与 UI 框架无关的纯函数面）──────────────
+/** 树序列化（useStorage write 侧）：CollectionNode 直接 JSON 落盘，parseCollectionTree 白名单读回。 */
+export function serializeCollectionTree(tree: CollectionNode): string {
+  return JSON.stringify(tree);
+}
+
+/** 存储解析 + 一次性迁移：
+ *  ① tree 键存在且形状合法 → 直接用（不迁移）；
+ *  ② 否则若有旧 flat saved（非空）→ migrateLegacyCollection 升树（集合脚本入根）；
+ *  ③ 都没有 → 空集合。脏 JSON / 结构非法一律 fail-closed（不抛、不静默接受脏数据）。
+ *  migrated=true 时调用方应把结果写回 tree 键（迁移只发生一次）。 */
+export function loadCollectionTree(rawTreeJson: string | null, rawSavedJson: string | null, rawCollectionScriptsJson: string | null): { tree: CollectionNode; migrated: boolean } {
+  if (rawTreeJson) {
+    let obj: unknown;
+    try {
+      obj = JSON.parse(rawTreeJson);
+    }
+    catch {
+      obj = null;
+    }
+    const parsed = parseCollectionTree(obj);
+    if (parsed) {
+      return { tree: parsed, migrated: false };
+    }
+  }
+  let saved: SavedRequest[] = [];
+  if (rawSavedJson) {
+    try {
+      saved = parseSaved(JSON.parse(rawSavedJson));
+    }
+    catch {
+      saved = [];
+    }
+  }
+  if (saved.length) {
+    let cs: ScriptEvents | undefined;
+    if (rawCollectionScriptsJson) {
+      try {
+        cs = parseScriptEvents(JSON.parse(rawCollectionScriptsJson));
+      }
+      catch {
+        cs = undefined;
+      }
+    }
+    return { tree: migrateLegacyCollection(saved, cs), migrated: true };
+  }
+  return { tree: emptyCollection(), migrated: false };
 }
 
 // ── 迁移与合并 ────────────────────────────────────────────────────────
