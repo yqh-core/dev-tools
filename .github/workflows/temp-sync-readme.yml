@@ -1,0 +1,48 @@
+name: Temporary README sync helper
+
+on:
+  push:
+    branches:
+      - seo/percentage-calculator-snippet
+    paths:
+      - .github/workflows/temp-sync-readme.yml
+
+permissions:
+  contents: write
+
+jobs:
+  sync-readme:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.11.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate README from the tool registry
+        run: node scripts/sync-readme.mjs
+
+      - name: Commit generated README to this feature branch
+        env:
+          BRANCH: ${{ github.ref_name }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add README.md
+          if git diff --cached --quiet; then
+            echo "README already synchronized"
+          else
+            git commit -m "chore: sync README with tool registry"
+            git push origin "HEAD:$BRANCH"
+          fi
