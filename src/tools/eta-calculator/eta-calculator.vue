@@ -26,20 +26,19 @@ const endAt = computed(() =>
 <template>
   <div>
     <div text-justify op-70>
-      With a concrete example, if you wash 5 plates in 3 minutes and you have 500 plates to wash, it will take you 5
-      hours to wash them all.
+      For example, if a batch processes 5 records in 3 minutes and contains 500 records, the estimated total duration is 5 hours.
     </div>
     <n-divider />
     <div flex gap-2>
-      <n-form-item label="Amount of element to consume" flex-1>
+      <n-form-item label="Total amount to process" flex-1>
         <n-input-number v-model:value="unitCount" :min="1" />
       </n-form-item>
-      <n-form-item label="The consumption started at" flex-1>
+      <n-form-item label="Processing start time" flex-1>
         <n-date-picker v-model:value="startedAt" type="datetime" />
       </n-form-item>
     </div>
 
-    <p>Amount of unit consumed by time span</p>
+    <p>Amount processed per time interval</p>
     <div flex flex-col items-baseline gap-y-2 md:flex-row>
       <n-input-number v-model:value="unitPerTimeSpan" :min="1" />
       <div flex items-baseline gap-2>

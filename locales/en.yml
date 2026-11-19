@@ -315,8 +315,8 @@ tools:
     description: Format and validate YAML online — fix indentation, catch tabs and syntax errors before kubectl or CI rejects your config. Free, runs in your browser.
 
   eta-calculator:
-    title: ETA Calculator
-    description: What does ETA mean? Estimated Time of Arrival — this calculator projects when your download, build or batch job will finish from current progress, with duration and clock time. Free, runs in your browser.
+    title: ETA Calculator — Task Completion Time
+    description: Estimate when a download, build or batch job will finish from total work and current processing rate. Set the start time and rate to see duration and finish time.
 
   roman-numeral-converter:
     title: Roman numeral converter

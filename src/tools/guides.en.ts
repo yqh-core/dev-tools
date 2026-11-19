@@ -421,15 +421,15 @@ export const GUIDES: Record<string, ToolGuide> = {
   },
 
   '/eta-calculator': {
-    intro: 'Estimates when a task will finish based on current progress — a clear way to see how much longer a download or batch job needs.',
-    steps: ['Enter the amount completed', 'Enter the total amount', 'Read the estimated completion time'],
-    example: { label: 'Fill in a sample amount', text: '500' },
-    about: 'A travel-time estimate is really three numbers pretending to be one: moving time, stop time, and buffer. Dividing distance by average speed gives only the first, which is why naive ETAs fail on real roads — a 300 km trip at 100 km/h "should" take 3 hours but takes 4 with fuel, meals and traffic. This calculator keeps the arithmetic honest (distance, speed, time are linked and recalculate together, so you can solve for whichever leg is unknown) while the stats panel shows the derived figures — pace per kilometer, speed per hour — that people actually compare. Two conventions worth knowing: highway planning assumes posted speed minus about 15% for real conditions, and city driving at night is closer to the speed limit than the same road at 5pm. Round your result up, never down; a plan that needs the estimate to be optimistic is already late.',
+    intro: 'Estimates when a download, build, batch job or other process will finish from its total workload, start time and observed processing rate.',
+    steps: ['Enter the total amount to process', 'Set the time processing started', 'Enter how many units are processed in a known interval', 'Read the estimated total duration and finish time'],
+    example: { label: 'Example total workload', text: '500' },
+    about: 'This is a throughput-based ETA calculator, not a route or travel-time planner. Enter the total amount of work, when processing started, and how many units are completed in a measured time interval. The calculator converts that rate into an estimated total duration and adds it to the start time to project the finish. For example, if a batch processes 5 records in 3 minutes and contains 500 records, the estimate is 5 hours from the start. Use a consistent unit such as files, records, pages or requests, and measure a representative interval. If the processing rate changes, update the observed rate; the estimate changes with it.',
     faqs: [
-      { q: 'Why is my real travel time always longer than distance divided by speed?', a: 'Because average speed over a route includes stops, lights and slowdowns. The straight division only models constant motion; add explicit stop time or reduce the speed input by 10–20% for realism.' },
-      { q: 'Which unit should I enter for mixed trips?', a: 'Pick one unit pair (km with km/h, or miles with mph) and convert legs before entering. Mixing units is the single most common ETA error in shared itineraries.' },
-      { q: 'Can it solve for speed instead of time?', a: 'Yes — the three fields are linked. Leave the result you want unknown, change the other two, and the panel recalculates the missing leg including pace and hourly speed.' },
-      { q: 'How much buffer should I add for trips with a deadline?', a: 'Common practice is 15% for predictable roads and 25–50% for unfamiliar cities or weather exposure. The buffer belongs to the deadline, not to your speed input.' },
+      { q: 'What does ETA mean for a download or batch job?', a: 'ETA means estimated time of arrival or completion. For a process, it is the projected finish time calculated from the total workload, start time and observed processing rate.' },
+      { q: 'How do I estimate completion time from throughput?', a: 'Divide the total workload by the processing rate. This calculator uses the amount completed per selected time interval to calculate the duration, then adds that duration to the start time.' },
+      { q: 'Which units should I use?', a: 'Use the same unit for the total workload and the observed rate: for example, records and records per minute, files and files per hour, or pages and pages per second.' },
+      { q: 'What if the processing rate changes?', a: 'The result is an estimate based on the rate you enter. If the workload speeds up or slows down, measure a new representative interval and update the rate to refresh the projected finish time.' },
     ],
   },
 
