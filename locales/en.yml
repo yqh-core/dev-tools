@@ -245,7 +245,7 @@ tools:
       refresh: Refresh
   percentage-calculator:
     title: Percentage Calculator — Percent of a Number
-    description: Calculate X% of a number, find what percent one value is of another, or work out percentage increase and decrease. Includes discounts, VAT, and the formula for each result.
+    description: Calculate X% of a number, find what percent one value is of another, or measure percentage change. Includes discounts, VAT and step-by-step formulas.
 
   svg-placeholder-generator:
     title: SVG placeholder generator
@@ -680,7 +680,7 @@ tools:
 
   basic-auth-generator:
     title: HTTP Basic Auth Header Generator — Base64
-    description: Generate an HTTP Basic Authorization header from a username and password. Copy the Base64 header for curl or API clients. Credentials stay in your browser; always use HTTPS.
+    description: Generate a Basic Authorization header from a username and password. Copy the Base64 value for curl or API clients. Credentials stay in your browser; use HTTPS.
 
   text-to-unicode:
     title: Text to Unicode
@@ -732,7 +732,7 @@ tools:
 
   safelink-decoder:
     title: Outlook SafeLink Decoder — Original URL
-    description: Paste an Outlook SafeLink URL to reveal the original destination before opening it. The decoder extracts the address in your browser and does not visit the link.
+    description: Paste an Outlook SafeLink URL to reveal its original destination before opening it. Decoding happens in your browser; the link is never opened automatically.
 
   xml-to-json:
     title: XML to JSON
