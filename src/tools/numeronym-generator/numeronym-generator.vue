@@ -4,21 +4,52 @@ import { ESTABLISHED_NUMERONYMS, evaluate } from './numeronym-generator.service'
 const word = ref('');
 
 const result = computed(() => evaluate(word.value));
+const batchResults = computed(() => word.value
+  .split(/\r?\n/)
+  .map(input => input.trim())
+  .filter(Boolean)
+  .map(input => ({ input, result: evaluate(input) })));
+const isBatch = computed(() => batchResults.value.length > 1);
+const batchOutput = computed(() => batchResults.value
+  .map(({ result }) => result.mode === 'encode'
+    ? result.output
+    : result.mode === 'decode'
+      ? (result.matches ?? []).join(' / ')
+      : '')
+  .filter(Boolean)
+  .join('\n'));
 const dictionaryKeys = Object.keys(ESTABLISHED_NUMERONYMS);
+
+function batchResultLabel(item: typeof batchResults.value[number]): string {
+  if (item.result.mode === 'encode') return item.result.output;
+  if (item.result.mode === 'decode') return (item.result.matches ?? []).join(' / ');
+  return 'No established match';
+}
 </script>
 
 <template>
   <div flex flex-col items-center gap-4>
-    <c-input-text
+    <n-input
       v-model:value="word"
-      placeholder="Enter a word (internationalization) or a known numeronym (k8s)"
-      size="large"
-      clearable
-      test-id="word-input"
+      type="textarea"
+      :autosize="{ minRows: 2, maxRows: 8 }"
+      placeholder="Enter one word or known numeronym per line. Multiple lines are supported."
+      data-test-id="word-input"
     />
 
-    <!-- encode 方向：保持既有「输入 → 生成结果」布局（e2e 锁定 numeronym 输出框） -->
-    <template v-if="result.mode === 'encode'">
+    <c-card v-if="isBatch" w-full max-w-600px data-test-id="numeronym-batch">
+      <div v-for="item in batchResults" :key="item.input" flex justify-between items-center gap-3 py-1>
+        <span font-mono>{{ item.input }}</span>
+        <span opacity-60>→</span>
+        <span text-right>{{ batchResultLabel(item) }}</span>
+      </div>
+      <div mt-3>
+        <input-copyable :value="batchOutput" readonly placeholder="Generated results" test-id="batch-numeronyms" />
+      </div>
+    </c-card>
+
+    <!-- encode 方向：保持既有单词输入 → 输出契约 -->
+    <template v-else-if="result.mode === 'encode'">
       <icon-mdi-arrow-down text-30px />
       <input-copyable :value="result.output" size="large" readonly placeholder="Your numeronym will be here, e.g. 'i18n'" test-id="numeronym" />
     </template>
@@ -52,7 +83,7 @@ const dictionaryKeys = Object.keys(ESTABLISHED_NUMERONYMS);
       </div>
     </c-alert>
     <c-alert v-else-if="word.trim() !== '' && result.reason === 'mixed'" w-full max-w-600px data-test-id="mixed-input">
-      Enter a single plain word (to build a numeronym) or one of the known short forms (to look it up).
+      Enter one plain English word or one established short form per line.
     </c-alert>
   </div>
 </template>
