@@ -323,6 +323,17 @@ function buildFaqPageLd(entry) {
 try {
   // —— 全部从 TypeScript 侧取，保证与页面/路由使用同一份数据 ——
   const { canonicalUrl, SITE_ORIGIN } = await vite.ssrLoadModule('/src/seo/site.ts');
+  const robotsSource = await readFile(join(root, 'public/robots.txt'), 'utf8');
+  if (!robotsSource.includes(`Sitemap: ${SITE_ORIGIN}/sitemap.xml`)) {
+    throw new Error(`[build-seo] robots.txt Sitemap 主机与 SITE_ORIGIN 不一致：期望 ${SITE_ORIGIN}/sitemap.xml`);
+  }
+  const sourceTemplate = await readFile(join(root, 'index.html'), 'utf8');
+  if (sourceTemplate.includes('https://digdevbox.com')) {
+    throw new Error('[build-seo] index.html 仍包含裸域绝对 URL；生产最终主机为 www，必须统一 canonical / OG / JSON-LD');
+  }
+  if (!sourceTemplate.includes(`rel=\"canonical\" href=\"${SITE_ORIGIN}/\"`)) {
+    throw new Error(`[build-seo] index.html source canonical 与 SITE_ORIGIN 不一致：${SITE_ORIGIN}/`);
+  }
   const { STATIC_ROUTES } = await vite.ssrLoadModule('/src/seo/routes.ts');
   const { TOOL_SEO_PAGES, auditToolSeoData } = await vite.ssrLoadModule('/src/seo/tool-page.ts');
   // Keyword Map 的已落地 title 与 locales/en.yml 逐字比对：drift 即构建失败。
