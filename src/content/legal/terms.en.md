@@ -37,4 +37,4 @@ These terms may be updated as the service changes; the "Last updated" date at th
 
 ## Contact
 
-For questions, you can reach us via our [contact page](/contact).
+For questions, you can reach us via our [contact page](/contact/).
