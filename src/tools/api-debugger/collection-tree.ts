@@ -657,7 +657,11 @@ export function mergeImportedTree(existing: CollectionNode, imported: Collection
     }
     return out;
   };
-  next = { ...next, items: [...next.items, ...process(imported.items)] };
+  // 先完整跑 process（内部对同 id 节点原位替换、突变 next），再读突变后的 next 追加新节点——
+  // 切勿把 process() 内联进 [...next.items, ...process()]：那样 next.items/...next 在 process
+  // 的 next=replaceInTree 重赋值之前就被读取，同 id folder 原位替换结果会被 stale next 覆盖丢失。
+  const appended = process(imported.items);
+  next = { ...next, items: [...next.items, ...appended] };
   return { tree: next, added, replaced, scriptsMerged: !!imported.scripts };
 }
 
