@@ -15,6 +15,7 @@ import { useToolStore } from '@/tools/tools.store';
 import { useTracker } from '@/modules/tracker/tracker.services';
 import CollapsibleToolMenu from '@/components/CollapsibleToolMenu.vue';
 import { groupByPrimaryCluster } from '@/tools/nav-groups';
+import { normalizePath } from '@/seo/site';
 
 const themeVars = useThemeVars();
 const styleStore = useStyleStore();
@@ -76,19 +77,19 @@ const tools = computed<ToolCategory[]>(() => [
           </div>
 
           <div class="footer-legal">
-            <RouterLink to="/privacy">
+            <RouterLink :to="normalizePath('/privacy')">
               {{ $t('legal.privacy') }}
             </RouterLink>
             <span class="dot">·</span>
-            <RouterLink to="/terms">
+            <RouterLink :to="normalizePath('/terms')">
               {{ $t('legal.terms') }}
             </RouterLink>
             <span class="dot">·</span>
-            <RouterLink to="/faq">
+            <RouterLink :to="normalizePath('/faq')">
               {{ $t('legal.faq') }}
             </RouterLink>
             <span class="dot">·</span>
-            <RouterLink to="/contact">
+            <RouterLink :to="normalizePath('/contact')">
               {{ $t('legal.contact') }}
             </RouterLink>
           </div>
