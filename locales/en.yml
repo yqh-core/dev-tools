@@ -367,8 +367,8 @@ tools:
     description: Detect and parse Browser, Engine, OS, CPU, and Device type/model from an user-agent string.
 
   numeronym-generator:
-    title: Numeronym Generator
-    description: A numeronym is an abbreviation where the middle letters are replaced by their count — i18n for internationalization, k8s for kubernetes, a11y for accessibility. Build a numeronym from any word, or look up the established ones in our built-in dictionary — free, right in your browser.
+    title: Numeronym Generator — i18n, a11y & k8s
+    description: Create numeronyms by replacing middle letters with their count, or search the built-in dictionary for common forms such as i18n, a11y and k8s.
 
   case-converter:
     title: Case converter
