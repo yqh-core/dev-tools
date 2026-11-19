@@ -54,7 +54,7 @@ jobs:
       # Run their browser-level regression tests against the production build,
       # not only the component/unit-test environment.
       - name: Install Chromium for targeted E2E
-        run: pnpm exec playwright install --with-deps chromium
+        run: pnpm exec playwright install chromium
 
       - name: E2E — percentage calculator and numeronym generator
         run: >-
