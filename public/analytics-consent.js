@@ -14,8 +14,13 @@
     try { return localStorage.getItem(CONSENT_KEY); } catch (_) { return null; }
   }
   function pagePath() { return location.origin + location.pathname; }
+  function isNoindexPage() {
+    var meta = document.querySelector('meta[name="robots"]');
+    return !!meta && /\bnoindex\b/i.test(meta.getAttribute('content') || '');
+  }
+
   function pageView() {
-    if (!loaded || !window.gtag || readConsent() !== 'accepted') return;
+    if (!loaded || !window.gtag || readConsent() !== 'accepted' || isNoindexPage()) return;
     var path = pagePath();
     if (path === lastPage) return;
     lastPage = path;
