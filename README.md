@@ -83,7 +83,7 @@
 - [Escape HTML entities](https://digdevbox.com/html-entities) - Escape or unescape HTML entities (turn <, >, &, " and ' into their HTML form) and look up common characters — quotes, dashes, currency, math and Greek symbols — in a searchable entity reference table.
 - [URL parser](https://digdevbox.com/url-parser) - Parse a URL into its separate constituent parts (protocol, origin, params, port, username-password, ...)
 - [Device information](https://digdevbox.com/device-information) - Get information about your current device (screen size, pixel-ratio, user agent, ...)
-- [Basic auth generator](https://digdevbox.com/basic-auth-generator) - Generate a base64 basic auth header from a username and password.
+- [HTTP Basic Auth Header Generator — Base64](https://digdevbox.com/basic-auth-generator) - Generate a Basic Authorization header from a username and password. Copy the Base64 value for curl or API clients. Credentials stay in your browser; use HTTPS.
 - [Open graph meta generator](https://digdevbox.com/og-meta-generator) - Generate open-graph and socials HTML meta tags for your website.
 - [OTP code generator](https://digdevbox.com/otp-generator) - Generate and validate time-based OTP (one time password) for multi-factor authentication.
 - [MIME types](https://digdevbox.com/mime-types) - Convert MIME types to file extensions and vice-versa.
@@ -94,7 +94,7 @@
 - [User-agent parser](https://digdevbox.com/user-agent-parser) - Detect and parse Browser, Engine, OS, CPU, and Device type/model from an user-agent string.
 - [HTTP status codes](https://digdevbox.com/http-status-codes) - The list of all HTTP status codes, their name, and their meaning.
 - [JSON diff](https://digdevbox.com/json-diff) - Compare two JSON objects and get the differences between them.
-- [Outlook SafeLink Decoder](https://digdevbox.com/safelink-decoder) - Decode SafeLink URLs from Outlook emails and recover the real address.
+- [Outlook SafeLink Decoder — Original URL](https://digdevbox.com/safelink-decoder) - Paste an Outlook SafeLink URL to reveal its original destination before opening it. Decoding happens in your browser; the link is never opened automatically.
 - [JSON to GET params](https://digdevbox.com/json-to-get-params) - Flatten JSON into a URL query string (a[b][0]=1 style) and rebuild JSON from a query string or a full URL.
 - [HTTP headers & request methods](https://digdevbox.com/http-headers) - A searchable reference of common HTTP request and response headers plus the nine standard request methods, covering CORS, caching, security fields and safe/idempotent semantics.
 
@@ -151,7 +151,7 @@
 
 - [Math evaluator](https://digdevbox.com/math-evaluator) - A calculator for evaluating mathematical expressions. You can use functions like sqrt, cos, sin, abs, etc.
 - [ETA Calculator](https://digdevbox.com/eta-calculator) - What does ETA mean? Estimated Time of Arrival — this calculator projects when your download, build or batch job will finish from current progress, with duration and clock time. Free, runs in your browser.
-- [Percentage Calculator](https://digdevbox.com/percentage-calculator) - What is X% of Y? Find a percentage of a number, work out what percent one value is of another, or compute percentage increase and decrease — with the formula shown for each result.
+- [Percentage Calculator — Percent of a Number](https://digdevbox.com/percentage-calculator) - Calculate X% of a number, find what percent one value is of another, or measure percentage change. Includes discounts, VAT and step-by-step formulas.
 
 ### Measurement
 
