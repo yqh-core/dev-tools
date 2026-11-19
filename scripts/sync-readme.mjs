@@ -66,13 +66,12 @@ next = next
 
 if (CHECK) {
   if (next !== original) {
-    const actualLines = original.split('\\n');
-    const generatedLines = next.split('\\n');
-    let line = 0;
-    while (line < actualLines.length && line < generatedLines.length && actualLines[line] === generatedLines[line]) line += 1;
-    console.error(`[sync-readme] first mismatch at line ${line + 1}`);
-    console.error(`[sync-readme] README: ${JSON.stringify(actualLines[line] ?? '<EOF>')}`);
-    console.error(`[sync-readme] generated: ${JSON.stringify(generatedLines[line] ?? '<EOF>')}`);
+    let offset = 0;
+    while (offset < original.length && offset < next.length && original[offset] === next[offset]) offset += 1;
+    const line = original.slice(0, offset).split(/\\r?\\n/).length;
+    console.error(`[sync-readme] first mismatch at line ${line}, character ${offset}`);
+    console.error(`[sync-readme] README: ${JSON.stringify(original.slice(Math.max(0, offset - 100), offset + 180))}`);
+    console.error(`[sync-readme] generated: ${JSON.stringify(next.slice(Math.max(0, offset - 100), offset + 180))}`);
     console.error(`[sync-readme] DRIFT: README is out of sync with the tool registry (${total} tools, ${categories.length} categories). Run: node scripts/sync-readme.mjs`);
     process.exit(1);
   }
