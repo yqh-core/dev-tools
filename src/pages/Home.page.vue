@@ -14,6 +14,7 @@ import { useFuzzySearch } from '@/composable/fuzzySearch';
 import { TOOL_CLUSTERS } from '@/seo/clusters';
 import { config } from '@/config';
 import { usePageSeo } from '@/seo/use-page-seo';
+import { normalizePath } from '@/seo/site';
 
 // [B3-experiment E3] vuedraggable(+sortablejs) 静态导入会随 Home 进主 chunk ——
 // 而拖拽 UI 只在 `v-if="favoriteTools.length > 0"`（纯客户端 localStorage，SSR 恒为假）
@@ -396,7 +397,7 @@ function onUpdateFavoriteTools() {
           </div>
         </div>
 
-        <RouterLink class="hero-cta" to="/tools">
+        <RouterLink class="hero-cta" to="/tools/">
           {{ t('home.hero.cta') }} ↓
         </RouterLink>
       </header>
@@ -488,7 +489,7 @@ function onUpdateFavoriteTools() {
                   v-for="tool in cat.sampleTools"
                   :key="tool.path"
                   class="task-chip"
-                  :to="tool.path"
+                  :to="normalizePath(tool.path)"
                 >
                   <n-icon :component="tool.icon" size="14" class="task-chip-icon" />
                   <span class="task-chip-name">{{ tool.name }}</span>
@@ -496,7 +497,7 @@ function onUpdateFavoriteTools() {
               </div>
             </div>
           </div>
-          <RouterLink class="home-blog-more" to="/tools">
+          <RouterLink class="home-blog-more" to="/tools/">
             {{ $t('home.tasks.allTools') }} →
           </RouterLink>
         </section>
@@ -606,7 +607,7 @@ function onUpdateFavoriteTools() {
               v-for="tool in networkTools"
               :key="tool.path"
               class="home-network-chip"
-              :to="tool.path"
+              :to="normalizePath(tool.path)"
             >
               {{ tool.name }}
             </RouterLink>
