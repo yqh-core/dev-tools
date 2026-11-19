@@ -292,6 +292,11 @@ function commitRequest() {
   }
 }
 
+function onMethodChange(v: unknown) {
+  edMethod.value = String(v);
+  commitRequest();
+}
+
 function commitScripts() {
   const n = selectedNode.value;
   if (!n) {
@@ -475,10 +480,10 @@ function onMenuSelect(key: string, node: TreeNode) {
       </div>
 
       <div class="api-toolbar">
-        <button class="api-tool-btn" type="button" title="New request" @click="addRequestTo(null)">
+        <button class="api-tool-btn" type="button" title="New request" data-test-id="add-request" @click="addRequestTo(null)">
           + Request
         </button>
-        <button class="api-tool-btn" type="button" title="New folder" @click="addFolderTo(null)">
+        <button class="api-tool-btn" type="button" title="New folder" data-test-id="add-folder" @click="addFolderTo(null)">
           + Folder
         </button>
         <button
@@ -492,13 +497,14 @@ function onMenuSelect(key: string, node: TreeNode) {
         </button>
       </div>
 
-      <div class="api-tree" role="tree">
+      <div class="api-tree" role="tree" data-test-id="api-studio-tree">
         <!-- 集合根：选中即可编辑集合级脚本（继承链最外层） -->
         <div
           class="api-row api-root-row"
           :class="{ 'is-selected': selectedId === tree.id }"
           role="treeitem"
           :aria-selected="selectedId === tree.id"
+          data-test-id="api-studio-root"
           @click="selectNode(tree.id)"
         >
           <span class="api-caret-spacer" aria-hidden="true" />
@@ -530,6 +536,10 @@ function onMenuSelect(key: string, node: TreeNode) {
           :style="{ paddingLeft: `${8 + row.depth * 14}px` }"
           role="treeitem"
           :aria-selected="row.node.id === selectedId"
+          data-test-id="tree-row"
+          :data-node-type="isFolderNode(row.node) ? 'folder' : 'request'"
+          :data-node-name="row.node.name"
+          :data-depth="row.depth"
           draggable="true"
           @dragstart="onDragStart(row.node.id)"
           @dragend="onDragEnd"
@@ -551,12 +561,12 @@ function onMenuSelect(key: string, node: TreeNode) {
               @keyup.esc="cancelRename"
               @blur="commitRename"
             >
-            <span v-else class="api-row-name" @click="selectNode(row.node.id)" @dblclick="startRename(row.node.id)">
+            <span v-else class="api-row-name" data-test-id="tree-name" @click="selectNode(row.node.id)" @dblclick="startRename(row.node.id)">
               {{ row.node.name }}
             </span>
 
             <div class="api-row-actions">
-              <button class="api-mini-btn" type="button" title="Add request here" @click.stop="addRequestTo(row.node.id)">
+              <button class="api-mini-btn" type="button" title="Add request here" data-test-id="add-request-into" @click.stop="addRequestTo(row.node.id)">
                 +
               </button>
               <n-dropdown trigger="click" :options="nodeMenu(row.node)" @select="(k: string) => onMenuSelect(k, row.node)">
@@ -570,7 +580,7 @@ function onMenuSelect(key: string, node: TreeNode) {
           <!-- 请求 -->
           <template v-else>
             <span class="api-caret-spacer" aria-hidden="true" />
-            <button class="api-method-badge" type="button" :style="{ color: methodColor(row.node.request.method), borderColor: methodColor(row.node.request.method) }" @click.stop="selectNode(row.node.id)">
+            <button class="api-method-badge" type="button" data-test-id="tree-method" :style="{ color: methodColor(row.node.request.method), borderColor: methodColor(row.node.request.method) }" @click.stop="selectNode(row.node.id)">
               {{ row.node.request.method }}
             </button>
 
@@ -582,7 +592,7 @@ function onMenuSelect(key: string, node: TreeNode) {
               @keyup.esc="cancelRename"
               @blur="commitRename"
             >
-            <span v-else class="api-row-name" @click="selectNode(row.node.id)" @dblclick="startRename(row.node.id)">
+            <span v-else class="api-row-name" data-test-id="tree-name" @click="selectNode(row.node.id)" @dblclick="startRename(row.node.id)">
               {{ row.node.name }}
             </span>
 
@@ -606,53 +616,53 @@ function onMenuSelect(key: string, node: TreeNode) {
 
     <!-- 请求编辑 / 运行输出 -->
     <section class="api-editor" aria-label="Request">
-      <div v-if="banner" class="api-banner" role="status">
+      <div v-if="banner" class="api-banner" role="status" data-test-id="banner">
         {{ banner }}
       </div>
 
       <div v-if="selectedNode" class="api-editor-form">
         <div class="api-field-row">
-          <input v-model="edName" class="api-name-input" :placeholder="selectedRequest ? 'Request name' : 'Name'" @change="commitName">
-          <n-select v-if="selectedRequest" :value="edMethod" :options="methodOptions" class="api-method-select" @update:value="(v) => { edMethod = String(v); commitRequest() }" />
+          <input v-model="edName" class="api-name-input" data-test-id="editor-name" :placeholder="selectedRequest ? 'Request name' : 'Name'" @change="commitName">
+          <n-select v-if="selectedRequest" :value="edMethod" :options="methodOptions" class="api-method-select" data-test-id="editor-method" @update:value="onMethodChange" />
         </div>
 
         <template v-if="selectedRequest">
-          <input v-model="edUrl" class="api-url-input" placeholder="https://api.example.com/endpoint" @change="commitRequest">
-          <textarea v-model="edBody" class="api-body-input" placeholder="Request body (raw)" @change="commitRequest" />
+          <input v-model="edUrl" class="api-url-input" data-test-id="editor-url" placeholder="https://api.example.com/endpoint" @change="commitRequest">
+          <textarea v-model="edBody" class="api-body-input" data-test-id="editor-body" placeholder="Request body (raw)" @change="commitRequest" />
         </template>
 
         <!-- 脚本面板 + 三层继承链 -->
-        <div class="api-scripts">
+        <div class="api-scripts" data-test-id="script-panel">
           <div class="api-scripts-head">
             <span class="api-scripts-title">Scripts</span>
             <span class="api-scripts-hint">pm.* runs in an isolated Worker · network only through the trusted relay</span>
           </div>
 
           <label class="api-script-label">Pre-request</label>
-          <textarea v-model="edPre" class="api-script-input" placeholder="Runs before — collection → folder → request, outer first." @change="commitScripts" />
+          <textarea v-model="edPre" class="api-script-input" data-test-id="script-pre" placeholder="Runs before — collection → folder → request, outer first." @change="commitScripts" />
 
           <label class="api-script-label">Tests</label>
-          <textarea v-model="edTest" class="api-script-input" placeholder="Runs after the response — request → folder → collection, inner first." @change="commitScripts" />
+          <textarea v-model="edTest" class="api-script-input" data-test-id="script-test" placeholder="Runs after the response — request → folder → collection, inner first." @change="commitScripts" />
 
-          <div v-if="chainView" class="api-chain">
+          <div v-if="chainView" class="api-chain" data-test-id="script-chain">
             <div class="api-chain-head">
               What runs for this {{ selectedRequest ? 'request' : (selectedNode && isFolderNode(selectedNode) ? 'folder' : 'collection') }}
             </div>
             <div class="api-chain-cols">
-              <div class="api-chain-col">
+              <div class="api-chain-col" data-test-id="chain-before">
                 <span class="api-chain-col-title">Before · outer → inner</span>
                 <ul class="api-chain-list">
-                  <li v-for="s in chainView.pre" :key="`pre-${s.id}`" class="api-chain-item" :class="{ 'is-self': s.id === selectedId, 'has-scripts': s.hasScripts }">
+                  <li v-for="s in chainView.pre" :key="`pre-${s.id}`" class="api-chain-item" data-test-id="chain-item" data-chain-phase="before" :data-level="s.level" :data-self="s.id === selectedId" :data-has-scripts="s.hasScripts" :class="{ 'is-self': s.id === selectedId, 'has-scripts': s.hasScripts }">
                     <span class="api-chain-level" :data-level="s.level">{{ levelLabel(s.level) }}</span>
                     <span class="api-chain-name">{{ s.name }}</span>
                     <span class="api-chain-dot" :class="{ on: s.hasScripts }" :title="s.hasScripts ? 'has scripts' : 'no scripts'" />
                   </li>
                 </ul>
               </div>
-              <div class="api-chain-col">
+              <div class="api-chain-col" data-test-id="chain-after">
                 <span class="api-chain-col-title">After · inner → outer</span>
                 <ul class="api-chain-list">
-                  <li v-for="s in chainView.test" :key="`test-${s.id}`" class="api-chain-item" :class="{ 'is-self': s.id === selectedId, 'has-scripts': s.hasScripts }">
+                  <li v-for="s in chainView.test" :key="`test-${s.id}`" class="api-chain-item" data-test-id="chain-item" data-chain-phase="after" :data-level="s.level" :data-self="s.id === selectedId" :data-has-scripts="s.hasScripts" :class="{ 'is-self': s.id === selectedId, 'has-scripts': s.hasScripts }">
                     <span class="api-chain-level" :data-level="s.level">{{ levelLabel(s.level) }}</span>
                     <span class="api-chain-name">{{ s.name }}</span>
                     <span class="api-chain-dot" :class="{ on: s.hasScripts }" :title="s.hasScripts ? 'has scripts' : 'no scripts'" />
@@ -661,20 +671,6 @@ function onMenuSelect(key: string, node: TreeNode) {
               </div>
             </div>
           </div>
-        </div>
-
-        <div v-if="runSummary" class="api-run-result">
-          <div class="api-run-summary">
-            <span class="api-run-line">
-              {{ runSummary.total - runSummary.failed }}/{{ runSummary.total }} requests ·
-              {{ runSummary.assertionsPassed }}/{{ runSummary.assertionsTotal }} assertions ·
-              {{ runSummary.scriptTestsPassed }}/{{ runSummary.scriptTestsTotal }} script tests
-            </span>
-            <button class="api-tool-btn" type="button" @click="dismissRun">
-              Dismiss
-            </button>
-          </div>
-          <pre class="api-run-output">{{ runOutput }}</pre>
         </div>
       </div>
 
@@ -693,6 +689,21 @@ function onMenuSelect(key: string, node: TreeNode) {
         <p class="api-editor-note">
           Your data stays on this machine. Requests run through the same trusted relay the API tool uses.
         </p>
+      </div>
+
+      <!-- 运行结果：无论是否选中节点都展示（Run 之后总该看得到报告）。 -->
+      <div v-if="runSummary" class="api-run-result" data-test-id="run-result">
+        <div class="api-run-summary">
+          <span class="api-run-line">
+            {{ runSummary.total - runSummary.failed }}/{{ runSummary.total }} requests ·
+            {{ runSummary.assertionsPassed }}/{{ runSummary.assertionsTotal }} assertions ·
+            {{ runSummary.scriptTestsPassed }}/{{ runSummary.scriptTestsTotal }} script tests
+          </span>
+          <button class="api-tool-btn" type="button" @click="dismissRun">
+            Dismiss
+          </button>
+        </div>
+        <pre class="api-run-output">{{ runOutput }}</pre>
       </div>
     </section>
 

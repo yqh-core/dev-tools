@@ -62,3 +62,6 @@ vite.config.ts.timestamp-*.mjs
 
 # 诊断/量测脚本与产物目录（本地工作区，长期不入库）
 _ops/
+
+# API Studio browser E2E screenshot artifacts (local run output, not committed)
+e2e-artifacts/
