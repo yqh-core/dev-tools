@@ -15,7 +15,7 @@
   }
   function pagePath() { return location.origin + location.pathname; }
   function pageView() {
-    if (!loaded || !window.gtag) return;
+    if (!loaded || !window.gtag || readConsent() !== 'accepted') return;
     var path = pagePath();
     if (path === lastPage) return;
     lastPage = path;
@@ -37,7 +37,13 @@
     });
   }
   function loadAnalytics() {
-    if (loaded) { if (window.gtag) window.gtag('consent', 'update', { analytics_storage: 'granted' }); return; }
+    if (loaded) {
+      if (window.gtag) {
+        window.gtag('consent', 'update', { analytics_storage: 'granted' });
+        pageView();
+      }
+      return;
+    }
     loaded = true;
     window.dataLayer = window.dataLayer || [];
     window.gtag = function () { window.dataLayer.push(arguments); };
@@ -96,9 +102,9 @@
       root = document.createElement('section');
       root.id = 'digdevbox-analytics-consent';
       root.setAttribute('aria-label', 'Analytics privacy choices');
-      root.style.cssText = 'position:fixed;z-index:2147483000;left:16px;right:16px;bottom:16px;max-width:720px;margin:0 auto;padding:16px 18px;background:#102a2a;color:#fff;border:1px solid #4b7773;border-radius:12px;box-shadow:0 8px 32px #0004;font:14px/1.5 system-ui,sans-serif';
-      document.body.appendChild(root);
     }
+    root.style.cssText = 'position:fixed;z-index:2147483000;left:16px;right:16px;bottom:16px;max-width:720px;margin:0 auto;padding:16px 18px;background:#102a2a;color:#fff;border:1px solid #4b7773;border-radius:12px;box-shadow:0 8px 32px #0004;font:14px/1.5 system-ui,sans-serif';
+    if (!root.isConnected) document.body.appendChild(root);
     root.replaceChildren();
     var message = document.createElement('p');
     message.textContent = 'Help us improve DigDevBox? Optional analytics measures visits and page usage only after you agree. Tool inputs, files, and form contents are never sent. You can reject and continue using the site.';
