@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n';
 import { usePageSeo } from '@/seo/use-page-seo';
 import { SITE_FAQ_PATH, fillSiteFaq, getSiteFaqs } from '@/seo/site-faqs';
 import { useToolStore } from '@/tools/tools.store';
+import { normalizePath } from '@/seo/site';
 
 /**
  * 全站 FAQ 聚合页（参照 nexacove.cc / DevBox Tools 的 faq/index.html）。
@@ -63,13 +64,13 @@ usePageSeo(SITE_FAQ_PATH, title);
 
     <p mt-10 op-70>
       {{ t('faq.more') }}
-      <RouterLink to="/contact">
+      <RouterLink :to="normalizePath('/contact')">
         {{ t('legal.contact') }}
       </RouterLink> ·
-      <RouterLink to="/tools">
+      <RouterLink :to="normalizePath('/tools')">
         {{ t('toolsCatalog.title') }}
       </RouterLink> ·
-      <RouterLink to="/privacy">
+      <RouterLink :to="normalizePath('/privacy')">
         {{ t('legal.privacy') }}
       </RouterLink>
     </p>
