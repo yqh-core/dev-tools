@@ -1182,14 +1182,15 @@ export const GUIDES: Record<string, ToolGuide> = {
   },
 
   '/percentage-calculator': {
-    intro: 'Computes percentages between two numbers, percentage increases or decreases, or works backwards from a percentage.',
+    intro: 'Solves four common percentage tasks: find X% of Y, find what percent X is of Y, calculate percentage change, and increase or decrease a value by a percentage.',
     // example 已移除：requires-pair (G-02j): X 单独填入无可见结果，example=死按钮
     steps: ['Pick the mode matching your question', 'Enter the known values', 'Read the result'],
-    about: 'Percentage mistakes in reports rarely come from arithmetic — they come from mixing up which base you divided by. "Revenue went from 80 to 100, so +25%" and "the new figure is 125% of the old" are the same fact told from two different denominators, and a third phrasing ("100 is 20% more than 80") uses yet another base. This calculator keeps the three questions separate — what percent is X of Y, how much is P% of N, and the change between two values — so you never silently swap denominators mid-calculation. For price and salary math, remember the classic trap: a 20% rise followed by a 20% fall leaves you 4% below the start, because the second percentage divides by the raised base. The fields recalculate together, so you can watch that asymmetry happen live.',
+    about: 'Percentage mistakes in reports rarely come from arithmetic — they come from mixing up which base you divided by. "Revenue went from 80 to 100, so +25%" and "the new figure is 125% of the old" are the same fact told from two different denominators, and a third phrasing ("100 is 20% more than 80") uses yet another base. This calculator keeps four questions separate — what percent is X of Y, how much is P% of N, the change between two values, and the result after adding or subtracting a percentage — so you never silently swap denominators mid-calculation. For price and salary math, remember the classic trap: a 20% rise followed by a 20% fall leaves you 4% below the start, because the second percentage divides by the raised base. The fields recalculate together, so you can watch that asymmetry happen live.',
     faqs: [
       { q: 'Why does a 20% increase then a 20% decrease not return to the original?', a: 'Because the decrease is computed on the larger value. Going from 100 to 120 and back down by 20% gives 96 — a net 4% loss. Percentage changes are not symmetric.' },
       { q: 'What is the difference between percent change and percentage-point change?', a: 'If a rate moves from 5% to 7%, that is a 2-percentage-point change but a 40% relative increase. Reports mix these up constantly; state which one you mean.' },
       { q: 'Can I use this for discounts and VAT?', a: 'Yes — the "P% of N" mode handles discount amounts and tax directly; the "X of Y" mode recovers the original ratio when you know both prices.' },
+      { q: 'How do I increase or decrease a value by a percentage?', a: 'Multiply the starting value by 1 + (rate ÷ 100) to increase it, or by 1 − (rate ÷ 100) to decrease it. For example, increasing 80 by 15% gives 92; decreasing it by 15% gives 68.' },
       { q: 'Why are there separate fields instead of one formula?', a: 'Each question has a different unknown in a different position. Separating them avoids the most common error: rearranging the formula and dividing by the wrong base.' },
     ],
   },
