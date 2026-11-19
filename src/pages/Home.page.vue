@@ -538,15 +538,36 @@ function onUpdateFavoriteTools() {
           原独立大区块降为一行式引流 —— 单站导流不值得一个主区块的视觉权重（审计 P1-4）。
           ⛔ 原有纪律全部继承：不带 query、不写死统计数字、不编造评价。
         -->
-        <a
-          class="home-practice-inline"
-          href="https://draw.digdevbox.com/"
-          target="_blank"
-          rel="noopener"
-          aria-label="Explore ImageForge, a browser-based image editor"
-        >
-          ImageForge — edit images in your browser with local-first processing →
-        </a>
+        <section class="home-block" id="more-from-digdevbox" aria-labelledby="more-from-digdevbox-title">
+          <h2 class="home-block-title" id="more-from-digdevbox-title">More tools from DigDevBox</h2>
+          <p class="home-block-subtitle">Explore focused browser-based tools for image workflows, network research, media playback and text-to-speech.</p>
+          <div class="home-blog-list">
+            <a class="home-blog-card" href="https://img.digdevbox.com/">
+              <span class="home-blog-card-title">DigImg — Image Compressor</span>
+              <span class="home-blog-card-desc">Compress and convert images locally, compare formats and target a specific file size.</span>
+            </a>
+            <a class="home-blog-card" href="https://ip.digdevbox.com/">
+              <span class="home-blog-card-title">IP Locator</span>
+              <span class="home-blog-card-desc">Look up public IPv4 and IPv6 addresses, ASN, ISP, CIDR and DNS records.</span>
+            </a>
+            <a class="home-blog-card" href="https://play.digdevbox.com/">
+              <span class="home-blog-card-title">StreamPlay — HLS / M3U8 Player</span>
+              <span class="home-blog-card-desc">Play and inspect HLS streams, analyze playlists and generate iframe embeds.</span>
+            </a>
+            <a class="home-blog-card" href="https://draw.digdevbox.com/">
+              <span class="home-blog-card-title">ImageForge</span>
+              <span class="home-blog-card-desc">Edit and prepare images in your browser with local-first processing.</span>
+            </a>
+            <a class="home-blog-card" href="https://ttsreader.digdevbox.com/">
+              <span class="home-blog-card-title">TTS Reader</span>
+              <span class="home-blog-card-desc">Listen to text with browser-based text-to-speech and reading tools.</span>
+            </a>
+            <a class="home-blog-card" href="https://notes.digdevbox.com/">
+              <span class="home-blog-card-title">Forge Notes</span>
+              <span class="home-blog-card-desc">Read practical guides on developer tools, web standards and engineering workflows.</span>
+            </a>
+          </div>
+        </section>
 
         <!--
           Why DigDevBox（G-01a）。
