@@ -74,8 +74,9 @@ jobs:
       - name: Crawl production site politely
         shell: bash
         run: |
-          set -uo pipefail
+          set -euo pipefail
           mkdir -p reports
+          set +e
           "$SITEONE_BIN" \
             --url="${{ matrix.url }}" \
             --device=mobile \
@@ -89,7 +90,13 @@ jobs:
             --output-json-file="reports/${{ matrix.slug }}.json" \
             --output-html-report="reports/${{ matrix.slug }}.html" \
             --html-report-options="summary,seo-opengraph,visited-urls,security,redirects,404-pages,headers,best-practices,accessibility"
-          echo "$?" > "reports/${{ matrix.slug }}.exit-code.txt"
+          code=$?
+          set -e
+          echo "$code" > "reports/${{ matrix.slug }}.exit-code.txt"
+          if [ "$code" -ne 0 ]; then
+            echo "::error::SiteOne crawler failed at runtime for ${{ matrix.label }} (exit $code)"
+            exit "$code"
+          fi
 
       - name: Upload crawl evidence
         if: always()
