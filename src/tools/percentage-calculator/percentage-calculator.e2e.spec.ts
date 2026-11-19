@@ -5,8 +5,13 @@ test.describe('Tool - Percentage calculator', () => {
     await page.goto('/percentage-calculator');
   });
 
-  test('Has correct title', async ({ page }) => {
-    await expect(page).toHaveTitle('Percentage Calculator — % of, % Change & More - DigDevBox');
+  test('Has the intended search title, description and H1', async ({ page }) => {
+    await expect(page).toHaveTitle('Percentage Calculator — % of, % Change & Discounts - DigDevBox');
+    await expect(page.locator('meta[name="description"]')).toHaveAttribute(
+      'content',
+      'Find X% of Y, compare two values, calculate percentage change, and apply percentage increases or discounts. Four live calculators with instant results, free in your browser.',
+    );
+    await expect(page.locator('h1')).toHaveText('Percentage Calculator');
   });
 
   test('Correctly works out percentages', async ({ page }) => {
