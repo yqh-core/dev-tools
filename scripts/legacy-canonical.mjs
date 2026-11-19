@@ -2,7 +2,7 @@
  * 给 legacy 静态子站补 canonical + og:url。
  *
  * 为什么要做（2026-11-19 生产核查）
- *   - 裸域 https://www.digdevbox.com 会 301/308 到 https://www.digdevbox.com。
+ *   - 裸域主机 digdevbox.com 会 301/308 到最终主机 www.digdevbox.com。
  *   - 但主站 canonical、sitemap、robots Sitemap 指令仍指向裸域，形成
  *     「sitemap 提交 A → A 再跳转到 B，而页面实际规范主机应是 B」的信号冲突。
  *   - 本脚本把 legacy 页面 canonical / og:url 与站内绝对链接统一到最终主机 www，
