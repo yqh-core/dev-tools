@@ -21,8 +21,12 @@ const batchOutput = computed(() => batchResults.value
 const dictionaryKeys = Object.keys(ESTABLISHED_NUMERONYMS);
 
 function batchResultLabel(item: (typeof batchResults.value)[number]): string {
-  if (item.result.mode === 'encode') return item.result.output;
-  if (item.result.mode === 'decode') return (item.result.matches ?? []).join(' / ');
+  if (item.result.mode === 'encode') {
+    return item.result.output;
+  }
+  if (item.result.mode === 'decode') {
+    return (item.result.matches ?? []).join(' / ');
+  }
   return 'No established match';
 }
 </script>
