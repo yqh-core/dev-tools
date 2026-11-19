@@ -66,8 +66,8 @@ jobs:
           if (!deployed) throw new Error('dev-tools Cloudflare deployment did not complete within 15 minutes');
 
           // Forge Notes is deployed from its own repository. Wait for the new
-          // English support page marker so the seven-site crawl cannot race
-          // its independent Cloudflare Pages deployment.
+          // English support page marker (not merely HTTP 200) so the seven-site
+          // crawl cannot race its independent Cloudflare Pages deployment.
           const notesUrl = 'https://notes.digdevbox.com/about';
           for (let attempt = 1; attempt <= 60; attempt++) {
             const response = await fetch(notesUrl, {
