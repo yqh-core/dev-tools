@@ -151,7 +151,7 @@
 
 - [Math evaluator](https://digdevbox.com/math-evaluator) - A calculator for evaluating mathematical expressions. You can use functions like sqrt, cos, sin, abs, etc.
 - [ETA Calculator](https://digdevbox.com/eta-calculator) - What does ETA mean? Estimated Time of Arrival — this calculator projects when your download, build or batch job will finish from current progress, with duration and clock time. Free, runs in your browser.
-- [Percentage Calculator — Percent of a Number](https://digdevbox.com/percentage-calculator) - Calculate X% of a number, find what percent one value is of another, or measure percentage change. Includes discounts, VAT and step-by-step formulas.
+- [Percentage Calculator — Percent of a Number](https://digdevbox.com/percentage-calculator) - Calculate X% of a number, find what percent one value is of another, or measure percentage increase and decrease. Useful for discount and tax amounts.
 
 ### Measurement
 
