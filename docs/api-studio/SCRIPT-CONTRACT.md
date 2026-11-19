@@ -1,11 +1,15 @@
-# API Studio 脚本执行顺序契约 v1.1（2026-11-18：E5 异步生命周期增补）
+# API Studio 脚本执行顺序契约 v1.2（2026-11-19：G3 树模型运行期链计算）
 
 本文件是**版本化产品契约**（任务书 A3 要求：顺序不凭记忆臆造，写成契约并用真实样例测试）。
-实现：`src/tools/api-debugger/collection.ts`（importCollection 的 preChain/testChain 合并）。
-测试：`collection-scripts.test.ts`（含同序拼接负控）。
+实现（G3 起双路径）：
+- **树路径（标准模型）**：`src/tools/api-debugger/collection-tree.ts`（`scriptChain`/`chainSources`/`executablesFromTree` 运行期从树计算执行链）+ `runner.ts`（`runCollectionTree`）；脚本文本保留在树节点（collection/folder/request）的 `scripts` 上，**不在导入期拼接**。
+- **flat 遗留路径**：`collection.ts`（`importCollection` 的 preChain/testChain 导入期合并）+ `runner.ts`（`runCollection`）——口径与 v1.1 逐字一致，供 API-006/010/011 回归锁与历史调用方。
+
+测试：`collection-tree.test.ts`（树执行链顺序、兄弟隔离、合并双侧保脚本等正负例）、`collection-scripts.test.ts`（flat 同序拼接负控）、`runner-collection-scripts.test.ts`（层叠）。
 
 ## 变更记录
 
+- v1.2（2026-11-19，G3 / 终审 P1-05 + 修复指令 #9）：树模型——脚本作为节点属性持久化，执行链**运行期从树结构计算**（不把合并文本写进请求作唯一模型）。**执行顺序本体不变**（pre 外→内 / test 内→外）。新增「树模型运行期链计算」节；导入/导出规则拆分 flat（展平）与 tree（保形）双路径。
 - v1.1（2026-11-18，终审 P1-04/E5）：增补「异步脚本生命周期」节——pm.test 回调 Promise、
   顶层 await、outbox 完成等待、单一终态。执行顺序本体不变。
 - v1（2026-11-17）：初始版本。
@@ -20,20 +24,46 @@
 
 同层多段事件按 Postman 文件内出现顺序拼接（以 `\n` 连接）。
 
+## 树模型运行期链计算（v1.2）
+
+标准内部模型 = 有稳定 ID 的 Collection/Folder/Request 树（`collection-tree.ts`）。脚本是**节点属性**，
+执行链在运行期由 `scriptChain(tree, requestId)` 计算，**不把拼接文本持久化到请求节点**（终审 P1-05 判据）：
+
+- `pre = [集合脚本.prerequest, ...祖先 folder.prerequest(外→内), 请求.prerequest]`，按 `\n` 连接（空段不进）。
+- `test = [请求.test, ...祖先 folder.test(内→外), 集合脚本.test]`，按 `\n` 连接。
+- 与 v1.1 flat 导入期合并**逐字等价**（同序、同 `\n` 连接），故双路径执行结果一致（`consistency.test.ts` 锁）。
+
+语义要点（`collection-tree.test.ts` 直接锁）：
+- **兄弟隔离**：folder 的脚本只作用于其**后代**，不影响同级兄弟 folder 的子请求。
+- **空 folder 不贡献执行单元**：`executablesFromTree` 深度优先展开时跳过无请求的 folder。
+- **继承来源可视化**：`chainSources(tree, id)` 返回 pre/test 两列 `{level, name, hasScripts}`，
+  供 UI 标注「本请求会执行哪些层级脚本」（`/api-studio` 脚本面板 + E2E `api-studio.e2e.ts`）。
+- **集合/folder 脚本不被选项重复叠加**：树路径集合层=根节点 `scripts`，`runCollectionTree` 不再经
+  `collectionScripts` 选项叠加（避免双层重复执行）；`collectionScripts` 选项仅 flat 遗留路径使用。
+
 ## 导入规则（Postman Collection v2.1）
 
-- `event[].listen` 只认 `prerequest` 与 `test`；`script.exec` 接受字符串数组或单字符串。
-- 集合级（`doc.event`）事件并入**每个**请求的执行链；导入时在 warnings 如实提示
-  "Collection-level scripts were merged into each request execution chain"，不静默改写。
-- Folder 级事件对其全部子请求（含嵌套 folder）继承；无自身事件的请求仍继承外层链。
-- 导入后 `scriptEvents` 只有 `prerequest`/`test` 两个字符串键；空段不写键（不造空对象噪音）。
+`event[].listen` 只认 `prerequest` 与 `test`；`script.exec` 接受字符串数组或单字符串。两条导入路径并存：
+
+**flat 路径 `importCollection`（遗留）**
+- 集合级（`doc.event`）事件并入**每个**请求的执行链；warning 如实提示合并事实，不静默改写。
+- Folder 级事件对其全部子请求（含嵌套 folder）继承；请求名以「父 / 子」展平拼接。
+- 结果 `scriptEvents` 只有 `prerequest`/`test` 两键；空段不写键。
+
+**tree 路径 `importCollectionTree`（标准）**
+- 嵌套 folder 保留为结构化节点（稳定 ID：`_postman_id ?? id ?? 路径确定性哈希`，重导入幂等）；
+  folder 级事件留在 folder 节点 `scripts` 上，**不导入期展平/拼接**。
+- `doc.event` = 根（collection）节点 `scripts`；warning 提示「保留为集合节点脚本，运行期作用于每个请求」。
+- 执行链交给上面的「运行期链计算」，导入产物只含各节点自身脚本。
 
 ## 导出规则（往返不丢）
 
-- `exportCollection` 把 `scriptEvents.prerequest`/`test` 按 `\n` 拆成 `exec` 数组，
-  生成 `event: [{listen, script:{exec}}]` —— 导入 → 导出 → 再导入逐字节一致
-  （`a1-closure.test.ts` 往返断言锚定）。
-- 无脚本的请求不生成 `event` 键。
+- flat `exportCollection`：`scriptEvents.prerequest`/`test` 按 `\n` 拆成 `exec` 数组，生成
+  `event: [{listen, script:{exec}}]`；无脚本请求不生成 `event` 键。
+- tree `exportCollectionTree`：folder/request 递归嵌套 `item`，节点 `_postman_id` 写回，事件按层级
+  形态写回 —— **导出 → 导入 → 再导出 round-trip 保留嵌套结构与节点 ID**
+  （`collection-tree.test.ts` 树互操作 round-trip 断言锚定）。
+- 两路径默认都剔除认证头（分享脱敏边界，可关）。
 
 ## 异步脚本生命周期（v1.1 增补；终审 P1-04/E5）
 
