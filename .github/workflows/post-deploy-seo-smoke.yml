@@ -173,10 +173,15 @@ jobs:
             if (!sitemap.body.includes(url)) throw new Error('sitemap missing ' + url);
           }
 
-          for (const path of ["/legacy/base64/"]) {
+          // /legacy/base64/ intentionally redirects to the current tool URL;
+          // test the retained archive index for the noindex response header.
+          for (const path of ["/legacy/"]) {
             const result = await get(path);
-            if (!result.response.ok || !result.body.includes('rel="canonical"')) {
-              throw new Error(`${path}: expected HTTP 200 and canonical metadata, got ${result.response.status}`);
+            if (!result.response.ok) {
+              throw new Error(`${path}: expected HTTP 200, got ${result.response.status}`);
+            }
+            if (!/<meta[^>]+name=["']robots["'][^>]+content=["'][^"']*noindex/i.test(result.body)) {
+              throw new Error(`${path}: expected a noindex robots meta tag in the legacy archive`);
             }
             const robotsHeader = result.response.headers.get('x-robots-tag') || '';
             if (!/noindex/i.test(robotsHeader) || !/follow/i.test(robotsHeader)) {

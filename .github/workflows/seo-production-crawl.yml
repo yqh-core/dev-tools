@@ -32,20 +32,20 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
           node --input-type=module <<'NODE'
+          const token = process.env.GITHUB_TOKEN;
           const targetSha = process.env.TARGET_SHA;
+          const headers = {
+            authorization: 'Bearer ' + token,
+            accept: 'application/vnd.github+json',
+            'x-github-api-version': '2022-11-28',
+          };
+          const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
           const checksUrl = 'https://api.github.com/repos/' + process.env.GITHUB_REPOSITORY +
             '/commits/' + targetSha + '/check-runs';
-          const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+          let deployed = false;
           for (let attempt = 1; attempt <= 90; attempt++) {
-            const response = await fetch(checksUrl, {
-              headers: {
-                authorization: 'Bearer ' + process.env.GITHUB_TOKEN,
-                accept: 'application/vnd.github+json',
-                'x-github-api-version': '2022-11-28',
-              },
-              signal: AbortSignal.timeout(10000),
-            });
-            if (!response.ok) throw new Error('GitHub check-run API returned HTTP ' + response.status);
+            const response = await fetch(checksUrl, { headers, signal: AbortSignal.timeout(10000) });
+            if (!response.ok) throw new Error('GitHub check-run API HTTP ' + response.status);
             const payload = await response.json();
             const check = (payload.check_runs || []).find((item) =>
               item.name === 'Cloudflare Pages' && item.head_sha === targetSha
@@ -55,14 +55,38 @@ jobs:
                 throw new Error('Cloudflare Pages deployment concluded ' + check.conclusion +
                   ': ' + (check.details_url || 'no details URL'));
               }
-              console.log('Cloudflare production deployment succeeded for ' + targetSha);
-              process.exit(0);
+              console.log('PASS: dev-tools production deployment succeeded for ' + targetSha);
+              deployed = true;
+              break;
             }
-            console.log('Waiting for exact Cloudflare deployment (' + attempt + '/90): ' +
+            console.log('Waiting for dev-tools Cloudflare deployment (' + attempt + '/90): ' +
               (check?.status || 'check not created'));
             await sleep(10000);
           }
-          throw new Error('Exact Cloudflare deployment did not complete within 15 minutes');
+          if (!deployed) throw new Error('dev-tools Cloudflare deployment did not complete within 15 minutes');
+
+          // Forge Notes is deployed from its own repository. Wait for the new
+          // English support page marker (not merely HTTP 200) so the seven-site
+          // crawl cannot race its independent Cloudflare Pages deployment.
+          const notesUrl = 'https://notes.digdevbox.com/about';
+          for (let attempt = 1; attempt <= 60; attempt++) {
+            const response = await fetch(notesUrl, {
+              headers: { 'cache-control': 'no-cache' },
+              redirect: 'follow',
+              signal: AbortSignal.timeout(10000),
+            });
+            const body = await response.text();
+            if (response.ok &&
+                body.includes('About Forge Notes') &&
+                body.includes('Forge Notes is an engineering publication by DigDevBox')) {
+              console.log('PASS: Forge Notes English support page is live after its independent deployment');
+              process.exit(0);
+            }
+            console.log('Waiting for Forge Notes deployment marker (' + attempt + '/60): HTTP ' +
+              response.status);
+            await sleep(10000);
+          }
+          throw new Error('Forge Notes English support page was not live within 10 minutes');
           NODE
 
   crawl:
