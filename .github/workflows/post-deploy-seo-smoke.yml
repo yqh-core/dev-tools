@@ -178,7 +178,11 @@ jobs:
             if (!result.response.ok || !result.body.includes('rel="canonical"')) {
               throw new Error(`${path}: expected HTTP 200 and canonical metadata, got ${result.response.status}`);
             }
+            const robotsHeader = result.response.headers.get('x-robots-tag') || '';
+            if (!/noindex/i.test(robotsHeader) || !/follow/i.test(robotsHeader)) {
+              throw new Error(`${path}: expected X-Robots-Tag: noindex, follow; got "${robotsHeader}"`);
+            }
           }
 
-          console.log('PASS: production homepage, canonical host, robots.txt, sitemap.xml and selected search landing pages');
+          console.log('PASS: production homepage, canonical host, robots.txt, sitemap.xml, legacy noindex header and selected search landing pages');
           NODE

@@ -4,29 +4,70 @@ on:
   workflow_dispatch:
   schedule:
     - cron: "23 3 * * 1"
-  push:
-    branches: [main]
-    paths:
-      - ".github/workflows/seo-production-crawl.yml"
-      - "src/seo/**"
-      - "src/components/**"
-      - "src/pages/**"
-      - "src/layouts/**"
-      - "src/App.vue"
-      - "src/content/legal/**"
-      - "locales/en.yml"
-      - "scripts/check-internal-canonical-links.mjs"
-      - "package.json"
+  workflow_run:
+    workflows: ["verify"]
+    types: [completed]
 
 permissions:
   contents: read
+  checks: read
 
 concurrency:
   group: seo-production-crawl
   cancel-in-progress: false
 
 jobs:
+  wait-for-deploy:
+    if: ${{ (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main') || (github.event_name != 'workflow_run' && github.ref == 'refs/heads/main') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Wait for the exact Cloudflare production deployment
+        env:
+          TARGET_SHA: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          node --input-type=module <<'NODE'
+          const targetSha = process.env.TARGET_SHA;
+          const checksUrl = 'https://api.github.com/repos/' + process.env.GITHUB_REPOSITORY +
+            '/commits/' + targetSha + '/check-runs';
+          const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+          for (let attempt = 1; attempt <= 90; attempt++) {
+            const response = await fetch(checksUrl, {
+              headers: {
+                authorization: 'Bearer ' + process.env.GITHUB_TOKEN,
+                accept: 'application/vnd.github+json',
+                'x-github-api-version': '2022-11-28',
+              },
+              signal: AbortSignal.timeout(10000),
+            });
+            if (!response.ok) throw new Error('GitHub check-run API returned HTTP ' + response.status);
+            const payload = await response.json();
+            const check = (payload.check_runs || []).find((item) =>
+              item.name === 'Cloudflare Pages' && item.head_sha === targetSha
+            );
+            if (check?.status === 'completed') {
+              if (check.conclusion !== 'success') {
+                throw new Error('Cloudflare Pages deployment concluded ' + check.conclusion +
+                  ': ' + (check.details_url || 'no details URL'));
+              }
+              console.log('Cloudflare production deployment succeeded for ' + targetSha);
+              process.exit(0);
+            }
+            console.log('Waiting for exact Cloudflare deployment (' + attempt + '/90): ' +
+              (check?.status || 'check not created'));
+            await sleep(10000);
+          }
+          throw new Error('Exact Cloudflare deployment did not complete within 15 minutes');
+          NODE
+
   crawl:
+    needs: wait-for-deploy
+    if: ${{ (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main') || (github.event_name != 'workflow_run' && github.ref == 'refs/heads/main') }}
     name: "Crawl ${{ matrix.label }}"
     runs-on: ubuntu-latest
     timeout-minutes: 25
