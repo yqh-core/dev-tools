@@ -763,6 +763,9 @@ try {
     if (entry?.guide?.faqs?.length) {
       pageTags += `\n      <script type="application/ld+json">${buildFaqPageLd(entry)}</script>`;
     }
+    // The prerenderer renders page components without App.vue's layout wrapper.
+    // Add the main landmark to the initial HTML so crawlers and assistive tech see it
+    // before the client app mounts; the per-page self-check below enforces exactly one.
     const out = replaceOnce(
       replaceOnce(
         template,
