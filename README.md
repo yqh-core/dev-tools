@@ -83,7 +83,7 @@
 - [Escape HTML entities](https://digdevbox.com/html-entities) - Escape or unescape HTML entities (turn <, >, &, " and ' into their HTML form) and look up common characters — quotes, dashes, currency, math and Greek symbols — in a searchable entity reference table.
 - [URL parser](https://digdevbox.com/url-parser) - Parse a URL into its separate constituent parts (protocol, origin, params, port, username-password, ...)
 - [Device information](https://digdevbox.com/device-information) - Get information about your current device (screen size, pixel-ratio, user agent, ...)
-- [Basic auth generator](https://digdevbox.com/basic-auth-generator) - Generate a base64 basic auth header from a username and password.
+- [HTTP Basic Auth Header Generator — Base64](https://digdevbox.com/basic-auth-generator) - Generate a Basic Authorization header from a username and password. Copy the Base64 value for curl or API clients. Credentials stay in your browser; use HTTPS.
 - [Open graph meta generator](https://digdevbox.com/og-meta-generator) - Generate open-graph and socials HTML meta tags for your website.
 - [OTP code generator](https://digdevbox.com/otp-generator) - Generate and validate time-based OTP (one time password) for multi-factor authentication.
 - [MIME types](https://digdevbox.com/mime-types) - Convert MIME types to file extensions and vice-versa.
@@ -94,7 +94,7 @@
 - [User-agent parser](https://digdevbox.com/user-agent-parser) - Detect and parse Browser, Engine, OS, CPU, and Device type/model from an user-agent string.
 - [HTTP status codes](https://digdevbox.com/http-status-codes) - The list of all HTTP status codes, their name, and their meaning.
 - [JSON diff](https://digdevbox.com/json-diff) - Compare two JSON objects and get the differences between them.
-- [Outlook SafeLink Decoder](https://digdevbox.com/safelink-decoder) - Decode SafeLink URLs from Outlook emails and recover the real address.
+- [Outlook SafeLink Decoder — Original URL](https://digdevbox.com/safelink-decoder) - Paste an Outlook SafeLink URL to reveal its original destination before opening it. Decoding happens in your browser; the link is never opened automatically.
 - [JSON to GET params](https://digdevbox.com/json-to-get-params) - Flatten JSON into a URL query string (a[b][0]=1 style) and rebuild JSON from a query string or a full URL.
 - [HTTP headers & request methods](https://digdevbox.com/http-headers) - A searchable reference of common HTTP request and response headers plus the nine standard request methods, covering CORS, caching, security fields and safe/idempotent semantics.
 
@@ -151,7 +151,7 @@
 
 - [Math evaluator](https://digdevbox.com/math-evaluator) - A calculator for evaluating mathematical expressions. You can use functions like sqrt, cos, sin, abs, etc.
 - [ETA Calculator](https://digdevbox.com/eta-calculator) - What does ETA mean? Estimated Time of Arrival — this calculator projects when your download, build or batch job will finish from current progress, with duration and clock time. Free, runs in your browser.
-- [Percentage Calculator](https://digdevbox.com/percentage-calculator) - What is X% of Y? Find a percentage of a number, work out what percent one value is of another, or compute percentage increase and decrease — with the formula shown for each result.
+- [Percentage Calculator — Percent of a Number](https://digdevbox.com/percentage-calculator) - Calculate X% of a number, find what percent one value is of another, or measure percentage increase and decrease. Useful for discount and tax amounts.
 
 ### Measurement
 
@@ -168,7 +168,7 @@
 - [Emoji picker](https://digdevbox.com/emoji-picker) - Copy and paste emojis easily and get the unicode and code points value of each emoji.
 - [String obfuscator](https://digdevbox.com/string-obfuscator) - Obfuscate a string (like a secret, an IBAN, or a token) to make it shareable and identifiable without revealing its content.
 - [Text diff](https://digdevbox.com/text-diff) - Compare two texts and see the differences between them.
-- [Numeronym Generator](https://digdevbox.com/numeronym-generator) - A numeronym is an abbreviation where the middle letters are replaced by their count — i18n for internationalization, k8s for kubernetes, a11y for accessibility. Build a numeronym from any word, or look up the established ones in our built-in dictionary — free, right in your browser.
+- [Numeronym Generator — i18n, a11y & k8s](https://digdevbox.com/numeronym-generator) - Create numeronyms by replacing middle letters with their count, or search the built-in dictionary for common forms such as i18n, a11y and k8s.
 - [ASCII Art Generator](https://digdevbox.com/ascii-text-drawer) - Turn text into ASCII art with multiple fonts and styles.
 - [Full-width / half-width converter](https://digdevbox.com/fullwidth-converter) - Convert between full-width and half-width characters using the fixed Unicode offset 0xFEE0, or adjust punctuation only.
 - [Morse Code Converter](https://digdevbox.com/morse-code-converter) - What is Morse code? The dot-and-dash alphabet dating from the 1840s. Encode text to Morse or decode it back — letters separated by spaces, words by a slash, free and instant in your browser.

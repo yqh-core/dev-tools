@@ -244,8 +244,8 @@ tools:
       copy: Copy
       refresh: Refresh
   percentage-calculator:
-    title: Percentage Calculator
-    description: What is X% of Y? Find a percentage of a number, work out what percent one value is of another, or compute percentage increase and decrease — with the formula shown for each result.
+    title: Percentage Calculator — Percent of a Number
+    description: Calculate X% of a number, find what percent one value is of another, or measure percentage increase and decrease. Useful for discount and tax amounts.
 
   svg-placeholder-generator:
     title: SVG placeholder generator
@@ -367,8 +367,8 @@ tools:
     description: Detect and parse Browser, Engine, OS, CPU, and Device type/model from an user-agent string.
 
   numeronym-generator:
-    title: Numeronym Generator
-    description: A numeronym is an abbreviation where the middle letters are replaced by their count — i18n for internationalization, k8s for kubernetes, a11y for accessibility. Build a numeronym from any word, or look up the established ones in our built-in dictionary — free, right in your browser.
+    title: Numeronym Generator — i18n, a11y & k8s
+    description: Create numeronyms by replacing middle letters with their count, or search the built-in dictionary for common forms such as i18n, a11y and k8s.
 
   case-converter:
     title: Case converter
@@ -679,8 +679,8 @@ tools:
     description: Transform text into the NATO phonetic alphabet for oral transmission.
 
   basic-auth-generator:
-    title: Basic auth generator
-    description: Generate a base64 basic auth header from a username and password.
+    title: HTTP Basic Auth Header Generator — Base64
+    description: Generate a Basic Authorization header from a username and password. Copy the Base64 value for curl or API clients. Credentials stay in your browser; use HTTPS.
 
   text-to-unicode:
     title: Text to Unicode
@@ -731,8 +731,8 @@ tools:
     description: Test regular expressions online with live match results — JavaScript flavor, toggle flags and capture groups instantly.
 
   safelink-decoder:
-    title: Outlook SafeLink Decoder
-    description: Decode SafeLink URLs from Outlook emails and recover the real address.
+    title: Outlook SafeLink Decoder — Original URL
+    description: Paste an Outlook SafeLink URL to reveal its original destination before opening it. Decoding happens in your browser; the link is never opened automatically.
 
   xml-to-json:
     title: XML to JSON
