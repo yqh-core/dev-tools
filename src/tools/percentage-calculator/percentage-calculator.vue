@@ -27,6 +27,21 @@ const percentageIncreaseDecrease = computed(() => {
   const result = (numberTo.value - numberFrom.value) / numberFrom.value * 100;
   return (!Number.isFinite(result) || Number.isNaN(result)) ? '' : result.toString();
 });
+
+const adjustmentValue = ref();
+const adjustmentPercent = ref();
+const increasedValue = computed(() => {
+  if (adjustmentValue.value === undefined || adjustmentPercent.value === undefined) {
+    return '';
+  }
+  return (adjustmentValue.value * (1 + adjustmentPercent.value / 100)).toString();
+});
+const decreasedValue = computed(() => {
+  if (adjustmentValue.value === undefined || adjustmentPercent.value === undefined) {
+    return '';
+  }
+  return (adjustmentValue.value * (1 - adjustmentPercent.value / 100)).toString();
+});
 </script>
 
 <template>
@@ -71,6 +86,29 @@ const percentageIncreaseDecrease = computed(() => {
           <n-input-number v-model:value="numberFrom" data-test-id="numberFrom" placeholder="From" />
           <n-input-number v-model:value="numberTo" data-test-id="numberTo" placeholder="To" />
           <input-copyable v-model:value="percentageIncreaseDecrease" data-test-id="percentageIncreaseDecrease" readonly placeholder="Result" style="max-width: 150px;" />
+        </div>
+      </c-card>
+
+      <c-card mb-3>
+        <div mb-3>
+          Increase or decrease a value by a percentage
+        </div>
+        <div flex gap-2>
+          <n-input-number v-model:value="adjustmentValue" data-test-id="adjustmentValue" placeholder="Value" />
+          <div min-w-fit pt-1>
+            by
+          </div>
+          <n-input-number v-model:value="adjustmentPercent" data-test-id="adjustmentPercent" placeholder="Percent" />
+        </div>
+        <div grid grid-cols-2 gap-2 mt-2>
+          <div>
+            <div text-sm op-70 mb-1>Increased</div>
+            <input-copyable v-model:value="increasedValue" data-test-id="increasedValue" readonly placeholder="Result" />
+          </div>
+          <div>
+            <div text-sm op-70 mb-1>Decreased</div>
+            <input-copyable v-model:value="decreasedValue" data-test-id="decreasedValue" readonly placeholder="Result" />
+          </div>
         </div>
       </c-card>
     </div>
