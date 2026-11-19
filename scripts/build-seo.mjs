@@ -767,7 +767,7 @@ try {
       replaceOnce(
         template,
         '<div id="app"></div>',
-        `<div id="app">${/<main(?:\\s|>)/i.test(html) ? html : `<main id="main-content">${html}</main>`}${STATIC_FOOTER}</div>`,
+        `<div id="app">${/<main(?:\s|>)/i.test(html) ? html : `<main id="main-content">${html}</main>`}${STATIC_FOOTER}</div>`,
       ),
       pageSeoBlock,
       `<!-- page-seo:start -->\n${pageTags}\n      <!-- page-seo:end -->`,
@@ -780,7 +780,7 @@ try {
     const titleCount = (out.match(/<title[\s>]/gi) ?? []).length;
     const canonicalCount = (out.match(/rel=["']canonical["']/gi) ?? []).length;
     const hasDescription = /<meta[^>]+name=["']description["']/i.test(out);
-    const mainLandmarkCount = (out.match(/<main(?:\\s|>)/gi) ?? []).length;
+    const mainLandmarkCount = (out.match(/<main(?:\s|>)/gi) ?? []).length;
     const hasAdsense = out.includes('ca-pub-7944759654100814');
 
     const problems = [];
