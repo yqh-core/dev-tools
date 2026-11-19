@@ -26,7 +26,7 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const LEGACY = join(ROOT, 'public', 'legacy');
-const ORIGIN = 'https://digdevbox.com';
+const ORIGIN = 'https://www.digdevbox.com';
 const DRY = process.argv.includes('--dry');
 
 // 主站已注册路由（权威口径：读每个工具的 defineTool.path，不用目录名）
