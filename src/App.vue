@@ -48,7 +48,9 @@ if (typeof window !== 'undefined') {
     <NMessageProvider placement="bottom">
       <NNotificationProvider placement="bottom-right">
         <component :is="layout">
-          <RouterView />
+          <main id="main-content">
+            <RouterView />
+          </main>
         </component>
       </NNotificationProvider>
     </NMessageProvider>
