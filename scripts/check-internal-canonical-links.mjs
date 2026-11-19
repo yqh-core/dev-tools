@@ -28,7 +28,7 @@ function walk(dir) {
         const pathname = url.pathname;
         if (pathname === '/' || pathname.startsWith('/api/')) continue;
         // Static files are not route URLs and must not be forced to end with a slash.
-        if (/(?:^|\/)[^/]+\.[a-z0-9]{1,10}$/i.test(pathname)) continue;
+        if (/(?:^|\/)[^/]*\.[^/]+$/i.test(pathname)) continue;
         checked += 1;
         if (!pathname.endsWith('/')) {
           failures.push(path.relative(root, full) + ': ' + raw + ' -> ' + pathname + '/');
