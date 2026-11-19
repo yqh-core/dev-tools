@@ -20,7 +20,7 @@ const batchOutput = computed(() => batchResults.value
   .join('\n'));
 const dictionaryKeys = Object.keys(ESTABLISHED_NUMERONYMS);
 
-function batchResultLabel(item: typeof batchResults.value[number]): string {
+function batchResultLabel(item: (typeof batchResults.value)[number]): string {
   if (item.result.mode === 'encode') return item.result.output;
   if (item.result.mode === 'decode') return (item.result.matches ?? []).join(' / ');
   return 'No established match';
@@ -44,7 +44,8 @@ function batchResultLabel(item: typeof batchResults.value[number]): string {
         <span text-right>{{ batchResultLabel(item) }}</span>
       </div>
       <div mt-3>
-        <input-copyable :value="batchOutput" readonly placeholder="Generated results" test-id="batch-numeronyms" />
+        <n-input :value="batchOutput" type="textarea" readonly data-test-id="batch-numeronyms" />
+        <input-copyable :value="batchOutput" readonly placeholder="Copy all generated results" test-id="batch-copy" />
       </div>
     </c-card>
 
