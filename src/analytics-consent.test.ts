@@ -81,7 +81,7 @@ describe('shared GA4 consent gate', () => {
     const views = pageViews();
     expect(views).toHaveLength(1);
     expect(views[0][2]).toMatchObject({
-      page_location: 'http://localhost/test-page',
+      page_location: location.origin + '/test-page',
       page_title: 'Test page',
     });
     expect(String(views[0][2].page_location)).not.toContain('private');
