@@ -48,7 +48,7 @@ async function registeredRoutes() {
 const routes = await registeredRoutes();
 const entries = await readdir(LEGACY, { withFileTypes: true });
 
-let self = 0, toNew = 0, indexPage = 0, skipped = 0, fixed = 0;
+let self = 0, toNew = 0, indexPage = 0, skipped = 0, fixed = 0, hostRewrites = 0;
 const errors = [];
 
 for (const e of entries) {
@@ -59,6 +59,7 @@ for (const e of entries) {
   // 统一 legacy 页内所有指向主站的绝对链接，避免 sitemap/canonical 修正后
   // 正文导航仍先请求裸域再跳转到 www。
   let html = originalHtml.replaceAll('https://digdevbox.com', 'https://www.digdevbox.com');
+  if (html !== originalHtml) hostRewrites++;
 
   // —— 目标 URL 判定 ——
   let target;
@@ -111,6 +112,7 @@ for (const e of entries) {
 console.log(`自指 canonical   : ${self} 页`);
 console.log(`并给主站新工具页 : ${toNew} 页（横幅目标路由已逐个核验存在）`);
 console.log(`legacy 首页      : ${indexPage} 页`);
+console.log(`绝对链接主机归一化: ${hostRewrites} 页`);
 console.log(`已正确跳过       : ${skipped} 页`);
 console.log(`修正错误值       : ${fixed} 页（如 index/ 的空 href）`);
 if (errors.length) {
