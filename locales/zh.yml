@@ -241,8 +241,8 @@ tools:
       copy: 复制
       refresh: 刷新
   percentage-calculator:
-    title: 百分比计算器
-    description: 一个数的百分之几是多少？求某数占另一数的百分比，或计算增长/下降幅度——每种结果都附上所用公式，免费在线，浏览器本地计算。
+    title: 百分比计算器 — 百分比、增减与变化
+    description: 求 X% 的 Y、求 X 占 Y 的百分比、计算百分比变化，或按百分比增加和减少一个数值。免费即时计算，结果在浏览器本地生成。
 
   svg-placeholder-generator:
     title: SVG 占位符生成器
@@ -362,8 +362,8 @@ tools:
     description: 从用户代理字符串中检测和分析浏览器、引擎、操作系统、CPU和设备类型/型号。
 
   numeronym-generator:
-    title: 数字缩写生成器
-    description: 数字缩写（numeronym）是把中间字母替换为个数的缩写形式——internationalization 缩写为 i18n，kubernetes 为 k8s，accessibility 为 a11y。在线为任意单词生成数字缩写，或反查内置词典中已确立的缩写——免费，全程在浏览器本地完成。
+    title: 数字缩略词生成器 — i18n、a11y、k8s
+    description: 每行输入一个单词即可批量生成数字缩略词，也可查询 i18n、a11y、k8s 等已确立的常见缩写。免费，浏览器本地即时处理。
 
   case-converter:
     title: 大小写转换
