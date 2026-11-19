@@ -10,10 +10,11 @@
 //
 // 渲染用「扁平缩进列表」而非递归组件：可控、可键盘访问、缩进即层级，拖拽/脚本面板在后续步骤接入。
 import type { DropdownOption } from 'naive-ui';
-import type { CollectionNode, RequestNode, TreeNode } from '@/tools/api-debugger/collection-tree';
+import type { ChainSource, CollectionNode, RequestNode, TreeNode } from '@/tools/api-debugger/collection-tree';
 import {
   addFolder,
   addRequest,
+  chainSources,
   countRequests,
   findRequestNode,
   folderMoveOptions,
@@ -24,6 +25,7 @@ import {
   reorderNode,
   reparentNode,
   serializeCollectionTree,
+  updateFolderScripts,
   updateRequestNode,
 } from '@/tools/api-debugger/collection-tree';
 import type { CollectionRunSummary, RunnerResponse, SendFn } from '@/tools/api-debugger/runner';
@@ -44,6 +46,11 @@ const delTarget = ref<TreeNode | null>(null);
 const running = ref(false);
 const runOutput = ref('');
 const runSummary = ref<CollectionRunSummary | null>(null);
+
+// 拖拽状态：dragId=正在拖的节点；dragOverId+dropPos=当前放置指示（before/after 同级排序，inside 移入 folder）
+const dragId = ref<string | null>(null);
+const dragOverId = ref<string | null>(null);
+const dropPos = ref<'before' | 'after' | 'inside'>('inside');
 
 function emptyRoot(): CollectionNode {
   return { id: 'root', name: 'Collection', items: [] };
@@ -136,7 +143,7 @@ function addRequestTo(parentId: string | null) {
   }
   applyTree(r.tree);
   if (r.node) {
-    selectRequest(r.node.id);
+    selectNode(r.node.id);
     startRename(r.node.id);
   }
 }
@@ -225,11 +232,14 @@ function reorder(id: string, dir: -1 | 1) {
   applyTree(reorderNode(tree.value, id, dir).tree);
 }
 
-// ── 选择 / 编辑器 ───────────────────────────────────────────────────
-function selectRequest(id: string) {
+// ── 选择 / 编辑器 / 脚本 / 继承链 ──────────────────────────────────
+function selectNode(id: string) {
   selectedId.value = id;
 }
-const selected = computed<RequestNode | null>(() =>
+const selectedNode = computed<TreeNode | null>(() =>
+  selectedId.value ? findInTree(tree.value, selectedId.value) : null,
+);
+const selectedRequest = computed<RequestNode | null>(() =>
   selectedId.value ? findRequestNode(tree.value, selectedId.value) : null,
 );
 
@@ -237,20 +247,123 @@ const edName = ref('');
 const edMethod = ref('GET');
 const edUrl = ref('');
 const edBody = ref('');
-watch(() => selected.value?.id, () => {
-  const s = selected.value;
-  edName.value = s?.name ?? '';
-  edMethod.value = s?.request.method ?? 'GET';
-  edUrl.value = s?.request.url ?? '';
-  edBody.value = s?.request.body ?? '';
+const edPre = ref('');
+const edTest = ref('');
+// 仅在切换选中节点（id 变化）时回填，避免每次提交后 clobber 用户正在编辑的内容。
+watch(() => selectedNode.value?.id, () => {
+  const n = selectedNode.value;
+  const r = selectedRequest.value;
+  edName.value = n?.name ?? '';
+  edMethod.value = r?.request.method ?? 'GET';
+  edUrl.value = r?.request.url ?? '';
+  edBody.value = r?.request.body ?? '';
+  edPre.value = n?.scripts?.prerequest ?? '';
+  edTest.value = n?.scripts?.test ?? '';
 }, { immediate: true });
 
-function commitEditor() {
-  if (!selectedId.value || !selected.value) {
+function commitName() {
+  const n = selectedNode.value;
+  if (!n) {
     return;
   }
-  const request = { ...selected.value.request, method: edMethod.value, url: edUrl.value, body: edBody.value };
-  const r = updateRequestNode(tree.value, selectedId.value, { name: edName.value, request });
+  const r = selectedRequest.value
+    ? updateRequestNode(tree.value, n.id, { name: edName.value })
+    : renameNode(tree.value, n.id, edName.value);
+  if (r.error) {
+    banner.value = r.error;
+  }
+  else {
+    applyTree(r.tree);
+  }
+}
+
+function commitRequest() {
+  const s = selectedRequest.value;
+  if (!s) {
+    return;
+  }
+  const request = { ...s.request, method: edMethod.value, url: edUrl.value, body: edBody.value };
+  const r = updateRequestNode(tree.value, s.id, { name: edName.value, request });
+  if (r.error) {
+    banner.value = r.error;
+  }
+  else {
+    applyTree(r.tree);
+  }
+}
+
+function commitScripts() {
+  const n = selectedNode.value;
+  if (!n) {
+    return;
+  }
+  const scripts = { prerequest: edPre.value, test: edTest.value };
+  const r = selectedRequest.value
+    ? updateRequestNode(tree.value, n.id, { scripts })
+    : updateFolderScripts(tree.value, n.id, scripts);
+  if (r.error) {
+    banner.value = r.error;
+  }
+  else {
+    applyTree(r.tree);
+  }
+}
+
+// 运行期脚本继承链（chainSources）：标注本节点会执行哪些层级的脚本（pre 外→内 / test 内→外）。
+const chainView = computed<{ pre: ChainSource[]; test: ChainSource[] } | null>(() =>
+  selectedNode.value ? chainSources(tree.value, selectedNode.value.id) : null,
+);
+function levelLabel(l: ChainSource['level']): string {
+  return l === 'collection' ? 'Collection' : l === 'folder' ? 'Folder' : 'Request';
+}
+
+// ── 拖拽排序 / 移入文件夹 ──────────────────────────────────────────
+function onDragStart(id: string) {
+  dragId.value = id;
+}
+function onDragEnd() {
+  dragId.value = null;
+  dragOverId.value = null;
+}
+function onDragOverRow(e: DragEvent, row: Row) {
+  if (!dragId.value || dragId.value === row.node.id) {
+    return;
+  }
+  e.preventDefault();
+  const el = e.currentTarget as HTMLElement;
+  const rect = el.getBoundingClientRect();
+  const off = e.clientY - rect.top;
+  dragOverId.value = row.node.id;
+  if (isFolderNode(row.node)) {
+    dropPos.value = off < rect.height * 0.28 ? 'before' : off > rect.height * 0.72 ? 'after' : 'inside';
+  }
+  else {
+    dropPos.value = off < rect.height / 2 ? 'before' : 'after';
+  }
+}
+function onDropRow(row: Row) {
+  const id = dragId.value;
+  const pos = dropPos.value;
+  onDragEnd();
+  if (!id || id === row.node.id) {
+    return;
+  }
+  // 放进 folder 内部：追加为其最后一个子节点。
+  if (isFolderNode(row.node) && pos === 'inside') {
+    moveNode(id, row.node.id);
+    return;
+  }
+  // 同级排序：算出「移除被拖节点后」目标父 items 中参照节点的位置，得最终插入下标，
+  // 交给 reparentNode（它先 append 再 splice 到 index）。跨父移动时 filtered==目标父原 items。
+  const parent = (row.parentId ? findInTree(tree.value, row.parentId) : null) ?? tree.value;
+  const siblings = (parent as CollectionNode).items.filter(it => it.id !== id);
+  const refPos = siblings.findIndex(it => it.id === row.node.id);
+  if (refPos < 0) {
+    return;
+  }
+  const finalIndex = pos === 'before' ? refPos : refPos + 1;
+  const targetFolderId = row.parentId && row.parentId !== tree.value.id ? row.parentId : null;
+  const r = reparentNode(tree.value, id, targetFolderId, finalIndex);
   if (r.error) {
     banner.value = r.error;
   }
@@ -350,8 +463,6 @@ function onMenuSelect(key: string, node: TreeNode) {
     moveNode(node.id, t === '__root' ? null : t);
   }
 }
-
-const canReorder = computed(() => rows.value.length > 0);
 </script>
 
 <template>
@@ -382,6 +493,20 @@ const canReorder = computed(() => rows.value.length > 0);
       </div>
 
       <div class="api-tree" role="tree">
+        <!-- 集合根：选中即可编辑集合级脚本（继承链最外层） -->
+        <div
+          class="api-row api-root-row"
+          :class="{ 'is-selected': selectedId === tree.id }"
+          role="treeitem"
+          :aria-selected="selectedId === tree.id"
+          @click="selectNode(tree.id)"
+        >
+          <span class="api-caret-spacer" aria-hidden="true" />
+          <span class="api-folder-ico" aria-hidden="true">◈</span>
+          <span class="api-row-name">{{ tree.name }}</span>
+          <span class="api-root-tag">collection</span>
+        </div>
+
         <div v-if="rows.length === 0" class="api-empty">
           <p class="api-empty-title">
             No requests yet
@@ -395,14 +520,25 @@ const canReorder = computed(() => rows.value.length > 0);
           v-for="row in rows"
           :key="row.node.id"
           class="api-row"
-          :class="{ 'is-selected': 'request' in row.node && row.node.id === selectedId }"
+          :class="{
+            'is-selected': row.node.id === selectedId,
+            'is-dragging': dragId === row.node.id,
+            'drop-inside': dragOverId === row.node.id && dropPos === 'inside',
+            'drop-before': dragOverId === row.node.id && dropPos === 'before',
+            'drop-after': dragOverId === row.node.id && dropPos === 'after',
+          }"
           :style="{ paddingLeft: `${8 + row.depth * 14}px` }"
           role="treeitem"
-          :aria-selected="'request' in row.node && row.node.id === selectedId"
+          :aria-selected="row.node.id === selectedId"
+          draggable="true"
+          @dragstart="onDragStart(row.node.id)"
+          @dragend="onDragEnd"
+          @dragover="onDragOverRow($event, row)"
+          @drop="onDropRow(row)"
         >
           <!-- 文件夹 -->
           <template v-if="isFolderNode(row.node)">
-            <button class="api-caret" type="button" :aria-label="collapsed.has(row.node.id) ? 'Expand' : 'Collapse'" @click="toggleCollapse(row.node.id)">
+            <button class="api-caret" type="button" :aria-label="collapsed.has(row.node.id) ? 'Expand' : 'Collapse'" @click.stop="toggleCollapse(row.node.id)">
               <span class="api-caret-glyph" :class="{ 'is-open': !collapsed.has(row.node.id) }">▸</span>
             </button>
             <span class="api-folder-ico" aria-hidden="true">▤</span>
@@ -415,16 +551,16 @@ const canReorder = computed(() => rows.value.length > 0);
               @keyup.esc="cancelRename"
               @blur="commitRename"
             >
-            <span v-else class="api-row-name" @dblclick="startRename(row.node.id)">
+            <span v-else class="api-row-name" @click="selectNode(row.node.id)" @dblclick="startRename(row.node.id)">
               {{ row.node.name }}
             </span>
 
             <div class="api-row-actions">
-              <button class="api-mini-btn" type="button" title="Add request here" @click="addRequestTo(row.node.id)">
+              <button class="api-mini-btn" type="button" title="Add request here" @click.stop="addRequestTo(row.node.id)">
                 +
               </button>
               <n-dropdown trigger="click" :options="nodeMenu(row.node)" @select="(k: string) => onMenuSelect(k, row.node)">
-                <button class="api-mini-btn" type="button" aria-label="More actions">
+                <button class="api-mini-btn" type="button" aria-label="More actions" @click.stop>
                   ⋯
                 </button>
               </n-dropdown>
@@ -434,7 +570,7 @@ const canReorder = computed(() => rows.value.length > 0);
           <!-- 请求 -->
           <template v-else>
             <span class="api-caret-spacer" aria-hidden="true" />
-            <button class="api-method-badge" type="button" :style="{ color: methodColor(row.node.request.method), borderColor: methodColor(row.node.request.method) }" @click="selectRequest(row.node.id)">
+            <button class="api-method-badge" type="button" :style="{ color: methodColor(row.node.request.method), borderColor: methodColor(row.node.request.method) }" @click.stop="selectNode(row.node.id)">
               {{ row.node.request.method }}
             </button>
 
@@ -446,19 +582,19 @@ const canReorder = computed(() => rows.value.length > 0);
               @keyup.esc="cancelRename"
               @blur="commitRename"
             >
-            <span v-else class="api-row-name" @click="selectRequest(row.node.id)" @dblclick="startRename(row.node.id)">
+            <span v-else class="api-row-name" @click="selectNode(row.node.id)" @dblclick="startRename(row.node.id)">
               {{ row.node.name }}
             </span>
 
             <div class="api-row-actions">
-              <button class="api-mini-btn" :disabled="!canReorder" type="button" title="Move up" @click="reorder(row.node.id, -1)">
+              <button class="api-mini-btn" type="button" title="Move up" @click.stop="reorder(row.node.id, -1)">
                 ↑
               </button>
-              <button class="api-mini-btn" :disabled="!canReorder" type="button" title="Move down" @click="reorder(row.node.id, 1)">
+              <button class="api-mini-btn" type="button" title="Move down" @click.stop="reorder(row.node.id, 1)">
                 ↓
               </button>
               <n-dropdown trigger="click" :options="nodeMenu(row.node)" @select="(k: string) => onMenuSelect(k, row.node)">
-                <button class="api-mini-btn" type="button" aria-label="More actions">
+                <button class="api-mini-btn" type="button" aria-label="More actions" @click.stop>
                   ⋯
                 </button>
               </n-dropdown>
@@ -474,13 +610,58 @@ const canReorder = computed(() => rows.value.length > 0);
         {{ banner }}
       </div>
 
-      <div v-if="selected" class="api-editor-form">
+      <div v-if="selectedNode" class="api-editor-form">
         <div class="api-field-row">
-          <input v-model="edName" class="api-name-input" placeholder="Request name" @change="commitEditor">
-          <n-select :value="edMethod" :options="methodOptions" class="api-method-select" @update:value="(v) => { edMethod = String(v); commitEditor() }" />
+          <input v-model="edName" class="api-name-input" :placeholder="selectedRequest ? 'Request name' : 'Name'" @change="commitName">
+          <n-select v-if="selectedRequest" :value="edMethod" :options="methodOptions" class="api-method-select" @update:value="(v) => { edMethod = String(v); commitRequest() }" />
         </div>
-        <input v-model="edUrl" class="api-url-input" placeholder="https://api.example.com/endpoint" @change="commitEditor">
-        <textarea v-model="edBody" class="api-body-input" placeholder="Request body (raw)" @change="commitEditor" />
+
+        <template v-if="selectedRequest">
+          <input v-model="edUrl" class="api-url-input" placeholder="https://api.example.com/endpoint" @change="commitRequest">
+          <textarea v-model="edBody" class="api-body-input" placeholder="Request body (raw)" @change="commitRequest" />
+        </template>
+
+        <!-- 脚本面板 + 三层继承链 -->
+        <div class="api-scripts">
+          <div class="api-scripts-head">
+            <span class="api-scripts-title">Scripts</span>
+            <span class="api-scripts-hint">pm.* runs in an isolated Worker · network only through the trusted relay</span>
+          </div>
+
+          <label class="api-script-label">Pre-request</label>
+          <textarea v-model="edPre" class="api-script-input" placeholder="Runs before — collection → folder → request, outer first." @change="commitScripts" />
+
+          <label class="api-script-label">Tests</label>
+          <textarea v-model="edTest" class="api-script-input" placeholder="Runs after the response — request → folder → collection, inner first." @change="commitScripts" />
+
+          <div v-if="chainView" class="api-chain">
+            <div class="api-chain-head">
+              What runs for this {{ selectedRequest ? 'request' : (selectedNode && isFolderNode(selectedNode) ? 'folder' : 'collection') }}
+            </div>
+            <div class="api-chain-cols">
+              <div class="api-chain-col">
+                <span class="api-chain-col-title">Before · outer → inner</span>
+                <ul class="api-chain-list">
+                  <li v-for="s in chainView.pre" :key="`pre-${s.id}`" class="api-chain-item" :class="{ 'is-self': s.id === selectedId, 'has-scripts': s.hasScripts }">
+                    <span class="api-chain-level" :data-level="s.level">{{ levelLabel(s.level) }}</span>
+                    <span class="api-chain-name">{{ s.name }}</span>
+                    <span class="api-chain-dot" :class="{ on: s.hasScripts }" :title="s.hasScripts ? 'has scripts' : 'no scripts'" />
+                  </li>
+                </ul>
+              </div>
+              <div class="api-chain-col">
+                <span class="api-chain-col-title">After · inner → outer</span>
+                <ul class="api-chain-list">
+                  <li v-for="s in chainView.test" :key="`test-${s.id}`" class="api-chain-item" :class="{ 'is-self': s.id === selectedId, 'has-scripts': s.hasScripts }">
+                    <span class="api-chain-level" :data-level="s.level">{{ levelLabel(s.level) }}</span>
+                    <span class="api-chain-name">{{ s.name }}</span>
+                    <span class="api-chain-dot" :class="{ on: s.hasScripts }" :title="s.hasScripts ? 'has scripts' : 'no scripts'" />
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
 
         <div v-if="runSummary" class="api-run-result">
           <div class="api-run-summary">
@@ -919,5 +1100,218 @@ const canReorder = computed(() => rows.value.length > 0);
   font-size: var(--api-fs-sm);
   line-height: 1.6;
   color: var(--api-text-muted);
+}
+
+/* ---------- 集合根行 ---------- */
+.api-root-row {
+  border-bottom: 1px solid var(--api-border);
+  margin-bottom: 4px;
+  cursor: pointer;
+}
+
+.api-root-tag {
+  font-size: var(--api-fs-xs);
+  color: var(--api-text-faint);
+  background: var(--api-surface-3);
+  padding: 1px 6px;
+  border-radius: 999px;
+  margin-left: auto;
+}
+
+/* ---------- 拖拽放置指示 ---------- */
+.api-row {
+  position: relative;
+}
+
+.is-dragging {
+  opacity: 0.4;
+}
+
+.drop-inside {
+  background: var(--api-primary-soft);
+  outline: 1px dashed var(--api-primary-line);
+  outline-offset: -1px;
+  border-radius: var(--api-radius-sm);
+}
+
+.drop-before::before,
+.drop-after::after {
+  content: '';
+  position: absolute;
+  left: 4px;
+  right: 4px;
+  height: 2px;
+  background: var(--api-primary);
+  border-radius: 2px;
+}
+
+.drop-before::before {
+  top: -1px;
+}
+
+.drop-after::after {
+  bottom: -1px;
+}
+
+/* ---------- 脚本面板 ---------- */
+.api-scripts {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: var(--api-gap);
+  padding: var(--api-gap);
+  border: 1px solid var(--api-border);
+  border-radius: var(--api-radius);
+  background: var(--api-surface);
+}
+
+.api-scripts-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--api-gap);
+  flex-wrap: wrap;
+  margin-bottom: 2px;
+}
+
+.api-scripts-title {
+  font-size: var(--api-fs-sm);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--api-text-soft);
+}
+
+.api-scripts-hint {
+  font-size: var(--api-fs-xs);
+  color: var(--api-text-faint);
+}
+
+.api-script-label {
+  font-size: var(--api-fs-sm);
+  color: var(--api-text-muted);
+  margin-top: 4px;
+}
+
+.api-script-input {
+  min-height: 92px;
+  resize: vertical;
+  padding: 8px 10px;
+  border: 1px solid var(--api-border);
+  border-radius: var(--api-radius-sm);
+  background: var(--api-surface-2);
+  color: var(--api-text);
+  font-family: var(--api-font-mono);
+  font-size: var(--api-fs);
+  line-height: 1.5;
+}
+
+.api-script-input:focus {
+  outline: none;
+  border-color: var(--api-primary);
+  box-shadow: var(--api-focus-ring);
+}
+
+/* ---------- 继承链视图 ---------- */
+.api-chain {
+  margin-top: var(--api-gap-sm);
+  padding-top: var(--api-gap-sm);
+  border-top: 1px solid var(--api-border);
+}
+
+.api-chain-head {
+  font-size: var(--api-fs-sm);
+  color: var(--api-text-soft);
+  margin-bottom: var(--api-gap-sm);
+}
+
+.api-chain-cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--api-gap);
+}
+
+.api-chain-col-title {
+  display: block;
+  font-size: var(--api-fs-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  color: var(--api-text-faint);
+  margin-bottom: 6px;
+}
+
+.api-chain-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.api-chain-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 6px;
+  border-radius: var(--api-radius-sm);
+  background: var(--api-surface-2);
+  font-size: var(--api-fs-sm);
+  color: var(--api-text-soft);
+}
+
+.api-chain-item.is-self {
+  background: var(--api-primary-soft);
+  color: var(--api-text);
+}
+
+.api-chain-level {
+  font-size: var(--api-fs-xs);
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--api-surface-3);
+  color: var(--api-text-muted);
+  white-space: nowrap;
+}
+
+.api-chain-level[data-level="collection"] {
+  color: var(--api-info);
+}
+
+.api-chain-level[data-level="folder"] {
+  color: var(--api-warning);
+}
+
+.api-chain-level[data-level="request"] {
+  color: var(--api-primary);
+}
+
+.api-chain-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.api-chain-dot {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 7px;
+  border-radius: 50%;
+  background: var(--api-text-faint);
+  opacity: 0.5;
+}
+
+.api-chain-dot.on {
+  background: var(--api-success);
+  opacity: 1;
+}
+
+@media (max-width: 720px) {
+  .api-chain-cols {
+    grid-template-columns: 1fr;
+  }
 }
 </style>
