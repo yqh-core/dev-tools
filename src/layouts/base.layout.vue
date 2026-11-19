@@ -71,7 +71,7 @@ const tools = computed<ToolCategory[]>(() => [
         <div class="footer">
           <div>
             © {{ new Date().getFullYear() }}
-            <c-link href="https://www.digdevbox.com">
+            <c-link href="https://www.digdevbox.com/">
               digdevbox.com
             </c-link>
           </div>
