@@ -71,7 +71,7 @@ jobs:
               redirect: 'follow',
               headers: { 'user-agent': ua, 'cache-control': 'no-cache' },
             });
-            return { response, body: await response.text() };
+            return { response, body: await response.text(), finalUrl: response.url, redirected: response.redirected };
           }
 
           let home = null;
@@ -90,6 +90,39 @@ jobs:
             await sleep(15000);
           }
           if (!home) throw new Error('Production homepage did not expose expected SEO HTML within 5 minutes');
+
+          // Verify the browser-visible final URL, not only the HTML canonical tag.
+          // A canonical URL that itself redirects is a conflicting indexing signal.
+          if (home.finalUrl !== origin + '/') {
+            throw new Error('Homepage final URL conflicts with canonical origin: requested ' +
+              origin + '/ but ended at ' + home.finalUrl);
+          }
+          for (const [label, url] of [
+            ['apex HTTPS', 'https://digdevbox.com/'],
+            ['www HTTPS', 'https://www.digdevbox.com/'],
+            ['apex HTTP', 'http://digdevbox.com/'],
+          ]) {
+            const result = await fetch(url, {
+              redirect: 'follow',
+              headers: { 'user-agent': ua, 'cache-control': 'no-cache' },
+            });
+            if (!result.ok || result.url !== origin + '/') {
+              throw new Error(label + ' does not converge to ' + origin + '/ (HTTP ' +
+                result.status + ', final ' + result.url + ')');
+            }
+          }
+
+          for (const [label, path] of [
+            ['percentage no-slash', '/percentage-calculator'],
+            ['percentage slash', '/percentage-calculator/'],
+          ]) {
+            const result = await get(path);
+            const expected = origin + '/percentage-calculator/';
+            if (!result.response.ok || result.finalUrl !== expected) {
+              throw new Error(label + ' does not converge to ' + expected + ' (HTTP ' +
+                result.response.status + ', final ' + result.finalUrl + ')');
+            }
+          }
 
           const canonical = home.body.includes('href="' + origin + '/"');
           if (!canonical) throw new Error('Homepage canonical does not match the selected production origin');
