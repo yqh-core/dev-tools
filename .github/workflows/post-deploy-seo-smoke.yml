@@ -173,6 +173,8 @@ jobs:
             if (!sitemap.body.includes(url)) throw new Error('sitemap missing ' + url);
           }
 
+          // /legacy/base64/ intentionally redirects to the current tool URL;
+          // test the retained archive index for the noindex response header.
           for (const path of ["/legacy/"]) {
             const result = await get(path);
             if (!result.response.ok || !result.body.includes('rel="canonical"')) {
