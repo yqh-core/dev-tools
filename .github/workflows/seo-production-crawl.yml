@@ -17,8 +17,46 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  detect-site-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      should_run: ${{ steps.detect.outputs.should_run }}
+      wait_for_deploy: ${{ steps.detect.outputs.wait_for_deploy }}
+    steps:
+      - name: Detect deployable changes for the exact source commit
+        id: detect
+        uses: actions/github-script@v7
+        with:
+          script: |
+            if (context.eventName !== 'workflow_run') {
+              core.setOutput('should_run', 'true');
+              core.setOutput('wait_for_deploy', 'false');
+              core.info('Scheduled/manual crawl: scan current production without waiting for a new deployment');
+              return;
+            }
+            const run = context.payload.workflow_run;
+            if (run.conclusion !== 'success' || run.head_branch !== 'main') {
+              core.setOutput('should_run', 'false');
+              core.setOutput('wait_for_deploy', 'false');
+              core.info('Not a successful main-branch verification; skip crawl');
+              return;
+            }
+            const { owner, repo } = context.repo;
+            const { data } = await github.rest.repos.getCommit({ owner, repo, ref: run.head_sha });
+            const files = data.files || [];
+            const deployable = files.filter(({ filename }) =>
+              !filename.startsWith('.github/') &&
+              !['README.md', 'CONTRIBUTING.md'].includes(filename)
+            );
+            core.info('Changed files: ' + files.map(file => file.filename).join(', '));
+            core.info('Deployable site files: ' + deployable.map(file => file.filename).join(', '));
+            const shouldRun = deployable.length > 0;
+            core.setOutput('should_run', shouldRun ? 'true' : 'false');
+            core.setOutput('wait_for_deploy', shouldRun ? 'true' : 'false');
+
   wait-for-deploy:
-    if: ${{ (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main') || (github.event_name != 'workflow_run' && github.ref == 'refs/heads/main') }}
+    needs: detect-site-changes
+    if: ${{ needs.detect-site-changes.outputs.should_run == 'true' && ((github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main') || (github.event_name != 'workflow_run' && github.ref == 'refs/heads/main')) }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -30,6 +68,7 @@ jobs:
           TARGET_SHA: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           GITHUB_TOKEN: ${{ github.token }}
+          WAIT_FOR_DEPLOY: ${{ needs.detect-site-changes.outputs.wait_for_deploy }}
         run: |
           node --input-type=module <<'NODE'
           const token = process.env.GITHUB_TOKEN;
@@ -42,8 +81,11 @@ jobs:
           const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
           const checksUrl = 'https://api.github.com/repos/' + process.env.GITHUB_REPOSITORY +
             '/commits/' + targetSha + '/check-runs';
-          let deployed = false;
-          for (let attempt = 1; attempt <= 90; attempt++) {
+          let deployed = process.env.WAIT_FOR_DEPLOY !== 'true';
+          if (deployed) {
+            console.log('No exact deployment wait required; checking current production before the scheduled/manual crawl');
+          }
+          for (let attempt = 1; !deployed && attempt <= 90; attempt++) {
             const response = await fetch(checksUrl, { headers, signal: AbortSignal.timeout(10000) });
             if (!response.ok) throw new Error('GitHub check-run API HTTP ' + response.status);
             const payload = await response.json();
@@ -90,8 +132,8 @@ jobs:
           NODE
 
   crawl:
-    needs: wait-for-deploy
-    if: ${{ (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main') || (github.event_name != 'workflow_run' && github.ref == 'refs/heads/main') }}
+    needs: [detect-site-changes, wait-for-deploy]
+    if: ${{ needs.detect-site-changes.outputs.should_run == 'true' && ((github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main') || (github.event_name != 'workflow_run' && github.ref == 'refs/heads/main')) }}
     name: "Crawl ${{ matrix.label }}"
     runs-on: ubuntu-latest
     timeout-minutes: 25
