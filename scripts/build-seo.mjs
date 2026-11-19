@@ -763,11 +763,14 @@ try {
     if (entry?.guide?.faqs?.length) {
       pageTags += `\n      <script type="application/ld+json">${buildFaqPageLd(entry)}</script>`;
     }
+    // The prerenderer renders page components without App.vue's layout wrapper.
+    // Add the main landmark to the initial HTML so crawlers and assistive tech see it
+    // before the client app mounts; the per-page self-check below enforces exactly one.
     const out = replaceOnce(
       replaceOnce(
         template,
         '<div id="app"></div>',
-        `<div id="app">${html}${STATIC_FOOTER}</div>`,
+        `<div id="app">${/<main(?:\s|>)/i.test(html) ? html : `<main id="main-content">${html}</main>`}${STATIC_FOOTER}</div>`,
       ),
       pageSeoBlock,
       `<!-- page-seo:start -->\n${pageTags}\n      <!-- page-seo:end -->`,
@@ -780,12 +783,14 @@ try {
     const titleCount = (out.match(/<title[\s>]/gi) ?? []).length;
     const canonicalCount = (out.match(/rel=["']canonical["']/gi) ?? []).length;
     const hasDescription = /<meta[^>]+name=["']description["']/i.test(out);
+    const mainLandmarkCount = (out.match(/<main(?:\s|>)/gi) ?? []).length;
     const hasAdsense = out.includes('ca-pub-7944759654100814');
 
     const problems = [];
     if (titleCount !== 1) { problems.push(`title=${titleCount}`); }
     if (canonicalCount !== 1) { problems.push(`canonical=${canonicalCount}`); }
     if (!hasDescription) { problems.push('description 缺失'); }
+    if (mainLandmarkCount !== 1) { problems.push(`main landmark=${mainLandmarkCount}`); }
     if (!hasAdsense) { problems.push('AdSense 丢失'); }
     if (!out.includes(`rel="canonical" href="${canonical}"`) && !out.includes(`rel='canonical' href='${canonical}'`)) {
       problems.push(`canonical 未自指(${canonical})`);
