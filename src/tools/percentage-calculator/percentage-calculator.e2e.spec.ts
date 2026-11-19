@@ -21,6 +21,11 @@ test.describe('Tool - Percentage calculator', () => {
     await page.getByTestId('numberFrom').locator('input').fill('123');
     await page.getByTestId('numberTo').locator('input').fill('456');
     await expect(page.getByTestId('percentageIncreaseDecrease').locator('input')).toHaveValue('270.7317073170732');
+
+    await page.getByTestId('adjustmentValue').locator('input').fill('80');
+    await page.getByTestId('adjustmentPercent').locator('input').fill('15');
+    await expect(page.getByTestId('increasedValue').locator('input')).toHaveValue('92');
+    await expect(page.getByTestId('decreasedValue').locator('input')).toHaveValue('68');
   });
 
   test('Displays empty results for incomplete input', async ({ page }) => {
@@ -32,5 +37,9 @@ test.describe('Tool - Percentage calculator', () => {
 
     await page.getByTestId('numberFrom').locator('input').fill('123');
     await expect(page.getByTestId('percentageIncreaseDecrease').locator('input')).toHaveValue('');
+
+    await page.getByTestId('adjustmentValue').locator('input').fill('80');
+    await expect(page.getByTestId('increasedValue').locator('input')).toHaveValue('');
+    await expect(page.getByTestId('decreasedValue').locator('input')).toHaveValue('');
   });
 });
