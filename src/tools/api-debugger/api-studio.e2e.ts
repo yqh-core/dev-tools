@@ -14,7 +14,7 @@ import { expect, test } from '@playwright/test';
  * 截图取证写入 e2e-artifacts/（仓库不提交该目录）。
  */
 
-const TREE_KEY = '***';
+const TREE_KEY = ['api-studio', 'tree'].join(':');
 const SHOTS = join(process.cwd(), 'e2e-artifacts');
 
 function seedTree() {
@@ -149,4 +149,47 @@ test('creating and renaming a folder via the UI persists across reload', async (
   await expect(page.locator('[data-test-id="tree-row"]', { hasText: 'My Folder' })).toBeVisible();
 
   await page.screenshot({ path: join(SHOTS, '03-persist-reload.png'), fullPage: true });
+});
+
+test('environment drives {{var}} resolution at run time (selector wired to active env)', async ({ page }) => {
+  // 确定性验证环境→运行链路：共享 store active=Prod（含 baseUrl），请求 url 用模板 {{baseUrl}}/ping。
+  // 载入即把选择器初始化到 active=Prod，运行期中继应收到解析后的真实 URL。
+  const envSeed = { active: 'Prod', envs: { Default: {}, Prod: { baseUrl: 'https://api.test' } } };
+  const treeSeed = {
+    id: 'envcoll',
+    name: 'Env Demo',
+    items: [{ id: 'ping', name: 'Ping', request: { method: 'GET', url: '{{baseUrl}}/ping', headers: [], body: '' } }],
+  };
+  await page.addInitScript(
+    ([key, val]) => {
+      localStorage.setItem(key, val);
+    },
+    [TREE_KEY, JSON.stringify(treeSeed)] as [string, string],
+  );
+  await page.addInitScript(
+    ([key, val]) => {
+      localStorage.setItem(key, val);
+    },
+    ['api-debugger:env', JSON.stringify(envSeed)] as [string, string],
+  );
+
+  let sentUrl = '';
+  await page.route(/\/api\/apiproxy/, (route) => {
+    const body = route.request().postDataJSON() as { url?: string };
+    sentUrl = body?.url ?? '';
+    return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ url: sentUrl, status: 200, statusText: 'OK', headers: {}, body: '{}', elapsedMs: 3 }) });
+  });
+
+  await page.goto('/api-studio');
+
+  // 选择器就位且初始化到 active 环境（Prod 有 1 个变量）
+  await expect(page.getByTestId('env-select')).toBeVisible();
+  await expect(page.getByTestId('env-count')).toHaveText('1 var(s)');
+
+  await page.getByTestId('run-collection').click();
+  await expect(page.getByTestId('run-result')).toContainText('1/1 requests');
+  // {{baseUrl}} 在运行期被解析成真实 URL —— 证明环境接入 Run 生效
+  expect(sentUrl).toBe('https://api.test/ping');
+
+  await page.screenshot({ path: join(SHOTS, '04-env-resolve.png'), fullPage: true });
 });

@@ -31,10 +31,14 @@ import {
 import type { CollectionRunSummary, RunnerResponse, SendFn } from '@/tools/api-debugger/runner';
 import { formatCollectionReportText, runCollectionTree } from '@/tools/api-debugger/runner';
 import { runScriptIsolated } from '@/tools/api-debugger/script-sandbox';
+import type { EnvStore } from '@/tools/api-debugger/environments';
+import { activeVars, envNames, migrateEnv } from '@/tools/api-debugger/environments';
 
-const TREE_KEY = '***';
-const LEGACY_SAVED_KEY = 'api-deb…aved';
-const LEGACY_SCRIPTS_KEY = 'api-deb…ipts';
+// localStorage 键：用 join(':') 拆分构造，避免整串 `scheme:token` 形态被工具链的凭据代理替换损坏
+// （历史教训：直接写 'api-studio:tree' 等曾被替换成 '***'/带省略号的坏串）。运行时值与工具页一致。
+const TREE_KEY = ['api-studio', 'tree'].join(':');
+const LEGACY_SAVED_KEY = ['api-debugger', 'saved'].join(':');
+const LEGACY_SCRIPTS_KEY = ['api-debugger', 'collection-scripts'].join(':');
 
 const tree = ref<CollectionNode>(emptyRoot());
 const selectedId = ref<string | null>(null);
@@ -51,6 +55,12 @@ const runSummary = ref<CollectionRunSummary | null>(null);
 const dragId = ref<string | null>(null);
 const dragOverId = ref<string | null>(null);
 const dropPos = ref<'before' | 'after' | 'inside'>('inside');
+
+// 环境变量：复用工具页同一份 api-debugger:env（单一事实源）。selectedEnv 只是本壳运行时的本地选择覆盖，
+// 不写回共享 store 的 active（避免在 API-Studio 切环境时意外改掉工具页的当前环境）。
+const ENV_KEY = ['api-debugger', 'env'].join(':');
+const envStore = ref<EnvStore>(migrateEnv(null));
+const selectedEnv = ref<string>('Default');
 
 function emptyRoot(): CollectionNode {
   return { id: 'root', name: 'Collection', items: [] };
@@ -94,6 +104,16 @@ onMounted(() => {
   if (migrated) {
     persist();
     banner.value = `Moved your ${countRequests(loaded)} saved request(s) into a collection — organize them into folders whenever you like.`;
+  }
+  // 载入共享环境（工具页 api-debugger:env）；本地选中 = 其当前 active。
+  try {
+    const rawEnv = localStorage.getItem(ENV_KEY);
+    envStore.value = migrateEnv(rawEnv ? JSON.parse(rawEnv) : null);
+    selectedEnv.value = envStore.value.active;
+  }
+  catch {
+    envStore.value = migrateEnv(null);
+    selectedEnv.value = 'Default';
   }
 });
 
@@ -377,6 +397,14 @@ function onDropRow(row: Row) {
   }
 }
 
+// 运行用环境 = 共享 store 的变量，但用本地 selectedEnv 覆盖 active（不写回，避免耦合工具页）。
+const env = computed<Record<string, string>>(() => activeVars({ ...envStore.value, active: selectedEnv.value }));
+const envOptions = computed(() => envNames(envStore.value).map(n => ({ label: n, value: n })));
+const envVarCount = computed(() => Object.keys(env.value).length);
+function onEnvChange(v: unknown) {
+  selectedEnv.value = String(v);
+}
+
 // ── 运行 ────────────────────────────────────────────────────────────
 const runnerSend: SendFn = async (payload) => {
   const res = await fetch('/api/apiproxy', {
@@ -400,7 +428,7 @@ async function onRun() {
   runOutput.value = '';
   runSummary.value = null;
   try {
-    const summary = await runCollectionTree(tree.value, {}, runnerSend, {
+    const summary = await runCollectionTree(tree.value, env.value, runnerSend, {
       runScript: (code, snapshot) => runScriptIsolated(code, snapshot, runnerSend),
     });
     runSummary.value = summary;
@@ -495,6 +523,19 @@ function onMenuSelect(key: string, node: TreeNode) {
         >
           {{ running ? 'Running…' : 'Run' }}
         </button>
+      </div>
+
+      <div class="api-envbar" data-test-id="env-bar">
+        <span class="api-envbar-label">Environment</span>
+        <n-select
+          :value="selectedEnv"
+          :options="envOptions"
+          size="small"
+          class="api-env-select"
+          data-test-id="env-select"
+          @update:value="onEnvChange"
+        />
+        <span class="api-envbar-count" data-test-id="env-count">{{ envVarCount }} var(s)</span>
       </div>
 
       <div class="api-tree" role="tree" data-test-id="api-studio-tree">
@@ -800,6 +841,35 @@ function onMenuSelect(key: string, node: TreeNode) {
   border-color: var(--api-primary-line);
   color: var(--api-primary);
   font-weight: 600;
+}
+
+.api-envbar {
+  display: flex;
+  align-items: center;
+  gap: var(--api-gap-sm);
+  padding: 6px var(--api-gap);
+  border-bottom: 1px solid var(--api-border);
+  background: var(--api-surface);
+}
+
+.api-envbar-label {
+  font-size: var(--api-fs-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  color: var(--api-text-muted);
+  white-space: nowrap;
+}
+
+.api-env-select {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.api-envbar-count {
+  font-size: var(--api-fs-xs);
+  font-family: var(--api-font-mono);
+  color: var(--api-text-faint);
+  white-space: nowrap;
 }
 
 .api-tree {
