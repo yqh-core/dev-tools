@@ -99,6 +99,14 @@ export function createAppRouter(history = createWebHistory(config.app.baseUrl)) 
         name: 'guide-article',
         component: () => import('./pages/GuideArticle.vue'),
       },
+      {
+        // API Studio：独立全屏产品壳（不走工具 chrome），自带深色主题。
+        // 非工具页 → 不进 TOOL_SEO_PAGES / 不预渲染（是 app 界面，不是 SEO 落地页）。
+        path: '/api-studio',
+        name: 'api-studio',
+        component: () => import('./pages/ApiStudio.page.vue'),
+        meta: { layout: layouts.apiStudio, name: 'api-studio' },
+      },
       ...toolsRoutes,
       ...toolsRedirectRoutes,
       ...(config.app.env === 'development' ? demoRoutes : []),
