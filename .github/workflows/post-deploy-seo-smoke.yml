@@ -10,7 +10,31 @@ permissions:
   checks: read
 
 jobs:
+  detect-site-changes:
+    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' }}
+    runs-on: ubuntu-latest
+    outputs:
+      wait_for_deploy: ${{ steps.detect.outputs.wait_for_deploy }}
+    steps:
+      - name: Detect whether this exact commit changes deployable site files
+        id: detect
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const sha = context.payload.workflow_run.head_sha;
+            const { data } = await github.rest.repos.getCommit({ owner, repo, ref: sha });
+            const files = data.files || [];
+            const deployable = files.filter(({ filename }) =>
+              !filename.startsWith('.github/') &&
+              !['README.md', 'CONTRIBUTING.md'].includes(filename)
+            );
+            core.info('Changed files: ' + files.map(file => file.filename).join(', '));
+            core.info('Deployable site files: ' + deployable.map(file => file.filename).join(', '));
+            core.setOutput('wait_for_deploy', deployable.length ? 'true' : 'false');
+
   production-smoke:
+    needs: detect-site-changes
     if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -26,6 +50,7 @@ jobs:
           TARGET_SHA: ${{ github.event.workflow_run.head_sha }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           GITHUB_TOKEN: ${{ github.token }}
+          WAIT_FOR_DEPLOY: ${{ needs.detect-site-changes.outputs.wait_for_deploy }}
         run: |
           node --input-type=module <<'NODE'
           const origin = process.env.SITE_ORIGIN;
@@ -36,8 +61,11 @@ jobs:
           const targetSha = process.env.TARGET_SHA;
           const checksUrl = 'https://api.github.com/repos/' + process.env.GITHUB_REPOSITORY +
             '/commits/' + targetSha + '/check-runs';
-          let cloudflareReady = false;
-          for (let attempt = 1; attempt <= 90; attempt++) {
+          let cloudflareReady = process.env.WAIT_FOR_DEPLOY !== 'true';
+          if (cloudflareReady) {
+            console.log('No deployable site files changed; validating current production without waiting for a new Cloudflare build');
+          }
+          for (let attempt = 1; !cloudflareReady && attempt <= 90; attempt++) {
             const response = await fetch(checksUrl, {
               headers: {
                 authorization: 'Bearer ' + process.env.GITHUB_TOKEN,
