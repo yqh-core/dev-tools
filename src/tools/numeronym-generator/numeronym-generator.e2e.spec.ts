@@ -6,12 +6,12 @@ test.describe('Tool - Numeronym generator', () => {
   });
 
   test('Has correct title', async ({ page }) => {
-    await expect(page).toHaveTitle('Numeronym generator - DigDevBox');
+    await expect(page).toHaveTitle('Numeronym Generator — i18n, a11y & k8s - DigDevBox');
   });
 
   test('a numeronym is generated when a word is entered', async ({ page }) => {
-    await page.getByTestId('word-input').fill('internationalization');
-    const numeronym = await page.getByTestId('numeronym').inputValue();
+    await page.getByTestId('word-input').locator('textarea').fill('internationalization');
+    const numeronym = await page.getByTestId('numeronym').locator('input').inputValue();
 
     expect(numeronym).toEqual('i18n');
   });
