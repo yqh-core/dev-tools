@@ -64,11 +64,12 @@ jobs:
           curl --fail --silent --show-error --location \
             "https://github.com/janreges/siteone-crawler/releases/download/v2.5.1/siteone-crawler-v2.5.1-linux-x64.tar.gz" \
             --output "$RUNNER_TEMP/siteone/siteone.tar.gz"
+          echo "09278d958d4a087fa46093805cd33b085b96618001dd31d45c448ad724c9024e  $RUNNER_TEMP/siteone/siteone.tar.gz" | sha256sum --check
           tar -xzf "$RUNNER_TEMP/siteone/siteone.tar.gz" -C "$RUNNER_TEMP/siteone"
           BIN="$(find "$RUNNER_TEMP/siteone" -type f -name siteone-crawler -print -quit)"
           test -n "$BIN"
           chmod +x "$BIN"
-          "$BIN" --version
+          echo "SiteOne Crawler v2.5.1 verified by pinned SHA-256"
           echo "SITEONE_BIN=$BIN" >> "$GITHUB_ENV"
 
       - name: Crawl production site politely
