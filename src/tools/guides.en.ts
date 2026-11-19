@@ -963,8 +963,8 @@ export const GUIDES: Record<string, ToolGuide> = {
   },
 
   '/numeronym-generator': {
-    intro: 'Builds numeronyms such as i18n and k8s — first letter, letter count, last letter.',
-    steps: ['Enter a long word to get its numeronym', 'Or type a known short form (k8s) to look it up', 'Copy and use it'],
+    intro: 'Generates numeronyms such as i18n, a11y and k8s from one word or a batch of words, and looks up established short forms.',
+    steps: ['Enter one English word or known short form per line', 'Use multiple lines to convert a batch at once', 'Copy the generated results or look up established forms such as k8s'],
     example: { label: 'Fill in a sample word', text: 'internationalization' },
     about: 'Numeronyms — a letter, a number, a word — were born from two hard constraints: telegraph billing and radio brevity. Internationalization (i18n) stuck because the number 18 fits between the letters without ambiguity; localization (l10n) copied the pattern. Not every shortening survives contact with readers: k8s for Kubernetes reads fine in a Slack thread, but d10n for decentralization never left a whitepaper. The rule of thumb experienced teams use: keep the word if readers already know the abbreviation, drop it if you have to explain it twice. This tool generates candidates by stripping the inner letters and counting them, which also exposes an ugly edge — words of 3 or 4 letters produce numeronyms indistinguishable from typos (a-b-c has nothing to count), so short words are worth leaving alone.',
     faqs: [
