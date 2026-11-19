@@ -173,7 +173,7 @@ jobs:
             if (!sitemap.body.includes(url)) throw new Error('sitemap missing ' + url);
           }
 
-          for (const path of ["/legacy/base64/"]) {
+          for (const path of ["/legacy/"]) {
             const result = await get(path);
             if (!result.response.ok || !result.body.includes('rel="canonical"')) {
               throw new Error(`${path}: expected HTTP 200 and canonical metadata, got ${result.response.status}`);
