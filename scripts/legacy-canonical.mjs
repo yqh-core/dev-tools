@@ -54,11 +54,11 @@ const errors = [];
 for (const e of entries) {
   if (!e.isDirectory()) continue;
   const file = join(LEGACY, e.name, 'index.html');
-  let html;
-  try { html = await readFile(file, 'utf8'); } catch { continue; }
+  let originalHtml;
+  try { originalHtml = await readFile(file, 'utf8'); } catch { continue; }
   // 统一 legacy 页内所有指向主站的绝对链接，避免 sitemap/canonical 修正后
   // 正文导航仍先请求裸域再跳转到 www。
-  html = html.replaceAll('https://digdevbox.com', 'https://www.digdevbox.com');
+  let html = originalHtml.replaceAll('https://digdevbox.com', 'https://www.digdevbox.com');
 
   // —— 目标 URL 判定 ——
   let target;
@@ -103,7 +103,7 @@ for (const e of entries) {
     next = next.replace(/(<link[^>]+rel="canonical"[^>]*>)/i, `$1\n${wantOg}`);
   }
 
-  if (next !== html) {
+  if (next !== originalHtml) {
     if (!DRY) await writeFile(file, next, 'utf8');
   }
 }
