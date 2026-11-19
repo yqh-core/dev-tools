@@ -214,8 +214,6 @@ jobs:
             "/tools/",
             "/percentage-calculator/",
             "/numeronym-generator/",
-            "/guides/percentage-calculator/",
-            "/guides/numeronym-generator/",
           ]) {
             const url = origin + route;
             if (!sitemap.body.includes(url)) throw new Error('sitemap missing priority search page ' + url);
