@@ -16,6 +16,11 @@ test.describe('Tool - Numeronym generator', () => {
     expect(numeronym).toEqual('i18n');
   });
 
+  test('converts multiple words one per line and provides copyable results', async ({ page }) => {
+    await page.getByTestId('word-input').fill('internationalization\naccessibility\nkubernetes');
+    await expect(page.getByTestId('batch-numeronyms').locator('input')).toHaveValue('i18n\na11y\nk8s');
+  });
+
   test('when a word has 3 letters or less, the numeronym is the word itself', async ({ page }) => {
     await page.getByTestId('word-input').fill('abc');
     const numeronym = await page.getByTestId('numeronym').inputValue();
