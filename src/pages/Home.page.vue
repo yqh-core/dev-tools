@@ -419,14 +419,14 @@ function onUpdateFavoriteTools() {
           <ColoredCard v-if="config.showBanner" :title="$t('home.follow.title')" :icon="IconHeart">
             {{ $t('home.follow.p1') }}
             <a
-              href="https://digdevbox.com/"
+              href="https://www.digdevbox.com/"
               rel="noopener"
               target="_blank"
               :aria-label="$t('home.follow.githubRepository')"
             >DigDevBox</a>
             {{ $t('home.follow.p2') }}
             <a
-              href="https://digdevbox.com/"
+              href="https://www.digdevbox.com/"
               rel="noopener"
               target="_blank"
               :aria-label="$t('home.follow.twitterXAccount')"
@@ -540,11 +540,12 @@ function onUpdateFavoriteTools() {
         -->
         <a
           class="home-practice-inline"
-          href="https://geek-typing.digdevbox.com/"
+          href="https://draw.digdevbox.com/"
           target="_blank"
           rel="noopener"
+          aria-label="Explore ImageForge, a browser-based image editor"
         >
-          {{ $t('home.practice.title') }} — {{ $t('home.practice.subtitle') }} →
+          ImageForge — edit images in your browser with local-first processing →
         </a>
 
         <!--
