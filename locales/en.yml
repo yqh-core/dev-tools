@@ -244,8 +244,8 @@ tools:
       copy: Copy
       refresh: Refresh
   percentage-calculator:
-    title: Percentage Calculator — % of, % Change & More
-    description: Calculate X% of Y, find what percent X is of Y, measure percentage change, or increase and decrease a value by a percent. Free, instant results in your browser.
+    title: Percentage Calculator — % of, % Change & Discounts
+    description: Find X% of Y, compare two values, calculate percentage change, and apply percentage increases or discounts. Four live calculators with instant results, free in your browser.
 
   svg-placeholder-generator:
     title: SVG placeholder generator
