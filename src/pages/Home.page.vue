@@ -14,6 +14,8 @@ import { useFuzzySearch } from '@/composable/fuzzySearch';
 import { TOOL_CLUSTERS } from '@/seo/clusters';
 import { config } from '@/config';
 import { usePageSeo } from '@/seo/use-page-seo';
+import { applySearchParam, readSearchParam } from '@/pages/home-search';
+import SponsorSlot from '@/components/SponsorSlot.vue';
 
 // [B3-experiment E3] vuedraggable(+sortablejs) 静态导入会随 Home 进主 chunk ——
 // 而拖拽 UI 只在 `v-if="favoriteTools.length > 0"`（纯客户端 localStorage，SSR 恒为假）
@@ -100,6 +102,31 @@ const matchedTools = computed<ToolWithCategory[]>(() =>
 );
 
 const isSearching = computed(() => searchQuery.value.trim().length > 0);
+
+const route = useRoute();
+const router = useRouter();
+let searchSyncReady = false;
+
+onMounted(() => {
+  const fromUrl = readSearchParam(route.query as Record<string, unknown>);
+  if (fromUrl) {
+    searchQuery.value = fromUrl;
+  }
+  nextTick(() => {
+    searchSyncReady = true;
+  });
+});
+
+watch(searchQuery, (value) => {
+  if (!searchSyncReady) {
+    return;
+  }
+  const current = readSearchParam(route.query as Record<string, unknown>);
+  if (value.trim() === current.trim()) {
+    return;
+  }
+  router.replace({ query: applySearchParam(route.query as Record<string, unknown>, value) as Record<string, string> });
+});
 
 /**
  * 常用工具（Start Here / Popular Tools）—— 12 个，按真实搜索意图排序（P1 重排扩容，对齐参考站范式）。
@@ -189,7 +216,7 @@ assertPopularToolPaths(POPULAR_TOOL_PATHS, toolsWithCategory);
  *
  * ⚠ 新增任何会发外部请求的工具，必须同步加到这里，否则首页的隐私声明就是假的。
  */
-const NETWORK_TOOL_PATHS = ['/whois-lookup', '/http-status-checker', '/today-in-history'];
+const NETWORK_TOOL_PATHS = ['/whois-lookup', '/http-status-checker'];
 
 const networkTools = computed(() =>
   NETWORK_TOOL_PATHS
@@ -355,6 +382,19 @@ function onUpdateFavoriteTools() {
         <p class="home-hero-subtitle">
           {{ $t('home.hero.subtitle', { count: toolStore.tools.length }) }}
         </p>
+        <div class="hero-cats" aria-label="Categories">
+          <RouterLink
+            v-for="cat in categoriesPreview.slice(0, 8)"
+            :key="cat.name"
+            class="hero-cat"
+            :style="{ '--cluster-hue': cat.hue }"
+            :to="cat.sampleTools[0]?.path || '/tools'"
+          >
+            <n-icon :component="cat.icon" size="16" />
+            <span>{{ cat.name }}</span>
+          </RouterLink>
+        </div>
+
         <ul class="hero-badges">
           <li class="hero-badge hero-badge-strong">
             {{ t('home.hero.badgeFree') }}
@@ -384,6 +424,7 @@ function onUpdateFavoriteTools() {
               :placeholder="t('search.placeholder')"
               :aria-label="t('search.inputLabel')"
             >
+            <kbd class="search-kbd">{{ t('search.shortcut') }}</kbd>
             <button
               v-if="isSearching"
               class="search-clear"
@@ -415,6 +456,53 @@ function onUpdateFavoriteTools() {
       </div>
 
       <template v-if="!isSearching">
+        <transition name="height">
+          <div v-if="toolStore.favoriteTools.length > 0">
+            <h3 class="mb-5px mt-25px text-neutral-600 font-500 dark:text-neutral-400">
+              {{ $t('home.categories.favoriteTools') }}
+              <c-tooltip :tooltip="$t('home.categories.favoritesDndToolTip')">
+                <n-icon :component="IconDragDrop" size="18" />
+              </c-tooltip>
+            </h3>
+            <Draggable
+              :list="favoriteTools"
+              class="grid grid-cols-1 gap-12px lg:grid-cols-3 md:grid-cols-3 sm:grid-cols-2 xl:grid-cols-4"
+              ghost-class="ghost-favorites-draggable"
+              item-key="name"
+              @end="onUpdateFavoriteTools"
+            >
+              <template #item="{ element: tool }">
+                <ToolCard :tool="tool" />
+              </template>
+            </Draggable>
+          </div>
+        </transition>
+
+        <div v-if="toolStore.recentTools.length > 0">
+          <h3 class="mb-5px mt-25px text-neutral-600 font-500 dark:text-neutral-400">
+            {{ t('home.categories.recentTools') }}
+            <button
+              class="cat-action"
+              type="button"
+              @click="toolStore.clearRecentTools()"
+            >
+              {{ t('home.categories.clearRecent') }}
+            </button>
+          </h3>
+          <div class="grid grid-cols-1 gap-12px lg:grid-cols-3 md:grid-cols-3 sm:grid-cols-2 xl:grid-cols-4">
+            <ToolCard v-for="tool in toolStore.recentTools" :key="tool.path" :tool="tool" />
+          </div>
+        </div>
+
+        <div v-if="toolStore.newTools.length > 0">
+          <h3 class="mb-5px mt-25px text-neutral-600 font-500 dark:text-neutral-400">
+            {{ t('home.categories.newestTools') }}
+          </h3>
+          <div class="grid grid-cols-1 gap-12px lg:grid-cols-3 md:grid-cols-3 sm:grid-cols-2 xl:grid-cols-4">
+            <ToolCard v-for="tool in toolStore.newTools" :key="tool.name" :tool="tool" />
+          </div>
+        </div>
+
         <div class="grid grid-cols-1 gap-12px lg:grid-cols-3 md:grid-cols-3 sm:grid-cols-2 xl:grid-cols-4">
           <ColoredCard v-if="config.showBanner" :title="$t('home.follow.title')" :icon="IconHeart">
             {{ $t('home.follow.p1') }}
@@ -449,6 +537,8 @@ function onUpdateFavoriteTools() {
             <ToolCard v-for="tool in popularTools" :key="tool.path" :tool="tool" />
           </div>
         </section>
+
+        <SponsorSlot placement="home" />
 
         <!--
           Browse by category（P1 重排 · 2026-10-13）：
@@ -613,58 +703,6 @@ function onUpdateFavoriteTools() {
           </div>
         </section>
 
-        <transition name="height">
-          <div v-if="toolStore.favoriteTools.length > 0">
-            <h3 class="mb-5px mt-25px text-neutral-600 font-500 dark:text-neutral-400">
-              {{ $t('home.categories.favoriteTools') }}
-              <c-tooltip :tooltip="$t('home.categories.favoritesDndToolTip')">
-                <n-icon :component="IconDragDrop" size="18" />
-              </c-tooltip>
-            </h3>
-            <Draggable
-              :list="favoriteTools"
-              class="grid grid-cols-1 gap-12px lg:grid-cols-3 md:grid-cols-3 sm:grid-cols-2 xl:grid-cols-4"
-              ghost-class="ghost-favorites-draggable"
-              item-key="name"
-              @end="onUpdateFavoriteTools"
-            >
-              <template #item="{ element: tool }">
-                <ToolCard :tool="tool" />
-              </template>
-            </Draggable>
-          </div>
-        </transition>
-
-        <!--
-          最近使用：纯客户端 localStorage，不需要登录。
-          首次访问没有数据（v-if 为假），不影响 SSG 预渲染出的初始 HTML，
-          因此不会给「不执行 JS 的抓取器」看到一个空标题。
-        -->
-        <div v-if="toolStore.recentTools.length > 0">
-          <h3 class="mb-5px mt-25px text-neutral-600 font-500 dark:text-neutral-400">
-            {{ t('home.categories.recentTools') }}
-            <button
-              class="cat-action"
-              type="button"
-              @click="toolStore.clearRecentTools()"
-            >
-              {{ t('home.categories.clearRecent') }}
-            </button>
-          </h3>
-          <div class="grid grid-cols-1 gap-12px lg:grid-cols-3 md:grid-cols-3 sm:grid-cols-2 xl:grid-cols-4">
-            <ToolCard v-for="tool in toolStore.recentTools" :key="tool.path" :tool="tool" />
-          </div>
-        </div>
-
-        <div v-if="toolStore.newTools.length > 0">
-          <h3 class="mb-5px mt-25px text-neutral-600 font-500 dark:text-neutral-400">
-            {{ t('home.categories.newestTools') }}
-          </h3>
-          <div class="grid grid-cols-1 gap-12px lg:grid-cols-3 md:grid-cols-3 sm:grid-cols-2 xl:grid-cols-4">
-            <ToolCard v-for="tool in toolStore.newTools" :key="tool.name" :tool="tool" />
-          </div>
-        </div>
-
         <!--
           分类浏览矩阵（P1 重排 · 2026-10-13 迁出）：
           全量工具内链已迁至 /tools 目录页（ToolsCatalog.vue），该页承接
@@ -704,13 +742,13 @@ function onUpdateFavoriteTools() {
   .home-hero-title {
     margin: 0 0 8px;
 
-    font-size: 30px;
-    font-weight: 700;
-    line-height: 1.2;
-    letter-spacing: -0.01em;
+    font-size: 36px;
+    font-weight: 720;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
 
     @media (min-width: 640px) {
-      font-size: 40px;
+      font-size: 56px;
     }
   }
 
@@ -725,6 +763,33 @@ function onUpdateFavoriteTools() {
 }
 
 /* S2：badge 行。真实能力三条（Free / No signup / 计数），不放 browser-only。 */
+.hero-cats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 18px 0 4px;
+}
+
+.hero-cat {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border: 1px solid hsl(var(--cluster-hue) 40% 80%);
+  border-radius: 999px;
+  background: hsl(var(--cluster-hue) 70% 96%);
+  color: hsl(var(--cluster-hue) 40% 24%);
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+
+  .dark & {
+    border-color: hsl(var(--cluster-hue) 30% 28%);
+    background: hsl(var(--cluster-hue) 24% 16%);
+    color: hsl(var(--cluster-hue) 70% 78%);
+  }
+}
+
 .hero-badges {
   display: flex;
   flex-wrap: wrap;
@@ -1093,6 +1158,17 @@ function onUpdateFavoriteTools() {
     &::-webkit-search-cancel-button {
       display: none;
     }
+  }
+
+  .search-kbd {
+    flex: none;
+    padding: 2px 7px;
+    border: 1px solid var(--dd-border);
+    border-radius: 6px;
+    background: var(--dd-surface);
+    color: var(--dd-text-muted);
+    font-family: inherit;
+    font-size: 11px;
   }
 
   .search-clear {

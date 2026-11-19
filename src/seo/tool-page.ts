@@ -24,6 +24,7 @@ import { GUIDES } from '@/tools/guides.en';
 import { GUIDES as GUIDES_ZH } from '@/tools/guides.zh';
 import type { ToolGuide } from '@/tools/guides.types';
 import { toolsWithCategory } from '@/tools';
+import { RETIRED_PATHS } from '@/tools/retired';
 
 export interface ToolSeoEntry {
   /** 工具路由，不带尾斜杠，如 `/uuid-generator`。 */
@@ -183,7 +184,7 @@ export function auditToolSeoData() {
   // （改过工具 path 却忘了改说明 → 该工具的使用说明会静默失效）。
   // 两份语言各查一遍。
   for (const [lang, table] of [['en', GUIDES], ['zh', GUIDES_ZH]] as const) {
-    const staleKeys = Object.keys(table).filter(key => !BY_PATH.has(key));
+    const staleKeys = Object.keys(table).filter(key => !BY_PATH.has(key) && !RETIRED_PATHS.has(key));
     if (staleKeys.length > 0) {
       throw new Error(
         `[seo/tool-page] src/tools/guides.${lang}.ts 存在与任何工具路径都不匹配的 key: ${staleKeys.join(', ')}`,

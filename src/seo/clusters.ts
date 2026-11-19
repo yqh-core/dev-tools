@@ -96,16 +96,6 @@ export const TOOL_CLUSTERS: ToolCluster[] = [
     ],
   },
   {
-    // 「写网页内容」这件事的两种入口：Markdown 源码 → HTML，或可视化编辑器 → HTML。
-    // F5-02 Group B 修复：两者此前均无簇，靠同分类兜底又排在 Converter/Web 头部 6 名之外，
-    // 导致 R=W=0。放进同一小簇即互为相关工具。
-    id: 'web-content',
-    members: [
-      '/markdown-to-html',
-      '/html-wysiwyg-editor',
-    ],
-  },
-  {
     id: 'jwt',
     members: [
       '/jwt-parser',
@@ -150,7 +140,6 @@ export const TOOL_CLUSTERS: ToolCluster[] = [
     id: 'numeric',
     members: [
       '/base-converter',
-      '/roman-numeral-converter',
       '/rmb-uppercase',
       '/ascii-table',
     ],
@@ -171,7 +160,6 @@ export const TOOL_CLUSTERS: ToolCluster[] = [
     members: [
       '/iban-validator-and-parser',
       '/phone-parser-and-formatter',
-      '/email-normalizer',
     ],
   },
   {
@@ -183,8 +171,6 @@ export const TOOL_CLUSTERS: ToolCluster[] = [
       '/image-crop',
       '/image-to-pdf',
       '/favicon-generator',
-      '/svg-placeholder-generator',
-      '/camera-recorder',
     ],
   },
   {
@@ -241,6 +227,7 @@ export const TOOL_CLUSTERS: ToolCluster[] = [
       '/safelink-decoder',
       '/slugify-string',
       '/html-entities',
+      '/og-meta-generator',
     ],
   },
   {
@@ -262,7 +249,6 @@ export const TOOL_CLUSTERS: ToolCluster[] = [
       '/ipv4-subnet-calculator',
       '/ipv4-range-expander',
       '/ipv4-address-converter',
-      '/ipv6-ula-generator',
       '/mac-address-generator',
       '/mac-address-lookup',
       '/whois-lookup',
@@ -291,9 +277,6 @@ export const TOOL_CLUSTERS: ToolCluster[] = [
     members: [
       '/text-to-unicode',
       '/text-to-binary',
-      '/text-to-nato-alphabet',
-      '/morse-code-converter',
-      '/numeronym-generator',
       '/ascii-text-drawer',
     ],
   },
@@ -305,7 +288,6 @@ export const TOOL_CLUSTERS: ToolCluster[] = [
       '/fullwidth-converter',
       '/text-replacer',
       '/list-converter',
-      '/string-obfuscator',
       '/text-statistics',
     ],
   },
@@ -315,6 +297,7 @@ export const TOOL_CLUSTERS: ToolCluster[] = [
     members: [
       '/text-diff',
       '/lorem-ipsum-generator',
+      '/markdown-to-html',
     ],
   },
   {
@@ -323,7 +306,6 @@ export const TOOL_CLUSTERS: ToolCluster[] = [
       '/date-converter',
       '/unix-timestamp-converter',
       '/eta-calculator',
-      '/chronometer',
     ],
   },
 ];
@@ -339,11 +321,8 @@ export const TOOL_CLUSTERS: ToolCluster[] = [
  * 新增条目的门槛：全站 116 个工具里确实找不到同任务伙伴，而不是「暂时没想好放哪」。
  */
 export const STANDALONE_ALLOWLIST: ReadonlySet<string> = new Set([
-  // JS 键盘事件码实时查询器：全站唯一一件「按下一个键读 keyCode/code/修饰键」的工具，
-  // 没有别的键码 / 事件调试器与之同任务。
-  '/keycode-info',
-  // 「历史上的今天」：联网资讯型工具，与任何开发者换算 / 转换 / 编码任务都不同源。
-  '/today-in-history',
+  // 2026-11-18：keycode-info 与 today-in-history 已下线并 301。
+  // 剩下的工具都能从簇或同分类相关链接拿到入口，白名单保持为空。
 ]);
 
 /** 主簇索引：path → 第一个包含它的簇（多归属时的取值规则，见文件头）。 */

@@ -101,32 +101,12 @@ const NO_EXAMPLE_WHITELIST = [
     why: '同上：唯一必需输入是文件上传，其余为 n-select/n-slider/n-input-number 参数，无文本示例可填',
   },
   {
-    path: '/camera-recorder',
-    why: '无任何输入控件：findPrimaryInput() 返回 null（探测 mode=no-input），页面只有 Start webcam 按钮',
-  },
-  {
-    path: '/chronometer',
-    why: '无任何输入控件：findPrimaryInput() 返回 null（探测 mode=no-input），只有 Start / Reset 按钮',
-  },
-  {
-    path: '/reaction-time-test',
-    why: '交互即点击/键盘时序本身：findPrimaryInput() 返回 null（mode=no-input），无可写文本控件；配 example 会成死按钮',
-  },
-  {
     path: '/device-information',
     why: '无任何输入控件：findPrimaryInput() 返回 null（探测 mode=no-input），纯只读展示',
   },
   {
     path: '/git-memo',
     why: '无任何输入控件：findPrimaryInput() 返回 null（探测 mode=no-input），纯只读速查表',
-  },
-  {
-    path: '/html-wysiwyg-editor',
-    why: '编辑器是 contenteditable（Tiptrap），不是 input/textarea —— findPrimaryInput() 的选择器命中不到（探测 mode=no-input）',
-  },
-  {
-    path: '/keycode-info',
-    why: '靠全局 keydown 事件捕获按键，没有输入框（探测 mode=no-input）',
   },
   {
     path: '/mime-types',
@@ -161,16 +141,8 @@ const NO_EXAMPLE_WHITELIST = [
     why: '文件上传型（c-file-upload 单选 PDF），其余控件只有档位 radio-group，findPrimaryInput() 不命中（探测 mode=no-input）',
   },
   {
-    path: '/random-port-generator',
-    why: '无任何输入控件：findPrimaryInput() 返回 null（探测 mode=no-input），只有 Copy / Refresh 按钮',
-  },
-  {
     path: '/regex-memo',
     why: '无任何输入控件：findPrimaryInput() 返回 null（探测 mode=no-input），纯静态正则速查表',
-  },
-  {
-    path: '/today-in-history',
-    why: '无任何输入控件：findPrimaryInput() 返回 null（探测 mode=no-input），打开即自动加载，只有重新加载按钮',
   },
   {
     path: '/chmod-calculator',
@@ -300,7 +272,8 @@ const CHECKS = [
     id: 'E1',
     name: 'example 覆盖率',
     run() {
-      const missing = ALL.filter(p => !GUIDES[p].example && !WHITELIST_PATHS.has(p));
+      const live = new Set(TOOL_PATHS);
+      const missing = ALL.filter(p => live.has(p) && !GUIDES[p].example && !WHITELIST_PATHS.has(p));
       return {
         problems: missing.map(p => `E1 缺 example 且未登记白名单：${p}（新增工具请补 example，或在 NO_EXAMPLE_WHITELIST 里写清 why）`),
       };
@@ -621,9 +594,9 @@ const MUTATIONS = [
     desc: '删掉一个有 example 的工具的 example 行 → E1 应判红',
     async apply() {
       const orig = await readFile(TARGETS.EN, 'utf8');
-      const next = mutateEntry(orig, '/benchmark-builder', () => '    example: undefined,');
+      const next = mutateEntry(orig, '/hash-text', () => '    example: undefined,');
       // 直接删掉整行更贴近真实「忘记写」
-      const { eol, lines, start, end } = readEntryBlock(next, '/benchmark-builder');
+      const { eol, lines, start, end } = readEntryBlock(next, '/hash-text');
       const idx = lines.findIndex((l, i) => i > start && i < end && /^\s{4}example: /.test(l));
       lines.splice(idx, 1);
       await writeFile(TARGETS.EN, lines.join(eol), 'utf8');
@@ -634,10 +607,10 @@ const MUTATIONS = [
     id: 'M2',
     check: 'E2',
     expect: 'E2 白名单条目已补 example',
-    desc: '给白名单里的 /random-port-generator 补上 example → E2 应判红',
+    desc: '给白名单里的 /regex-memo 补上 example → E2 应判红',
     async apply() {
       const orig = await readFile(TARGETS.EN, 'utf8');
-      const next = mutateEntry(orig, '/random-port-generator', () => "    example: { label: 'Fill in sample text', text: 'hello' },");
+      const next = mutateEntry(orig, '/regex-memo', () => "    example: { label: 'Fill in sample text', text: 'hello' },");
       await writeFile(TARGETS.EN, next, 'utf8');
       return async () => writeFile(TARGETS.EN, orig, 'utf8');
     },
@@ -649,7 +622,7 @@ const MUTATIONS = [
     desc: '把 example.text 改成空串 → E3 应判红',
     async apply() {
       const orig = await readFile(TARGETS.EN, 'utf8');
-      const next = mutateEntry(orig, '/benchmark-builder', () => "    example: { label: 'Fill in a sample suite name', text: '' },");
+      const next = mutateEntry(orig, '/hash-text', () => "    example: { label: 'Fill in a sample suite name', text: '' },");
       await writeFile(TARGETS.EN, next, 'utf8');
       return async () => writeFile(TARGETS.EN, orig, 'utf8');
     },
@@ -661,7 +634,7 @@ const MUTATIONS = [
     desc: '把 example.text 改成含弯引号的 JSON → E3 应判红',
     async apply() {
       const orig = await readFile(TARGETS.EN, 'utf8');
-      const next = mutateEntry(orig, '/benchmark-builder', () => '    example: { label: \'Fill in sample JSON\', text: \'{"name":"“Alice”"}\' },');
+      const next = mutateEntry(orig, '/hash-text', () => '    example: { label: \'Fill in sample JSON\', text: \'{"name":"“Alice”"}\' },');
       await writeFile(TARGETS.EN, next, 'utf8');
       return async () => writeFile(TARGETS.EN, orig, 'utf8');
     },
@@ -674,7 +647,7 @@ const MUTATIONS = [
     async apply() {
       const orig = await readFile(TARGETS.EN, 'utf8');
       const long = 'x'.repeat(300);
-      const next = mutateEntry(orig, '/benchmark-builder', () => `    example: { label: 'Fill in sample text', text: '${long}' },`);
+      const next = mutateEntry(orig, '/hash-text', () => `    example: { label: 'Fill in sample text', text: '${long}' },`);
       await writeFile(TARGETS.EN, next, 'utf8');
       return async () => writeFile(TARGETS.EN, orig, 'utf8');
     },
@@ -686,10 +659,10 @@ const MUTATIONS = [
     desc: '只留 en 侧的 example（删掉 zh 的）→ E4 应判红',
     async apply() {
       const orig = await readFile(TARGETS.ZH, 'utf8');
-      const { eol, lines, start, end } = readEntryBlock(orig, '/benchmark-builder');
+      const { eol, lines, start, end } = readEntryBlock(orig, '/hash-text');
       const idx = lines.findIndex((l, i) => i > start && i < end && /^\s{4}example: /.test(l));
       if (idx < 0) {
-        throw new Error('M6 前置失败：/benchmark-builder 在 zh 里没有 example 行');
+        throw new Error('M6 前置失败：/hash-text 在 zh 里没有 example 行');
       }
       lines.splice(idx, 1);
       await writeFile(TARGETS.ZH, lines.join(eol), 'utf8');

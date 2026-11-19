@@ -18,7 +18,7 @@ const props = withDefaults(
     language?: string
     copyPlacement?: 'top-right' | 'bottom-right' | 'outside' | 'none'
     copyMessage?: string
-    /** 是否在复制按钮旁边再给一个「下载」按钮。默认关，避免动到已有 25 个调用方的版面。 */
+    /** 复制按钮旁边的下载。默认开：格式化/转换类输出都应该能存成文件。 */
     downloadable?: boolean
     /** 下载文件名（不含扩展名时按 language 自动补） */
     downloadFilename?: string
@@ -32,7 +32,7 @@ const props = withDefaults(
     language: 'txt',
     copyPlacement: 'top-right',
     copyMessage: 'Copy to clipboard',
-    downloadable: false,
+    downloadable: true,
     downloadFilename: 'download',
     downloadMimeType: undefined,
     downloadTestId: 'download-button',
@@ -71,7 +71,9 @@ function handleDownload() {
 <template>
   <div style="overflow-x: hidden; width: 100%">
     <c-card relative>
+      <pre v-if="value.length > 100000" class="plain-output" data-test-id="area-content">{{ value }}</pre>
       <n-scrollbar
+        v-else
         x-scrollable
         trigger="none"
         :style="height ? `min-height: ${height - 40 /* card padding */ + 10 /* negative margin compensation */}px` : ''"
@@ -105,5 +107,15 @@ function handleDownload() {
 ::v-deep(.n-scrollbar) {
   padding-bottom: 10px;
   margin-bottom: -10px;
+}
+
+.plain-output {
+  max-height: 480px;
+  overflow: auto;
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: var(--dd-font-mono, ui-monospace, monospace);
+  font-size: 13px;
 }
 </style>

@@ -14,20 +14,20 @@ home:
     # S2 裁定：不笼统宣称 browser-only（whois/http-status-checker/today-in-history 需联网）。
     # browser 能力表述只允许带限定语（by default / a few require a network query），
     # 与首页 Privacy 区块的分层声明同口径。
-    subtitle: "Format JSON, decode JWTs, test regex, convert data and debug HTTP — {count} developer tools for real workflows. Tools run locally in your browser by default; a few require a network query."
+    subtitle: "Format JSON, decode a JWT, test a regex, or turn a timestamp into a date. {count} tools, no account. They run in your browser unless a tool says it has to send a request."
     badgeFree: "Free"
     badgeNoSignup: "No signup"
     badgeTools: "{count} tools"
     cta: "Browse all tools"
   why:
     title: "Why DigDevBox"
-    point1: "Fast: tools load in your browser with no round trip to a server."
-    point2: "Private: your input stays on your machine for every tool that can work locally."
-    point3: "No signup: no account, no email, no paywall — open a tool and use it."
-    point4: "Browser based: nothing to install, nothing to configure."
+    point1: "Open a tool and use it. No install, no account."
+    point2: "When a tool can work on this machine, your input stays here."
+    point3: "Two tools have to send a request. They are named in the privacy section."
+    point4: "Copy or download the result. A sponsor slot, if you see one, sits outside it."
   privacy:
     title: "Privacy: where your data goes"
-    local: "Every tool runs locally in your browser by default. What you paste is not uploaded, and there is no account that could be linked to it. No save-to-server — nothing you paste is stored or published by the site; optional share links carry data in the link itself, so tokens and keys stay yours unless you choose to share them."
+    local: "Most tools run in your browser. What you paste is not uploaded, and there is no account to tie it to. If you share a link, the data rides in that link, so only send it to someone you trust."
     networkIntro: "These tools are the exception — they have to query a third-party service to return a result at all:"
   blog:
     title: "From the blog"
@@ -89,7 +89,7 @@ about:
     ## What we commit to
 
     1. **Everything runs in your browser.** Text, files, keys and passwords are processed locally and are
-       never uploaded or stored — the three tools that must ask someone else are named right below.
+       never uploaded or stored — the two tools that must ask someone else are named right below.
     2. **We collect nothing about you.** No account, no sign-in, no paywall, and no feature kept behind one.
     3. **Free to use, and ads never touch a result.** Pages carry Google AdSense; the ad code has no input
        into any calculation, and no tool's output changes because you did or did not click an ad.
@@ -100,13 +100,12 @@ about:
 
     Every tool does its work in your browser. The text, files, keys and passwords you paste are processed locally — they are not uploaded and not stored.
 
-    Three tools are the exception, because they cannot answer without asking someone else:
+    Two tools are the exception, because they cannot answer without asking someone else:
 
     - [WHOIS lookup](/whois-lookup) queries the domain registry
     - [HTTP status checker](/http-status-checker) requests the URL you enter
-    - [Today in history](/today-in-history) reads a public dataset
 
-    Those send the value you typed to a third-party service in order to produce a result. Everything else stays on your machine.
+    Those send the value you typed to this site's own service in order to produce a result. Everything else stays on your machine.
 
     There is no account, no sign-up, no paywall, and no server-side copy of what you are working on.
 
@@ -187,6 +186,18 @@ search:
   clear: 'Clear search'
   found: 'Found {count} tools matching "{query}"'
   empty: 'No tools match "{query}". Try another wording, such as "format", "convert" or "generate".'
+  shortcut: 'Ctrl/⌘ K'
+  palettePlaceholder: 'Search tools and commands'
+intake:
+  upload: Upload file
+  url: From URL
+  urlPlaceholder: https://example.com/data.json
+  load: Load
+  tooBig: That file is over 2 MB. Use a smaller excerpt.
+  urlFail: Couldn't load that URL in the browser. Download the file and upload it instead.
+  loaded: Loaded {name}
+  noInput: This tool has no text field to fill.
+  drop: Or drop a text file on the tool.
 tools:
   categories:
     favorite-tools: 'Your favorite tools'
@@ -203,7 +214,7 @@ tools:
 
   password-strength-analyser:
     title: Password strength analyser
-    description: Discover the strength of your password with this client-side-only password strength analyser and crack time estimation tool.
+    description: See which rules a password fails, and a rough guess of how long it might take to crack. The check stays in this browser.
 
   chronometer:
     title: Chronometer
@@ -215,7 +226,7 @@ tools:
 
   password-generator:
     title: Password Generator
-    description: Generate strong, secure random passwords online — pick the length (8-128) and character sets, with a cryptographic random source. Ambiguous characters (Il1O0) excluded by default, nothing leaves your browser.
+    description: Pick a length and the characters you want. Ambiguous letters (Il1O0) are left out unless you ask for them. Generated here, not on a server.
 
     uppercase: Uppercase (ABC...)
     lowercase: Lowercase (abc...)
@@ -231,7 +242,7 @@ tools:
 
   token-generator:
     title: Token Generator
-    description: Generate random tokens and strings online — pick the length (1-512) and character set (uppercase, lowercase, digits, symbols). Free, instant, nothing leaves your browser.
+    description: A random string, 1 to 512 characters, from the sets you tick. Useful for tokens and fixtures. It is generated in this browser.
 
     uppercase: Uppercase (ABC...)
     lowercase: Lowercase (abc...)
@@ -253,10 +264,10 @@ tools:
 
   json-to-csv:
     title: JSON to CSV
-    description: Convert JSON to CSV with automatic header detection.
+    description: Paste a JSON array of objects and get CSV, with headers taken from the keys.
   csv-to-json:
     title: CSV to JSON
-    description: Convert CSV to a JSON array with quoted fields, real newlines and duplicate-column safeguards.
+    description: Paste CSV, get a JSON array. Quoted fields and line breaks inside cells are kept. Duplicate column names are called out.
 
   camera-recorder:
     title: Camera Recorder
@@ -272,11 +283,11 @@ tools:
 
   color-converter:
     title: Color converter
-    description: Convert color between the different formats (hex, rgb, hsl and css name)
+    description: Move a color between hex, RGB, HSL, HWB, LCH, CMYK, and a CSS name. The swatch updates as you type.
 
   bcrypt:
     title: Bcrypt
-    description: Hash and compare text string using bcrypt. Bcrypt is a password-hashing function based on the Blowfish cipher.
+    description: Hash a password with bcrypt, or check a hash you already have. The work happens in this browser, so don't paste a production secret you wouldn't type into a local terminal.
 
   crontab-generator:
     title: Crontab Generator — Cron Expressions with Plain-English Preview
@@ -288,7 +299,7 @@ tools:
 
   sql-prettify:
     title: SQL Formatter — Format and Beautify SQL Online
-    description: Paste a messy SQL query and get it formatted — or minified to one line. Keywords upper-cased, clauses indented, one field per line. Supports PostgreSQL, MySQL, T-SQL, BigQuery and 8 more dialects, free in your browser.
+    description: Paste a messy query. Get it indented, or squeezed to one line. PostgreSQL, MySQL, T-SQL, BigQuery, and other dialects. A syntax error is shown instead of a blank box.
 
   benchmark-builder:
     title: Benchmark builder
@@ -312,7 +323,7 @@ tools:
 
   yaml-prettify:
     title: YAML Formatter & Validator — Format YAML Online
-    description: Format and validate YAML online — fix indentation, catch tabs and syntax errors before kubectl or CI rejects your config. Free, runs in your browser.
+    description: Fix YAML indentation before kubectl or CI rejects it. Tabs and syntax errors are reported with a line and column.
 
   eta-calculator:
     title: ETA Calculator
@@ -340,7 +351,7 @@ tools:
 
   base64-string-converter:
     title: Base64 Encoder & Decoder — Padding, URL-Safe, Binary-Safe
-    description: Encode and decode Base64 online — URL-safe base64url, padding options, binary-safe text, with RFC 4648 and atob()/btoa() notes. Free, in your browser.
+    description: Encode or decode Base64, including URL-safe base64url and padding. Text stays in this browser. For a real file, use Base64 to image.
 
   toml-to-yaml:
     title: TOML to YAML
@@ -352,11 +363,11 @@ tools:
 
   json-to-yaml-converter:
     title: JSON to YAML converter
-    description: Simply convert JSON to YAML with this online live converter.
+    description: Paste JSON, get YAML. If the JSON is broken, the error stays on the page instead of a blank result.
 
   url-parser:
     title: URL parser
-    description: Parse a URL into its separate constituent parts (protocol, origin, params, port, username-password, ...)
+    description: Split a URL into protocol, host, port, path, and query. Useful when a redirect or a log line is hard to read.
 
   iban-validator-and-parser:
     title: IBAN validator and parser
@@ -380,7 +391,7 @@ tools:
 
   json-prettify:
     title: JSON Formatter & Validator — Beautify, Validate, Diff and Convert
-    description: Format and validate JSON online — pretty-print at your indent size, sort keys and spot syntax errors instantly, right in your browser.
+    description: Pretty-print, minify, or open a tree. Invalid JSON points at the broken character. You can also upload a file or drop one on the page.
 
   json-workspace:
     title: JSON Developer Workspace — Format, Query, Tree, Schema & Convert
@@ -448,19 +459,19 @@ tools:
 
   json-diff:
     title: JSON diff
-    description: Compare two JSON objects and get the differences between them.
+    description: Paste two JSON values and read the difference. Useful when an API response drifted and a diff tool would be overkill.
 
   jwt-parser:
     title: JWT Decoder & Parser — Inspect Header, Payload and Expiration
-    description: Decode JWTs online — inspect header, payload, claims and expiration (exp/iat) as readable dates. Your token never leaves your browser. Free, no signup.
+    description: Read the header, payload, and expiry of a JWT. The token stays in this browser. This does not verify the signature.
 
   date-converter:
     title: Date Converter — Formats, Time Zones and ISO 8601
-    description: Convert between date formats online — ISO 8601, RFC 3339, UTC, locale, Excel, Mongo ObjectID and Unix timestamps.
+    description: Move a date between ISO 8601, RFC 3339, Excel, a Mongo ObjectId, and a Unix timestamp. Time zones are labeled, not guessed in silence.
 
   unix-timestamp-converter:
     title: Unix Timestamp Converter — Epoch to Date, Seconds vs Milliseconds
-    description: Convert a Unix epoch timestamp (seconds or milliseconds) to a readable date, or turn a date into a timestamp online.
+    description: Seconds or milliseconds, to a date and back. The page tells you which unit it assumed.
 
   phone-parser-and-formatter:
     title: Phone parser and formatter
@@ -644,7 +655,7 @@ tools:
     description: Generate nanoid-style unique IDs online — URL-safe alphabet, any length, batch of up to 200, built with crypto randomness in your browser.
   color-contrast-checker:
     title: Color Contrast Checker — Pass or Fail WCAG AA and AAA
-    description: Check the contrast ratio between two colours against WCAG 2.x AA and AAA thresholds for normal and large text, with a live text preview.
+    description: Check two colors against WCAG AA and AAA, for normal text and large text, with a preview of the pair.
 
   ulid-generator:
     title: ULID Generator — Time-Ordered, Sortable IDs Online
@@ -660,7 +671,7 @@ tools:
 
   yaml-to-json-converter:
     title: YAML to JSON converter
-    description: Simply convert YAML to JSON with this online live converter.
+    description: Paste YAML, get JSON. A bad indent is reported with a line and column.
 
   uuid-generator:
     title: UUID Generator — v4, v1, v3, v5 and NIL IDs
@@ -692,7 +703,7 @@ tools:
 
   text-diff:
     title: Text diff
-    description: Compare two texts and see the differences between them.
+    description: Paste two texts and read the line changes. Handy for configs, logs, and drafts.
 
   otp-generator:
     title: OTP code generator
@@ -700,7 +711,7 @@ tools:
 
   url-encoder:
     title: URL Encoder & Decoder — Percent-Encoding, encodeURIComponent Pitfalls
-    description: Encode text to URL-encoded format (also known as "percent-encoded"), or decode from it.
+    description: Percent-encode text, or decode it back. Use it when a query string ate a space, a plus, or a non-ASCII character.
 
   text-to-binary:
     title: Text to ASCII binary
@@ -716,7 +727,7 @@ tools:
 
   json-to-xml:
     title: JSON to XML
-    description: Convert JSON data to XML format.
+    description: Paste JSON, get XML. Broken JSON is reported instead of a half-written document.
 
   markdown-to-html:
     title: Markdown to HTML
@@ -736,7 +747,7 @@ tools:
 
   xml-to-json:
     title: XML to JSON
-    description: Convert XML data to JSON format.
+    description: Paste XML, get JSON. Handy when a legacy API still speaks XML.
 
   fullwidth-converter:
     title: "Full-width / half-width converter"
@@ -806,6 +817,13 @@ tool:
   actionShare: "Share"
   actionShareDone: "Link copied"
   actionShareFailed: "Copy failed — copy it from the address bar"
+  actionShareX: "Share on X"
+  actionShareNative: "Share…"
+  actionRestore: "Restore last input"
+  shortcutHint: "Press ? for instructions. Search is in the top bar."
+  sponsorLabel: "Sponsor"
+  sponsorBody: "This stays free. A sponsor can sit here. It never sees what you paste."
+  sponsorCta: "Talk to us about a sponsor slot"
   guideExpand: "How do I use this tool?"
   guideCollapse: "Hide instructions"
   guideExampleTip: "Not sure what to enter? Click to fill in a sample value."

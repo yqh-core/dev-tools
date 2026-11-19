@@ -2,17 +2,22 @@
 import { useThemeVars } from 'naive-ui';
 import FavoriteButton from './FavoriteButton.vue';
 import type { Tool } from '@/tools/tools.types';
+import { clusterOf } from '@/seo/clusters';
+import { clusterVisual } from '@/tools/cluster-visuals';
 
 const props = defineProps<{ tool: Tool & { category: string } }>();
 const { tool } = toRefs(props);
 const theme = useThemeVars();
+const hue = computed(() => clusterVisual(clusterOf(tool.value.path)?.id).hue);
 </script>
 
 <template>
   <router-link :to="tool.path" class="decoration-none">
     <c-card class="h-full transition transition-duration-0.5s !border-2px !hover:border-primary">
       <div flex items-center justify-between>
-        <n-icon class="text-neutral-400 dark:text-neutral-600" size="40" :component="tool.icon" />
+        <span class="tool-mark" :style="{ '--cluster-hue': hue }">
+          <n-icon size="22" :component="tool.icon" />
+        </span>
 
         <div flex items-center gap-8px>
           <div
@@ -39,3 +44,20 @@ const theme = useThemeVars();
     </c-card>
   </router-link>
 </template>
+
+<style scoped>
+.tool-mark {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border-radius: 12px;
+  background: hsl(var(--cluster-hue) 62% 93%);
+  color: hsl(var(--cluster-hue) 48% 30%);
+}
+
+:global(html.dark) .tool-mark {
+  background: hsl(var(--cluster-hue) 28% 18%);
+  color: hsl(var(--cluster-hue) 70% 74%);
+}
+</style>

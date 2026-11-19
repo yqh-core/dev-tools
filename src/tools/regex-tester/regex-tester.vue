@@ -95,8 +95,8 @@ watchEffect(
     <c-card title="Regex" mb-1>
       <c-input-text
         v-model:value="regex"
-        label="Regex to test:"
-        placeholder="Put the regex to test"
+        label="Pattern"
+        placeholder="A pattern, like \\d+"
         multiline
         rows="3"
         :validation="regexValidation"
@@ -129,8 +129,8 @@ watchEffect(
 
       <c-input-text
         v-model:value="text"
-        label="Text to match:"
-        placeholder="Put the text to match"
+        label="Sample text"
+        placeholder="The text you want to test"
         multiline
         rows="5"
       />

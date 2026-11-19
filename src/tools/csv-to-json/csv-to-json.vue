@@ -29,7 +29,7 @@ const preview = computed(() => {
   <div flex flex-col gap-3 min-w-0>
     <c-input-text
       v-model:value="input"
-      label="Your raw CSV"
+      label="CSV"
       placeholder="Paste your raw CSV here..."
       multiline
       :rows="8"

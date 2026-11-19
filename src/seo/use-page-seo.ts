@@ -16,7 +16,7 @@ import { useHead } from '@vueuse/head';
 import { useI18n } from 'vue-i18n';
 
 import { getPageMeta } from './page-meta';
-import { OG_IMAGE, canonicalUrl } from './site';
+import { canonicalUrl, ogImageUrl } from './site';
 import { buildAlternateLinks, ogLocaleTags } from '@/i18n/languages';
 
 /**
@@ -45,6 +45,7 @@ export function usePageSeo(path: string, title: MaybeRef<string>, description?: 
     description === undefined ? getPageMeta(path, locale.value).description : unref(description),
   );
   const canonical = canonicalUrl(path);
+  const image = ogImageUrl(path);
 
   useHead({
     title: pageTitle,
@@ -64,14 +65,15 @@ export function usePageSeo(path: string, title: MaybeRef<string>, description?: 
       { property: 'og:type', content: 'website' },
       { property: 'og:title', content: pageTitle },
       { property: 'og:description', content: pageDescription },
-      { property: 'og:image', content: OG_IMAGE },
+      { property: 'og:image', content: image },
       // og:locale / og:locale:alternate 从语言注册表派生（新增语言自动多出一条 alternate）。
       ...ogLocaleTags(),
 
       { name: 'twitter:card', content: 'summary_large_image' },
       { name: 'twitter:title', content: pageTitle },
       { name: 'twitter:description', content: pageDescription },
-      { name: 'twitter:image', content: OG_IMAGE },
+      { name: 'twitter:image', content: image },
+      { name: 'twitter:image:alt', content: pageTitle },
     ],
   });
 }

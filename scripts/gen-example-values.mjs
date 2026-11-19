@@ -39,8 +39,14 @@ try {
   await vite.close();
 }
 
+const retiredSrc = readFileSync(path.join(REPO, 'src/tools/retired.ts'), 'utf8');
+const retired = new Set([...retiredSrc.matchAll(/'(\/[^']+)':/g)].map(match => match[1]));
+
 const map = {};
 for (const [p, guide] of Object.entries(GUIDES)) {
+  if (retired.has(p)) {
+    continue;
+  }
   if (guide?.example?.text) {
     map[p] = guide.example.text;
   }

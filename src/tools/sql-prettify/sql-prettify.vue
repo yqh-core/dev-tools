@@ -15,8 +15,24 @@ const config = reactive<FormatOptionsWithLanguage>({
 });
 
 const rawSQL = ref('select field1,field2,field3 from my_table where my_condition;');
-const prettySQL = computed(() => formatSQL(rawSQL.value, config));
-const miniSQL = computed(() => minifySQL(rawSQL.value, config));
+const formatted = computed(() => {
+  try {
+    return {
+      pretty: formatSQL(rawSQL.value, config),
+      mini: minifySQL(rawSQL.value, config),
+      error: '',
+    };
+  }
+  catch (error) {
+    return {
+      pretty: '',
+      mini: '',
+      error: error instanceof Error ? error.message : 'Could not format that SQL.',
+    };
+  }
+});
+const prettySQL = computed(() => formatted.value.pretty);
+const miniSQL = computed(() => formatted.value.mini);
 </script>
 
 <template>
@@ -63,11 +79,11 @@ const miniSQL = computed(() => minifySQL(rawSQL.value, config));
     </div>
   </div>
 
-  <n-form-item label="Your SQL query">
+  <n-form-item label="SQL">
     <c-input-text
       ref="inputElement"
       v-model:value="rawSQL"
-      placeholder="Put your SQL query here..."
+      placeholder="Paste a query"
       rows="20"
       multiline
       autocomplete="off"
@@ -76,17 +92,26 @@ const miniSQL = computed(() => minifySQL(rawSQL.value, config));
       spellcheck="false"
       monospace
     />
+    <p v-if="formatted.error" class="sql-error">
+      {{ formatted.error }}
+    </p>
   </n-form-item>
-  <n-form-item label="Prettify version of your query">
+  <n-form-item label="Formatted">
     <TextareaCopyable :value="prettySQL" language="sql" :follow-height-of="inputElement" />
   </n-form-item>
 
-  <n-form-item label="Minified version of your query">
+  <n-form-item label="One line">
     <TextareaCopyable :value="miniSQL" language="sql" :follow-height-of="inputElement" test-id="sql-prettify-minified" />
   </n-form-item>
 </template>
 
 <style lang="less" scoped>
+.sql-error {
+  margin: 8px 0 0;
+  color: var(--dd-danger, #dc2626);
+  font-size: 13px;
+}
+
 .result-card {
   position: relative;
   .copy-button {

@@ -22,7 +22,7 @@ watch(() => route.fullPath, () => {
       bordered
       collapse-mode="width"
       :collapsed-width="0"
-      :width="240"
+      :width="268"
       :collapsed="isMenuCollapsed"
       :show-trigger="false"
       :native-scrollbar="false"
@@ -49,9 +49,11 @@ watch(() => route.fullPath, () => {
 }
 
 .content {
-  // background-color: #f1f5f9;
+  background: var(--dd-bg);
+
   ::v-deep(.n-layout-scroll-container) {
-    padding: 26px;
+    padding: 0 22px 32px;
+    background: var(--dd-bg);
   }
 }
 

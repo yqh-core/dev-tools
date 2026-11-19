@@ -74,6 +74,7 @@ function updateColorValue(value: Colord | undefined, omitLabel?: string) {
 
 <template>
   <c-card>
+    <div class="color-swatch" :style="{ background: formats.hex.value.value }" role="img" :aria-label="formats.hex.value.value" />
     <template v-for="({ label, parse, placeholder, validation, type }, key) in formats" :key="key">
       <input-copyable
         v-if="type === 'text'"
@@ -101,3 +102,12 @@ function updateColorValue(value: Colord | undefined, omitLabel?: string) {
     </template>
   </c-card>
 </template>
+
+<style scoped>
+.color-swatch {
+  height: 96px;
+  margin-bottom: 12px;
+  border: 1px solid var(--dd-border);
+  border-radius: 12px;
+}
+</style>

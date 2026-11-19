@@ -65,6 +65,12 @@ export const config = figue({
     default: false,
     env: 'VITE_SHOW_SPONSOR_BANNER',
   },
+  adsenseSlot: {
+    doc: 'AdSense ad unit slot id. Empty keeps the sponsor line and does not render an ad unit.',
+    format: 'string',
+    default: '',
+    env: 'VITE_ADSENSE_SLOT',
+  },
 })
   .loadEnv({
     ...import.meta.env,

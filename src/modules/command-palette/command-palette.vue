@@ -31,6 +31,18 @@ whenever(keys.ctrl_k, open);
 whenever(keys.meta_k, open);
 whenever(keys.escape, close);
 
+useEventListener('keydown', (event) => {
+  if (event.key !== '/' || event.metaKey || event.ctrlKey || event.altKey || event.shiftKey || isModalOpen.value) {
+    return;
+  }
+  const target = event.target as HTMLElement | null;
+  if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT' || target.isContentEditable)) {
+    return;
+  }
+  event.preventDefault();
+  open();
+});
+
 function open() {
   return isModalOpen.value = true;
 }
@@ -125,7 +137,7 @@ function activateOption(option: PaletteOption) {
     </c-button>
 
     <c-modal v-model:open="isModalOpen" class="palette-modal" shadow-xl important:max-w-650px important:pa-12px @keydown="handleKeydown">
-      <c-input-text ref="inputRef" v-model:value="searchPrompt" raw-text placeholder="Type to search a tool or a command..." autofocus clearable />
+      <c-input-text ref="inputRef" v-model:value="searchPrompt" raw-text :placeholder="$t('search.palettePlaceholder')" autofocus clearable />
 
       <div v-for="(options, category) in filteredSearchResult" :key="category">
         <div ml-3 mt-3 text-sm text-primary font-bold op-60>

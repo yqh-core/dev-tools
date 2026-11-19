@@ -16,7 +16,7 @@ const { copy } = useCopy({ source: slug, text: 'Slug copied to clipboard' });
 
 <template>
   <div>
-    <c-input-text v-model:value="input" multiline placeholder="Put your string here (ex: My file path)" label="Your string to slugify" autofocus raw-text mb-5 />
+    <c-input-text v-model:value="input" multiline placeholder="My file path" label="Text" autofocus raw-text mb-5 />
 
     <c-alert v-if="isTooLarge" type="warning" mb-5>
       Input is too large. Please enter 100,000 characters or less.

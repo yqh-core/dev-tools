@@ -19,6 +19,73 @@
 # ⚠ 不要给 /api/* 加规则：Pages Functions 的匹配优先级高于 _redirects，
 #   加上反而容易在后续改动时把 functions/api/* 屏蔽掉。
 
+# 2026-11-18 主站下线：低搜索需求、玩具型或被更完整工具覆盖的页面。
+# 工具页和对应指南页都 301 到仍在线上的最近工具。规则必须写在 /legacy/* 之前。
+/today-in-history    /date-converter/    301
+/today-in-history/    /date-converter/    301
+/guides/today-in-history    /date-converter/    301
+/guides/today-in-history/    /date-converter/    301
+/reaction-time-test    /eta-calculator/    301
+/reaction-time-test/    /eta-calculator/    301
+/guides/reaction-time-test    /eta-calculator/    301
+/guides/reaction-time-test/    /eta-calculator/    301
+/chronometer    /eta-calculator/    301
+/chronometer/    /eta-calculator/    301
+/guides/chronometer    /eta-calculator/    301
+/guides/chronometer/    /eta-calculator/    301
+/benchmark-builder    /eta-calculator/    301
+/benchmark-builder/    /eta-calculator/    301
+/guides/benchmark-builder    /eta-calculator/    301
+/guides/benchmark-builder/    /eta-calculator/    301
+/camera-recorder    /image-compress/    301
+/camera-recorder/    /image-compress/    301
+/guides/camera-recorder    /image-compress/    301
+/guides/camera-recorder/    /image-compress/    301
+/text-to-nato-alphabet    /text-to-unicode/    301
+/text-to-nato-alphabet/    /text-to-unicode/    301
+/guides/text-to-nato-alphabet    /text-to-unicode/    301
+/guides/text-to-nato-alphabet/    /text-to-unicode/    301
+/numeronym-generator    /slugify-string/    301
+/numeronym-generator/    /slugify-string/    301
+/guides/numeronym-generator    /slugify-string/    301
+/guides/numeronym-generator/    /slugify-string/    301
+/string-obfuscator    /hash-text/    301
+/string-obfuscator/    /hash-text/    301
+/guides/string-obfuscator    /hash-text/    301
+/guides/string-obfuscator/    /hash-text/    301
+/keycode-info    /device-information/    301
+/keycode-info/    /device-information/    301
+/guides/keycode-info    /device-information/    301
+/guides/keycode-info/    /device-information/    301
+/html-wysiwyg-editor    /markdown-to-html/    301
+/html-wysiwyg-editor/    /markdown-to-html/    301
+/guides/html-wysiwyg-editor    /markdown-to-html/    301
+/guides/html-wysiwyg-editor/    /markdown-to-html/    301
+/random-port-generator    /token-generator/    301
+/random-port-generator/    /token-generator/    301
+/guides/random-port-generator    /token-generator/    301
+/guides/random-port-generator/    /token-generator/    301
+/svg-placeholder-generator    /image-resize/    301
+/svg-placeholder-generator/    /image-resize/    301
+/guides/svg-placeholder-generator    /image-resize/    301
+/guides/svg-placeholder-generator/    /image-resize/    301
+/roman-numeral-converter    /base-converter/    301
+/roman-numeral-converter/    /base-converter/    301
+/guides/roman-numeral-converter    /base-converter/    301
+/guides/roman-numeral-converter/    /base-converter/    301
+/morse-code-converter    /text-to-unicode/    301
+/morse-code-converter/    /text-to-unicode/    301
+/guides/morse-code-converter    /text-to-unicode/    301
+/guides/morse-code-converter/    /text-to-unicode/    301
+/email-normalizer    /list-converter/    301
+/email-normalizer/    /list-converter/    301
+/guides/email-normalizer    /list-converter/    301
+/guides/email-normalizer/    /list-converter/    301
+/ipv6-ula-generator    /ipv4-subnet-calculator/    301
+/ipv6-ula-generator/    /ipv4-subnet-calculator/    301
+/guides/ipv6-ula-generator    /ipv4-subnet-calculator/    301
+/guides/ipv6-ula-generator/    /ipv4-subnet-calculator/    301
+
 # 经典版静态站
 #
 # ⚠ 顺序即正确性：CF Pages 的 _redirects 第一条命中即生效，而下面这条 `/legacy/*`

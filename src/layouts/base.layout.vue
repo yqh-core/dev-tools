@@ -1,11 +1,10 @@
 <script lang="ts" setup>
-import { NIcon, useThemeVars } from 'naive-ui';
+import { NIcon } from 'naive-ui';
 
 import { RouterLink } from 'vue-router';
 import { Home2, Menu2 } from '@vicons/tabler';
 
 import { storeToRefs } from 'pinia';
-import HeroGradient from '../assets/hero-gradient.svg?component';
 import MenuLayout from '../components/MenuLayout.vue';
 import NavbarButtons from '../components/NavbarButtons.vue';
 import { useStyleStore } from '@/stores/style.store';
@@ -16,7 +15,6 @@ import { useTracker } from '@/modules/tracker/tracker.services';
 import CollapsibleToolMenu from '@/components/CollapsibleToolMenu.vue';
 import { groupByPrimaryCluster } from '@/tools/nav-groups';
 
-const themeVars = useThemeVars();
 const styleStore = useStyleStore();
 const version = config.app.version;
 const commitSha = config.app.lastCommitSha.slice(0, 7);
@@ -43,17 +41,12 @@ const tools = computed<ToolCategory[]>(() => [
 <template>
   <MenuLayout class="menu-layout" :class="{ isSmallScreen: styleStore.isSmallScreen }">
     <template #sider>
-      <RouterLink to="/" class="hero-wrapper">
-        <HeroGradient class="gradient" />
-        <div class="text-wrapper">
-          <div class="title">
-            {{ $t('legal.siteName') }}
-          </div>
-          <div class="divider" />
-          <div class="subtitle">
-            {{ $t('home.subtitle') }}
-          </div>
-        </div>
+      <RouterLink to="/" class="brand">
+        <span class="brand-mark">DB</span>
+        <span class="brand-text">
+          <span class="brand-name">{{ $t('legal.siteName') }}</span>
+          <span class="brand-tag">{{ $t('home.subtitle') }}</span>
+        </span>
       </RouterLink>
 
       <div class="sider-content">
@@ -111,7 +104,7 @@ const tools = computed<ToolCategory[]>(() => [
     </template>
 
     <template #content>
-      <div flex items-center justify-center gap-2>
+      <div class="app-topbar">
         <c-button
           circle
           variant="text"
@@ -237,46 +230,67 @@ const tools = computed<ToolCategory[]>(() => [
 }
 
 .sider-content {
-  padding-top: 160px;
-  padding-bottom: 200px;
+  padding-top: 8px;
+  padding-bottom: 48px;
 }
 
-.hero-wrapper {
-  position: absolute;
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 14px 12px 4px;
+  padding: 10px;
+  border: 1px solid var(--dd-border);
+  border-radius: var(--dd-radius);
+  background:
+    radial-gradient(120% 90% at 0% 0%, color-mix(in srgb, var(--dd-primary) 18%, transparent), transparent 62%),
+    var(--dd-surface);
+  color: var(--dd-text);
+  text-decoration: none;
+}
+
+.brand-mark {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--dd-primary);
+  color: var(--dd-on-primary);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.brand-name {
   display: block;
-  left: 0;
-  width: 100%;
-  z-index: 10;
-  overflow: hidden;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
 
-  .gradient {
-    margin-top: -65px;
-  }
+.brand-tag {
+  display: block;
+  margin-top: 2px;
+  color: var(--dd-text-soft);
+  font-size: 12px;
+  line-height: 1.3;
+}
 
-  .text-wrapper {
-    position: absolute;
-    left: 0;
-    width: 100%;
-    text-align: center;
-    top: 16px;
-    color: #fff;
-
-    .title {
-      font-size: 25px;
-      font-weight: 600;
-    }
-
-    .divider {
-      width: 50px;
-      height: 2px;
-      border-radius: 4px;
-      background-color: v-bind('themeVars.primaryColor');
-      margin: 0 auto 5px;
-    }
-
-    .subtitle {
-      font-size: 16px;
-    }
-  }
+.app-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 0 -22px 8px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--dd-border);
+  background: color-mix(in srgb, var(--dd-bg) 88%, transparent);
+  backdrop-filter: blur(12px);
 }
 </style>

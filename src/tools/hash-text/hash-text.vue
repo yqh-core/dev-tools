@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import type { lib } from 'crypto-js';
-import { MD5, RIPEMD160, SHA1, SHA224, SHA256, SHA3, SHA384, SHA512, enc } from 'crypto-js';
+import { MD5, RIPEMD160, SHA1, SHA224, SHA256, SHA3, SHA384, SHA512, enc, lib } from 'crypto-js';
 
 import InputCopyable from '../../components/InputCopyable.vue';
 import { applyDigestCase, convertHexToBin, md5HexTo16 } from './hash-text.service';
@@ -42,12 +41,46 @@ const digestCase = useQueryParam<DigestCase>({ defaultValue: 'lower', name: 'cas
 const isHex = computed(() => encoding.value === 'Hex');
 const digest = (algo: AlgoNames) => applyDigestCase(hashText(algo, clearText.value), digestCase.value, isHex.value);
 const md5Hex16 = computed(() => md5HexTo16(hashText('MD5', clearText.value)));
+
+const fileLabel = ref('');
+const fileDigests = ref<Partial<Record<AlgoNames, string>>>({});
+const FILE_MAX = 8 * 1024 * 1024;
+
+function bufferToWordArray(buffer: ArrayBuffer) {
+  const bytes = new Uint8Array(buffer);
+  const words: number[] = [];
+  for (let index = 0; index < bytes.length; index += 1) {
+    words[index >>> 2] = (words[index >>> 2] ?? 0) | (bytes[index] << (24 - (index % 4) * 8));
+  }
+  return lib.WordArray.create(words, bytes.length);
+}
+
+async function hashFile(event: Event) {
+  const input = event.target as HTMLInputElement;
+  const file = input.files?.[0];
+  input.value = '';
+  if (!file) {
+    return;
+  }
+  if (file.size > FILE_MAX) {
+    fileLabel.value = 'That file is over 8 MB.';
+    fileDigests.value = {};
+    return;
+  }
+  const words = bufferToWordArray(await file.arrayBuffer());
+  const next: Partial<Record<AlgoNames, string>> = {};
+  for (const name of algoNames) {
+    next[name] = formatWithEncoding(algos[name](words), encoding.value);
+  }
+  fileDigests.value = next;
+  fileLabel.value = `${file.name} · ${file.size} bytes`;
+}
 </script>
 
 <template>
   <div>
     <c-card>
-      <c-input-text v-model:value="clearText" placeholder="Your string to hash..." rows="3" raw-text autosize autofocus multiline label="Your text to hash:" />
+      <c-input-text v-model:value="clearText" placeholder="Paste the text to hash" rows="3" raw-text autosize autofocus multiline label="Text" />
 
       <n-divider />
 
@@ -112,5 +145,59 @@ const md5Hex16 = computed(() => md5HexTo16(hashText('MD5', clearText.value)));
         </n-input-group>
       </div>
     </c-card>
+
+    <c-card mt-4>
+      <div class="file-hash">
+        <div>
+          <strong>Hash a file</strong>
+          <p>This hashes the file's bytes, not a text decoding of them. The file stays on this machine. Limit is 8 MB.</p>
+          <p v-if="fileLabel">
+            {{ fileLabel }}
+          </p>
+        </div>
+        <label class="file-pick">
+          Choose file
+          <input type="file" @change="hashFile">
+        </label>
+      </div>
+      <div v-for="algo in algoNames" v-show="fileDigests[algo]" :key="`file-${algo}`" style="margin: 5px 0">
+        <n-input-group>
+          <n-input-group-label style="flex: 0 0 120px">
+            {{ algo }}
+          </n-input-group-label>
+          <InputCopyable :value="fileDigests[algo] || ''" readonly />
+        </n-input-group>
+      </div>
+    </c-card>
   </div>
 </template>
+
+<style scoped>
+.file-hash {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.file-hash p {
+  margin: 4px 0 0;
+  color: var(--dd-text-soft);
+  font-size: 13px;
+}
+.file-pick {
+  position: relative;
+  overflow: hidden;
+  padding: 8px 12px;
+  border: 1px solid var(--dd-border);
+  border-radius: 8px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.file-pick input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+</style>

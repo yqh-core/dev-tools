@@ -39,7 +39,7 @@ const rules: UseValidationRule<string>[] = [
 
 <template>
   <format-transformer
-    input-label="Your raw JSON"
+    input-label="JSON"
     input-placeholder='Paste an array of objects here, e.g. [{"name":"Ada"}]'
     output-label="CSV version of your JSON"
     output-language="csv"
