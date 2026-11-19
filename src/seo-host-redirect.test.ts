@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { onRequest } from '../functions/_middleware.js';
+import { onRequest } from '../functions/_middleware';
 
 describe('canonical host middleware', () => {
   it('redirects the HTTPS apex host to HTTPS www and preserves path and query', async () => {
