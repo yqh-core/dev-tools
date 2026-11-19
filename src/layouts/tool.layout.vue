@@ -16,6 +16,7 @@ import { loadGuides } from '@/tools/guides';
 import type { ToolGuide } from '@/tools/guides';
 import { clusterOf, resolveRelated, resolveWorkflow } from '@/seo/clusters';
 import { guideArticleHref } from '@/seo/guide-links';
+import { normalizePath } from '@/seo/site';
 
 const route = useRoute();
 
@@ -512,7 +513,7 @@ const shareLabel = computed(() => {
           <span v-if="node.current" class="workflow-current" :title="$t('tool.workflowCurrent')">
             {{ node.item.name }}
           </span>
-          <RouterLink v-else class="workflow-link" :to="node.item.path">
+          <RouterLink v-else class="workflow-link" :to="normalizePath(node.item.path)">
             {{ node.item.name }}
           </RouterLink>
         </template>
