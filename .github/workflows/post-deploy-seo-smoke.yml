@@ -203,9 +203,16 @@ jobs:
           }
           const sitemap = await get('/sitemap.xml');
           if (!sitemap.response.ok || !sitemap.body.includes('<urlset')) throw new Error('sitemap.xml unavailable or malformed');
-          for (const route of ["/","/tools/"]) {
-            const url = origin + (route === '/' ? '/' : route);
-            if (!sitemap.body.includes(url)) throw new Error('sitemap missing ' + url);
+          for (const route of [
+            "/",
+            "/tools/",
+            "/percentage-calculator/",
+            "/numeronym-generator/",
+            "/guides/percentage-calculator/",
+            "/guides/numeronym-generator/",
+          ]) {
+            const url = origin + route;
+            if (!sitemap.body.includes(url)) throw new Error('sitemap missing priority search page ' + url);
           }
 
           // The archive root and retained Chinese-only legacy pages must stay out of
