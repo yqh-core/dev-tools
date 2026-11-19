@@ -8,6 +8,15 @@ on:
     branches: [main]
     paths:
       - ".github/workflows/seo-production-crawl.yml"
+      - "src/seo/**"
+      - "src/components/**"
+      - "src/pages/**"
+      - "src/layouts/**"
+      - "src/App.vue"
+      - "src/content/legal/**"
+      - "locales/en.yml"
+      - "scripts/check-internal-canonical-links.mjs"
+      - "package.json"
 
 permissions:
   contents: read
