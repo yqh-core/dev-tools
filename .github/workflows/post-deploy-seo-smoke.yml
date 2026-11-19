@@ -173,20 +173,25 @@ jobs:
             if (!sitemap.body.includes(url)) throw new Error('sitemap missing ' + url);
           }
 
-          // /legacy/base64/ intentionally redirects to the current tool URL;
-          // test the retained archive index for the noindex response header.
-          for (const path of ["/legacy/"]) {
+          // The archive root and retained Chinese-only legacy pages must stay out of
+          // the English US/EU index. Test the wildcard _headers rule on real descendants,
+          // including paths observed in Search Console, not only the /legacy/ directory.
+          for (const path of ["/legacy/", "/legacy/areacode/", "/legacy/html2ubb/"]) {
             const result = await get(path);
             if (!result.response.ok) {
               throw new Error(`${path}: expected HTTP 200, got ${result.response.status}`);
             }
-            if (!/<meta[^>]+name=["']robots["'][^>]+content=["'][^"']*noindex/i.test(result.body)) {
+            if (path === "/legacy/" &&
+                !/<meta[^>]+name=["']robots["'][^>]+content=["'][^"']*noindex/i.test(result.body)) {
               throw new Error(`${path}: expected a noindex robots meta tag in the legacy archive`);
             }
             const robotsHeader = result.response.headers.get('x-robots-tag') || '';
             if (!/noindex/i.test(robotsHeader) || !/follow/i.test(robotsHeader)) {
               throw new Error(`${path}: expected X-Robots-Tag: noindex, follow; got "${robotsHeader}"`);
             }
+          }
+          if (sitemap.body.includes(origin + '/legacy/')) {
+            throw new Error('Legacy archive URLs must not appear in the canonical sitemap');
           }
 
           console.log('PASS: production homepage, canonical host, robots.txt, sitemap.xml, legacy noindex header and selected search landing pages');
