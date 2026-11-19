@@ -168,7 +168,7 @@
 - [Emoji picker](https://digdevbox.com/emoji-picker) - Copy and paste emojis easily and get the unicode and code points value of each emoji.
 - [String obfuscator](https://digdevbox.com/string-obfuscator) - Obfuscate a string (like a secret, an IBAN, or a token) to make it shareable and identifiable without revealing its content.
 - [Text diff](https://digdevbox.com/text-diff) - Compare two texts and see the differences between them.
-- [Numeronym Generator](https://digdevbox.com/numeronym-generator) - A numeronym is an abbreviation where the middle letters are replaced by their count — i18n for internationalization, k8s for kubernetes, a11y for accessibility. Build a numeronym from any word, or look up the established ones in our built-in dictionary — free, right in your browser.
+- [Numeronym Generator — i18n, a11y & k8s](https://digdevbox.com/numeronym-generator) - Create numeronyms by replacing middle letters with their count, or search the built-in dictionary for common forms such as i18n, a11y and k8s.
 - [ASCII Art Generator](https://digdevbox.com/ascii-text-drawer) - Turn text into ASCII art with multiple fonts and styles.
 - [Full-width / half-width converter](https://digdevbox.com/fullwidth-converter) - Convert between full-width and half-width characters using the fixed Unicode offset 0xFEE0, or adjust punctuation only.
 - [Morse Code Converter](https://digdevbox.com/morse-code-converter) - What is Morse code? The dot-and-dash alphabet dating from the 1840s. Encode text to Morse or decode it back — letters separated by spaces, words by a slash, free and instant in your browser.
