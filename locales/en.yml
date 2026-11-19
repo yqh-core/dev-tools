@@ -368,7 +368,7 @@ tools:
 
   numeronym-generator:
     title: Numeronym Generator — i18n, a11y & k8s
-    description: Create numeronyms by replacing middle letters with their count, or search the built-in dictionary for common forms such as i18n, a11y and k8s.
+    description: Generate numeronyms from one word or a batch of words, one per line, and look up established forms such as i18n, a11y and k8s. Free and instant in your browser.
 
   case-converter:
     title: Case converter
