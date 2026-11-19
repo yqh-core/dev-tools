@@ -66,10 +66,10 @@ jobs:
           }
           if (!cloudflareReady) throw new Error('Exact Cloudflare Pages deployment did not complete within 15 minutes');
 
-          async function get(path) {
+          async function get(path, userAgent = ua) {
             const response = await fetch(origin + path, {
               redirect: 'follow',
-              headers: { 'user-agent': ua, 'cache-control': 'no-cache' },
+              headers: { 'user-agent': userAgent, 'cache-control': 'no-cache' },
             });
             return { response, body: await response.text(), finalUrl: response.url, redirected: response.redirected };
           }
@@ -162,31 +162,84 @@ jobs:
             if (!toolLanding.body.includes(url)) throw new Error('Tool landing page missing product network link: ' + url);
           }
 
+          // Compare Googlebot's raw HTML with a normal browser request on the two
+          // priority English tool pages. This catches UA-dependent HTML/cache variants
+          // and guarantees the crawler sees the same title, description, H1 and canonical.
+          const browserUa = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/130.0.0.0 Safari/537.36';
+          const priorityPages = ['/percentage-calculator/', '/numeronym-generator/'];
+          for (const path of priorityPages) {
+            const [bot, browser] = await Promise.all([get(path), get(path, browserUa)]);
+            for (const [label, result] of [['Googlebot', bot], ['browser', browser]]) {
+              if (!result.response.ok || result.finalUrl !== origin + path) {
+                throw new Error(path + ' ' + label + ' request did not resolve to the canonical URL (HTTP ' +
+                  result.response.status + ', final ' + result.finalUrl + ')');
+              }
+            }
+            const extract = (html) => ({
+              title: html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1]?.trim() || '',
+              description: html.match(/<meta[^>]+name=["']description["'][^>]+content=["']([^"']*)["']/i)?.[1] || '',
+              canonical: html.match(/<link[^>]+rel=["']canonical["'][^>]+href=["']([^"']+)["']/i)?.[1] || '',
+              h1: html.match(/<h1\b[^>]*>([\s\S]*?)<\/h1>/i)?.[1]?.replace(/<[^>]+>/g, '').trim() || '',
+            });
+            const botMeta = extract(bot.body);
+            const browserMeta = extract(browser.body);
+            if (!botMeta.title || !botMeta.description || !botMeta.h1 || botMeta.canonical !== origin + path) {
+              throw new Error(path + ' Googlebot HTML is missing title, description, H1 or self-canonical metadata');
+            }
+            if (JSON.stringify(botMeta) !== JSON.stringify(browserMeta)) {
+              throw new Error(path + ' Googlebot HTML differs from browser HTML: ' +
+                JSON.stringify({ googlebot: botMeta, browser: browserMeta }));
+            }
+            if (path === '/percentage-calculator/' &&
+                (botMeta.title !== 'Percentage Calculator — % of, % Change & Discounts - DigDevBox' ||
+                 botMeta.description !== 'Find X% of Y, compare two values, calculate percentage change, and apply percentage increases or discounts. Four live calculators with instant results, free in your browser.' ||
+                 botMeta.h1 !== 'Percentage Calculator')) {
+              throw new Error('Percentage Calculator production SEO metadata does not match the approved title, description and H1');
+            }
+            if (/<meta[^>]+name=["']robots["'][^>]+content=["'][^"']*noindex/i.test(bot.body)) {
+              throw new Error(path + ' unexpectedly carries noindex');
+            }
+            const robotsHeader = bot.response.headers.get('x-robots-tag') || '';
+            if (/noindex/i.test(robotsHeader)) throw new Error(path + ' unexpectedly carries X-Robots-Tag: ' + robotsHeader);
+          }
+
           const robots = await get('/robots.txt');
           if (!robots.response.ok || !/Sitemap:\s*https:\/\//i.test(robots.body) || !robots.body.includes(origin + '/sitemap.xml')) {
             throw new Error('robots.txt does not reference the canonical production sitemap');
           }
           const sitemap = await get('/sitemap.xml');
           if (!sitemap.response.ok || !sitemap.body.includes('<urlset')) throw new Error('sitemap.xml unavailable or malformed');
-          for (const route of ["/","/tools/"]) {
-            const url = origin + (route === '/' ? '/' : route);
-            if (!sitemap.body.includes(url)) throw new Error('sitemap missing ' + url);
+          for (const route of [
+            "/",
+            "/tools/",
+            "/percentage-calculator/",
+            "/numeronym-generator/",
+            "/guides/percentage-calculator/",
+            "/guides/numeronym-generator/",
+          ]) {
+            const url = origin + route;
+            if (!sitemap.body.includes(url)) throw new Error('sitemap missing priority search page ' + url);
           }
 
-          // /legacy/base64/ intentionally redirects to the current tool URL;
-          // test the retained archive index for the noindex response header.
-          for (const path of ["/legacy/"]) {
+          // The archive root and retained Chinese-only legacy pages must stay out of
+          // the English US/EU index. Test the wildcard _headers rule on real descendants,
+          // including paths observed in Search Console, not only the /legacy/ directory.
+          for (const path of ["/legacy/", "/legacy/areacode/", "/legacy/html2ubb/"]) {
             const result = await get(path);
             if (!result.response.ok) {
               throw new Error(`${path}: expected HTTP 200, got ${result.response.status}`);
             }
-            if (!/<meta[^>]+name=["']robots["'][^>]+content=["'][^"']*noindex/i.test(result.body)) {
+            if (path === "/legacy/" &&
+                !/<meta[^>]+name=["']robots["'][^>]+content=["'][^"']*noindex/i.test(result.body)) {
               throw new Error(`${path}: expected a noindex robots meta tag in the legacy archive`);
             }
             const robotsHeader = result.response.headers.get('x-robots-tag') || '';
             if (!/noindex/i.test(robotsHeader) || !/follow/i.test(robotsHeader)) {
               throw new Error(`${path}: expected X-Robots-Tag: noindex, follow; got "${robotsHeader}"`);
             }
+          }
+          if (sitemap.body.includes(origin + '/legacy/')) {
+            throw new Error('Legacy archive URLs must not appear in the canonical sitemap');
           }
 
           console.log('PASS: production homepage, canonical host, robots.txt, sitemap.xml, legacy noindex header and selected search landing pages');
