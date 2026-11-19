@@ -62,7 +62,7 @@ jobs:
           }
           const sitemap = await get('/sitemap.xml');
           if (!sitemap.response.ok || !sitemap.body.includes('<urlset')) throw new Error('sitemap.xml unavailable or malformed');
-          for (const route of ["/","/legacy/base64/"]) {
+          for (const route of ["/","/tools/"]) {
             const url = origin + (route === '/' ? '/' : route);
             if (!sitemap.body.includes(url)) throw new Error('sitemap missing ' + url);
           }
