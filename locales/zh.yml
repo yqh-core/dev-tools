@@ -241,8 +241,8 @@ tools:
       copy: 复制
       refresh: 刷新
   percentage-calculator:
-    title: 百分比计算器 — 百分比、增减与变化
-    description: 求 X% 的 Y、求 X 占 Y 的百分比、计算百分比变化，或按百分比增加和减少一个数值。免费即时计算，结果在浏览器本地生成。
+    title: 百分比计算器 — 百分比计算、增减幅与折扣
+    description: 计算 X% 的 Y、比较两个数值、计算百分比变化，并按百分比增加数值或计算折扣。四种实时计算方式，免费且在浏览器本地运行。
 
   svg-placeholder-generator:
     title: SVG 占位符生成器
