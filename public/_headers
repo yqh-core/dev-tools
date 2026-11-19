@@ -4,3 +4,12 @@
 	X-Content-Type-Options: nosniff
 	Referrer-Policy: strict-origin-when-cross-origin
 	Permissions-Policy: geolocation=(), microphone=(), camera=(self)
+
+# The legacy archive is retained for existing visitors and redirects, but it is
+# Chinese-only historical content and is outside the current English-first US/EU SEO scope.
+# Keep crawling enabled so search engines can process this directive and follow links.
+/legacy
+  X-Robots-Tag: noindex, follow
+
+/legacy/*
+  X-Robots-Tag: noindex, follow
