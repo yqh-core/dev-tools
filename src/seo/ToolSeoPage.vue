@@ -187,11 +187,11 @@ const box = 'max-width:800px;margin:0 auto;padding:32px 16px;box-sizing:border-b
       <p style="margin:0">
         {{ t('network.label') }}
         <a href="https://ip.digdevbox.com/" style="color:inherit">{{ t('network.ip') }}</a> ·
-        <a href="https://fangdai.digdevbox.com/" style="color:inherit">{{ t('network.fangdai') }}</a> ·
         <a href="https://play.digdevbox.com/" style="color:inherit">{{ t('network.play') }}</a> ·
         <a href="https://draw.digdevbox.com/" style="color:inherit">{{ t('network.draw') }}</a> ·
-        <a href="https://notes.digdevbox.com/" style="color:inherit">{{ t('network.notes') }}</a> ·
-        <a href="https://geek-typing.digdevbox.com/" style="color:inherit">{{ t('network.typing') }}</a>
+        <a href="https://img.digdevbox.com/" style="color:inherit">{{ t('network.img') }}</a> ·
+        <a href="https://ttsreader.digdevbox.com/" style="color:inherit">Text to Speech</a> ·
+        <a href="https://notes.digdevbox.com/" style="color:inherit">{{ t('network.notes') }}</a>
       </p>
       <p style="margin:6px 0 0;opacity:.85">
         {{ t('trust') }}
