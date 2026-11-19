@@ -32,37 +32,57 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
           node --input-type=module <<'NODE'
-          const targetSha = process.env.TARGET_SHA;
-          const checksUrl = 'https://api.github.com/repos/' + process.env.GITHUB_REPOSITORY +
-            '/commits/' + targetSha + '/check-runs';
+          const token = process.env.GITHUB_TOKEN;
+          const headers = {
+            authorization: 'Bearer ' + token,
+            accept: 'application/vnd.github+json',
+            'x-github-api-version': '2022-11-28',
+          };
+          const api = async (url) => {
+            const response = await fetch(url, { headers, signal: AbortSignal.timeout(10000) });
+            if (!response.ok) throw new Error('GitHub API HTTP ' + response.status + ': ' + url);
+            return response.json();
+          };
+          const currentRepo = process.env.GITHUB_REPOSITORY;
+          const targets = [
+            { repo: currentRepo, sha: process.env.TARGET_SHA },
+            ...['yqh-core/digimg', 'yqh-core/streamplay', 'yqh-core/ip-locator',
+                'yqh-core/digttsreader', 'yqh-core/imageforge', 'yqh-core/forge-notes']
+              .map((repo) => ({ repo, sha: null })),
+          ];
+          for (const target of targets) {
+            if (!target.sha) {
+              const commit = await api('https://api.github.com/repos/' + target.repo + '/commits/main');
+              target.sha = commit.sha;
+            }
+          }
           const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
           for (let attempt = 1; attempt <= 90; attempt++) {
-            const response = await fetch(checksUrl, {
-              headers: {
-                authorization: 'Bearer ' + process.env.GITHUB_TOKEN,
-                accept: 'application/vnd.github+json',
-                'x-github-api-version': '2022-11-28',
-              },
-              signal: AbortSignal.timeout(10000),
-            });
-            if (!response.ok) throw new Error('GitHub check-run API returned HTTP ' + response.status);
-            const payload = await response.json();
-            const check = (payload.check_runs || []).find((item) =>
-              item.name === 'Cloudflare Pages' && item.head_sha === targetSha
-            );
-            if (check?.status === 'completed') {
-              if (check.conclusion !== 'success') {
-                throw new Error('Cloudflare Pages deployment concluded ' + check.conclusion +
-                  ': ' + (check.details_url || 'no details URL'));
+            for (const target of targets.filter((item) => !item.ready)) {
+              const payload = await api('https://api.github.com/repos/' + target.repo +
+                '/commits/' + target.sha + '/check-runs');
+              const check = (payload.check_runs || []).find((item) =>
+                item.name === 'Cloudflare Pages' && item.head_sha === target.sha
+              );
+              if (check?.status === 'completed') {
+                if (check.conclusion !== 'success') {
+                  throw new Error(target.repo + ' Cloudflare deployment concluded ' +
+                    check.conclusion + ': ' + (check.details_url || 'no details URL'));
+                }
+                target.ready = true;
+                console.log('DEPLOYED ' + target.repo + ' @ ' + target.sha);
+              } else {
+                console.log('WAITING ' + target.repo + ' @ ' + target.sha + ' (' +
+                  (check?.status || 'check not created') + ')');
               }
-              console.log('Cloudflare production deployment succeeded for ' + targetSha);
+            }
+            if (targets.every((item) => item.ready)) {
+              console.log('PASS: all seven production sites are deployed at their target commits');
               process.exit(0);
             }
-            console.log('Waiting for exact Cloudflare deployment (' + attempt + '/90): ' +
-              (check?.status || 'check not created'));
             await sleep(10000);
           }
-          throw new Error('Exact Cloudflare deployment did not complete within 15 minutes');
+          throw new Error('Not all seven Cloudflare deployments completed within 15 minutes');
           NODE
 
   crawl:
