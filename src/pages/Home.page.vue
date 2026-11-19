@@ -497,7 +497,7 @@ function onUpdateFavoriteTools() {
               </div>
             </div>
           </div>
-          <RouterLink class="home-blog-more" to="/tools">
+          <RouterLink class="home-blog-more" :to="normalizePath('/tools')">
             {{ $t('home.tasks.allTools') }} →
           </RouterLink>
         </section>
