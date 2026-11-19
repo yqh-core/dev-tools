@@ -6,6 +6,7 @@ import type { ToolGuide } from '@/tools/guides';
 import { usePageSeo } from '@/seo/use-page-seo';
 import { GUIDE_PREFIX, buildGuideSections, getGuideArticle } from '@/seo/guide-articles';
 import { loadGuides } from '@/tools/guides';
+import { normalizePath } from '@/seo/site';
 
 /**
  * 工具指南文章页 `/guides/<slug>`。
@@ -112,7 +113,7 @@ usePageSeo(String(route.path), title, description);
     </h1>
     <p mt-3 op-75>
       {{ t('guideArticle.missingBody') }}
-      <RouterLink to="/tools">
+      <RouterLink :to="normalizePath('/tools')">
         {{ t('toolsCatalog.title') }}
       </RouterLink>
     </p>
@@ -120,11 +121,11 @@ usePageSeo(String(route.path), title, description);
 
   <article v-else mx-auto mt-50px max-w-760px px-4>
     <nav text-13px op-65>
-      <RouterLink to="/">
+      <RouterLink :to="normalizePath('/')">
         {{ t('legal.siteName') }}
       </RouterLink>
       ·
-      <RouterLink :to="page.toolPath">
+      <RouterLink :to="normalizePath(page.toolPath)">
         {{ toolH1 }}
       </RouterLink>
       ·
@@ -182,7 +183,7 @@ usePageSeo(String(route.path), title, description);
         <pre mt-2 ws-pre-wrap break-all border rounded bg-gray-2 p-3 text-13px>{{ s.code }}</pre>
         <p mt-2 text-13px op-65>
           {{ t('guideArticle.exampleHint') }}
-          <RouterLink :to="page.toolPath">
+          <RouterLink :to="normalizePath(page.toolPath)">
             {{ toolH1 }}
           </RouterLink>
         </p>
@@ -205,20 +206,20 @@ usePageSeo(String(route.path), title, description);
         {{ t('guideArticle.nextTitle') }}
       </h2>
       <p mt-2>
-        <RouterLink :to="page.toolPath" font-semibold>
+        <RouterLink :to="normalizePath(page.toolPath)" font-semibold>
           {{ t('guideArticle.openTool', { name: toolH1 }) }}
         </RouterLink>
       </p>
       <ul v-if="relatedArticles.length" mt-2 pl-5 leading-7>
         <li v-for="rel of relatedArticles" :key="rel.path">
-          <RouterLink :to="`/guides${rel.path}`">
+          <RouterLink :to="normalizePath(`/guides${rel.path}`)">
             {{ rel.name }}
           </RouterLink>
         </li>
       </ul>
       <p mt-3 text-13px op-65>
         {{ t('guideArticle.feedback') }}
-        <RouterLink to="/contact">
+        <RouterLink :to="normalizePath('/contact')">
           {{ t('legal.contact') }}
         </RouterLink>
       </p>
