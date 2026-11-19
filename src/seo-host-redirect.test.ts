@@ -47,7 +47,7 @@ describe('canonical host middleware', () => {
 
     expect(response.status).toBe(200);
     expect(await response.text()).toBe('ok');
-    expect(next).toHaveBeenCalledOnce();
+    expect(next).toHaveBeenCalledTimes(1);
   });
 
   it('does not redirect unrelated hostnames', async () => {
@@ -58,6 +58,6 @@ describe('canonical host middleware', () => {
     });
 
     expect(response.status).toBe(200);
-    expect(next).toHaveBeenCalledOnce();
+    expect(next).toHaveBeenCalledTimes(1);
   });
 });
