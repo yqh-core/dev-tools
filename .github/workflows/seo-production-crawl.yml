@@ -206,6 +206,35 @@ jobs:
           echo "SiteOne Crawler v2.5.1 verified by pinned SHA-256"
           echo "SITEONE_BIN=$BIN" >> "$GITHUB_ENV"
 
+      - name: Verify legacy archive is excluded from indexing
+        if: \${{ matrix.slug == 'main' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p reports
+          routes=(
+            "https://www.digdevbox.com/legacy/areacode/"
+            "https://www.digdevbox.com/legacy/rmbdaxie/"
+            "https://www.digdevbox.com/legacy/runjs/"
+            "https://www.digdevbox.com/legacy/contenttype/"
+          )
+          report="reports/main-legacy-noindex.txt"
+          : > "$report"
+          for url in "\${routes[@]}"; do
+            headers_file="$(mktemp)"
+            status="$(curl --silent --show-error --location --max-time 20 \
+              --dump-header "$headers_file" --output /dev/null \
+              --write-out '%{http_code}' "$url")"
+            robots="$(awk 'tolower($1) == "x-robots-tag:" { $1=""; sub(/^[[:space:]]+/, ""); value=tolower(value " " $0) } END { gsub("\\r", "", value); print value }' "$headers_file")"
+            printf '%s | HTTP %s | X-Robots-Tag: %s\n' "$url" "$status" "\${robots:-missing}" | tee -a "$report"
+            rm -f "$headers_file"
+            if [[ ! "$status" =~ ^2[0-9][0-9]$ || "$robots" != *noindex* ]]; then
+              echo "::error::Legacy URL is not confirmed as HTTP 2xx with X-Robots-Tag noindex: $url"
+              exit 1
+            fi
+          done
+          echo "PASS: sampled legacy archive URLs explicitly instruct crawlers not to index them"
+
       - name: Crawl production site politely
         shell: bash
         run: |
