@@ -59,7 +59,7 @@ Search results show competing tools that combine generation with decoding, expla
 - Boneyard Tools, HTTP Basic Auth Header Generator: https://boneyardtools.com/dev/basic-auth-generator
 - W3Schools Basic Auth Header Generator: https://www.w3schools.com/tools/tool_basic_auth.php
 
-Opportunity: use a clear task-first title/description and first-screen explanation; if the existing product already supports both generation and decoding, expose both actions clearly. Add precise examples for curl and Authorization header construction. Explain Base64 is not encryption and recommend HTTPS. Do not claim secrets are safe merely because the page is browser-based; advise against pasting production credentials into third-party pages. Confirm UTF-8 and colon behavior from tests before documenting them.
+Implementation in this PR: title changed to “Basic Auth Header Generator — Create Authorization Header”; description now explicitly warns Base64 is not encryption and recommends HTTPS. This matches the observed query without inventing new features. Next, verify the production snippet after deployment. If the product supports both generation and decoding, expose both actions clearly. Add curl examples only after checking exact behavior; do not claim secrets are safe merely because the page is browser-based.
 
 ### Outlook Safe Links decoder
 
@@ -70,7 +70,7 @@ Competing examples:
 - RedirectSniffer Outlook Safe Links decoder: https://redirectsniffer.com/outlook-safe-links-decoder
 - ToolsForThat SafeLink decoder: https://www.toolsforthat.com/tools/safelink-decoder
 
-Opportunity: the page should answer “how do I get the original URL from an Outlook Safe Links URL?” immediately. Explain that decoding is not a safety verdict and does not replace Microsoft's click-time protection. State exactly which host patterns and nested wrapper depths the product supports, based on tests. Do not encourage bypassing Safe Links or clicking a suspicious destination.
+Implementation in this PR: title changed to “Outlook Safe Links Decoder — Reveal the Original URL”; description clarifies that decoding does not verify destination safety. This directly answers the observed query. Next, verify the production snippet and test supported host patterns before documenting wrapper-depth claims. Do not encourage bypassing Safe Links or clicking a suspicious destination.
 
 ### Percentage calculator
 
@@ -79,7 +79,7 @@ Competitor pages present a compact group of common tasks: percent of a number, w
 - JYE LABS: https://jyelabs.com/en/tools/percentage-calculator/
 - Every Boring Tool: https://everyboringtool.com/calculators/percentage-calculator
 
-Opportunity: DigDevBox's README describes four live calculators. Do not claim feature parity with six-function competitors unless new functions are implemented and tested. Make the existing four use cases unmistakable above the fold; show formulas, examples, rounding rules and the difference between percentage change and percentage points only if supported. Because GSC shows 224 impressions and no clicks across canonical/slashless variants, compare the live title and snippet with the actual query set before editing.
+Implementation in this PR: title changed to “Percentage Calculator — Percent of a Number & Percent Change”; description names the four current modes without claiming the six modes competitors may provide. GSC reports 224 impressions / 0 clicks across canonical and slashless variants, at positions around 8–9. The query set is largely anonymized and this URL did not appear in the US-only page slice, so this is a cautious snippet hypothesis, not a proven US-market win. Verify the rendered SERP after deployment.
 
 ### Regex tester
 
@@ -92,9 +92,9 @@ Opportunity: do not compete on multi-language regex flavors unless the product s
 
 ## Next actions by priority
 
-- P0: Basic Auth Generator — inspect title/meta/H1/current first-screen UX and test encode/decode, Unicode, username colon and curl examples. Improve snippet only after checking current SERP and GSC/Bing query match.
-- P0: SafeLink Decoder — inspect supported wrapper patterns, nested decoding, privacy/network behavior and safety wording; then optimize title/meta around Outlook Safe Links decoder / original URL intent.
-- P0: Percentage Calculator — inspect the four existing calculator modes, title/meta, formula examples and current SERP; don't add unsupported features or create a second URL.
+- P0: Basic Auth Generator — title/description hypothesis added in this PR; validate locale/build tests, then inspect the live Bing/Google snippet after deployment. Follow with feature tests for encoding, Unicode, username colon and curl examples before expanding body copy.
+- P0: SafeLink Decoder — title/description hypothesis added in this PR; validate safety wording and local-only behavior, then inspect the live snippet. Test supported wrapper patterns and nested decoding before documenting those limits.
+- P0: Percentage Calculator — title/description hypothesis added in this PR; validate the four existing modes and current canonical URL. Improve formulas/examples only where they match implemented calculations; do not add unsupported features or create a second URL.
 - P1: HTTP Status Checker — improve examples for status and response headers, preserving exact live-request limitations.
 - P1: Regex Tester — expand examples/guide coverage, but do not describe it as a high-ranking page or multi-engine competitor.
 
