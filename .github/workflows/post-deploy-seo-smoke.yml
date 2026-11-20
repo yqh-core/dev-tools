@@ -241,6 +241,21 @@ jobs:
             if (/noindex/i.test(robotsHeader)) throw new Error(path + ' unexpectedly carries X-Robots-Tag: ' + robotsHeader);
           }
 
+          // Guide pages must have their own knowledge summary, not reuse the paired tool-page snippet.
+          const guidePath = '/guides/numeronym-generator/';
+          const guideResult = await get(guidePath);
+          const pairedToolResult = await get('/numeronym-generator/');
+          const extractDescription = html =>
+            html.match(/<meta name=["']description["'] content=["']([^"']*)["']/i)?.[1] || '';
+          const guideDescription = extractDescription(guideResult.body);
+          const pairedToolDescription = extractDescription(pairedToolResult.body);
+          const guideCanonical = guideResult.body.match(/<link[^>]+rel=["']canonical["'][^>]+href=["']([^"']+)["']/i)?.[1] || '';
+          if (!guideResult.response.ok || guideResult.finalUrl !== origin + guidePath ||
+              !guideDescription || !pairedToolDescription || guideDescription === pairedToolDescription ||
+              guideCanonical !== origin + guidePath) {
+            throw new Error('Guide page must be live, self-canonical and have a distinct meta description from its tool page');
+          }
+
           const robots = await get('/robots.txt');
           if (!robots.response.ok || !/Sitemap:\s*https:\/\//i.test(robots.body) || !robots.body.includes(origin + '/sitemap.xml')) {
             throw new Error('robots.txt does not reference the canonical production sitemap');
