@@ -155,7 +155,7 @@ usePageSeo(String(route.path), title, description);
       </h2>
       <ol mt-2 pl-5 leading-7>
         <li v-for="s of sections" :key="`toc-${s.id}`">
-          <a :href="`#${s.id}`">{{ t(`guideArticle.sections.${s.key}`) }}</a>
+          <a :href="`#${s.id}`">{{ s.title ?? t(`guideArticle.sections.${s.key}`) }}</a>
         </li>
       </ol>
     </nav>
@@ -168,7 +168,7 @@ usePageSeo(String(route.path), title, description);
       scroll-mt-20
     >
       <h2 text-20px font-semibold>
-        {{ t(`guideArticle.sections.${s.key}`) }}
+        {{ s.title ?? t(`guideArticle.sections.${s.key}`) }}
       </h2>
 
       <c-markdown v-if="s.kind === 'prose'" :markdown="s.text ?? ''" mt-2 />
