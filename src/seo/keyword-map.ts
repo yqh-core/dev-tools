@@ -456,7 +456,7 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     priority: 'P0',
     competition: 'medium',
     landed: true,
-    lockedTitle: 'HTTP Basic Auth Header Generator — Base64',
+    lockedTitle: 'Basic Auth Header Generator — Create Authorization Header',
     note: 'Bing Webmaster 28d: page 33 impressions, avg position 6.24; exact query 17 impressions, avg position 5.41; zero clicks. Preserve title pending snippet test. Competitor SERP commonly explains Base64-not-encryption, HTTPS, and header/curl examples; validate all claims against this tool before adding copy.',
   },
   {
@@ -467,7 +467,7 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     priority: 'P0',
     competition: 'medium',
     landed: true,
-    lockedTitle: 'Outlook SafeLink Decoder — Original URL',
+    lockedTitle: 'Outlook Safe Links Decoder — Reveal the Original URL',
     note: 'Bing Webmaster 28d: page 23 impressions, avg position 7.00; visible Outlook Safe Links queries around positions 3–10; zero clicks. Keep the current title until a snippet experiment is evidence-led. Safety copy must distinguish revealing a destination from verifying it is safe or bypassing Microsoft click-time protection.',
   },
   {
@@ -478,7 +478,7 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     priority: 'P0',
     competition: 'medium',
     landed: true,
-    lockedTitle: 'Percentage Calculator — % of & % Change',
+    lockedTitle: 'Percentage Calculator — Percent of a Number & Percent Change',
     note: 'GSC 90d: canonical 150 impressions plus slashless variant 74, zero clicks; average positions 9.1667 and 8.2568. One canonical intent/URL only. Query details are substantially anonymized and US page slice did not show this URL; inspect snippet and exact product scope before title or feature changes. README currently describes four calculators.',
   },
 ];
