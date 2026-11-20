@@ -59,7 +59,7 @@ Search results show competing tools that combine generation with decoding, expla
 - Boneyard Tools, HTTP Basic Auth Header Generator: https://boneyardtools.com/dev/basic-auth-generator
 - W3Schools Basic Auth Header Generator: https://www.w3schools.com/tools/tool_basic_auth.php
 
-Implementation in this PR: title changed to “Basic Auth Header Generator — Create Authorization Header”; description now explicitly warns Base64 is not encryption and recommends HTTPS. This matches the observed query without inventing new features. Next, verify the production snippet after deployment. The current DigDevBox implementation is generate-only (username/password to Authorization: Basic header); do not advertise decoding unless that feature is implemented and tested. Add curl examples only after checking exact behavior; do not claim secrets are safe merely because the page is browser-based.
+Implementation in this PR: title changed to “Basic Auth Generator — Build an HTTP Authorization Header”; description now explicitly warns Base64 is not encryption and recommends HTTPS. This matches the observed query without inventing new features. Next, verify the production snippet after deployment. The current DigDevBox implementation is generate-only (username/password to Authorization: Basic header); do not advertise decoding unless that feature is implemented and tested. Add curl examples only after checking exact behavior; do not claim secrets are safe merely because the page is browser-based.
 
 ### Outlook Safe Links decoder
 
