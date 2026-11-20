@@ -6,7 +6,7 @@ describe('evidence-backed SEO keyword targets', () => {
     [
       '/basic-auth-generator',
       'basic auth generator',
-      'Basic Auth Header Generator — Create Authorization Header',
+      'Basic Auth Generator — Build an HTTP Authorization Header',
     ],
     [
       '/safelink-decoder',
