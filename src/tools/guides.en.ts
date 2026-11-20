@@ -967,6 +967,16 @@ export const GUIDES: Record<string, ToolGuide> = {
     steps: ['Enter one English word or known short form per line', 'Use multiple lines to convert a batch at once', 'Copy the generated results or look up established forms such as k8s'],
     example: { label: 'Fill in a sample word', text: 'internationalization' },
     about: 'A numeronym keeps the first and last letters of a word and replaces the middle letters with their count. Familiar developer examples include i18n (internationalization), l10n (localization), a11y (accessibility), k8s (Kubernetes), g11n (globalization) and t9n (translation). In XML canonicalization, c14n is a specialist abbreviation for canonicalization. This generator applies the literal count rule to plain ASCII English words, accepts one word per line for batch conversion, and only reverse-looks up entries in a curated dictionary. It does not invent meanings for unknown strings. Very short words often produce awkward results, so words of three letters or fewer are returned unchanged.',
+    articleOnlySections: [
+      {
+        title: 'Batch mode is line-based, not phrase-based',
+        text: 'Paste one plain-English word or one known numeronym per line. The tool trims leading and trailing spaces and ignores blank lines, but a line containing spaces, punctuation or mixed characters is not treated as a word. Words of three letters or fewer are returned unchanged, so a short token such as API stays API rather than being expanded. In batch mode, each line is evaluated independently; warning rows remain visible, while the copyable batch output contains only successful conversions. Review warning rows before copying if every input line must be accounted for.',
+      },
+      {
+        title: 'Reverse lookup is deliberately dictionary-bound',
+        text: 'Encoding is mechanical for plain A–Z words, but decoding is not guessed from a numeronym-shaped string. The lookup table recognizes i18n, l10n, a11y, k8s, g11n, c14n, n7m and t9n; a form that looks like a numeronym but is not in that list returns a not-in-dictionary warning. Lookup ignores letter case, so K8S resolves to Kubernetes, but an unknown form such as x11y is not assigned an invented expansion. In external documentation, keep the full term nearby when a short form is not established, and check the supported list before relying on reverse lookup.',
+      },
+    ],
     faqs: [
       { q: 'How is the number in a numeronym calculated?', a: 'It is the number of letters between the first and last letters. Internationalization has 18 middle letters, so it becomes i18n; accessibility has 11, so it becomes a11y.' },
       { q: 'What does t9n mean?', a: 'T9n is a common numeronym for translation: the first letter is t, the last letter is n, and the nine letters between them are omitted.' },

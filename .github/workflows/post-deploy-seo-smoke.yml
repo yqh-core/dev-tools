@@ -302,6 +302,7 @@ jobs:
             "/tools/",
             "/percentage-calculator/",
             "/guides/percentage-calculator/",
+            "/guides/numeronym-generator/",
             "/regex-tester/",
             "/numeronym-generator/",
             "/token-generator/",
