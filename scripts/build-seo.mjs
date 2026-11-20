@@ -323,6 +323,7 @@ function buildFaqPageLd(entry) {
 try {
   // —— 全部从 TypeScript 侧取，保证与页面/路由使用同一份数据 ——
   const { canonicalUrl, SITE_ORIGIN } = await vite.ssrLoadModule('/src/seo/site.ts');
+  const { buildGuideMetaDescription } = await vite.ssrLoadModule('/src/seo/guide-links.ts');
   const robotsSource = await readFile(join(root, 'public/robots.txt'), 'utf8');
   if (!robotsSource.includes(`Sitemap: ${SITE_ORIGIN}/sitemap.xml`)) {
     throw new Error(`[build-seo] robots.txt Sitemap 主机与 SITE_ORIGIN 不一致：期望 ${SITE_ORIGIN}/sitemap.xml`);
@@ -429,6 +430,19 @@ try {
   }
 
   // —— 文章页信息增量实测：拿同一份渲染结果里的工具页与文章页比句子 ——
+  const repeatedGuideDescriptions = [];
+  for (const page of GUIDE_ARTICLE_PAGES) {
+    const guideDescription = buildGuideMetaDescription(page.entry.guide, page.entry.description);
+    const toolDescription = page.entry.description;
+    if (!guideDescription || guideDescription === toolDescription) {
+      repeatedGuideDescriptions.push(page.path);
+    }
+  }
+  if (repeatedGuideDescriptions.length) {
+    throw new Error(`[build-seo] 指南页仍缺少独立摘要或复用工具页 meta description: ${repeatedGuideDescriptions.join(', ')}`);
+  }
+  console.log(`[guides] 指南页 meta description 与对应工具页区分：${GUIDE_ARTICLE_PAGES.length}/${GUIDE_ARTICLE_PAGES.length} PASS`);
+
   const rendered = new Map(results.map(item => [item.path, item.html]));
   const guideNovel = {};
   for (const page of GUIDE_ARTICLE_PAGES) {
