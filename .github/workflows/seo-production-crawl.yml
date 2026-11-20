@@ -215,18 +215,18 @@ jobs:
           status="$(curl --silent --show-error --location --max-time 20 \
             --dump-header "$headers_file" --output /dev/null \
             --header 'Accept-Encoding: br' \
-            --write-out '%{http_code}' "\${{ matrix.url }}")"
+            --write-out '%{http_code}' "${{ matrix.url }}")"
           encoding="$(awk 'BEGIN { IGNORECASE=1 } /^content-encoding:/ { gsub("\\r", "", $2); value=tolower($2) } END { print value }' "$headers_file")"
           {
-            echo "url=\${{ matrix.url }}"
+            echo "url=${{ matrix.url }}"
             echo "http_status=$status"
             echo "accept_encoding=br"
             echo "content_encoding=\${encoding:-identity}"
-          } | tee "reports/\${{ matrix.slug }}.compression.txt"
+          } | tee "reports/${{ matrix.slug }}.compression.txt"
           if [[ "$status" =~ ^2[0-9][0-9]$ && "$encoding" == "br" ]]; then
             echo "PASS: Cloudflare returned Brotli-compressed production HTML"
           else
-            echo "::warning::Brotli was not confirmed for \${{ matrix.label }} (HTTP $status, Content-Encoding: \${encoding:-identity}); investigate edge compression settings separately from SiteOne's heuristic"
+            echo "::warning::Brotli was not confirmed for ${{ matrix.label }} (HTTP $status, Content-Encoding: \${encoding:-identity}); investigate edge compression settings separately from SiteOne's heuristic"
           fi
           rm -f "$headers_file"
 
