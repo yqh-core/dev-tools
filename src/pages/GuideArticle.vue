@@ -7,6 +7,7 @@ import { usePageSeo } from '@/seo/use-page-seo';
 import { GUIDE_PREFIX, buildGuideSections, getGuideArticle } from '@/seo/guide-articles';
 import { loadGuides } from '@/tools/guides';
 import { normalizePath } from '@/seo/site';
+import { buildGuideMetaDescription } from '@/seo/guide-links';
 
 /**
  * 工具指南文章页 `/guides/<slug>`。
@@ -100,7 +101,15 @@ const title = computed(() => {
   return `${toolH1.value} — ${t('guideArticle.suffix')} - ${t('legal.siteName')}`;
 });
 
-const description = computed(() => (page.value ? descOf(page.value.toolPath, page.value.entry.description) : ''));
+const description = computed(() => {
+  if (!page.value) {
+    return '';
+  }
+  return buildGuideMetaDescription(
+    activeGuide.value,
+    descOf(page.value.toolPath, page.value.entry.description),
+  );
+});
 
 // 第一个形参是普通字符串（不是 MaybeRef）：一次渲染内 path 不会变。
 usePageSeo(String(route.path), title, description);
@@ -135,10 +144,6 @@ usePageSeo(String(route.path), title, description);
     <h1 mt-3 text-28px font-bold>
       {{ toolH1 }} — {{ t('guideArticle.suffix') }}
     </h1>
-
-    <p mt-3 text-16px op-80>
-      {{ page.entry.description }}
-    </p>
 
     <nav mt-6 aria-labelledby="guide-toc">
       <h2 id="guide-toc" text-18px font-semibold>
