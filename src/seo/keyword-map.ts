@@ -205,14 +205,14 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
   },
   {
     path: '/regex-tester',
-    keyword: 'regex tester online',
-    keywords: ['online regex tester javascript', 'ReDoS', 'greedy vs lazy quantifiers', 'Explain this regex'],
+    keyword: 'regular expression tester',
+    keywords: ['regex tester online', 'regex expression tester', 'online regex tester javascript', 'JavaScript regex flavor', 'ReDoS', 'greedy vs lazy quantifiers', 'Explain this regex'],
     intent: 'debug',
     priority: 'P0',
     competition: 'low',
     article: 'regex-testing-guide',
     landed: true,
-    lockedTitle: 'Regex Tester — JavaScript Regex Tester Online',
+    lockedTitle: 'Regular Expression Tester — JavaScript Regex Tester Online',
     note: '簇 5。关键事实：regex101.com 与 regexr.com 三次查询均未进 top5。',
   },
   {
