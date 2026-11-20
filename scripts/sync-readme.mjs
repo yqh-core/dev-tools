@@ -66,7 +66,15 @@ next = next
 
 if (CHECK) {
   if (next !== original) {
+    const beforeLines = original.split(String.fromCharCode(10));
+    const generatedLines = next.split(String.fromCharCode(10));
+    const firstDiff = beforeLines.findIndex((line, index) => line !== generatedLines[index]);
     console.error(`[sync-readme] DRIFT: README is out of sync with the tool registry (${total} tools, ${categories.length} categories). Run: node scripts/sync-readme.mjs`);
+    if (firstDiff >= 0) {
+      console.error(`[sync-readme] first difference at line ${firstDiff + 1}`);
+      console.error(`  README:    ${JSON.stringify(beforeLines[firstDiff])}`);
+      console.error(`  generated: ${JSON.stringify(generatedLines[firstDiff])}`);
+    }
     process.exit(1);
   }
   console.log(`[sync-readme] OK: README in sync (${total} tools, ${categories.length} categories).`);
