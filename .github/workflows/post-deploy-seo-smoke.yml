@@ -140,15 +140,24 @@ jobs:
             }
           }
 
-          for (const [label, path] of [
-            ['percentage no-slash', '/percentage-calculator'],
-            ['percentage slash', '/percentage-calculator/'],
+          // Search Console has exposed both slashless and slash URLs for several
+          // priority tools. Require every variant to converge to the one sitemap URL.
+          for (const route of [
+            '/percentage-calculator',
+            '/regex-tester',
+            '/numeronym-generator',
+            '/token-generator',
+            '/device-information',
+            '/ipv4-range-expander',
+            '/pdf-signature-checker',
           ]) {
-            const result = await get(path);
-            const expected = origin + '/percentage-calculator/';
-            if (!result.response.ok || result.finalUrl !== expected) {
-              throw new Error(label + ' does not converge to ' + expected + ' (HTTP ' +
-                result.response.status + ', final ' + result.finalUrl + ')');
+            const expected = origin + route + '/';
+            for (const variant of [route, route + '/']) {
+              const result = await get(variant);
+              if (!result.response.ok || result.finalUrl !== expected) {
+                throw new Error(variant + ' does not converge to ' + expected + ' (HTTP ' +
+                  result.response.status + ', final ' + result.finalUrl + ')');
+              }
             }
           }
 
@@ -242,7 +251,12 @@ jobs:
             "/",
             "/tools/",
             "/percentage-calculator/",
+            "/regex-tester/",
             "/numeronym-generator/",
+            "/token-generator/",
+            "/device-information/",
+            "/ipv4-range-expander/",
+            "/pdf-signature-checker/",
           ]) {
             const url = origin + route;
             if (!sitemap.body.includes(url)) throw new Error('sitemap missing priority search page ' + url);
