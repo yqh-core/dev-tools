@@ -959,6 +959,16 @@ export const GUIDES: Record<string, ToolGuide> = {
     steps: ['每行输入一个英文单词或已知缩写', '多行输入可一次批量转换', '复制生成结果，或查询 k8s 等已确立缩写的含义'],
     example: { label: '填入示例单词', text: 'internationalization' },
     about: '数字缩略词保留单词首尾字母，并用数字表示中间省略的字母数量。常见开发术语包括 i18n（internationalization，国际化）、l10n（localization，本地化）、a11y（accessibility，无障碍）、k8s（Kubernetes）和 t9n（translation，翻译）。在 XML 规范中，c14n 是 canonicalization（规范化）的专业缩写。工具只对纯 ASCII 英文单词按字母数量生成结果，并且只反查词典中已收录的形式；不会猜测未知缩写的含义。三个字母及以下的短词保持原样，避免生成没有实际价值的缩写。',
+    articleOnlySections: [
+      {
+        title: '省略字母的数量是怎样计算的',
+        text: 'Numeronym 通常由三部分组成：首字母、被省略的中间字母数量、末字母。以 accessibility 为例，保留 a 和 y，中间 11 个字母用 11 代替，得到 a11y。Kubernetes 保留 k 和 s，中间 8 个字母用 8 代替，得到 k8s。这个数字按字母逐个计数，不是音节数、单词数，也不是根据读音猜出的数字。',
+      },
+      {
+        title: '什么时候适合使用，什么时候应该避免',
+        text: 'i18n 和 l10n 常见于本地化工程，a11y 常见于无障碍领域，k8s 常见于基础设施团队。当读者熟悉这些缩写时，它们适合用于代码、问题标签和技术讨论。在面向客户的文档、入门材料和跨职能报告中，应先写出完整术语，再定义缩写。Numeronym 不等于所有缩写：API 和 HTTP 是首字母缩略词，并不是这种首尾字母加省略数量的形式。不同单词也可能拥有相同的首尾字母和中间字母数量，因此仅凭形式无法确认陌生缩写的含义。',
+      },
+    ],
     faqs: [
       { q: '数字缩略词中的数字如何计算？', a: '数字表示首字母与尾字母之间省略的字母数量。internationalization 中间有 18 个字母，因此是 i18n；accessibility 中间有 11 个，因此是 a11y。' },
       { q: 't9n 是什么意思？', a: 't9n 是 translation（翻译）的常见数字缩略词：保留首字母 t 和尾字母 n，中间省略 9 个字母。' },
