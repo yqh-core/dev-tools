@@ -458,7 +458,7 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     priority: 'P0',
     competition: 'medium',
     landed: true,
-    lockedTitle: 'Basic Auth Header Generator — Create Authorization Header',
+    lockedTitle: 'Basic Auth Generator — Build an HTTP Authorization Header',
     note: 'Bing Webmaster 28d: page 33 impressions, avg position 6.24; exact query 17 impressions, avg position 5.41; zero clicks. This PR tests a task-first title and clarifies Base64 is not encryption; it is not live until merge/deploy. Validate header/curl examples against the tool before adding copy.',
   },
   {
