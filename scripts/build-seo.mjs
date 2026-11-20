@@ -440,7 +440,7 @@ try {
     const guideDescription = metaDescriptionOf(headTagsByPath.get(normalizeRenderPath(page.path)) ?? '');
     const toolDescription = metaDescriptionOf(headTagsByPath.get(normalizeRenderPath(page.toolPath)) ?? '');
     if (!guideDescription || !toolDescription) {
-      throw new Error(`[build-seo] ${page.path} 或 ${page.toolPath} 缺少可读取的 meta description`);
+      throw new Error(`[build-seo] ${page.path} 或 ${page.toolPath} 缺少可读取的 meta description（guide=${Boolean(guideDescription)} tool=${Boolean(toolDescription)}）`);
     }
     if (guideDescription === toolDescription) {
       repeatedGuideDescriptions.push(page.path);
