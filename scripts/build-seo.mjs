@@ -429,15 +429,16 @@ try {
   }
 
   // —— 文章页信息增量实测：拿同一份渲染结果里的工具页与文章页比句子 ——
-  const headTagsByPath = new Map(results.map(item => [item.path, item.headTags]));
+  const normalizeRenderPath = path => path.replace(/\/+$/, '') || '/';
+  const headTagsByPath = new Map(results.map(item => [normalizeRenderPath(item.path), item.headTags]));
   const metaDescriptionOf = (headTags) => {
     const tag = headTags.match(/<meta\b[^>]*\bname=["']description["'][^>]*>/i)?.[0] ?? '';
     return tag.match(/\bcontent=(["'])(.*?)\1/i)?.[2] ?? '';
   };
   const repeatedGuideDescriptions = [];
   for (const page of GUIDE_ARTICLE_PAGES) {
-    const guideDescription = metaDescriptionOf(headTagsByPath.get(page.path) ?? '');
-    const toolDescription = metaDescriptionOf(headTagsByPath.get(page.toolPath) ?? '');
+    const guideDescription = metaDescriptionOf(headTagsByPath.get(normalizeRenderPath(page.path)) ?? '');
+    const toolDescription = metaDescriptionOf(headTagsByPath.get(normalizeRenderPath(page.toolPath)) ?? '');
     if (!guideDescription || !toolDescription) {
       throw new Error(`[build-seo] ${page.path} 或 ${page.toolPath} 缺少可读取的 meta description`);
     }
