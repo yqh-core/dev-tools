@@ -194,7 +194,7 @@ jobs:
           // priority English tool pages. This catches UA-dependent HTML/cache variants
           // and guarantees the crawler sees the same title, description, H1 and canonical.
           const browserUa = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/130.0.0.0 Safari/537.36';
-          const priorityPages = ['/percentage-calculator/', '/numeronym-generator/'];
+          const priorityPages = ['/', '/percentage-calculator/', '/numeronym-generator/'];
           for (const path of priorityPages) {
             const [bot, browser] = await Promise.all([get(path), get(path, browserUa)]);
             for (const [label, result] of [['Googlebot', bot], ['browser', browser]]) {
@@ -208,11 +208,12 @@ jobs:
               description: html.match(/<meta[^>]+name=["']description["'][^>]+content=["']([^"']*)["']/i)?.[1] || '',
               canonical: html.match(/<link[^>]+rel=["']canonical["'][^>]+href=["']([^"']+)["']/i)?.[1] || '',
               h1: html.match(/<h1\b[^>]*>([\s\S]*?)<\/h1>/i)?.[1]?.replace(/<[^>]+>/g, '').trim() || '',
+              mainLandmarks: (html.match(/<main(?:\s|>)/gi) || []).length,
             });
             const botMeta = extract(bot.body);
             const browserMeta = extract(browser.body);
-            if (!botMeta.title || !botMeta.description || !botMeta.h1 || botMeta.canonical !== origin + path) {
-              throw new Error(path + ' Googlebot HTML is missing title, description, H1 or self-canonical metadata');
+            if (!botMeta.title || !botMeta.description || !botMeta.h1 || botMeta.canonical !== origin + path || botMeta.mainLandmarks !== 1) {
+              throw new Error(path + ' Googlebot HTML is missing title, description, H1, one main landmark or self-canonical metadata: ' + JSON.stringify(botMeta));
             }
             if (JSON.stringify(botMeta) !== JSON.stringify(browserMeta)) {
               throw new Error(path + ' Googlebot HTML differs from browser HTML: ' +
