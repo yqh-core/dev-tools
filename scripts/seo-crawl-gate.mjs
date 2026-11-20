@@ -75,6 +75,11 @@ async function readReport(site) {
   return JSON.parse(raw);
 }
 
+function isHttpError(row) {
+  const match = String(row?.status ?? '').match(/^(\\d{3})(?:\\b|:)/);
+  return Boolean(match && Number(match[1]) >= 400);
+}
+
 async function evaluateSite(site) {
   const report = await readReport(site);
   const summary = report.summary?.items || [];
@@ -124,6 +129,21 @@ async function evaluateSite(site) {
     warnings.push(accepted.length + ' verified SiteOne JS-parser false positive(s): Browserify/webworkify module ID, not a network request');
   }
 
+  // The 404 table is not a complete HTTP-health signal: 403/429/5xx responses
+  // can appear in results without being represented there. Inspect every result
+  // and fail on all HTTP error statuses, while excluding only independently
+  // verified ImageForge Browserify worker-parser false positives.
+  const acceptedUrls = new Set(accepted.map(row => row.url));
+  const httpErrors = (report.results || []).filter(row =>
+    isHttpError(row) && !acceptedUrls.has(row.url),
+  );
+  if (httpErrors.length > 0) {
+    for (const row of httpErrors) {
+      const message = 'HTTP ' + row.status + ': ' + row.url;
+      (site.priority ? errors : warnings).push(message);
+    }
+  }
+
   return {
     site,
     pages: report.stats?.totalUrls ?? 'unknown',
@@ -144,6 +164,12 @@ async function main() {
     };
     const wrongTarget = { ...good, url: 'https://draw.digdevbox.com/missing.js' };
     const wrongSource = { ...good, sourceUqId: 'https://draw.digdevbox.com/app.js' };
+    if (!isHttpError({ status: '404' }) || !isHttpError({ status: '500' }) || !isHttpError({ status: '429' })) {
+      throw new Error('self-test failed: expected 4xx/5xx HTTP responses to fail');
+    }
+    if (isHttpError({ status: '200' }) || isHttpError({ status: '301' }) || isHttpError({ status: '-6:SKIPPED' })) {
+      throw new Error('self-test failed: accepted status was treated as an HTTP error');
+    }
     if (!imageForgeWorkerCandidate(good)) throw new Error('self-test failed: expected Browserify candidate');
     if (imageForgeWorkerCandidate(wrongTarget)) throw new Error('self-test failed: accepted wrong target');
     if (imageForgeWorkerCandidate(wrongSource)) throw new Error('self-test failed: accepted wrong source');
