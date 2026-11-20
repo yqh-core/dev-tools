@@ -100,6 +100,7 @@ async function evaluateSite(site) {
   }
 
   const notFoundRows = notFoundTable?.rows || [];
+  const skippedRows = report.tables?.skipped?.rows || [];
   const accepted = [];
   const untriaged = [];
 
@@ -128,6 +129,7 @@ async function evaluateSite(site) {
     pages: report.stats?.totalUrls ?? 'unknown',
     status200: report.stats?.countByStatus?.['200'] ?? 0,
     notFound: notFoundRows.length,
+    skippedOutOfScope: skippedRows.length,
     accepted: accepted.length,
     errors,
     warnings,
@@ -176,7 +178,8 @@ async function main() {
       + ' | crawled=' + result.pages
       + ' | HTTP 200=' + result.status200
       + ' | 404=' + result.notFound
-      + ' | accepted false positives=' + result.accepted,
+      + ' | accepted false positives=' + result.accepted
+      + ' | out-of-scope links skipped=' + result.skippedOutOfScope,
     );
     for (const warning of result.warnings) console.log('  WARNING: ' + warning);
     for (const error of result.errors) console.error('  FAIL: ' + error);
