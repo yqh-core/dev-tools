@@ -238,14 +238,14 @@ jobs:
 
   crawl-quality-gate:
     needs: [detect-site-changes, wait-for-deploy, crawl]
-    if: \${{ needs.detect-site-changes.outputs.should_run == 'true' && needs.crawl.result == 'success' && ((github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main') || (github.event_name != 'workflow_run' && github.ref == 'refs/heads/main')) }}
+    if: ${{ needs.detect-site-changes.outputs.should_run == 'true' && needs.crawl.result == 'success' && ((github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main') || (github.event_name != 'workflow_run' && github.ref == 'refs/heads/main')) }}
     name: Enforce production SEO crawl quality gates
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: \${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
 
       - name: Download all nine production crawl evidence packages
         uses: actions/download-artifact@v4
