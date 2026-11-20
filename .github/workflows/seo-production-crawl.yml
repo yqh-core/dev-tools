@@ -50,9 +50,15 @@ jobs:
             );
             core.info('Changed files: ' + files.map(file => file.filename).join(', '));
             core.info('Deployable site files: ' + deployable.map(file => file.filename).join(', '));
-            const shouldRun = deployable.length > 0;
+            const crawlControlChanged = files.some(({ filename }) =>
+              filename === '.github/workflows/seo-production-crawl.yml' ||
+              filename === 'scripts/seo-crawl-gate.mjs'
+            );
+            const shouldRun = deployable.length > 0 || crawlControlChanged;
+            core.info('Crawler control-plane changed: ' + crawlControlChanged);
+            const shouldWaitForDeploy = deployable.length > 0;
             core.setOutput('should_run', shouldRun ? 'true' : 'false');
-            core.setOutput('wait_for_deploy', shouldRun ? 'true' : 'false');
+            core.setOutput('wait_for_deploy', shouldWaitForDeploy ? 'true' : 'false');
 
   wait-for-deploy:
     needs: detect-site-changes
