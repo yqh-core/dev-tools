@@ -33,6 +33,107 @@ The GSC snapshot above was reported as cached by the connector around 2026-11-20
 - **P2 — long-tail expansion:** specialist converters, network calculators, accessibility/security utilities, developer references, and the separate product sites.
 - **P3 — defer:** topics for which the current product does not yet satisfy the intent, high-risk YMYL/security claims, and generic head terms dominated by large brands.
 
+## Nine-site product map and market fit (verified hosts where available)
+
+| Site | Verified host / product | Search-intent focus | Current action |
+|---|---|---|---|
+| Main Dev Tools | digdevbox.com | Developer utilities: regex, percentage, Basic Auth, Safe Links, JSON, JWT, converters, network/DevOps | GSC + Bing query-led page work; keep one canonical target per intent |
+| DigImg | img.digdevbox.com | Browser-local image compression, JPEG/WebP/AVIF output, image size reduction, measured quality/byte comparisons | Prioritize image-compressor and format-conversion terms; use real byte/SSIM evidence. Do not promise exact target-KB support until confirmed |
+| IP Locator | ip.digdevbox.com | IP lookup/geolocation, IPv4/IPv6, CIDR/subnet, DNS/rDNS | Target only implemented fields and supported geographies; distinguish lookup from subnet calculation |
+| StreamPlay | play.digdevbox.com | M3U8/HLS player, stream testing, playlist/variant/segment inspection, embed/deep-link workflows | Separate player intent from analyzer intent; disclose browser/codec/CORS constraints |
+| TTS Reader | ttsreader.digdevbox.com | Long-text text-to-speech reader | Build around long text and reading workflows; verify exact supported file imports, voices and export modules before publishing claims |
+| ImageForge | draw.digdevbox.com | Free browser-based image editor: layers, filters, shapes, text, retouching and local editing | Compete on online image editor / photo editor intent, not AI image generation |
+| Forge Notes | notes.digdevbox.com | Original developer tutorials, debugging guides, worked examples and comparisons | Editorial support layer; each article links to one relevant tool and answers a distinct question |
+| Geek Typing | geek-typing.pages.dev | English typing practice through vocabulary, topic/exam word banks, review and offline practice | Target English typing + vocabulary-learning intent; avoid generic typing-test promises that don't match the product |
+| Fangdai | Separate Chinese-market mortgage product | Not aligned with the current US/EU growth strategy | Excluded from current keyword expansion; retain technical health monitoring only |
+
+The hosts above are grounded in the product READMEs/repository descriptions and current project inventory. The exact DigImg host is img.digdevbox.com; TTS Reader is ttsreader.digdevbox.com; Geek Typing is geek-typing.pages.dev. Production sitemaps still need to be fetched to finalize every canonical path on each host.
+
+### Cross-site keyword clusters to expand
+
+**DigImg**
+- image compressor online
+- compress JPEG online
+- compress WebP online
+- AVIF image compressor
+- convert JPG to WebP
+- convert PNG to WebP
+- browser-based image compressor
+- compress images without uploading
+- image optimization for web
+- image file size reducer
+
+**IP Locator**
+- IP address lookup
+- IP geolocation lookup
+- public IP lookup
+- IPv4 subnet calculator
+- CIDR calculator
+- IPv6 address lookup
+- IPv6 CIDR calculator
+- reverse DNS lookup
+- DNS lookup by IP
+- IP address range calculator
+
+**StreamPlay**
+- M3U8 player
+- HLS player online
+- play M3U8 URL
+- HLS stream tester
+- M3U8 playlist analyzer
+- HLS manifest analyzer
+- inspect M3U8 variants
+- HLS segment inspector
+- embed M3U8 player
+- MP4 video player online
+
+**TTS Reader**
+- text to speech reader online
+- long text to speech
+- read text aloud online
+- text reader with voice
+- listen to long articles
+- text to speech for documents
+- online TTS reader
+- text to speech web app
+
+**ImageForge**
+- free online image editor
+- online photo editor
+- browser-based image editor
+- image editor with layers
+- online image editor no install
+- free photo editor no signup
+- edit images in browser
+- browser-based photo retouching
+- online image editor with filters
+- add text to image online
+
+**Geek Typing**
+- English typing practice
+- vocabulary typing practice
+- learn English vocabulary by typing
+- typing practice with word lists
+- English word typing game
+- IELTS vocabulary typing practice (only if the relevant pack is live and clearly accessible)
+- TOEFL vocabulary typing practice (same validation)
+- offline English typing practice
+- developer vocabulary typing practice
+
+**Forge Notes**
+- how to test a regular expression in JavaScript
+- how to generate an HTTP Basic Authorization header
+- how to decode an Outlook Safe Links URL
+- percentage change formula with examples
+- Unix timestamp seconds vs milliseconds
+- how to inspect an HLS M3U8 playlist
+- how to troubleshoot HLS CORS and codec errors
+- how to compare image compression quality and file size
+- CIDR and IPv6 subnet examples
+- Docker run command to Compose conversion
+
+These are candidate phrases to validate, not reported search volumes. Do not publish all phrases as separate pages; group them into the smallest set of pages that fully answers each intent.
+
 ## Keyword-to-page map (candidate phrases, not volume claims)
 
 The primary phrase is the proposed page focus. Supporting phrases are candidate variants to validate in GSC/Bing/SERP data. The target URL is the existing canonical page from the public project inventory wherever verified.
@@ -73,17 +174,17 @@ The primary phrase is the proposed page focus. Supporting phrases are candidate 
 | URL parser | URL parser online | parse URL; URL query parameter parser; split URL into parts; URL components parser | /url-parser — show scheme/host/path/query/fragment extraction examples | P2 |
 | HTML entities | HTML entity encoder | HTML escape online; HTML unescape; escape HTML characters; HTML entity decoder | /html-entities — include XSS-context caveat; do not claim sanitizer functionality | P2 |
 | Color contrast | color contrast checker | WCAG contrast checker; accessibility contrast checker; WCAG AA contrast; WCAG AAA contrast; contrast ratio calculator | /color-contrast-checker — show thresholds and live preview; make conformance scope explicit | P1 |
-| Image compression | image compressor | compress image online; image size reducer; reduce image file size; JPEG compressor; WebP compressor; AVIF converter; compress image to 100KB | DigImg — target separate intent pages only where the app actually supports them; publish measured same-image comparisons | P1 |
+| Image compression | image compressor | compress image online; image size reducer; reduce image file size; JPEG compressor; WebP compressor; AVIF converter; reduce image file size to target KB (validate target-size support before targeting) | DigImg — target separate intent pages only where the app actually supports them; publish measured same-image comparisons | P1 |
 | Image format | convert image to WebP | convert JPG to WebP; PNG to WebP; AVIF converter; image format converter; WebP converter online | DigImg — add format-specific guides only with real browser support and measured outputs | P2 |
 | Image resize | image resizer | resize image online; resize image to pixels; change image dimensions; bulk image resize | Main /image-resize and DigImg if capability overlaps — avoid cannibalization; define distinct feature scope | P2 |
 | Image crop | image cropper | crop image online; crop photo to exact size; crop image to aspect ratio | /image-crop — demonstrate pixel-accurate crop and aspect ratio behavior | P2 |
 | M3U8 | M3U8 player | HLS player online; play M3U8 URL; M3U8 stream player; HLS playlist analyzer; inspect M3U8 playlist | StreamPlay — separate playback vs playlist analysis intent; verify supported browser/codec constraints | P1 |
 | HLS analysis | M3U8 analyzer | HLS manifest analyzer; inspect HLS variants; parse M3U8 playlist; HLS segment analyzer; stream playlist inspector | StreamPlay — leverage actual variant/segment inspection; show sample manifest and explain results | P1 |
 | TTS | text to speech online | free text to speech; read text aloud; online TTS reader; text reader with voice; listen to text | TTS Reader — confirm voices, language, download/export and browser support before claims | P1 |
-| TTS accessibility | text reader for dyslexia | read web text aloud; text to speech for studying; listen to documents | TTS Reader — only target if product genuinely supports the use case; avoid medical claims | P2 |
-| Typing test | typing speed test | typing test online; words per minute test; WPM test; free typing speed test; typing accuracy test | Geek Typing — confirm test modes, duration and score calculation | P1 |
+| Long-form TTS | long text to speech reader | read long text aloud; text to speech for long articles; online text reader; listen to documents | TTS Reader (ttsreader.digdevbox.com) — validate the seven modules and exact supported import/export formats before making page claims | P1 |
+| English typing practice | English typing practice | typing practice with vocabulary; learn English words by typing; English vocabulary typing; typing practice word lists; vocabulary typing game; English typing accuracy practice | Geek Typing (geek-typing.pages.dev) — focus on vocabulary-through-typing, word-bank and review differentiation; do not promise timed test modes unless verified | P1 |
 | Typing practice | typing practice online | typing practice test; improve typing speed; typing accuracy practice; keyboard speed test | Geek Typing — publish practice content only if matching modes exist | P2 |
-| Image generation | AI image generator | text to image generator; AI art generator online; generate image from prompt | ImageForge — validate exact product capability, model/licensing, free limits and commercial rights before targeting | P2 |
+| Image editing | free online image editor | browser image editor; online photo editor; image editor with layers; free photo editor no signup; edit images in browser; image editor without install; image editor no upload | ImageForge (draw.digdevbox.com) — target its real miniPaint-based editor features: layers, filters, shapes, text, retouching and browser-local editing; do not target AI image generation | P1 |
 | Dev tools hub | developer tools online | free online developer tools; browser developer utilities; developer toolbox; online coding tools | Main homepage — category architecture and internal links; avoid generic keyword stuffing | P2 |
 | Privacy/local processing | browser based tools | client side tools; private online developer tools; tools that run in browser; no upload image compressor | Main site / DigImg — substantiate each privacy statement by implementation and network tests | P2 |
 
