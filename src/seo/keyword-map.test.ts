@@ -26,6 +26,6 @@ describe('evidence-backed SEO keyword targets', () => {
     expect(entry?.priority).toBe('P0');
     expect(entry?.landed).toBe(true);
     expect(entry?.lockedTitle).toBe(title);
-    expect(entry?.keywords.length).toBeGreaterThanOrEqual(4);
+    expect((entry?.keywords ?? []).length).toBeGreaterThanOrEqual(4);
   });
 });
