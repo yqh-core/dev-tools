@@ -447,6 +447,8 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     note: '簇 2 矩阵。与 #2 联动一起做：排名页普遍在做 formatter ↔ validator ↔ minifier ↔ diff ↔ repair 的互链闭环，这是可直接复制的模板。竞争度随 /json-prettify。',
   },
   // 2026-11-20 additions: keyword targets selected from authenticated GSC/Bing data.
+  // Evidence snapshots and query caveats: docs/seo/gsc-live-snapshot-2026-11-20.md and docs/seo/bing-serp-research-2026-11-20.md.
+  // Keep title locks synchronized with locales/en.yml and the generated README.
   // These are existing live titles, locked unchanged; this adds governance/coverage, not metadata rewrites.
   {
     path: '/basic-auth-generator',
