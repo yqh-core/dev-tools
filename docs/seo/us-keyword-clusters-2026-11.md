@@ -349,6 +349,7 @@ These 102 supporting phrases are a discovery backlog, not a recommendation to cr
 - Search volume, keyword difficulty, CPC and competitor traffic are not available in the supplied GSC/Bing snapshots. Ahrefs access was previously blocked by plan limits; no volume numbers are fabricated here.
 - GSC Pages and Sitemaps reports were not available in the previous audit. Sitemap reachability and crawler PASS do not prove Google indexation.
 - Need current production sitemaps for all nine sites to finalize exact URL mapping and prevent cross-site cannibalization.
+- The connected GSC property is only sc-domain:digdevbox.com; it covers the DigDevBox subdomains but not geek-typing.pages.dev. Geek Typing needs its own Search Console property before we can measure its search queries. Bing Webmaster currently exposes only https://digdevbox.com/ in the connected team; other product hosts need separate site connections for Bing query reporting.
 - Need fresh GSC query exports before editing high-ranking titles, especially Percentage Calculator.
 - Need live SERP checks for each P0/P1 cluster before creating new pages or claiming a competitor gap.
 
