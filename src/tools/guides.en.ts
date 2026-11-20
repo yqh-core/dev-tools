@@ -1224,7 +1224,7 @@ export const GUIDES: Record<string, ToolGuide> = {
     faqs: [
       { q: 'Why does a 20% increase then a 20% decrease not return to the original?', a: 'Because the decrease is computed on the larger value. Going from 100 to 120 and back down by 20% gives 96 — a net 4% loss. Percentage changes are not symmetric.' },
       { q: 'What is the difference between percent change and percentage-point change?', a: 'If a rate moves from 5% to 7%, that is a 2-percentage-point change but a 40% relative increase. Reports mix these up constantly; state which one you mean.' },
-      { q: 'Can I use this for discounts and VAT?', a: 'Yes — the "P% of N" mode handles discount amounts and tax directly; the "X of Y" mode recovers the original ratio when you know both prices.' },
+      { q: 'How do I calculate a percentage off a price or add sales tax?', a: 'For a discount, use the decrease mode: multiply the original price by 1 − (discount ÷ 100). A $80 item with 20% off saves $16 and costs $64. For VAT or sales tax, use the increase mode with the tax rate.' },
       { q: 'How do I increase or decrease a value by a percentage?', a: 'Multiply the starting value by 1 + (rate ÷ 100) to increase it, or by 1 − (rate ÷ 100) to decrease it. For example, increasing 80 by 15% gives 92; decreasing it by 15% gives 68.' },
       { q: 'Why are there separate fields instead of one formula?', a: 'Each question has a different unknown in a different position. Separating them avoids the most common error: rearranging the formula and dividing by the wrong base.' },
     ],
