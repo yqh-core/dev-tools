@@ -256,6 +256,24 @@ jobs:
             throw new Error('Guide page must be live, self-canonical and have a distinct meta description from its tool page');
           }
 
+          // Percentage Calculator's guide was previously excluded by the content
+          // novelty gate. Once original article-only sections make it indexable,
+          // verify the production URL is live and independently canonical.
+          const percentageGuidePath = '/guides/percentage-calculator/';
+          const percentageGuideResult = await get(percentageGuidePath);
+          const percentageToolResult = await get('/percentage-calculator/');
+          const percentageGuideDescription = extractDescription(percentageGuideResult.body);
+          const percentageToolDescription = extractDescription(percentageToolResult.body);
+          const percentageGuideCanonical = percentageGuideResult.body.match(/<link[^>]+rel=["']canonical["'][^>]+href=["']([^"']+)["']/i)?.[1] || '';
+          if (!percentageGuideResult.response.ok ||
+              percentageGuideResult.finalUrl !== origin + percentageGuidePath ||
+              !percentageGuideDescription || !percentageToolDescription ||
+              percentageGuideDescription === percentageToolDescription ||
+              percentageGuideCanonical !== origin + percentageGuidePath ||
+              /<meta[^>]+name=["']robots["'][^>]+content=["'][^"']*noindex/i.test(percentageGuideResult.body)) {
+            throw new Error('Percentage Calculator guide must be live, indexable, self-canonical and have a distinct meta description');
+          }
+
           const robots = await get('/robots.txt');
           if (!robots.response.ok || !/Sitemap:\s*https:\/\//i.test(robots.body) || !robots.body.includes(origin + '/sitemap.xml')) {
             throw new Error('robots.txt does not reference the canonical production sitemap');
@@ -283,6 +301,7 @@ jobs:
             "/",
             "/tools/",
             "/percentage-calculator/",
+            "/guides/percentage-calculator/",
             "/regex-tester/",
             "/numeronym-generator/",
             "/token-generator/",
