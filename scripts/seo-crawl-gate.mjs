@@ -76,7 +76,7 @@ async function readReport(site) {
 }
 
 function isHttpError(row) {
-  const match = String(row?.status ?? '').match(/^(\\d{3})(?:\\b|:)/);
+  const match = String(row?.status ?? '').match(/^(\d{3})(?:\b|:)/);
   return Boolean(match && Number(match[1]) >= 400);
 }
 
