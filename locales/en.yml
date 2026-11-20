@@ -679,7 +679,7 @@ tools:
     description: Transform text into the NATO phonetic alphabet for oral transmission.
 
   basic-auth-generator:
-    title: "Basic Auth Header Generator — Create Authorization Header"
+    title: "Basic Auth Generator — Build an HTTP Authorization Header"
     description: "Generate an HTTP Basic Authorization header from a username and password. Copy the Base64 value for curl or API clients. Base64 is not encryption; use HTTPS."
 
   text-to-unicode:
