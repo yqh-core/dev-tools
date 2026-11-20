@@ -36,7 +36,7 @@ export function buildGuideMetaDescription(
   maxLength = 160,
 ): string {
   const source = guide?.about?.trim() || guide?.intro?.trim() || fallback.trim();
-  const normalized = source.replace(/\\s+/g, ' ');
+  const normalized = source.replace(/\s+/g, ' ');
   if (normalized.length <= maxLength) {
     return normalized;
   }
