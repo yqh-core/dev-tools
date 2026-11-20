@@ -218,7 +218,6 @@ describe('missingLocaleKeys', () => {
   });
 });
 
-
 describe('buildGuideMetaDescription', () => {
   it('uses the guide knowledge summary instead of the paired tool description', () => {
     expect(buildGuideMetaDescription(
