@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildGuideSections, GUIDE_ARTICLE_PAGES } from '@/seo/guide-articles';
+import { GUIDE_ARTICLE_PAGES, buildGuideSections } from '@/seo/guide-articles';
 import { loadGuides } from '@/tools/guides';
 
 describe('article-only guide content', () => {
