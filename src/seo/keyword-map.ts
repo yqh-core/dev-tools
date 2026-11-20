@@ -446,6 +446,41 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     landed: false,
     note: '簇 2 矩阵。与 #2 联动一起做：排名页普遍在做 formatter ↔ validator ↔ minifier ↔ diff ↔ repair 的互链闭环，这是可直接复制的模板。竞争度随 /json-prettify。',
   },
+  // 2026-11-20 additions: keyword targets selected from authenticated GSC/Bing data.
+  // These are existing live titles, locked unchanged; this adds governance/coverage, not metadata rewrites.
+  {
+    path: '/basic-auth-generator',
+    keyword: 'basic auth generator',
+    keywords: ['basic authorization generator', 'basic auth header generator', 'web basic auth generator', 'generate basic auth', 'HTTP Basic Authorization header'],
+    intent: 'generate',
+    priority: 'P0',
+    competition: 'medium',
+    landed: true,
+    lockedTitle: 'HTTP Basic Auth Header Generator — Base64',
+    note: 'Bing Webmaster 28d: page 33 impressions, avg position 6.24; exact query 17 impressions, avg position 5.41; zero clicks. Preserve title pending snippet test. Competitor SERP commonly explains Base64-not-encryption, HTTPS, and header/curl examples; validate all claims against this tool before adding copy.',
+  },
+  {
+    path: '/safelink-decoder',
+    keyword: 'outlook safelink decoder',
+    keywords: ['safelink decoder', 'decode outlook safelink', 'how to open the outlook safelink original url', 'convert outlook safelinke to url', 'original URL from Outlook Safe Links'],
+    intent: 'inspect',
+    priority: 'P0',
+    competition: 'medium',
+    landed: true,
+    lockedTitle: 'Outlook SafeLink Decoder — Original URL',
+    note: 'Bing Webmaster 28d: page 23 impressions, avg position 7.00; visible Outlook Safe Links queries around positions 3–10; zero clicks. Keep the current title until a snippet experiment is evidence-led. Safety copy must distinguish revealing a destination from verifying it is safe or bypassing Microsoft click-time protection.',
+  },
+  {
+    path: '/percentage-calculator',
+    keyword: 'percentage calculator',
+    keywords: ['percent calculator', 'calculate percentage', 'percentage change calculator', 'percent increase calculator', 'percent decrease calculator', 'what percent of calculator', 'percentage difference calculator'],
+    intent: 'compute',
+    priority: 'P0',
+    competition: 'medium',
+    landed: true,
+    lockedTitle: 'Percentage Calculator — % of & % Change',
+    note: 'GSC 90d: canonical 150 impressions plus slashless variant 74, zero clicks; average positions 9.1667 and 8.2568. One canonical intent/URL only. Query details are substantially anonymized and US page slice did not show this URL; inspect snippet and exact product scope before title or feature changes. README currently describes four calculators.',
+  },
 ];
 
 /** 全部工具的真实路由集合（`tool.path`，⛔ 不是目录名）。 */
