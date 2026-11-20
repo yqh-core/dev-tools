@@ -16,7 +16,7 @@ describe('article-only guide content', () => {
     expect(page).toBeDefined();
     expect(page?.indexable).toBe(true);
     expect(page?.sections.filter(section => section.id.startsWith('article-only-'))).toHaveLength(2);
-    expect(page?.sections.map(section => section.title)).toContain('How the omitted-letter count is formed');
+    expect(page?.sections.map(section => section.title)).toContain('Batch mode is line-based, not phrase-based');
   });
 
   it('keeps article-only sections paired across English and Chinese', async () => {
@@ -35,8 +35,8 @@ describe('article-only guide content', () => {
     const chineseNumeronym = zh['/numeronym-generator'].articleOnlySections ?? [];
     expect(englishNumeronym).toHaveLength(2);
     expect(chineseNumeronym).toHaveLength(englishNumeronym.length);
-    expect(englishNumeronym[0].title).toBe('How the omitted-letter count is formed');
-    expect(chineseNumeronym[0].title).toBe('省略字母的数量是怎样计算的');
+    expect(englishNumeronym[0].title).toBe('Batch mode is line-based, not phrase-based');
+    expect(chineseNumeronym[0].title).toBe('批量模式按行处理，不按短语处理');
   });
 
   it('does not lose the original tool guide sections when article-only sections are added', async () => {
