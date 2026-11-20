@@ -11,6 +11,14 @@ describe('article-only guide content', () => {
     expect(page?.sections.map(section => section.title)).toContain('Choose the denominator before you calculate');
   });
 
+  it('adds original numeronym explanations to its standalone guide', () => {
+    const page = GUIDE_ARTICLE_PAGES.find(item => item.toolPath === '/numeronym-generator');
+    expect(page).toBeDefined();
+    expect(page?.indexable).toBe(true);
+    expect(page?.sections.filter(section => section.id.startsWith('article-only-'))).toHaveLength(2);
+    expect(page?.sections.map(section => section.title)).toContain('How the omitted-letter count is formed');
+  });
+
   it('keeps article-only sections paired across English and Chinese', async () => {
     const [en, zh] = await Promise.all([loadGuides('en'), loadGuides('zh')]);
     const english = en['/percentage-calculator'].articleOnlySections ?? [];
@@ -22,6 +30,13 @@ describe('article-only guide content', () => {
     expect(chinese[0].title).toBe('计算前先确定分母');
     expect(english[0].text).toMatch(/100%/);
     expect(chinese[0].text).toMatch(/100%/);
+
+    const englishNumeronym = en['/numeronym-generator'].articleOnlySections ?? [];
+    const chineseNumeronym = zh['/numeronym-generator'].articleOnlySections ?? [];
+    expect(englishNumeronym).toHaveLength(2);
+    expect(chineseNumeronym).toHaveLength(englishNumeronym.length);
+    expect(englishNumeronym[0].title).toBe('How the omitted-letter count is formed');
+    expect(chineseNumeronym[0].title).toBe('省略字母的数量是怎样计算的');
   });
 
   it('does not lose the original tool guide sections when article-only sections are added', async () => {
