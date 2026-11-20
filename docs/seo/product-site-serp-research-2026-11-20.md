@@ -34,11 +34,11 @@ Scope: US-first, English-language search. Qualitative SERP review only; no searc
 
 **Action:** do not rely on the ambiguous branded query “TTSReader”. Target task-specific generic long-text workflows. The DigDevBox repo description says long-text reader with seven modules; verify actual imports, voices, exports and limits before adding metadata or FAQs. Do not claim OCR, PDF/EPUB, MP3 export, premium voices, unlimited use or offline export unless the current app confirms it.
 
-## Geek Typing — geek-typing.pages.dev
+## Geek Typing — geek-typing.digdevbox.com (README also links the Pages.dev preview)
 
 **Candidate keywords:** English typing practice; vocabulary typing practice; learn English vocabulary by typing; typing practice with word lists; English word typing game; English typing accuracy practice; offline English typing practice; developer vocabulary typing practice; IELTS vocabulary typing practice; TOEFL vocabulary typing practice.
 
-**SERP:** [EnglishTypingPractice.com](https://englishtypingpractice.com/) combines typing with vocabulary, topic/exam packs, audio and spaced review; [TypingBuddy](https://www.typingbuddy.com/english-typing-playground.html) targets open-text typing/WPM; [Typeloop](https://www.typeloop.dev/en) targets sentence/word practice, timed tests and mistake review. Geek Typing's README describes vocabulary-through-typing, exam/technical word banks, review queues, learning analytics and offline PWA behavior; repository baseline states 13 packages / 9,438 entries.
+**SERP:** [EnglishTypingPractice.com](https://englishtypingpractice.com/) combines typing with vocabulary, topic/exam packs, audio and spaced review; [TypingBuddy](https://www.typingbuddy.com/english-typing-playground.html) targets open-text typing/WPM; [Typeloop](https://www.typeloop.dev/en) targets sentence/word practice, timed tests and mistake review. Geek Typing's README describes vocabulary-through-typing, exam/technical word banks, review queues, learning analytics and offline PWA behavior; repository baseline states 13 packages / 9,438 entries. However, the current index.html uses zh-CN metadata and the SEO landing block is Chinese. The app UI is bilingual, but US/EU search targeting should be deferred until an English SEO landing page and correct language/canonical/hreflang strategy are implemented.
 
 **Action:** do not become another generic typing-speed-test page. Own vocabulary-through-typing, topic/exam word banks, review and offline use. Publish pack-specific pages only for packs that are live and accessible. Do not republish word-bank content outside its license terms.
 
