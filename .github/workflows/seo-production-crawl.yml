@@ -1,6 +1,11 @@
 name: SEO production crawl audit
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/seo-production-crawl.yml
+      - scripts/seo-crawl-gate.mjs
   workflow_dispatch:
   schedule:
     - cron: "23 3 * * 1"
