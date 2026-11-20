@@ -247,6 +247,23 @@ jobs:
           }
           const sitemap = await get('/sitemap.xml');
           if (!sitemap.response.ok || !sitemap.body.includes('<urlset')) throw new Error('sitemap.xml unavailable or malformed');
+
+          // Verify the new English numeronym content cluster is connected in both directions.
+          const numeronymLanding = await get('/numeronym-generator/');
+          const noteUrl = 'https://notes.digdevbox.com/posts/what-is-a-numeronym';
+          if (!numeronymLanding.response.ok || !numeronymLanding.body.includes(noteUrl)) {
+            throw new Error('Numeronym tool page is missing its contextual Forge Notes guide link');
+          }
+          const noteResponse = await fetch(noteUrl, {
+            headers: { 'user-agent': ua, 'cache-control': 'no-cache' },
+            redirect: 'follow',
+            signal: AbortSignal.timeout(15000),
+          });
+          const noteBody = await noteResponse.text();
+          const noteCanonical = noteBody.match(/<link[^>]+rel=["']canonical["'][^>]+href=["']([^"']+)["']/i)?.[1] || '';
+          if (!noteResponse.ok || noteResponse.url !== noteUrl || noteCanonical !== noteUrl || !noteBody.includes('What Is a Numeronym?')) {
+            throw new Error('Forge Notes numeronym guide is not live, self-canonical or title-correct');
+          }
           for (const route of [
             "/",
             "/tools/",

@@ -44,10 +44,10 @@ import { toolsWithCategory } from '@/tools';
  * ⛔ 为什么必须是白名单而不是「相信人写对了」：`D:\work\forge-notes` 在本仓库之外，
  * 没有版本控制、没有 CI。一个拼错的 slug 在本仓库里查不出来，只会在生产站点上
  * 变成一条 404 外链（首页 Blog 卡片 + 工具页 related guides 都会链过去）。
- * 实测该目录 23 个文件 = 1 个 index.md + 22 篇正文，其中 `lang: en` 的只有 5 篇。
+ * 这份白名单只收录已核验 frontmatter、明确标记 `lang: en` 的文章；新增文章必须先
+ * 在真实 forge-notes 仓库核对 slug、title、description 和语言，再加入本表。
  *
- * ⛔ 这 5 篇之外的 17 篇是中文（AdSense / 跨境电商 / SEO / VitePress 等），
- * **不得**进入英文主站的 Blog 区块与 related guides。
+ * ⛔ 未进入本白名单的文章（尤其是中文内容）不得进入英文主站的 Blog 区块与 related guides。
  */
 export const KNOWN_NOTE_SLUGS = [
   'devops-tools-guide',
@@ -58,6 +58,7 @@ export const KNOWN_NOTE_SLUGS = [
   'base64-encoding-guide',
   'unix-timestamp-guide',
   'url-encoding-guide',
+  'what-is-a-numeronym',
   'yaml-vs-json-guide',
   'http-status-codes-guide',
 ] as const;

@@ -966,12 +966,23 @@ export const GUIDES: Record<string, ToolGuide> = {
     intro: 'Generates numeronyms such as i18n, a11y and k8s from one word or a batch of words, and looks up established short forms.',
     steps: ['Enter one English word or known short form per line', 'Use multiple lines to convert a batch at once', 'Copy the generated results or look up established forms such as k8s'],
     example: { label: 'Fill in a sample word', text: 'internationalization' },
-    about: 'Numeronyms — a letter, a number, a word — were born from two hard constraints: telegraph billing and radio brevity. Internationalization (i18n) stuck because the number 18 fits between the letters without ambiguity; localization (l10n) copied the pattern. Not every shortening survives contact with readers: k8s for Kubernetes reads fine in a Slack thread, but d10n for decentralization never left a whitepaper. The rule of thumb experienced teams use: keep the word if readers already know the abbreviation, drop it if you have to explain it twice. Enter one word per line to generate a batch for documentation, commit messages or naming lists; established short forms can also be looked up. This tool generates candidates by stripping the inner letters and counting them, which also exposes an ugly edge — words of 3 or 4 letters produce numeronyms indistinguishable from typos (a-b-c has nothing to count), so short words are worth leaving alone.',
+    about: 'A numeronym keeps the first and last letters of a word and replaces the middle letters with their count. Familiar developer examples include i18n (internationalization), l10n (localization), a11y (accessibility), k8s (Kubernetes), g11n (globalization) and t9n (translation). In XML canonicalization, c14n is a specialist abbreviation for canonicalization. This generator applies the literal count rule to plain ASCII English words, accepts one word per line for batch conversion, and only reverse-looks up entries in a curated dictionary. It does not invent meanings for unknown strings. Very short words often produce awkward results, so words of three letters or fewer are returned unchanged.',
     faqs: [
-      { q: 'Why do i18n and a11y use the same pattern but different numbers?', a: 'The number is simply the count of omitted letters: i18n drops 18 letters, a11y drops 11. The pattern is identical; the words are different lengths.' },
-      { q: 'Should I use numeronyms in formal documentation?', a: 'Only for terms your audience already recognizes, like i18n or k8s. Inventing a new numeronym for a term readers have never seen usually costs more explanation than it saves.' },
-      { q: 'What happens with very short words?', a: 'Three- and four-letter words leave zero or one letters to count, so the result looks like a typo. A good convention is to skip words shorter than about six letters.' },
-      { q: 'Do numeronyms affect search and grep?', a: 'Yes — searching for a numeronym finds only texts that already use it. Teams usually keep the full word in headings and the numeronym in shorthand notes to stay greppable.' },
+      { q: 'How is the number in a numeronym calculated?', a: 'It is the number of letters between the first and last letters. Internationalization has 18 middle letters, so it becomes i18n; accessibility has 11, so it becomes a11y.' },
+      { q: 'What does t9n mean?', a: 'T9n is a common numeronym for translation: the first letter is t, the last letter is n, and the nine letters between them are omitted.' },
+      { q: 'Can every numeronym be decoded?', a: 'No. The pattern can generate many possible strings, but the same shape does not prove a meaning. This tool only expands entries in its curated dictionary and does not guess unknown forms.' },
+      { q: 'What is c14n?', a: 'C14N is used in XML canonicalization contexts. It is a specialist abbreviation; in general writing, spell out canonicalization unless the XML context is clear.' },
+      { q: 'Should I invent a new numeronym?', a: 'Usually not. Use a short form only when the intended audience already recognizes it. For a new term, write the full word first and define any shorthand before reusing it.' },
+      { q: 'What happens with very short words?', a: 'Words of three letters or fewer are returned unchanged. A generated form for a very short word can look more like a typo than a useful abbreviation.' },
+    ],
+    relatedNotes: [
+      {
+        slug: 'what-is-a-numeronym',
+        title: 'What Is a Numeronym? Examples: i18n, a11y, k8s and t9n',
+        description: 'Learn the first-letter, omitted-letter count and last-letter rule with developer examples such as i18n, a11y, k8s and t9n — and when not to invent one.',
+        url: 'https://notes.digdevbox.com/posts/what-is-a-numeronym',
+        tag: 'Numeronyms',
+      },
     ],
   },
 
