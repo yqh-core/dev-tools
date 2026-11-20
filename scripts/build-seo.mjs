@@ -431,8 +431,8 @@ try {
   // —— 文章页信息增量实测：拿同一份渲染结果里的工具页与文章页比句子 ——
   const headTagsByPath = new Map(results.map(item => [item.path, item.headTags]));
   const metaDescriptionOf = (headTags) => {
-    const tag = headTags.match(/<meta\\b[^>]*\\bname=["']description["'][^>]*>/i)?.[0] ?? '';
-    return tag.match(/\\bcontent=(["'])(.*?)\\1/i)?.[2] ?? '';
+    const tag = headTags.match(/<meta\b[^>]*\bname=["']description["'][^>]*>/i)?.[0] ?? '';
+    return tag.match(/\bcontent=(["'])(.*?)\1/i)?.[2] ?? '';
   };
   const repeatedGuideDescriptions = [];
   for (const page of GUIDE_ARTICLE_PAGES) {
