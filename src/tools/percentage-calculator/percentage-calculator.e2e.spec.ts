@@ -6,10 +6,10 @@ test.describe('Tool - Percentage calculator', () => {
   });
 
   test('Has the intended search title, description and H1', async ({ page }) => {
-    await expect(page).toHaveTitle('Percentage Calculator — % of & % Change - DigDevBox');
+    await expect(page).toHaveTitle('Percentage Calculator — Percent of a Number & Percent Change - DigDevBox');
     await expect(page.locator('meta[name="description"]')).toHaveAttribute(
       'content',
-      'Find X% of Y, calculate what percent X is of Y, measure percentage change, or increase/decrease a value. Four live calculators, free and no sign-up.',
+      'Calculate X% of Y, find what percent X is of Y, measure percentage change, or increase/decrease a value. Four free calculators, instant results, no sign-up.',
     );
     await expect(page.locator('h1')).toHaveText('Percentage Calculator');
   });
