@@ -44,10 +44,10 @@ The GSC snapshot above was reported as cached by the connector around 2026-11-20
 | TTS Reader | ttsreader.digdevbox.com | Long-text text-to-speech reader | Build around long text and reading workflows; verify exact supported file imports, voices and export modules before publishing claims |
 | ImageForge | draw.digdevbox.com | Free browser-based image editor: layers, filters, shapes, text, retouching and local editing | Compete on online image editor / photo editor intent, not AI image generation |
 | Forge Notes | notes.digdevbox.com | Original developer tutorials, debugging guides, worked examples and comparisons | Editorial support layer; each article links to one relevant tool and answers a distinct question |
-| Geek Typing | geek-typing.pages.dev | English typing practice through vocabulary, topic/exam word banks, review and offline practice | Target English typing + vocabulary-learning intent; avoid generic typing-test promises that don't match the product |
+| Geek Typing | geek-typing.digdevbox.com (Pages.dev is the README preview/alternate host) | Bilingual app, but current homepage metadata and SEO landing block are Chinese | Defer US/EU keyword rollout until an English landing page, English metadata and hreflang/canonical strategy are implemented |
 | Fangdai | Separate Chinese-market mortgage product | Not aligned with the current US/EU growth strategy | Excluded from current keyword expansion; retain technical health monitoring only |
 
-The hosts above are grounded in the product READMEs/repository descriptions and current project inventory. The exact DigImg host is img.digdevbox.com; TTS Reader is ttsreader.digdevbox.com; Geek Typing is geek-typing.pages.dev. Production sitemaps still need to be fetched to finalize every canonical path on each host.
+The hosts above are grounded in product READMEs/repository metadata and current project inventory. The exact DigImg host is img.digdevbox.com; TTS Reader is ttsreader.digdevbox.com; Geek Typing's canonical is geek-typing.digdevbox.com (README also links the Pages.dev preview). Production sitemaps still need to be fetched to finalize every canonical path on each host.
 
 ### Cross-site keyword clusters to expand
 
@@ -109,16 +109,17 @@ The hosts above are grounded in the product READMEs/repository descriptions and 
 - online image editor with filters
 - add text to image online
 
-**Geek Typing**
+**Geek Typing — deferred pending English SEO localization**
 - English typing practice
 - vocabulary typing practice
 - learn English vocabulary by typing
 - typing practice with word lists
 - English word typing game
-- IELTS vocabulary typing practice (only if the relevant pack is live and clearly accessible)
-- TOEFL vocabulary typing practice (same validation)
+- IELTS / TOEFL vocabulary typing practice (only if the relevant pack is live and clearly accessible)
 - offline English typing practice
 - developer vocabulary typing practice
+
+The app UI is bilingual, but its current index.html title, meta description, html lang and static SEO landing block are Chinese. These are future candidates, not active US/EU targets until an English landing page and language/canonical/hreflang strategy are built.
 
 **Forge Notes**
 - how to test a regular expression in JavaScript
@@ -182,8 +183,8 @@ The primary phrase is the proposed page focus. Supporting phrases are candidate 
 | HLS analysis | M3U8 analyzer | HLS manifest analyzer; inspect HLS variants; parse M3U8 playlist; HLS segment analyzer; stream playlist inspector | StreamPlay — leverage actual variant/segment inspection; show sample manifest and explain results | P1 |
 | TTS | text to speech online | free text to speech; read text aloud; online TTS reader; text reader with voice; listen to text | TTS Reader — confirm voices, language, download/export and browser support before claims | P1 |
 | Long-form TTS | long text to speech reader | read long text aloud; text to speech for long articles; online text reader; listen to documents | TTS Reader (ttsreader.digdevbox.com) — validate the seven modules and exact supported import/export formats before making page claims | P1 |
-| English typing practice | English typing practice | typing practice with vocabulary; learn English words by typing; English vocabulary typing; typing practice word lists; vocabulary typing game; English typing accuracy practice | Geek Typing (geek-typing.pages.dev) — focus on vocabulary-through-typing, word-bank and review differentiation; do not promise timed test modes unless verified | P1 |
-| Typing practice | typing practice online | typing practice test; improve typing speed; typing accuracy practice; keyboard speed test | Geek Typing — publish practice content only if matching modes exist | P2 |
+| English typing practice | English typing practice | typing practice with vocabulary; learn English words by typing; English vocabulary typing; typing practice word lists; vocabulary typing game; English typing accuracy practice | Geek Typing — P3 / deferred; current SEO landing page and metadata are Chinese, so do not activate for US/EU until English localization |
+| Typing practice | typing practice online | typing practice test; improve typing speed; typing accuracy practice; keyboard speed test | Geek Typing — P3 / deferred until English landing-page localization |
 | Image editing | free online image editor | browser image editor; online photo editor; image editor with layers; free photo editor no signup; edit images in browser; image editor without install; image editor no upload | ImageForge (draw.digdevbox.com) — target its real miniPaint-based editor features: layers, filters, shapes, text, retouching and browser-local editing; do not target AI image generation | P1 |
 | Dev tools hub | developer tools online | free online developer tools; browser developer utilities; developer toolbox; online coding tools | Main homepage — category architecture and internal links; avoid generic keyword stuffing | P2 |
 | Privacy/local processing | browser based tools | client side tools; private online developer tools; tools that run in browser; no upload image compressor | Main site / DigImg — substantiate each privacy statement by implementation and network tests | P2 |
@@ -311,7 +312,7 @@ These 102 supporting phrases are a discovery backlog, not a recommendation to cr
 3. **DevOps configuration:** Crontab Generator ↔ Chmod Calculator ↔ Docker Run-to-Compose ↔ YAML Formatter ↔ DevOps guide.
 4. **Image workflow:** DigImg compressor ↔ format/size guides ↔ measured comparison article; main-site resize/crop utilities should have clear differentiators and avoid competing with DigImg for the same phrase.
 5. **Media playback:** StreamPlay M3U8 player ↔ HLS/M3U8 analyzer ↔ troubleshooting guide.
-6. **Speech and typing:** TTS Reader ↔ text-to-speech use-case guides; Geek Typing ↔ typing speed/accuracy test guides.
+6. **Speech and typing:** TTS Reader ↔ text-to-speech use-case guides; Geek Typing's English vocabulary-typing cluster remains deferred until English SEO localization.
 7. **Editorial hub:** Forge Notes should be the explanatory layer, not a second copy of each tool landing page. Each article should answer a specific debugging question and point to the exact tool.
 
 ## Implementation sequence
@@ -334,7 +335,7 @@ These 102 supporting phrases are a discovery backlog, not a recommendation to cr
 - IP Locator: IP lookup, IPv4/IPv6, CIDR and DNS/RDNS only within implemented feature scope.
 - StreamPlay: M3U8/HLS playback and manifest analysis, with browser/codec limitations.
 - TTS Reader and Geek Typing: validate product features before creating use-case pages.
-- ImageForge: confirm generation model, commercial terms, output limits and real product flow before targeting AI image terms.
+- ImageForge: optimize the existing browser-based image editor for online photo/image editing intent; do not target AI image generation.
 - Do not guess canonical hosts or paths; pull them from each production sitemap before implementation.
 
 ### Batch 4 — measurement and pruning
@@ -349,7 +350,7 @@ These 102 supporting phrases are a discovery backlog, not a recommendation to cr
 - Search volume, keyword difficulty, CPC and competitor traffic are not available in the supplied GSC/Bing snapshots. Ahrefs access was previously blocked by plan limits; no volume numbers are fabricated here.
 - GSC Pages and Sitemaps reports were not available in the previous audit. Sitemap reachability and crawler PASS do not prove Google indexation.
 - Need current production sitemaps for all nine sites to finalize exact URL mapping and prevent cross-site cannibalization.
-- The connected GSC property is only sc-domain:digdevbox.com; it covers the DigDevBox subdomains but not geek-typing.pages.dev. Geek Typing needs its own Search Console property before we can measure its search queries. Bing Webmaster currently exposes only https://digdevbox.com/ in the connected team; other product hosts need separate site connections for Bing query reporting.
+- The connected GSC property is sc-domain:digdevbox.com, which covers the canonical geek-typing.digdevbox.com subdomain. Geek Typing did not appear in the returned 90-day page rows, so there is no meaningful query baseline yet. Bing Webmaster currently exposes only https://digdevbox.com/ in the connected team; other product hosts need separate site connections for Bing query reporting.
 - Need fresh GSC query exports before editing high-ranking titles, especially Percentage Calculator.
 - Need live SERP checks for each P0/P1 cluster before creating new pages or claiming a competitor gap.
 
