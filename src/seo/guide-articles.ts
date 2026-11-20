@@ -54,6 +54,8 @@ export interface GuideSection {
   key: string
   kind: 'prose' | 'list' | 'steps' | 'faqs' | 'example'
   text?: string
+  /** 独立指南文章专属标题；有值时覆盖 locale 通用小节标题。 */
+  title?: string
   /** example 一节：可直接照抄的输入原文（与工具页那个按钮填进去的是同一串字）。 */
   code?: string
   items?: string[]
@@ -85,6 +87,19 @@ export function buildGuideSections(guide: ToolGuide): GuideSection[] {
 
   if (guide.steps?.length) {
     sections.push({ id: 'how-to-use', key: 'steps', kind: 'steps', items: guide.steps });
+  }
+
+  // Original article-only sections are deliberately excluded from the tool page.
+  // They add distinct explanatory value to the guide URL instead of duplicating
+  // the same intro/about/FAQ copy across two indexable pages.
+  for (const [index, section] of (guide.articleOnlySections ?? []).entries()) {
+    sections.push({
+      id: `article-only-${index + 1}`,
+      key: 'what',
+      kind: 'prose',
+      title: section.title,
+      text: section.text,
+    });
   }
 
   // 一键示例：把 guides 里那份 example 如实展示成「可以照抄的输入」，
