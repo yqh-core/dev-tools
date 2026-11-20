@@ -67,7 +67,7 @@ export const KNOWN_NOTE_SLUGS = [
 export const NOTES_ORIGIN = 'https://notes.digdevbox.com';
 
 /**
- * Keyword Map §1 总表：11 个关键词簇 / 24 行。
+ * Keyword Map §1 总表：11 个原始关键词簇 / 24 行；2026-11-20 增补 3 条 GSC/Bing 实测页面，共 27 行。
  *
  * 行序与原文档一致（⛔ 不要按 path 重排 —— 序号本身就是「先做哪一批」的阅读顺序）。
  * 字段口径见 `KeywordMapEntry`。
