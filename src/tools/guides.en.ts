@@ -1196,6 +1196,20 @@ export const GUIDES: Record<string, ToolGuide> = {
     intro: 'Solves four common percentage tasks: find X% of Y, find what percent X is of Y, calculate percentage change, and increase or decrease a value by a percentage.',
     // example 已移除：requires-pair (G-02j): X 单独填入无可见结果，example=死按钮
     steps: ['Pick the mode matching your question', 'Enter the known values', 'Read the result'],
+    notes: [
+      'When reversing a discount, divide the sale price by 1 minus the discount rate; adding the same percentage back to the sale price is not the inverse.',
+      'For percentage change, use the starting value as the denominator. Reversing the direction changes the base and can produce a different rate.',
+    ],
+    articleOnlySections: [
+      {
+        title: 'Choose the denominator before you calculate',
+        text: 'Every percentage question has a base: the amount that represents 100%. Write that base down before choosing a formula. If the question asks for a part of a whole, the whole is the base; if it asks for a change, the starting amount is the base; if it asks for tax or a discount, the base is the pre-tax or original price. A rate change is different: subtract the old rate from the new rate to get percentage points, then divide by the old rate only if you also need relative growth.',
+      },
+      {
+        title: 'Worked examples: discounts, bills and rates',
+        text: 'An item marked $72 after a 10% discount had an original price of $80: $72 ÷ 0.90 = $80. Adding 10% to $72 gives $79.20, not $80, because the discount was taken from the original price. If a monthly bill moves from $48 to $54, the increase is $6 ÷ $48 = 12.5%. If a conversion rate moves from 4% to 5%, it rose by 1 percentage point and by 25% relative to its starting rate. A $120 pre-tax amount with a hypothetical 15% tax adds $18, producing a $138 total.',
+      },
+    ],
     about: 'Percentage mistakes in reports rarely come from arithmetic — they come from mixing up which base you divided by. "Revenue went from 80 to 100, so +25%" and "the new figure is 125% of the old" are the same fact told from two different denominators, and a third phrasing ("100 is 20% more than 80") uses yet another base. This calculator keeps four questions separate — what percent is X of Y, how much is P% of N, the change between two values, and the result after adding or subtracting a percentage — so you never silently swap denominators mid-calculation. For price and salary math, remember the classic trap: a 20% rise followed by a 20% fall leaves you 4% below the start, because the second percentage divides by the raised base. The fields recalculate together, so you can watch that asymmetry happen live.',
     faqs: [
       { q: 'Why does a 20% increase then a 20% decrease not return to the original?', a: 'Because the decrease is computed on the larger value. Going from 100 to 120 and back down by 20% gives 96 — a net 4% loss. Percentage changes are not symmetric.' },
