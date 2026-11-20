@@ -5,7 +5,7 @@
  */
 import { describe, expect, it } from 'vitest';
 
-import { buildGuideEdgeMap, missingLocaleKeys, reachableFrom, scanGuideCrossLinks, scanToolEntryLinks } from './guide-links';
+import { buildGuideEdgeMap, buildGuideMetaDescription, missingLocaleKeys, reachableFrom, scanGuideCrossLinks, scanToolEntryLinks } from './guide-links';
 
 const PAGES = [{ path: '/guides/csv-to-json' }, { path: '/guides/json-prettify' }];
 
@@ -215,5 +215,30 @@ describe('missingLocaleKeys', () => {
     const ja = { seo: { guideArticleLink: 'ステップバイステップガイドを読む' } };
     expect(missingLocaleKeys(['seo.faqTitle'], { en, zh, ja }))
       .toEqual([{ key: 'seo.faqTitle', missingIn: ['ja'] }]);
+  });
+});
+
+
+describe('buildGuideMetaDescription', () => {
+  it('uses the guide knowledge summary instead of the paired tool description', () => {
+    expect(buildGuideMetaDescription(
+      { about: 'A guide-specific explanation.', intro: 'A short tool introduction.' },
+      'The generic tool page description.',
+    )).toBe('A guide-specific explanation.');
+  });
+
+  it('falls back to intro, then to the tool description when needed', () => {
+    expect(buildGuideMetaDescription({ intro: 'Guide intro.' }, 'Tool description.')).toBe('Guide intro.');
+    expect(buildGuideMetaDescription(null, 'Tool description.')).toBe('Tool description.');
+  });
+
+  it('normalizes whitespace and keeps the summary within the length limit', () => {
+    const summary = buildGuideMetaDescription(
+      { about: `  ${'Distinct guide material explains the practical edge cases. '.repeat(5)}  ` },
+      'Fallback.',
+    );
+    expect(summary.length).toBeLessThanOrEqual(160);
+    expect(summary.endsWith('…')).toBe(true);
+    expect(summary).not.toMatch(/\\s…$/);
   });
 });
