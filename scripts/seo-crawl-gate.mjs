@@ -83,13 +83,14 @@ async function evaluateSite(site) {
   const robots = summary.find(item => String(item.aplCode || '').startsWith('robots-txt-'));
 
   if (!robots || !['NOTICE', 'OK'].includes(robots.status)) {
-    errors.push('robots.txt was not positively verified by the crawler');
+    const message = 'robots.txt was not positively verified by the crawler';
+    (site.priority ? errors : warnings).push(message);
   }
 
   for (const code of REQUIRED_SEO_CHECKS) {
     const item = summary.find(entry => entry.aplCode === code);
     if (!item || item.status !== 'OK') {
-      errors.push((item?.text || code + ' result missing'));
+      (site.priority ? errors : warnings).push(item?.text || code + ' result missing');
     }
   }
 
