@@ -31,6 +31,11 @@ export interface ToolGuide {
    */
   about?: string
   /**
+   * 只出现在独立指南文章中的原创补充段落；工具页不渲染它们，避免两种 URL 复用同一正文。
+   * en / zh 应成对提供，供双语指南保持内容完整。
+   */
+  articleOnlySections?: { title: string; text: string }[]
+  /**
    * 常见问题。只收真实高频的问题（工具本身容易用错、容易误解的点），
    * 不为凑 FAQ 数量编造问题——那是低价值内容政策的典型形态。
    * en / zh 必须成对出现（auditToolSeoData 强制校验）。
