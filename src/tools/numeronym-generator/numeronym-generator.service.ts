@@ -15,7 +15,7 @@ export function generateNumeronym(word: string): string {
 /**
  * 反查词典（decode 方向的完整边界——页面承诺与用户可见说明必须与此一致）：
  * 只收录公开文献/工程实践中已确立的写法；键为小写 numeronym，值为候选全称。
- * 值为数组是刻意的：t11n 等存在真实歧义，多候选不得伪装成唯一答案。
+ * 值为数组是刻意的：若某个缩写确有多个已验证含义，必须并列返回，不得伪装成唯一答案。
  * 未收录的输入一律走 unmatched 状态并展示支持清单——绝不编造释义。
  */
 export const ESTABLISHED_NUMERONYMS: Record<string, string[]> = {
@@ -24,9 +24,9 @@ export const ESTABLISHED_NUMERONYMS: Record<string, string[]> = {
   a11y: ['accessibility'],
   k8s: ['Kubernetes'],
   g11n: ['globalization'],
-  c11s: ['compliance'],
+  c14n: ['canonicalization'],
   n7m: ['numeronym'],
-  t11n: ['translation', 'transcription'],
+  t9n: ['translation'],
 };
 
 export interface NumeronymResult {
