@@ -5,7 +5,7 @@ describe('evidence-backed SEO keyword targets', () => {
   it.each([
     [
       '/basic-auth-generator',
-      'basic auth header generator',
+      'basic auth generator',
       'Basic Auth Header Generator — Create Authorization Header',
     ],
     [
