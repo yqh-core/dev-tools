@@ -967,6 +967,16 @@ export const GUIDES: Record<string, ToolGuide> = {
     steps: ['Enter one English word or known short form per line', 'Use multiple lines to convert a batch at once', 'Copy the generated results or look up established forms such as k8s'],
     example: { label: 'Fill in a sample word', text: 'internationalization' },
     about: 'A numeronym keeps the first and last letters of a word and replaces the middle letters with their count. Familiar developer examples include i18n (internationalization), l10n (localization), a11y (accessibility), k8s (Kubernetes), g11n (globalization) and t9n (translation). In XML canonicalization, c14n is a specialist abbreviation for canonicalization. This generator applies the literal count rule to plain ASCII English words, accepts one word per line for batch conversion, and only reverse-looks up entries in a curated dictionary. It does not invent meanings for unknown strings. Very short words often produce awkward results, so words of three letters or fewer are returned unchanged.',
+    articleOnlySections: [
+      {
+        title: 'How the omitted-letter count is formed',
+        text: 'A numeronym has three parts: the first letter, the number of omitted middle letters, and the last letter. In accessibility, the first and last letters are a and y; the eleven letters between them become 11, producing a11y. In Kubernetes, k and s remain at the edges and the eight middle letters become 8, producing k8s. The count is a literal letter count, not a syllable count, word count or a guess based on how a term sounds.',
+      },
+      {
+        title: 'When a numeronym helps—and when it hurts',
+        text: 'Short forms such as i18n and l10n are useful in localization engineering, while a11y is familiar in accessibility work and k8s in infrastructure teams. They save space in code, issue labels and technical discussions when the audience already knows them. In public documentation, onboarding and cross-functional reports, write the full term first and define the short form before using it again. A numeronym is not a synonym for every abbreviation: API and HTTP are initialisms, not numeronyms. Different words can also share the same first and last letters and the same middle-letter count, so a pattern alone cannot prove what an unfamiliar form means.',
+      },
+    ],
     faqs: [
       { q: 'How is the number in a numeronym calculated?', a: 'It is the number of letters between the first and last letters. Internationalization has 18 middle letters, so it becomes i18n; accessibility has 11, so it becomes a11y.' },
       { q: 'What does t9n mean?', a: 'T9n is a common numeronym for translation: the first letter is t, the last letter is n, and the nine letters between them are omitted.' },
