@@ -170,6 +170,17 @@ jobs:
             slug: forge-notes
             url: https://notes.digdevbox.com/
             max_pages: 160
+          # These two properties remain outside the US/EU growth priority, but
+          # are included in the technical health crawl so the full nine-site
+          # estate is monitored for availability, broken links and SEO regressions.
+          - label: Fangdai (technical health only)
+            slug: fangdai
+            url: https://fangdai.digdevbox.com/
+            max_pages: 100
+          - label: Geek Typing (technical health only)
+            slug: geek-typing
+            url: https://geek-typing.digdevbox.com/
+            max_pages: 100
 
     steps:
       - name: Download pinned SiteOne Crawler release
