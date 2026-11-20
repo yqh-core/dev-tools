@@ -145,6 +145,10 @@ usePageSeo(String(route.path), title, description);
       {{ toolH1 }} — {{ t('guideArticle.suffix') }}
     </h1>
 
+    <p mt-3 text-16px op-80>
+      {{ page.entry.description }}
+    </p>
+
     <nav mt-6 aria-labelledby="guide-toc">
       <h2 id="guide-toc" text-18px font-semibold>
         {{ t('guideArticle.contents') }}
