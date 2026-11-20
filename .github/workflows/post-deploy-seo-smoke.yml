@@ -251,7 +251,16 @@ jobs:
           // The archive root and retained Chinese-only legacy pages must stay out of
           // the English US/EU index. Test the wildcard _headers rule on real descendants,
           // including paths observed in Search Console, not only the /legacy/ directory.
-          for (const path of ["/legacy/", "/legacy/areacode/", "/legacy/html2ubb/"]) {
+          for (const path of [
+            "/legacy/",
+            "/legacy/areacode/",
+            "/legacy/html2ubb/",
+            "/legacy/autoformat/",
+            "/legacy/quanbaojiao/",
+            "/legacy/rmbdaxie/",
+            "/legacy/runjs/",
+            "/legacy/txtcount/",
+          ]) {
             const result = await get(path);
             if (!result.response.ok) {
               throw new Error(`${path}: expected HTTP 200, got ${result.response.status}`);
