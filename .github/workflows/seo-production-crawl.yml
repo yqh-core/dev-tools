@@ -235,6 +235,50 @@ jobs:
           fi
           rm -f "$headers_file"
 
+      - name: Verify hashed asset cache headers and stable-file revalidation
+        if: ${{ matrix.slug == 'main' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          base="${{ matrix.url }}"
+          html_file="$(mktemp)"
+          curl --fail --silent --show-error --location --max-time 20 "$base" --output "$html_file"
+
+          mapfile -t assets < <(grep -oE '(src|href)="/assets/[^"]+\.(js|css)"' "$html_file" | sed -E 's/^(src|href)="([^"]+)"$/\2/' | sort -u)
+          rm -f "$html_file"
+          if [[ "${#assets[@]}" -eq 0 ]]; then
+            echo "::error::No content-hashed /assets JS or CSS files found in production HTML"
+            exit 1
+          fi
+
+          for asset in "${assets[@]}"; do
+            headers_file="$(mktemp)"
+            status="$(curl --fail --silent --show-error --location --max-time 20 \
+              --dump-header "$headers_file" --output /dev/null \
+              --write-out '%{http_code}' "${base%/}$asset")"
+            cache="$(awk 'tolower($1) == "cache-control:" { $1=""; sub(/^[[:space:]]+/, ""); gsub("\\r", ""); value=$0 } END { print value }' "$headers_file")"
+            rm -f "$headers_file"
+            printf '%s | HTTP %s | Cache-Control: %s\n' "$asset" "$status" "${cache:-missing}"
+            if [[ "$status" != "200" || "$cache" != *"public"* || "$cache" != *"max-age=31536000"* || "$cache" != *"immutable"* ]]; then
+              echo "::error::Hashed asset is not served with the expected one-year immutable cache policy: $asset"
+              exit 1
+            fi
+          done
+
+          for stable in /sw.js /analytics-consent.js; do
+            headers_file="$(mktemp)"
+            status="$(curl --fail --silent --show-error --location --max-time 20 \
+              --dump-header "$headers_file" --output /dev/null \
+              --write-out '%{http_code}' "${base%/}$stable")"
+            cache="$(awk 'tolower($1) == "cache-control:" { $1=""; sub(/^[[:space:]]+/, ""); gsub("\\r", ""); value=$0 } END { print value }' "$headers_file")"
+            rm -f "$headers_file"
+            printf '%s | HTTP %s | Cache-Control: %s\n' "$stable" "$status" "${cache:-missing}"
+            if [[ "$status" != "200" || "$cache" == *"max-age=31536000"* && "$cache" == *"immutable"* ]]; then
+              echo "::error::Stable file is missing or incorrectly marked immutable: $stable"
+              exit 1
+            fi
+          done
+          echo "PASS: hashed JS/CSS assets are immutable; stable files remain revalidated"
       - name: Verify legacy archive is excluded from indexing
         if: ${{ matrix.slug == 'main' }}
         shell: bash
