@@ -978,7 +978,7 @@ export const GUIDES: Record<string, ToolGuide> = {
     relatedNotes: [
       {
         slug: 'what-is-a-numeronym',
-        title: 'What Is a Numeronym? Examples: i18n, a11y, k8s & t9n',
+        title: 'What Is a Numeronym? Examples: i18n, a11y, k8s and t9n',
         description: 'Learn the first-letter, omitted-letter count and last-letter rule with developer examples such as i18n, a11y, k8s and t9n — and when not to invent one.',
         url: 'https://notes.digdevbox.com/posts/what-is-a-numeronym',
         tag: 'Numeronyms',
