@@ -967,6 +967,15 @@ export const GUIDES: Record<string, ToolGuide> = {
       { q: '可以随意创造新的数字缩略词吗？', a: '通常不建议。只有在目标读者已经认识该缩写时才使用。新概念应先写完整名称，再定义并重复使用缩写。' },
       { q: '很短的单词会怎样？', a: '三个字母及以下的单词保持原样。过短的单词生成出来往往更像拼写错误，而不是有用的缩写。' },
     ],
+    relatedNotes: [
+      {
+        slug: 'what-is-a-numeronym',
+        title: '什么是数字缩略词？i18n、a11y、k8s 与 t9n 示例',
+        description: '英文指南：解释首字母、被省略字母数量与尾字母的规则，并介绍开发者常见示例及使用边界。',
+        url: 'https://notes.digdevbox.com/posts/what-is-a-numeronym',
+        tag: 'English guide',
+      },
+    ],
   },
 
   '/og-meta-generator': {
