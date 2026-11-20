@@ -257,9 +257,8 @@ jobs:
             "/legacy/html2ubb/",
             "/legacy/autoformat/",
             "/legacy/quanbaojiao/",
-            "/legacy/rmbdaxie/",
+            "/legacy/quanbaojiao/",
             "/legacy/runjs/",
-            "/legacy/txtcount/",
           ]) {
             const result = await get(path);
             if (!result.response.ok) {
