@@ -213,7 +213,7 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     competition: 'low',
     article: 'regex-testing-guide',
     landed: true,
-    lockedTitle: 'Regular Expression Tester — JavaScript Regex Tester Online',
+    lockedTitle: 'Regular Expression Tester — JavaScript Regex',
     note: '簇 5。关键事实：regex101.com 与 regexr.com 三次查询均未进 top5。',
   },
   {
