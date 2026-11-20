@@ -46,6 +46,7 @@ jobs:
             const files = data.files || [];
             const deployable = files.filter(({ filename }) =>
               !filename.startsWith('.github/') &&
+              !filename.startsWith('scripts/') &&
               !['README.md', 'CONTRIBUTING.md'].includes(filename)
             );
             core.info('Changed files: ' + files.map(file => file.filename).join(', '));
