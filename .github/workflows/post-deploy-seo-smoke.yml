@@ -140,15 +140,24 @@ jobs:
             }
           }
 
-          for (const [label, path] of [
-            ['percentage no-slash', '/percentage-calculator'],
-            ['percentage slash', '/percentage-calculator/'],
+          // Search Console has exposed both slashless and slash URLs for several
+          // priority tools. Require every variant to converge to the one sitemap URL.
+          for (const route of [
+            '/percentage-calculator',
+            '/regex-tester',
+            '/numeronym-generator',
+            '/token-generator',
+            '/device-information',
+            '/ipv4-range-expander',
+            '/pdf-signature-checker',
           ]) {
-            const result = await get(path);
-            const expected = origin + '/percentage-calculator/';
-            if (!result.response.ok || result.finalUrl !== expected) {
-              throw new Error(label + ' does not converge to ' + expected + ' (HTTP ' +
-                result.response.status + ', final ' + result.finalUrl + ')');
+            const expected = origin + route + '/';
+            for (const variant of [route, route + '/']) {
+              const result = await get(variant);
+              if (!result.response.ok || result.finalUrl !== expected) {
+                throw new Error(variant + ' does not converge to ' + expected + ' (HTTP ' +
+                  result.response.status + ', final ' + result.finalUrl + ')');
+              }
             }
           }
 
@@ -194,7 +203,7 @@ jobs:
           // priority English tool pages. This catches UA-dependent HTML/cache variants
           // and guarantees the crawler sees the same title, description, H1 and canonical.
           const browserUa = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/130.0.0.0 Safari/537.36';
-          const priorityPages = ['/percentage-calculator/', '/numeronym-generator/'];
+          const priorityPages = ['/', '/percentage-calculator/', '/numeronym-generator/'];
           for (const path of priorityPages) {
             const [bot, browser] = await Promise.all([get(path), get(path, browserUa)]);
             for (const [label, result] of [['Googlebot', bot], ['browser', browser]]) {
@@ -208,11 +217,12 @@ jobs:
               description: html.match(/<meta[^>]+name=["']description["'][^>]+content=["']([^"']*)["']/i)?.[1] || '',
               canonical: html.match(/<link[^>]+rel=["']canonical["'][^>]+href=["']([^"']+)["']/i)?.[1] || '',
               h1: html.match(/<h1\b[^>]*>([\s\S]*?)<\/h1>/i)?.[1]?.replace(/<[^>]+>/g, '').trim() || '',
+              mainLandmarks: (html.match(/<main(?:\s|>)/gi) || []).length,
             });
             const botMeta = extract(bot.body);
             const browserMeta = extract(browser.body);
-            if (!botMeta.title || !botMeta.description || !botMeta.h1 || botMeta.canonical !== origin + path) {
-              throw new Error(path + ' Googlebot HTML is missing title, description, H1 or self-canonical metadata');
+            if (!botMeta.title || !botMeta.description || !botMeta.h1 || botMeta.canonical !== origin + path || botMeta.mainLandmarks !== 1) {
+              throw new Error(path + ' Googlebot HTML is missing title, description, H1, one main landmark or self-canonical metadata: ' + JSON.stringify(botMeta));
             }
             if (JSON.stringify(botMeta) !== JSON.stringify(browserMeta)) {
               throw new Error(path + ' Googlebot HTML differs from browser HTML: ' +
@@ -241,7 +251,12 @@ jobs:
             "/",
             "/tools/",
             "/percentage-calculator/",
+            "/regex-tester/",
             "/numeronym-generator/",
+            "/token-generator/",
+            "/device-information/",
+            "/ipv4-range-expander/",
+            "/pdf-signature-checker/",
           ]) {
             const url = origin + route;
             if (!sitemap.body.includes(url)) throw new Error('sitemap missing priority search page ' + url);
@@ -250,7 +265,15 @@ jobs:
           // The archive root and retained Chinese-only legacy pages must stay out of
           // the English US/EU index. Test the wildcard _headers rule on real descendants,
           // including paths observed in Search Console, not only the /legacy/ directory.
-          for (const path of ["/legacy/", "/legacy/areacode/", "/legacy/html2ubb/"]) {
+          for (const path of [
+            "/legacy/",
+            "/legacy/areacode/",
+            "/legacy/html2ubb/",
+            "/legacy/autoformat/",
+            "/legacy/quanbaojiao/",
+            "/legacy/quanbaojiao/",
+            "/legacy/runjs/",
+          ]) {
             const result = await get(path);
             if (!result.response.ok) {
               throw new Error(`${path}: expected HTTP 200, got ${result.response.status}`);
