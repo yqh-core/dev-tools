@@ -244,7 +244,7 @@ tools:
       copy: Copy
       refresh: Refresh
   percentage-calculator:
-    title: Percentage Calculator — Free % of & Change Tool | DigDevBox
+    title: Percentage Calculator — % of & % Change
     description: Find X% of Y, calculate what percent X is of Y, measure percentage change, or increase/decrease a value. Four live calculators, free and no sign-up.
 
   svg-placeholder-generator:
