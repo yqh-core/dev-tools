@@ -727,7 +727,7 @@ tools:
     description: A complete regex cheat sheet — common regular expression syntax, quantifiers, flags and character classes with examples.
 
   regex-tester:
-    title: Regular Expression Tester — JavaScript Regex Tester Online
+    title: Regular Expression Tester — JavaScript Regex
     description: Test regular expressions online with live match results — JavaScript flavor, toggle flags and capture groups instantly.
 
   safelink-decoder:
