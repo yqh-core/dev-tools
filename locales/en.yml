@@ -244,8 +244,8 @@ tools:
       copy: Copy
       refresh: Refresh
   percentage-calculator:
-    title: Percentage Calculator — % of & % Change
-    description: Find X% of Y, calculate what percent X is of Y, measure percentage change, or increase/decrease a value. Four live calculators, free and no sign-up.
+    title: "Percentage Calculator — Percent of a Number & Percent Change"
+    description: "Calculate X% of Y, find what percent X is of Y, measure percentage change, or increase/decrease a value. Four free calculators, instant results, no sign-up."
 
   svg-placeholder-generator:
     title: SVG placeholder generator
@@ -679,8 +679,8 @@ tools:
     description: Transform text into the NATO phonetic alphabet for oral transmission.
 
   basic-auth-generator:
-    title: HTTP Basic Auth Header Generator — Base64
-    description: Generate a Basic Authorization header from a username and password. Copy the Base64 value for curl or API clients. Credentials stay in your browser; use HTTPS.
+    title: "Basic Auth Header Generator — Create Authorization Header"
+    description: "Generate an HTTP Basic Authorization header from a username and password. Copy the Base64 value for curl or API clients. Base64 is not encryption; use HTTPS."
 
   text-to-unicode:
     title: Text to Unicode
@@ -731,8 +731,8 @@ tools:
     description: Test regular expressions online with live match results — JavaScript flavor, toggle flags and capture groups instantly.
 
   safelink-decoder:
-    title: Outlook SafeLink Decoder — Original URL
-    description: Paste an Outlook SafeLink URL to reveal its original destination before opening it. Decoding happens in your browser; the link is never opened automatically.
+    title: "Outlook Safe Links Decoder — Reveal the Original URL"
+    description: "Decode an Outlook Safe Links URL to reveal its original destination without opening it. Runs in your browser; decoding does not verify whether the destination is safe."
 
   xml-to-json:
     title: XML to JSON
