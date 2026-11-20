@@ -17,13 +17,6 @@
  */
 
 /**
- * 文章路由前缀与拼法。**放在这个零依赖模块里**而不是 guide-articles.ts，是因为
- * 运行时的 `tool.layout.vue`（每一个工具页都过它）也要拼这个链接：
- * guide-articles.ts 会拉起 TOOL_SEO_PAGES → `@/tools`（整个工具注册表）+ guides.en/zh，
- * 从那导入等于把构建期数据塞进共享 chunk。前缀只有一处定义，两侧（预渲染骨架 /
- * hydration 后的真实面板）调的是同一个函数，不存在各写一份字面量的可能。
- */
-/**
  * 为独立指南页生成自己的 SERP 摘要。
  *
  * 工具页 description 是面向「立即使用工具」的文案；指南页应从该指南的
@@ -49,6 +42,13 @@ export function buildGuideMetaDescription(
   return `${readable.trimEnd()}…`;
 }
 
+/**
+ * 文章路由前缀与拼法。**放在这个零依赖模块里**而不是 guide-articles.ts，是因为
+ * 运行时的 `tool.layout.vue`（每一个工具页都过它）也要拼这个链接：
+ * guide-articles.ts 会拉起 TOOL_SEO_PAGES → `@/tools`（整个工具注册表）+ guides.en/zh，
+ * 从那导入等于把构建期数据塞进共享 chunk。前缀只有一处定义，两侧（预渲染骨架 /
+ * hydration 后的真实面板）调的是同一个函数，不存在各写一份字面量的可能。
+ */
 export const GUIDE_PREFIX = '/guides';
 
 /** 工具 `/uuid-generator` → 文章 `/guides/uuid-generator`（不带尾斜杠，站内标识用）。 */
