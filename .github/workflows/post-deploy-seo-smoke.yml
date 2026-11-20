@@ -171,6 +171,36 @@ jobs:
             'https://ttsreader.digdevbox.com/',
             'https://notes.digdevbox.com/',
           ];
+          // The six linked sister properties are part of the English discovery network.
+          // A main-site link is not enough: each destination must expose its own crawl rules
+          // and a reachable XML sitemap rooted at its canonical host.
+          for (const siteOrigin of productLinks.map((url) => url.replace(/\\/$/, ''))) {
+            const siteRobots = await fetch(siteOrigin + '/robots.txt', {
+              headers: { 'user-agent': ua, 'cache-control': 'no-cache' },
+              redirect: 'follow',
+            });
+            const robotsText = await siteRobots.text();
+            const expectedSitemap = siteOrigin + '/sitemap.xml';
+            if (!siteRobots.ok || !new RegExp('Sitemap:\\\\s*' + expectedSitemap.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\          const productLinks = [
+            'https://img.digdevbox.com/',
+            'https://ip.digdevbox.com/',
+            'https://play.digdevbox.com/',
+            'https://draw.digdevbox.com/',
+            'https://ttsreader.digdevbox.com/',
+            'https://notes.digdevbox.com/',
+          ];'), 'i').test(robotsText)) {
+              throw new Error(siteOrigin + ' robots.txt does not advertise its canonical sitemap (HTTP ' + siteRobots.status + ')');
+            }
+            const siteSitemap = await fetch(expectedSitemap, {
+              headers: { 'user-agent': ua, 'cache-control': 'no-cache' },
+              redirect: 'follow',
+            });
+            const sitemapText = await siteSitemap.text();
+            if (!siteSitemap.ok || !/<urlset\\b/i.test(sitemapText) || !sitemapText.includes('<loc>' + siteOrigin + '/</loc>')) {
+              throw new Error(siteOrigin + ' sitemap.xml is unavailable, malformed, or missing its canonical homepage (HTTP ' + siteSitemap.status + ')');
+            }
+          }
+
           const missingProductLinks = productLinks.filter((url) => !home.body.includes(url));
           if (missingProductLinks.length) throw new Error('Main-site product discovery links missing: ' + missingProductLinks.join(', '));
           if (/href=["']https:\/\/(?:fangdai|geek-typing)\.digdevbox\.com\//i.test(home.body)) {
