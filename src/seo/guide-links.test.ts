@@ -239,6 +239,6 @@ describe('buildGuideMetaDescription', () => {
     );
     expect(summary.length).toBeLessThanOrEqual(160);
     expect(summary.endsWith('…')).toBe(true);
-    expect(summary).not.toMatch(/\\s…$/);
+    expect(summary).not.toMatch(/\s…$/);
   });
 });
