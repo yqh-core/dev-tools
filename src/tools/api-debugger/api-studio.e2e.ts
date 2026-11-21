@@ -1,5 +1,6 @@
 import process from 'node:process';
-import { mkdirSync } from 'node:fs';
+import { Buffer } from 'node:buffer';
+import { mkdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { expect, test } from '@playwright/test';
 
@@ -192,4 +193,50 @@ test('environment drives {{var}} resolution at run time (selector wired to activ
   expect(sentUrl).toBe('https://api.test/ping');
 
   await page.screenshot({ path: join(SHOTS, '04-env-resolve.png'), fullPage: true });
+});
+
+test('imports a Postman v2.1 collection into the tree and exports it back (round-trip)', async ({ page }) => {
+  // 空工作树 → 导入：直接采用集合（保留集合名 + folder 结构 + 请求），所见即所得。
+  const postmanFixture = {
+    info: { name: 'Petstore', schema: 'https://schema.getpostman.com/json/collection/v2.1.0/collection.json' },
+    item: [
+      {
+        name: 'Auth',
+        item: [
+          { name: 'Login', request: { method: 'POST', header: [{ key: 'Content-Type', value: 'application/json' }], url: { raw: 'https://pet.test/login' }, body: { mode: 'raw', raw: '{"u":"a"}' } } },
+        ],
+      },
+      { name: 'List Pets', request: { method: 'GET', header: [], url: { raw: 'https://pet.test/pets' } } },
+    ],
+  };
+
+  await page.goto('/api-studio');
+  // 隐藏文件选择器：setInputFiles 直接喂 buffer，触发 @change → onImportFilePicked → importCollectionTree
+  await page.getByTestId('import-file').setInputFiles({
+    name: 'petstore_collection.json',
+    mimeType: 'application/json',
+    buffer: Buffer.from(JSON.stringify(postmanFixture), 'utf8'),
+  });
+
+  // 导入后集合名采用 "Petstore"，树里出现 folder Auth（深度 0）/ Login（深度 1）/ List Pets（深度 0）
+  await expect(page.getByTestId('api-studio-root')).toContainText('Petstore');
+  await expect(page.getByTestId('tree-row')).toHaveCount(3);
+  await expect(page.locator('[data-test-id="tree-row"]', { hasText: 'Login' })).toHaveAttribute('data-depth', '1');
+  await expect(page.getByTestId('banner')).toContainText('Imported 2 request(s)');
+
+  await page.screenshot({ path: join(SHOTS, '05-import-postman.png'), fullPage: true });
+
+  // 导出：点 Export → 捕获下载 → 读回文件断言为 Postman v2.1 结构（info.schema + item 数组 + folder 保形）
+  const [download] = await Promise.all([
+    page.waitForEvent('download'),
+    page.getByTestId('export-collection').click(),
+  ]);
+  expect(download.suggestedFilename()).toContain('postman_collection.json');
+  const dlPath = await download.path();
+  const exported = JSON.parse(readFileSync(dlPath!, 'utf8'));
+  expect(String(exported.info.schema)).toContain('v2.1');
+  expect(exported.info.name).toBe('Petstore');
+  const auth = (exported.item as any[]).find(it => it.name === 'Auth');
+  expect(Array.isArray(auth?.item)).toBe(true);
+  expect((auth.item as any[])[0].name).toBe('Login');
 });

@@ -20,6 +20,7 @@ import {
   folderMoveOptions,
   isFolderNode,
   loadCollectionTree,
+  mergeImportedTree,
   removeNode,
   renameNode,
   reorderNode,
@@ -33,6 +34,8 @@ import { formatCollectionReportText, runCollectionTree } from '@/tools/api-debug
 import { runScriptIsolated } from '@/tools/api-debugger/script-sandbox';
 import type { EnvStore } from '@/tools/api-debugger/environments';
 import { activeVars, envNames, migrateEnv } from '@/tools/api-debugger/environments';
+import { exportCollectionTree, importCollectionTree } from '@/tools/api-debugger/collection';
+import { buildDownloadFilename, downloadTextFile } from '@/composable/downloadText';
 
 // localStorage 键：用 join(':') 拆分构造，避免整串 `scheme:token` 形态被工具链的凭据代理替换损坏
 // （历史教训：直接写 'api-studio:tree' 等曾被替换成 '***'/带省略号的坏串）。运行时值与工具页一致。
@@ -50,6 +53,10 @@ const delTarget = ref<TreeNode | null>(null);
 const running = ref(false);
 const runOutput = ref('');
 const runSummary = ref<CollectionRunSummary | null>(null);
+
+// Postman 导入/导出：filePicker=隐藏文件选择器；importWarnings=上次导入的兼容性提示（UI 可见，不静默丢弃）
+const filePicker = ref<HTMLInputElement | null>(null);
+const importWarnings = ref<string[]>([]);
 
 // 拖拽状态：dragId=正在拖的节点；dragOverId+dropPos=当前放置指示（before/after 同级排序，inside 移入 folder）
 const dragId = ref<string | null>(null);
@@ -178,6 +185,64 @@ function addFolderTo(parentId: string | null) {
   if (r.node) {
     startRename(r.node.id);
   }
+}
+
+// ── Postman 导入 / 导出（复用引擎 importCollectionTree / exportCollectionTree，保形树）──
+function openImportPicker() {
+  filePicker.value?.click();
+}
+
+function onImportFilePicked(e: Event) {
+  const input = e.target as HTMLInputElement;
+  const file = input.files?.[0];
+  input.value = ''; // 允许重新选择同名文件
+  importWarnings.value = [];
+  if (!file) {
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = () => {
+    const r = importCollectionTree(String(reader.result ?? ''));
+    importWarnings.value = r.warnings;
+    if (r.tree.items.length === 0) {
+      banner.value = r.warnings[0] ?? 'Nothing could be imported from that file.';
+      return;
+    }
+    // 空工作树：直接采用导入集合（保留集合名与结构，所见即所得）；
+    // 非空：原位合并（同 _postman_id 替换、新项追加、双侧根脚本都保留），二次导入幂等。
+    if (tree.value.items.length === 0) {
+      applyTree(r.tree);
+      banner.value = `Imported ${r.requestCount} request(s) as “${r.tree.name}”.`;
+    }
+    else {
+      const merged = mergeImportedTree(tree.value, r.tree);
+      applyTree(merged.tree);
+      banner.value = `Merged into “${tree.value.name}”: ${merged.added} added, ${merged.replaced} updated in place.`;
+    }
+    if (r.warnings.length) {
+      banner.value += ` ${r.warnings.length} compatibility note(s) below.`;
+    }
+  };
+  reader.onerror = () => {
+    banner.value = 'Could not read that file. Try again, or pick a valid Postman v2.1 collection.';
+  };
+  reader.readAsText(file);
+}
+
+function exportPostman() {
+  if (tree.value.items.length === 0) {
+    banner.value = 'Nothing to export yet — add a request or import a collection first.';
+    return;
+  }
+  const doc = exportCollectionTree(tree.value);
+  const ok = downloadTextFile({
+    content: JSON.stringify(doc, null, 2),
+    filename: buildDownloadFilename('api-studio', 'postman_collection.json'),
+    mimeType: 'application/json',
+  });
+  banner.value = ok
+    ? 'Exported a Postman v2.1 collection — folders and scripts kept as a tree. Auth headers were stripped for safe sharing; re-add them in Postman.'
+    : 'Export failed: the collection was empty (no file written).';
 }
 
 function startRename(id: string) {
@@ -525,6 +590,34 @@ function onMenuSelect(key: string, node: TreeNode) {
         </button>
       </div>
 
+      <div class="api-io-row">
+        <button class="api-tool-btn" type="button" title="Import a Postman v2.1 collection" data-test-id="import-collection" @click="openImportPicker">
+          Import Postman
+        </button>
+        <button class="api-tool-btn" type="button" title="Export this collection as Postman v2.1" data-test-id="export-collection" @click="exportPostman">
+          Export
+        </button>
+        <input
+          ref="filePicker"
+          type="file"
+          accept=".json,application/json"
+          class="api-file-input"
+          data-test-id="import-file"
+          @change="onImportFilePicked"
+        >
+      </div>
+
+      <div v-if="importWarnings.length" class="api-import-notes" data-test-id="import-warnings">
+        <div class="api-import-notes-head">
+          Import notes ({{ importWarnings.length }})
+        </div>
+        <ul class="api-import-notes-list">
+          <li v-for="(note, i) in importWarnings" :key="i">
+            {{ note }}
+          </li>
+        </ul>
+      </div>
+
       <div class="api-envbar" data-test-id="env-bar">
         <span class="api-envbar-label">Environment</span>
         <n-select
@@ -841,6 +934,53 @@ function onMenuSelect(key: string, node: TreeNode) {
   border-color: var(--api-primary-line);
   color: var(--api-primary);
   font-weight: 600;
+}
+
+.api-io-row {
+  display: flex;
+  gap: 6px;
+  padding: 0 var(--api-gap) var(--api-gap-sm);
+  border-bottom: 1px solid var(--api-border);
+}
+
+/* 隐藏文件选择器：仅由 Import 按钮以编程方式触发，不进布局 */
+.api-file-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.api-import-notes {
+  margin: 0 var(--api-gap) var(--api-gap-sm);
+  padding: var(--api-gap-sm) var(--api-gap);
+  border: 1px solid var(--api-warning-line, var(--api-border));
+  border-radius: var(--api-radius-sm);
+  background: var(--api-warning-soft, var(--api-surface));
+}
+
+.api-import-notes-head {
+  font-size: var(--api-fs-sm);
+  font-weight: 600;
+  color: var(--api-text);
+  margin-bottom: 4px;
+}
+
+.api-import-notes-list {
+  margin: 0;
+  padding-left: 16px;
+  font-size: var(--api-fs-sm);
+  color: var(--api-text-soft);
+  line-height: 1.5;
+}
+
+.api-import-notes-list li {
+  margin: 2px 0;
 }
 
 .api-envbar {
