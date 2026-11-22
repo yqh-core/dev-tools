@@ -28,7 +28,9 @@ function toggleFavorite(event: MouseEvent) {
     <c-button
       variant="text"
       circle
+      size="large"
       :type="buttonType"
+      style="width: 44px; height: 44px; min-width: 44px; min-height: 44px"
       :style="{ opacity: isFavorite ? 1 : 0.2 }"
       :aria-label="isFavorite ? $t('favoriteButton.remove') : $t('favoriteButton.add')"
       @click="toggleFavorite"
