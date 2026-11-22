@@ -9,6 +9,53 @@ const origin = new URL(originMatch[1]).origin;
 const failures = [];
 let checked = 0;
 
+/**
+ * The legacy archive is deliberately retained for visitors and redirect targets,
+ * but it is Chinese-only historical content outside the English-first US/EU
+ * indexation scope. The HTML pages do not carry a robots meta tag; Cloudflare
+ * Pages applies the policy through _headers. Guard both the response-header
+ * policy and sitemap exclusion here so a build cannot silently lose noindex.
+ */
+function assertLegacyNoindexPolicy() {
+  const headersPath = path.join(root, '_headers');
+  const sitemapPath = path.join(root, 'sitemap.xml');
+  if (!fs.existsSync(headersPath)) {
+    throw new Error('[legacy noindex] dist/_headers is missing; cannot verify the archive policy');
+  }
+  if (!fs.existsSync(sitemapPath)) {
+    throw new Error('[legacy noindex] dist/sitemap.xml is missing; cannot verify sitemap exclusion');
+  }
+
+  const headers = fs.readFileSync(headersPath, 'utf8');
+  const requiredRules = [
+    { route: '/legacy', pattern: /(?:^|\\r?\\n)\\/legacy\\s*\\r?\\n[ \\t]+X-Robots-Tag:\\s*noindex\\s*,\\s*follow\\s*(?=\\r?\\n|$)/i },
+    { route: '/legacy/*', pattern: /(?:^|\\r?\\n)\\/legacy\\/\\*\\s*\\r?\\n[ \\t]+X-Robots-Tag:\\s*noindex\\s*,\\s*follow\\s*(?=\\r?\\n|$)/i },
+  ];
+  for (const rule of requiredRules) {
+    if (!rule.pattern.test(headers)) {
+      throw new Error('[legacy noindex] _headers must apply "X-Robots-Tag: noindex, follow" to ' + rule.route);
+    }
+  }
+
+  const sitemap = fs.readFileSync(sitemapPath, 'utf8');
+  const legacyEntries = [...sitemap.matchAll(/<loc>([^<]+)<\\/loc>/gi)]
+    .map(match => match[1])
+    .filter(url => {
+      try {
+        return new URL(url).pathname.startsWith('/legacy/');
+      } catch {
+        return false;
+      }
+    });
+  if (legacyEntries.length > 0) {
+    throw new Error('[legacy noindex] legacy archive URLs must not appear in sitemap.xml: ' + legacyEntries.join(', '));
+  }
+  console.log('[legacy noindex] PASS: /legacy and /legacy/* send noindex,follow and no legacy URL is in sitemap.xml');
+}
+
+assertLegacyNoindexPolicy();
+
+
 function walk(dir) {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
     const full = path.join(dir, entry.name);
