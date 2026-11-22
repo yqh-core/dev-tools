@@ -42,6 +42,17 @@ test.describe('Homepage task discovery', () => {
     await expect(page.locator('a[href*="/api-debugger"]').first()).toBeVisible();
   });
 
+  test('ranks Device Information for common English device queries', async ({ page }) => {
+    await page.goto('/');
+    const firstResult = page.locator('div.grid a.decoration-none').first();
+
+    for (const query of ['device info', 'screen resolution', 'browser info', 'user agent']) {
+      await page.getByRole('searchbox').fill(query);
+      await expect(firstResult).toHaveAttribute('href', /\\/device-information\\/?$/);
+      await page.getByRole('searchbox').fill('');
+    }
+  });
+
   test('activates the API task entry with the keyboard', async ({ page }) => {
     await page.goto('/');
     const apiEntry = page.locator('#home-featured .featured-task-primary').first();

@@ -33,7 +33,7 @@ export const ALIASES: Record<string, string[]> = {
   '/crontab-generator': ['cron', '定时任务', '计划任务', 'crontab', '表达式', '调度'],
   '/date-converter': ['时间戳', '时间', '日期', 'unix', 'timestamp', '格式化时间', 'unix timestamp converter', 'timestamp to date', 'epoch time', 'timezone converter', 'utc time'],
   '/unix-timestamp-converter': ['时间戳', 'unix 时间戳', 'epoch', '时间戳转换'],
-  '/device-information': ['设备信息', '屏幕', '分辨率', 'user agent', '浏览器信息', 'ua'],
+  '/device-information': ['设备信息', '屏幕', '分辨率', 'user agent', '浏览器信息', 'ua', 'device info', 'device details', 'system information', 'screen resolution', 'screen size', 'pixel ratio', 'browser info', 'browser information', 'user agent lookup'],
   '/docker-run-to-docker-compose-converter': ['docker', 'compose', '容器', '转换', 'yml'],
   '/email-normalizer': ['邮箱', '邮件', 'email', '去重', '清洗', '归一化'],
   '/emoji-picker': ['表情', 'emoji', '颜文字', 'unicode', 'emoji复制'],
