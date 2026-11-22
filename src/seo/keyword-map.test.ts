@@ -44,12 +44,8 @@ describe('evidence-backed SEO keyword targets', () => {
     expect(entry).toBeDefined();
     expect(entry?.keyword).toBe(keyword);
     expect(entry?.priority).toBe(priority);
-    expect(entry?.landed).toBe(path !== '/text-statistics');
-    if (lockedTitle) {
-      expect(entry?.lockedTitle).toBe(lockedTitle);
-    } else {
-      expect(entry?.lockedTitle).toBe(lockedTitle);
-    }
+    expect(entry?.landed).toBe(true);
+    expect(entry?.lockedTitle).toBe(lockedTitle);
     expect((entry?.keywords ?? []).length).toBeGreaterThanOrEqual(5);
   });
 });
