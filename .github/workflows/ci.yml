@@ -56,7 +56,7 @@ jobs:
       - name: Install Chromium for targeted E2E
         run: pnpm exec playwright install chromium
 
-      - name: E2E — percentage calculator and numeronym generator
+      - name: E2E — calculators and homepage discovery
         run: >-
           pnpm exec playwright test
           src/tools/percentage-calculator/percentage-calculator.e2e.spec.ts

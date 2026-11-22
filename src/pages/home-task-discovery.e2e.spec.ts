@@ -9,6 +9,29 @@ test.describe('Homepage task discovery', () => {
     await expect(page.locator('a[href*="/tools"]')).toBeVisible();
   });
 
+  test('uses one column without horizontal overflow at 390px', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/');
+
+    const grid = page.locator('#home-featured .featured-task-grid');
+    await expect(grid.locator('.featured-task-card')).toHaveCount(5);
+    const columns = await grid.evaluate(element => getComputedStyle(element).gridTemplateColumns.split(' ').length);
+    const documentWidth = await page.evaluate(() => document.documentElement.scrollWidth);
+
+    expect(columns).toBe(1);
+    expect(documentWidth).toBeLessThanOrEqual(390);
+  });
+
+  test('uses three task columns on a desktop viewport', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto('/');
+
+    const grid = page.locator('#home-featured .featured-task-grid');
+    const columns = await grid.evaluate(element => getComputedStyle(element).gridTemplateColumns.split(' ').length);
+
+    expect(columns).toBe(3);
+  });
+
   test('finds API Studio from a task-intent query', async ({ page }) => {
     await page.goto('/');
     await page.getByRole('searchbox').fill('api testing');
