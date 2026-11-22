@@ -23,7 +23,7 @@ test.describe('Homepage task discovery', () => {
     await apiEntry.focus();
     await expect(apiEntry).toBeFocused();
     await page.keyboard.press('Enter');
-    await expect(page).toHaveURL(/\\/api-debugger\\/?$/);
+    await expect(page).toHaveURL(/api-debugger\/?$/);
   });
 
   test('keeps the three compact homepage controls at 44px touch size', async ({ page }) => {
