@@ -48,7 +48,7 @@
 - [PDF Split](https://digdevbox.com/pdf-split) - Split a PDF into single pages, or extract a page range — page count is read from the file before you choose. Free, private, runs in your browser.
 - [PDF Watermark](https://digdevbox.com/pdf-watermark) - Add a text watermark to every page of a PDF — adjustable size, opacity, angle, single line or tiled. Free, private, runs in your browser.
 - [PDF Compressor](https://digdevbox.com/pdf-compress) - Compress PDF files online by recompressing embedded photos and rebuilding the file structure. Two levels, live before/after sizes, never larger than the original. Free, private, runs in your browser.
-- [htpasswd generator and checker](https://digdevbox.com/htpasswd-generator) - Generate .htpasswd lines for Apache or Nginx basic auth using bcrypt, apr1, SHA1 or plain text, and verify existing entries.
+- [htpasswd Generator & Checker — bcrypt, apr1 and SHA1](https://digdevbox.com/htpasswd-generator) - Generate Apache or Nginx .htpasswd entries with bcrypt, apr1, SHA1 or plain text, then verify an existing username:hash line against a password.
 
 ### Converter
 
@@ -167,12 +167,12 @@
 - [Word & Character Counter — Text Statistics & Byte Size](https://digdevbox.com/text-statistics) - Count words, characters and lines, and check UTF-8 text size in bytes. Paste text to see live statistics instantly — free and browser-based.
 - [Emoji picker](https://digdevbox.com/emoji-picker) - Copy and paste emojis easily and get the unicode and code points value of each emoji.
 - [String obfuscator](https://digdevbox.com/string-obfuscator) - Obfuscate a string (like a secret, an IBAN, or a token) to make it shareable and identifiable without revealing its content.
-- [Text diff](https://digdevbox.com/text-diff) - Compare two texts and see the differences between them.
+- [Text Diff Checker — Compare Two Texts Side by Side](https://digdevbox.com/text-diff) - Compare two text inputs in a side-by-side diff editor to spot additions, deletions and changed lines.
 - [Numeronym Generator — i18n, a11y & k8s](https://digdevbox.com/numeronym-generator) - Generate numeronyms from one word or a batch of words, one per line, and look up established forms such as i18n, a11y and k8s. Free and instant in your browser.
 - [ASCII Art Generator](https://digdevbox.com/ascii-text-drawer) - Turn text into ASCII art with multiple fonts and styles.
 - [Full-width / half-width converter](https://digdevbox.com/fullwidth-converter) - Convert between full-width and half-width characters using the fixed Unicode offset 0xFEE0, or adjust punctuation only.
 - [Morse Code Converter](https://digdevbox.com/morse-code-converter) - What is Morse code? The dot-and-dash alphabet dating from the 1840s. Encode text to Morse or decode it back — letters separated by spaces, words by a slash, free and instant in your browser.
-- [Batch text replacer](https://digdevbox.com/text-replacer) - Find and replace text with plain or regular-expression matching, optional case-insensitive mode and a match counter.
+- [Find and Replace Text — Plain Text & Regex Replacer](https://digdevbox.com/text-replacer) - Paste text, find a phrase or regular expression, replace or remove matches, ignore case and see the replacement count and output length.
 
 ### Data
 
