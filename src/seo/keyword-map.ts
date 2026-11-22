@@ -548,8 +548,9 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     intent: 'inspect',
     priority: 'P1',
     competition: 'medium',
-    landed: false,
-    note: 'Candidate mapping for the existing two-text comparison task. Competition is provisional; validate the page output and SERP before changing title or metadata.',
+    landed: true,
+    lockedTitle: 'Text Diff Checker — Compare Two Texts Side by Side',
+    note: 'Title and description now describe the existing side-by-side diff editor without claiming unsupported export or syntax-aware features. Competition remains provisional; no volume/KD claims.',
   },
   {
     path: '/text-replacer',
@@ -558,8 +559,9 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     intent: 'convert',
     priority: 'P2',
     competition: 'medium',
-    landed: false,
-    note: 'Candidate mapping matches plain/regex replacement, optional case-insensitive mode and match counter. Competition is provisional; no volume/KD claims.',
+    landed: true,
+    lockedTitle: 'Find and Replace Text — Plain Text & Regex Replacer',
+    note: 'Title and description match plain-text or regex find/replace, optional case-insensitive matching, deletion via empty replacement and match/output counts. Competition remains provisional; no volume/KD claims.',
   },
   {
     path: '/htpasswd-generator',
@@ -568,8 +570,9 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     intent: 'generate',
     priority: 'P1',
     competition: 'medium',
-    landed: false,
-    note: 'Candidate mapping matches supported Apache/Nginx .htpasswd generation and verification modes (bcrypt, apr1, SHA1 and plain text). Competition is provisional; no volume/KD claims.',
+    landed: true,
+    lockedTitle: 'htpasswd Generator & Checker — bcrypt, apr1 and SHA1',
+    note: 'Title and description match Apache/Nginx user:hash generation and verification. Supported formats include bcrypt, apr1, SHA1 and plain text; plain text is explicitly not for production. Competition remains provisional; no volume/KD claims.',
   },
 
   {
