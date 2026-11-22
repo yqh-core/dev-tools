@@ -1,6 +1,13 @@
 name: GSC redirect-chain audit
 
 on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - scripts/audit-gsc-redirects.mjs
+      - scripts/fixtures/gsc-redirect-urls-2026-11-21.json
+      - .github/workflows/gsc-redirect-audit.yml
   push:
     branches:
       - audit/gsc-redirect-chains-20261122
