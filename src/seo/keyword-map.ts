@@ -25,7 +25,7 @@
  *
  * ============================ 为什么值得单独入库 ============================
  *
- * 这张表此前已经在驱动 7 条 title 落地（见 `landed: true` 的条目），但因为它 living
+ * 这张表持续保护所有已落地 title（见 `landed: true` 的条目），但因为它 living
  * 在仓库外且**没有任何机器校验**，任何人把 `locales/en.yml` 的 title 改回旧值都
  * 不会有任何报错 —— 一次「顺手清理」就能悄悄丢掉 7 条已经验证过的定位。
  * `auditKeywordMap()` 就是那道锁：抛错式（throw-on-drift），构建期拦住。
@@ -67,7 +67,7 @@ export const KNOWN_NOTE_SLUGS = [
 export const NOTES_ORIGIN = 'https://notes.digdevbox.com';
 
 /**
- * Keyword Map §1 总表：11 个原始关键词簇 / 24 行；PR #65 分支增加 Percentage Calculator、Numeronym、ETA Calculator、Text Statistics 及后续工具映射后，当前 60 条主关键词记录，通过 alsoPaths 覆盖 65 条唯一工具路由（2026-11-22）。
+ * Keyword Map §1 总表：11 个原始关键词簇 / 24 行；截至 2026-11-22，PR #65 分支已扩展到 64 条主关键词记录，另有 5 条 aliases，共覆盖 69 条唯一工具路由。
  *
  * 行序与原文档一致（⛔ 不要按 path 重排 —— 序号本身就是「先做哪一批」的阅读顺序）。
  * 字段口径见 `KeywordMapEntry`。
@@ -883,7 +883,7 @@ export function auditKeywordMap(toolTitles: Record<string, string>) {
     }
 
     // —— 核心判据：已落地 title 与 locales/en.yml 必须逐字一致 ——
-    // 这一条是本文件存在的全部理由：7 条 title 已经过 SERP 研究落地，
+    // 这一条是本文件存在的全部理由：每条 landed title 都经过能力与意图核对，
     // 改回旧值不会有任何报错。逐字比而不是「包含」，因为 em dash / 空格 / 大小写
     // 任意一处漂移都会让 SERP 侧的字面匹配失效。
     if (entry.landed && entry.lockedTitle) {
