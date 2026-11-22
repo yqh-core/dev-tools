@@ -246,9 +246,9 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     intent: 'compute',
     priority: 'P1',
     competition: 'medium',
-    landed: false,
-    proposedTitle: 'Word & Character Counter — Text Statistics, Lines and Byte Size',
-    note: 'The page measures characters, words, lines and UTF-8 byte size. Proposed title only; do not lock or claim it is live until metadata is updated and validated.',
+    landed: true,
+    lockedTitle: 'Word & Character Counter — Text Statistics & Byte Size',
+    note: 'The page measures characters, words, lines and UTF-8 byte size. Title is aligned to the actual live feature; validate rendered snippet and CTR after deployment.',
   },
   {
     path: '/regex-tester',
