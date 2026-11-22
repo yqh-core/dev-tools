@@ -691,8 +691,8 @@ tools:
     description: Given a start and an end IPv4 address, this tool calculates a valid IPv4 subnet along with its CIDR notation.
 
   text-diff:
-    title: Text diff
-    description: Compare two texts and see the differences between them.
+    title: Text Diff Checker — Compare Two Texts Side by Side
+    description: Compare two text inputs in a side-by-side diff editor to spot additions, deletions and changed lines.
 
   otp-generator:
     title: OTP code generator
@@ -755,8 +755,8 @@ tools:
     description: "Convert a batch of values between px and rem with a configurable root font size."
 
   text-replacer:
-    title: "Batch text replacer"
-    description: "Find and replace text with plain or regular-expression matching, optional case-insensitive mode and a match counter."
+    title: "Find and Replace Text — Plain Text & Regex Replacer"
+    description: "Paste text, find a phrase or regular expression, replace or remove matches, ignore case and see the replacement count and output length."
 
   json-to-get-params:
     title: "JSON to GET params"
@@ -782,8 +782,8 @@ tools:
     description: "See what happened on this day in history. Events load automatically when the page opens."
 
   htpasswd-generator:
-    title: "htpasswd generator and checker"
-    description: "Generate .htpasswd lines for Apache or Nginx basic auth using bcrypt, apr1, SHA1 or plain text, and verify existing entries."
+    title: "htpasswd Generator & Checker — bcrypt, apr1 and SHA1"
+    description: "Generate Apache or Nginx .htpasswd entries with bcrypt, apr1, SHA1 or plain text, then verify an existing username:hash line against a password."
 
   linux-commands:
     title: "Linux commands cheat sheet"
