@@ -16,7 +16,7 @@ describe('evidence-backed SEO keyword targets', () => {
     [
       '/percentage-calculator',
       'percentage calculator',
-      'Percentage Calculator — Percent of a Number & Percent Change',
+      'Percentage Calculator — Percent of a Number, Change & Discount',
     ],
   ])('keeps %s mapped to its measured primary intent and current title', (path, keyword, title) => {
     const entry = CLUSTER_KEYWORD_ENTRIES.find(item => item.path === path);
