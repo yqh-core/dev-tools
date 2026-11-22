@@ -217,18 +217,6 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     note: 'GSC observed 9 impressions at average position 6.56 plus 1 impression for numeronym generator at position 5. The tool also looks up a fixed dictionary of established forms; it does not invent meanings for arbitrary abbreviations.',
   },
   {
-    path: '/numeronym-generator',
-    keyword: 'numeronym',
-    keywords: ['numeronym generator', 'numeronym meaning', 'i18n meaning', 'a11y meaning', 'k8s meaning'],
-    intent: 'generate',
-    priority: 'P0',
-    competition: 'medium',
-    article: 'what-is-a-numeronym',
-    landed: true,
-    lockedTitle: 'Numeronym Generator — i18n, a11y & k8s',
-    note: 'GSC observed 9 impressions at average position 6.56 plus 1 impression for numeronym generator at position 5. The tool also looks up a fixed dictionary of established forms; it does not invent meanings for arbitrary abbreviations.',
-  },
-  {
     path: '/eta-calculator',
     keyword: 'eta calculator',
     keywords: ['task completion time calculator', 'processing time calculator', 'batch processing time calculator', 'download time estimator', 'build time estimator'],
