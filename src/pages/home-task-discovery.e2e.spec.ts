@@ -6,7 +6,9 @@ test.describe('Homepage task discovery', () => {
 
     await expect(page.locator('#home-featured .featured-task-card')).toHaveCount(5);
     await expect(page.locator('#home-tasks')).toBeVisible();
-    await expect(page.locator('a[href*="/tools"]')).toBeVisible();
+    const directoryLink = page.locator('#home-tasks > a.home-blog-more[href="/tools/"]');
+    await expect(directoryLink).toHaveCount(1);
+    await expect(directoryLink).toBeVisible();
   });
 
   test('uses one column without horizontal overflow at 390px', async ({ page }) => {
