@@ -67,7 +67,7 @@ export const KNOWN_NOTE_SLUGS = [
 export const NOTES_ORIGIN = 'https://notes.digdevbox.com';
 
 /**
- * Keyword Map §1 总表：11 个原始关键词簇 / 24 行；PR #65 分支增加 Percentage Calculator、Numeronym、ETA Calculator、Text Statistics 及后续工具映射后，当前 42 条主关键词记录，通过 alsoPaths 覆盖 47 条唯一工具路由（2026-11-22）。
+ * Keyword Map §1 总表：11 个原始关键词簇 / 24 行；PR #65 分支增加 Percentage Calculator、Numeronym、ETA Calculator、Text Statistics 及后续工具映射后，当前 47 条主关键词记录，通过 alsoPaths 覆盖 52 条唯一工具路由（2026-11-22）。
  *
  * 行序与原文档一致（⛔ 不要按 path 重排 —— 序号本身就是「先做哪一批」的阅读顺序）。
  * 字段口径见 `KeywordMapEntry`。
@@ -569,6 +569,57 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     competition: 'medium',
     landed: false,
     note: 'Candidate mapping matches supported Apache/Nginx .htpasswd generation and verification modes (bcrypt, apr1, SHA1 and plain text). Competition is provisional; no volume/KD claims.',
+  },
+
+  {
+    path: '/csv-to-json',
+    keyword: 'CSV to JSON converter',
+    keywords: ['convert CSV to JSON online', 'CSV parser to JSON', 'CSV file to JSON', 'comma separated values to JSON'],
+    intent: 'convert',
+    priority: 'P1',
+    competition: 'medium',
+    landed: false,
+    note: 'Candidate mapping matches paste-CSV conversion, optional first-row headers, row/column counts, preview and parse warnings. Competition is provisional; no volume/KD/SERP claim.',
+  },
+  {
+    path: '/pdf-merge',
+    keyword: 'merge PDF files online',
+    keywords: ['combine PDF files', 'join multiple PDFs', 'PDF merger', 'merge PDF documents'],
+    intent: 'convert',
+    priority: 'P1',
+    competition: 'high',
+    landed: false,
+    note: 'Candidate mapping matches the browser-side workflow requiring at least two PDFs and downloading one merged PDF. Competition is provisional; no volume/KD claim.',
+  },
+  {
+    path: '/ipv6-ula-generator',
+    keyword: 'IPv6 ULA generator',
+    keywords: ['generate IPv6 unique local address', 'RFC 4193 ULA generator', 'IPv6 private address generator', 'IPv6 /48 prefix generator'],
+    intent: 'generate',
+    priority: 'P2',
+    competition: 'medium',
+    landed: false,
+    note: 'Candidate mapping matches generation of an RFC 4193-style fd00::/48 ULA and first/last /64 blocks from a validated MAC address. Competition is provisional; validate implementation against the RFC before strengthening copy.',
+  },
+  {
+    path: '/user-agent-parser',
+    keyword: 'user agent parser',
+    keywords: ['parse user agent string online', 'browser user agent checker', 'OS and device from user agent', 'UA string parser'],
+    intent: 'parse',
+    priority: 'P1',
+    competition: 'medium',
+    landed: false,
+    note: 'Candidate mapping matches parsing browser, engine, OS, CPU and device details from a supplied user-agent string. Competition is provisional; no volume/KD claim.',
+  },
+  {
+    path: '/phone-parser-and-formatter',
+    keyword: 'international phone number parser',
+    keywords: ['phone number formatter', 'phone number validator', 'E.164 phone number format', 'parse international phone number'],
+    intent: 'parse',
+    priority: 'P2',
+    competition: 'medium',
+    landed: false,
+    note: 'Candidate mapping matches international phone number parsing, validation and national/international formatting. Confirm supported region/extension behavior before claiming universal validation. Competition is provisional.',
   },
 ];
 
