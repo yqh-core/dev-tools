@@ -48,4 +48,22 @@ describe('evidence-backed SEO keyword targets', () => {
     expect(entry?.lockedTitle).toBe(lockedTitle);
     expect((entry?.keywords ?? []).length).toBeGreaterThanOrEqual(5);
   });
+
+  it.each([
+    ['/ipv4-subnet-calculator', 'IPv4 subnet calculator', 'compute'],
+    ['/ipv4-range-expander', 'IP range to CIDR', 'convert'],
+    ['/text-diff', 'text diff checker', 'inspect'],
+    ['/text-replacer', 'find and replace text online', 'convert'],
+    ['/htpasswd-generator', 'htpasswd generator', 'generate'],
+  ])('keeps %s mapped to an existing capability-matched route', (path, keyword, intent) => {
+    const entry = CLUSTER_KEYWORD_ENTRIES.find(item => item.path === path);
+
+    expect(entry).toBeDefined();
+    expect(entry?.keyword).toBe(keyword);
+    expect(entry?.intent).toBe(intent);
+    expect(entry?.landed).toBe(false);
+    expect((entry?.keywords ?? []).length).toBeGreaterThanOrEqual(4);
+    expect(entry?.note).toContain('provisional');
+  });
+
 });
