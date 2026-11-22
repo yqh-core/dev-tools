@@ -105,11 +105,11 @@ describe('evidence-backed SEO keyword targets', () => {
 
   it.each([
     ['/pdf-split', 'split PDF pages online', 'convert'],
-    ['/pdf-watermark', 'add watermark to PDF', 'edit'],
+    ['/pdf-watermark', 'add watermark to PDF', 'convert'],
     ['/pdf-compress', 'compress PDF online', 'convert'],
-    ['/image-resize', 'resize image online', 'edit'],
+    ['/image-resize', 'resize image online', 'convert'],
     ['/image-compress', 'compress image online', 'convert'],
-    ['/image-crop', 'crop image online', 'edit'],
+    ['/image-crop', 'crop image online', 'convert'],
     ['/favicon-generator', 'favicon generator', 'generate'],
     ['/image-to-pdf', 'convert images to PDF', 'convert'],
   ])('keeps %s mapped to an existing capability-matched route', (path, keyword, intent) => {
