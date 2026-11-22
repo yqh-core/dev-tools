@@ -769,7 +769,7 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     competition: 'high',
     landed: true,
     lockedTitle: 'Morse Code Translator — Encode Text & Decode Morse',
-    note: 'GSC last 90 days: 4 page impressions, avg position 43.5; visible queries include "morse code generator" and "morse conversion" (one impression each). SERP spot-check shows focused tools target "Morse Code Translator"; DigDevBox supports text encode/decode for A–Z, digits and listed punctuation, not audio or image decoding. No volume/KD claim.',,
+    note: 'GSC last 90 days: 4 page impressions, avg position 43.5; visible queries include "morse code generator" and "morse conversion" (one impression each). SERP spot-check shows focused tools target "Morse Code Translator"; DigDevBox supports text encode/decode for A–Z, digits and listed punctuation, not audio or image decoding. No volume/KD claim.',
   },
   {
     path: '/camera-recorder',
@@ -780,7 +780,7 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     competition: 'high',
     landed: true,
     lockedTitle: 'Webcam Recorder — Record Video & Take Photos Online',
-    note: 'GSC last 90 days: 6 page impressions, avg position 44.67; visible variants include "cam recorder", "camera record" and "camera recorder"; do not target competitor-branded "camkeeper". SERP spot-check confirms exact "Webcam Recorder" intent and strong dedicated competitors. DigDevBox supports camera/microphone selection, video recording, pause/resume, still-photo capture and local download; do not claim MP4, trimming or 4K. No volume/KD claim.'
+    note: 'GSC last 90 days: 6 page impressions, avg position 44.67; visible variants include "cam recorder", "camera record" and "camera recorder"; do not target competitor-branded "camkeeper". SERP spot-check confirms exact "Webcam Recorder" intent and strong dedicated competitors. DigDevBox supports camera/microphone selection, video recording, pause/resume, still-photo capture and local download; do not claim MP4, trimming or 4K. No volume/KD claim.',
   },
   {
     path: '/lorem-ipsum-generator',
