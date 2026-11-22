@@ -152,5 +152,4 @@ describe('evidence-backed SEO keyword targets', () => {
     expect((entry?.keywords ?? []).length).toBeGreaterThanOrEqual(4);
     expect(entry?.note).toContain('Candidate mapping only');
   });
-
 });
