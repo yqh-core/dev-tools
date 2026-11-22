@@ -255,8 +255,8 @@ tools:
     title: JSON to CSV
     description: Convert JSON to CSV with automatic header detection.
   csv-to-json:
-    title: CSV to JSON
-    description: Convert CSV to a JSON array with quoted fields, real newlines and duplicate-column safeguards.
+    title: CSV to JSON Converter — Preview Rows & Convert Online
+    description: Paste CSV, choose whether the first row contains column names, preview parsed rows and copy or download the resulting JSON. Handles quoted fields and reports parse warnings.
 
   camera-recorder:
     title: Camera Recorder
@@ -471,8 +471,8 @@ tools:
     description: Pre-deployment readiness gate for your project. Paste package.json, lockfile, Dockerfile and CI workflow, or import Trivy/Checkov/Hadolint/SARIF JSON or actionlint text; get a READY / READY_WITH_WARNINGS / BLOCKED / NOT_ASSESSED verdict with evidence-backed findings (reproducible builds, pinned images, non-root containers, CI injection risks, hardcoded secrets, real scanner results) and an exportable release report. Inspired by Vercel/Netlify preflight checks; runs fully in your browser.
 
   ipv4-subnet-calculator:
-    title: IPv4 Subnet Calculator
-    description: Paste a CIDR like 192.168.1.0/24 and get the full subnet breakdown — usable hosts, first/last address, netmask, wildcard. Built for VPC and VLAN planning, free in your browser.
+    title: IPv4 Subnet Calculator — CIDR, Netmask & Usable Hosts
+    description: Calculate an IPv4 subnet from an address and CIDR prefix. See the network and broadcast addresses, netmask, wildcard mask, subnet size and first/last host addresses.
 
   og-meta-generator:
     title: Open graph meta generator
