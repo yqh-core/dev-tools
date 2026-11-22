@@ -52,6 +52,9 @@ describe('evidence-backed SEO keyword targets', () => {
   it.each([
     ['/ipv4-subnet-calculator', 'IPv4 subnet calculator', 'IPv4 Subnet Calculator — CIDR, Netmask & Usable Hosts'],
     ['/csv-to-json', 'CSV to JSON converter', 'CSV to JSON Converter — Preview Rows & Convert Online'],
+    ['/text-diff', 'text diff checker', 'Text Diff Checker — Compare Two Texts Side by Side'],
+    ['/text-replacer', 'find and replace text online', 'Find and Replace Text — Plain Text & Regex Replacer'],
+    ['/htpasswd-generator', 'htpasswd generator', 'htpasswd Generator & Checker — bcrypt, apr1 and SHA1'],
   ])('locks the landed metadata for %s', (path, keyword, lockedTitle) => {
     const entry = CLUSTER_KEYWORD_ENTRIES.find(item => item.path === path);
 
@@ -63,9 +66,6 @@ describe('evidence-backed SEO keyword targets', () => {
 
   it.each([
     ['/ipv4-range-expander', 'IP range to CIDR', 'convert'],
-    ['/text-diff', 'text diff checker', 'inspect'],
-    ['/text-replacer', 'find and replace text online', 'convert'],
-    ['/htpasswd-generator', 'htpasswd generator', 'generate'],
   ])('keeps %s mapped to an existing capability-matched route', (path, keyword, intent) => {
     const entry = CLUSTER_KEYWORD_ENTRIES.find(item => item.path === path);
 
