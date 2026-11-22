@@ -67,7 +67,7 @@ export const KNOWN_NOTE_SLUGS = [
 export const NOTES_ORIGIN = 'https://notes.digdevbox.com';
 
 /**
- * Keyword Map §1 总表：11 个原始关键词簇 / 24 行；截至 2026-11-22，PR #65 分支已扩展到 64 条主关键词记录，另有 5 条 aliases，共覆盖 69 条唯一工具路由。
+ * Keyword Map §1 总表：11 个原始关键词簇 / 24 行；截至 2026-11-23，PR #65 分支已扩展到 75 条主关键词记录，另有 5 条 aliases，共覆盖 80 条唯一工具路由；新增候选不代表已验证搜索量或流量。
  *
  * 行序与原文档一致（⛔ 不要按 path 重排 —— 序号本身就是「先做哪一批」的阅读顺序）。
  * 字段口径见 `KeywordMapEntry`。
