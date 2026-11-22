@@ -27,4 +27,16 @@ test.describe('Tool - Numeronym generator', () => {
 
     expect(numeronym).toEqual('abc');
   });
+
+  test('shows accurate examples for generation and established lookups when empty', async ({ page }) => {
+    const examples = page.getByTestId('numeronym-examples');
+    await expect(examples).toContainText('internationalization');
+    await expect(examples).toContainText('i18n');
+    await expect(examples).toContainText('accessibility');
+    await expect(examples).toContainText('a11y');
+    await expect(examples).toContainText('Kubernetes');
+    await expect(examples).toContainText('k8s');
+    await expect(examples).toContainText('localization');
+    await expect(examples).toContainText('l10n');
+  });
 });
