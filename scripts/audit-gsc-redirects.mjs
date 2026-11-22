@@ -4,14 +4,14 @@ import { resolve } from 'node:path';
 const root = process.cwd();
 const fixture = JSON.parse(await readFile(resolve(root, 'scripts/fixtures/gsc-redirect-urls-2026-11-21.json'), 'utf8'));
 const redirectsText = await readFile(resolve(root, 'public/_redirects'), 'utf8');
-const explicitLegacySources = new Set();
+const explicitLegacyTargets = new Map();
 
 for (const rawLine of redirectsText.split(/\r?\n/)) {
   const line = rawLine.trim();
   if (!line || line.startsWith('#')) continue;
-  const [source, , status] = line.split(/\s+/);
-  if (status === '301' && source?.startsWith('/legacy/') && !source.includes('*')) {
-    explicitLegacySources.add(source);
+  const [source, target, status] = line.split(/\s+/);
+  if (status === '301' && source?.startsWith('/legacy/') && !source.includes('*') && target) {
+    explicitLegacyTargets.set(source, target);
   }
 }
 
@@ -26,8 +26,19 @@ const notesMigrationSources = new Set([
 function classify(source) {
   const url = new URL(source);
   if (url.hostname === 'notes.digdevbox.com' && notesMigrationSources.has(url.pathname)) return 'explicit';
-  if (url.hostname === 'www.digdevbox.com' && explicitLegacySources.has(url.pathname)) return 'explicit';
+  if (url.hostname === 'www.digdevbox.com' && explicitLegacyTargets.has(url.pathname)) return 'explicit';
   return 'normalization';
+}
+
+function expectedExplicitUrl(source) {
+  const url = new URL(source);
+  if (url.hostname === 'notes.digdevbox.com' && notesMigrationSources.has(url.pathname)) {
+    return 'https://notes.digdevbox.com/zh' + url.pathname + url.search;
+  }
+  if (url.hostname === 'www.digdevbox.com' && explicitLegacyTargets.has(url.pathname)) {
+    return new URL(explicitLegacyTargets.get(url.pathname), 'https://www.digdevbox.com').href;
+  }
+  return null;
 }
 
 function expectedNormalizedUrl(source) {
@@ -60,7 +71,7 @@ const results = [];
 
 for (const source of fixture.urls) {
   const category = classify(source);
-  const expectedCanonical = category === 'normalization' ? expectedNormalizedUrl(source) : null;
+  const expectedDestination = category === 'normalization' ? expectedNormalizedUrl(source) : expectedExplicitUrl(source);
   const seen = new Set();
   const hops = [];
   let current = source;
@@ -112,14 +123,14 @@ for (const source of fixture.urls) {
 
   const finalUrl = current;
   const redirectCount = hops.filter((hop) => redirectStatuses.has(hop.status) && hop.location).length;
-  const canonicalExpected = expectedCanonical || finalUrl;
+  const canonicalExpected = expectedDestination || finalUrl;
   const checks = {
     hasRedirect: redirectCount > 0,
     noLoop: !loop,
     finalHttp200: finalStatus === 200,
     canonicalPresent: Boolean(canonical),
     canonicalMatchesExpected: Boolean(canonical && canonical === canonicalExpected),
-    normalizationDestinationMatches: category !== 'normalization' || finalUrl === expectedCanonical,
+    destinationMatchesExpected: Boolean(expectedDestination && finalUrl === expectedDestination),
   };
   const passed = !error && Object.values(checks).every(Boolean);
 
@@ -131,7 +142,7 @@ for (const source of fixture.urls) {
     finalUrl,
     finalStatus,
     canonical,
-    expectedCanonical,
+    expectedDestination,
     checks,
     passed,
     error,
