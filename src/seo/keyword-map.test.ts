@@ -18,6 +18,11 @@ describe('evidence-backed SEO keyword targets', () => {
       'percentage calculator',
       'Percentage Calculator — Percent of a Number, Change & Discount',
     ],
+    [
+      '/numeronym-generator',
+      'numeronym',
+      'Numeronym Generator — i18n, a11y & k8s',
+    ],
   ])('keeps %s mapped to its measured primary intent and current title', (path, keyword, title) => {
     const entry = CLUSTER_KEYWORD_ENTRIES.find(item => item.path === path);
 
