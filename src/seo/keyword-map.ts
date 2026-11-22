@@ -758,6 +758,53 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     landed: false,
     note: 'Matches multi-image PDF creation, image inspection, conversion of non-JPEG/PNG formats and margin control. Competition is provisional.',
   },
+  // 2026-11-22: GSC-visible routes with small but direct page/query evidence.
+  // These remain candidate mappings; no volume/KD/SERP competition score is claimed.
+  {
+    path: '/morse-code-converter',
+    keyword: 'morse code converter',
+    keywords: ['morse code generator', 'morse conversion', 'text to morse code', 'morse code to text'],
+    intent: 'convert',
+    priority: 'P2',
+    competition: 'medium',
+    landed: false,
+    proposedTitle: 'Morse Code Translator — Encode Text & Decode Morse',
+    note: 'GSC last 90 days: 4 page impressions, avg position 43.5; visible queries include "morse code generator" and "morse conversion" (one impression each). Actual tool supports A–Z, digits and listed punctuation, text-to-Morse and Morse-to-text. Candidate only; search volume/KD/competition not verified.',
+  },
+  {
+    path: '/camera-recorder',
+    keyword: 'online webcam recorder',
+    keywords: ['webcam video recorder', 'record webcam video online', 'webcam photo capture', 'camera recorder'],
+    intent: 'generate',
+    priority: 'P2',
+    competition: 'medium',
+    landed: false,
+    proposedTitle: 'Webcam Recorder — Record Video & Take Photos Online',
+    note: 'GSC last 90 days: 6 page impressions, avg position 44.67; visible query variants include "cam recorder", "camera record", "camera recorder" and competitor-branded "camkeeper". Do not target the competitor brand. Actual tool requests camera/microphone permission, records video and captures still images locally. Candidate only; no volume/KD/competition verification.',
+  },
+  {
+    path: '/lorem-ipsum-generator',
+    keyword: 'lorem ipsum generator',
+    keywords: ['lipsum generator', 'placeholder text generator', 'dummy text generator', 'lorem ipsum paragraphs'],
+    intent: 'generate',
+    priority: 'P2',
+    competition: 'medium',
+    landed: false,
+    proposedTitle: 'Lorem Ipsum Generator — Placeholder Text for Layouts',
+    note: 'GSC last 90 days: 1 visible impression for "lipsum generator" at position 7; page total 1 impression. Candidate phrase cluster is feature-aligned; no volume/KD/competition verification.',
+  },
+  {
+    path: '/rmb-uppercase',
+    keyword: 'Chinese RMB uppercase converter',
+    keywords: ['RMB amount in Chinese uppercase', 'Chinese yuan uppercase converter', 'Chinese financial numerals', 'convert RMB amount to Chinese words'],
+    intent: 'convert',
+    priority: 'P2',
+    competition: 'medium',
+    landed: false,
+    proposedTitle: 'Chinese RMB Uppercase Converter — Financial Amounts in Words',
+    note: 'GSC last 90 days: 10 page impressions, avg position 7.1, zero clicks; query rows are anonymized and do not expose the exact search term. Tool converts numeric CNY amounts into Chinese financial uppercase with yuan/jiao/fen and optional RMB prefix. Niche English-language intent candidate; validate query language before changing title. No volume/KD/competition verification.',
+  },
+
 ];
 
 /** 全部工具的真实路由集合（`tool.path`，⛔ 不是目录名）。 */
