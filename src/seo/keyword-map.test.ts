@@ -33,4 +33,23 @@ describe('evidence-backed SEO keyword targets', () => {
     expect(entry?.lockedTitle).toBe(title);
     expect((entry?.keywords ?? []).length).toBeGreaterThanOrEqual(4);
   });
+
+  it.each([
+    ['/numeronym-generator', 'numeronym', 'P0', 'Numeronym Generator — i18n, a11y & k8s'],
+    ['/eta-calculator', 'eta calculator', 'P1', 'ETA Calculator — Task Completion Time'],
+    ['/text-statistics', 'text statistics', 'P1', undefined],
+  ])('keeps %s mapped to a capability-matched intent', (path, keyword, priority, lockedTitle) => {
+    const entry = CLUSTER_KEYWORD_ENTRIES.find(item => item.path === path);
+
+    expect(entry).toBeDefined();
+    expect(entry?.keyword).toBe(keyword);
+    expect(entry?.priority).toBe(priority);
+    expect(entry?.landed).toBe(path !== '/text-statistics');
+    if (lockedTitle) {
+      expect(entry?.lockedTitle).toBe(lockedTitle);
+    } else {
+      expect(entry?.proposedTitle).toBe('Word & Character Counter — Text Statistics, Lines and Byte Size');
+    }
+    expect((entry?.keywords ?? []).length).toBeGreaterThanOrEqual(5);
+  });
 });
