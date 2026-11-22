@@ -769,7 +769,7 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     competition: 'high',
     landed: true,
     lockedTitle: 'Morse Code Translator — Encode Text & Decode Morse',
-    note: 'GSC last 90 days: 4 page impressions, avg position 43.5; visible queries include "morse code generator" and "morse conversion" (one impression each). SERP spot-check shows focused tools target "Morse Code Translator"; DigDevBox supports text encode/decode for A–Z, digits and listed punctuation, not audio or image decoding. No volume/KD claim.'
+    note: 'GSC last 90 days: 4 page impressions, avg position 43.5; visible queries include "morse code generator" and "morse conversion" (one impression each). SERP spot-check shows focused tools target "Morse Code Translator"; DigDevBox supports text encode/decode for A–Z, digits and listed punctuation, not audio or image decoding. No volume/KD claim.',,
   },
   {
     path: '/camera-recorder',
