@@ -28,8 +28,8 @@ function assertLegacyNoindexPolicy() {
 
   const headers = fs.readFileSync(headersPath, 'utf8');
   const requiredRules = [
-    { route: '/legacy', pattern: /(?:^|\\r?\\n)\\/legacy\\s*\\r?\\n[ \\t]+X-Robots-Tag:\\s*noindex\\s*,\\s*follow\\s*(?=\\r?\\n|$)/i },
-    { route: '/legacy/*', pattern: /(?:^|\\r?\\n)\\/legacy\\/\\*\\s*\\r?\\n[ \\t]+X-Robots-Tag:\\s*noindex\\s*,\\s*follow\\s*(?=\\r?\\n|$)/i },
+    { route: '/legacy', pattern: /(?:^|\r?\n)\/legacy\s*\r?\n[ \t]+X-Robots-Tag:\s*noindex\s*,\s*follow\s*(?=\r?\n|$)/i },
+    { route: '/legacy/*', pattern: /(?:^|\r?\n)\/legacy\/\*\s*\r?\n[ \t]+X-Robots-Tag:\s*noindex\s*,\s*follow\s*(?=\r?\n|$)/i },
   ];
   for (const rule of requiredRules) {
     if (!rule.pattern.test(headers)) {
@@ -38,7 +38,7 @@ function assertLegacyNoindexPolicy() {
   }
 
   const sitemap = fs.readFileSync(sitemapPath, 'utf8');
-  const legacyEntries = [...sitemap.matchAll(/<loc>([^<]+)<\\/loc>/gi)]
+  const legacyEntries = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/gi)]
     .map(match => match[1])
     .filter(url => {
       try {
