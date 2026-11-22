@@ -671,8 +671,8 @@ tools:
     description: Convert an IP address into decimal, binary, hexadecimal, or even an IPv6 representation of it.
 
   text-statistics:
-    title: Text statistics
-    description: Get information about a text, the number of characters, the number of words, its size in bytes, ...
+    title: "Word & Character Counter — Text Statistics & Byte Size"
+    description: "Count words, characters and lines, and check UTF-8 text size in bytes. Paste text to see live statistics instantly — free and browser-based."
 
   text-to-nato-alphabet:
     title: Text to NATO alphabet
