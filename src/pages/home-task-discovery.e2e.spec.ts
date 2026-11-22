@@ -17,12 +17,21 @@ test.describe('Homepage task discovery', () => {
     await expect(page.locator('a[href*="/api-debugger"]').first()).toBeVisible();
   });
 
+  test('activates the API task entry with the keyboard', async ({ page }) => {
+    await page.goto('/');
+    const apiEntry = page.locator('#home-featured .featured-task-primary').first();
+    await apiEntry.focus();
+    await expect(apiEntry).toBeFocused();
+    await page.keyboard.press('Enter');
+    await expect(page).toHaveURL(/\\/api-debugger\\/?$/);
+  });
+
   test('keeps the three compact homepage controls at 44px touch size', async ({ page }) => {
     await page.goto('/');
     await page.getByRole('searchbox').fill('jwt');
 
     const clear = await page.locator('.search-clear').boundingBox();
-    const favorite = await page.locator('.c-button').first().boundingBox();
+    const favorite = await page.locator('.grid .c-button').first().boundingBox();
     expect(clear?.width).toBeGreaterThanOrEqual(44);
     expect(clear?.height).toBeGreaterThanOrEqual(44);
     expect(favorite?.width).toBeGreaterThanOrEqual(44);
