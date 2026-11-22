@@ -82,4 +82,25 @@ describe('evidence-backed SEO keyword targets', () => {
     expect((entry?.keywords ?? []).length).toBeGreaterThanOrEqual(4);
     expect(entry?.note).toContain('provisional');
   });
+
+  it.each([
+    ['/xml-to-json', 'XML to JSON converter', 'convert'],
+    ['/json-to-xml', 'JSON to XML converter', 'convert'],
+    ['/markdown-to-html', 'Markdown to HTML converter', 'convert'],
+    ['/json-to-csv', 'JSON to CSV converter', 'convert'],
+    ['/yaml-to-json-converter', 'YAML to JSON converter', 'convert'],
+    ['/json-to-yaml-converter', 'JSON to YAML converter', 'convert'],
+    ['/slugify-string', 'URL slug generator', 'generate'],
+    ['/case-converter', 'text case converter', 'convert'],
+  ])('keeps %s mapped to an existing capability-matched route', (path, keyword, intent) => {
+    const entry = CLUSTER_KEYWORD_ENTRIES.find(item => item.path === path);
+
+    expect(entry).toBeDefined();
+    expect(entry?.keyword).toBe(keyword);
+    expect(entry?.intent).toBe(intent);
+    expect(entry?.landed).toBe(false);
+    expect((entry?.keywords ?? []).length).toBeGreaterThanOrEqual(4);
+    expect(entry?.note).toContain('provisional');
+  });
+
 });
