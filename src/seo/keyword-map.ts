@@ -205,6 +205,18 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     note: '簇 4。从 /date-converter 拆出的 epoch-centric 页：接管「unix timestamp converter」意图（秒 / 毫秒 epoch ↔ 日期），复用共享 datetime 逻辑。',
   },
   {
+    path: '/numeronym-generator',
+    keyword: 'numeronym',
+    keywords: ['numeronym generator', 'numeronym meaning', 'i18n meaning', 'a11y meaning', 'k8s meaning'],
+    intent: 'generate',
+    priority: 'P0',
+    competition: 'medium',
+    article: 'what-is-a-numeronym',
+    landed: true,
+    lockedTitle: 'Numeronym Generator — i18n, a11y & k8s',
+    note: 'GSC observed 9 impressions at average position 6.56 plus 1 impression for numeronym generator at position 5. The tool also looks up a fixed dictionary of established forms; it does not invent meanings for arbitrary abbreviations.',
+  },
+  {
     path: '/regex-tester',
     keyword: 'regular expression tester',
     keywords: ['regex tester online', 'regex expression tester', 'online regex tester javascript', 'JavaScript regex flavor', 'ReDoS', 'greedy vs lazy quantifiers', 'Explain this regex'],
