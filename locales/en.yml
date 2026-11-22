@@ -259,8 +259,8 @@ tools:
     description: Paste CSV, choose whether the first row contains column names, preview parsed rows and copy or download the resulting JSON. Handles quoted fields and reports parse warnings.
 
   camera-recorder:
-    title: Camera Recorder
-    description: Record video or take photos from your webcam online — no app install, no upload. Frames and clips stay on your machine until you download them. Works in any modern browser.
+    title: "Webcam Recorder — Record Video & Take Photos Online"
+    description: "Record webcam video or take still photos in your browser. Choose a camera and microphone, pause or resume recording, then download your clip. Files stay on your device."
 
   keycode-info:
     title: Keycode info
@@ -743,8 +743,8 @@ tools:
     description: "Convert between full-width and half-width characters using the fixed Unicode offset 0xFEE0, or adjust punctuation only."
 
   morse-code-converter:
-    title: "Morse Code Converter"
-    description: "What is Morse code? The dot-and-dash alphabet dating from the 1840s. Encode text to Morse or decode it back — letters separated by spaces, words by a slash, free and instant in your browser."
+    title: "Morse Code Translator — Encode Text & Decode Morse"
+    description: "Translate text to Morse code or decode dot-and-dash sequences. Supports A–Z, digits and common punctuation; letters are separated by spaces and words by slashes."
 
   rmb-uppercase:
     title: "RMB amount in Chinese uppercase"
