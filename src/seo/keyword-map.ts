@@ -67,7 +67,7 @@ export const KNOWN_NOTE_SLUGS = [
 export const NOTES_ORIGIN = 'https://notes.digdevbox.com';
 
 /**
- * Keyword Map §1 总表：11 个原始关键词簇 / 24 行；PR #65 分支增加 Percentage Calculator、Numeronym、ETA Calculator、Text Statistics 映射后，当前 37 条主关键词记录，通过 alsoPaths 覆盖 42 条唯一工具路由（2026-11-22）。
+ * Keyword Map §1 总表：11 个原始关键词簇 / 24 行；PR #65 分支增加 Percentage Calculator、Numeronym、ETA Calculator、Text Statistics 及后续工具映射后，当前 42 条主关键词记录，通过 alsoPaths 覆盖 47 条唯一工具路由（2026-11-22）。
  *
  * 行序与原文档一致（⛔ 不要按 path 重排 —— 序号本身就是「先做哪一批」的阅读顺序）。
  * 字段口径见 `KeywordMapEntry`。
@@ -516,6 +516,59 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     landed: true,
     lockedTitle: 'Percentage Calculator — Percent of a Number, Change & Discount',
     note: 'GSC 90d: canonical 150 impressions plus slashless variant 74, zero clicks; average positions 9.1667 and 8.2568. One canonical intent/URL only. Query details are substantially anonymized and US page slice did not show this URL. This candidate updates the English snippet to describe the four actual calculator modes and the discount/tax use cases already explained in the page FAQs; do not claim CTR improvement until GSC confirms it.',
+  },
+
+  // 2026-11-22 additions: extend existing developer-task clusters using the current tool registry.
+  // Candidate phrases only; no volume/KD or verified SERP competition data is available.
+  {
+    path: '/ipv4-subnet-calculator',
+    keyword: 'IPv4 subnet calculator',
+    keywords: ['CIDR calculator', 'subnet mask calculator', 'network address calculator', 'usable IP address calculator', 'wildcard mask calculator'],
+    intent: 'compute',
+    priority: 'P1',
+    competition: 'medium',
+    landed: false,
+    note: 'Candidate mapping from the actual calculator outputs (CIDR, usable hosts, first/last address, netmask and wildcard). Competition is provisional, not a measured SERP rating; no volume/KD claims.',
+  },
+  {
+    path: '/ipv4-range-expander',
+    keyword: 'IP range to CIDR',
+    keywords: ['IPv4 range to CIDR', 'convert IP range to CIDR', 'start and end IP calculator', 'IP range calculator'],
+    intent: 'convert',
+    priority: 'P1',
+    competition: 'medium',
+    landed: false,
+    note: 'Candidate mapping for the tool that converts a start/end IPv4 range into a valid subnet and CIDR notation. Competition is provisional; no volume/KD claims.',
+  },
+  {
+    path: '/text-diff',
+    keyword: 'text diff checker',
+    keywords: ['compare two texts online', 'text comparison tool', 'find text differences', 'diff checker online'],
+    intent: 'inspect',
+    priority: 'P1',
+    competition: 'medium',
+    landed: false,
+    note: 'Candidate mapping for the existing two-text comparison task. Competition is provisional; validate the page output and SERP before changing title or metadata.',
+  },
+  {
+    path: '/text-replacer',
+    keyword: 'find and replace text online',
+    keywords: ['batch text replacer', 'regex find and replace', 'case insensitive text replacement', 'replace text in multiple lines'],
+    intent: 'convert',
+    priority: 'P2',
+    competition: 'medium',
+    landed: false,
+    note: 'Candidate mapping matches plain/regex replacement, optional case-insensitive mode and match counter. Competition is provisional; no volume/KD claims.',
+  },
+  {
+    path: '/htpasswd-generator',
+    keyword: 'htpasswd generator',
+    keywords: ['Apache htpasswd generator', 'Nginx htpasswd generator', 'bcrypt htpasswd generator', 'verify htpasswd entry'],
+    intent: 'generate',
+    priority: 'P1',
+    competition: 'medium',
+    landed: false,
+    note: 'Candidate mapping matches supported Apache/Nginx .htpasswd generation and verification modes (bcrypt, apr1, SHA1 and plain text). Competition is provisional; no volume/KD claims.',
   },
 ];
 
