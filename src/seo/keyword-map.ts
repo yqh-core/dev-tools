@@ -67,7 +67,7 @@ export const KNOWN_NOTE_SLUGS = [
 export const NOTES_ORIGIN = 'https://notes.digdevbox.com';
 
 /**
- * Keyword Map §1 总表：11 个原始关键词簇 / 24 行；PR #65 分支增加 Percentage Calculator、Numeronym、ETA Calculator、Text Statistics 及后续工具映射后，当前 55 条主关键词记录，通过 alsoPaths 覆盖 60 条唯一工具路由（2026-11-22）。
+ * Keyword Map §1 总表：11 个原始关键词簇 / 24 行；PR #65 分支增加 Percentage Calculator、Numeronym、ETA Calculator、Text Statistics 及后续工具映射后，当前 63 条主关键词记录，通过 alsoPaths 覆盖 68 条唯一工具路由（2026-11-22）。
  *
  * 行序与原文档一致（⛔ 不要按 path 重排 —— 序号本身就是「先做哪一批」的阅读顺序）。
  * 字段口径见 `KeywordMapEntry`。
@@ -701,6 +701,87 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     competition: 'high',
     landed: false,
     note: 'Matches lower/upper, camel, capital, constant, dot, header, param, pascal, path, sentence and snake case outputs. Competition is provisional; no volume/KD/SERP claim.',
+  },
+
+  {
+    path: '/pdf-split',
+    keyword: 'split PDF pages online',
+    keywords: ['split PDF into separate pages', 'extract pages from PDF', 'split PDF by page range', 'separate PDF pages'],
+    intent: 'convert',
+    priority: 'P1',
+    competition: 'high',
+    landed: false,
+    note: 'Matches splitting each page or a selected page range into separate downloadable PDFs. Competition is provisional; no volume/KD/SERP claim.',
+  },
+  {
+    path: '/pdf-watermark',
+    keyword: 'add watermark to PDF',
+    keywords: ['PDF watermark online', 'add text stamp to PDF', 'confidential PDF watermark', 'tile watermark on PDF pages'],
+    intent: 'edit',
+    priority: 'P1',
+    competition: 'high',
+    landed: false,
+    note: 'Matches text watermark with font size, opacity, angle and tiled mode. Competition is provisional; no volume/KD/SERP claim.',
+  },
+  {
+    path: '/pdf-compress',
+    keyword: 'compress PDF online',
+    keywords: ['reduce PDF file size', 'shrink PDF size', 'PDF size optimizer', 'make PDF smaller'],
+    intent: 'convert',
+    priority: 'P1',
+    competition: 'high',
+    landed: false,
+    note: 'Matches browser-side compression with balanced level, size comparison and an 80 MiB input cap; do not promise a guaranteed reduction. Competition is provisional.',
+  },
+  {
+    path: '/image-resize',
+    keyword: 'resize image online',
+    keywords: ['change image dimensions', 'resize PNG JPG WebP', 'image resizer pixels', 'resize photo by width and height', 'lock image aspect ratio'],
+    intent: 'edit',
+    priority: 'P1',
+    competition: 'high',
+    landed: false,
+    note: 'Matches custom width/height, aspect-ratio lock, output format and quality controls. Competition is provisional; no volume/KD/SERP claim.',
+  },
+  {
+    path: '/image-compress',
+    keyword: 'compress image online',
+    keywords: ['reduce image file size', 'compress JPEG online', 'compress WebP image', 'image optimizer quality', 'compress image to target KB'],
+    intent: 'convert',
+    priority: 'P1',
+    competition: 'high',
+    landed: false,
+    note: 'Matches JPEG/WebP quality control and optional target-KB compression. Competition is provisional; no volume/KD/SERP claim.',
+  },
+  {
+    path: '/image-crop',
+    keyword: 'crop image online',
+    keywords: ['crop photo to square', 'crop image to 16:9', 'crop PNG JPG WebP', 'free aspect ratio image cropper'],
+    intent: 'edit',
+    priority: 'P1',
+    competition: 'high',
+    landed: false,
+    note: 'Matches free, 1:1, 4:3, 3:2, 16:9 and original aspect-ratio crop options with selectable output formats. Competition is provisional.',
+  },
+  {
+    path: '/favicon-generator',
+    keyword: 'favicon generator',
+    keywords: ['create favicon from PNG', 'generate favicon ICO online', 'website icon generator', 'Apple touch icon generator', 'PWA icon generator'],
+    intent: 'generate',
+    priority: 'P1',
+    competition: 'high',
+    landed: false,
+    note: 'Matches multi-size ICO (16/32/48) and PNG (180/512) exports with transparent or white background. Competition is provisional.',
+  },
+  {
+    path: '/image-to-pdf',
+    keyword: 'convert images to PDF',
+    keywords: ['JPG to PDF converter', 'PNG to PDF online', 'combine photos into one PDF', 'images to PDF converter', 'scan receipts to PDF'],
+    intent: 'convert',
+    priority: 'P1',
+    competition: 'high',
+    landed: false,
+    note: 'Matches multi-image PDF creation, image inspection, conversion of non-JPEG/PNG formats and margin control. Competition is provisional.',
   },
 ];
 
