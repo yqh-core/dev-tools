@@ -527,8 +527,9 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     intent: 'compute',
     priority: 'P1',
     competition: 'medium',
-    landed: false,
-    note: 'Candidate mapping from the actual calculator outputs (CIDR, usable hosts, first/last address, netmask and wildcard). Competition is provisional, not a measured SERP rating; no volume/KD claims.',
+    landed: true,
+    lockedTitle: 'IPv4 Subnet Calculator — CIDR, Netmask & Usable Hosts',
+    note: 'Title and description landed against the actual calculator outputs: CIDR, usable hosts, network/broadcast addresses, netmask and wildcard. Competition remains provisional; no volume/KD claims.',
   },
   {
     path: '/ipv4-range-expander',
@@ -578,8 +579,9 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     intent: 'convert',
     priority: 'P1',
     competition: 'medium',
-    landed: false,
-    note: 'Candidate mapping matches paste-CSV conversion, optional first-row headers, row/column counts, preview and parse warnings. Competition is provisional; no volume/KD/SERP claim.',
+    landed: true,
+    lockedTitle: 'CSV to JSON Converter — Preview Rows & Convert Online',
+    note: 'Title and description landed against paste-CSV conversion, optional first-row headers, row/column counts, preview, copy/download and parse warnings. Competition remains provisional; no volume/KD/SERP claim.',
   },
   {
     path: '/pdf-merge',
