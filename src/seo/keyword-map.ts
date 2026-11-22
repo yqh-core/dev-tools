@@ -67,7 +67,7 @@ export const KNOWN_NOTE_SLUGS = [
 export const NOTES_ORIGIN = 'https://notes.digdevbox.com';
 
 /**
- * Keyword Map §1 总表：11 个原始关键词簇 / 24 行；PR #65 分支增加 Percentage Calculator、Numeronym、ETA Calculator、Text Statistics 及后续工具映射后，当前 47 条主关键词记录，通过 alsoPaths 覆盖 52 条唯一工具路由（2026-11-22）。
+ * Keyword Map §1 总表：11 个原始关键词簇 / 24 行；PR #65 分支增加 Percentage Calculator、Numeronym、ETA Calculator、Text Statistics 及后续工具映射后，当前 55 条主关键词记录，通过 alsoPaths 覆盖 60 条唯一工具路由（2026-11-22）。
  *
  * 行序与原文档一致（⛔ 不要按 path 重排 —— 序号本身就是「先做哪一批」的阅读顺序）。
  * 字段口径见 `KeywordMapEntry`。
@@ -620,6 +620,87 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     competition: 'medium',
     landed: false,
     note: 'Candidate mapping matches international phone number parsing, validation and national/international formatting. Confirm supported region/extension behavior before claiming universal validation. Competition is provisional.',
+  },
+
+  {
+    path: '/xml-to-json',
+    keyword: 'XML to JSON converter',
+    keywords: ['convert XML to JSON online', 'XML parser to JSON', 'XML file to JSON', 'XML to JSON formatter'],
+    intent: 'convert',
+    priority: 'P1',
+    competition: 'high',
+    landed: false,
+    note: 'Matches validated XML input, compact XML-to-JavaScript conversion and downloadable JSON output. Competition is provisional; no volume/KD/SERP claim.',
+  },
+  {
+    path: '/json-to-xml',
+    keyword: 'JSON to XML converter',
+    keywords: ['convert JSON to XML online', 'JSON to XML formatter', 'JSON object to XML', 'JSON5 to XML converter'],
+    intent: 'convert',
+    priority: 'P1',
+    competition: 'high',
+    landed: false,
+    note: 'Matches JSON5 input validation, compact XML output and downloadable conversion. Competition is provisional; no volume/KD/SERP claim.',
+  },
+  {
+    path: '/markdown-to-html',
+    keyword: 'Markdown to HTML converter',
+    keywords: ['convert Markdown to HTML online', 'Markdown HTML preview', 'Markdown to HTML code', 'print Markdown as PDF'],
+    intent: 'convert',
+    priority: 'P1',
+    competition: 'high',
+    landed: false,
+    note: 'Matches live Markdown rendering to HTML with copyable output and browser print. Competition is provisional; no volume/KD/SERP claim.',
+  },
+  {
+    path: '/json-to-csv',
+    keyword: 'JSON to CSV converter',
+    keywords: ['convert JSON array to CSV', 'JSON to CSV online', 'JSON array to spreadsheet', 'export JSON as CSV'],
+    intent: 'convert',
+    priority: 'P1',
+    competition: 'high',
+    landed: false,
+    note: 'Matches validated object-array input and CSV shape checks before conversion. Competition is provisional; no volume/KD/SERP claim.',
+  },
+  {
+    path: '/yaml-to-json-converter',
+    keyword: 'YAML to JSON converter',
+    keywords: ['convert YAML to JSON online', 'YAML parser to JSON', 'YAML file to JSON', 'YAML to JSON formatter'],
+    intent: 'convert',
+    priority: 'P1',
+    competition: 'high',
+    landed: false,
+    note: 'Matches YAML parsing with validation and formatted JSON output. Competition is provisional; no volume/KD/SERP claim.',
+  },
+  {
+    path: '/json-to-yaml-converter',
+    keyword: 'JSON to YAML converter',
+    keywords: ['convert JSON to YAML online', 'JSON to YAML formatter', 'JSON object to YAML', 'JSON5 to YAML converter'],
+    intent: 'convert',
+    priority: 'P1',
+    competition: 'high',
+    landed: false,
+    note: 'Matches JSON5 validation and YAML stringification. Competition is provisional; no volume/KD/SERP claim.',
+  },
+  {
+    path: '/slugify-string',
+    keyword: 'URL slug generator',
+    keywords: ['slugify text online', 'convert text to URL slug', 'SEO slug generator', 'URL friendly string converter'],
+    intent: 'generate',
+    priority: 'P2',
+    competition: 'medium',
+    landed: false,
+    note: 'Matches string-to-slug generation with a 100,000-character input guard. Competition is provisional; no volume/KD/SERP claim.',
+  },
+  {
+    path: '/case-converter',
+    keyword: 'text case converter',
+    keywords: ['camel case converter', 'snake case converter', 'pascal case converter', 'uppercase lowercase converter', 'kebab case converter'],
+    intent: 'convert',
+    priority: 'P1',
+    competition: 'high',
+    landed: false,
+    note: 'Matches lower/upper, camel, capital, constant, dot, header, param, pascal, path, sentence and snake case outputs. Competition is provisional; no volume/KD/SERP claim.',
   },
 ];
 
