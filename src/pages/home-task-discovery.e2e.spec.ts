@@ -48,7 +48,7 @@ test.describe('Homepage task discovery', () => {
 
     for (const query of ['device info', 'screen resolution', 'browser info', 'user agent']) {
       await page.getByRole('searchbox').fill(query);
-      await expect(firstResult).toHaveAttribute('href', /\\/device-information\\/?$/);
+      await expect(firstResult).toHaveAttribute('href', '/device-information/');
       await page.getByRole('searchbox').fill('');
     }
   });
