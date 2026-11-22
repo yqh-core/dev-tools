@@ -50,7 +50,18 @@ describe('evidence-backed SEO keyword targets', () => {
   });
 
   it.each([
-    ['/ipv4-subnet-calculator', 'IPv4 subnet calculator', 'compute'],
+    ['/ipv4-subnet-calculator', 'IPv4 subnet calculator', 'IPv4 Subnet Calculator — CIDR, Netmask & Usable Hosts'],
+    ['/csv-to-json', 'CSV to JSON converter', 'CSV to JSON Converter — Preview Rows & Convert Online'],
+  ])('locks the landed metadata for %s', (path, keyword, lockedTitle) => {
+    const entry = CLUSTER_KEYWORD_ENTRIES.find(item => item.path === path);
+
+    expect(entry).toBeDefined();
+    expect(entry?.keyword).toBe(keyword);
+    expect(entry?.landed).toBe(true);
+    expect(entry?.lockedTitle).toBe(lockedTitle);
+  });
+
+  it.each([
     ['/ipv4-range-expander', 'IP range to CIDR', 'convert'],
     ['/text-diff', 'text diff checker', 'inspect'],
     ['/text-replacer', 'find and replace text online', 'convert'],
@@ -67,7 +78,6 @@ describe('evidence-backed SEO keyword targets', () => {
   });
 
   it.each([
-    ['/csv-to-json', 'CSV to JSON converter', 'convert'],
     ['/pdf-merge', 'merge PDF files online', 'convert'],
     ['/ipv6-ula-generator', 'IPv6 ULA generator', 'generate'],
     ['/user-agent-parser', 'user agent parser', 'parse'],
