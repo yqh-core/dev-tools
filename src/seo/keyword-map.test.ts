@@ -37,7 +37,7 @@ describe('evidence-backed SEO keyword targets', () => {
   it.each([
     ['/numeronym-generator', 'numeronym', 'P0', 'Numeronym Generator — i18n, a11y & k8s'],
     ['/eta-calculator', 'eta calculator', 'P1', 'ETA Calculator — Task Completion Time'],
-    ['/text-statistics', 'text statistics', 'P1', undefined],
+    ['/text-statistics', 'text statistics', 'P1', 'Word & Character Counter — Text Statistics & Byte Size'],
   ])('keeps %s mapped to a capability-matched intent', (path, keyword, priority, lockedTitle) => {
     const entry = CLUSTER_KEYWORD_ENTRIES.find(item => item.path === path);
 
@@ -48,7 +48,7 @@ describe('evidence-backed SEO keyword targets', () => {
     if (lockedTitle) {
       expect(entry?.lockedTitle).toBe(lockedTitle);
     } else {
-      expect(entry?.proposedTitle).toBe('Word & Character Counter — Text Statistics, Lines and Byte Size');
+      expect(entry?.lockedTitle).toBe(lockedTitle);
     }
     expect((entry?.keywords ?? []).length).toBeGreaterThanOrEqual(5);
   });
