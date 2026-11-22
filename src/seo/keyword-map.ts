@@ -67,7 +67,7 @@ export const KNOWN_NOTE_SLUGS = [
 export const NOTES_ORIGIN = 'https://notes.digdevbox.com';
 
 /**
- * Keyword Map §1 总表：11 个原始关键词簇 / 24 行；2026-11-20 增补 3 条 GSC/Bing 实测页面，共 27 行。
+ * Keyword Map §1 总表：11 个原始关键词簇 / 24 行；后续增补至当前 33 条唯一工具路由记录（2026-11-22）。
  *
  * 行序与原文档一致（⛔ 不要按 path 重排 —— 序号本身就是「先做哪一批」的阅读顺序）。
  * 字段口径见 `KeywordMapEntry`。
@@ -475,13 +475,13 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
   {
     path: '/percentage-calculator',
     keyword: 'percentage calculator',
-    keywords: ['percent calculator', 'calculate percentage', 'percentage change calculator', 'percent increase calculator', 'percent decrease calculator', 'what percent of calculator', 'percentage difference calculator'],
+    keywords: ['percent calculator', 'calculate percentage', 'percent of a number calculator', 'percentage change calculator', 'percent increase calculator', 'percent decrease calculator', 'what percent of calculator', 'percentage difference calculator', 'discount calculator', 'percent off calculator', 'sales tax calculator', 'reverse percentage calculator', 'percentage points calculator'],
     intent: 'compute',
     priority: 'P0',
     competition: 'medium',
     landed: true,
-    lockedTitle: 'Percentage Calculator — Percent of a Number & Percent Change',
-    note: 'GSC 90d: canonical 150 impressions plus slashless variant 74, zero clicks; average positions 9.1667 and 8.2568. One canonical intent/URL only. Query details are substantially anonymized and US page slice did not show this URL. This PR tests a natural-language title describing the four calculator modes already documented in README; not live until merge/deploy.',
+    lockedTitle: 'Percentage Calculator — Percent of a Number, Change & Discount',
+    note: 'GSC 90d: canonical 150 impressions plus slashless variant 74, zero clicks; average positions 9.1667 and 8.2568. One canonical intent/URL only. Query details are substantially anonymized and US page slice did not show this URL. This candidate updates the English snippet to describe the four actual calculator modes and the discount/tax use cases already explained in the page FAQs; do not claim CTR improvement until GSC confirms it.',
   },
 ];
 
