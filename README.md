@@ -121,7 +121,7 @@
 - [API Debug Workspace — cURL, Test Assertions & Response Pipeline](https://digdevbox.com/api-debugger) - Import a cURL command, send the request through a transient edge relay, assert status codes, JSON fields, headers and response time with a built-in test runner, run your whole saved collection as a regression suite, organize variables into Global / Collection / Environment scopes with secret masking, then inspect the response or hand it to the JSON workspace — all in your browser.
 - [JSON minify](https://digdevbox.com/json-minify) - Minify and compress your JSON by removing unnecessary whitespace.
 - [JSON to CSV](https://digdevbox.com/json-to-csv) - Convert JSON to CSV with automatic header detection.
-- [CSV to JSON](https://digdevbox.com/csv-to-json) - Convert CSV to a JSON array with quoted fields, real newlines and duplicate-column safeguards.
+- [CSV to JSON Converter — Preview Rows & Convert Online](https://digdevbox.com/csv-to-json) - Paste CSV, choose whether the first row contains column names, preview parsed rows and copy or download the resulting JSON. Handles quoted fields and reports parse warnings.
 - [SQL Formatter — Format and Beautify SQL Online](https://digdevbox.com/sql-prettify) - Paste a messy SQL query and get it formatted — or minified to one line. Keywords upper-cased, clauses indented, one field per line. Supports PostgreSQL, MySQL, T-SQL, BigQuery and 8 more dialects, free in your browser.
 - [Chmod Calculator — Unix File Permissions (755, 644, 777)](https://digdevbox.com/chmod-calculator) - Compute your chmod permissions and commands with this online chmod calculator.
 - [Docker Run to Compose Converter — Generate a compose Service from a Command](https://digdevbox.com/docker-run-to-docker-compose-converter) - Paste a docker run command and get a docker-compose service — ports, volumes and env mapped. Free online decomposerize alternative, in your browser.
@@ -137,7 +137,7 @@
 
 ### Network
 
-- [IPv4 Subnet Calculator](https://digdevbox.com/ipv4-subnet-calculator) - Paste a CIDR like 192.168.1.0/24 and get the full subnet breakdown — usable hosts, first/last address, netmask, wildcard. Built for VPC and VLAN planning, free in your browser.
+- [IPv4 Subnet Calculator — CIDR, Netmask & Usable Hosts](https://digdevbox.com/ipv4-subnet-calculator) - Calculate an IPv4 subnet from an address and CIDR prefix. See the network and broadcast addresses, netmask, wildcard mask, subnet size and first/last host addresses.
 - [IPv4 address converter](https://digdevbox.com/ipv4-address-converter) - Convert an IP address into decimal, binary, hexadecimal, or even an IPv6 representation of it.
 - [IPv4 range expander](https://digdevbox.com/ipv4-range-expander) - Given a start and an end IPv4 address, this tool calculates a valid IPv4 subnet along with its CIDR notation.
 - [MAC address lookup](https://digdevbox.com/mac-address-lookup) - Find the vendor and manufacturer of a device by its MAC address.
