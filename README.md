@@ -44,7 +44,7 @@
 - [Password strength analyser](https://digdevbox.com/password-strength-analyser) - Discover the strength of your password with this client-side-only password strength analyser and crack time estimation tool.
 - [Password Generator](https://digdevbox.com/password-generator) - Generate strong, secure random passwords online — pick the length (8-128) and character sets, with a cryptographic random source. Ambiguous characters (Il1O0) excluded by default, nothing leaves your browser.
 - [PDF signature checker](https://digdevbox.com/pdf-signature-checker) - Verify the signatures of a PDF file. A signed PDF file contains one or more signatures that may be used to determine whether the contents of the file have been altered since the file was signed.
-- [PDF Merge](https://digdevbox.com/pdf-merge) - Combine multiple PDF files into one — in upload order, page count shown before you start. Free, private, everything happens in your browser.
+- [PDF Merge — Combine PDF Files Online](https://digdevbox.com/pdf-merge) - Combine two or more PDF files into one document in your browser. Files are merged in upload order, with page counts shown before you start; download the combined PDF.
 - [PDF Split](https://digdevbox.com/pdf-split) - Split a PDF into single pages, or extract a page range — page count is read from the file before you choose. Free, private, runs in your browser.
 - [PDF Watermark](https://digdevbox.com/pdf-watermark) - Add a text watermark to every page of a PDF — adjustable size, opacity, angle, single line or tiled. Free, private, runs in your browser.
 - [PDF Compressor](https://digdevbox.com/pdf-compress) - Compress PDF files online by recompressing embedded photos and rebuilding the file structure. Two levels, live before/after sizes, never larger than the original. Free, private, runs in your browser.
@@ -71,9 +71,9 @@
 - [List converter](https://digdevbox.com/list-converter) - Remove duplicates, sort, reverse, lowercase, trim and add prefix/suffix to a list, one item per line. Everything runs in your browser — no upload.
 - [TOML to JSON](https://digdevbox.com/toml-to-json) - Parse and convert TOML to JSON.
 - [TOML to YAML](https://digdevbox.com/toml-to-yaml) - Parse and convert TOML to YAML.
-- [XML to JSON](https://digdevbox.com/xml-to-json) - Convert XML data to JSON format.
+- [XML to JSON Converter — Convert XML Online](https://digdevbox.com/xml-to-json) - Convert XML into JSON in your browser. Elements become objects, repeated elements become arrays, and attributes and text are represented with separate keys.
 - [JSON to XML](https://digdevbox.com/json-to-xml) - Convert JSON data to XML format.
-- [Markdown to HTML](https://digdevbox.com/markdown-to-html) - Convert Markdown to HTML, with print support (save as PDF).
+- [Markdown to HTML Converter — Live Preview & HTML Output](https://digdevbox.com/markdown-to-html) - Convert Markdown to HTML with a live preview in your browser. Copy the generated HTML or use the print dialog to save the rendered result as a PDF.
 - [RMB amount in Chinese uppercase](https://digdevbox.com/rmb-uppercase) - Turn a numeric amount into the Chinese financial uppercase wording (yuan / jiao / fen), with an optional RMB prefix.
 - [ASCII table](https://digdevbox.com/ascii-table) - The standard ASCII table from 0 to 127 with decimal, hexadecimal, octal and binary values, searchable by character or code.
 
@@ -91,7 +91,7 @@
 - [Keycode info](https://digdevbox.com/keycode-info) - Find the javascript keycode, code, location and modifiers of any pressed key.
 - [Slugify string](https://digdevbox.com/slugify-string) - Make a string url, filename and id safe.
 - [HTML WYSIWYG editor](https://digdevbox.com/html-wysiwyg-editor) - Online, feature-rich WYSIWYG HTML editor which generates the source code of the content immediately.
-- [User-agent parser](https://digdevbox.com/user-agent-parser) - Detect and parse Browser, Engine, OS, CPU, and Device type/model from an user-agent string.
+- [User Agent Parser — Browser, OS & Device Detection](https://digdevbox.com/user-agent-parser) - Parse a user-agent string to identify its browser, rendering engine, operating system, CPU and device type. Use the results for debugging and analytics, not authentication.
 - [HTTP status codes](https://digdevbox.com/http-status-codes) - The list of all HTTP status codes, their name, and their meaning.
 - [JSON diff](https://digdevbox.com/json-diff) - Compare two JSON objects and get the differences between them.
 - [Outlook Safe Links Decoder — Reveal the Original URL](https://digdevbox.com/safelink-decoder) - Decode Outlook Safe Links URLs, including nested wrappers, to reveal the final HTTP or HTTPS destination without opening it. Runs in your browser; decoding does not scan or verify the destination.
