@@ -121,7 +121,7 @@ jobs:
             const percentageMarkerReady = percentageResponse.ok &&
               percentageResponse.url === origin + '/percentage-calculator/' &&
               percentageHtml.includes('<title>Percentage Calculator — Percent & Change - DigDevBox</title>') &&
-              percentageHtml.includes('content="Calculate a percentage, reverse an increase or discount, compare two values, and find percentage-point changes. Seven free calculator modes in your browser."') &&
+              percentageHtml.includes('content="Calculate percentages, reverse discounts, compare values and rates, or batch rows with copyable formulas and CSV/TSV export. Seven free modes in your browser."') &&
               percentageHtml.includes('href="' + origin + '/percentage-calculator/"');
             const htpasswdMarkerReady = htpasswdResponse.ok &&
               htpasswdResponse.url === origin + '/htpasswd-generator/' &&
