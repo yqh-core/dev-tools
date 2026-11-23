@@ -60,6 +60,11 @@ type RegExpExecArrayWithIndices = RegExpExecArray & {
 
 /** Evaluate a JavaScript RegExp. This function is called inside a dedicated Worker. */
 export function matchRegex(regex: string, text: string, flags: string): RegexMatch[] {
+  // Preserve the existing tool contract: empty pattern or empty input yields no rows.
+  if (!regex || !text) {
+    return [];
+  }
+
   const re = new RegExp(regex, flags);
   const results: RegexMatch[] = [];
   let match = re.exec(text) as RegExpExecArrayWithIndices | null;
@@ -67,9 +72,13 @@ export function matchRegex(regex: string, text: string, flags: string): RegexMat
   while (match !== null) {
     const indices = match.indices;
     const captures: GroupCapture[] = [];
+    const namedRanges = new Set(
+      Object.values(indices.groups ?? {}).filter((range): range is [number, number] => range !== undefined)
+        .map(range => `${range[0]}:${range[1]}`),
+    );
     for (let index = 1; index < match.length; index++) {
       const range = indices[index];
-      if (range) {
+      if (range && !namedRanges.has(`${range[0]}:${range[1]}`)) {
         captures.push({
           name: String(index),
           value: match[index],
