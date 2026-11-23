@@ -79,8 +79,8 @@ const TIMEOUT_MS = 300;
 const DEBOUNCE_MS = 100;
 
 let activeWorker: Worker | null = null;
-let debounceTimer: ReturnType<typeof setTimeout> | undefined;
-let timeoutTimer: ReturnType<typeof setTimeout> | undefined;
+let debounceTimer: number | undefined;
+let timeoutTimer: number | undefined;
 let requestId = 0;
 
 interface RegexWorkerResponse {
