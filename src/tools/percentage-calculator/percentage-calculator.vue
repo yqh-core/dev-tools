@@ -1,12 +1,14 @@
 <script setup lang="ts">
-import { onMounted, ref, watch, computed as vueComputed } from 'vue';
+import { computed as vueComputed, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
+import type {
+  PercentageBatchHistoryEntry,
+  PercentageBatchMode,
+  PercentageBatchRow,
+} from './percentage-calculator-batch';
 import {
   calculatePercentageBatch,
   exportPercentageBatch,
-  type PercentageBatchHistoryEntry,
-  type PercentageBatchMode,
-  type PercentageBatchRow,
 } from './percentage-calculator-batch';
 
 const { t } = useI18n();
@@ -155,7 +157,9 @@ onMounted(() => {
 });
 
 watch(batchHistory, (entries) => {
-  if (!historyLoaded.value) return;
+  if (!historyLoaded.value) {
+    return;
+  }
   try {
     localStorage.setItem(BATCH_HISTORY_KEY, JSON.stringify(entries.slice(0, 10)));
   }
@@ -236,7 +240,6 @@ function clearBatchHistory() {
   batchHistory.value = [];
   batchStatus.value = t('tools.percentage-calculator.batch.cleared');
 }
-
 </script>
 
 <template>
@@ -413,7 +416,7 @@ function clearBatchHistory() {
                 <th scope="row" class="border-b p-2">{{ row.rowNumber }}</th>
                 <td class="border-b p-2 font-mono">{{ row.formula || '—' }}</td>
                 <td class="border-b p-2">
-                  <span v-if="row.error" class="text-red-600" role="alert">{{ $t('tools.percentage-calculator.batch.errors.' + row.error) }}</span>
+                  <span v-if="row.error" class="text-red-600" role="alert">{{ $t(`tools.percentage-calculator.batch.errors.${row.error}`) }}</span>
                   <span v-else>{{ row.result }}</span>
                 </td>
                 <td class="border-b p-2">
@@ -430,7 +433,7 @@ function clearBatchHistory() {
           </div>
           <ul class="space-y-2">
             <li v-for="entry in batchHistory" :key="entry.id" class="flex flex-wrap items-center justify-between gap-2 text-sm">
-              <span>{{ $t('tools.percentage-calculator.batch.modes.' + entry.mode) }} · {{ new Date(entry.createdAt).toLocaleString() }} · {{ entry.rows.length }} {{ $t('tools.percentage-calculator.batch.rows') }}</span>
+              <span>{{ $t(`tools.percentage-calculator.batch.modes.${entry.mode}`) }} · {{ new Date(entry.createdAt).toLocaleString() }} · {{ entry.rows.length }} {{ $t('tools.percentage-calculator.batch.rows') }}</span>
               <span class="flex gap-1">
                 <n-button size="tiny" quaternary @click="restoreBatchHistory(entry)">{{ $t('tools.percentage-calculator.batch.restore') }}</n-button>
                 <n-button size="tiny" quaternary :data-test-id="`deletePercentageBatchHistory-${entry.id}`" @click="removeBatchHistory(entry.id)">{{ $t('tools.percentage-calculator.batch.delete') }}</n-button>
