@@ -28,6 +28,16 @@ describe('matchRegex', () => {
     expect(results[1].captures).toEqual([{ name: '1', value: 'a', start: 2, end: 3 }]);
   });
 
+  it('keeps every shipped preset valid in the JavaScript RegExp engine', async () => {
+    const { REGEX_PRESETS } = await import('./regex-tester.service');
+    for (const preset of REGEX_PRESETS) {
+      expect(() => new RegExp(preset.pattern, preset.flags.replace('d', ''))).not.toThrow();
+      expect(matchRegex(preset.pattern, preset.sample, preset.flags)).toHaveLength(1);
+    }
+    const ipv4 = REGEX_PRESETS.find(preset => preset.label === 'IPv4 address');
+    expect(matchRegex(ipv4!.pattern, '999.999.999.999', ipv4!.flags)).toHaveLength(0);
+  });
+
   it('handles large input with a simple pattern', () => {
     const results = matchRegex('a+', 'a'.repeat(100_000), 'dg');
     expect(results).toHaveLength(1);
