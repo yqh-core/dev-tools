@@ -47,5 +47,4 @@ test.describe('Tool - Basic Auth generator', () => {
     await expect(page.getByTestId('basic-auth-generated-header')).toBeEmpty();
     await expect(page.getByRole('button', { name: 'Copy header' })).toBeDisabled();
   });
-
 });
