@@ -732,7 +732,7 @@ tools:
 
   safelink-decoder:
     title: "Outlook Safe Links Decoder — Reveal the Original URL"
-    description: "Decode an Outlook Safe Links URL to reveal its original destination without opening it. Runs in your browser; decoding does not verify whether the destination is safe."
+    description: "Decode Outlook Safe Links URLs, including nested wrappers, to reveal the final HTTP or HTTPS destination without opening it. Runs in your browser; decoding does not scan or verify the destination."
 
   xml-to-json:
     title: XML to JSON
