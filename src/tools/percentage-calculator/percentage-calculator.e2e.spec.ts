@@ -24,7 +24,7 @@ test.describe('Tool - Percentage calculator', () => {
     await expect(guide).toContainText('120 after a 20% increase came from 120 ÷ 1.20 = 100');
     await expect(guide).toContainText('the symmetric difference is 40%');
     await expect(guide).toContainText('5% to 7% is +2 percentage points');
-    await expect(guide).toContainText('An original value of zero is undefined');
+    await expect(guide).toContainText('An original value of zero makes percentage change undefined');
   });
 
   test('Answers common percentage questions with supported formulas', async ({ page }) => {
