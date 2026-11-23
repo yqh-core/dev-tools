@@ -78,4 +78,16 @@ test.describe('Homepage task discovery', () => {
     expect(categoryLink?.width).toBeGreaterThanOrEqual(44);
     expect(categoryLink?.height).toBeGreaterThanOrEqual(44);
   });
+
+  test('features the GSC priority calculators in the Calculate & Convert task', async ({ page }) => {
+    await page.goto('/');
+
+    const calculateTask = page.locator('#home-featured .featured-task-card').nth(3);
+    await expect(calculateTask.locator('.featured-task-primary')).toHaveAttribute(
+      'href',
+      '/percentage-calculator/',
+    );
+    await expect(calculateTask.locator('a[href="/eta-calculator/"]')).toBeVisible();
+  });
+
 });
