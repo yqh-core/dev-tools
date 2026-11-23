@@ -12,7 +12,8 @@ function getSafeLinksDestination(value: string): string | null {
   }
 
   const hostname = wrapper.hostname.toLowerCase();
-  const isOutlookSafeLinksHost = hostname.endsWith(SAFE_LINKS_HOST_SUFFIX);
+  const isOutlookSafeLinksHost = hostname.length > SAFE_LINKS_HOST_SUFFIX.length
+    && hostname.endsWith(SAFE_LINKS_HOST_SUFFIX);
 
   if (!isOutlookSafeLinksHost) {
     return null;
