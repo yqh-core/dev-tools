@@ -253,7 +253,7 @@ jobs:
           // priority English tool pages. This catches UA-dependent HTML/cache variants
           // and guarantees the crawler sees the same title, description, H1 and canonical.
           const browserUa = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/130.0.0.0 Safari/537.36';
-          const priorityPages = ['/', '/percentage-calculator/', '/numeronym-generator/'];
+          const priorityPages = ['/', '/percentage-calculator/', '/numeronym-generator/', '/api-debugger/'];
           for (const path of priorityPages) {
             const [bot, browser] = await Promise.all([get(path), get(path, browserUa)]);
             for (const [label, result] of [['Googlebot', bot], ['browser', browser]]) {
@@ -283,6 +283,12 @@ jobs:
                  botMeta.description !== 'Calculate a percentage of a number, find what percent one value is of another, measure percentage change, or apply a discount or sales tax. Four free calculators.' ||
                  botMeta.h1 !== 'Percentage Calculator')) {
               throw new Error('Percentage Calculator production SEO metadata does not match the approved title, description and H1');
+            }
+            if (path === '/api-debugger/' &&
+                (botMeta.title !== 'REST API Tester — cURL Import, Tests & Collections' ||
+                 botMeta.description !== 'Send REST API requests, import cURL, inspect response status, headers and JSON, add assertions, and run saved collections. Requests pass through a temporary relay.' ||
+                 botMeta.h1 !== 'API Debug Workspace')) {
+              throw new Error('API Tester production SEO metadata does not match the approved title, description and H1');
             }
             if (/<meta[^>]+name=["']robots["'][^>]+content=["'][^"']*noindex/i.test(bot.body)) {
               throw new Error(path + ' unexpectedly carries noindex');
@@ -324,6 +330,23 @@ jobs:
             throw new Error('Percentage Calculator guide must be live, indexable, self-canonical and have a distinct meta description');
           }
 
+          // API Tester guide became indexable after original bilingual workflow sections
+          // pushed its measured novel-content ratio above the build gate.
+          const apiGuidePath = '/guides/api-debugger/';
+          const apiGuideResult = await get(apiGuidePath);
+          const apiToolResult = await get('/api-debugger/');
+          const apiGuideDescription = extractDescription(apiGuideResult.body);
+          const apiToolDescription = extractDescription(apiToolResult.body);
+          const apiGuideCanonical = apiGuideResult.body.match(/<link[^>]+rel=["']canonical["'][^>]+href=["']([^"']+)["']/i)?.[1] || '';
+          if (!apiGuideResult.response.ok ||
+              apiGuideResult.finalUrl !== origin + apiGuidePath ||
+              !apiGuideDescription || !apiToolDescription ||
+              apiGuideDescription === apiToolDescription ||
+              apiGuideCanonical !== origin + apiGuidePath ||
+              /<meta[^>]+name=["']robots["'][^>]+content=["'][^"']*noindex/i.test(apiGuideResult.body)) {
+            throw new Error('API Tester guide must be live, indexable, self-canonical and have a distinct meta description');
+          }
+
           const robots = await get('/robots.txt');
           if (!robots.response.ok || !/Sitemap:\s*https:\/\//i.test(robots.body) || !robots.body.includes(origin + '/sitemap.xml')) {
             throw new Error('robots.txt does not reference the canonical production sitemap');
@@ -353,6 +376,8 @@ jobs:
             "/percentage-calculator/",
             "/guides/percentage-calculator/",
             "/guides/numeronym-generator/",
+            "/guides/api-debugger/",
+            "/api-debugger/",
             "/regex-tester/",
             "/numeronym-generator/",
             "/token-generator/",
