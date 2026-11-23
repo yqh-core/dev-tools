@@ -152,4 +152,27 @@ describe('evidence-backed SEO keyword targets', () => {
     expect((entry?.keywords ?? []).length).toBeGreaterThanOrEqual(4);
     expect(entry?.note).toContain('Candidate mapping only');
   });
+
+  it.each([
+    ['/json-to-xml', 'JSON to XML converter', 'convert'],
+    ['/json-to-toml', 'JSON to TOML converter', 'convert'],
+    ['/toml-to-json', 'TOML to JSON converter', 'convert'],
+    ['/toml-to-yaml', 'TOML to YAML converter', 'convert'],
+    ['/yaml-to-toml', 'YAML to TOML converter', 'convert'],
+    ['/json-to-yaml-converter', 'JSON to YAML converter', 'convert'],
+    ['/json-minify', 'JSON minifier', 'convert'],
+    ['/json-to-code', 'JSON to code generator', 'generate'],
+    ['/json-to-get-params', 'JSON to query string converter', 'convert'],
+    ['/json-to-csv', 'JSON to CSV converter', 'convert'],
+  ])('keeps source-audited JSON candidate %s capability-matched', (path, keyword, intent) => {
+    const entry = CLUSTER_KEYWORD_ENTRIES.find(item => item.path === path);
+
+    expect(entry).toBeDefined();
+    expect(entry?.keyword).toBe(keyword);
+    expect(entry?.intent).toBe(intent);
+    expect(entry?.landed).toBe(false);
+    expect((entry?.keywords ?? []).length).toBeGreaterThanOrEqual(4);
+    expect(entry?.note).toContain('Candidate mapping only');
+  });
+
 });
