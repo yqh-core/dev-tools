@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { percentageBatchToCsv, runPercentageBatch } from './percentage-calculator.batch';
+import { percentageBatchToCsv, percentageBatchToTsv, runPercentageBatch } from './percentage-calculator.batch';
+import type { PercentageBatchRow } from './percentage-calculator.batch';
 
 describe('percentage batch calculations', () => {
   it('calculates percent of a number for multiple labelled rows', () => {
@@ -91,6 +92,23 @@ describe('percentage batch calculations', () => {
   it('returns no rows for empty or whitespace-only input', () => {
     expect(runPercentageBatch('', 'percent-of')).toEqual([]);
     expect(runPercentageBatch(' \n\t\n', 'percent-of')).toEqual([]);
+  });
+
+
+  it('exports TSV with tab/newline/quote escaping and spreadsheet formula protection', () => {
+    const rows: PercentageBatchRow[] = [{
+      lineNumber: 1,
+      label: 'Line\\tbreak\\n"label"',
+      inputs: ['1', '2'],
+      formula: '1 + 2 = 3',
+      result: '3',
+      error: '',
+    }];
+    const tsv = percentageBatchToTsv(rows);
+    expect(tsv.split('\\r\\n')[0]).toBe('Row\\tInput A\\tInput B\\tFormula\\tResult\\tError');
+    expect(tsv).toContain('"Line\\tbreak\\n""label"""\\t1\\t2');
+    const formulaRows = runPercentageBatch('=SUM(1,2)\\t20\\t150', 'percent-of');
+    expect(percentageBatchToTsv(formulaRows)).toContain("'=SUM(1,2)\\t20\\t150");
   });
 
   it('exports every result to quoted CSV and protects labels from formula injection', () => {
