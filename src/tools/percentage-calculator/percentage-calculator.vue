@@ -435,6 +435,8 @@ function clearBatchHistory() {
         increase or decrease, reversing a percentage change, comparing two values symmetrically, and
         measuring percentage-point change between rates.
       </p>
+      <h3 class="mb-2 text-lg font-semibold">{{ $t('tools.percentage-calculator.batch.guideTitle') }}</h3>
+      <p class="mb-4">{{ $t('tools.percentage-calculator.batch.guideText') }}</p>
 
       <h3 class="mb-2 text-lg font-semibold">Percentage formulas and examples</h3>
       <ul class="mb-4 list-disc pl-6">
