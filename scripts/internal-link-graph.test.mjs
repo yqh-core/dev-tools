@@ -48,7 +48,11 @@ describe('analyzeInternalLinkGraph', () => {
       { file: 'guide/index.html', html: '<link rel="canonical" href="https://www.example.com/guide/"><a href="../tools/">Tool</a>' },
     ];
     const result = analyzeInternalLinkGraph(pages, ['https://www.example.com/guide/', 'https://www.example.com/tools/'], origin);
-    expect(result.counts).toEqual([{ route: '/tools/', inlinks: 1 }]);
+    expect(result.counts).toEqual([
+      { route: '/guide/', inlinks: 0 },
+      { route: '/tools/', inlinks: 1 },
+    ]);
+    expect(result.orphans).toEqual(['/guide/']);
   });
 
   it("reports the course's 7+ diagnostic bands without enforcing them as a build failure", () => {
