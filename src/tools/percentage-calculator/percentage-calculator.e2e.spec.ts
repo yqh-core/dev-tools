@@ -146,8 +146,8 @@ test.describe('Tool - Percentage calculator', () => {
     await expect(page.locator('html')).toHaveAttribute('data-test-clipboard', /"Taxi","10","40"/);
 
     await page.getByTestId('percentage-batch-copy-tsv').click();
-    await expect(page.locator('html')).toHaveAttribute('data-test-clipboard', /Input A\\tInput B/);
-    await expect(page.locator('html')).toHaveAttribute('data-test-clipboard', /Groceries\\t20\\t150/);
+    await expect(page.locator('html')).toHaveAttribute('data-test-clipboard', /Input A\tInput B/);
+    await expect(page.locator('html')).toHaveAttribute('data-test-clipboard', /Groceries\t20\t150/);
 
     await page.getByTestId('percentage-batch-history-item').getByRole('button', { name: 'Restore' }).click();
     await expect(page.getByTestId('percentage-batch-input')).toHaveValue('Groceries\t20\t150\nTaxi\t10\t40');
@@ -170,7 +170,7 @@ test.describe('Tool - Percentage calculator', () => {
 
   test('downloads CSV and TSV files from the batch results', async ({ page }) => {
     await page.getByTestId('percentage-batch-panel').locator('summary').click();
-    await page.getByTestId('percentage-batch-input').fill('Groceries\\t20\\t150\\nTaxi\\t10\\t40');
+    await page.getByTestId('percentage-batch-input').fill('Groceries\t20\t150\nTaxi\t10\t40');
     await page.getByTestId('percentage-batch-run').click();
 
     const csvPromise = page.waitForEvent('download');
@@ -194,7 +194,7 @@ test.describe('Percentage calculator batch Chinese localization', () => {
     await expect(panel).toContainText('计算类型');
     await expect(panel).toContainText('两列：百分比、数值');
     await page.getByTestId('percentage-batch-mode').selectOption('part-to-whole');
-    await page.getByTestId('percentage-batch-input').fill('无效\\t30\\t0');
+    await page.getByTestId('percentage-batch-input').fill('无效\t30\t0');
     await page.getByTestId('percentage-batch-run').click();
     await expect(page.getByTestId('percentage-batch-result-1')).toContainText('整体数值不能为零');
   });
