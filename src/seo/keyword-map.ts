@@ -98,7 +98,7 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     competition: 'high',
     article: 'json-formatting-guide',
     landed: true,
-    lockedTitle: 'JSON Formatter & Validator — Beautify, Validate, Diff and Convert',
+    lockedTitle: 'JSON Formatter — Format, Validate & Diff',
     note: '簇 2 承重墙。关键事实：`prettify` 一词在本次所有 top5 title 里一次都没出现，主流词汇是 formatter / validator / beautify。',
   },
   {
@@ -110,7 +110,7 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     competition: 'medium',
     article: 'json-formatting-guide',
     landed: true,
-    lockedTitle: 'REST API Tester — cURL Import, Tests & Collections',
+    lockedTitle: 'REST API Tester — cURL, Tests & Collections',
     note: 'US/EU English snippet now targets REST API tester intent. The independent guide now has multi-step instructions, original workflow examples and explicit relay/storage boundaries; sitemap inclusion still depends on measured novel-content ratio. Requests pass through a temporary edge relay; do not claim fully local/direct-to-origin processing.',
   },
   {
@@ -122,7 +122,7 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     competition: 'medium',
     article: 'json-formatting-guide',
     landed: true,
-    lockedTitle: 'JSON Developer Workspace — Format, Query, Tree, Schema & Convert',
+    lockedTitle: 'JSON Workspace — JSONPath, Tree & Schema',
     note: '簇 2 扩展。把格式化/树形/JSONPath 查询/schema 推断/转换组合成单一工作台，对标 JSON Crack 的结构理解与数据工作流定位，而非再做一个孤立 formatter。',
   },
   {
@@ -240,7 +240,7 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     priority: 'P1',
     competition: 'medium',
     landed: true,
-    lockedTitle: 'Word & Character Counter — Text Statistics & Byte Size',
+    lockedTitle: 'Text Statistics — Word & Character Counter',
     note: 'The page measures characters, words, lines and UTF-8 byte size. Title is aligned to the actual live feature; validate rendered snippet and CTR after deployment.',
   },
   {
@@ -276,7 +276,7 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     competition: 'low',
     article: 'devops-tools-guide',
     landed: true,
-    lockedTitle: 'Docker Run to Compose Converter — Generate a compose Service from a Command',
+    lockedTitle: 'Docker Run to Compose Converter',
     note: '簇 6。差异空间最大：第 1 名是开源项目的 Docker Hub 镜像页，不是任何品牌站。',
   },
   {
@@ -577,7 +577,7 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     priority: 'P1',
     competition: 'medium',
     landed: true,
-    lockedTitle: 'htpasswd Generator & Checker — bcrypt, apr1 and SHA1',
+    lockedTitle: 'htpasswd Generator & Checker — bcrypt & apr1',
     note: 'Title and description match Apache/Nginx user:hash generation and verification. Supported formats include bcrypt, apr1, SHA1 and plain text; plain text is explicitly not for production. Competition remains provisional; no volume/KD claims.',
   },
 
@@ -951,7 +951,7 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     priority: 'P1',
     competition: 'medium',
     landed: true,
-    lockedTitle: 'JSON to TOML Converter — Convert JSON Config to TOML',
+    lockedTitle: 'JSON to TOML Converter',
     note: 'Source confirms JSON input is parsed and serialized as TOML. Landed after production capability audit; no search-volume or ranking claim.',
   },
   {
@@ -993,7 +993,7 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     priority: 'P1',
     competition: 'medium',
     landed: true,
-    lockedTitle: 'JSON to Query String Converter — Convert Nested JSON to URL Parameters',
+    lockedTitle: 'JSON to Query String Converter',
     note: 'Source confirms bidirectional JSON ↔ GET query-parameter conversion, including nested bracket paths and URL query extraction. Landed after production capability audit; no search-volume or ranking claim.',
   },
   {
@@ -1036,7 +1036,7 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     priority: 'P1',
     competition: 'high',
     landed: true,
-    lockedTitle: 'TOTP Code Generator — 6-Digit Authenticator Codes & QR Setup',
+    lockedTitle: 'TOTP Code Generator — 6-Digit Codes & QR',
     note: 'Source verified: generates six-digit HMAC-SHA1 TOTP codes for previous/current/next 30-second windows and an otpauth QR URI. Generated 16-character Base32 secrets now use Web Crypto; the UI has no submitted-code verification form or account integration. No volume/KD/SERP evidence.',
   },
   {
@@ -1058,7 +1058,7 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     priority: 'P1',
     competition: 'medium',
     landed: true,
-    lockedTitle: 'HTML Entity Encoder & Decoder — Escape Characters and Look Up Entities',
+    lockedTitle: 'HTML Entity Encoder & Decoder',
     note: 'Source verified: Lodash escape/unescape handles the five HTML-sensitive characters and the page includes a searchable common-entity reference. Escaping is output encoding, not HTML sanitization; no volume/KD/SERP evidence.',
   },
   {
@@ -1069,7 +1069,7 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     priority: 'P1',
     competition: 'high',
     landed: true,
-    lockedTitle: 'Integer Base Converter — Binary, Decimal, Hexadecimal and Base 2–64',
+    lockedTitle: 'Number Base Converter — Bases 2–64',
     note: 'Source verified: converts non-negative integers between bases 2–64 using a custom alphabet. This is number conversion, not text encoding; no volume/KD/SERP evidence.',
   },
   {
