@@ -17,6 +17,8 @@ test.describe('Tool - Percentage calculator', () => {
   test('Explains all seven supported percentage tasks with correct formulas', async ({ page }) => {
     const guide = page.getByTestId('percentage-calculator-guide');
     await expect(guide).toContainText('seven common percentage problems');
+    await expect(guide).toContainText('Batch percentage calculations for lists and spreadsheets');
+    await expect(guide).toContainText('export the full result set as CSV or TSV');
     await expect(guide).toContainText('15% of 80 is 12');
     await expect(guide).toContainText('30 is 25% of 120');
     await expect(guide).toContainText('a 15% increase');
@@ -124,11 +126,15 @@ test.describe('Tool - Percentage calculator', () => {
     await expect(rows.nth(1)).toContainText('10');
     await expect(page.getByTestId('percentageBatchStatus')).toContainText('2 row(s) calculated');
 
-    await expect(page.getByTestId('percentageBatchHistory')).toBeVisible();
+    await input.fill('25\t100');
+    await page.getByTestId('runPercentageBatch').click();
+    await expect(page.getByTestId('percentageBatchHistory').locator('li')).toHaveCount(2);
     await page.reload();
     await expect(page.getByTestId('percentageBatchHistory')).toBeVisible();
     await page.getByTestId('percentageBatchHistory').getByRole('button', { name: 'Restore' }).first().click();
-    await expect(input).toHaveValue('15\t80\n20\t50');
+    await expect(input).toHaveValue('25\t100');
+    await page.getByTestId('percentageBatchHistory').getByRole('button', { name: 'Delete' }).first().click();
+    await expect(page.getByTestId('percentageBatchHistory').locator('li')).toHaveCount(1);
     await page.getByTestId('clearPercentageBatchHistory').click();
     await expect(page.getByTestId('percentageBatchHistory')).toHaveCount(0);
   });
