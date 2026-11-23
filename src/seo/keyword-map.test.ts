@@ -57,6 +57,10 @@ describe('evidence-backed SEO keyword targets', () => {
     ['/htpasswd-generator', 'htpasswd generator', 'htpasswd Generator & Checker — bcrypt, apr1 and SHA1'],
     ['/url-parser', 'url parser online', 'URL Parser — Inspect Query Parameters and UTM Tags'],
     ['/ipv4-range-expander', 'IP range to CIDR', 'IP Range to CIDR Converter — Convert IPv4 Ranges Online'],
+    ['/pdf-merge', 'merge PDF files online', 'PDF Merge — Combine PDF Files Online'],
+    ['/user-agent-parser', 'user agent parser', 'User Agent Parser — Browser, OS & Device Detection'],
+    ['/xml-to-json', 'XML to JSON converter', 'XML to JSON Converter — Convert XML Online'],
+    ['/markdown-to-html', 'Markdown to HTML converter', 'Markdown to HTML Converter — Live Preview & HTML Output'],
   ])('locks the landed metadata for %s', (path, keyword, lockedTitle) => {
     const entry = CLUSTER_KEYWORD_ENTRIES.find(item => item.path === path);
 
@@ -68,6 +72,11 @@ describe('evidence-backed SEO keyword targets', () => {
 
   it.each([
     ['/ipv4-range-expander', 'IP range to CIDR', 'convert'],
+    ['/pdf-merge', 'merge PDF files online', 'convert'],
+    ['/user-agent-parser', 'user agent parser', 'parse'],
+    ['/xml-to-json', 'XML to JSON converter', 'convert'],
+    ['/markdown-to-html', 'Markdown to HTML converter', 'convert'],
+
   ])('keeps %s mapped to an existing capability-matched route', (path, keyword, intent) => {
     const entry = CLUSTER_KEYWORD_ENTRIES.find(item => item.path === path);
 
@@ -80,9 +89,8 @@ describe('evidence-backed SEO keyword targets', () => {
   });
 
   it.each([
-    ['/pdf-merge', 'merge PDF files online', 'convert'],
     ['/ipv6-ula-generator', 'IPv6 ULA generator', 'generate'],
-    ['/user-agent-parser', 'user agent parser', 'parse'],
+
     ['/phone-parser-and-formatter', 'international phone number parser', 'parse'],
   ])('keeps %s mapped to an existing capability-matched route', (path, keyword, intent) => {
     const entry = CLUSTER_KEYWORD_ENTRIES.find(item => item.path === path);
@@ -96,8 +104,6 @@ describe('evidence-backed SEO keyword targets', () => {
   });
 
   it.each([
-    ['/xml-to-json', 'XML to JSON converter', 'convert'],
-    ['/markdown-to-html', 'Markdown to HTML converter', 'convert'],
     ['/yaml-to-json-converter', 'YAML to JSON converter', 'convert'],
     ['/slugify-string', 'URL slug generator', 'generate'],
     ['/case-converter', 'text case converter', 'convert'],

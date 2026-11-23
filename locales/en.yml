@@ -363,8 +363,8 @@ tools:
     description: Validate and parse IBAN numbers. Check if an IBAN is valid and get the country, BBAN, if it is a QR-IBAN and the IBAN friendly format.
 
   user-agent-parser:
-    title: User-agent parser
-    description: Detect and parse Browser, Engine, OS, CPU, and Device type/model from an user-agent string.
+    title: User Agent Parser — Browser, OS & Device Detection
+    description: Parse a user-agent string to identify its browser, rendering engine, operating system, CPU and device type. Use the results for debugging and analytics, not authentication.
 
   numeronym-generator:
     title: Numeronym Generator — i18n, a11y & k8s
@@ -495,8 +495,8 @@ tools:
     description: Get information about your current device (screen size, pixel-ratio, user agent, ...)
 
   pdf-merge:
-    title: PDF Merge
-    description: Combine multiple PDF files into one — in upload order, page count shown before you start. Free, private, everything happens in your browser.
+    title: PDF Merge — Combine PDF Files Online
+    description: Combine two or more PDF files into one document in your browser. Files are merged in upload order, with page counts shown before you start; download the combined PDF.
     pickFiles: Choose PDF files
     selected: '{count} file selected | {count} files selected'
     working: Merging…
@@ -719,8 +719,8 @@ tools:
     description: Convert JSON data to XML format.
 
   markdown-to-html:
-    title: Markdown to HTML
-    description: Convert Markdown to HTML, with print support (save as PDF).
+    title: Markdown to HTML Converter — Live Preview & HTML Output
+    description: Convert Markdown to HTML with a live preview in your browser. Copy the generated HTML or use the print dialog to save the rendered result as a PDF.
 
   regex-memo:
     title: Regex Cheat Sheet — Complete Regular Expression Reference
@@ -735,8 +735,8 @@ tools:
     description: "Decode Outlook Safe Links URLs, including nested wrappers, to reveal the final HTTP or HTTPS destination without opening it. Runs in your browser; decoding does not scan or verify the destination."
 
   xml-to-json:
-    title: XML to JSON
-    description: Convert XML data to JSON format.
+    title: XML to JSON Converter — Convert XML Online
+    description: Convert XML into JSON in your browser. Elements become objects, repeated elements become arrays, and attributes and text are represented with separate keys.
 
   fullwidth-converter:
     title: "Full-width / half-width converter"
