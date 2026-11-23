@@ -111,6 +111,7 @@ test.describe('Tool - Percentage calculator', () => {
     await page.getByTestId('rateFrom').locator('input').fill('5');
     await expect(page.getByTestId('percentagePointChange').locator('input')).toHaveValue('');
   });
+
   test('calculates labelled batch rows, copies formulas and CSV, and clears local history', async ({ page }) => {
     await page.evaluate(() => {
       Object.defineProperty(navigator, 'clipboard', {
@@ -162,5 +163,4 @@ test.describe('Tool - Percentage calculator', () => {
     await expect(page.getByTestId('percentage-batch-result-2')).toContainText('25%');
     await expect(page.getByTestId('percentage-batch-status')).toContainText('1 of 2 rows calculated');
   });
-
 });
