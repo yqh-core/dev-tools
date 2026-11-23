@@ -169,16 +169,24 @@ async function copyBatchText(value: string) {
   }
 }
 
+function localizedBatchRows() {
+  return batchRows.value.map(row => ({
+    ...row,
+    error: row.error ? t(`tools.percentage-calculator.batch.errors.${row.error}`) : '',
+  }));
+}
+
 function copyBatchRow(row: PercentageBatchRow) {
-  return copyBatchText([row.raw, row.formula, row.result, row.error].join('\t'));
+  const error = row.error ? t(`tools.percentage-calculator.batch.errors.${row.error}`) : '';
+  return copyBatchText([row.raw, row.formula, row.result, error].join('\t'));
 }
 
 function copyAllBatchRows() {
-  return copyBatchText(exportPercentageBatch(batchRows.value, '\t'));
+  return copyBatchText(exportPercentageBatch(localizedBatchRows(), '\t'));
 }
 
 function downloadBatch(format: 'csv' | 'tsv') {
-  const content = exportPercentageBatch(batchRows.value, format === 'csv' ? ',' : '\t');
+  const content = exportPercentageBatch(localizedBatchRows(), format === 'csv' ? ',' : '\t');
   const blob = new Blob([content], { type: format === 'csv' ? 'text/csv;charset=utf-8' : 'text/tab-separated-values;charset=utf-8' });
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement('a');
@@ -381,7 +389,7 @@ function clearBatchHistory() {
                 <th scope="row" class="border-b p-2">{{ row.rowNumber }}</th>
                 <td class="border-b p-2 font-mono">{{ row.formula || '—' }}</td>
                 <td class="border-b p-2">
-                  <span v-if="row.error" class="text-red-600">{{ row.error }}</span>
+                  <span v-if="row.error" class="text-red-600">{{ $t('tools.percentage-calculator.batch.errors.' + row.error) }}</span>
                   <span v-else>{{ row.result }}</span>
                 </td>
                 <td class="border-b p-2">
