@@ -271,8 +271,8 @@ tools:
     description: Copy and paste emojis easily and get the unicode and code points value of each emoji.
 
   color-converter:
-    title: Color converter
-    description: Convert color between the different formats (hex, rgb, hsl and css name)
+    title: "Color Converter — HEX, RGB, HSL, HWB, LCH and CMYK"
+    description: "Convert and edit colors between HEX, RGB, HSL, HWB, LCH, CMYK and the nearest CSS color name, with a color picker. Values are computed in your browser."
 
   bcrypt:
     title: Bcrypt
@@ -375,8 +375,8 @@ tools:
     description: "Convert text between camelCase, PascalCase, snake_case, kebab-case, CONSTANT_CASE, uppercase, lowercase and other naming styles. Paste once, choose a format and copy the result."
 
   html-entities:
-    title: Escape HTML entities
-    description: Escape or unescape HTML entities (turn <, >, &, " and ' into their HTML form) and look up common characters — quotes, dashes, currency, math and Greek symbols — in a searchable entity reference table.
+    title: "HTML Entity Encoder & Decoder — Escape Characters and Look Up Entities"
+    description: "Escape and unescape HTML text characters including ampersands, angle brackets, quotes and apostrophes. Search a reference table of common named and numeric HTML entities; escaping is not HTML sanitization."
 
   json-prettify:
     title: JSON Formatter & Validator — Beautify, Validate, Diff and Convert
@@ -655,8 +655,8 @@ tools:
     description: Obfuscate a string (like a secret, an IBAN, or a token) to make it shareable and identifiable without revealing its content.
 
   base-converter:
-    title: Integer base converter
-    description: Convert a number between different bases (decimal, hexadecimal, binary, octal, base64, ...)
+    title: "Integer Base Converter — Binary, Decimal, Hexadecimal and Base 2–64"
+    description: "Convert non-negative integers between bases 2–64, including binary, octal, decimal, hexadecimal and custom alphabets. This converts numbers, not text."
 
   yaml-to-json-converter:
     title: YAML to JSON Converter — Convert YAML Online
@@ -751,8 +751,8 @@ tools:
     description: "Turn a numeric amount into the Chinese financial uppercase wording (yuan / jiao / fen), with an optional RMB prefix."
 
   px-rem-converter:
-    title: "px / rem converter"
-    description: "Convert a batch of values between px and rem with a configurable root font size."
+    title: "PX to REM Converter — Batch Conversion with Root Font Size"
+    description: "Convert batches of CSS pixel and rem values in either direction. Set the root font size and decimal precision; values can be separated by spaces, commas or newlines."
 
   text-replacer:
     title: "Find and Replace Text — Plain Text & Regex Replacer"
