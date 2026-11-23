@@ -57,6 +57,8 @@ git reset HEAD~N
 
 Undo most recent commit and get rid of changes
 
+**Warning:** `--hard` discards uncommitted changes in the working tree and index. Check `git status` and back up anything you need before running it.
+
 ```shell
 git reset HEAD~1 --hard
 ```
