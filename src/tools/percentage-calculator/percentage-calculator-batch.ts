@@ -1,19 +1,19 @@
 export type PercentageBatchMode = 'part' | 'ratio' | 'change' | 'adjust' | 'reverse' | 'difference' | 'points';
 
 export interface PercentageBatchRow {
-  rowNumber: number;
-  raw: string;
-  formula: string;
-  result: string;
-  error: string;
+  rowNumber: number
+  raw: string
+  formula: string
+  result: string
+  error: string
 }
 
 export interface PercentageBatchHistoryEntry {
-  id: string;
-  createdAt: string;
-  mode: PercentageBatchMode;
-  input: string;
-  rows: PercentageBatchRow[];
+  id: string
+  createdAt: string
+  mode: PercentageBatchMode
+  input: string
+  rows: PercentageBatchRow[]
 }
 
 const modeLabels: Record<PercentageBatchMode, string> = {
