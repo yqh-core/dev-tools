@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
+import type {
+  PercentageBatchMode,
+  PercentageBatchRow,
+} from './percentage-calculator.batch';
 import {
   percentageBatchToCsv,
   percentageBatchToTsv,
   runPercentageBatch,
-} from './percentage-calculator.batch';
-import type {
-  PercentageBatchMode,
-  PercentageBatchRow,
 } from './percentage-calculator.batch';
 
 const { t } = useI18n();
