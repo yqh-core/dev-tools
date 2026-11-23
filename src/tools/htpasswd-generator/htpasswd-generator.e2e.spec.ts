@@ -52,8 +52,9 @@ test.describe('Tool - multi-user htpasswd generator', () => {
   });
 
   test('generates an Apache bcrypt hash and explains the Nginx format choice', async ({ page }) => {
-    await page.locator('.c-select-input').first().click();
-    await page.locator('.c-select-dropdown-option').filter({ hasText: 'bcrypt ($2a$, Apache)' }).click();
+    const formatField = page.getByText('Format:', { exact: true }).locator('..');
+    await formatField.locator('.c-select-input').click();
+    await formatField.locator('.c-select-dropdown-option').filter({ hasText: 'bcrypt ($2a$, Apache)' }).click();
     await page.getByLabel('Username:').nth(0).fill('apache-user');
     await page.getByLabel('Password:').nth(0).fill('secret');
     await page.getByRole('button', { name: 'Generate .htpasswd' }).click();
