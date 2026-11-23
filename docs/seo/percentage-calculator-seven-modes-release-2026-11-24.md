@@ -26,7 +26,7 @@ The update also clarifies the denominator/base for each operation, adds reverse-
 - Independent Verify: PASS — example coverage, SEO crawl-gate self-test, typecheck/build, artifact validation and artifact upload passed.
 - Cloudflare preview and main deployment: PASS.
 - Production crawler fetch: `https://www.digdevbox.com/percentage-calculator/` returned the seven-mode English title/description, H1, content and self-canonical URL.
-- The first post-deploy smoke failed only because its expected description still asserted the former “Four free calculators” copy. The production HTML was already updated. The two stale expected-description assertions have now been updated to the exact seven-mode description in `.github/workflows/post-deploy-seo-smoke.yml`; a new workflow run is required to re-exercise that corrected assertion.
+- The first post-deploy smoke failed only because its expected description still asserted the former “Four free calculators” copy. The two stale assertions in `.github/workflows/post-deploy-seo-smoke.yml` were updated to the exact seven-mode description. Corrected post-deploy production SEO smoke then passed on main commit `014d4ee883746e315e4d17a1fed8bdbc070ae995` (run #45285125917). A second smoke run is also in progress; it is not needed to establish the successful first rerun.
 
 ## Search measurement baseline
 
