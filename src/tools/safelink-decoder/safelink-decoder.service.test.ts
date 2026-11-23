@@ -3,19 +3,52 @@ import { decodeSafeLinksURL } from './safelink-decoder.service';
 
 describe('safelink-decoder', () => {
   describe('decodeSafeLinksURL', () => {
-    describe('decode outlook safelink urls', () => {
-      it('should decode basic safelink urls', () => {
-        expect(decodeSafeLinksURL('https://aus01.safelinks.protection.outlook.com/?url=https%3A%2F%2Fwww.google.com%2Fsearch%3Fq%3Dsafelink%26rlz%3D1&data=05%7C02%7C%7C1ed07253975b46da1d1508dc3443752a%7C84df9e7fe9f640afb435aaaaaaaaaaaa%7C1%7C0%7C638442711583216725%7CUnknown%7CTWFpbGZsb3d8eyJWIjoiMC4wLjAwMDAiLCJQIjoiV2luMzIiLCJBTiI6Ik1haWwiLCJXVCI6Mn0%3D%7C0%7C%7C%7C&sdata=%2BQY0HBnnxfI7pzZoxzlhZdDvYu80LwQB0zUUjrffVnk%3D&reserved=0'))
-          .toBe('https://www.google.com/search?q=safelink&rlz=1');
-      });
-      it('should decode encoded safelink urls', () => {
-        expect(decodeSafeLinksURL('https://aus01.safelinks.protection.outlook.com/?url=https%3A%2F%2Fwww.google.com%2Fsearch%3Fq%3Dsafelink%26rlz%3D1&amp;data=05%7C02%7C%7C1ed07253975b46da1d1508dc3443752a%7C84df9e7fe9f640afb435aaaaaaaaaaaa%7C1%7C0%7C638442711583216725%7CUnknown%7CTWFpbGZsb3d8eyJWIjoiMC4wLjAwMDAiLCJQIjoiV2luMzIiLCJBTiI6Ik1haWwiLCJXVCI6Mn0%3D%7C0%7C%7C%7C&amp;sdata=%2BQY0HBnnxfI7pzZoxzlhZdDvYu80LwQB0zUUjrffVnk%3D&amp;reserved=0'))
-          .toBe('https://www.google.com/search?q=safelink&rlz=1');
-      });
-      it('throw on not outlook safelink urls', () => {
-        expect(() => decodeSafeLinksURL('https://google.com'))
-          .toThrow('Invalid SafeLinks URL provided');
-      });
+    it('decodes a standard Outlook Safe Links URL', () => {
+      expect(decodeSafeLinksURL('https://aus01.safelinks.protection.outlook.com/?url=https%3A%2F%2Fwww.google.com%2Fsearch%3Fq%3Dsafelink%26rlz%3D1&data=example'))
+        .toBe('https://www.google.com/search?q=safelink&rlz=1');
+    });
+
+    it('decodes an HTML-escaped Outlook Safe Links URL', () => {
+      expect(decodeSafeLinksURL('https://aus01.safelinks.protection.outlook.com/?url=https%3A%2F%2Fwww.google.com%2Fsearch%3Fq%3Dsafelink%26rlz%3D1&amp;data=example'))
+        .toBe('https://www.google.com/search?q=safelink&rlz=1');
+    });
+
+    it('unwraps nested Outlook Safe Links URLs', () => {
+      const destination = 'https://example.com/docs';
+      const inner = 'https://eur01.safelinks.protection.outlook.com/?url=' + encodeURIComponent(destination);
+      const outer = 'https://nam01.safelinks.protection.outlook.com/?url=' + encodeURIComponent(inner);
+
+      expect(decodeSafeLinksURL(outer)).toBe(destination);
+    });
+
+    it('rejects a lookalike URL whose query merely mentions the Outlook host', () => {
+      expect(() => decodeSafeLinksURL('https://example.com/?next=https://nam01.safelinks.protection.outlook.com/&url=https%3A%2F%2Fattacker.example'))
+        .toThrow('Invalid SafeLinks URL provided');
+    });
+
+    it('rejects a hostname that only contains the Outlook domain as a suffix-like string', () => {
+      expect(() => decodeSafeLinksURL('https://safelinks.protection.outlook.com.attacker.example/?url=https%3A%2F%2Fexample.com'))
+        .toThrow('Invalid SafeLinks URL provided');
+    });
+
+    it('rejects non-HTTPS wrapper URLs', () => {
+      expect(() => decodeSafeLinksURL('http://nam01.safelinks.protection.outlook.com/?url=https%3A%2F%2Fexample.com'))
+        .toThrow('Invalid SafeLinks URL provided');
+    });
+
+    it('rejects wrappers without a destination parameter', () => {
+      expect(() => decodeSafeLinksURL('https://nam01.safelinks.protection.outlook.com/?data=example'))
+        .toThrow('missing its destination URL');
+    });
+
+    it('rejects non-HTTP destination schemes', () => {
+      expect(() => decodeSafeLinksURL('https://nam01.safelinks.protection.outlook.com/?url=javascript%3Aalert(1)'))
+        .toThrow('must use HTTP or HTTPS');
+    });
+
+    it('rejects non-Outlook Safe Links URLs', () => {
+      expect(() => decodeSafeLinksURL('https://google.com'))
+        .toThrow('Invalid SafeLinks URL provided');
     });
   });
 });
