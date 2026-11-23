@@ -14,7 +14,7 @@ interface RegexWorkerResponse {
   error?: string
 }
 
-const workerScope = self as unknown as {
+const workerScope = globalThis as unknown as {
   onmessage: ((event: MessageEvent<RegexWorkerRequest>) => void) | null
   postMessage: (message: RegexWorkerResponse) => void
 };
