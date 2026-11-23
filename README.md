@@ -40,7 +40,7 @@
 - [Encrypt / decrypt text](https://digdevbox.com/encryption) - Encrypt clear text and decrypt ciphertext using crypto algorithms like AES, TripleDES, Rabbit or RC4.
 - [BIP39 passphrase generator](https://digdevbox.com/bip39-generator) - Generate a BIP39 passphrase from an existing or random mnemonic, or get the mnemonic from the passphrase.
 - [HMAC Generator — Sign Messages with SHA-256 Online](https://digdevbox.com/hmac-generator) - Generate HMAC signatures online with SHA-256/SHA-512 and a secret key — debug webhook signature mismatches, output hex or Base64. Keys stay in your browser.
-- [RSA Key Pair Generator](https://digdevbox.com/rsa-key-pair-generator) - Generate an RSA private/public key pair online — PEM format, 2048 to 8192 bits, for SSH, TLS or JWT RS256. No OpenSSL install, keys never leave your browser.
+- [RSA Key Pair Generator — Create Public & Private PEM Keys](https://digdevbox.com/rsa-key-pair-generator) - Generate an RSA public/private key pair in your browser and copy both PEM outputs. Choose a key size from 256 to 16,384 bits in 8-bit steps; no native OpenSSH output or other key algorithms are included.
 - [Password Strength Checker — Entropy & Crack-Time Estimate](https://digdevbox.com/password-strength-analyser) - Estimate password length, character-set entropy, score and brute-force crack time locally in your browser. The estimate does not account for dictionary attacks and is not a guarantee; the password is not uploaded.
 - [Password Generator](https://digdevbox.com/password-generator) - Generate strong, secure random passwords online — pick the length (8-128) and character sets, with a cryptographic random source. Ambiguous characters (Il1O0) excluded by default, nothing leaves your browser.
 - [PDF Signature Checker — Verify PDF Signatures & Certificates](https://digdevbox.com/pdf-signature-checker) - Inspect supported PDF digital signatures, check signed-byte integrity and certificate trust or expiry, and distinguish unsupported or unreadable files. Technical checks, not legal certification.
@@ -84,13 +84,13 @@
 - [URL Parser — Inspect Query Parameters and UTM Tags](https://digdevbox.com/url-parser) - Parse a URL into its scheme, hostname, port, path, query parameters and fragment. Inspect UTM tags in the URL with your browser's built-in parser.
 - [Device information](https://digdevbox.com/device-information) - Get information about your current device (screen size, pixel-ratio, user agent, ...)
 - [Basic Auth Generator — Build an HTTP Authorization Header](https://digdevbox.com/basic-auth-generator) - Generate or decode an HTTP Basic Authorization header in your browser. Copy the Base64 value and use a cURL example with environment variables. Base64 is not encryption; use HTTPS.
-- [Open graph meta generator](https://digdevbox.com/og-meta-generator) - Generate open-graph and socials HTML meta tags for your website.
+- [Open Graph & Twitter Meta Tag Generator — Create Social Share Tags](https://digdevbox.com/og-meta-generator) - Generate copyable Open Graph and Twitter Card HTML meta tags for page title, description, URL and social image fields. Includes website, article, book, profile, music and video metadata types; no live share-card preview.
 - [OTP code generator](https://digdevbox.com/otp-generator) - Generate and validate time-based OTP (one time password) for multi-factor authentication.
 - [MIME types](https://digdevbox.com/mime-types) - Convert MIME types to file extensions and vice-versa.
 - [JWT Decoder & Parser — Inspect Header, Payload and Expiration](https://digdevbox.com/jwt-parser) - Decode JWTs online — inspect header, payload, claims and expiration (exp/iat) as readable dates. Your token never leaves your browser. Free, no signup.
 - [Keycode info](https://digdevbox.com/keycode-info) - Find the javascript keycode, code, location and modifiers of any pressed key.
 - [Slugify string](https://digdevbox.com/slugify-string) - Make a string url, filename and id safe.
-- [HTML WYSIWYG editor](https://digdevbox.com/html-wysiwyg-editor) - Online, feature-rich WYSIWYG HTML editor which generates the source code of the content immediately.
+- [HTML WYSIWYG Editor — Format Text & Copy HTML](https://digdevbox.com/html-wysiwyg-editor) - Format text visually with headings, paragraphs, lists, quotes, inline formatting and code blocks, then copy the generated HTML. Tables, images, links and direct source editing are not supported.
 - [User Agent Parser — Browser, OS & Device Detection](https://digdevbox.com/user-agent-parser) - Parse a user-agent string to identify its browser, rendering engine, operating system, CPU and device type. Use the results for debugging and analytics, not authentication.
 - [HTTP status codes](https://digdevbox.com/http-status-codes) - The list of all HTTP status codes, their name, and their meaning.
 - [JSON diff](https://digdevbox.com/json-diff) - Compare two JSON objects and get the differences between them.
@@ -143,7 +143,7 @@
 - [MAC address lookup](https://digdevbox.com/mac-address-lookup) - Find the vendor and manufacturer of a device by its MAC address.
 - [MAC address generator](https://digdevbox.com/mac-address-generator) - Enter the quantity and prefix. MAC addresses will be generated in your chosen case (uppercase or lowercase)
 - [IPv6 ULA generator](https://digdevbox.com/ipv6-ula-generator) - Generate your own local, non-routable IP addresses for your network according to RFC4193.
-- [WHOIS lookup](https://digdevbox.com/whois-lookup) - Look up domain registration data such as registrar, dates and status. Powered by RDAP, the official successor of WHOIS.
+- [Domain WHOIS & RDAP Lookup — Check Registration Details](https://digdevbox.com/whois-lookup) - Look up domain registration data through RDAP, including registrar, registration and expiry dates, status and nameservers when supplied by the registry. Coverage and returned fields vary by domain extension.
 - [HTTP status checker](https://digdevbox.com/http-status-checker) - Check the live HTTP status code and response headers of a URL to troubleshoot reachability, redirects and caching.
 - [Today in history](https://digdevbox.com/today-in-history) - See what happened on this day in history. Events load automatically when the page opens.
 
