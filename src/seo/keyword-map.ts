@@ -659,7 +659,8 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     intent: 'convert',
     priority: 'P1',
     competition: 'high',
-    landed: false,
+    landed: true,
+    lockedTitle: 'YAML to JSON Converter — Convert YAML Online',
     note: 'Matches YAML parsing with validation and formatted JSON output. Competition is provisional; no volume/KD/SERP claim.',
   },
   {
@@ -679,7 +680,8 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     intent: 'convert',
     priority: 'P1',
     competition: 'high',
-    landed: false,
+    landed: true,
+    lockedTitle: 'Text Case Converter — camelCase, snake_case & More',
     note: 'Matches lower/upper, camel, capital, constant, dot, header, param, pascal, path, sentence and snake case outputs. Competition is provisional; no volume/KD/SERP claim.',
   },
 
@@ -833,7 +835,8 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     intent: 'inspect',
     priority: 'P1',
     competition: 'high',
-    landed: false,
+    landed: true,
+    lockedTitle: 'Image Color Picker — Get HEX, RGB & HSL from Any Image',
     note: 'Source confirms local image loading and canvas pixel sampling with RGB values; verify rendered HEX/HSL output before expanding copy. Candidate mapping only; no volume/KD/SERP evidence.',
   },
   {
@@ -843,7 +846,8 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     intent: 'convert',
     priority: 'P1',
     competition: 'medium',
-    landed: false,
+    landed: true,
+    lockedTitle: 'List Converter — Sort, Deduplicate & Format Lines',
     note: 'Source model supports trimming, deduplication, sorting, reversing, case conversion, prefixes/suffixes and separators. Candidate mapping only; no volume/KD/SERP evidence.',
   },
   {
