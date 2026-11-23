@@ -62,5 +62,4 @@ jobs:
           src/tools/percentage-calculator/percentage-calculator.e2e.spec.ts
           src/tools/numeronym-generator/numeronym-generator.e2e.spec.ts
           src/tools/regex-tester/regex-tester.e2e.spec.ts
-          src/tools/regex-tester/regex-tester.e2e.spec.ts
           --project=chromium
