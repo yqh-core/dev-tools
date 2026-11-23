@@ -748,7 +748,7 @@ tools:
 
   regex-tester:
     title: Regular Expression Tester — JavaScript Regex
-    description: Test regular expressions online with live match results — JavaScript flavor, toggle flags and capture groups instantly.
+    description: Test JavaScript regular expressions online with live matches, capture groups and replacement preview. A 300ms worker timeout stops runaway patterns.
 
   safelink-decoder:
     title: "Outlook Safe Links Decoder — Reveal the Original URL"
