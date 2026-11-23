@@ -42,13 +42,18 @@ test.describe('Homepage task discovery', () => {
     await expect(page.locator('a[href*="/api-debugger"]').first()).toBeVisible();
   });
 
-  test('ranks Device Information for common English device queries', async ({ page }) => {
+  test('routes device and browser queries to the matching information tools', async ({ page }) => {
     await page.goto('/');
     const firstResult = page.locator('div.grid a.decoration-none').first();
 
-    for (const query of ['device info', 'screen resolution', 'browser info', 'user agent']) {
+    for (const [query, expectedPath] of [
+      ['device info', '/device-information/'],
+      ['screen resolution', '/device-information/'],
+      ['browser info', '/user-agent-parser/'],
+      ['user agent', '/user-agent-parser/'],
+    ]) {
       await page.getByRole('searchbox').fill(query);
-      await expect(firstResult).toHaveAttribute('href', '/device-information/');
+      await expect(firstResult).toHaveAttribute('href', expectedPath);
       await page.getByRole('searchbox').fill('');
     }
   });
