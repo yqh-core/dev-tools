@@ -151,7 +151,7 @@
 
 - [Math evaluator](https://digdevbox.com/math-evaluator) - A calculator for evaluating mathematical expressions. You can use functions like sqrt, cos, sin, abs, etc.
 - [ETA Calculator — Task Completion Time](https://digdevbox.com/eta-calculator) - Estimate when a download, build or batch job will finish from total work and current processing rate. Set the start time and rate to see duration and finish time.
-- [Percentage Calculator — Percent & Change](https://digdevbox.com/percentage-calculator) - Calculate a percentage, reverse an increase or discount, compare two values, and find percentage-point changes. Seven free calculator modes in your browser.
+- [Percentage Calculator — Percent & Change](https://digdevbox.com/percentage-calculator) - Calculate percentages, reverse discounts, compare values and rates, or batch rows with copyable formulas and CSV/TSV export. Seven free modes in your browser.
 
 ### Measurement
 
