@@ -83,12 +83,13 @@ const hasKey = (loc, dotted) => {
   const v = dotted.split('.').reduce((o, k) => (o == null ? o : o[k]), MESSAGES_BY_LOCALE[loc]);
   return typeof v === 'string' && v.trim().length > 0;
 };
-// 与客户端真实页脚的链接集合一致：首页 / 关于 + 3 个法务页。
+// 与客户端真实页脚的链接集合一致：首页 / 关于 + 隐私 / 条款 / FAQ / 联系。
 const FOOTER_LINKS = [
   { href: '/', text: label('home.home') },
   { href: '/about/', text: label('home.nav.aboutLabel') },
   { href: '/privacy/', text: label('legal.privacy') },
   { href: '/terms/', text: label('legal.terms') },
+  { href: '/faq/', text: label('legal.faq') },
   { href: '/contact/', text: label('legal.contact') },
 ];
 
