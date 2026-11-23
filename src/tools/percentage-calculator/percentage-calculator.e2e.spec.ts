@@ -159,11 +159,13 @@ test.describe('Tool - Percentage calculator', () => {
     await page.getByTestId('runPercentageBatch').click();
 
     await page.getByTestId('copyPercentageBatchRow-1').click();
+    await expect(page.getByTestId('percentageBatchStatus')).toHaveText('Copied to clipboard.');
     const oneRow = await page.evaluate(() => navigator.clipboard.readText());
     expect(oneRow).toContain('(15 ÷ 100) × 80');
     expect(oneRow).toContain('12');
 
     await page.getByTestId('copyPercentageBatch').click();
+    await expect(page.getByTestId('percentageBatchStatus')).toHaveText('Copied to clipboard.');
     const allRows = await page.evaluate(() => navigator.clipboard.readText());
     expect(allRows).toContain('Row');
     expect(allRows).toContain('20');
