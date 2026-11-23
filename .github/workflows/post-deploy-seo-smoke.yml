@@ -102,20 +102,33 @@ jobs:
             // GitHub's Cloudflare status can lag the edge rollout. The exact
             // production SEO marker is a stronger fallback: it proves the new
             // deployable commit is already serving the approved metadata.
-            const markerResponse = await fetch(origin + '/percentage-calculator/', {
-              redirect: 'follow',
-              headers: { 'user-agent': ua, 'cache-control': 'no-cache' },
-              signal: AbortSignal.timeout(10000),
-            });
-            const markerHtml = await markerResponse.text();
-            const markerTitle = '<title>Percentage Calculator — Percent & Change - DigDevBox</title>';
-            const markerDescription = 'content="Calculate a percentage of a number, find what percent one value is of another, measure percentage change, or apply a discount or sales tax. Four free calculators."';
-            const markerCanonical = markerHtml.includes('href="' + origin + '/percentage-calculator/"');
-            const productionMarkerReady = markerResponse.ok &&
-              markerResponse.url === origin + '/percentage-calculator/' &&
-              markerHtml.includes(markerTitle) &&
-              markerHtml.includes(markerDescription) &&
-              markerCanonical;
+            const [percentageResponse, htpasswdResponse] = await Promise.all([
+              fetch(origin + '/percentage-calculator/', {
+                redirect: 'follow',
+                headers: { 'user-agent': ua, 'cache-control': 'no-cache' },
+                signal: AbortSignal.timeout(10000),
+              }),
+              fetch(origin + '/htpasswd-generator/', {
+                redirect: 'follow',
+                headers: { 'user-agent': ua, 'cache-control': 'no-cache' },
+                signal: AbortSignal.timeout(10000),
+              }),
+            ]);
+            const [percentageHtml, htpasswdHtml] = await Promise.all([
+              percentageResponse.text(),
+              htpasswdResponse.text(),
+            ]);
+            const percentageMarkerReady = percentageResponse.ok &&
+              percentageResponse.url === origin + '/percentage-calculator/' &&
+              percentageHtml.includes('<title>Percentage Calculator — Percent & Change - DigDevBox</title>') &&
+              percentageHtml.includes('content="Calculate a percentage of a number, find what percent one value is of another, measure percentage change, or apply a discount or sales tax. Four free calculators."') &&
+              percentageHtml.includes('href="' + origin + '/percentage-calculator/"');
+            const htpasswdMarkerReady = htpasswdResponse.ok &&
+              htpasswdResponse.url === origin + '/htpasswd-generator/' &&
+              htpasswdHtml.includes('content="Build a multi-user Apache/Nginx .htpasswd file with bcrypt or apr1 hashes. Copy or download it, then verify an existing username:hash line locally. Passwords stay in your browser."') &&
+              htpasswdHtml.includes('Build a complete .htpasswd file with one line per user for Apache or Nginx Basic Auth') &&
+              htpasswdHtml.includes('href="' + origin + '/htpasswd-generator/"');
+            const productionMarkerReady = percentageMarkerReady && htpasswdMarkerReady;
             if (productionMarkerReady) {
               cloudflareReady = true;
               console.log('Production SEO marker confirms the exact release is serving, despite a pending/stale Cloudflare check');
