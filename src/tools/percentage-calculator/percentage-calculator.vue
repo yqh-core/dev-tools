@@ -227,7 +227,7 @@ function restorePercentageBatchHistory(item: PercentageBatchHistoryItem): void {
   percentageBatchMode.value = item.mode;
   percentageBatchInput.value = item.input;
   percentageBatchRows.value = runPercentageBatch(item.input, item.mode);
-  percentageBatchStatus.value = 'Restored a local run from ' + new Date(item.savedAt).toLocaleString() + '.';
+  percentageBatchStatus.value = `Restored a local run from ${new Date(item.savedAt).toLocaleString()}.`;
 }
 
 function removePercentageBatchHistory(id: string): void {
@@ -250,7 +250,6 @@ function clearPercentageBatchHistory(): void {
 function percentageBatchSavedAt(timestamp: number): string {
   return new Date(timestamp).toLocaleString();
 }
-
 </script>
 
 <template>
@@ -465,7 +464,7 @@ function percentageBatchSavedAt(timestamp: number): string {
               <tr
                 v-for="row in percentageBatchRows"
                 :key="row.lineNumber"
-                :data-test-id="'percentage-batch-result-' + row.lineNumber"
+                :data-test-id="`percentage-batch-result-${row.lineNumber}`"
                 class="border-b border-gray-200 align-top dark:border-gray-700"
               >
                 <td class="px-2 py-2">{{ row.label }}</td>
@@ -521,7 +520,7 @@ function percentageBatchSavedAt(timestamp: number): string {
                 <button
                   type="button"
                   class="rounded border border-gray-300 px-2 py-1 text-xs dark:border-gray-600"
-                  :aria-label="'Remove ' + percentageBatchModeNames[item.mode] + ' from history'"
+                  :aria-label="`Remove ${percentageBatchModeNames[item.mode]} from history`"
                   @click="removePercentageBatchHistory(item.id)"
                 >
                   Remove
