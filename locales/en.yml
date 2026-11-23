@@ -507,8 +507,8 @@ tools:
       needTwo: Select at least two PDF files to merge.
 
   pdf-split:
-    title: PDF Split
-    description: Split a PDF into single pages, or extract a page range — page count is read from the file before you choose. Free, private, runs in your browser.
+    title: PDF Split — Split PDF Pages or Extract a Range
+    description: Split a PDF into separate single-page files or extract a selected page range into a new PDF. Check the page count first; processing runs in your browser.
     pickFile: Choose a PDF file
     pageCount: 'This document has {count} page. | This document has {count} pages.'
     working: Splitting…
@@ -522,8 +522,8 @@ tools:
       split: Split PDF
 
   pdf-watermark:
-    title: PDF Watermark
-    description: Add a text watermark to every page of a PDF — adjustable size, opacity, angle, single line or tiled. Free, private, runs in your browser.
+    title: PDF Watermark — Add Text Watermarks to PDF
+    description: Add a text watermark to every page of a PDF. Adjust font size, opacity and angle, then choose a single centered line or a tiled layout; processing stays in your browser.
     pickFile: Choose a PDF file
     text: Watermark text
     textPlaceholder: e.g. CONFIDENTIAL
@@ -539,8 +539,8 @@ tools:
       needText: Enter the watermark text first.
 
   pdf-compress:
-    title: PDF Compressor
-    description: Compress PDF files online by recompressing embedded photos and rebuilding the file structure. Two levels, live before/after sizes, never larger than the original. Free, private, runs in your browser.
+    title: PDF Compressor — Reduce PDF File Size Online
+    description: Compress a PDF by recompressing embedded photos and rebuilding file structure. Compare before-and-after sizes with balanced or strong compression; text and vector content stay untouched, and the result is never larger than the original.
     pickFile: Choose a PDF file
     levelLabel: Compression level
     balanced: Balanced (recommended)
@@ -603,8 +603,8 @@ tools:
       unreadable: This file could not be decoded as an image
 
   image-resize:
-    title: Image Resizer
-    description: Resize images online to exact pixel dimensions — step-down scaling keeps detail instead of smearing it, and nothing is uploaded because it all runs in your browser.
+    title: Image Resizer — Resize Images to Exact Dimensions
+    description: Resize an image to exact pixel width and height, with an optional aspect-ratio lock. Export PNG, JPEG or WebP when your browser supports the format; processing happens locally.
     pickFile: Choose an image
     width: Target width (px)
     height: Target height (px)

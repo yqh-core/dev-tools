@@ -61,6 +61,10 @@ describe('evidence-backed SEO keyword targets', () => {
     ['/user-agent-parser', 'user agent parser', 'User Agent Parser — Browser, OS & Device Detection'],
     ['/xml-to-json', 'XML to JSON converter', 'XML to JSON Converter — Convert XML Online'],
     ['/markdown-to-html', 'Markdown to HTML converter', 'Markdown to HTML Converter — Live Preview & HTML Output'],
+    ['/pdf-split', 'split PDF pages online', 'PDF Split — Split PDF Pages or Extract a Range'],
+    ['/pdf-watermark', 'add watermark to PDF', 'PDF Watermark — Add Text Watermarks to PDF'],
+    ['/pdf-compress', 'compress PDF online', 'PDF Compressor — Reduce PDF File Size Online'],
+    ['/image-resize', 'resize image online', 'Image Resizer — Resize Images to Exact Dimensions'],
   ])('locks the landed metadata for %s', (path, keyword, lockedTitle) => {
     const entry = CLUSTER_KEYWORD_ENTRIES.find(item => item.path === path);
 
@@ -76,8 +80,23 @@ describe('evidence-backed SEO keyword targets', () => {
     ['/user-agent-parser', 'user agent parser', 'parse'],
     ['/xml-to-json', 'XML to JSON converter', 'convert'],
     ['/markdown-to-html', 'Markdown to HTML converter', 'convert'],
-
   ])('keeps %s mapped to an existing capability-matched route', (path, keyword, intent) => {
+    const entry = CLUSTER_KEYWORD_ENTRIES.find(item => item.path === path);
+
+    expect(entry).toBeDefined();
+    expect(entry?.keyword).toBe(keyword);
+    expect(entry?.intent).toBe(intent);
+    expect(entry?.landed).toBe(true);
+    expect((entry?.keywords ?? []).length).toBeGreaterThanOrEqual(4);
+    expect(entry?.note).toContain('provisional');
+  });
+
+  it.each([
+    ['/pdf-split', 'split PDF pages online', 'convert'],
+    ['/pdf-watermark', 'add watermark to PDF', 'convert'],
+    ['/pdf-compress', 'compress PDF online', 'convert'],
+    ['/image-resize', 'resize image online', 'convert'],
+  ])('keeps newly landed %s capability-matched', (path, keyword, intent) => {
     const entry = CLUSTER_KEYWORD_ENTRIES.find(item => item.path === path);
 
     expect(entry).toBeDefined();
@@ -119,10 +138,6 @@ describe('evidence-backed SEO keyword targets', () => {
   });
 
   it.each([
-    ['/pdf-split', 'split PDF pages online', 'convert'],
-    ['/pdf-watermark', 'add watermark to PDF', 'convert'],
-    ['/pdf-compress', 'compress PDF online', 'convert'],
-    ['/image-resize', 'resize image online', 'convert'],
     ['/image-compress', 'compress image online', 'convert'],
     ['/image-crop', 'crop image online', 'convert'],
     ['/favicon-generator', 'favicon generator', 'generate'],

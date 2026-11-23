@@ -690,7 +690,8 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     intent: 'convert',
     priority: 'P1',
     competition: 'high',
-    landed: false,
+    landed: true,
+    lockedTitle: 'PDF Split — Split PDF Pages or Extract a Range',
     note: 'Matches splitting each page or a selected page range into separate downloadable PDFs. Competition is provisional; no volume/KD/SERP claim.',
   },
   {
@@ -700,7 +701,8 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     intent: 'convert',
     priority: 'P1',
     competition: 'high',
-    landed: false,
+    landed: true,
+    lockedTitle: 'PDF Watermark — Add Text Watermarks to PDF',
     note: 'Matches text watermark with font size, opacity, angle and tiled mode. Competition is provisional; no volume/KD/SERP claim.',
   },
   {
@@ -710,7 +712,8 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     intent: 'convert',
     priority: 'P1',
     competition: 'high',
-    landed: false,
+    landed: true,
+    lockedTitle: 'PDF Compressor — Reduce PDF File Size Online',
     note: 'Matches browser-side compression with balanced level, size comparison and an 80 MiB input cap; do not promise a guaranteed reduction. Competition is provisional.',
   },
   {
@@ -720,7 +723,8 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     intent: 'convert',
     priority: 'P1',
     competition: 'high',
-    landed: false,
+    landed: true,
+    lockedTitle: 'Image Resizer — Resize Images to Exact Dimensions',
     note: 'Matches custom width/height, aspect-ratio lock, output format and quality controls. Competition is provisional; no volume/KD/SERP claim.',
   },
   {
