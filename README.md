@@ -54,11 +54,11 @@
 
 - [Date Converter — Formats, Time Zones and ISO 8601](https://digdevbox.com/date-converter) - Convert between date formats online — ISO 8601, RFC 3339, UTC, locale, Excel, Mongo ObjectID and Unix timestamps.
 - [Unix Timestamp Converter — Epoch to Date, Seconds vs Milliseconds](https://digdevbox.com/unix-timestamp-converter) - Convert a Unix epoch timestamp (seconds or milliseconds) to a readable date, or turn a date into a timestamp online.
-- [Integer base converter](https://digdevbox.com/base-converter) - Convert a number between different bases (decimal, hexadecimal, binary, octal, base64, ...)
+- [Integer Base Converter — Binary, Decimal, Hexadecimal and Base 2–64](https://digdevbox.com/base-converter) - Convert non-negative integers between bases 2–64, including binary, octal, decimal, hexadecimal and custom alphabets. This converts numbers, not text.
 - [Roman numeral converter](https://digdevbox.com/roman-numeral-converter) - Convert Roman numerals to numbers and convert numbers to Roman numerals.
 - [Base64 Encoder & Decoder — Padding, URL-Safe, Binary-Safe](https://digdevbox.com/base64-string-converter) - Encode and decode Base64 online — URL-safe base64url, padding options, binary-safe text, with RFC 4648 and atob()/btoa() notes. Free, in your browser.
 - [Base64 to Image — Online Decode, Preview and Download](https://digdevbox.com/base64-file-converter) - Convert a string, file, or image into its base64 representation.
-- [Color converter](https://digdevbox.com/color-converter) - Convert color between the different formats (hex, rgb, hsl and css name)
+- [Color Converter — HEX, RGB, HSL, HWB, LCH and CMYK](https://digdevbox.com/color-converter) - Convert and edit colors between HEX, RGB, HSL, HWB, LCH, CMYK and the nearest CSS color name, with a color picker. Values are computed in your browser.
 - [Color Contrast Checker — Pass or Fail WCAG AA and AAA](https://digdevbox.com/color-contrast-checker) - Check the contrast ratio between two colours against WCAG 2.x AA and AAA thresholds for normal and large text, with a live text preview.
 - [Text Case Converter — camelCase, snake_case & More](https://digdevbox.com/case-converter) - Convert text between camelCase, PascalCase, snake_case, kebab-case, CONSTANT_CASE, uppercase, lowercase and other naming styles. Paste once, choose a format and copy the result.
 - [Text to NATO alphabet](https://digdevbox.com/text-to-nato-alphabet) - Transform text into the NATO phonetic alphabet for oral transmission.
@@ -80,7 +80,7 @@
 ### Web
 
 - [URL Encoder & Decoder — Percent-Encoding, encodeURIComponent Pitfalls](https://digdevbox.com/url-encoder) - Encode text to URL-encoded format (also known as "percent-encoded"), or decode from it.
-- [Escape HTML entities](https://digdevbox.com/html-entities) - Escape or unescape HTML entities (turn <, >, &, " and ' into their HTML form) and look up common characters — quotes, dashes, currency, math and Greek symbols — in a searchable entity reference table.
+- [HTML Entity Encoder & Decoder — Escape Characters and Look Up Entities](https://digdevbox.com/html-entities) - Escape and unescape HTML text characters including ampersands, angle brackets, quotes and apostrophes. Search a reference table of common named and numeric HTML entities; escaping is not HTML sanitization.
 - [URL Parser — Inspect Query Parameters and UTM Tags](https://digdevbox.com/url-parser) - Parse a URL into its scheme, hostname, port, path, query parameters and fragment. Inspect UTM tags in the URL with your browser's built-in parser.
 - [Device information](https://digdevbox.com/device-information) - Get information about your current device (screen size, pixel-ratio, user agent, ...)
 - [Basic Auth Generator — Build an HTTP Authorization Header](https://digdevbox.com/basic-auth-generator) - Generate or decode an HTTP Basic Authorization header in your browser. Copy the Base64 value and use a cURL example with environment variables. Base64 is not encryption; use HTTPS.
@@ -130,7 +130,7 @@
 - [Email Address Normalizer](https://digdevbox.com/email-normalizer) - Normalize email addresses to a standard format for easier comparison, deduplication and data cleaning.
 - [Regular Expression Tester — JavaScript Regex](https://digdevbox.com/regex-tester) - Test regular expressions online with live match results — JavaScript flavor, toggle flags and capture groups instantly.
 - [Regex Cheat Sheet — Complete Regular Expression Reference](https://digdevbox.com/regex-memo) - A complete regex cheat sheet — common regular expression syntax, quantifiers, flags and character classes with examples.
-- [px / rem converter](https://digdevbox.com/px-rem-converter) - Convert a batch of values between px and rem with a configurable root font size.
+- [PX to REM Converter — Batch Conversion with Root Font Size](https://digdevbox.com/px-rem-converter) - Convert batches of CSS pixel and rem values in either direction. Set the root font size and decimal precision; values can be separated by spaces, commas or newlines.
 - [JSON to model classes](https://digdevbox.com/json-to-code) - Generate TypeScript, C#, Java or Go model classes from JSON, splitting nested objects into their own classes.
 - [Linux commands cheat sheet](https://digdevbox.com/linux-commands) - A searchable cheat sheet of common Linux commands with what they do and ready-to-use examples.
 - [Prepare Deployment — Pre-Deploy Readiness Gate for Docker, CI & Lockfiles](https://digdevbox.com/prepare-deployment) - Pre-deployment readiness gate for your project. Paste package.json, lockfile, Dockerfile and CI workflow, or import Trivy/Checkov/Hadolint/SARIF JSON or actionlint text; get a READY / READY_WITH_WARNINGS / BLOCKED / NOT_ASSESSED verdict with evidence-backed findings (reproducible builds, pinned images, non-root containers, CI injection risks, hardcoded secrets, real scanner results) and an exportable release report. Inspired by Vercel/Netlify preflight checks; runs fully in your browser.

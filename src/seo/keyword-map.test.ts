@@ -220,8 +220,6 @@ describe('evidence-backed SEO keyword targets', () => {
   });
 
   it.each([
-    ['/html-entities', 'HTML entities encoder and decoder', 'convert'],
-    ['/base-converter', 'number base converter', 'convert'],
     ['/qrcode-generator', 'QR code generator', 'generate'],
     ['/wifi-qrcode-generator', 'WiFi QR code generator', 'generate'],
     ['/roman-numeral-converter', 'Roman numeral converter', 'convert'],
@@ -266,13 +264,11 @@ describe('evidence-backed SEO keyword targets', () => {
     ['/bcrypt', 'bcrypt hash generator and checker', 'generate'],
     ['/bip39-generator', 'BIP39 mnemonic generator', 'generate'],
     ['/chronometer', 'online stopwatch', 'compute'],
-    ['/color-converter', 'color format converter', 'convert'],
     ['/device-information', 'browser device information checker', 'inspect'],
     ['/encryption', 'text encryption and decryption tool', 'convert'],
     ['/git-memo', 'Git commands cheat sheet', 'lookup'],
     ['/temperature-converter', 'temperature converter', 'convert'],
     ['/fullwidth-converter', 'full-width half-width converter', 'convert'],
-    ['/px-rem-converter', 'px to rem converter', 'convert'],
     ['/today-in-history', 'today in history', 'lookup'],
   ])('keeps final source-audited candidate %s capability-matched', (path, keyword, intent) => {
     const entry = CLUSTER_KEYWORD_ENTRIES.find(item => item.path === path);
@@ -283,5 +279,19 @@ describe('evidence-backed SEO keyword targets', () => {
     expect(entry?.landed).toBe(false);
     expect((entry?.keywords ?? []).length).toBeGreaterThanOrEqual(4);
     expect(entry?.note).toContain('Candidate mapping only');
+  });
+
+  it.each([
+    ['/html-entities', 'HTML entities encoder and decoder', 'HTML Entity Encoder & Decoder — Escape Characters and Look Up Entities'],
+    ['/base-converter', 'number base converter', 'Integer Base Converter — Binary, Decimal, Hexadecimal and Base 2–64'],
+    ['/color-converter', 'color format converter', 'Color Converter — HEX, RGB, HSL, HWB, LCH and CMYK'],
+    ['/px-rem-converter', 'px to rem converter', 'PX to REM Converter — Batch Conversion with Root Font Size'],
+  ])('locks newly landed P1 utility %s to its capability-matched title', (path, keyword, lockedTitle) => {
+    const entry = CLUSTER_KEYWORD_ENTRIES.find(item => item.path === path);
+    expect(entry).toBeDefined();
+    expect(entry?.keyword).toBe(keyword);
+    expect(entry?.priority).toBe('P1');
+    expect(entry?.landed).toBe(true);
+    expect(entry?.lockedTitle).toBe(lockedTitle);
   });
 });
