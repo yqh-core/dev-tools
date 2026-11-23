@@ -1,0 +1,58 @@
+import { expect, test } from '@playwright/test';
+
+test.describe('Tool - Regex Tester isolated execution', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/regex-tester');
+  });
+
+  test('supports named groups and JavaScript replacement tokens', async ({ page }) => {
+    await page.getByLabel('Regex to test:').fill('(?<word>hello)');
+    await page.getByLabel('Text to match:').fill('hello world');
+    await page.getByLabel('Replacement:').fill('$<word>!');
+    await expect(page.locator('pre').first()).toContainText('hello! world');
+    await expect(page.getByText('word')).toBeVisible();
+  });
+
+  test('terminates catastrophic backtracking and recovers for the next request', async ({ page }) => {
+    await page.getByLabel('Regex to test:').fill('^(a+)+$');
+    await page.getByLabel('Text to match:').fill('a'.repeat(30) + '!');
+    await expect(page.getByText(/Timed out after 300ms/)).toBeVisible({ timeout: 5000 });
+
+    // The main thread remains responsive and a fresh worker handles the next request.
+    await page.getByLabel('Regex to test:').fill('a+');
+    await page.getByLabel('Text to match:').fill('aaaa');
+    await expect(page.getByText('aaaa', { exact: true })).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText(/Timed out after/)).toHaveCount(0);
+  });
+
+  test('shows invalid-pattern errors and recovers after correction', async ({ page }) => {
+    await page.getByLabel('Regex to test:').fill('(');
+    await page.getByLabel('Text to match:').fill('hello');
+    await expect(page.getByText(/Invalid regular expression/)).toBeVisible();
+
+    await page.getByLabel('Regex to test:').fill('hello');
+    await expect(page.getByText('hello', { exact: true })).toBeVisible({ timeout: 5000 });
+  });
+
+  test('supports keyboard input and remains within a 390px viewport', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.getByLabel('Regex to test:').focus();
+    await page.keyboard.type('\\\\d+');
+    await page.getByLabel('Text to match:').fill('Order 123');
+    await page.getByLabel('Replacement:').fill('#$&');
+    await expect(page.locator('pre').first()).toContainText('Order #123', { timeout: 5000 });
+
+    const dimensions = await page.evaluate(() => ({
+      documentWidth: document.documentElement.scrollWidth,
+      viewportWidth: document.documentElement.clientWidth,
+    }));
+    expect(dimensions.documentWidth).toBeLessThanOrEqual(dimensions.viewportWidth);
+  });
+
+  test('applies a verified JavaScript preset', async ({ page }) => {
+    await page.getByRole('combobox').first().click();
+    await page.getByRole('option', { name: 'IPv4 address' }).click();
+    await page.getByLabel('Text to match:').fill('Server: 192.168.1.42');
+    await expect(page.getByText('192.168.1.42', { exact: true })).toBeVisible({ timeout: 5000 });
+  });
+});
