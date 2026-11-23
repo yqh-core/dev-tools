@@ -15,7 +15,7 @@ test.describe('Tool - Regex Tester isolated execution', () => {
 
   test('terminates catastrophic backtracking and recovers for the next request', async ({ page }) => {
     await page.getByLabel('Regex to test:').fill('^(a+)+$');
-    await page.getByLabel('Text to match:').fill('a'.repeat(30) + '!');
+    await page.getByLabel('Text to match:').fill(`${'a'.repeat(30)}!`);
     await expect(page.getByText(/Timed out after 300ms/)).toBeVisible({ timeout: 5000 });
 
     // The main thread remains responsive and a fresh worker handles the next request.
