@@ -5,7 +5,7 @@ import { buildHtpasswdLines, hashHtpasswdPassword } from './htpasswd-generator.s
 describe('hashHtpasswdPassword', () => {
   it('creates an Apache-compatible bcrypt hash with the locked bcryptjs prefix', () => {
     const hash = hashHtpasswdPassword('secret', 'bcrypt', 4);
-    expect(hash).toMatch(/^\\$2a\\$04\\$/);
+    expect(hash).toMatch(/^\$2a\$04\$/);
     expect(compareSync('secret', hash)).toBe(true);
     expect(compareSync('wrong', hash)).toBe(false);
   });
@@ -41,7 +41,7 @@ describe('buildHtpasswdLines', () => {
   });
 
   it('rejects empty usernames, unsafe delimiters and line breaks', () => {
-    for (const username of ['', '   ', 'bad:name', 'bad\\nname', 'bad\\rname']) {
+    for (const username of ['', '   ', 'bad:name', 'bad\nname', 'bad\rname']) {
       expect(() => buildHtpasswdLines([{ username, password: 'pw' }], () => 'hash')).toThrow();
     }
   });
