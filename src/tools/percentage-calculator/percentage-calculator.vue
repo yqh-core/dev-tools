@@ -246,15 +246,17 @@ function downloadPercentageBatch(format: 'csv' | 'tsv'): void {
   const content = format === 'csv'
     ? percentageBatchToCsv(percentageBatchRows.value)
     : percentageBatchToTsv(percentageBatchRows.value);
-  const blob = new Blob([content], {
+  const blob = new Blob(['\\uFEFF', content], {
     type: format === 'csv' ? 'text/csv;charset=utf-8' : 'text/tab-separated-values;charset=utf-8',
   });
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement('a');
   anchor.href = url;
   anchor.download = `percentage-calculations.${format}`;
+  document.body.appendChild(anchor);
   anchor.click();
-  URL.revokeObjectURL(url);
+  anchor.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
   percentageBatchStatus.value = t('tools.percentage-calculator.batch.downloaded', { format: format.toUpperCase() });
 }
 
