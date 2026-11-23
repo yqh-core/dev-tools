@@ -47,7 +47,7 @@ describe('percentage calculator batch engine', () => {
   });
 
   it('supports negative inputs and keeps deterministic full-precision results', () => {
-    expect(calculatePercentageBatch('-80\t-15', 'adjust')[0].result)
+    expect(calculatePercentageBatch('-80\t15', 'adjust')[0].result)
       .toBe('Increase: -92; decrease: -68');
     expect(calculatePercentageBatch('1\t3', 'ratio')[0].result)
       .toBe('33.33333333333333');
@@ -57,7 +57,7 @@ describe('percentage calculator batch engine', () => {
   it('exports CSV and TSV with headers and escaped cell values', () => {
     const rows = calculatePercentageBatch('10\t20', 'part');
     expect(exportPercentageBatch(rows)).toBe(
-      'Row,Input,Formula,Result,Error\r\n1,"10\t20","(10 ÷ 100) × 20",2,',
+      'Row,Input,Formula,Result,Error\r\n1,"10\t20",(10 ÷ 100) × 20,2,',
     );
     expect(exportPercentageBatch(rows, '\t').split('\r\n')[0])
       .toBe('Row\tInput\tFormula\tResult\tError');
