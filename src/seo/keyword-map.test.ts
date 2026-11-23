@@ -65,6 +65,10 @@ describe('evidence-backed SEO keyword targets', () => {
     ['/pdf-watermark', 'add watermark to PDF', 'PDF Watermark — Add Text Watermarks to PDF'],
     ['/pdf-compress', 'compress PDF online', 'PDF Compressor — Reduce PDF File Size Online'],
     ['/image-resize', 'resize image online', 'Image Resizer — Resize Images to Exact Dimensions'],
+    ['/image-compress', 'compress image online', 'Image Compressor — Reduce JPEG & WebP File Size'],
+    ['/image-crop', 'crop image online', 'Image Cropper — Crop Photos to Any Aspect Ratio'],
+    ['/favicon-generator', 'favicon generator', 'Favicon Generator — Create ICO & PNG Icons'],
+    ['/image-to-pdf', 'convert images to PDF', 'Images to PDF Converter — Combine JPG & PNG Online'],
     ['/yaml-to-json-converter', 'YAML to JSON converter', 'YAML to JSON Converter — Convert YAML Online'],
     ['/case-converter', 'text case converter', 'Text Case Converter — camelCase, snake_case & More'],
     ['/list-converter', 'list converter', 'List Converter — Sort, Deduplicate & Format Lines'],
@@ -112,6 +116,10 @@ describe('evidence-backed SEO keyword targets', () => {
   });
 
   it.each([
+    ['/image-compress', 'compress image online', 'convert'],
+    ['/image-crop', 'crop image online', 'convert'],
+    ['/favicon-generator', 'favicon generator', 'generate'],
+    ['/image-to-pdf', 'convert images to PDF', 'convert'],
     ['/yaml-to-json-converter', 'YAML to JSON converter', 'convert'],
     ['/case-converter', 'text case converter', 'convert'],
     ['/list-converter', 'list converter', 'convert'],
