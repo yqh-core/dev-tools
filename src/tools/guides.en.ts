@@ -1937,18 +1937,19 @@ export const GUIDES: Record<string, ToolGuide> = {
   },
 
   '/json-to-get-params': {
-    intro: 'Converts between JSON and GET query parameters: flatten nested objects into a query string such as a[b][0]=c, or rebuild JSON from it.',
+    intro: 'Convert between JSON and URL query parameters: flatten nested objects and arrays into percent-encoded bracket notation, or rebuild JSON from a query string or full URL.',
     steps: ['Choose the direction: JSON → GET params or GET params → JSON', 'Paste the JSON or the query string', 'Copy the converted result'],
     notes: [
-      'Nesting levels and array indices are both expressed with square brackets, e.g. items[0][name]',
-      'Fields whose value is null, an empty array or an empty object produce an empty value',
+      'Nested object keys and array indices use bracket notation, e.g. a nested path such as a[b][0] is percent-encoded in the generated URL',
+      'Null values, empty arrays and empty objects are emitted as empty values; converting back cannot distinguish these from empty strings',
+      'Repeated query keys are assigned in order, so later values can replace earlier scalar values',
     ],
     example: { label: 'Fill in sample JSON', text: '{"a":1,"b":{"c":2},"list":[1,2]}' },
-    about: 'HTML forms and many server frameworks encode structured data in the query string using bracket notation: a nested object { "b": { "c": 2 } } becomes b[c]=2, and an array { "list": [1, 2] } becomes list[0]=1&list[1]=2. This tool flattens JSON into that exact notation so you can drop a JSON payload straight into a URL, and parses a query string back into nested JSON when you receive one. It is the bridge between a clean JSON body and the bracket-encoded query strings that PHP, Express, Ruby on Rails and others expect.',
+    about: 'HTML forms and many server frameworks encode structured data in query strings using bracket notation. This tool flattens nested JSON objects and arrays into key-value pairs, percent-encoding both keys (including bracket characters) and values with encodeURIComponent. For example, a logical path such as a[b][0] is emitted with its brackets encoded for URL use. It also accepts a query string or full URL and decodes the parameters back into a nested JSON structure. This is useful when moving structured data between a JSON payload and query-string conventions used by web frameworks.',
     faqs: [
-      { q: 'How is nesting expressed in the query string?', a: 'With square brackets, mirroring JavaScript member access: { "a": { "b": [1] } } becomes a[b][0]=1. Each level of object nesting adds a bracketed key, and each array index adds a numeric bracket, so the structure is fully recoverable on the way back.' },
-      { q: 'What happens to null or empty values?', a: 'They produce an empty value in the query string (key= with nothing after). That is the faithful representation — a query string cannot encode "absence" more precisely than an empty field — so when rebuilding JSON the value comes back as an empty string rather than null. Drop such keys before sending if the server is strict.' },
-      { q: 'Is the output URL-encoded?', a: 'The tool shows the logical key=value pairs; special characters in keys or values should be percent-encoded before putting them in a real URL. Encode the values (not the brackets) so the bracket structure stays intact and the server parses it correctly.' },
+      { q: 'How is nesting expressed in the query string?', a: 'Nested object properties and array indices use bracket notation. For example, a logical path a[b][0]=1 represents the first item in the nested array. In the generated output, the key is percent-encoded (including the square brackets), as are values that need encoding.' },
+      { q: 'What happens to null or empty values?', a: 'Null values, empty arrays and empty objects are emitted as an empty value (key=). When converted back, that becomes an empty string, so the original distinction between null, an empty array, an empty object and an empty string is not preserved.' },
+      { q: 'Does the tool encode the output for use in a URL?', a: 'Yes. It applies encodeURIComponent to both each key and each value. That means square brackets in nested keys are percent-encoded too (for example, [ becomes %5B and ] becomes %5D). The reverse direction decodes percent escapes and treats + as a space.' },
     ],
   },
 
