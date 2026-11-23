@@ -430,40 +430,39 @@ function percentageBatchSavedAt(timestamp: number): string {
 
     <details class="mx-auto mt-8 max-w-800px px-4" data-test-id="percentage-batch-panel">
       <summary class="cursor-pointer rounded-lg border border-gray-300 px-4 py-3 font-semibold dark:border-gray-600">
-        Calculate a list of values — optional batch mode
+        {{ $t('tools.percentage-calculator.batch.summary') }}
       </summary>
       <div class="mt-4 rounded-lg border border-gray-200 p-4 dark:border-gray-700">
-        <h2 class="mb-2 text-lg font-semibold">Batch percentage calculator</h2>
+        <h2 class="mb-2 text-lg font-semibold">{{ $t('tools.percentage-calculator.batch.title') }}</h2>
         <p class="mb-4 text-sm">
-          Paste one row per line. Separate the two numbers with a tab or comma; you may add a text label as the first column.
-          Each row is calculated independently, so one invalid row does not stop the others.
+          {{ $t('tools.percentage-calculator.batch.description') }}
         </p>
 
-        <label class="mb-2 block text-sm font-semibold" for="percentage-batch-mode">Calculation</label>
+        <label class="mb-2 block text-sm font-semibold" for="percentage-batch-mode">{{ $t('tools.percentage-calculator.batch.calculation') }}</label>
         <select
           id="percentage-batch-mode"
           v-model="percentageBatchMode"
           data-test-id="percentage-batch-mode"
           class="mb-2 w-full rounded border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-900"
         >
-          <option value="percent-of">What is X% of Y?</option>
-          <option value="part-to-whole">X is what percent of Y?</option>
-          <option value="percentage-change">Percentage increase or decrease</option>
-          <option value="adjustment">Add or subtract a percentage</option>
-          <option value="reverse">Reverse a percentage increase or decrease</option>
-          <option value="percentage-difference">Percentage difference between two values</option>
-          <option value="percentage-points">Percentage-point change between two rates</option>
+          <option value="percent-of">{{ $t('tools.percentage-calculator.batch.modes.percent-of') }}</option>
+          <option value="part-to-whole">{{ $t('tools.percentage-calculator.batch.modes.part-to-whole') }}</option>
+          <option value="percentage-change">{{ $t('tools.percentage-calculator.batch.modes.percentage-change') }}</option>
+          <option value="adjustment">{{ $t('tools.percentage-calculator.batch.modes.adjustment') }}</option>
+          <option value="reverse">{{ $t('tools.percentage-calculator.batch.modes.reverse') }}</option>
+          <option value="percentage-difference">{{ $t('tools.percentage-calculator.batch.modes.percentage-difference') }}</option>
+          <option value="percentage-points">{{ $t('tools.percentage-calculator.batch.modes.percentage-points') }}</option>
         </select>
         <p class="mb-2 text-xs text-gray-600 dark:text-gray-300">{{ percentageBatchInputHint }}</p>
 
-        <label class="mb-2 block text-sm font-semibold" for="percentage-batch-input">Values — one row per line</label>
+        <label class="mb-2 block text-sm font-semibold" for="percentage-batch-input">{{ $t('tools.percentage-calculator.batch.inputLabel') }}</label>
         <textarea
           id="percentage-batch-input"
           v-model="percentageBatchInput"
           data-test-id="percentage-batch-input"
           rows="5"
           spellcheck="false"
-          placeholder="Groceries&#9;20&#9;150&#10;Taxi&#9;10&#9;40"
+          :placeholder="$t('tools.percentage-calculator.batch.placeholder')"
           class="w-full rounded border border-gray-300 bg-white p-3 font-mono text-sm dark:border-gray-600 dark:bg-gray-900"
         />
 
@@ -475,7 +474,7 @@ function percentageBatchSavedAt(timestamp: number): string {
             class="rounded bg-primary px-4 py-2 text-sm text-white disabled:cursor-not-allowed disabled:opacity-50"
             @click="runPercentageBatchRows"
           >
-            Calculate rows
+            {{ $t('tools.percentage-calculator.batch.run') }}
           </button>
           <button
             type="button"
@@ -484,7 +483,34 @@ function percentageBatchSavedAt(timestamp: number): string {
             class="rounded border border-gray-300 px-4 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600"
             @click="copyPercentageBatchCsv"
           >
-            Copy results as CSV
+            {{ $t('tools.percentage-calculator.batch.copyCsv') }}
+          </button>
+          <button
+            type="button"
+            data-test-id="percentage-batch-copy-tsv"
+            :disabled="!percentageBatchRows.length"
+            class="rounded border border-gray-300 px-4 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600"
+            @click="copyPercentageBatchTsv"
+          >
+            {{ $t('tools.percentage-calculator.batch.copyTsv') }}
+          </button>
+          <button
+            type="button"
+            data-test-id="percentage-batch-download-csv"
+            :disabled="!percentageBatchRows.length"
+            class="rounded border border-gray-300 px-4 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600"
+            @click="downloadPercentageBatch('csv')"
+          >
+            {{ $t('tools.percentage-calculator.batch.downloadCsv') }}
+          </button>
+          <button
+            type="button"
+            data-test-id="percentage-batch-download-tsv"
+            :disabled="!percentageBatchRows.length"
+            class="rounded border border-gray-300 px-4 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600"
+            @click="downloadPercentageBatch('tsv')"
+          >
+            {{ $t('tools.percentage-calculator.batch.downloadTsv') }}
           </button>
         </div>
 
@@ -501,10 +527,10 @@ function percentageBatchSavedAt(timestamp: number): string {
           <table class="w-full border-collapse text-left text-sm">
             <thead>
               <tr class="border-b border-gray-300 dark:border-gray-600">
-                <th class="px-2 py-2">Row</th>
-                <th class="px-2 py-2">Formula</th>
-                <th class="px-2 py-2">Result / issue</th>
-                <th class="px-2 py-2">Action</th>
+                <th class="px-2 py-2">{{ $t('tools.percentage-calculator.batch.row') }}</th>
+                <th class="px-2 py-2">{{ $t('tools.percentage-calculator.batch.formula') }}</th>
+                <th class="px-2 py-2">{{ $t('tools.percentage-calculator.batch.resultIssue') }}</th>
+                <th class="px-2 py-2">{{ $t('tools.percentage-calculator.batch.action') }}</th>
               </tr>
             </thead>
             <tbody>
@@ -519,7 +545,7 @@ function percentageBatchSavedAt(timestamp: number): string {
                   <code class="break-words">{{ row.formula || '—' }}</code>
                 </td>
                 <td class="px-2 py-2">
-                  <span v-if="row.error" class="text-red-700 dark:text-red-300">{{ row.error }}</span>
+                  <span v-if="row.error" class="text-red-700 dark:text-red-300" role="alert">{{ percentageBatchErrorMessage(row.error) }}</span>
                   <span v-else>{{ row.result }}</span>
                 </td>
                 <td class="px-2 py-2">
@@ -528,7 +554,7 @@ function percentageBatchSavedAt(timestamp: number): string {
                     class="whitespace-nowrap rounded border border-gray-300 px-2 py-1 text-xs dark:border-gray-600"
                     @click="copyPercentageBatchRow(row)"
                   >
-                    Copy row
+                    {{ $t('tools.percentage-calculator.batch.copyRow') }}
                   </button>
                 </td>
               </tr>
@@ -538,14 +564,14 @@ function percentageBatchSavedAt(timestamp: number): string {
 
         <section v-if="percentageBatchHistory.length" class="mt-6 border-t border-gray-200 pt-4 dark:border-gray-700">
           <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
-            <h3 class="font-semibold">Recent runs — stored in this browser</h3>
+            <h3 class="font-semibold">{{ $t('tools.percentage-calculator.batch.historyTitle') }}</h3>
             <button
               type="button"
               data-test-id="percentage-batch-clear-history"
               class="rounded border border-gray-300 px-2 py-1 text-xs dark:border-gray-600"
               @click="clearPercentageBatchHistory"
             >
-              Clear history
+              {{ $t('tools.percentage-calculator.batch.clearHistory') }}
             </button>
           </div>
           <ul class="space-y-2">
@@ -562,15 +588,15 @@ function percentageBatchSavedAt(timestamp: number): string {
                   class="rounded border border-gray-300 px-2 py-1 text-xs dark:border-gray-600"
                   @click="restorePercentageBatchHistory(item)"
                 >
-                  Restore
+                  {{ $t('tools.percentage-calculator.batch.restore') }}
                 </button>
                 <button
                   type="button"
                   class="rounded border border-gray-300 px-2 py-1 text-xs dark:border-gray-600"
-                  :aria-label="`Remove ${percentageBatchModeNames[item.mode]} from history`"
+                  :aria-label="$t('tools.percentage-calculator.batch.removeAria', { mode: percentageBatchModeNames[item.mode] })"
                   @click="removePercentageBatchHistory(item.id)"
                 >
-                  Remove
+                  {{ $t('tools.percentage-calculator.batch.remove') }}
                 </button>
               </span>
             </li>
@@ -578,8 +604,7 @@ function percentageBatchSavedAt(timestamp: number): string {
         </section>
 
         <p class="mt-4 text-xs text-gray-600 dark:text-gray-300">
-          Calculations run locally. Batch values and recent history stay in this browser and are not sent to analytics.
-          Clear local history whenever you need to remove saved runs.
+          {{ $t('tools.percentage-calculator.batch.privacy') }}
         </p>
       </div>
     </details>
