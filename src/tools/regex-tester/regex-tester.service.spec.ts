@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { evaluateRegex, matchRegex, REGEX_PRESETS } from './regex-tester.service';
+import { REGEX_PRESETS, evaluateRegex, matchRegex } from './regex-tester.service';
 
 describe('matchRegex', () => {
   it('preserves match positions, numbered captures and named groups', () => {
