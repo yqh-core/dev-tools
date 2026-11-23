@@ -50,8 +50,9 @@ test.describe('Tool - Regex Tester isolated execution', () => {
   });
 
   test('applies a verified JavaScript preset', async ({ page }) => {
-    await page.getByText('Verified presets:').locator('..').locator('.n-base-selection').click();
-    await page.getByRole('option', { name: 'IPv4 address' }).click();
+    const presetField = page.getByText('Verified presets:').locator('..');
+    await presetField.locator('.c-select-input').click();
+    await presetField.locator('.c-select-dropdown-option').filter({ hasText: 'IPv4 address' }).click();
     await page.getByLabel('Text to match:').fill('Server: 192.168.1.42');
     await expect(page.locator('tbody tr').first().locator('td').nth(1)).toContainText('192.168.1.42', { timeout: 5000 });
   });
