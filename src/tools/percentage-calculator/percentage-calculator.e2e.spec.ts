@@ -9,7 +9,7 @@ test.describe('Tool - Percentage calculator', () => {
     await expect(page).toHaveTitle('Percentage Calculator — Percent & Change - DigDevBox');
     await expect(page.locator('meta[name="description"]')).toHaveAttribute(
       'content',
-      'Calculate a percentage, reverse an increase or discount, compare two values, and find percentage-point changes. Seven free calculator modes in your browser.',
+      'Calculate percentages, reverse discounts, compare values and rates, or batch rows with copyable formulas and CSV/TSV export. Seven free modes in your browser.',
     );
     await expect(page.locator('h1')).toHaveText('Percentage Calculator');
   });
