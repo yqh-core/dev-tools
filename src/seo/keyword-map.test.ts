@@ -72,6 +72,9 @@ describe('evidence-backed SEO keyword targets', () => {
 
   it.each([
     ['/ipv4-range-expander', 'IP range to CIDR', 'convert'],
+    ['/pdf-merge', 'merge PDF files online', 'convert'],
+    ['/user-agent-parser', 'user agent parser', 'parse'],
+
   ])('keeps %s mapped to an existing capability-matched route', (path, keyword, intent) => {
     const entry = CLUSTER_KEYWORD_ENTRIES.find(item => item.path === path);
 
@@ -84,9 +87,8 @@ describe('evidence-backed SEO keyword targets', () => {
   });
 
   it.each([
-    ['/pdf-merge', 'merge PDF files online', 'convert'],
     ['/ipv6-ula-generator', 'IPv6 ULA generator', 'generate'],
-    ['/user-agent-parser', 'user agent parser', 'parse'],
+
     ['/phone-parser-and-formatter', 'international phone number parser', 'parse'],
   ])('keeps %s mapped to an existing capability-matched route', (path, keyword, intent) => {
     const entry = CLUSTER_KEYWORD_ENTRIES.find(item => item.path === path);
@@ -94,7 +96,7 @@ describe('evidence-backed SEO keyword targets', () => {
     expect(entry).toBeDefined();
     expect(entry?.keyword).toBe(keyword);
     expect(entry?.intent).toBe(intent);
-    expect(entry?.landed).toBe(!['/pdf-merge', '/user-agent-parser', '/xml-to-json', '/markdown-to-html'].includes(path));
+    expect(entry?.landed).toBe(false);
     expect((entry?.keywords ?? []).length).toBeGreaterThanOrEqual(4);
     expect(entry?.note).toContain('provisional');
   });
