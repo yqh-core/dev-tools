@@ -736,8 +736,9 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     intent: 'convert',
     priority: 'P1',
     competition: 'high',
-    landed: false,
-    note: 'Matches JPEG/WebP quality control and optional target-KB compression. Competition is provisional; no volume/KD/SERP claim.',
+    landed: true,
+    lockedTitle: 'Image Compressor — Reduce JPEG & WebP File Size',
+    note: 'Matches JPEG/WebP quality control and optional target-KB compression. Target size may be unreachable for some images; no volume/KD/SERP claim.',
   },
   {
     path: '/image-crop',
@@ -746,7 +747,8 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     intent: 'convert',
     priority: 'P1',
     competition: 'high',
-    landed: false,
+    landed: true,
+    lockedTitle: 'Image Cropper — Crop Photos to Any Aspect Ratio',
     note: 'Matches free, 1:1, 4:3, 3:2, 16:9 and original aspect-ratio crop options with selectable output formats. Competition is provisional.',
   },
   {
@@ -756,7 +758,8 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     intent: 'generate',
     priority: 'P1',
     competition: 'high',
-    landed: false,
+    landed: true,
+    lockedTitle: 'Favicon Generator — Create ICO & PNG Icons',
     note: 'Matches multi-size ICO (16/32/48) and PNG (180/512) exports with transparent or white background. Competition is provisional.',
   },
   {
@@ -766,7 +769,8 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     intent: 'convert',
     priority: 'P1',
     competition: 'high',
-    landed: false,
+    landed: true,
+    lockedTitle: 'Images to PDF Converter — Combine JPG & PNG Online',
     note: 'Matches multi-image PDF creation, image inspection, conversion of non-JPEG/PNG formats and margin control. Competition is provisional.',
   },
   // 2026-11-22: GSC-visible routes with small but direct page/query evidence.

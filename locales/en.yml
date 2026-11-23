@@ -560,8 +560,8 @@ tools:
       tooLarge: File exceeds 80 MB — browser-side processing would be unreliable. Please use a desktop tool.
 
   image-crop:
-    title: Image Cropper
-    description: Crop an image to an exact pixel region in your browser — drag the box, lock a ratio, and export at the true source resolution, not a scaled-down copy.
+    title: Image Cropper — Crop Photos to Any Aspect Ratio
+    description: Crop an image to an exact pixel region online. Choose a preset aspect ratio or freeform selection, then export at the selected dimensions in a supported image format.
     pickFile: Choose an image
     ratio: Aspect ratio
     ratioFree: Free
@@ -577,8 +577,8 @@ tools:
     pickFile: Choose an image
     clickHint: Click a pixel to sample it.
   favicon-generator:
-    title: Favicon Generator
-    description: Turn any image into a real multi-size favicon.ico plus apple-touch-icon and 512px PNG — centre-cropped and resized in your browser, nothing uploaded.
+    title: Favicon Generator — Create ICO & PNG Icons
+    description: Create a multi-size favicon.ico, Apple touch icon and PNG app icons from an image. Choose a transparent or white background; image processing runs in your browser.
     pickFile: Choose an image
     background: Background
     bgTransparent: Keep transparency
@@ -590,8 +590,8 @@ tools:
     htmlSnippet: HTML to paste
     copySnippet: Copy HTML
   image-to-pdf:
-    title: Images to PDF
-    description: Combine images into one PDF, each on its own page at its own size — JPEG is carried in without re-compression, and everything runs in your browser.
+    title: Images to PDF Converter — Combine JPG & PNG Online
+    description: Combine multiple images into one PDF, with each image placed on its own page. Add images, review the selection and create a downloadable PDF in your browser.
     pickFile: Choose images
     selected: '{count} image selected | {count} images selected'
     margin: Page margin (pt)
@@ -617,8 +617,8 @@ tools:
     previewAlt: Resized image preview
     buttonDownload: Download resized image
   image-compress:
-    title: Image Compressor
-    description: Compress JPEG and WebP images online to a quality level or a target file size — lossy re-encoding in your browser, so the file never leaves your machine.
+    title: Image Compressor — Reduce JPEG & WebP File Size
+    description: Compress JPEG and WebP images in your browser. Adjust output quality or set a target file size in KB; compression is lossy, and the target may be unreachable for some images.
     pickFile: Choose an image
     format: Output format
     quality: 'Quality: {q}'

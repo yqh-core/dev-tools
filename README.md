@@ -105,11 +105,11 @@
 - [SVG placeholder generator](https://digdevbox.com/svg-placeholder-generator) - Generate svg images to use as a placeholder in your applications.
 - [Webcam Recorder — Record Video & Take Photos Online](https://digdevbox.com/camera-recorder) - Record webcam video or take still photos in your browser. Choose a camera and microphone, pause or resume recording, then download your clip. Files stay on your device.
 - [Image Resizer — Resize Images to Exact Dimensions](https://digdevbox.com/image-resize) - Resize an image to exact pixel width and height, with an optional aspect-ratio lock. Export PNG, JPEG or WebP when your browser supports the format; processing happens locally.
-- [Image Compressor](https://digdevbox.com/image-compress) - Compress JPEG and WebP images online to a quality level or a target file size — lossy re-encoding in your browser, so the file never leaves your machine.
-- [Image Cropper](https://digdevbox.com/image-crop) - Crop an image to an exact pixel region in your browser — drag the box, lock a ratio, and export at the true source resolution, not a scaled-down copy.
+- [Image Compressor — Reduce JPEG & WebP File Size](https://digdevbox.com/image-compress) - Compress JPEG and WebP images in your browser. Adjust output quality or set a target file size in KB; compression is lossy, and the target may be unreachable for some images.
+- [Image Cropper — Crop Photos to Any Aspect Ratio](https://digdevbox.com/image-crop) - Crop an image to an exact pixel region online. Choose a preset aspect ratio or freeform selection, then export at the selected dimensions in a supported image format.
 - [Image Color Picker — Get HEX, RGB & HSL from Any Image](https://digdevbox.com/image-color-picker) - Pick a pixel in an image to read its stored HEX, RGB and HSL values. Sampling uses the original image bitmap locally in your browser; transparent pixels report stored RGB values without alpha compositing.
-- [Favicon Generator](https://digdevbox.com/favicon-generator) - Turn any image into a real multi-size favicon.ico plus apple-touch-icon and 512px PNG — centre-cropped and resized in your browser, nothing uploaded.
-- [Images to PDF](https://digdevbox.com/image-to-pdf) - Combine images into one PDF, each on its own page at its own size — JPEG is carried in without re-compression, and everything runs in your browser.
+- [Favicon Generator — Create ICO & PNG Icons](https://digdevbox.com/favicon-generator) - Create a multi-size favicon.ico, Apple touch icon and PNG app icons from an image. Choose a transparent or white background; image processing runs in your browser.
+- [Images to PDF Converter — Combine JPG & PNG Online](https://digdevbox.com/image-to-pdf) - Combine multiple images into one PDF, with each image placed on its own page. Add images, review the selection and create a downloadable PDF in your browser.
 
 ### Development
 
