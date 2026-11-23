@@ -111,4 +111,51 @@ test.describe('Tool - Percentage calculator', () => {
     await page.getByTestId('rateFrom').locator('input').fill('5');
     await expect(page.getByTestId('percentagePointChange').locator('input')).toHaveValue('');
   });
+
+  test('Runs pasted batch rows, shows formulas and keeps a local-only history', async ({ page }) => {
+    const input = page.getByTestId('percentageBatchInput');
+    await input.fill('15\\t80\\n20\\t50');
+    await page.getByTestId('runPercentageBatch').click();
+
+    const rows = page.getByTestId('percentageBatchResults').locator('tbody tr');
+    await expect(rows).toHaveCount(2);
+    await expect(rows.nth(0)).toContainText('(15 ÷ 100) × 80');
+    await expect(rows.nth(0)).toContainText('12');
+    await expect(rows.nth(1)).toContainText('10');
+    await expect(page.getByTestId('percentageBatchStatus')).toContainText('2 row(s) calculated');
+
+    await expect(page.getByTestId('percentageBatchHistory')).toBeVisible();
+    await page.reload();
+    await expect(page.getByTestId('percentageBatchHistory')).toBeVisible();
+    await page.getByTestId('percentageBatchHistory').getByRole('button', { name: 'Restore' }).first().click();
+    await expect(input).toHaveValue('15\\t80\\n20\\t50');
+    await page.getByTestId('clearPercentageBatchHistory').click();
+    await expect(page.getByTestId('percentageBatchHistory')).toHaveCount(0);
+  });
+
+  test('Reports invalid rows and undefined calculations without hiding other rows', async ({ page }) => {
+    await page.getByTestId('percentageBatchMode').selectOption('ratio');
+    await page.getByTestId('percentageBatchInput').fill('20\\t0\\nabc\\t2\\n10\\t20\\t30');
+    await page.getByTestId('runPercentageBatch').click();
+
+    const rows = page.getByTestId('percentageBatchResults').locator('tbody tr');
+    await expect(rows).toHaveCount(3);
+    await expect(rows.nth(0)).toContainText('undefined');
+    await expect(rows.nth(1)).toContainText('finite numbers');
+    await expect(rows.nth(2)).toContainText('exactly two values');
+    await expect(page.getByTestId('percentageBatchStatus')).toContainText('0 row(s) calculated; 3 row(s) need attention');
+  });
+
+  test('Downloads batch results as CSV and TSV', async ({ page }) => {
+    await page.getByTestId('percentageBatchInput').fill('15\\t80');
+    await page.getByTestId('runPercentageBatch').click();
+
+    const csvDownload = page.waitForEvent('download');
+    await page.getByTestId('downloadPercentageBatchCsv').click();
+    expect((await csvDownload).suggestedFilename()).toBe('percentage-calculations.csv');
+
+    const tsvDownload = page.waitForEvent('download');
+    await page.getByTestId('downloadPercentageBatchTsv').click();
+    expect((await tsvDownload).suggestedFilename()).toBe('percentage-calculations.tsv');
+  });
 });
