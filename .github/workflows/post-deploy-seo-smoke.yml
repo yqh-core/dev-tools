@@ -93,17 +93,40 @@ jobs:
             const check = (payload.check_runs || []).find((item) =>
               item.name === 'Cloudflare Pages' && item.head_sha === targetSha
             );
-            if (check?.status === 'completed') {
-              if (check.conclusion !== 'success') {
-                throw new Error('Cloudflare Pages deployment concluded ' + check.conclusion +
-                  ': ' + (check.details_url || 'no details URL'));
-              }
+            if (check?.status === 'completed' && check.conclusion === 'success') {
               cloudflareReady = true;
               console.log('Cloudflare Pages deployment succeeded for exact commit ' + targetSha);
               break;
             }
+
+            // GitHub's Cloudflare status can lag the edge rollout. The exact
+            // production SEO marker is a stronger fallback: it proves the new
+            // deployable commit is already serving the approved metadata.
+            const markerResponse = await fetch(origin + '/percentage-calculator/', {
+              redirect: 'follow',
+              headers: { 'user-agent': ua, 'cache-control': 'no-cache' },
+              signal: AbortSignal.timeout(10000),
+            });
+            const markerHtml = await markerResponse.text();
+            const markerTitle = markerHtml.match(/<title[^>]*>([\\s\\S]*?)<\\/title>/i)?.[1]?.trim() || '';
+            const markerDescription = markerHtml.match(/<meta[^>]+name=["']description["'][^>]+content=["']([^"']*)["']/i)?.[1] || '';
+            const markerCanonical = markerHtml.includes('href="' + origin + '/percentage-calculator/"');
+            const productionMarkerReady = markerResponse.ok &&
+              markerResponse.url === origin + '/percentage-calculator/' &&
+              markerTitle === 'Percentage Calculator — Percent & Change - DigDevBox' &&
+              markerDescription === 'Calculate a percentage of a number, find what percent one value is of another, measure percentage change, or apply a discount or sales tax. Four free calculators.' &&
+              markerCanonical;
+            if (productionMarkerReady) {
+              cloudflareReady = true;
+              console.log('Production SEO marker confirms the exact release is serving, despite a pending/stale Cloudflare check');
+              break;
+            }
+            if (check?.status === 'completed' && check.conclusion !== 'success') {
+              throw new Error('Cloudflare Pages deployment concluded ' + check.conclusion +
+                ' and the production marker is not live: ' + (check.details_url || 'no details URL'));
+            }
             console.log('Waiting for exact Cloudflare deployment (' + attempt + '/90): ' +
-              (check?.status || 'check not created'));
+              (check?.status || 'check not created') + '; production marker not live yet');
             await sleep(10000);
           }
           if (!cloudflareReady) throw new Error('Exact Cloudflare Pages deployment did not complete within 15 minutes');
