@@ -355,8 +355,8 @@ tools:
     description: Simply convert JSON to YAML with this online live converter.
 
   url-parser:
-    title: URL parser
-    description: Parse a URL into its separate constituent parts (protocol, origin, params, port, username-password, ...)
+    title: URL Parser — Inspect Query Parameters and UTM Tags
+    description: Parse a URL into its scheme, hostname, port, path, query parameters and fragment. Inspect UTM tags in the URL with your browser's built-in parser.
 
   iban-validator-and-parser:
     title: IBAN validator and parser
@@ -687,8 +687,8 @@ tools:
     description: Parse and convert text to unicode and vice-versa — HTML entities or plain decimal code points.
 
   ipv4-range-expander:
-    title: IPv4 range expander
-    description: Given a start and an end IPv4 address, this tool calculates a valid IPv4 subnet along with its CIDR notation.
+    title: IP Range to CIDR Converter — Convert IPv4 Ranges Online
+    description: Convert a start and end IPv4 address into the smallest set of CIDR blocks that covers the full range. Useful for firewall rules, cloud security groups and routing tables.
 
   text-diff:
     title: Text Diff Checker — Compare Two Texts Side by Side

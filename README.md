@@ -81,7 +81,7 @@
 
 - [URL Encoder & Decoder — Percent-Encoding, encodeURIComponent Pitfalls](https://digdevbox.com/url-encoder) - Encode text to URL-encoded format (also known as "percent-encoded"), or decode from it.
 - [Escape HTML entities](https://digdevbox.com/html-entities) - Escape or unescape HTML entities (turn <, >, &, " and ' into their HTML form) and look up common characters — quotes, dashes, currency, math and Greek symbols — in a searchable entity reference table.
-- [URL parser](https://digdevbox.com/url-parser) - Parse a URL into its separate constituent parts (protocol, origin, params, port, username-password, ...)
+- [URL Parser — Inspect Query Parameters and UTM Tags](https://digdevbox.com/url-parser) - Parse a URL into its scheme, hostname, port, path, query parameters and fragment. Inspect UTM tags in the URL with your browser's built-in parser.
 - [Device information](https://digdevbox.com/device-information) - Get information about your current device (screen size, pixel-ratio, user agent, ...)
 - [Basic Auth Generator — Build an HTTP Authorization Header](https://digdevbox.com/basic-auth-generator) - Generate or decode an HTTP Basic Authorization header in your browser. Copy the Base64 value and use a cURL example with environment variables. Base64 is not encryption; use HTTPS.
 - [Open graph meta generator](https://digdevbox.com/og-meta-generator) - Generate open-graph and socials HTML meta tags for your website.
@@ -139,7 +139,7 @@
 
 - [IPv4 Subnet Calculator — CIDR, Netmask & Usable Hosts](https://digdevbox.com/ipv4-subnet-calculator) - Calculate an IPv4 subnet from an address and CIDR prefix. See the network and broadcast addresses, netmask, wildcard mask, subnet size and first/last host addresses.
 - [IPv4 address converter](https://digdevbox.com/ipv4-address-converter) - Convert an IP address into decimal, binary, hexadecimal, or even an IPv6 representation of it.
-- [IPv4 range expander](https://digdevbox.com/ipv4-range-expander) - Given a start and an end IPv4 address, this tool calculates a valid IPv4 subnet along with its CIDR notation.
+- [IP Range to CIDR Converter — Convert IPv4 Ranges Online](https://digdevbox.com/ipv4-range-expander) - Convert a start and end IPv4 address into the smallest set of CIDR blocks that covers the full range. Useful for firewall rules, cloud security groups and routing tables.
 - [MAC address lookup](https://digdevbox.com/mac-address-lookup) - Find the vendor and manufacturer of a device by its MAC address.
 - [MAC address generator](https://digdevbox.com/mac-address-generator) - Enter the quantity and prefix. MAC addresses will be generated in your chosen case (uppercase or lowercase)
 - [IPv6 ULA generator](https://digdevbox.com/ipv6-ula-generator) - Generate your own local, non-routable IP addresses for your network according to RFC4193.
