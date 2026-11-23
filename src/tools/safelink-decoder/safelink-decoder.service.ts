@@ -1,7 +1,83 @@
-export function decodeSafeLinksURL(safeLinksUrl: string) {
-  if (!safeLinksUrl.match(/\.safelinks\.protection\.outlook\.com/)) {
+const SAFE_LINKS_HOST_SUFFIX = '.safelinks.protection.outlook.com';
+const MAX_NESTED_SAFE_LINKS = 5;
+
+function getSafeLinksDestination(value: string): string | null {
+  let wrapper: URL;
+
+  try {
+    wrapper = new URL(value.trim().replace(/&amp;/g, '&'));
+  }
+  catch {
+    return null;
+  }
+
+  const hostname = wrapper.hostname.toLowerCase();
+  const isOutlookSafeLinksHost = hostname.length > SAFE_LINKS_HOST_SUFFIX.length
+    && hostname.endsWith(SAFE_LINKS_HOST_SUFFIX);
+
+  if (!isOutlookSafeLinksHost) {
+    return null;
+  }
+
+  if (wrapper.protocol !== 'https:') {
     throw new Error('Invalid SafeLinks URL provided');
   }
 
-  return new URL(safeLinksUrl).searchParams.get('url');
+  const destination = wrapper.searchParams.get('url');
+
+  if (!destination) {
+    throw new Error('SafeLinks URL is missing its destination URL');
+  }
+
+  return destination;
+}
+
+export function decodeSafeLinksURL(safeLinksUrl: string): string {
+  let destination = getSafeLinksDestination(safeLinksUrl);
+
+  if (!destination) {
+    throw new Error('Invalid SafeLinks URL provided');
+  }
+
+  for (let depth = 1; depth < MAX_NESTED_SAFE_LINKS; depth++) {
+    const nestedDestination = getSafeLinksDestination(destination);
+
+    if (!nestedDestination) {
+      let parsedDestination: URL;
+
+      try {
+        parsedDestination = new URL(destination);
+      }
+      catch {
+        throw new Error('SafeLinks destination is not a valid absolute URL');
+      }
+
+      if (!['http:', 'https:'].includes(parsedDestination.protocol)) {
+        throw new Error('SafeLinks destination must use HTTP or HTTPS');
+      }
+
+      return destination;
+    }
+
+    destination = nestedDestination;
+  }
+
+  if (getSafeLinksDestination(destination)) {
+    throw new Error(`SafeLinks nesting exceeds the maximum of ${MAX_NESTED_SAFE_LINKS} layers`);
+  }
+
+  let parsedDestination: URL;
+
+  try {
+    parsedDestination = new URL(destination);
+  }
+  catch {
+    throw new Error('SafeLinks destination is not a valid absolute URL');
+  }
+
+  if (!['http:', 'https:'].includes(parsedDestination.protocol)) {
+    throw new Error('SafeLinks destination must use HTTP or HTTPS');
+  }
+
+  return destination;
 }

@@ -32,8 +32,9 @@ const outputDecodedUrl = computed(() => {
     <section class="mx-auto mt-8 max-w-800px px-4" data-test-id="safelink-guide">
       <h2 class="mb-3 text-xl font-semibold">How to decode an Outlook Safe Links URL</h2>
       <p class="mb-3">
-        Paste the complete Microsoft Safe Links URL above. This tool reads its url query parameter
-        and displays the destination address without opening that destination.
+        Paste the complete Microsoft Safe Links URL above. This tool reads its url query parameter,
+        unwraps nested Outlook Safe Links URLs up to five layers, and displays the destination
+        address without opening it. Only HTTPS wrappers on the Outlook Safe Links domain are accepted.
       </p>
 
       <h3 class="mb-2 text-lg font-semibold">Example</h3>
@@ -46,6 +47,12 @@ const outputDecodedUrl = computed(() => {
         <li>Microsoft Safe Links can check links when they are clicked. This decoder does not replace or bypass that protection.</li>
         <li>Before visiting a decoded address, inspect the domain carefully and follow your organization's security process. Do not open a link just because it was successfully decoded.</li>
       </ul>
+
+      <h3 class="mb-2 text-lg font-semibold">Related URL tools</h3>
+      <p>
+        Use the <a href="/url-parser/">URL Parser</a> to inspect the decoded address components, or the
+        <a href="/url-encoder/">URL Encoder</a> to encode or decode URL components.
+      </p>
     </section>
   </div>
 </template>

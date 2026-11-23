@@ -13,5 +13,27 @@ test.describe('Tool - Basic Auth generator', () => {
     await expect(page.getByTestId('basic-auth-generated-header')).toContainText(
       'Authorization: Basic ZGVtbzpleGFtcGxl',
     );
+    await expect(page.getByTestId('basic-auth-curl-example')).toContainText(
+      '$BASIC_AUTH_USERNAME:$BASIC_AUTH_PASSWORD',
+    );
+    await expect(page.getByRole('link', { name: 'Base64 String Converter' })).toHaveAttribute('href', '/base64-string-converter/');
+    await expect(page.getByRole('link', { name: 'API Debugger' })).toHaveAttribute('href', '/api-debugger/');
+  });
+
+  test('decodes a Basic Auth header locally and preserves colons in the password', async ({ page }) => {
+    await page.goto('/basic-auth-generator');
+
+    await page.getByPlaceholder('Paste Authorization: Basic ...').fill(
+      'Authorization: Basic c3ZjOnBhc3M6d29yZA==',
+    );
+    await expect(page.getByTestId('basic-auth-decoded-username')).toHaveText('svc');
+    await expect(page.getByTestId('basic-auth-decoded-password')).toHaveText('pass:word');
+  });
+
+  test('shows a useful error for an invalid Basic Auth token', async ({ page }) => {
+    await page.goto('/basic-auth-generator');
+
+    await page.getByPlaceholder('Paste Authorization: Basic ...').fill('not-base64');
+    await expect(page.getByTestId('basic-auth-decode-error')).toContainText('valid Basic Authorization header');
   });
 });
