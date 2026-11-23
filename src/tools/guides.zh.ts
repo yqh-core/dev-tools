@@ -423,6 +423,7 @@ export const GUIDES: Record<string, ToolGuide> = {
       { q: '应该使用什么单位？', a: '总量和处理速率必须使用同一单位体系，例如总记录数与每分钟记录数、总文件数与每小时文件数，或总页面数与每秒页面数。' },
       { q: '如果处理速度发生变化怎么办？', a: '结果基于你输入的速率估算。如果任务变快或变慢，请重新测量一个有代表性的时间区间并更新速率，预计完成时间就会相应调整。' },
     ],
+    relatedNotes: [{"slug":"eta-calculator-guide","title":"How to Calculate Task Completion Time from Processing Rate","description":"Estimate when a download, build or batch job will finish using total workload, processing rate and start time — with a worked example, formula and practical limits.","url":"https://notes.digdevbox.com/posts/eta-calculator-guide","tag":"ETA"}],
   },
 
   '/git-memo': {
@@ -1220,6 +1221,7 @@ export const GUIDES: Record<string, ToolGuide> = {
       { q: '如何按百分比增加或减少一个数值？', a: '增加时乘以 1 + (百分比 ÷ 100)，减少时乘以 1 − (百分比 ÷ 100)。例如，80 增加 15% 得到 92，减少 15% 得到 68。' },
       { q: '为什么分成多个输入而不是一个公式？', a: '三个问题的未知数位置不同。分开就避免了最常见的手误：移项之后除了错误的基数。' },
     ],
+    relatedNotes: [{"slug":"percentage-change-vs-percentage-points","title":"Percentage Change vs Percentage Points: Which Formula Should You Use?","description":"Learn when to use percent change, percentage points, percent difference and reverse-percentage formulas, with worked examples for rates, prices and discounts.","url":"https://notes.digdevbox.com/posts/percentage-change-vs-percentage-points","tag":"Percentages"}],
   },
 
   '/phone-parser-and-formatter': {
