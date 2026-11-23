@@ -48,13 +48,13 @@
 - [PDF Split — Split PDF Pages or Extract a Range](https://digdevbox.com/pdf-split) - Split a PDF into separate single-page files or extract a selected page range into a new PDF. Check the page count first; processing runs in your browser.
 - [PDF Watermark — Add Text Watermarks to PDF](https://digdevbox.com/pdf-watermark) - Add a text watermark to every page of a PDF. Adjust font size, opacity and angle, then choose a single centered line or a tiled layout; processing stays in your browser.
 - [PDF Compressor — Reduce PDF File Size Online](https://digdevbox.com/pdf-compress) - Compress a PDF by recompressing embedded photos and rebuilding file structure. Compare before-and-after sizes with balanced or strong compression; text and vector content stay untouched, and the result is never larger than the original.
-- [htpasswd Generator & Checker — bcrypt, apr1 and SHA1](https://digdevbox.com/htpasswd-generator) - Build a multi-user Apache/Nginx .htpasswd file with bcrypt or apr1 hashes. Copy or download it, then verify an existing username:hash line locally. Passwords stay in your browser.
+- [htpasswd Generator & Checker — bcrypt & apr1](https://digdevbox.com/htpasswd-generator) - Build multi-user Apache/Nginx .htpasswd files with bcrypt or apr1. Copy, download or verify a username:hash line locally. Passwords stay in your browser.
 
 ### Converter
 
 - [Date Converter — Formats, Time Zones and ISO 8601](https://digdevbox.com/date-converter) - Convert between date formats online — ISO 8601, RFC 3339, UTC, locale, Excel, Mongo ObjectID and Unix timestamps.
 - [Unix Timestamp Converter — Epoch to Date, Seconds vs Milliseconds](https://digdevbox.com/unix-timestamp-converter) - Convert a Unix epoch timestamp (seconds or milliseconds) to a readable date, or turn a date into a timestamp online.
-- [Integer Base Converter — Binary, Decimal, Hexadecimal and Base 2–64](https://digdevbox.com/base-converter) - Convert non-negative integers between bases 2–64, including binary, octal, decimal, hexadecimal and custom alphabets. This converts numbers, not text.
+- [Number Base Converter — Bases 2–64](https://digdevbox.com/base-converter) - Convert non-negative integers between bases 2–64, including binary, octal, decimal, hexadecimal and custom alphabets. This converts numbers, not text.
 - [Roman numeral converter](https://digdevbox.com/roman-numeral-converter) - Convert Roman numerals to numbers and convert numbers to Roman numerals.
 - [Base64 Encoder & Decoder — Padding, URL-Safe, Binary-Safe](https://digdevbox.com/base64-string-converter) - Encode and decode Base64 online — URL-safe base64url, padding options, binary-safe text, with RFC 4648 and atob()/btoa() notes. Free, in your browser.
 - [Base64 to Image — Online Decode, Preview and Download](https://digdevbox.com/base64-file-converter) - Convert a string, file, or image into its base64 representation.
@@ -67,7 +67,7 @@
 - [YAML to JSON Converter — Convert YAML Online](https://digdevbox.com/yaml-to-json-converter) - Convert YAML configuration data into JSON in your browser. Nested mappings become objects, sequences become arrays, and YAML scalar types are reflected in the JSON output; comments are not preserved.
 - [YAML to TOML](https://digdevbox.com/yaml-to-toml) - Parse and convert YAML to TOML.
 - [JSON to YAML converter](https://digdevbox.com/json-to-yaml-converter) - Simply convert JSON to YAML with this online live converter.
-- [JSON to TOML Converter — Convert JSON Config to TOML](https://digdevbox.com/json-to-toml) - Convert JSON objects to TOML configuration. Nested objects become TOML tables or dotted keys, arrays become TOML arrays, and JSON5 input is accepted; values unsupported by TOML may prevent conversion.
+- [JSON to TOML Converter](https://digdevbox.com/json-to-toml) - Convert JSON or JSON5 objects to TOML. Nested objects become tables or dotted keys; arrays become TOML arrays. Unsupported values may prevent conversion.
 - [List Converter — Sort, Deduplicate & Format Lines](https://digdevbox.com/list-converter) - Clean up a line-by-line list: remove duplicate lines, sort or reverse items, trim whitespace, change case, add item prefixes or suffixes, and join values with a chosen separator. Runs in your browser.
 - [TOML to JSON Converter — Convert TOML Config to JSON](https://digdevbox.com/toml-to-json) - Convert TOML configuration into formatted JSON. Tables and arrays of tables become nested objects and arrays; TOML date and time values are serialized as strings, while comments and formatting are not preserved.
 - [TOML to YAML](https://digdevbox.com/toml-to-yaml) - Parse and convert TOML to YAML.
@@ -80,12 +80,12 @@
 ### Web
 
 - [URL Encoder & Decoder — Percent-Encoding, encodeURIComponent Pitfalls](https://digdevbox.com/url-encoder) - Encode text to URL-encoded format (also known as "percent-encoded"), or decode from it.
-- [HTML Entity Encoder & Decoder — Escape Characters and Look Up Entities](https://digdevbox.com/html-entities) - Escape and unescape HTML text characters including ampersands, angle brackets, quotes and apostrophes. Search a reference table of common named and numeric HTML entities; escaping is not HTML sanitization.
+- [HTML Entity Encoder & Decoder](https://digdevbox.com/html-entities) - Encode and decode HTML entities for ampersands, angle brackets, quotes and apostrophes. Search named and numeric references; encoding does not sanitize HTML.
 - [URL Parser — Inspect Query Parameters and UTM Tags](https://digdevbox.com/url-parser) - Parse a URL into its scheme, hostname, port, path, query parameters and fragment. Inspect UTM tags in the URL with your browser's built-in parser.
 - [Device information](https://digdevbox.com/device-information) - Get information about your current device (screen size, pixel-ratio, user agent, ...)
 - [Basic Auth Generator & Decoder — HTTP Header](https://digdevbox.com/basic-auth-generator) - Generate or decode an HTTP Basic Authorization header in your browser. Copy the Base64 token for cURL; Base64 is not encryption, so use HTTPS.
 - [Open Graph & Twitter Meta Tag Generator — Create Social Share Tags](https://digdevbox.com/og-meta-generator) - Generate copyable Open Graph and Twitter Card HTML meta tags for a page title, description, URL and social image. Choose website, article, book, profile, music or video metadata; no live share-card preview is included.
-- [TOTP Code Generator — 6-Digit Authenticator Codes & QR Setup](https://digdevbox.com/otp-generator) - Generate 6-digit time-based codes from a Base32 secret, view previous, current and next 30-second codes, and create an otpauth URI QR code for authenticator setup. Generated secrets use Web Crypto; no account integration or OTP verification UI is provided.
+- [TOTP Code Generator — 6-Digit Codes & QR](https://digdevbox.com/otp-generator) - Generate current, previous and next 6-digit TOTP codes from a Base32 secret, view the 30-second timer, and create an otpauth QR code. Uses Web Crypto.
 - [MIME types](https://digdevbox.com/mime-types) - Convert MIME types to file extensions and vice-versa.
 - [JWT Decoder & Parser — Inspect Header, Payload and Expiration](https://digdevbox.com/jwt-parser) - Decode JWTs online — inspect header, payload, claims and expiration (exp/iat) as readable dates. Your token never leaves your browser. Free, no signup.
 - [Keycode info](https://digdevbox.com/keycode-info) - Find the javascript keycode, code, location and modifiers of any pressed key.
@@ -95,7 +95,7 @@
 - [HTTP status codes](https://digdevbox.com/http-status-codes) - The list of all HTTP status codes, their name, and their meaning.
 - [JSON diff](https://digdevbox.com/json-diff) - Compare two JSON objects and get the differences between them.
 - [Outlook Safe Links Decoder — Reveal the Original URL](https://digdevbox.com/safelink-decoder) - Decode Outlook Safe Links URLs, including nested wrappers, to reveal the final HTTP or HTTPS destination without opening it. Runs in your browser; decoding does not scan or verify the destination.
-- [JSON to Query String Converter — Convert Nested JSON to URL Parameters](https://digdevbox.com/json-to-get-params) - Convert nested JSON to percent-encoded URL query parameters with bracketed object keys and indexed arrays, or rebuild JSON from a query string or full URL. Null and empty values become empty strings.
+- [JSON to Query String Converter](https://digdevbox.com/json-to-get-params) - Percent-encode nested JSON as URL query parameters, or rebuild JSON from a query string or full URL. Supports bracketed object keys and indexed arrays.
 - [HTTP headers & request methods](https://digdevbox.com/http-headers) - A searchable reference of common HTTP request and response headers plus the nine standard request methods, covering CORS, caching, security fields and safe/idempotent semantics.
 
 ### Images and videos
@@ -116,15 +116,15 @@
 - [Git Commands Cheat Sheet — Common Commands & Undo](https://digdevbox.com/git-memo) - Quick reference for Git configuration, init/clone, commits, amend, reset and branch rename commands, with copyable examples. Replace placeholders before running; hard reset can discard work.
 - [Random port generator](https://digdevbox.com/random-port-generator) - Generate random port numbers outside of the range of "known" ports (0-1023).
 - [Crontab Generator — Cron Expressions with Plain-English Preview](https://digdevbox.com/crontab-generator) - Build cron expressions with a plain-English preview — every 5 minutes, weekdays, @reboot. Validate crontab and GitHub Actions schedules free in your browser.
-- [JSON Formatter & Validator — Beautify, Validate, Diff and Convert](https://digdevbox.com/json-prettify) - Format and validate JSON online — pretty-print at your indent size, sort keys and spot syntax errors instantly, right in your browser.
-- [JSON Developer Workspace — Format, Query, Tree, Schema & Convert](https://digdevbox.com/json-workspace) - A professional JSON workspace — format and validate, explore an interactive tree, query with JSONPath, infer JSON Schema, and convert to YAML or CSV, all in your browser.
-- [REST API Tester — cURL Import, Tests & Collections](https://digdevbox.com/api-debugger) - Send REST API requests, import cURL, inspect response status, headers and JSON, add assertions, and run saved collections. Requests pass through a temporary relay.
+- [JSON Formatter — Format, Validate & Diff](https://digdevbox.com/json-prettify) - Format and validate JSON online — pretty-print at your indent size, sort keys and spot syntax errors instantly, right in your browser.
+- [JSON Workspace — JSONPath, Tree & Schema](https://digdevbox.com/json-workspace) - Format and validate JSON, inspect an interactive tree, query with JSONPath, infer JSON Schema, and convert to YAML or CSV. Free in your browser.
+- [REST API Tester — cURL, Tests & Collections](https://digdevbox.com/api-debugger) - Send REST API requests, import cURL, inspect status, headers and JSON, add assertions, and run saved collections. Requests pass through a temporary relay.
 - [JSON minify](https://digdevbox.com/json-minify) - Minify and compress your JSON by removing unnecessary whitespace.
 - [JSON to CSV](https://digdevbox.com/json-to-csv) - Convert JSON to CSV with automatic header detection.
 - [CSV to JSON Converter — Preview Rows & Convert Online](https://digdevbox.com/csv-to-json) - Paste CSV, choose whether the first row contains column names, preview parsed rows and copy or download the resulting JSON. Handles quoted fields and reports parse warnings.
 - [SQL Formatter — Format and Beautify SQL Online](https://digdevbox.com/sql-prettify) - Paste a messy SQL query and get it formatted — or minified to one line. Keywords upper-cased, clauses indented, one field per line. Supports PostgreSQL, MySQL, T-SQL, BigQuery and 8 more dialects, free in your browser.
 - [Chmod Calculator — Unix File Permissions (755, 644, 777)](https://digdevbox.com/chmod-calculator) - Compute your chmod permissions and commands with this online chmod calculator.
-- [Docker Run to Compose Converter — Generate a compose Service from a Command](https://digdevbox.com/docker-run-to-docker-compose-converter) - Paste a docker run command and get a docker-compose service — ports, volumes and env mapped. Free online decomposerize alternative, in your browser.
+- [Docker Run to Compose Converter](https://digdevbox.com/docker-run-to-docker-compose-converter) - Paste a docker run command and get a docker-compose service — ports, volumes and env mapped. Free online decomposerize alternative, in your browser.
 - [XML Formatter — Beautify, Validate and Minify XML](https://digdevbox.com/xml-formatter) - Prettify or minify your XML string — human-readable indentation, or strip it back down to a single line.
 - [YAML Formatter & Validator — Format YAML Online](https://digdevbox.com/yaml-prettify) - Format and validate YAML online — fix indentation, catch tabs and syntax errors before kubectl or CI rejects your config. Free, runs in your browser.
 - [Email Address Normalizer](https://digdevbox.com/email-normalizer) - Normalize email addresses to a standard format for easier comparison, deduplication and data cleaning.
@@ -164,7 +164,7 @@
 ### Text
 
 - [Lorem Ipsum Generator](https://digdevbox.com/lorem-ipsum-generator) - Generate lorem ipsum placeholder text — paragraphs, sentences or words — for layouts and mockups. The classic printing-industry dummy text since the 1500s, free and instant, right in your browser.
-- [Word & Character Counter — Text Statistics & Byte Size](https://digdevbox.com/text-statistics) - Count words, characters and lines, and check UTF-8 text size in bytes. Paste text to see live statistics instantly — free and browser-based.
+- [Text Statistics — Word & Character Counter](https://digdevbox.com/text-statistics) - Count words, characters and lines, and check UTF-8 text size in bytes. Paste text to see live statistics instantly — free and browser-based.
 - [Emoji picker](https://digdevbox.com/emoji-picker) - Copy and paste emojis easily and get the unicode and code points value of each emoji.
 - [String obfuscator](https://digdevbox.com/string-obfuscator) - Obfuscate a string (like a secret, an IBAN, or a token) to make it shareable and identifiable without revealing its content.
 - [Text Diff Checker — Compare Two Texts Side by Side](https://digdevbox.com/text-diff) - Compare two text inputs in a side-by-side diff editor to spot additions, deletions and changed lines.

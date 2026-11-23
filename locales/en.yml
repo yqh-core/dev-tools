@@ -395,24 +395,24 @@ tools:
     description: "Convert text between camelCase, PascalCase, snake_case, kebab-case, CONSTANT_CASE, uppercase, lowercase and other naming styles. Paste once, choose a format and copy the result."
 
   html-entities:
-    title: "HTML Entity Encoder & Decoder — Escape Characters and Look Up Entities"
-    description: "Escape and unescape HTML text characters including ampersands, angle brackets, quotes and apostrophes. Search a reference table of common named and numeric HTML entities; escaping is not HTML sanitization."
+    title: "HTML Entity Encoder & Decoder"
+    description: "Encode and decode HTML entities for ampersands, angle brackets, quotes and apostrophes. Search named and numeric references; encoding does not sanitize HTML."
 
   json-prettify:
-    title: JSON Formatter & Validator — Beautify, Validate, Diff and Convert
-    description: Format and validate JSON online — pretty-print at your indent size, sort keys and spot syntax errors instantly, right in your browser.
+    title: "JSON Formatter — Format, Validate & Diff"
+    description: "Format and validate JSON online — pretty-print at your indent size, sort keys and spot syntax errors instantly, right in your browser."
 
   json-workspace:
-    title: JSON Developer Workspace — Format, Query, Tree, Schema & Convert
-    description: A professional JSON workspace — format and validate, explore an interactive tree, query with JSONPath, infer JSON Schema, and convert to YAML or CSV, all in your browser.
+    title: "JSON Workspace — JSONPath, Tree & Schema"
+    description: "Format and validate JSON, inspect an interactive tree, query with JSONPath, infer JSON Schema, and convert to YAML or CSV. Free in your browser."
 
   api-debugger:
-    title: "REST API Tester — cURL Import, Tests & Collections"
-    description: "Send REST API requests, import cURL, inspect response status, headers and JSON, add assertions, and run saved collections. Requests pass through a temporary relay."
+    title: "REST API Tester — cURL, Tests & Collections"
+    description: "Send REST API requests, import cURL, inspect status, headers and JSON, add assertions, and run saved collections. Requests pass through a temporary relay."
 
   docker-run-to-docker-compose-converter:
-    title: Docker Run to Compose Converter — Generate a compose Service from a Command
-    description: Paste a docker run command and get a docker-compose service — ports, volumes and env mapped. Free online decomposerize alternative, in your browser.
+    title: "Docker Run to Compose Converter"
+    description: "Paste a docker run command and get a docker-compose service — ports, volumes and env mapped. Free online decomposerize alternative, in your browser."
 
   mac-address-lookup:
     title: MAC address lookup
@@ -507,8 +507,8 @@ tools:
     description: 'Hash a text string using the function you need : MD5, SHA1, SHA256, SHA224, SHA512, SHA384, SHA3 or RIPEMD160 — with 16-digit MD5 and upper/lower-case hex output'
 
   json-to-toml:
-    title: "JSON to TOML Converter — Convert JSON Config to TOML"
-    description: "Convert JSON objects to TOML configuration. Nested objects become TOML tables or dotted keys, arrays become TOML arrays, and JSON5 input is accepted; values unsupported by TOML may prevent conversion."
+    title: "JSON to TOML Converter"
+    description: "Convert JSON or JSON5 objects to TOML. Nested objects become tables or dotted keys; arrays become TOML arrays. Unsupported values may prevent conversion."
 
   device-information:
     title: Device information
@@ -675,7 +675,7 @@ tools:
     description: Obfuscate a string (like a secret, an IBAN, or a token) to make it shareable and identifiable without revealing its content.
 
   base-converter:
-    title: "Integer Base Converter — Binary, Decimal, Hexadecimal and Base 2–64"
+    title: "Number Base Converter — Bases 2–64"
     description: "Convert non-negative integers between bases 2–64, including binary, octal, decimal, hexadecimal and custom alphabets. This converts numbers, not text."
 
   yaml-to-json-converter:
@@ -691,7 +691,7 @@ tools:
     description: Convert an IP address into decimal, binary, hexadecimal, or even an IPv6 representation of it.
 
   text-statistics:
-    title: "Word & Character Counter — Text Statistics & Byte Size"
+    title: "Text Statistics — Word & Character Counter"
     description: "Count words, characters and lines, and check UTF-8 text size in bytes. Paste text to see live statistics instantly — free and browser-based."
 
   text-to-nato-alphabet:
@@ -715,8 +715,8 @@ tools:
     description: Compare two text inputs in a side-by-side diff editor to spot additions, deletions and changed lines.
 
   otp-generator:
-    title: "TOTP Code Generator — 6-Digit Authenticator Codes & QR Setup"
-    description: "Generate 6-digit time-based codes from a Base32 secret, view previous, current and next 30-second codes, and create an otpauth URI QR code for authenticator setup. Generated secrets use Web Crypto; no account integration or OTP verification UI is provided."
+    title: "TOTP Code Generator — 6-Digit Codes & QR"
+    description: "Generate current, previous and next 6-digit TOTP codes from a Base32 secret, view the 30-second timer, and create an otpauth QR code. Uses Web Crypto."
 
   url-encoder:
     title: URL Encoder & Decoder — Percent-Encoding, encodeURIComponent Pitfalls
@@ -779,8 +779,8 @@ tools:
     description: "Paste text, find a phrase or regular expression, replace or remove matches, ignore case and see the replacement count and output length."
 
   json-to-get-params:
-    title: "JSON to Query String Converter — Convert Nested JSON to URL Parameters"
-    description: "Convert nested JSON to percent-encoded URL query parameters with bracketed object keys and indexed arrays, or rebuild JSON from a query string or full URL. Null and empty values become empty strings."
+    title: "JSON to Query String Converter"
+    description: "Percent-encode nested JSON as URL query parameters, or rebuild JSON from a query string or full URL. Supports bracketed object keys and indexed arrays."
 
   unit-converter:
     title: "Unit converter"
@@ -802,8 +802,8 @@ tools:
     description: "See what happened on this day in history. Events load automatically when the page opens."
 
   htpasswd-generator:
-    title: "htpasswd Generator & Checker — bcrypt, apr1 and SHA1"
-    description: "Build a multi-user Apache/Nginx .htpasswd file with bcrypt or apr1 hashes. Copy or download it, then verify an existing username:hash line locally. Passwords stay in your browser."
+    title: "htpasswd Generator & Checker — bcrypt & apr1"
+    description: "Build multi-user Apache/Nginx .htpasswd files with bcrypt or apr1. Copy, download or verify a username:hash line locally. Passwords stay in your browser."
 
   linux-commands:
     title: "Linux commands cheat sheet"
