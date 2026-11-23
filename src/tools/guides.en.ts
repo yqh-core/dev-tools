@@ -700,17 +700,41 @@ export const GUIDES: Record<string, ToolGuide> = {
   },
 
   '/api-debugger': {
-    intro: 'Debug an API request end to end in the browser: import a cURL command, send it through a transient edge relay, read status, timing, headers and body, then hand the response straight to the JSON workspace or extract values into variables for the next request.',
+    intro: 'Test and debug REST API requests in one workspace: import cURL, OpenAPI 3.x or a Postman v2.1 collection, send requests through a temporary edge relay, inspect responses, add assertions and run saved requests in sequence.',
     steps: [
-      'Paste a cURL command and parse it (or build method, URL, headers and body by hand), then Send and inspect the response without leaving the page.',
+      'Import a cURL command in Import cURL command and parse it. You can also import an OpenAPI 3.x JSON/YAML spec or a Postman collection v2.1 JSON file when you already have a request definition.',
+      'Review the generated request before sending. Check the method, URL, query parameters, headers, authentication fields and body, then click Send. For a new request, enter these fields manually instead.',
+      'Inspect the response status, timing, headers and body. In Tests, add status, JSONPath, header or response-time assertions; assertions run again after each successful send and their individual results appear with the response.',
+      'Use Variables to define Global, Collection or Environment values. Insert {{name}} in the URL, headers or body; an Environment value overrides a Collection value, which overrides a Global value.',
+      'Extract a response value into a variable with a JSONPath such as $.access_token, then save named requests in Collection. Run collection replays saved requests in order and reports each send and assertion result.',
     ],
     example: { label: 'Fill in sample cURL', text: 'curl https://httpbin.org/get -H \'Accept: application/json\'' },
     notes: [
       'The relay reuses the same SSRF validation chain as the site status checker: private and reserved IPs, internal hostnames and redirects into private networks are rejected; request bodies are capped at 256 KiB and response bodies at 1 MiB.',
-      'Credentials (Authorization, Cookie, API keys, URL passwords) are stripped from shared cURL by default, but the request body is NOT sanitized — review it before sharing. History and saved collections keep raw headers in localStorage so requests can be replayed: a known functional trade-off, not secure storage (no protection against XSS or browser-profile leaks). Credentials leave your browser only when you explicitly send or export a request.',
+      'Credentials (Authorization, Cookie, API keys, URL passwords) are stripped from shared cURL by default, but the request body is NOT sanitized — review it before sharing. History and saved collections keep raw headers in localStorage so requests can be replayed: a known functional trade-off, not secure storage (no protection against XSS or browser-profile leaks). Request credentials are transmitted through the temporary relay only when you click Send. Exports are generated locally and strip common authentication headers and URL user information by default, but the request body is NOT sanitized — inspect it for secrets before sharing.',
       'Variables use {{name}} placeholders in URL, headers and body; "Extract → variable" pulls a JSONPath value from the response so a login token can feed the next request.',
+      'The collection runner does not execute Postman pm.* scripts or data-file iterations. Use Postman/Newman or a CI API client when your tests depend on those features.',
     ],
-    about: 'Most browser API clients stop at the response body, which is exactly where the real work starts: pulling a token out of a login response, reshaping a payload, comparing two environments. This workspace keeps the whole chain in one page — cURL in, request out, response into the JSON pipeline — and keeps the safety boundary explicit: the relay validates every hop against private networks, caps body sizes, logs nothing and stores nothing, and sharing a request never includes your credentials by default.',
+    about: 'Most browser API clients stop at the response body, which is exactly where the real work starts: pulling a token out of a login response, reshaping a payload, comparing two environments. This workspace keeps the whole chain in one page — cURL in, request out, response into the JSON pipeline — and keeps the safety boundary explicit: the relay validates every hop against private networks, caps body sizes, logs nothing and stores nothing, and exports remove common authentication headers and URL user information by default, but do not inspect the request body — review it for secrets before sharing.',
+    articleOnlySections: [
+      {
+        title: 'Worked workflow: authenticate, extract a token and call the next endpoint',
+        text: 'Start with a test API and create a POST request to its login endpoint. Add the JSON body expected by that API, then add a status assertion and a JSONPath assertion for the token field in the response. After the response arrives, enter a path such as $.access_token in Extract → variable and name the value token. Create the next request with a URL such as {{baseUrl}}/profile and an Authorization header such as Bearer {{token}}. Keep baseUrl and token in the narrowest suitable variable scope, and use a separate environment for staging and production. The runner does not automatically extract a response value between requests; extract the token first, then send or run the next request.',
+      },
+      {
+        title: 'Use collection runs for repeatable API checks',
+        text: 'Save each request with a clear name after its method, URL, body and authentication details are correct. Add the assertions that matter for that request before saving; the saved assertions run after a successful send and during collection runs. Run collection processes saved requests sequentially and reports how many requests were sent, how many failed and how many assertions passed. Choose the stop-on-send-error setting when later requests depend on earlier requests succeeding. This runner is for repeatable request checks, not a full Postman runtime: it does not execute pm.* scripts or iterate through data files.',
+      },
+      {
+        title: 'Understand the relay, browser storage and sharing boundary',
+        text: 'A request is not sent directly from the browser to the API origin. When you click Send, DigDevBox forwards it through a temporary edge relay that validates destinations, blocks private and reserved network targets, rejects redirects into private networks and enforces request and response size limits. The relay is not described as a local-only path; request credentials are transmitted when you explicitly send the request. Saved history and collections use browser localStorage and may retain the headers you entered, so they are not an encrypted password vault. Secret variables are masked in the interface and exported as empty strings, but the stored values still substitute into requests. Sharing removes common authentication headers and URL user information, but does not sanitize the request body; inspect it before sharing.',
+      },
+    ],
+    faqs: [
+      { q: 'Are API requests sent directly from my browser to the API?', a: 'No. When you click Send, the request passes through a temporary DigDevBox edge relay. It validates target addresses and applies request/response size limits before forwarding. Treat it as a relayed request, not a direct-to-origin or fully local request.' },
+      { q: 'Are saved credentials protected like a password vault?', a: 'No. History and collections use browser localStorage and can retain the headers you entered. Secret variables are masked in the interface and exported as empty strings, but localStorage is not encrypted storage.' },
+      { q: 'Does the collection runner support Postman pm.* scripts or data-file iterations?', a: 'No. It runs saved requests in order and applies each request’s built-in assertions. It does not execute Postman scripts or iterate over data files.' },
+    ],
   },
 
   '/json-workspace': {

@@ -109,8 +109,9 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     priority: 'P1',
     competition: 'medium',
     article: 'json-formatting-guide',
-    landed: false,
-    note: 'WP-003 阶段 B。cURL→发送→响应→WS-2 闭环；中继复用 webstatus SSRF 校验链；部署与隐私文案须单独授权。guide 形状待收口（steps=1），S1\' 冻结期内不进 sitemap。落地时再补 lockedTitle。',
+    landed: true,
+    lockedTitle: 'REST API Tester — cURL Import, Tests & Collections',
+    note: 'US/EU English snippet now targets REST API tester intent. The independent guide now has multi-step instructions, original workflow examples and explicit relay/storage boundaries; sitemap inclusion still depends on measured novel-content ratio. Requests pass through a temporary edge relay; do not claim fully local/direct-to-origin processing.',
   },
   {
     path: '/json-workspace',
