@@ -244,8 +244,8 @@ tools:
       copy: Copy
       refresh: Refresh
   percentage-calculator:
-    title: "Percentage Calculator — Percent of a Number & Percent Change"
-    description: "Calculate X% of Y, find what percent X is of Y, measure percentage change, or increase/decrease a value. Four free calculators, instant results, no sign-up."
+    title: "Percentage Calculator — Percent of a Number, Change & Discount"
+    description: "Calculate a percent of a number, find what percent one value is of another, work out percent increase or decrease, and calculate discounts or sales tax. Four free calculators with instant results."
 
   svg-placeholder-generator:
     title: SVG placeholder generator
@@ -255,12 +255,12 @@ tools:
     title: JSON to CSV
     description: Convert JSON to CSV with automatic header detection.
   csv-to-json:
-    title: CSV to JSON
-    description: Convert CSV to a JSON array with quoted fields, real newlines and duplicate-column safeguards.
+    title: CSV to JSON Converter — Preview Rows & Convert Online
+    description: Paste CSV, choose whether the first row contains column names, preview parsed rows and copy or download the resulting JSON. Handles quoted fields and reports parse warnings.
 
   camera-recorder:
-    title: Camera Recorder
-    description: Record video or take photos from your webcam online — no app install, no upload. Frames and clips stay on your machine until you download them. Works in any modern browser.
+    title: "Webcam Recorder — Record Video & Take Photos Online"
+    description: "Record webcam video or take still photos in your browser. Choose a camera and microphone, pause or resume recording, then download your clip. Files stay on your device."
 
   keycode-info:
     title: Keycode info
@@ -471,8 +471,8 @@ tools:
     description: Pre-deployment readiness gate for your project. Paste package.json, lockfile, Dockerfile and CI workflow, or import Trivy/Checkov/Hadolint/SARIF JSON or actionlint text; get a READY / READY_WITH_WARNINGS / BLOCKED / NOT_ASSESSED verdict with evidence-backed findings (reproducible builds, pinned images, non-root containers, CI injection risks, hardcoded secrets, real scanner results) and an exportable release report. Inspired by Vercel/Netlify preflight checks; runs fully in your browser.
 
   ipv4-subnet-calculator:
-    title: IPv4 Subnet Calculator
-    description: Paste a CIDR like 192.168.1.0/24 and get the full subnet breakdown — usable hosts, first/last address, netmask, wildcard. Built for VPC and VLAN planning, free in your browser.
+    title: IPv4 Subnet Calculator — CIDR, Netmask & Usable Hosts
+    description: Calculate an IPv4 subnet from an address and CIDR prefix. See the network and broadcast addresses, netmask, wildcard mask, subnet size and first/last host addresses.
 
   og-meta-generator:
     title: Open graph meta generator
@@ -671,8 +671,8 @@ tools:
     description: Convert an IP address into decimal, binary, hexadecimal, or even an IPv6 representation of it.
 
   text-statistics:
-    title: Text statistics
-    description: Get information about a text, the number of characters, the number of words, its size in bytes, ...
+    title: "Word & Character Counter — Text Statistics & Byte Size"
+    description: "Count words, characters and lines, and check UTF-8 text size in bytes. Paste text to see live statistics instantly — free and browser-based."
 
   text-to-nato-alphabet:
     title: Text to NATO alphabet
@@ -691,8 +691,8 @@ tools:
     description: Given a start and an end IPv4 address, this tool calculates a valid IPv4 subnet along with its CIDR notation.
 
   text-diff:
-    title: Text diff
-    description: Compare two texts and see the differences between them.
+    title: Text Diff Checker — Compare Two Texts Side by Side
+    description: Compare two text inputs in a side-by-side diff editor to spot additions, deletions and changed lines.
 
   otp-generator:
     title: OTP code generator
@@ -743,8 +743,8 @@ tools:
     description: "Convert between full-width and half-width characters using the fixed Unicode offset 0xFEE0, or adjust punctuation only."
 
   morse-code-converter:
-    title: "Morse Code Converter"
-    description: "What is Morse code? The dot-and-dash alphabet dating from the 1840s. Encode text to Morse or decode it back — letters separated by spaces, words by a slash, free and instant in your browser."
+    title: "Morse Code Translator — Encode Text & Decode Morse"
+    description: "Translate text to Morse code or decode dot-and-dash sequences. Supports A–Z, digits and common punctuation; letters are separated by spaces and words by slashes."
 
   rmb-uppercase:
     title: "RMB amount in Chinese uppercase"
@@ -755,8 +755,8 @@ tools:
     description: "Convert a batch of values between px and rem with a configurable root font size."
 
   text-replacer:
-    title: "Batch text replacer"
-    description: "Find and replace text with plain or regular-expression matching, optional case-insensitive mode and a match counter."
+    title: "Find and Replace Text — Plain Text & Regex Replacer"
+    description: "Paste text, find a phrase or regular expression, replace or remove matches, ignore case and see the replacement count and output length."
 
   json-to-get-params:
     title: "JSON to GET params"
@@ -782,8 +782,8 @@ tools:
     description: "See what happened on this day in history. Events load automatically when the page opens."
 
   htpasswd-generator:
-    title: "htpasswd generator and checker"
-    description: "Generate .htpasswd lines for Apache or Nginx basic auth using bcrypt, apr1, SHA1 or plain text, and verify existing entries."
+    title: "htpasswd Generator & Checker — bcrypt, apr1 and SHA1"
+    description: "Generate Apache or Nginx .htpasswd entries with bcrypt, apr1, SHA1 or plain text, then verify an existing username:hash line against a password."
 
   linux-commands:
     title: "Linux commands cheat sheet"

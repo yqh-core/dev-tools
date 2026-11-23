@@ -48,7 +48,7 @@
 - [PDF Split](https://digdevbox.com/pdf-split) - Split a PDF into single pages, or extract a page range — page count is read from the file before you choose. Free, private, runs in your browser.
 - [PDF Watermark](https://digdevbox.com/pdf-watermark) - Add a text watermark to every page of a PDF — adjustable size, opacity, angle, single line or tiled. Free, private, runs in your browser.
 - [PDF Compressor](https://digdevbox.com/pdf-compress) - Compress PDF files online by recompressing embedded photos and rebuilding the file structure. Two levels, live before/after sizes, never larger than the original. Free, private, runs in your browser.
-- [htpasswd generator and checker](https://digdevbox.com/htpasswd-generator) - Generate .htpasswd lines for Apache or Nginx basic auth using bcrypt, apr1, SHA1 or plain text, and verify existing entries.
+- [htpasswd Generator & Checker — bcrypt, apr1 and SHA1](https://digdevbox.com/htpasswd-generator) - Generate Apache or Nginx .htpasswd entries with bcrypt, apr1, SHA1 or plain text, then verify an existing username:hash line against a password.
 
 ### Converter
 
@@ -103,7 +103,7 @@
 - [QR Code generator](https://digdevbox.com/qrcode-generator) - Generate and download a QR code for a URL (or just plain text), and customize the background and foreground colors.
 - [WiFi QR Code generator](https://digdevbox.com/wifi-qrcode-generator) - Generate and download QR codes for quick connections to WiFi networks.
 - [SVG placeholder generator](https://digdevbox.com/svg-placeholder-generator) - Generate svg images to use as a placeholder in your applications.
-- [Camera Recorder](https://digdevbox.com/camera-recorder) - Record video or take photos from your webcam online — no app install, no upload. Frames and clips stay on your machine until you download them. Works in any modern browser.
+- [Webcam Recorder — Record Video & Take Photos Online](https://digdevbox.com/camera-recorder) - Record webcam video or take still photos in your browser. Choose a camera and microphone, pause or resume recording, then download your clip. Files stay on your device.
 - [Image Resizer](https://digdevbox.com/image-resize) - Resize images online to exact pixel dimensions — step-down scaling keeps detail instead of smearing it, and nothing is uploaded because it all runs in your browser.
 - [Image Compressor](https://digdevbox.com/image-compress) - Compress JPEG and WebP images online to a quality level or a target file size — lossy re-encoding in your browser, so the file never leaves your machine.
 - [Image Cropper](https://digdevbox.com/image-crop) - Crop an image to an exact pixel region in your browser — drag the box, lock a ratio, and export at the true source resolution, not a scaled-down copy.
@@ -121,7 +121,7 @@
 - [API Debug Workspace — cURL, Test Assertions & Response Pipeline](https://digdevbox.com/api-debugger) - Import a cURL command, send the request through a transient edge relay, assert status codes, JSON fields, headers and response time with a built-in test runner, run your whole saved collection as a regression suite, organize variables into Global / Collection / Environment scopes with secret masking, then inspect the response or hand it to the JSON workspace — all in your browser.
 - [JSON minify](https://digdevbox.com/json-minify) - Minify and compress your JSON by removing unnecessary whitespace.
 - [JSON to CSV](https://digdevbox.com/json-to-csv) - Convert JSON to CSV with automatic header detection.
-- [CSV to JSON](https://digdevbox.com/csv-to-json) - Convert CSV to a JSON array with quoted fields, real newlines and duplicate-column safeguards.
+- [CSV to JSON Converter — Preview Rows & Convert Online](https://digdevbox.com/csv-to-json) - Paste CSV, choose whether the first row contains column names, preview parsed rows and copy or download the resulting JSON. Handles quoted fields and reports parse warnings.
 - [SQL Formatter — Format and Beautify SQL Online](https://digdevbox.com/sql-prettify) - Paste a messy SQL query and get it formatted — or minified to one line. Keywords upper-cased, clauses indented, one field per line. Supports PostgreSQL, MySQL, T-SQL, BigQuery and 8 more dialects, free in your browser.
 - [Chmod Calculator — Unix File Permissions (755, 644, 777)](https://digdevbox.com/chmod-calculator) - Compute your chmod permissions and commands with this online chmod calculator.
 - [Docker Run to Compose Converter — Generate a compose Service from a Command](https://digdevbox.com/docker-run-to-docker-compose-converter) - Paste a docker run command and get a docker-compose service — ports, volumes and env mapped. Free online decomposerize alternative, in your browser.
@@ -137,7 +137,7 @@
 
 ### Network
 
-- [IPv4 Subnet Calculator](https://digdevbox.com/ipv4-subnet-calculator) - Paste a CIDR like 192.168.1.0/24 and get the full subnet breakdown — usable hosts, first/last address, netmask, wildcard. Built for VPC and VLAN planning, free in your browser.
+- [IPv4 Subnet Calculator — CIDR, Netmask & Usable Hosts](https://digdevbox.com/ipv4-subnet-calculator) - Calculate an IPv4 subnet from an address and CIDR prefix. See the network and broadcast addresses, netmask, wildcard mask, subnet size and first/last host addresses.
 - [IPv4 address converter](https://digdevbox.com/ipv4-address-converter) - Convert an IP address into decimal, binary, hexadecimal, or even an IPv6 representation of it.
 - [IPv4 range expander](https://digdevbox.com/ipv4-range-expander) - Given a start and an end IPv4 address, this tool calculates a valid IPv4 subnet along with its CIDR notation.
 - [MAC address lookup](https://digdevbox.com/mac-address-lookup) - Find the vendor and manufacturer of a device by its MAC address.
@@ -151,7 +151,7 @@
 
 - [Math evaluator](https://digdevbox.com/math-evaluator) - A calculator for evaluating mathematical expressions. You can use functions like sqrt, cos, sin, abs, etc.
 - [ETA Calculator — Task Completion Time](https://digdevbox.com/eta-calculator) - Estimate when a download, build or batch job will finish from total work and current processing rate. Set the start time and rate to see duration and finish time.
-- [Percentage Calculator — Percent of a Number & Percent Change](https://digdevbox.com/percentage-calculator) - Calculate X% of Y, find what percent X is of Y, measure percentage change, or increase/decrease a value. Four free calculators, instant results, no sign-up.
+- [Percentage Calculator — Percent of a Number, Change & Discount](https://digdevbox.com/percentage-calculator) - Calculate a percent of a number, find what percent one value is of another, work out percent increase or decrease, and calculate discounts or sales tax. Four free calculators with instant results.
 
 ### Measurement
 
@@ -164,15 +164,15 @@
 ### Text
 
 - [Lorem Ipsum Generator](https://digdevbox.com/lorem-ipsum-generator) - Generate lorem ipsum placeholder text — paragraphs, sentences or words — for layouts and mockups. The classic printing-industry dummy text since the 1500s, free and instant, right in your browser.
-- [Text statistics](https://digdevbox.com/text-statistics) - Get information about a text, the number of characters, the number of words, its size in bytes, ...
+- [Word & Character Counter — Text Statistics & Byte Size](https://digdevbox.com/text-statistics) - Count words, characters and lines, and check UTF-8 text size in bytes. Paste text to see live statistics instantly — free and browser-based.
 - [Emoji picker](https://digdevbox.com/emoji-picker) - Copy and paste emojis easily and get the unicode and code points value of each emoji.
 - [String obfuscator](https://digdevbox.com/string-obfuscator) - Obfuscate a string (like a secret, an IBAN, or a token) to make it shareable and identifiable without revealing its content.
-- [Text diff](https://digdevbox.com/text-diff) - Compare two texts and see the differences between them.
+- [Text Diff Checker — Compare Two Texts Side by Side](https://digdevbox.com/text-diff) - Compare two text inputs in a side-by-side diff editor to spot additions, deletions and changed lines.
 - [Numeronym Generator — i18n, a11y & k8s](https://digdevbox.com/numeronym-generator) - Generate numeronyms from one word or a batch of words, one per line, and look up established forms such as i18n, a11y and k8s. Free and instant in your browser.
 - [ASCII Art Generator](https://digdevbox.com/ascii-text-drawer) - Turn text into ASCII art with multiple fonts and styles.
 - [Full-width / half-width converter](https://digdevbox.com/fullwidth-converter) - Convert between full-width and half-width characters using the fixed Unicode offset 0xFEE0, or adjust punctuation only.
-- [Morse Code Converter](https://digdevbox.com/morse-code-converter) - What is Morse code? The dot-and-dash alphabet dating from the 1840s. Encode text to Morse or decode it back — letters separated by spaces, words by a slash, free and instant in your browser.
-- [Batch text replacer](https://digdevbox.com/text-replacer) - Find and replace text with plain or regular-expression matching, optional case-insensitive mode and a match counter.
+- [Morse Code Translator — Encode Text & Decode Morse](https://digdevbox.com/morse-code-converter) - Translate text to Morse code or decode dot-and-dash sequences. Supports A–Z, digits and common punctuation; letters are separated by spaces and words by slashes.
+- [Find and Replace Text — Plain Text & Regex Replacer](https://digdevbox.com/text-replacer) - Paste text, find a phrase or regular expression, replace or remove matches, ignore case and see the replacement count and output length.
 
 ### Data
 

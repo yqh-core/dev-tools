@@ -41,6 +41,19 @@ function batchResultLabel(item: (typeof batchResults.value)[number]): string {
       data-test-id="word-input"
     />
 
+    <c-card v-if="word.trim() === ''" w-full max-w-600px title="Examples" data-test-id="numeronym-examples">
+      <p mb-3 text-sm opacity-70>
+        Generate a numeronym from a word, or enter an established short form to look up its meaning.
+        Add one item per line to process a batch.
+      </p>
+      <div grid grid-cols-2 gap-x-4 gap-y-2>
+        <div flex justify-between gap-2><span>internationalization</span><code>i18n</code></div>
+        <div flex justify-between gap-2><span>accessibility</span><code>a11y</code></div>
+        <div flex justify-between gap-2><span>Kubernetes</span><code>k8s</code></div>
+        <div flex justify-between gap-2><span>localization</span><code>l10n</code></div>
+      </div>
+    </c-card>
+
     <c-card v-if="isBatch" w-full max-w-600px data-test-id="numeronym-batch">
       <div v-for="item in batchResults" :key="item.input" flex justify-between items-center gap-3 py-1>
         <span font-mono>{{ item.input }}</span>
