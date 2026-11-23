@@ -520,7 +520,7 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     competition: 'medium',
     landed: true,
     lockedTitle: 'Percentage Calculator — Percent & Change',
-    note: 'GSC 90d: 224 impressions and 0 clicks across slash/no-slash URL variants (slash 150 at avg position 9.17; no-slash 74 at 8.26). One canonical intent/URL only; visible query detail is substantially anonymized. Shortened the title to preserve the primary phrase and reduced the description to a concise summary of the four actual calculator modes, including discount/tax use cases. Re-measure after recrawl; no CTR lift claimed.',
+    note: 'GSC 90d snapshot: 224 impressions and 0 clicks across slash/no-slash URL variants (visible detail substantially anonymized; examples include arithmetic queries such as 0.05*250 and 26000*0.02). Competitor review found six- and seven-mode calculators commonly include reverse percentage and symmetric percentage difference; percentage-point change is also a distinct rate-intent task. This release adds those three modes, expands the page formulas and guide, and preserves one canonical URL. Re-measure after recrawl; no CTR or ranking lift claimed.',
   },
 
   // 2026-11-22 additions: extend existing developer-task clusters using the current tool registry.
