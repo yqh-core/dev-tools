@@ -19,7 +19,7 @@ test.describe('Tool - Outlook Safe Links decoder', () => {
     await page.goto('/safelink-decoder');
 
     const inner = 'https://eur01.safelinks.protection.outlook.com/?url=https%3A%2F%2Fexample.com%2Fdocs';
-    const outer = 'https://nam01.safelinks.protection.outlook.com/?url=' + encodeURIComponent(inner);
+    const outer = `https://nam01.safelinks.protection.outlook.com/?url=${encodeURIComponent(inner)}`;
 
     await page.getByPlaceholder('Your input Outlook SafeLink Url...').fill(outer);
     await expect(page.getByTestId('area-content')).toContainText('https://example.com/docs');
