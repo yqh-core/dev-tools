@@ -540,7 +540,7 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     competition: 'medium',
     landed: true,
     lockedTitle: 'IP Range to CIDR Converter — Convert IPv4 Ranges Online',
-    note: 'Production title landed after US SERP review; capability is a minimal CIDR cover for a start/end IPv4 range. No volume/KD claims.',
+    note: 'Candidate mapping for the tool that converts a start/end IPv4 range into a valid subnet and CIDR notation. Competition is provisional; the title is now landed from US SERP review. No volume/KD claims.',
   },
   {
     path: '/text-diff',
