@@ -74,6 +74,8 @@ describe('evidence-backed SEO keyword targets', () => {
     ['/ipv4-range-expander', 'IP range to CIDR', 'convert'],
     ['/pdf-merge', 'merge PDF files online', 'convert'],
     ['/user-agent-parser', 'user agent parser', 'parse'],
+    ['/xml-to-json', 'XML to JSON converter', 'convert'],
+    ['/markdown-to-html', 'Markdown to HTML converter', 'convert'],
 
   ])('keeps %s mapped to an existing capability-matched route', (path, keyword, intent) => {
     const entry = CLUSTER_KEYWORD_ENTRIES.find(item => item.path === path);
@@ -102,8 +104,6 @@ describe('evidence-backed SEO keyword targets', () => {
   });
 
   it.each([
-    ['/xml-to-json', 'XML to JSON converter', 'convert'],
-    ['/markdown-to-html', 'Markdown to HTML converter', 'convert'],
     ['/yaml-to-json-converter', 'YAML to JSON converter', 'convert'],
     ['/slugify-string', 'URL slug generator', 'generate'],
     ['/case-converter', 'text case converter', 'convert'],
