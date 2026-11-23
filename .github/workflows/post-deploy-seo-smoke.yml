@@ -229,8 +229,8 @@ jobs:
                 JSON.stringify({ googlebot: botMeta, browser: browserMeta }));
             }
             if (path === '/percentage-calculator/' &&
-                (botMeta.title !== 'Percentage Calculator — Percent of a Number, Change & Discount - DigDevBox' ||
-                 botMeta.description !== 'Calculate a percent of a number, find what percent one value is of another, work out percent increase or decrease, and calculate discounts or sales tax. Four free calculators with instant results.' ||
+                (botMeta.title !== 'Percentage Calculator — Percent & Change - DigDevBox' ||
+                 botMeta.description !== 'Calculate a percentage of a number, find what percent one value is of another, measure percentage change, or apply a discount or sales tax. Four free calculators.' ||
                  botMeta.h1 !== 'Percentage Calculator')) {
               throw new Error('Percentage Calculator production SEO metadata does not match the approved title, description and H1');
             }
