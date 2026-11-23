@@ -34,8 +34,8 @@ home:
         title: "Inspect JWT & Auth"
         description: "Decode JWT headers and payloads and inspect claims. Decoding does not verify a token's signature."
       convert:
-        title: "Convert & Validate"
-        description: "Encode URLs and Base64, convert timestamps and units, and check the resulting values."
+        title: "Calculate & Convert"
+        description: "Calculate percentages and task completion ETAs, encode URLs and Base64, and convert timestamps and units."
       network:
         title: "Diagnose HTTP & Network"
         description: "Check a URL's HTTP response, review header references, calculate IPv4 subnets and query domain records."
