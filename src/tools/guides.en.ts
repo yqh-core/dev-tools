@@ -103,7 +103,13 @@ export const GUIDES: Record<string, ToolGuide> = {
       { q: 'Can I decode an existing Basic header?', a: 'Yes. Paste a complete Authorization header or its Base64 token. The decoder splits at the first colon, so colons in the password are preserved. Only decode credentials you are authorized to inspect.' },
       { q: 'Can a Basic Authentication username contain a colon?', a: 'No. The first colon separates the username from the password under the Basic scheme. A password may contain additional colons.' },
     ],
-    relatedNotes: [{"slug":"http-basic-auth-header-guide","title":"HTTP Basic Authentication Header: Base64 Format, HTTPS & cURL","description":"Understand how an Authorization: Basic header is formed, why Base64 is not encryption, how to generate or decode it, and how to send credentials safely over HTTPS.","url":"https://notes.digdevbox.com/posts/http-basic-auth-header-guide","tag":"HTTP Auth"}],
+    relatedNotes: [
+      { slug: 'http-basic-auth-header-guide' },
+      { title: 'HTTP Basic Authentication Header: Base64 Format, HTTPS & cURL' },
+      { description: 'Understand how an Authorization: Basic header is formed, why Base64 is not encryption, how to generate or decode it, and how to send credentials safely over HTTPS.' },
+      { url: 'https://notes.digdevbox.com/posts/http-basic-auth-header-guide' },
+      { tag: 'HTTP Auth' },
+    ],
   },
 
   '/bcrypt': {
@@ -434,7 +440,13 @@ export const GUIDES: Record<string, ToolGuide> = {
       { q: 'Which units should I use?', a: 'Use the same unit for the total workload and the observed rate: for example, records and records per minute, files and files per hour, or pages and pages per second.' },
       { q: 'What if the processing rate changes?', a: 'The result is an estimate based on the rate you enter. If the workload speeds up or slows down, measure a new representative interval and update the rate to refresh the projected finish time.' },
     ],
-    relatedNotes: [{"slug":"eta-calculator-guide","title":"How to Calculate Task Completion Time from Processing Rate","description":"Estimate when a download, build or batch job will finish using total workload, processing rate and start time — with a worked example, formula and practical limits.","url":"https://notes.digdevbox.com/posts/eta-calculator-guide","tag":"ETA"}],
+    relatedNotes: [
+      { slug: 'eta-calculator-guide' },
+      { title: 'How to Calculate Task Completion Time from Processing Rate' },
+      { description: 'Estimate when a download, build or batch job will finish using total workload, processing rate and start time — with a worked example, formula and practical limits.' },
+      { url: 'https://notes.digdevbox.com/posts/eta-calculator-guide' },
+      { tag: 'ETA' },
+    ],
   },
 
   '/git-memo': {
@@ -1232,7 +1244,13 @@ export const GUIDES: Record<string, ToolGuide> = {
       { q: 'How do I increase or decrease a value by a percentage?', a: 'Multiply the starting value by 1 + (rate ÷ 100) to increase it, or by 1 − (rate ÷ 100) to decrease it. For example, increasing 80 by 15% gives 92; decreasing it by 15% gives 68.' },
       { q: 'Why are there separate fields instead of one formula?', a: 'Each question has a different unknown in a different position. Separating them avoids the most common error: rearranging the formula and dividing by the wrong base.' },
     ],
-    relatedNotes: [{"slug":"percentage-change-vs-percentage-points","title":"Percentage Change vs Percentage Points: Which Formula Should You Use?","description":"Learn when to use percent change, percentage points, percent difference and reverse-percentage formulas, with worked examples for rates, prices and discounts.","url":"https://notes.digdevbox.com/posts/percentage-change-vs-percentage-points","tag":"Percentages"}],
+    relatedNotes: [
+      { slug: 'percentage-change-vs-percentage-points' },
+      { title: 'Percentage Change vs Percentage Points: Which Formula Should You Use?' },
+      { description: 'Learn when to use percent change, percentage points, percent difference and reverse-percentage formulas, with worked examples for rates, prices and discounts.' },
+      { url: 'https://notes.digdevbox.com/posts/percentage-change-vs-percentage-points' },
+      { tag: 'Percentages' },
+    ],
   },
 
   '/phone-parser-and-formatter': {
