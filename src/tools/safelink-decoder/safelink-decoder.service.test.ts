@@ -43,7 +43,7 @@ describe('safelink-decoder', () => {
 
     it('rejects a nested Safe Links wrapper that uses HTTP', () => {
       const inner = 'http://eur01.safelinks.protection.outlook.com/?url=https%3A%2F%2Fexample.com';
-      const outer = 'https://nam01.safelinks.protection.outlook.com/?url=' + encodeURIComponent(inner);
+      const outer = `https://nam01.safelinks.protection.outlook.com/?url=${encodeURIComponent(inner)}`;
 
       expect(() => decodeSafeLinksURL(outer))
         .toThrow('Invalid SafeLinks URL provided');
@@ -68,7 +68,7 @@ describe('safelink-decoder', () => {
       let nested = 'https://example.com/docs';
 
       for (let depth = 0; depth < 6; depth++) {
-        nested = 'https://nam01.safelinks.protection.outlook.com/?url=' + encodeURIComponent(nested);
+        nested = `https://nam01.safelinks.protection.outlook.com/?url=${encodeURIComponent(nested)}`;
       }
 
       expect(() => decodeSafeLinksURL(nested))
