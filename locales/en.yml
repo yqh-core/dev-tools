@@ -335,8 +335,8 @@ tools:
     description: Convert a string, file, or image into its base64 representation.
 
   list-converter:
-    title: List converter
-    description: Remove duplicates, sort, reverse, lowercase, trim and add prefix/suffix to a list, one item per line. Everything runs in your browser — no upload.
+    title: List Converter — Sort, Deduplicate & Format Lines
+    description: "Clean up a line-by-line list: remove duplicate lines, sort or reverse items, trim whitespace, change case, add item prefixes or suffixes, and join values with a chosen separator. Runs in your browser."
 
   base64-string-converter:
     title: Base64 Encoder & Decoder — Padding, URL-Safe, Binary-Safe
@@ -371,8 +371,8 @@ tools:
     description: Generate numeronyms from one word or a batch of words, one per line, and look up established forms such as i18n, a11y and k8s. Free and instant in your browser.
 
   case-converter:
-    title: Case converter
-    description: Transform the case of a string and choose between different formats
+    title: Text Case Converter — camelCase, snake_case & More
+    description: "Convert text between camelCase, PascalCase, snake_case, kebab-case, CONSTANT_CASE, uppercase, lowercase and other naming styles. Paste once, choose a format and copy the result."
 
   html-entities:
     title: Escape HTML entities
@@ -572,8 +572,8 @@ tools:
     button: Crop image
     buttonDownload: Download cropped image
   image-color-picker:
-    title: Image Color Picker
-    description: Click any pixel of an image to read its exact colour as HEX, RGB and HSL — sampled from the original file, entirely offline in your browser.
+    title: Image Color Picker — Get HEX, RGB & HSL from Any Image
+    description: "Pick a pixel in an image to read its stored HEX, RGB and HSL values. Sampling uses the original image bitmap locally in your browser; transparent pixels report stored RGB values without alpha compositing."
     pickFile: Choose an image
     clickHint: Click a pixel to sample it.
   favicon-generator:
@@ -659,8 +659,8 @@ tools:
     description: Convert a number between different bases (decimal, hexadecimal, binary, octal, base64, ...)
 
   yaml-to-json-converter:
-    title: YAML to JSON converter
-    description: Simply convert YAML to JSON with this online live converter.
+    title: YAML to JSON Converter — Convert YAML Online
+    description: "Convert YAML configuration data into JSON in your browser. Nested mappings become objects, sequences become arrays, and YAML scalar types are reflected in the JSON output; comments are not preserved."
 
   uuid-generator:
     title: UUID Generator — v4, v1, v3, v5 and NIL IDs

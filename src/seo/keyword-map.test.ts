@@ -65,6 +65,10 @@ describe('evidence-backed SEO keyword targets', () => {
     ['/pdf-watermark', 'add watermark to PDF', 'PDF Watermark — Add Text Watermarks to PDF'],
     ['/pdf-compress', 'compress PDF online', 'PDF Compressor — Reduce PDF File Size Online'],
     ['/image-resize', 'resize image online', 'Image Resizer — Resize Images to Exact Dimensions'],
+    ['/yaml-to-json-converter', 'YAML to JSON converter', 'YAML to JSON Converter — Convert YAML Online'],
+    ['/case-converter', 'text case converter', 'Text Case Converter — camelCase, snake_case & More'],
+    ['/list-converter', 'list converter', 'List Converter — Sort, Deduplicate & Format Lines'],
+    ['/image-color-picker', 'image color picker', 'Image Color Picker — Get HEX, RGB & HSL from Any Image'],
   ])('locks the landed metadata for %s', (path, keyword, lockedTitle) => {
     const entry = CLUSTER_KEYWORD_ENTRIES.find(item => item.path === path);
 
@@ -108,6 +112,23 @@ describe('evidence-backed SEO keyword targets', () => {
   });
 
   it.each([
+    ['/yaml-to-json-converter', 'YAML to JSON converter', 'convert'],
+    ['/case-converter', 'text case converter', 'convert'],
+    ['/list-converter', 'list converter', 'convert'],
+    ['/image-color-picker', 'image color picker', 'inspect'],
+  ])('keeps newly landed P1 route %s capability-matched', (path, keyword, intent) => {
+    const entry = CLUSTER_KEYWORD_ENTRIES.find(item => item.path === path);
+
+    expect(entry).toBeDefined();
+    expect(entry?.keyword).toBe(keyword);
+    expect(entry?.intent).toBe(intent);
+    expect(entry?.priority).toBe('P1');
+    expect(entry?.landed).toBe(true);
+    expect(entry?.lockedTitle).toBeDefined();
+    expect((entry?.keywords ?? []).length).toBeGreaterThanOrEqual(4);
+  });
+
+  it.each([
     ['/ipv6-ula-generator', 'IPv6 ULA generator', 'generate'],
 
     ['/phone-parser-and-formatter', 'international phone number parser', 'parse'],
@@ -123,9 +144,7 @@ describe('evidence-backed SEO keyword targets', () => {
   });
 
   it.each([
-    ['/yaml-to-json-converter', 'YAML to JSON converter', 'convert'],
     ['/slugify-string', 'URL slug generator', 'generate'],
-    ['/case-converter', 'text case converter', 'convert'],
   ])('keeps %s mapped to an existing capability-matched route', (path, keyword, intent) => {
     const entry = CLUSTER_KEYWORD_ENTRIES.find(item => item.path === path);
 
@@ -155,8 +174,6 @@ describe('evidence-backed SEO keyword targets', () => {
 
   it.each([
     ['/email-normalizer', 'email normalizer', 'parse'],
-    ['/image-color-picker', 'image color picker', 'inspect'],
-    ['/list-converter', 'list converter', 'convert'],
     ['/ipv4-address-converter', 'IPv4 address converter', 'convert'],
     ['/html-wysiwyg-editor', 'HTML WYSIWYG editor', 'format'],
     ['/rsa-key-pair-generator', 'RSA key pair generator', 'generate'],
