@@ -169,8 +169,8 @@ export function percentageBatchToCsv(rows: PercentageBatchRow[]): string {
 }
 
 function tsvCell(value: string, protectFormula = false): string {
-  const safe = protectFormula && /^[\\s]*[=+\\-@]/.test(value) ? `'${value}` : value;
-  return /["\\t\\n\\r]/.test(safe) ? `"${safe.replace(/"/g, '""')}"` : safe;
+  const safe = protectFormula && /^[\s]*[=+\-@]/.test(value) ? `'${value}` : value;
+  return /["\t\n\r]/.test(safe) ? `"${safe.replace(/"/g, '""')}"` : safe;
 }
 
 export function percentageBatchToTsv(rows: PercentageBatchRow[]): string {
@@ -182,6 +182,6 @@ export function percentageBatchToTsv(rows: PercentageBatchRow[]): string {
     tsvCell(row.formula),
     tsvCell(row.result),
     tsvCell(row.error),
-  ].join('\\t'));
-  return [header.join('\\t'), ...lines].join('\\r\\n');
+  ].join('\t'));
+  return [header.join('\t'), ...lines].join('\r\n');
 }
