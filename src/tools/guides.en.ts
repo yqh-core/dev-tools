@@ -93,7 +93,7 @@ export const GUIDES: Record<string, ToolGuide> = {
   '/basic-auth-generator': {
     intro: 'Generates an HTTP Basic Authorization header from a username and password, and decodes an existing Basic header or Base64 credential token.',
     steps: ['Enter the username', 'Enter the password', 'Copy the generated Authorization header'],
-    notes: ['Basic auth only Base64-encodes the credentials, so it must always be used over HTTPS'],
+    notes: ['Basic auth only Base64-encodes the credentials, so it must always be used over HTTPS', 'A Basic Authentication username cannot contain a colon; colons in the password are preserved.'],
     example: { label: 'Fill in a sample username', text: 'admin' },
     about: 'Generate the Authorization header value for HTTP Basic auth, or paste an existing Authorization header or Base64 token to decode it. The first colon separates the username from the password, so passwords may contain colons but usernames cannot. Both operations are computed in your browser — credentials are not submitted to an account service. Base64 is reversible, not encryption; use HTTPS and treat the header as a password.',
     faqs: [
