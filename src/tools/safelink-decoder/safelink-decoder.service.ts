@@ -39,7 +39,7 @@ export function decodeSafeLinksURL(safeLinksUrl: string): string {
     throw new Error('Invalid SafeLinks URL provided');
   }
 
-  for (let depth = 1; depth <= MAX_NESTED_SAFE_LINKS; depth++) {
+  for (let depth = 1; depth < MAX_NESTED_SAFE_LINKS; depth++) {
     const nestedDestination = getSafeLinksDestination(destination);
 
     if (!nestedDestination) {
