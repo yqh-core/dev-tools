@@ -72,7 +72,7 @@ async function copyOutput() {
 }
 
 function downloadOutput() {
-  const blob = new Blob([`${generated.value}\n`], { type: 'text/plain;charset=utf-8' });
+  const blob = new Blob([`${generated.value}\n`], { type: 'application/octet-stream' });
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement('a');
   anchor.href = url;
