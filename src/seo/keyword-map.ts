@@ -109,7 +109,8 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     priority: 'P1',
     competition: 'medium',
     article: 'json-formatting-guide',
-    landed: false,
+    landed: true,
+    lockedTitle: 'REST API Tester — cURL Import, Tests & Collections',
     note: 'WP-003 阶段 B。cURL→发送→响应→WS-2 闭环；中继复用 webstatus SSRF 校验链；部署与隐私文案须单独授权。guide 形状待收口（steps=1），S1\' 冻结期内不进 sitemap。落地时再补 lockedTitle。',
   },
   {
