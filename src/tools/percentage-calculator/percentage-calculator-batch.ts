@@ -83,12 +83,12 @@ export function calculatePercentageBatch(input: string, mode: PercentageBatchMod
     if (!line.trim()) return;
     const cells = line.includes('\t') ? line.split('\t') : line.split(',');
     if (cells.length !== 2 || !cells.every(cell => cell.trim() !== '')) {
-      rows.push({ rowNumber: index + 1, raw: line, formula: '', result: '', error: 'Enter exactly two values separated by a tab or comma.' });
+      rows.push({ rowNumber: index + 1, raw: line, formula: '', result: '', error: 'columns' });
       return;
     }
     const values = cells.map(cell => Number(cell.trim()));
     if (!values.every(Number.isFinite)) {
-      rows.push({ rowNumber: index + 1, raw: line, formula: '', result: '', error: 'Both columns must contain finite numbers.' });
+      rows.push({ rowNumber: index + 1, raw: line, formula: '', result: '', error: 'numbers' });
       return;
     }
     const calculation = calculate(mode, values[0], values[1]);
@@ -98,7 +98,7 @@ export function calculatePercentageBatch(input: string, mode: PercentageBatchMod
       raw: line,
       formula: calculation.formula,
       result: calculation.result,
-      error: undefinedResult ? 'This calculation is undefined for the supplied values.' : '',
+      error: undefinedResult ? 'undefined' : '',
     });
   });
   return rows;
