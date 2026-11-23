@@ -285,10 +285,11 @@ jobs:
               throw new Error('Percentage Calculator production SEO metadata does not match the approved title, description and H1');
             }
             if (path === '/api-debugger/' &&
-                (botMeta.title !== 'REST API Tester — cURL Import, Tests & Collections' ||
+                (botMeta.title !== 'REST API Tester — cURL Import, Tests & Collections - DigDevBox' ||
                  botMeta.description !== 'Send REST API requests, import cURL, inspect response status, headers and JSON, add assertions, and run saved collections. Requests pass through a temporary relay.' ||
                  botMeta.h1 !== 'REST API Tester')) {
-              throw new Error('API Tester production SEO metadata does not match the approved title, description and H1');
+              throw new Error('API Tester production SEO metadata mismatch: ' +
+                JSON.stringify({ title: botMeta.title, description: botMeta.description, h1: botMeta.h1 }));
             }
             if (/<meta[^>]+name=["']robots["'][^>]+content=["'][^"']*noindex/i.test(bot.body)) {
               throw new Error(path + ' unexpectedly carries noindex');
