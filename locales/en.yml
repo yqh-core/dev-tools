@@ -699,8 +699,8 @@ tools:
     description: Transform text into the NATO phonetic alphabet for oral transmission.
 
   basic-auth-generator:
-    title: "Basic Auth Generator — Build an HTTP Authorization Header"
-    description: "Generate or decode an HTTP Basic Authorization header in your browser. Copy the Base64 value and use a cURL example with environment variables. Base64 is not encryption; use HTTPS."
+    title: "Basic Auth Generator & Decoder — HTTP Header"
+    description: "Generate or decode an HTTP Basic Authorization header in your browser. Copy the Base64 token for cURL; Base64 is not encryption, so use HTTPS."
 
   text-to-unicode:
     title: "Text to Unicode Converter — Decimal HTML References & Code Points"

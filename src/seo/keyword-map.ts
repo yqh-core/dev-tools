@@ -496,8 +496,8 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     priority: 'P0',
     competition: 'medium',
     landed: true,
-    lockedTitle: 'Basic Auth Generator — Build an HTTP Authorization Header',
-    note: 'Bing Webmaster 90d: page 33 impressions, avg position 6.24; exact query 17 impressions, avg position 5.41; zero clicks. Existing page now supports local header generation and decoding plus a safe environment-variable cURL example. Re-measure after production recrawl; no CTR lift claimed.',
+    lockedTitle: 'Basic Auth Generator & Decoder — HTTP Header',
+    note: 'Bing Webmaster 90d: page 33 impressions, avg position 6.24; exact query `basic auth generator` 17 impressions, avg position 5.41; zero clicks. Shortened the title while retaining the primary phrase and added decoder intent; tightened the description to a concise generation/decoding + HTTPS security promise. Re-measure after recrawl; no CTR lift claimed.',
   },
   {
     path: '/safelink-decoder',
