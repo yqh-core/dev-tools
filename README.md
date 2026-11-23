@@ -48,7 +48,7 @@
 - [PDF Split — Split PDF Pages or Extract a Range](https://digdevbox.com/pdf-split) - Split a PDF into separate single-page files or extract a selected page range into a new PDF. Check the page count first; processing runs in your browser.
 - [PDF Watermark — Add Text Watermarks to PDF](https://digdevbox.com/pdf-watermark) - Add a text watermark to every page of a PDF. Adjust font size, opacity and angle, then choose a single centered line or a tiled layout; processing stays in your browser.
 - [PDF Compressor — Reduce PDF File Size Online](https://digdevbox.com/pdf-compress) - Compress a PDF by recompressing embedded photos and rebuilding file structure. Compare before-and-after sizes with balanced or strong compression; text and vector content stay untouched, and the result is never larger than the original.
-- [htpasswd Generator & Checker — bcrypt, apr1 and SHA1](https://digdevbox.com/htpasswd-generator) - Generate Apache or Nginx .htpasswd entries with bcrypt, apr1, SHA1 or plain text, then verify an existing username:hash line against a password.
+- [htpasswd Generator & Checker — bcrypt, apr1 and SHA1](https://digdevbox.com/htpasswd-generator) - Build a multi-user Apache/Nginx .htpasswd file with bcrypt or apr1 hashes. Copy or download it, then verify an existing username:hash line locally. Passwords stay in your browser.
 
 ### Converter
 
