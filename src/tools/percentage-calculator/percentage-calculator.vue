@@ -1,9 +1,11 @@
 <script setup lang="ts">
-const isFiniteNumber = (value: unknown): value is number =>
-  typeof value === 'number' && Number.isFinite(value);
+function isFiniteNumber(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value);
+}
 
-const resultText = (value: number): string =>
-  Number.isFinite(value) ? value.toString() : '';
+function resultText(value: number): string {
+  return Number.isFinite(value) ? value.toString() : '';
+}
 
 const percentageX = ref();
 const percentageY = ref();
