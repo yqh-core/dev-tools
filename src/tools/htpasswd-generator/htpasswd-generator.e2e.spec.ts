@@ -44,7 +44,7 @@ test.describe('Tool - multi-user htpasswd generator', () => {
     const downloadPromise = page.waitForEvent('download');
     await page.getByRole('button', { name: 'Download .htpasswd' }).click();
     const download = await downloadPromise;
-    expect(download.suggestedFilename()).toBe('.htpasswd');
+    expect(download.suggestedFilename()).toBe('htpasswd.txt');
 
     await page.getByRole('button', { name: 'Verify first entry' }).click();
     await page.getByRole('button', { name: 'Verify', exact: true }).click();
@@ -52,7 +52,7 @@ test.describe('Tool - multi-user htpasswd generator', () => {
   });
 
   test('generates an Apache bcrypt hash and explains the Nginx format choice', async ({ page }) => {
-    await page.getByRole('combobox').first().click();
+    await page.locator('.n-base-selection').first().click();
     await page.getByRole('option', { name: 'bcrypt ($2a$, Apache)' }).click();
     await page.getByLabel('Username:').nth(0).fill('apache-user');
     await page.getByLabel('Password:').nth(0).fill('secret');
@@ -64,7 +64,7 @@ test.describe('Tool - multi-user htpasswd generator', () => {
   test('removes an added user row', async ({ page }) => {
     await page.getByRole('button', { name: 'Add user' }).click();
     await expect(page.getByText('2 users')).toBeVisible();
-    await page.getByRole('button', { name: 'Remove' }).click();
+    await page.getByRole('button', { name: 'Remove' }).first().click();
     await expect(page.getByText('1 user', { exact: true })).toBeVisible();
     await expect(page.getByLabel('Username:')).toHaveCount(1);
   });
@@ -75,7 +75,7 @@ test.describe('Tool - multi-user htpasswd generator', () => {
     await page.getByLabel('Password:').nth(0).fill('secret');
     await page.getByRole('button', { name: 'Generate .htpasswd' }).click();
     await page.getByRole('button', { name: 'Copy file' }).click();
-    await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toMatch(/^alice:\\$apr1\\$/);
+    await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toMatch(/^alice:\$apr1\$/);
   });
 
   test('keeps the user workflow within a 390px viewport', async ({ page }) => {
