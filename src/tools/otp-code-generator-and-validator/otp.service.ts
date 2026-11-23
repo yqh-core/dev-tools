@@ -1,6 +1,5 @@
 import { HmacSHA1, enc } from 'crypto-js';
 import { chain } from 'lodash';
-import { createToken } from '../token-generator/token-generator.service';
 
 export {
   generateHOTP,
@@ -136,5 +135,9 @@ function buildKeyUri({
 }
 
 function generateSecret() {
-  return createToken({ length: 16, alphabet: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567' });
+  // 32-symbol Base32 alphabet; masking 5 bits is unbiased because 32 divides 256 exactly.
+  const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+  const bytes = new Uint8Array(16);
+  globalThis.crypto.getRandomValues(bytes);
+  return Array.from(bytes, byte => alphabet[byte & 31]).join('');
 }
