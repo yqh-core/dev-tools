@@ -97,7 +97,7 @@ describe('percentage batch calculations', () => {
     const rows = runPercentageBatch('=HYPERLINK("https://example.com")\t20\t150\nTaxi\t10\t40', 'percent-of');
     const csv = percentageBatchToCsv(rows);
 
-    expect(csv).toContain(`'=HYPERLINK(""https://example.com"")`);
+    expect(csv).toContain('\'=HYPERLINK(""https://example.com"")');
     expect(csv).toContain('"Taxi","10","40"');
     expect(csv).toContain('"Formula","Result","Error"');
     expect(csv.split('\r\n')).toHaveLength(3);
