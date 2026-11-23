@@ -5,7 +5,12 @@ import { textToBase64 } from '@/utils/base64';
 
 const username = ref('');
 const password = ref('');
-const header = computed(() => `Authorization: Basic ${textToBase64(`${username.value}:${password.value}`)}`);
+const usernameError = computed(() => username.value.includes(':')
+  ? 'A Basic Authentication username cannot contain a colon.'
+  : '');
+const header = computed(() => usernameError.value
+  ? ''
+  : `Authorization: Basic ${textToBase64(`${username.value}:${password.value}`)}`);
 const curlExample = 'curl --user "$BASIC_AUTH_USERNAME:$BASIC_AUTH_PASSWORD" https://example.com/';
 
 const decodeInput = ref('');
@@ -46,8 +51,11 @@ const { copy: copyCurl } = useCopy({ source: curlExample, text: 'cURL example co
         </n-scrollbar>
       </n-statistic>
     </c-card>
+    <p v-if="usernameError" mt-3 role="alert" text-error data-test-id="basic-auth-username-error">
+      {{ usernameError }}
+    </p>
     <div mt-5 flex justify-center>
-      <c-button @click="copyHeader()">
+      <c-button :disabled="!!usernameError" @click="copyHeader()">
         Copy header
       </c-button>
     </div>

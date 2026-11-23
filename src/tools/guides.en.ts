@@ -91,15 +91,26 @@ export const GUIDES: Record<string, ToolGuide> = {
   },
 
   '/basic-auth-generator': {
-    intro: 'Builds the HTTP Basic Authorization header from a username and password, ready to paste into an API request.',
+    intro: 'Generates an HTTP Basic Authorization header from a username and password, and decodes an existing Basic header or Base64 credential token.',
     steps: ['Enter the username', 'Enter the password', 'Copy the generated Authorization header'],
-    notes: ['Basic auth only Base64-encodes the credentials, so it must always be used over HTTPS'],
+    notes: ['Basic auth only Base64-encodes the credentials, so it must always be used over HTTPS', 'A Basic Authentication username cannot contain a colon; colons in the password are preserved.'],
     example: { label: 'Fill in a sample username', text: 'admin' },
-    about: 'Build the Authorization header value for HTTP Basic auth: enter a username and password, get the base64-encoded string ready to paste into curl, an API client or a proxy config. Everything is computed in your browser — the credentials never leave the page.',
+    about: 'Generate the Authorization header value for HTTP Basic auth, or paste an existing Authorization header or Base64 token to decode it. The first colon separates the username from the password, so passwords may contain colons but usernames cannot. Both operations are computed in your browser — credentials are not submitted to an account service. Base64 is reversible, not encryption; use HTTPS and treat the header as a password.',
     faqs: [
       { q: 'Is Basic auth secure?', a: 'Only over HTTPS. The header is trivially reversible — base64 is an encoding, not a lock — so it protects nothing if an attacker can read the traffic. Always pair it with TLS.' },
       { q: 'What exactly goes into the header?', a: 'The literal string "Basic " followed by base64(username:password), so user "api" with password "secret" becomes "Basic YXBpOnNlY3JldA==". This tool produces that value for you.' },
       { q: 'Why does my server reject the generated header?', a: 'Common causes: an extra space or newline copied in, the wrong scheme prefix, or the server expecting a token format instead. Compare the exact bytes you send with what the server documents.' },
+      { q: 'Can I decode an existing Basic header?', a: 'Yes. Paste a complete Authorization header or its Base64 token. The decoder splits at the first colon, so colons in the password are preserved. Only decode credentials you are authorized to inspect.' },
+      { q: 'Can a Basic Authentication username contain a colon?', a: 'No. The first colon separates the username from the password under the Basic scheme. A password may contain additional colons.' },
+    ],
+    relatedNotes: [
+      {
+        slug: 'http-basic-auth-header-guide',
+        title: 'HTTP Basic Authentication Header: Base64 Format, HTTPS & cURL',
+        description: 'Understand how an Authorization: Basic header is formed, why Base64 is not encryption, how to generate or decode it, and how to send credentials safely over HTTPS.',
+        url: 'https://notes.digdevbox.com/posts/http-basic-auth-header-guide',
+        tag: 'HTTP Auth',
+      },
     ],
   },
 
@@ -1378,11 +1389,11 @@ export const GUIDES: Record<string, ToolGuide> = {
     steps: ['Copy the very long SafeLink URL from the email', 'Paste it into the input', 'Click decode to get the original URL'],
     notes: ['Decoding only reveals the address — you still have to judge for yourself whether it is trustworthy'],
     example: { label: 'Fill in a sample SafeLink URL', text: 'https://nam.safelinks.protection.outlook.com/?url=https%3A%2F%2Fexample.com%2Fdocs' },
-    about: 'Outlook SafeLink wraps every URL in corporate mail into a long tracking redirect — you click the wrapper, not the destination. Paste a SafeLink URL and this tool extracts the real address encoded inside it, so you can see (and decide about) where a link actually goes before opening it.',
+    about: 'This tool extracts the destination embedded in an Outlook Safe Links URL without opening that destination. It accepts HTTPS wrappers on Outlook Safe Links hosts, unwraps up to five nested layers, and validates that the final address uses HTTP or HTTPS. It does not scan or rate the destination and does not replace or bypass Microsoft time-of-click protection; follow your organization\'s approved Safe Links workflow.',
     faqs: [
       { q: 'What is SafeLink, and why do links look like that?', a: 'It is Microsoft\'s rewriter: mail links are replaced with a URL that routes through Microsoft servers for scanning, then forwards you. The original address is inside the wrapper as a query parameter.' },
-      { q: 'Why decode before clicking?', a: 'Two reasons: transparency (you see the real destination, including any look-alike domains) and convenience — the decoded URL opens directly, without the tracking hop and its privacy implications.' },
-      { q: 'Does decoding bypass any security?', a: 'No. It only reads the wrapped URL; it does not touch attachments or Microsoft\'s scanning. You are simply choosing to visit the destination directly rather than through the redirect.' },
+      { q: 'Why decode before deciding what to do?', a: 'To inspect the actual destination hostname and path before you decide whether to proceed. Do not open a URL just because it decodes; follow your organization\'s Safe Links workflow and report suspicious messages.' },
+      { q: 'Does decoding bypass or replace Microsoft Safe Links protection?', a: 'No. This tool parses the URL text without opening the destination, does not scan the destination, and does not replace or bypass Microsoft\'s time-of-click protection. Keep using the organization-approved Safe Links flow.' },
     ],
     relatedNotes: [
       {
@@ -1391,6 +1402,13 @@ export const GUIDES: Record<string, ToolGuide> = {
         description: 'How percent-encoding works, where encodeURIComponent and encodeURI differ, and why a plus sign can quietly turn into a space in your form data.',
         url: 'https://notes.digdevbox.com/posts/url-encoding-guide',
         tag: 'URL',
+      },
+      {
+        slug: 'outlook-safelinks-decoder-guide',
+        title: 'Outlook Safe Links Decoder: Reveal the Original URL Without Opening It',
+        description: 'Learn how Outlook Safe Links wraps email URLs, how to reveal a destination without opening it, and what decoding does not verify or replace.',
+        url: 'https://notes.digdevbox.com/posts/outlook-safelinks-decoder-guide',
+        tag: 'Safe Links',
       },
     ],
   },

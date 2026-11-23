@@ -63,6 +63,8 @@ export const KNOWN_NOTE_SLUGS = [
   'http-status-codes-guide',
   'percentage-change-vs-percentage-points',
   'eta-calculator-guide',
+  'outlook-safelinks-decoder-guide',
+  'http-basic-auth-header-guide',
 ] as const;
 
 /** forge-notes 文章的站点根（`notes.digdevbox.com` 是 DigDevBox 站群的一员）。 */
