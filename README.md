@@ -101,7 +101,7 @@
 ### Images and videos
 
 - [QR Code Generator — Create & Download Custom QR Codes](https://digdevbox.com/qrcode-generator) - Create a QR code from a URL or text. Customize foreground and background colors, choose an error-correction level, and download a PNG image.
-- [WiFi QR Code generator](https://digdevbox.com/wifi-qrcode-generator) - Generate and download QR codes for quick connections to WiFi networks.
+- [WiFi QR Code Generator — Create Network Login QR Codes](https://digdevbox.com/wifi-qrcode-generator) - Generate a WiFi QR code for WPA/WEP, open networks or WPA2-EAP. Enter SSID, password, hidden-network and EAP settings, customize colors and download a PNG. QR codes contain credentials in readable form.
 - [SVG placeholder generator](https://digdevbox.com/svg-placeholder-generator) - Generate svg images to use as a placeholder in your applications.
 - [Webcam Recorder — Record Video & Take Photos Online](https://digdevbox.com/camera-recorder) - Record webcam video or take still photos in your browser. Choose a camera and microphone, pause or resume recording, then download your clip. Files stay on your device.
 - [Image Resizer — Resize Images to Exact Dimensions](https://digdevbox.com/image-resize) - Resize an image to exact pixel width and height, with an optional aspect-ratio lock. Export PNG, JPEG or WebP when your browser supports the format; processing happens locally.
@@ -113,7 +113,7 @@
 
 ### Development
 
-- [Git cheatsheet](https://digdevbox.com/git-memo) - Git is a decentralized version management software. With this cheatsheet, you will have quick access to the most common git commands.
+- [Git Commands Cheat Sheet — Common Commands & Undo](https://digdevbox.com/git-memo) - Quick reference for Git configuration, init/clone, commits, amend, reset and branch rename commands, with copyable examples. Replace placeholders before running; hard reset can discard work.
 - [Random port generator](https://digdevbox.com/random-port-generator) - Generate random port numbers outside of the range of "known" ports (0-1023).
 - [Crontab Generator — Cron Expressions with Plain-English Preview](https://digdevbox.com/crontab-generator) - Build cron expressions with a plain-English preview — every 5 minutes, weekdays, @reboot. Validate crontab and GitHub Actions schedules free in your browser.
 - [JSON Formatter & Validator — Beautify, Validate, Diff and Convert](https://digdevbox.com/json-prettify) - Format and validate JSON online — pretty-print at your indent size, sort keys and spot syntax errors instantly, right in your browser.
@@ -156,7 +156,7 @@
 ### Measurement
 
 - [Chronometer](https://digdevbox.com/chronometer) - Monitor the duration of a thing. Basically a chronometer with simple chronometer features.
-- [Temperature converter](https://digdevbox.com/temperature-converter) - Degrees temperature conversions for Kelvin, Celsius, Fahrenheit, Rankine, Delisle, Newton, Réaumur, and Rømer.
+- [Temperature Converter — Celsius, Fahrenheit, Kelvin & More](https://digdevbox.com/temperature-converter) - Convert between Celsius, Fahrenheit, Kelvin, Rankine, Delisle, Newton, Réaumur and Rømer. Enter a value in any scale to update the other seven instantly.
 - [Unit converter](https://digdevbox.com/unit-converter) - Convert between 11 categories of units: length, area, volume, weight, speed, time, data storage, power, pressure, angle and temperature.
 - [Benchmark builder](https://digdevbox.com/benchmark-builder) - Easily compare execution time of tasks with this very simple online benchmark builder.
 - [Reaction Time Test](https://digdevbox.com/reaction-time-test) - Measure your visual reaction time in the browser — wait for the panel to turn green and click the instant it does, with best, median and mean over five rounds.
