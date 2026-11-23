@@ -803,7 +803,7 @@ tools:
 
   htpasswd-generator:
     title: "htpasswd Generator & Checker — bcrypt, apr1 and SHA1"
-    description: "Generate Apache or Nginx .htpasswd entries with bcrypt, apr1, SHA1 or plain text, then verify an existing username:hash line against a password."
+    description: "Build a multi-user Apache/Nginx .htpasswd file with bcrypt or apr1 hashes. Copy or download it, then verify an existing username:hash line locally. Passwords stay in your browser."
 
   linux-commands:
     title: "Linux commands cheat sheet"
