@@ -47,6 +47,12 @@ const outputDecodedUrl = computed(() => {
         <li>Microsoft Safe Links can check links when they are clicked. This decoder does not replace or bypass that protection.</li>
         <li>Before visiting a decoded address, inspect the domain carefully and follow your organization's security process. Do not open a link just because it was successfully decoded.</li>
       </ul>
+
+      <h3 class="mb-2 text-lg font-semibold">Related URL tools</h3>
+      <p>
+        Use the <a href="/url-parser/">URL Parser</a> to inspect the decoded address components, or the
+        <a href="/url-encoder/">URL Encoder</a> to encode or decode URL components.
+      </p>
     </section>
   </div>
 </template>
