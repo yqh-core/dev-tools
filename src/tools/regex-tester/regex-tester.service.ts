@@ -68,7 +68,7 @@ export function matchRegex(regex: string, text: string, flags: string): RegexMat
       if (codePoint === undefined) {
         break;
       }
-      re.lastIndex += codePoint > 0xFFFF ? 2 : 1;
+      re.lastIndex += (re.flags.includes('u') || re.flags.includes('v')) && codePoint > 0xFFFF ? 2 : 1;
     }
 
     match = re.exec(text) as RegExpExecArrayWithIndices | null;
@@ -89,7 +89,7 @@ export function evaluateRegex(
   let sample = '';
   try {
     // RandExp does not implement named groups; convert only their declaration to non-capturing syntax.
-    const samplePattern = regex.replace(/\\(\\?<[^>]+>/g, '(?:');
+    const samplePattern = regex.replace(/\(\?<[^>]+>/g, '(?:');
     sample = new RandExp(new RegExp(samplePattern)).gen();
   }
   catch {
