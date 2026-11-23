@@ -22,16 +22,29 @@ jobs:
         with:
           script: |
             const { owner, repo } = context.repo;
-            const sha = context.payload.workflow_run.head_sha;
-            const { data } = await github.rest.repos.getCommit({ owner, repo, ref: sha });
-            const files = data.files || [];
-            const deployable = files.filter(({ filename }) =>
-              !filename.startsWith('.github/') &&
-              !['README.md', 'CONTRIBUTING.md'].includes(filename)
-            );
-            core.info('Changed files: ' + files.map(file => file.filename).join(', '));
-            core.info('Deployable site files: ' + deployable.map(file => file.filename).join(', '));
-            core.setOutput('wait_for_deploy', deployable.length ? 'true' : 'false');
+            let cursor = context.payload.workflow_run.head_sha;
+            let deploySha = cursor;
+            let waitForDeploy = false;
+            // A workflow-only follow-up commit must still wait for the latest
+            // ancestor that actually changed the deployed site (e.g. locale files).
+            for (let depth = 0; depth < 20 && cursor; depth++) {
+              const { data } = await github.rest.repos.getCommit({ owner, repo, ref: cursor });
+              const files = data.files || [];
+              const deployable = files.filter(({ filename }) =>
+                !filename.startsWith('.github/') &&
+                !['README.md', 'CONTRIBUTING.md'].includes(filename)
+              );
+              core.info('Inspecting commit ' + cursor + ': ' + files.map(file => file.filename).join(', '));
+              if (deployable.length) {
+                deploySha = cursor;
+                waitForDeploy = true;
+                core.info('Latest deployable site commit: ' + deploySha);
+                break;
+              }
+              cursor = data.parents?.[0]?.sha || '';
+            }
+            core.setOutput('deploy_sha', deploySha);
+            core.setOutput('wait_for_deploy', waitForDeploy ? 'true' : 'false');
 
   production-smoke:
     needs: detect-site-changes
@@ -47,7 +60,7 @@ jobs:
         env:
           SITE_ORIGIN: "https://www.digdevbox.com"
           EXPECTED_TITLE: "Free Online Developer Tools"
-          TARGET_SHA: ${{ github.event.workflow_run.head_sha }}
+          TARGET_SHA: ${{ needs.detect-site-changes.outputs.deploy_sha }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           GITHUB_TOKEN: ${{ github.token }}
           WAIT_FOR_DEPLOY: ${{ needs.detect-site-changes.outputs.wait_for_deploy }}
