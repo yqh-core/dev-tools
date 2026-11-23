@@ -263,6 +263,46 @@ tools:
   percentage-calculator:
     title: 百分比计算器 — 百分比计算、增减幅与折扣
     description: 计算百分比、反推折扣或涨价前的原值、比较两个数值的百分比差异，并计算百分点变化。七种免费计算模式，全部在浏览器本地运行。
+    batch:
+      title: 百分比批量计算器
+      description: 粘贴多行数据，每行使用制表符或逗号分隔两个数字。批量数据和历史记录仅保存在当前浏览器，不会发送到分析服务。
+      mode: 计算类型
+      input: 数值（每行一组）
+      placeholder: "15\t80\n20\t50\n7\t120"
+      run: 开始批量计算
+      copyAll: 复制全部（TSV）
+      downloadCsv: 下载 CSV
+      downloadTsv: 下载 TSV
+      row: 行
+      formula: 公式
+      resultStatus: 结果 / 状态
+      action: 操作
+      copy: 复制
+      historyTitle: 最近计算记录（仅当前浏览器）
+      clearHistory: 清除历史
+      restore: 恢复
+      delete: 删除
+      rows: 行
+      rowsStatus: "已计算 {valid} 行；{invalid} 行需要检查。"
+      empty: 请粘贴至少一行数据，每行必须包含两个数值。
+      copied: 已复制到剪贴板。
+      clipboardUnavailable: 当前浏览器无法访问剪贴板，请手动选择并复制结果。
+      downloaded: "已下载 {format} 结果。"
+      restored: 已从当前浏览器的本地历史恢复批量计算。
+      cleared: 已清除本地计算历史。
+      historySaveFailed: 无法在此浏览器中保存历史记录。
+      errors:
+        columns: 每行必须使用制表符或逗号分隔，且恰好包含两个数值。
+        numbers: 两列都必须是有限数值。
+        undefined: 当前输入下该计算没有定义。
+      modes:
+        part: 求 X% 的 Y
+        ratio: X 占 Y 的百分之几
+        change: 百分比变化（原值、现值）
+        adjust: 按百分比增加和减少（数值、百分比）
+        reverse: 反推增加和减少前的原值（最终值、百分比）
+        difference: 对称百分比差异
+        points: 百分点变化（旧比率、新比率）
 
   svg-placeholder-generator:
     title: SVG 占位符生成器
