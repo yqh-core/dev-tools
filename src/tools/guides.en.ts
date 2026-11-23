@@ -1880,11 +1880,9 @@ export const GUIDES: Record<string, ToolGuide> = {
     example: { label: 'Fill in a sample username', text: 'admin' },
     about: 'Create a complete multi-user .htpasswd file without opening a terminal. Add a row for each account, choose bcrypt or Apache MD5 (apr1), and generate one independently salted hash line per user. Copy the complete file or download it as .htpasswd, then use the retained single-line verifier to check an existing credential. The tool runs entirely in your browser, so passwords and hashes stay on your device.',
     faqs: [
-      { q: 'Can I generate a .htpasswd file for multiple users at once?', a: 'Yes. Add a row for each username and password, then generate the file. The output contains one username:hash line per valid user and can be copied or downloaded as .htpasswd.' },
-      { q: 'Does every user get a different apr1 salt?', a: 'Yes. Each generated apr1 entry gets its own cryptographically random salt, so identical passwords do not produce identical stored hashes.' },
+      { q: 'Can I generate a .htpasswd file for multiple users at once?', a: 'Yes. Add a row for each username and password, then generate the file. The output contains one username:hash line per valid user and can be copied or downloaded as .htpasswd. Each apr1 entry gets its own random salt, so identical passwords do not produce identical stored hashes.' },
       { q: 'Which hash format should I choose?', a: 'Use bcrypt for a new Apache setup when its cost is appropriate. apr1 is the most portable Apache/Nginx choice. Nginx bcrypt support depends on the system crypt() implementation; SHA1 and plain text are legacy/debug formats, not recommended for production.' },
-      { q: 'Where should the .htpasswd file go?', a: 'Keep it outside the public web root and reference it from your server configuration (AuthUserFile in Apache or auth_basic_user_file in Nginx). Serve Basic Auth over HTTPS.' },
-      { q: 'Why does verification fail for a line I know is right?', a: 'Hashes are salted: each generation can produce a different string, and verification uses the salt stored in the existing line. A mismatch usually means the entered password differs from the original.' },
+      { q: 'Where should the .htpasswd file go, and how do I verify a line?', a: 'Keep the file outside the public web root and reference it from your server configuration (AuthUserFile in Apache or auth_basic_user_file in Nginx). Serve Basic Auth over HTTPS. To verify, paste an existing username:hash line and enter the password; verification reuses the salt stored in that line.' },
     ],
   },
 
