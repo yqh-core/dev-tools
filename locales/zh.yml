@@ -262,7 +262,7 @@ tools:
       refresh: 刷新
   percentage-calculator:
     title: 百分比计算器 — 百分比计算、增减幅与折扣
-    description: 计算百分比、反推折扣或涨价前的原值、比较两个数值的百分比差异，并计算百分点变化。七种免费计算模式，全部在浏览器本地运行。
+    description: 免费百分比计算器，支持占比、变化率、增减与折扣反推。可批量粘贴多行、逐行查看公式并导出 CSV，全部在浏览器本地完成。
 
   svg-placeholder-generator:
     title: SVG 占位符生成器
