@@ -13,7 +13,7 @@ export function buildHtpasswdLines(
   return entries.map((entry, index) => {
     const username = entry.username.trim();
     if (!username) throw new Error(`User ${index + 1}: username is required`);
-    if (/[\\r\\n:]/.test(username)) throw new Error(`User ${index + 1}: username cannot contain colons or line breaks`);
+    if (/[\r\n:]/.test(username)) throw new Error(`User ${index + 1}: username cannot contain colons or line breaks`);
     const key = username.toLocaleLowerCase('en-US');
     if (seen.has(key)) throw new Error(`Duplicate username: ${username}`);
     seen.add(key);
