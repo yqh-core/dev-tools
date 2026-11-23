@@ -2,13 +2,13 @@
 /** Local .htpasswd generation and verification for Apache / Nginx Basic Auth. */
 import { compareSync, hashSync } from 'bcryptjs';
 import CryptoJS from 'crypto-js';
-import { apr1, apr1Verify } from './apr1';
-import { type HtpasswdEntry, buildHtpasswdLines } from './htpasswd-generator.service';
+import { apr1Verify } from './apr1';
+import { type HtpasswdEntry, buildHtpasswdLines, hashHtpasswdPassword } from './htpasswd-generator.service';
 
 type Fmt = 'bcrypt' | 'apr1' | 'sha1' | 'plain';
 const FORMATS: { label: string; value: Fmt; hint: string }[] = [
-  { label: 'bcrypt ($2b$, recommended)', value: 'bcrypt', hint: 'Recommended since Apache 2.4 — this is what htpasswd -B outputs' },
-  { label: 'Apache MD5 ($apr1$)', value: 'apr1', hint: 'Classic Apache format — what htpasswd -m outputs' },
+  { label: 'bcrypt ($2a$, Apache)', value: 'bcrypt', hint: 'Apache bcrypt. Nginx auth_basic does not support bcrypt; choose apr1 for Apache/Nginx compatibility.' },
+  { label: 'Apache MD5 ($apr1$)', value: 'apr1', hint: 'Supported by Apache and Nginx; legacy format compared with bcrypt.' },
   { label: 'SHA1 ({SHA})', value: 'sha1', hint: 'Insecure legacy format; avoid for production' },
   { label: 'Plain text (never for production)', value: 'plain', hint: 'Debugging only; never use in production' },
 ];
@@ -42,18 +42,11 @@ function removeEntry(index: number) {
 }
 
 function hashOne(password: string) {
-  if (fmt.value === 'bcrypt') {
-    return hashSync(password, cost.value);
-  }
-  if (fmt.value === 'apr1') {
-    // Each row gets its own cryptographically random salt; custom salt remains for one-user workflows.
-    const rowSalt = entries.value.length === 1 && salt.value.trim() ? salt.value.trim().slice(0, 8) : randomSalt();
-    return apr1(password, rowSalt);
-  }
-  if (fmt.value === 'sha1') {
-    return `{SHA}${CryptoJS.SHA1(password).toString(CryptoJS.enc.Base64)}`;
-  }
-  return password;
+  // Each apr1 row gets its own cryptographically random salt; custom salt remains for one-user workflows.
+  const rowSalt = fmt.value === 'apr1'
+    ? entries.value.length === 1 && salt.value.trim() ? salt.value.trim().slice(0, 8) : randomSalt()
+    : '';
+  return hashHtpasswdPassword(password, fmt.value, cost.value, rowSalt);
 }
 
 function generate() {
