@@ -263,6 +263,65 @@ tools:
   percentage-calculator:
     title: 百分比计算器 — 百分比计算、增减幅与折扣
     description: 免费百分比计算器，支持占比、变化率、增减与折扣反推。可批量粘贴多行、逐行查看公式并导出 CSV，全部在浏览器本地完成。
+    batch:
+      summary: 批量计算多组数值（可选）
+      title: 百分比批量计算器
+      description: 每行粘贴一组数据，两个数字之间使用制表符或逗号分隔，也可以在第一列添加文字标签。每行独立计算，某一行无效不会中断其他行。
+      calculation: 计算类型
+      inputLabel: 数值（每行一组）
+      placeholder: "Groceries\t20\t150\nTaxi\t10\t40"
+      run: 计算所有行
+      copyCsv: 复制 CSV 结果
+      copyTsv: 复制 TSV 结果
+      downloadCsv: 下载 CSV
+      downloadTsv: 下载 TSV
+      row: 行
+      formula: 公式
+      resultIssue: 结果 / 问题
+      action: 操作
+      copyRow: 复制本行
+      historyTitle: 最近计算记录（仅保存在当前浏览器）
+      clearHistory: 清除历史
+      restore: 恢复
+      remove: 删除
+      removeAria: 从历史记录中删除 {mode}
+      privacy: 计算全部在本地运行。批量输入和最近历史只保存在当前浏览器，不会发送到分析服务；可随时清除本地历史。
+      rowsStatusPartial: 已计算 {total} 行中的 {successful} 行；另有 {failed} 行需要检查。输入和历史记录仅保存在当前浏览器。
+      rowsStatusSuccess: 已计算 {total} 行。输入和历史记录仅保存在当前浏览器。
+      historyUnavailable: 当前浏览器无法保存历史记录，但本次计算结果仍可使用。
+      empty: 请至少粘贴一行非空数据后再计算。
+      clipboardUnavailable: 当前浏览器无法访问剪贴板，请手动选择并复制结果。
+      copiedRow: 已复制 {label} 及其公式和结果。
+      calculateBeforeCopy: 请先计算至少一行，再复制结果。
+      calculateBeforeDownload: 请先计算至少一行，再下载结果。
+      copiedCsv: 已将所有批量结果复制为 CSV。
+      copiedTsv: 已将所有批量结果复制为 TSV。
+      downloaded: "已下载 {format} 批量计算结果。"
+      restored: "已恢复本地历史记录：{date}。"
+      removed: 已从本地历史记录中删除该次计算。
+      cleared: 已清除本地历史记录，当前计算结果不受影响。
+      modes:
+        percent-of: 求 X% 的 Y
+        part-to-whole: X 占 Y 的百分之几
+        percentage-change: 百分比增加或减少
+        adjustment: 按百分比增加或减少
+        reverse: 反推百分比变化前的原值
+        percentage-difference: 两个数值的百分比差异
+        percentage-points: 两个比率之间的百分点变化
+      hints:
+        percent-of: 两列：百分比、数值。示例：15<TAB>80
+        part-to-whole: 两列：部分、整体。示例：30<TAB>120
+        percentage-change: 两列：原始值、新值。示例：80<TAB>92
+        adjustment: 两列：起始值、百分比。每行同时返回增加和减少后的结果。
+        reverse: 两列：最终值、百分比。每行同时反推增加前和减少前的原值。
+        percentage-difference: 两列：数值 A、数值 B。示例：100<TAB>150
+        percentage-points: 两列：旧比率 (%)、新比率 (%)。示例：5<TAB>7
+      errors:
+        columns: 每行需要两列数值，使用制表符或逗号分隔；也可在前面添加文字标签。
+        numbers: 两列都必须是有限数值。
+        wholeZero: 整体数值不能为零。
+        startZero: 计算百分比变化时，起始值不能为零。
+        differenceZero: 两个数值都为零时，百分比差异没有定义。
 
   svg-placeholder-generator:
     title: SVG 占位符生成器
