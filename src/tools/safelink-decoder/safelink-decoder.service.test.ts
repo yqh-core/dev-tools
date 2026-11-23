@@ -50,6 +50,22 @@ describe('safelink-decoder', () => {
         .toThrow('Invalid SafeLinks URL provided');
     });
 
+
+    it('accepts exactly five nested Outlook wrappers', () => {
+      let nested = 'https://example.com/docs';
+
+      for (let depth = 0; depth < 5; depth++) {
+        nested = 'https://nam01.safelinks.protection.outlook.com/?url=' + encodeURIComponent(nested);
+      }
+
+      expect(decodeSafeLinksURL(nested)).toBe('https://example.com/docs');
+    });
+
+    it('rejects the bare Outlook Safe Links suffix without a regional host', () => {
+      expect(() => decodeSafeLinksURL('https://safelinks.protection.outlook.com/?url=https%3A%2F%2Fexample.com'))
+        .toThrow('Invalid SafeLinks URL provided');
+    });
+
     it('rejects nesting deeper than five Outlook wrappers', () => {
       let nested = 'https://example.com/docs';
 
