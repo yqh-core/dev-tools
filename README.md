@@ -62,8 +62,8 @@
 - [Color Contrast Checker — Pass or Fail WCAG AA and AAA](https://digdevbox.com/color-contrast-checker) - Check the contrast ratio between two colours against WCAG 2.x AA and AAA thresholds for normal and large text, with a live text preview.
 - [Text Case Converter — camelCase, snake_case & More](https://digdevbox.com/case-converter) - Convert text between camelCase, PascalCase, snake_case, kebab-case, CONSTANT_CASE, uppercase, lowercase and other naming styles. Paste once, choose a format and copy the result.
 - [Text to NATO alphabet](https://digdevbox.com/text-to-nato-alphabet) - Transform text into the NATO phonetic alphabet for oral transmission.
-- [Text to Binary Converter — ASCII 8-Bit Encoder & Decoder](https://digdevbox.com/text-to-binary) - Convert basic ASCII text to 8-bit binary groups and decode byte-aligned ASCII binary back to text; this is not a Unicode or UTF-8 byte encoder.
-- [Text to Unicode Converter — Decimal HTML References & Code Points](https://digdevbox.com/text-to-unicode) - Convert text to decimal HTML numeric character references and back, or convert text to decimal Unicode code-point lists; HTML-reference mode uses UTF-16 code units.
+- [Text to Binary Converter — ASCII 8-Bit Encoder & Decoder](https://digdevbox.com/text-to-binary) - Convert basic ASCII text to 8-bit binary groups and decode byte-aligned ASCII binary back to text. This is not a Unicode or UTF-8 byte encoder.
+- [Text to Unicode Converter — Decimal HTML References & Code Points](https://digdevbox.com/text-to-unicode) - Convert text to decimal HTML numeric character references and back, or convert text to decimal Unicode code-point lists. HTML-reference mode uses UTF-16 code units and does not support hexadecimal entities or \\u escapes.
 - [YAML to JSON Converter — Convert YAML Online](https://digdevbox.com/yaml-to-json-converter) - Convert YAML configuration data into JSON in your browser. Nested mappings become objects, sequences become arrays, and YAML scalar types are reflected in the JSON output; comments are not preserved.
 - [YAML to TOML](https://digdevbox.com/yaml-to-toml) - Parse and convert YAML to TOML.
 - [JSON to YAML converter](https://digdevbox.com/json-to-yaml-converter) - Simply convert JSON to YAML with this online live converter.
@@ -100,7 +100,7 @@
 
 ### Images and videos
 
-- [QR Code Generator — Create & Download Custom QR Codes](https://digdevbox.com/qrcode-generator) - Create a QR code from a URL or text, customize foreground and background colors, choose an error-correction level and download a PNG image.
+- [QR Code Generator — Create & Download Custom QR Codes](https://digdevbox.com/qrcode-generator) - Create a QR code from a URL or text. Customize foreground and background colors, choose an error-correction level, and download a PNG image.
 - [WiFi QR Code generator](https://digdevbox.com/wifi-qrcode-generator) - Generate and download QR codes for quick connections to WiFi networks.
 - [SVG placeholder generator](https://digdevbox.com/svg-placeholder-generator) - Generate svg images to use as a placeholder in your applications.
 - [Webcam Recorder — Record Video & Take Photos Online](https://digdevbox.com/camera-recorder) - Record webcam video or take still photos in your browser. Choose a camera and microphone, pause or resume recording, then download your clip. Files stay on your device.
