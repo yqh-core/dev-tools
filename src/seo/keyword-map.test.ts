@@ -57,6 +57,10 @@ describe('evidence-backed SEO keyword targets', () => {
     ['/htpasswd-generator', 'htpasswd generator', 'htpasswd Generator & Checker — bcrypt, apr1 and SHA1'],
     ['/url-parser', 'url parser online', 'URL Parser — Inspect Query Parameters and UTM Tags'],
     ['/ipv4-range-expander', 'IP range to CIDR', 'IP Range to CIDR Converter — Convert IPv4 Ranges Online'],
+    ['/pdf-merge', 'merge PDF files online', 'PDF Merge — Combine PDF Files Online'],
+    ['/user-agent-parser', 'user agent parser', 'User Agent Parser — Browser, OS & Device Detection'],
+    ['/xml-to-json', 'XML to JSON converter', 'XML to JSON Converter — Convert XML Online'],
+    ['/markdown-to-html', 'Markdown to HTML converter', 'Markdown to HTML Converter — Live Preview & HTML Output'],
   ])('locks the landed metadata for %s', (path, keyword, lockedTitle) => {
     const entry = CLUSTER_KEYWORD_ENTRIES.find(item => item.path === path);
 
@@ -90,7 +94,7 @@ describe('evidence-backed SEO keyword targets', () => {
     expect(entry).toBeDefined();
     expect(entry?.keyword).toBe(keyword);
     expect(entry?.intent).toBe(intent);
-    expect(entry?.landed).toBe(false);
+    expect(entry?.landed).toBe(!['/pdf-merge', '/user-agent-parser', '/xml-to-json', '/markdown-to-html'].includes(path));
     expect((entry?.keywords ?? []).length).toBeGreaterThanOrEqual(4);
     expect(entry?.note).toContain('provisional');
   });
