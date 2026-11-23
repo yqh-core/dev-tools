@@ -1,6 +1,6 @@
 <script setup lang="ts">
 /** Local .htpasswd generation and verification for Apache / Nginx Basic Auth. */
-import { compareSync, hashSync } from 'bcryptjs';
+import { compareSync } from 'bcryptjs';
 import CryptoJS from 'crypto-js';
 import { apr1Verify } from './apr1';
 import { type HtpasswdEntry, buildHtpasswdLines, hashHtpasswdPassword } from './htpasswd-generator.service';
