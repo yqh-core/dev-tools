@@ -15,6 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       wait_for_deploy: ${{ steps.detect.outputs.wait_for_deploy }}
+      deploy_sha: ${{ steps.detect.outputs.deploy_sha }}
     steps:
       - name: Detect whether this exact commit changes deployable site files
         id: detect
