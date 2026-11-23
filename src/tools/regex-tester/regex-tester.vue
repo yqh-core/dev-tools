@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { render } from '@regexper/render';
 import type { ShadowRootExpose } from 'vue-shadow-dom';
-import { REGEX_PRESETS, type RegexMatch, type RegexEvaluation } from './regex-tester.service';
+import { REGEX_PRESETS, type RegexEvaluation, type RegexMatch } from './regex-tester.service';
 import { useValidation } from '@/composable/validation';
 import { useQueryParamOrStorage } from '@/composable/queryParams';
 
@@ -269,10 +269,18 @@ watchEffect(
         <n-table>
           <thead>
             <tr>
-              <th scope="col">Index in text</th>
-              <th scope="col">Value</th>
-              <th scope="col">Captures</th>
-              <th scope="col">Groups</th>
+              <th scope="col">
+                Index in text
+              </th>
+              <th scope="col">
+                Value
+              </th>
+              <th scope="col">
+                Captures
+              </th>
+              <th scope="col">
+                Groups
+              </th>
             </tr>
           </thead>
           <tbody>
