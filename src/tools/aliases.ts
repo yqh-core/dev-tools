@@ -3,21 +3,23 @@
  *
  * 为什么需要
  * ------------------------------------------------------------------
- * 工具的 keywords 是英文的（来自上游项目），中文用户更习惯搜「编码」「时间戳」
- * 「美化」这类词。工具标题虽然已经中文化，但很多是直译，和用户脑子里的叫法
- * 对不上：比如用户搜「格式化 JSON」，标题是「JSON美化和格式化」，勉强能命中；
- * 但搜「压缩 JSON」就完全找不到「JSON 压缩」以外的说法。
+ * 工具的 keywords 是英文的（来自上游项目），用户搜索时既会使用工具名，也会
+ * 使用任务表达和中英文同义词。比如「接口测试」「api testing」「压缩 JSON」。
  *
- * 这里按工具路由补一批中文同义词和场景词，首页搜索和 Ctrl+K 命令面板共用。
+ * 这里按工具路由补充中英文同义词和场景词，首页搜索和 Ctrl+K 命令面板共用。
  *
  * key 是工具路由（与 defineTool 里的 path 一致）。
  */
 
 export const ALIASES: Record<string, string[]> = {
+  '/api-debugger': ['api testing', 'test api', 'debug api', 'rest api client', 'send api request', 'api assertions', 'collection runner', 'curl import', '接口测试', '接口调试', '发送 API 请求', '请求集合', '响应断言'],
+  '/http-headers': ['http headers reference', 'request headers', 'response headers', 'cors headers', 'cache control', 'etag', 'HTTP 响应头', '请求头', '响应头'],
+  '/http-status-checker': ['check http status', 'test url response', 'website status', 'http response checker', 'check website availability', 'HTTP 状态检测', '网址状态', '网站可达性'],
+  '/whois-lookup': ['domain whois', 'whois lookup', 'rdap lookup', 'domain registration lookup', 'domain expiry', '域名注册信息', '域名到期', '注册商查询'],
   '/ascii-text-drawer': ['艺术字', 'ascii', '字符画', '大字', 'banner', '花体字'],
   '/base-converter': ['进制', '进制转换', '十六进制', '二进制', '八进制', 'hex', '换算'],
   '/base64-file-converter': ['文件转base64', '图片转base64', 'base64', 'data uri', '内联', '编码'],
-  '/base64-string-converter': ['base64', '编码', '解码', 'b64', '明文', '加密'],
+  '/base64-string-converter': ['base64', '编码', '解码', 'b64', '明文', '加密', 'base64 encode', 'base64 decode', 'text to base64', 'base64 to text', 'base64 编码', 'base64 解码'],
   '/basic-auth-generator': ['basic auth', '认证', '鉴权', 'authorization', '用户名密码', '请求头'],
   '/bcrypt': ['bcrypt', '哈希', '散列', '密码', '加密', '校验密码', 'hash'],
   '/benchmark-builder': ['基准测试', '性能', '耗时', 'benchmark', '跑分', '对比速度'],
@@ -29,9 +31,9 @@ export const ALIASES: Record<string, string[]> = {
   '/reaction-time-test': ['反应速度', '反应时间', '手速', '反射神经', 'reaction', '测反应'],
   '/color-converter': ['颜色', '色值', 'rgb', 'hex', 'hsl', '取色', '调色'],
   '/crontab-generator': ['cron', '定时任务', '计划任务', 'crontab', '表达式', '调度'],
-  '/date-converter': ['时间戳', '时间', '日期', 'unix', 'timestamp', '格式化时间'],
+  '/date-converter': ['时间戳', '时间', '日期', 'unix', 'timestamp', '格式化时间', 'unix timestamp converter', 'timestamp to date', 'epoch time', 'timezone converter', 'utc time'],
   '/unix-timestamp-converter': ['时间戳', 'unix 时间戳', 'epoch', '时间戳转换'],
-  '/device-information': ['设备信息', '屏幕', '分辨率', 'user agent', '浏览器信息', 'ua'],
+  '/device-information': ['设备信息', '屏幕', '分辨率', 'user agent', '浏览器信息', 'ua', 'device info', 'device details', 'system information', 'screen resolution', 'screen size', 'pixel ratio', 'browser info', 'browser information', 'user agent lookup'],
   '/docker-run-to-docker-compose-converter': ['docker', 'compose', '容器', '转换', 'yml'],
   '/email-normalizer': ['邮箱', '邮件', 'email', '去重', '清洗', '归一化'],
   '/emoji-picker': ['表情', 'emoji', '颜文字', 'unicode', 'emoji复制'],
@@ -46,18 +48,18 @@ export const ALIASES: Record<string, string[]> = {
   '/iban-validator-and-parser': ['iban', '银行', '账号', '校验', '汇款'],
   '/ipv4-address-converter': ['ip', 'ipv4', '地址转换', '十进制', '二进制', '换算'],
   '/ipv4-range-expander': ['ip', 'cidr', '网段', '范围', '掩码', '防火墙'],
-  '/ipv4-subnet-calculator': ['子网', 'cidr', '网段', '掩码', 'ip', 'subnet', '主机数'],
+  '/ipv4-subnet-calculator': ['子网', 'cidr', '网段', '掩码', 'ip', 'subnet', '主机数', 'cidr calculator', 'subnet mask calculator', 'ip range calculator'],
   '/ipv6-ula-generator': ['ipv6', 'ula', '内网地址', '生成', 'rfc4193'],
   '/json-diff': ['json', '对比', '差异', 'diff', '比较', '变更'],
   '/json-minify': ['json', '压缩', 'minify', '一行', '精简', '去空格'],
   '/json-prettify': ['json', '格式化', '美化', '缩进', 'pretty', '整理'],
-  '/json-workspace': ['json', '工作台', 'workspace', '查询', 'jsonpath', '树形', 'schema', '转换'],
+  '/json-workspace': ['json', '工作台', 'workspace', '查询', 'jsonpath', '树形', 'schema', '转换', 'inspect json', 'json tree viewer', 'jsonpath query', 'json data workspace'],
   '/json-to-csv': ['json', 'csv', '表格', 'excel', '转换', '导出'],
   '/csv-to-json': ['csv', 'json', '表格', '转换', '解析', '导入'],
   '/json-to-toml': ['json', 'toml', '转换', '配置'],
   '/json-to-xml': ['json', 'xml', '转换', '报文'],
   '/json-to-yaml-converter': ['json', 'yaml', 'yml', '转换', '配置'],
-  '/jwt-parser': ['jwt', 'token', '解析', '解码', '令牌', '登录'],
+  '/jwt-parser': ['jwt', 'token', '解析', '解码', '令牌', '登录', 'decode jwt', 'jwt decoder', 'inspect jwt', 'jwt header', 'jwt payload', 'token claims'],
   '/keycode-info': ['键码', 'keycode', '快捷键', '键盘', '按键', 'ascii码'],
   '/list-converter': ['列表', '排序', '去重', '批量', '前缀', '后缀', '反转'],
   '/lorem-ipsum-generator': ['占位', '假文', 'lorem', '示例文本', '填充'],
@@ -108,7 +110,7 @@ export const ALIASES: Record<string, string[]> = {
   '/ulid-generator': ['ulid', 'uuid', '唯一id', '生成', '有序', '主键'],
   '/nanoid-generator': ['nanoid', 'nano id', '短id', '随机id', '唯一标识', '兑换码', 'url安全'],
   '/color-contrast-checker': ['对比度', '无障碍', 'wcag', '颜色对比', 'aa', '可读性'],
-  '/url-encoder': ['url', '编码', '解码', '百分号', '转义', 'encode', '参数'],
+  '/url-encoder': ['url', '编码', '解码', '百分号', '转义', 'encode', '参数', 'url encode', 'url decode', 'percent encoding', 'query parameter encoding'],
   '/url-parser': ['url', '解析', '拆解', '参数', 'query', '链接'],
   '/user-agent-parser': ['ua', 'user agent', '浏览器', '识别', '解析', '系统'],
   '/uuid-generator': ['uuid', 'guid', '唯一', 'id', '生成', '随机'],
