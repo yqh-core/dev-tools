@@ -106,7 +106,6 @@ const percentagePointChange = computed(() => {
   return resultText(rateTo.value - rateFrom.value);
 });
 
-
 const BATCH_HISTORY_KEY = 'digdevbox:percentage-calculator:batch-history:v1';
 const batchMode = ref<PercentageBatchMode>('part');
 const batchInput = ref('');
@@ -130,6 +129,15 @@ onMounted(() => {
           && validModes.includes(entry.mode)
           && typeof entry.input === 'string'
           && Array.isArray(entry.rows)
+          && entry.rows.every((row: unknown) => (
+            !!row
+            && typeof row === 'object'
+            && typeof (row as PercentageBatchRow).rowNumber === 'number'
+            && typeof (row as PercentageBatchRow).raw === 'string'
+            && typeof (row as PercentageBatchRow).formula === 'string'
+            && typeof (row as PercentageBatchRow).result === 'string'
+            && typeof (row as PercentageBatchRow).error === 'string'
+          ))
         )).slice(0, 10);
       }
     }
