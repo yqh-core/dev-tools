@@ -115,16 +115,16 @@ console.log(
 );
 console.log('[internal link graph] 7+ is a diagnostic heuristic from the SEO course, not a ranking-factor guarantee.');
 
-if (linkGraph.orphans.length) {
-  console.error('[internal link graph] FAIL: sitemap routes have no crawlable inbound anchor links:');
-  for (const route of linkGraph.orphans.slice(0, 100)) console.error(' - ' + route);
-  if (linkGraph.orphans.length > 100) console.error(' ... and ' + (linkGraph.orphans.length - 100) + ' more');
-  process.exit(1);
-}
-
 if (linkGraph.belowSeven.length) {
   console.log('[internal link graph] Review candidates below 7 inbound links (first 40):');
   for (const item of linkGraph.belowSeven.slice(0, 40)) {
     console.log(' - ' + item.route + ': ' + item.inlinks);
   }
+}
+
+if (linkGraph.orphans.length) {
+  console.error('[internal link graph] FAIL: sitemap routes have no crawlable inbound anchor links:');
+  for (const route of linkGraph.orphans.slice(0, 100)) console.error(' - ' + route);
+  if (linkGraph.orphans.length > 100) console.error(' ... and ' + (linkGraph.orphans.length - 100) + ' more');
+  process.exit(1);
 }
