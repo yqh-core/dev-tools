@@ -29,7 +29,7 @@ function randomSalt(len = 8) {
 }
 function addEntry() { entries.value.push({ username: '', password: '' }); generated.value = ''; }
 function removeEntry(index: number) { if (entries.value.length > 1) entries.value.splice(index, 1); generated.value = ''; }
-function hashOne(password: string, index: number) {
+function hashOne(password: string) {
   if (fmt.value === 'bcrypt') return hashSync(password, cost.value);
   if (fmt.value === 'apr1') {
     // Each row gets its own cryptographically random salt; the legacy custom salt is retained for one-user workflows.
@@ -41,7 +41,7 @@ function hashOne(password: string, index: number) {
 }
 function generate() {
   genError.value = ''; generated.value = ''; copyState.value = '';
-  try { generated.value = buildHtpasswdLines(entries.value, hashOne).join('\\n'); }
+  try { generated.value = buildHtpasswdLines(entries.value, hashOne).join('\n'); }
   catch (error) { genError.value = error instanceof Error ? error.message : String(error); }
 }
 async function copyOutput() {
@@ -49,7 +49,7 @@ async function copyOutput() {
   catch { copyState.value = 'Clipboard unavailable — select and copy the output'; }
 }
 function downloadOutput() {
-  const blob = new Blob([generated.value + '\\n'], { type: 'text/plain;charset=utf-8' });
+  const blob = new Blob([generated.value + '\n'], { type: 'text/plain;charset=utf-8' });
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement('a'); anchor.href = url; anchor.download = '.htpasswd'; anchor.click();
   URL.revokeObjectURL(url);
@@ -86,7 +86,7 @@ function verify() {
   }
   catch (error) { verifyError.value = `Verification failed: ${error instanceof Error ? error.message : String(error)}`; }
 }
-function useGenerated() { line.value = generated.value.split('\\n')[0] ?? ''; passwordToCheck.value = entries.value[0]?.password ?? ''; verifyResult.value = null; }
+function useGenerated() { line.value = generated.value.split('\n')[0] ?? ''; passwordToCheck.value = entries.value[0]?.password ?? ''; verifyResult.value = null; }
 </script>
 
 <template>
