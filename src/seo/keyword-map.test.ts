@@ -220,7 +220,6 @@ describe('evidence-backed SEO keyword targets', () => {
   });
 
   it.each([
-    ['/qrcode-generator', 'QR code generator', 'generate'],
     ['/wifi-qrcode-generator', 'WiFi QR code generator', 'generate'],
     ['/roman-numeral-converter', 'Roman numeral converter', 'convert'],
     ['/svg-placeholder-generator', 'SVG placeholder generator', 'generate'],
@@ -239,10 +238,7 @@ describe('evidence-backed SEO keyword targets', () => {
 
   it.each([
     ['/ascii-text-drawer', 'ASCII art text generator', 'generate'],
-    ['/text-to-unicode', 'text to Unicode converter', 'convert'],
-    ['/pdf-signature-checker', 'PDF digital signature checker', 'inspect'],
     ['/mac-address-generator', 'random MAC address generator', 'generate'],
-    ['/text-to-binary', 'text to binary converter', 'convert'],
     ['/iban-validator-and-parser', 'IBAN validator and parser', 'inspect'],
     ['/string-obfuscator', 'string obfuscator', 'convert'],
     ['/emoji-picker', 'emoji picker and search', 'lookup'],
@@ -286,6 +282,20 @@ describe('evidence-backed SEO keyword targets', () => {
     ['/base-converter', 'number base converter', 'Integer Base Converter — Binary, Decimal, Hexadecimal and Base 2–64'],
     ['/color-converter', 'color format converter', 'Color Converter — HEX, RGB, HSL, HWB, LCH and CMYK'],
     ['/px-rem-converter', 'px to rem converter', 'PX to REM Converter — Batch Conversion with Root Font Size'],
+  ])('locks newly landed P1 utility %s to its capability-matched title', (path, keyword, lockedTitle) => {
+    const entry = CLUSTER_KEYWORD_ENTRIES.find(item => item.path === path);
+    expect(entry).toBeDefined();
+    expect(entry?.keyword).toBe(keyword);
+    expect(entry?.priority).toBe('P1');
+    expect(entry?.landed).toBe(true);
+    expect(entry?.lockedTitle).toBe(lockedTitle);
+  });
+
+  it.each([
+    ['/qrcode-generator', 'QR code generator', 'QR Code Generator — Create & Download Custom QR Codes'],
+    ['/text-to-unicode', 'text to Unicode converter', 'Text to Unicode Converter — Decimal HTML References & Code Points'],
+    ['/pdf-signature-checker', 'PDF digital signature checker', 'PDF Signature Checker — Verify PDF Signatures & Certificates'],
+    ['/text-to-binary', 'text to binary converter', 'Text to Binary Converter — ASCII 8-Bit Encoder & Decoder'],
   ])('locks newly landed P1 utility %s to its capability-matched title', (path, keyword, lockedTitle) => {
     const entry = CLUSTER_KEYWORD_ENTRIES.find(item => item.path === path);
     expect(entry).toBeDefined();
