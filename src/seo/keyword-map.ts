@@ -1047,7 +1047,8 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     intent: 'convert',
     priority: 'P1',
     competition: 'medium',
-    landed: false,
+    landed: true,
+    lockedTitle: 'HTML Entity Encoder & Decoder — Escape Characters and Look Up Entities',
     note: 'Source confirms escape/unescape text controls and a searchable common-entity reference. Candidate mapping only; no volume/KD/SERP evidence.',
   },
   {
@@ -1057,7 +1058,8 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     intent: 'convert',
     priority: 'P1',
     competition: 'high',
-    landed: false,
+    landed: true,
+    lockedTitle: 'Integer Base Converter — Binary, Decimal, Hexadecimal and Base 2–64',
     note: 'Source confirms integer conversion between bases 2–64 with binary, octal, decimal, hexadecimal, Base64 and custom output base. Candidate mapping only; no volume/KD/SERP evidence.',
   },
   {
@@ -1269,7 +1271,8 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     intent: 'convert',
     priority: 'P1',
     competition: 'high',
-    landed: false,
+    landed: true,
+    lockedTitle: 'Color Converter — HEX, RGB, HSL, HWB, LCH and CMYK',
     note: 'Source confirms color parsing/validation and conversion between HEX, RGB, HSL and CSS color formats. Candidate mapping only; no palette generation or contrast analysis claim. No volume/KD/SERP evidence.',
   },
   {
@@ -1329,7 +1332,8 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     intent: 'convert',
     priority: 'P1',
     competition: 'high',
-    landed: false,
+    landed: true,
+    lockedTitle: 'PX to REM Converter — Batch Conversion with Root Font Size',
     note: 'Source confirms batch px ↔ rem conversion with configurable root font size and decimal precision. Candidate mapping only; no volume/KD/SERP evidence.',
   },
   {
