@@ -16,7 +16,7 @@ describe('evidence-backed SEO keyword targets', () => {
     [
       '/percentage-calculator',
       'percentage calculator',
-      'Percentage Calculator — Percent of a Number, Change & Discount',
+      'Percentage Calculator — Percent & Change',
     ],
     [
       '/numeronym-generator',
