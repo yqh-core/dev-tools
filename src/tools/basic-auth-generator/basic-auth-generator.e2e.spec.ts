@@ -36,4 +36,16 @@ test.describe('Tool - Basic Auth generator', () => {
     await page.getByPlaceholder('Paste Authorization: Basic ...').fill('not-base64');
     await expect(page.getByTestId('basic-auth-decode-error')).toContainText('valid Basic Authorization header');
   });
+  test('rejects a colon in the username instead of generating an invalid Basic credential', async ({ page }) => {
+    await page.goto('/basic-auth-generator');
+
+    await page.getByPlaceholder('Your username...').fill('svc:admin');
+    await page.getByPlaceholder('Your password...').fill('secret');
+    await expect(page.getByTestId('basic-auth-username-error')).toHaveText(
+      'A Basic Authentication username cannot contain a colon.',
+    );
+    await expect(page.getByTestId('basic-auth-generated-header')).toBeEmpty();
+    await expect(page.getByRole('button', { name: 'Copy header' })).toBeDisabled();
+  });
+
 });
