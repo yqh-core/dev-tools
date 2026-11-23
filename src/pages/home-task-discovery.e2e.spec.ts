@@ -89,5 +89,4 @@ test.describe('Homepage task discovery', () => {
     );
     await expect(calculateTask.locator('a[href="/eta-calculator/"]')).toBeVisible();
   });
-
 });
