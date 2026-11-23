@@ -353,5 +353,4 @@ describe('evidence-backed SEO keyword targets', () => {
     expect(entry?.lockedTitle).toBe(title);
     expect((title as string).length + ' - DigDevBox'.length).toBeLessThanOrEqual(60);
   });
-
 });
