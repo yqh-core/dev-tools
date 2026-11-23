@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref, computed as vueComputed, watch } from 'vue';
+import { onMounted, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import type {
   PercentageBatchHistoryEntry,
@@ -115,7 +115,7 @@ const batchRows = ref<PercentageBatchRow[]>([]);
 const batchHistory = ref<PercentageBatchHistoryEntry[]>([]);
 const batchStatus = ref('');
 const historyLoaded = ref(false);
-const batchModes = vueComputed(() => {
+const batchModes = computed(() => {
   const modes: PercentageBatchMode[] = ['part', 'ratio', 'change', 'adjust', 'reverse', 'difference', 'points'];
   return modes.map(value => ({
     value,
