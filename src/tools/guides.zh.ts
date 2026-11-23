@@ -83,16 +83,19 @@ export const GUIDES: Record<string, ToolGuide> = {
   },
 
   '/basic-auth-generator': {
-    intro: '根据用户名和密码生成 HTTP Basic 认证的 Authorization 头，调试接口时直接粘走。',
+    intro: '根据用户名和密码生成 HTTP Basic Authorization 头，也可解码已有的 Basic 头或 Base64 凭据。',
     steps: ['填用户名', '填密码', '复制生成的 Authorization 头'],
     notes: ['Basic 认证只是把账号密码做 Base64，必须配合 HTTPS 使用'],
     example: { label: '填入示例用户名', text: 'admin' },
-    about: '生成 HTTP Basic 认证的 Authorization 头：输入用户名和密码，得到可直接粘贴到 curl、API 客户端或代理配置的 base64 字符串。全部计算在浏览器内完成——凭据不会离开页面。',
+    about: '生成 HTTP Basic 认证的 Authorization 头，也可以粘贴完整的 Authorization 头或 Base64 token 来解码。第一个冒号分隔用户名与密码，因此密码可以包含冒号，但用户名不能包含冒号。两种操作都在浏览器中计算，不会提交到账户服务。Base64 可逆，不是加密；必须使用 HTTPS，并把生成的头当作密码保护。',
     faqs: [
       { q: 'Basic 认证安全吗？', a: '只在 HTTPS 下安全。这个头很容易还原——base64 是编码不是锁——攻击者能看到流量时它什么都保护不了。必须配合 TLS 使用。' },
       { q: '头里到底是什么内容？', a: '字面「Basic 」前缀 + base64(用户名:密码)，用户 api 密码 secret 就是「Basic YXBpOnNlY3JldA==」。本工具生成的就是这个值。' },
       { q: '为什么服务器拒绝了我生成的头？', a: '常见原因：复制时混入了空格或换行、scheme 前缀不对，或服务器期望的是 token 格式。核对你实际发送的字节与服务器文档。' },
+      { q: '可以解码已有的 Basic 头吗？', a: '可以。粘贴完整 Authorization 头或它的 Base64 token 即可。解析器按第一个冒号分隔用户名与密码，因此密码中的其他冒号会保留。只解码你有权查看的凭据。' },
+      { q: 'Basic 认证的用户名可以包含冒号吗？', a: '不可以。Basic 格式用第一个冒号分隔用户名和密码；密码可以包含后续冒号。' },
     ],
+    relatedNotes: [{"slug":"http-basic-auth-header-guide","title":"HTTP Basic Authentication Header: Base64 Format, HTTPS & cURL","description":"Understand how an Authorization: Basic header is formed, why Base64 is not encryption, how to generate or decode it, and how to send credentials safely over HTTPS.","url":"https://notes.digdevbox.com/posts/http-basic-auth-header-guide","tag":"HTTP Auth"}],
   },
 
   '/bcrypt': {
@@ -1354,11 +1357,11 @@ export const GUIDES: Record<string, ToolGuide> = {
     steps: ['复制邮件里那条超长的 SafeLink 地址', '粘贴到输入框', '点解码得到原始 URL'],
     notes: ['解码只是还原地址，点开前仍要自己判断是否可信'],
     example: { label: '填入示例 SafeLink 链接', text: 'https://nam.safelinks.protection.outlook.com/?url=https%3A%2F%2Fexample.com%2Fdocs' },
-    about: '企业邮箱里的 Outlook SafeLink 会把每个 URL 包成长长的跟踪跳转——你点的不是目标地址，而是包装层。粘贴 SafeLink URL，本工具解出里面编码的真实地址，打开之前先看清（并决定要不要去）链接真正的落点。',
+    about: '本工具从 Outlook Safe Links URL 中提取嵌入的目标地址，但不会打开目标网站。它只接受 Outlook Safe Links 域名下的 HTTPS 包装链接，最多解开五层嵌套，并验证最终地址使用 HTTP 或 HTTPS。它不会扫描或评估目标网站，也不会替代或绕过 Microsoft 点击时的安全检查；请遵循组织批准的 Safe Links 流程。',
     faqs: [
       { q: 'SafeLink 是什么，为什么链接长那样？', a: '它是微软的重写器：邮件里的链接被替换成经过微软服务器扫描再转发的 URL。原始地址以查询参数的形式藏在包装层里。' },
-      { q: '为什么点击前要先解码？', a: '两个理由：透明（看到真实目标，包括仿冒域名）和省事——解码后的 URL 直达目标，绕开跟踪跳转及其隐私影响。' },
-      { q: '解码会绕过什么安全机制吗？', a: '不会。它只是读取包装后的 URL，不碰附件也不影响微软的扫描。你只是选择直达目标，而不经过跳转层。' },
+      { q: '为什么要先解码再决定如何处理？', a: '先检查真实目标域名和路径，再决定下一步。不要因为解码成功就直接打开链接；请遵循组织的 Safe Links 流程，并报告可疑邮件。' },
+      { q: '解码会绕过或替代 Microsoft Safe Links 保护吗？', a: '不会。本工具只解析 URL 文本，不会打开目标网站，也不会扫描目标网站，更不会替代或绕过 Microsoft 点击时的安全检查。请继续使用组织批准的 Safe Links 流程。' },
     ],
     relatedNotes: [
       {
@@ -1368,6 +1371,7 @@ export const GUIDES: Record<string, ToolGuide> = {
         url: 'https://notes.digdevbox.com/posts/url-encoding-guide',
         tag: 'URL',
       },
+      {"slug":"outlook-safelinks-decoder-guide","title":"Outlook Safe Links Decoder: Reveal the Original URL Without Opening It","description":"Learn how Outlook Safe Links wraps email URLs, how to reveal a destination without opening it, and what decoding does not verify or replace.","url":"https://notes.digdevbox.com/posts/outlook-safelinks-decoder-guide","tag":"Safe Links"},
     ],
   },
 
