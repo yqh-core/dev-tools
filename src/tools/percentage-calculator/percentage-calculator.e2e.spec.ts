@@ -111,4 +111,56 @@ test.describe('Tool - Percentage calculator', () => {
     await page.getByTestId('rateFrom').locator('input').fill('5');
     await expect(page.getByTestId('percentagePointChange').locator('input')).toHaveValue('');
   });
+  test('calculates labelled batch rows, copies formulas and CSV, and clears local history', async ({ page }) => {
+    await page.evaluate(() => {
+      Object.defineProperty(navigator, 'clipboard', {
+        configurable: true,
+        value: {
+          writeText: async (text: string) => {
+            document.documentElement.setAttribute('data-test-clipboard', text);
+          },
+        },
+      });
+    });
+
+    await page.getByTestId('percentage-batch-panel').locator('summary').click();
+    await page.getByTestId('percentage-batch-mode').selectOption('percent-of');
+    await page.getByTestId('percentage-batch-input').fill('Groceries\t20\t150\nTaxi\t10\t40');
+    await page.getByTestId('percentage-batch-run').click();
+
+    const groceries = page.getByTestId('percentage-batch-result-1');
+    const taxi = page.getByTestId('percentage-batch-result-2');
+    await expect(groceries).toContainText('Groceries');
+    await expect(groceries).toContainText('(20 ÷ 100) × 150 = 30');
+    await expect(groceries).toContainText('30');
+    await expect(taxi).toContainText('4');
+    await expect(page.getByTestId('percentage-batch-history-item')).toHaveCount(1);
+
+    await groceries.getByRole('button', { name: 'Copy row' }).click();
+    await expect(page.locator('html')).toHaveAttribute('data-test-clipboard', /Groceries/);
+    await expect(page.locator('html')).toHaveAttribute('data-test-clipboard', /30/);
+
+    await page.getByTestId('percentage-batch-copy-csv').click();
+    await expect(page.locator('html')).toHaveAttribute('data-test-clipboard', /"Groceries","20","150"/);
+    await expect(page.locator('html')).toHaveAttribute('data-test-clipboard', /"Taxi","10","40"/);
+
+    await page.getByTestId('percentage-batch-history-item').getByRole('button', { name: 'Restore' }).click();
+    await expect(page.getByTestId('percentage-batch-input')).toHaveValue('Groceries\t20\t150\nTaxi\t10\t40');
+
+    await page.getByTestId('percentage-batch-clear-history').click();
+    await expect(page.getByTestId('percentage-batch-history-item')).toHaveCount(0);
+    await expect(page.getByTestId('percentage-batch-status')).toContainText('Local history cleared');
+  });
+
+  test('isolates invalid rows and keeps valid batch results available', async ({ page }) => {
+    await page.getByTestId('percentage-batch-panel').locator('summary').click();
+    await page.getByTestId('percentage-batch-mode').selectOption('part-to-whole');
+    await page.getByTestId('percentage-batch-input').fill('Invalid\t30\t0\nValid\t30\t120');
+    await page.getByTestId('percentage-batch-run').click();
+
+    await expect(page.getByTestId('percentage-batch-result-1')).toContainText('whole value cannot be zero');
+    await expect(page.getByTestId('percentage-batch-result-2')).toContainText('25%');
+    await expect(page.getByTestId('percentage-batch-status')).toContainText('1 of 2 rows calculated');
+  });
+
 });
