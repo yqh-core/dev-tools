@@ -487,13 +487,13 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
   {
     path: '/basic-auth-generator',
     keyword: 'basic auth generator',
-    keywords: ['basic authorization generator', 'basic auth header generator', 'web basic auth generator', 'generate basic auth', 'HTTP Basic Authorization header'],
+    keywords: ['basic authorization generator', 'basic auth header generator', 'web basic auth generator', 'generate basic auth', 'HTTP Basic Authorization header', 'basic auth decoder', 'decode basic auth header', 'basic auth token generator', 'authorization header decoder', 'curl basic auth'],
     intent: 'generate',
     priority: 'P0',
     competition: 'medium',
     landed: true,
     lockedTitle: 'Basic Auth Generator — Build an HTTP Authorization Header',
-    note: 'Bing Webmaster 28d: page 33 impressions, avg position 6.24; exact query 17 impressions, avg position 5.41; zero clicks. This PR tests a task-first title and clarifies Base64 is not encryption; it is not live until merge/deploy. Validate header/curl examples against the tool before adding copy.',
+    note: 'Bing Webmaster 90d: page 33 impressions, avg position 6.24; exact query 17 impressions, avg position 5.41; zero clicks. Existing page now supports local header generation and decoding plus a safe environment-variable cURL example. Re-measure after production recrawl; no CTR lift claimed.',
   },
   {
     path: '/safelink-decoder',
