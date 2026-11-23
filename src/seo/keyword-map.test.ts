@@ -37,7 +37,7 @@ describe('evidence-backed SEO keyword targets', () => {
   it.each([
     ['/numeronym-generator', 'numeronym', 'P0', 'Numeronym Generator — i18n, a11y & k8s'],
     ['/eta-calculator', 'eta calculator', 'P1', 'ETA Calculator — Task Completion Time'],
-    ['/text-statistics', 'text statistics', 'P1', 'Word & Character Counter — Text Statistics & Byte Size'],
+    ['/text-statistics', 'text statistics', 'P1', 'Text Statistics — Word & Character Counter'],
   ])('keeps %s mapped to a capability-matched intent', (path, keyword, priority, lockedTitle) => {
     const entry = CLUSTER_KEYWORD_ENTRIES.find(item => item.path === path);
 
@@ -54,7 +54,7 @@ describe('evidence-backed SEO keyword targets', () => {
     ['/csv-to-json', 'CSV to JSON converter', 'CSV to JSON Converter — Preview Rows & Convert Online'],
     ['/text-diff', 'text diff checker', 'Text Diff Checker — Compare Two Texts Side by Side'],
     ['/text-replacer', 'find and replace text online', 'Find and Replace Text — Plain Text & Regex Replacer'],
-    ['/htpasswd-generator', 'htpasswd generator', 'htpasswd Generator & Checker — bcrypt, apr1 and SHA1'],
+    ['/htpasswd-generator', 'htpasswd generator', 'htpasswd Generator & Checker — bcrypt & apr1'],
     ['/url-parser', 'url parser online', 'URL Parser — Inspect Query Parameters and UTM Tags'],
     ['/ipv4-range-expander', 'IP range to CIDR', 'IP Range to CIDR Converter — Convert IPv4 Ranges Online'],
     ['/pdf-merge', 'merge PDF files online', 'PDF Merge — Combine PDF Files Online'],
@@ -199,9 +199,9 @@ describe('evidence-backed SEO keyword targets', () => {
   });
 
   it.each([
-    ['/json-to-toml', 'JSON to TOML converter', 'JSON to TOML Converter — Convert JSON Config to TOML'],
+    ['/json-to-toml', 'JSON to TOML converter', 'JSON to TOML Converter'],
     ['/toml-to-json', 'TOML to JSON converter', 'TOML to JSON Converter — Convert TOML Config to JSON'],
-    ['/json-to-get-params', 'JSON to query string converter', 'JSON to Query String Converter — Convert Nested JSON to URL Parameters'],
+    ['/json-to-get-params', 'JSON to query string converter', 'JSON to Query String Converter'],
     ['/password-strength-analyser', 'password strength checker', 'Password Strength Checker — Entropy & Crack-Time Estimate'],
   ])('locks newly landed P1 route %s to its capability-matched title', (path, keyword, lockedTitle) => {
     const entry = CLUSTER_KEYWORD_ENTRIES.find(item => item.path === path);
@@ -267,8 +267,8 @@ describe('evidence-backed SEO keyword targets', () => {
   });
 
   it.each([
-    ['/html-entities', 'HTML entities encoder and decoder', 'HTML Entity Encoder & Decoder — Escape Characters and Look Up Entities'],
-    ['/base-converter', 'number base converter', 'Integer Base Converter — Binary, Decimal, Hexadecimal and Base 2–64'],
+    ['/html-entities', 'HTML entities encoder and decoder', 'HTML Entity Encoder & Decoder'],
+    ['/base-converter', 'number base converter', 'Number Base Converter — Bases 2–64'],
     ['/color-converter', 'color format converter', 'Color Converter — HEX, RGB, HSL, HWB, LCH and CMYK'],
     ['/px-rem-converter', 'px to rem converter', 'PX to REM Converter — Batch Conversion with Root Font Size'],
   ])('locks newly landed P1 utility %s to its capability-matched title', (path, keyword, lockedTitle) => {
@@ -309,7 +309,7 @@ describe('evidence-backed SEO keyword targets', () => {
   });
 
   it.each([
-    ['/otp-generator', 'TOTP generator online', 'TOTP Code Generator — 6-Digit Authenticator Codes & QR Setup'],
+    ['/otp-generator', 'TOTP generator online', 'TOTP Code Generator — 6-Digit Codes & QR'],
     ['/token-generator', 'random token generator', 'Random Token Generator — Custom Length & Character Sets'],
     ['/bcrypt', 'bcrypt hash generator and checker', 'Bcrypt Hash Generator & Checker — Hash and Compare Passwords'],
     ['/iban-validator-and-parser', 'IBAN validator and parser', 'IBAN Validator & Parser — Check Format, Country & BBAN'],
@@ -334,4 +334,24 @@ describe('evidence-backed SEO keyword targets', () => {
     expect(entry?.landed).toBe(true);
     expect(entry?.lockedTitle).toBe(lockedTitle);
   });
+  it.each([
+    ['/api-debugger', 'REST API Tester — cURL, Tests & Collections'],
+    ['/json-prettify', 'JSON Formatter — Format, Validate & Diff'],
+    ['/json-workspace', 'JSON Workspace — JSONPath, Tree & Schema'],
+    ['/base-converter', 'Number Base Converter — Bases 2–64'],
+    ['/html-entities', 'HTML Entity Encoder & Decoder'],
+    ['/json-to-get-params', 'JSON to Query String Converter'],
+    ['/docker-run-to-docker-compose-converter', 'Docker Run to Compose Converter'],
+    ['/otp-generator', 'TOTP Code Generator — 6-Digit Codes & QR'],
+    ['/htpasswd-generator', 'htpasswd Generator & Checker — bcrypt & apr1'],
+    ['/json-to-toml', 'JSON to TOML Converter'],
+    ['/text-statistics', 'Text Statistics — Word & Character Counter'],
+  ])('keeps %s rendered title within the 60-character guideline', (path, title) => {
+    const entry = CLUSTER_KEYWORD_ENTRIES.find(item => item.path === path);
+    expect(entry).toBeDefined();
+    expect(entry?.landed).toBe(true);
+    expect(entry?.lockedTitle).toBe(title);
+    expect((title as string).length + ' - DigDevBox'.length).toBeLessThanOrEqual(60);
+  });
+
 });
