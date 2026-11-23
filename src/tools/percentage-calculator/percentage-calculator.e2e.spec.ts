@@ -14,6 +14,16 @@ test.describe('Tool - Percentage calculator', () => {
     await expect(page.locator('h1')).toHaveText('Percentage Calculator');
   });
 
+  test('Explains the four supported percentage tasks with correct examples', async ({ page }) => {
+    const guide = page.getByTestId('percentage-calculator-guide');
+    await expect(guide).toContainText('How to calculate a percentage');
+    await expect(guide).toContainText('15% of 80 is 12');
+    await expect(guide).toContainText('30 is 25% of 120');
+    await expect(guide).toContainText('a 15% increase');
+    await expect(guide).toContainText('reducing 80 by 15% gives 68');
+    await expect(guide).toContainText('original value of zero is undefined');
+  });
+
   test('Correctly works out percentages', async ({ page }) => {
     await page.getByTestId('percentageX').locator('input').fill('123');
     await page.getByTestId('percentageY').locator('input').fill('456');
