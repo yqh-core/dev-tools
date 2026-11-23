@@ -107,7 +107,7 @@ describe('percentage batch calculations', () => {
     expect(tsv.split('\r\n')[0]).toBe('Row\tInput A\tInput B\tFormula\tResult\tError');
     expect(tsv).toContain('"Line\tbreak\n""label"""\t1\t2');
     const formulaRows = runPercentageBatch('=SUM(1,2)\t20\t150', 'percent-of');
-    expect(percentageBatchToTsv(formulaRows)).toContain("'=SUM(1,2)\t20\t150");
+    expect(percentageBatchToTsv(formulaRows)).toContain('\'=SUM(1,2)\t20\t150');
   });
 
   it('exports every result to quoted CSV and protects labels from formula injection', () => {
