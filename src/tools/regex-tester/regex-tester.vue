@@ -162,6 +162,9 @@ function scheduleEvaluation() {
   terminateWorker();
   const id = ++requestId;
   evaluationError.value = '';
+  results.value = [];
+  replacementPreview.value = '';
+  sample.value = '';
   evaluationState.value = 'running';
   debounceTimer = window.setTimeout(() => {
     debounceTimer = undefined;
