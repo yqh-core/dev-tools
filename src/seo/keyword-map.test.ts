@@ -80,6 +80,10 @@ describe('evidence-backed SEO keyword targets', () => {
     ['/user-agent-parser', 'user agent parser', 'parse'],
     ['/xml-to-json', 'XML to JSON converter', 'convert'],
     ['/markdown-to-html', 'Markdown to HTML converter', 'convert'],
+    ['/pdf-split', 'split PDF pages online', 'convert'],
+    ['/pdf-watermark', 'add watermark to PDF', 'convert'],
+    ['/pdf-compress', 'compress PDF online', 'convert'],
+    ['/image-resize', 'resize image online', 'convert'],
 
   ])('keeps %s mapped to an existing capability-matched route', (path, keyword, intent) => {
     const entry = CLUSTER_KEYWORD_ENTRIES.find(item => item.path === path);
