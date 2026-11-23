@@ -1,3 +1,14 @@
+import { onMounted, ref, watch, computed as vueComputed } from 'vue';
+import { useI18n } from 'vue-i18n';
+const { t } = useI18n();
+import {
+  calculatePercentageBatch,
+  exportPercentageBatch,
+  type PercentageBatchHistoryEntry,
+  type PercentageBatchMode,
+  type PercentageBatchRow,
+} from './percentage-calculator-batch';
+
 <script setup lang="ts">
 function isFiniteNumber(value: unknown): value is number {
   return typeof value === 'number' && Number.isFinite(value);
@@ -94,16 +105,6 @@ const percentagePointChange = computed(() => {
   return resultText(rateTo.value - rateFrom.value);
 });
 
-import { onMounted, ref, watch, computed as vueComputed } from 'vue';
-import { useI18n } from 'vue-i18n';
-const { t } = useI18n();
-import {
-  calculatePercentageBatch,
-  exportPercentageBatch,
-  type PercentageBatchHistoryEntry,
-  type PercentageBatchMode,
-  type PercentageBatchRow,
-} from './percentage-calculator-batch';
 
 const BATCH_HISTORY_KEY = 'digdevbox:percentage-calculator:batch-history:v1';
 const batchMode = ref<PercentageBatchMode>('part');
