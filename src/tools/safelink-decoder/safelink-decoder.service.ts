@@ -14,8 +14,12 @@ function getSafeLinksDestination(value: string): string | null {
   const hostname = wrapper.hostname.toLowerCase();
   const isOutlookSafeLinksHost = hostname.endsWith(SAFE_LINKS_HOST_SUFFIX);
 
-  if (wrapper.protocol !== 'https:' || !isOutlookSafeLinksHost) {
+  if (!isOutlookSafeLinksHost) {
     return null;
+  }
+
+  if (wrapper.protocol !== 'https:') {
+    throw new Error('Invalid SafeLinks URL provided');
   }
 
   const destination = wrapper.searchParams.get('url');
