@@ -246,7 +246,7 @@ function downloadPercentageBatch(format: 'csv' | 'tsv'): void {
   const content = format === 'csv'
     ? percentageBatchToCsv(percentageBatchRows.value)
     : percentageBatchToTsv(percentageBatchRows.value);
-  const blob = new Blob(['\\uFEFF', content], {
+  const blob = new Blob(['\uFEFF', content], {
     type: format === 'csv' ? 'text/csv;charset=utf-8' : 'text/tab-separated-values;charset=utf-8',
   });
   const url = URL.createObjectURL(blob);
