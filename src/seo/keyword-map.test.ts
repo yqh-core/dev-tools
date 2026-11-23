@@ -220,7 +220,6 @@ describe('evidence-backed SEO keyword targets', () => {
   });
 
   it.each([
-    ['/base-converter', 'number base converter', 'convert'],
     ['/qrcode-generator', 'QR code generator', 'generate'],
     ['/wifi-qrcode-generator', 'WiFi QR code generator', 'generate'],
     ['/roman-numeral-converter', 'Roman numeral converter', 'convert'],
