@@ -202,8 +202,8 @@ tools:
     data: Data
 
   password-strength-analyser:
-    title: Password strength analyser
-    description: Discover the strength of your password with this client-side-only password strength analyser and crack time estimation tool.
+    title: "Password Strength Checker — Entropy & Crack-Time Estimate"
+    description: "Estimate password length, character-set entropy, score and brute-force crack time locally in your browser. The estimate does not account for dictionary attacks and is not a guarantee; the password is not uploaded."
 
   chronometer:
     title: Chronometer
@@ -403,8 +403,8 @@ tools:
     description: Convert MIME types to file extensions and vice-versa.
 
   toml-to-json:
-    title: TOML to JSON
-    description: Parse and convert TOML to JSON.
+    title: "TOML to JSON Converter — Convert TOML Config to JSON"
+    description: "Convert TOML configuration into formatted JSON. Tables and arrays of tables become nested objects and arrays; TOML date and time values are serialized as strings, while comments and formatting are not preserved."
 
   lorem-ipsum-generator:
     title: Lorem Ipsum Generator
@@ -487,8 +487,8 @@ tools:
     description: 'Hash a text string using the function you need : MD5, SHA1, SHA256, SHA224, SHA512, SHA384, SHA3 or RIPEMD160 — with 16-digit MD5 and upper/lower-case hex output'
 
   json-to-toml:
-    title: JSON to TOML
-    description: Parse and convert JSON to TOML.
+    title: "JSON to TOML Converter — Convert JSON Config to TOML"
+    description: "Convert JSON objects to TOML configuration. Nested objects become TOML tables or dotted keys, arrays become TOML arrays, and JSON5 input is accepted; values unsupported by TOML may prevent conversion."
 
   device-information:
     title: Device information
@@ -759,8 +759,8 @@ tools:
     description: "Paste text, find a phrase or regular expression, replace or remove matches, ignore case and see the replacement count and output length."
 
   json-to-get-params:
-    title: "JSON to GET params"
-    description: "Flatten JSON into a URL query string (a[b][0]=1 style) and rebuild JSON from a query string or a full URL."
+    title: "JSON to Query String Converter — Convert Nested JSON to URL Parameters"
+    description: "Convert nested JSON to percent-encoded URL query parameters with bracketed object keys and indexed arrays, or rebuild JSON from a query string or full URL. Null and empty values become empty strings."
 
   unit-converter:
     title: "Unit converter"

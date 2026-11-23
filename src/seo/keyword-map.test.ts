@@ -186,14 +186,10 @@ describe('evidence-backed SEO keyword targets', () => {
   });
 
   it.each([
-    ['/json-to-toml', 'JSON to TOML converter', 'convert'],
-    ['/toml-to-json', 'TOML to JSON converter', 'convert'],
     ['/toml-to-yaml', 'TOML to YAML converter', 'convert'],
     ['/yaml-to-toml', 'YAML to TOML converter', 'convert'],
-    ['/json-to-get-params', 'JSON to query string converter', 'convert'],
     ['/whois-lookup', 'domain WHOIS lookup', 'lookup'],
     ['/mac-address-lookup', 'MAC address vendor lookup', 'lookup'],
-    ['/password-strength-analyser', 'password strength checker', 'inspect'],
     ['/otp-generator', 'TOTP generator online', 'generate'],
     ['/unit-converter', 'unit converter online', 'convert'],
   ])('keeps source-audited candidates %s capability-matched', (path, keyword, intent) => {
@@ -205,6 +201,22 @@ describe('evidence-backed SEO keyword targets', () => {
     expect(entry?.landed).toBe(false);
     expect((entry?.keywords ?? []).length).toBeGreaterThanOrEqual(4);
     expect(entry?.note).toContain('Candidate mapping only');
+  });
+
+  it.each([
+    ['/json-to-toml', 'JSON to TOML converter', 'JSON to TOML Converter — Convert JSON Config to TOML'],
+    ['/toml-to-json', 'TOML to JSON converter', 'TOML to JSON Converter — Convert TOML Config to JSON'],
+    ['/json-to-get-params', 'JSON to query string converter', 'JSON to Query String Converter — Convert Nested JSON to URL Parameters'],
+    ['/password-strength-analyser', 'password strength checker', 'Password Strength Checker — Entropy & Crack-Time Estimate'],
+  ])('locks newly landed P1 route %s to its capability-matched title', (path, keyword, lockedTitle) => {
+    const entry = CLUSTER_KEYWORD_ENTRIES.find(item => item.path === path);
+
+    expect(entry).toBeDefined();
+    expect(entry?.keyword).toBe(keyword);
+    expect(entry?.priority).toBe('P1');
+    expect(entry?.landed).toBe(true);
+    expect(entry?.lockedTitle).toBe(lockedTitle);
+    expect((entry?.keywords ?? []).length).toBeGreaterThanOrEqual(4);
   });
 
   it.each([
