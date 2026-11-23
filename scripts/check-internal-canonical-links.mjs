@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { analyzeInternalLinkGraph } from './internal-link-graph.mjs';
 
 const root = path.resolve('dist');
 const siteSource = fs.readFileSync(path.resolve('src/seo/site.ts'), 'utf8');
@@ -7,6 +8,7 @@ const originMatch = siteSource.match(/export const SITE_ORIGIN = ['"]([^'"]+)['"
 if (!originMatch) throw new Error('Unable to read SITE_ORIGIN from src/seo/site.ts');
 const origin = new URL(originMatch[1]).origin;
 const failures = [];
+const graphPages = [];
 let checked = 0;
 
 /**
@@ -66,6 +68,7 @@ function walk(dir) {
       const relativeFile = path.relative(root, full).split(path.sep).join('/');
       if (relativeFile.startsWith('legacy/')) continue;
       const html = fs.readFileSync(full, 'utf8');
+      graphPages.push({ file: relativeFile, html });
       for (const match of html.matchAll(/\bhref\s*=\s*(["'])(.*?)\1/gi)) {
         const raw = match[2].trim();
         if (!raw || raw.startsWith('#') || raw.startsWith('?')) continue;
@@ -97,4 +100,31 @@ if (failures.length) {
   if (failures.length > 100) console.error(' ... and ' + (failures.length - 100) + ' more');
   process.exit(1);
 }
+
 console.log('[internal canonical links] PASS: ' + checked + ' internal route links point directly to canonical trailing-slash URLs');
+
+const sitemapText = fs.readFileSync(path.join(root, 'sitemap.xml'), 'utf8');
+const sitemapUrls = [...sitemapText.matchAll(/<loc>([^<]+)<\/loc>/gi)].map(match => match[1]);
+const linkGraph = analyzeInternalLinkGraph(graphPages, sitemapUrls, origin);
+const bands = linkGraph.distribution;
+
+console.log(
+  '[internal link graph] ' + linkGraph.counts.length + ' sitemap routes: '
+  + bands.zero + ' orphan, ' + bands.oneToTwo + ' with 1–2 inlinks, '
+  + bands.threeToSix + ' with 3–6, ' + bands.sevenPlus + ' with 7+.',
+);
+console.log('[internal link graph] 7+ is a diagnostic heuristic from the SEO course, not a ranking-factor guarantee.');
+
+if (linkGraph.orphans.length) {
+  console.error('[internal link graph] FAIL: sitemap routes have no crawlable inbound anchor links:');
+  for (const route of linkGraph.orphans.slice(0, 100)) console.error(' - ' + route);
+  if (linkGraph.orphans.length > 100) console.error(' ... and ' + (linkGraph.orphans.length - 100) + ' more');
+  process.exit(1);
+}
+
+if (linkGraph.belowSeven.length) {
+  console.log('[internal link graph] Review candidates below 7 inbound links (first 40):');
+  for (const item of linkGraph.belowSeven.slice(0, 40)) {
+    console.log(' - ' + item.route + ': ' + item.inlinks);
+  }
+}
