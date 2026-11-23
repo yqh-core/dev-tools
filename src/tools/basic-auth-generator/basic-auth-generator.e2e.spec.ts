@@ -16,6 +16,8 @@ test.describe('Tool - Basic Auth generator', () => {
     await expect(page.getByTestId('basic-auth-curl-example')).toContainText(
       '$BASIC_AUTH_USERNAME:$BASIC_AUTH_PASSWORD',
     );
+    await expect(page.getByRole('link', { name: 'Base64 String Converter' })).toHaveAttribute('href', '/base64-string-converter/');
+    await expect(page.getByRole('link', { name: 'API Debugger' })).toHaveAttribute('href', '/api-debugger/');
   });
 
   test('decodes a Basic Auth header locally and preserves colons in the password', async ({ page }) => {
