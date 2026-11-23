@@ -44,7 +44,7 @@ test.describe('Tool - multi-user htpasswd generator', () => {
     const downloadPromise = page.waitForEvent('download');
     await page.getByRole('button', { name: 'Download .htpasswd' }).click();
     const download = await downloadPromise;
-    expect(download.suggestedFilename()).toBe('htpasswd.txt');
+    expect(download.suggestedFilename()).toBe('.htpasswd');
 
     await page.getByRole('button', { name: 'Verify first entry' }).click();
     await page.getByRole('button', { name: 'Verify', exact: true }).click();
