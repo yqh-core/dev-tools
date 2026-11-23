@@ -349,7 +349,7 @@ function clearBatchHistory() {
         >
           <option v-for="mode in batchModes" :key="mode.value" :value="mode.value">{{ mode.label }}</option>
         </select>
-        <label class="mb-1 block text-sm font-medium" for="percentage-batch-input">{{ $t('tools.percentage-calculator.batch.input) }}</label>
+        <label class="mb-1 block text-sm font-medium" for="percentage-batch-input">{{ $t('tools.percentage-calculator.batch.input') }}</label>
         <textarea
           id="percentage-batch-input"
           v-model="batchInput"
