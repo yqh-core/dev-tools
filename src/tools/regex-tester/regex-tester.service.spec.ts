@@ -8,7 +8,10 @@ describe('matchRegex', () => {
     expect(results[0]).toMatchObject({
       index: 0,
       value: 'a@test.com',
-      captures: [{ name: '2', value: 'test.com', start: 2, end: 10 }],
+      captures: [
+        { name: '1', value: 'a', start: 0, end: 1 },
+        { name: '2', value: 'test.com', start: 2, end: 10 },
+      ],
       groups: [{ name: 'user', value: 'a', start: 0, end: 1 }],
     });
   });
