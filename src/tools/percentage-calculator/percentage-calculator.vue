@@ -1,3 +1,4 @@
+<script setup lang="ts">
 import { onMounted, ref, watch, computed as vueComputed } from 'vue';
 import { useI18n } from 'vue-i18n';
 const { t } = useI18n();
@@ -9,7 +10,6 @@ import {
   type PercentageBatchRow,
 } from './percentage-calculator-batch';
 
-<script setup lang="ts">
 function isFiniteNumber(value: unknown): value is number {
   return typeof value === 'number' && Number.isFinite(value);
 }
