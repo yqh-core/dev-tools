@@ -22,8 +22,9 @@ describe('article-only guide content', () => {
     const page = GUIDE_ARTICLE_PAGES.find(item => item.toolPath === '/percentage-calculator');
     expect(page).toBeDefined();
     expect(page?.indexable).toBe(true);
-    expect(page?.sections.filter(section => section.id.startsWith('article-only-'))).toHaveLength(2);
+    expect(page?.sections.filter(section => section.id.startsWith('article-only-'))).toHaveLength(3);
     expect(page?.sections.map(section => section.title)).toContain('Choose the denominator before you calculate');
+    expect(page?.sections.map(section => section.title)).toContain('Reverse a change and choose the right comparison');
   });
 
   it('adds original numeronym explanations to its standalone guide', () => {
@@ -39,8 +40,10 @@ describe('article-only guide content', () => {
     const english = en['/percentage-calculator'].articleOnlySections ?? [];
     const chinese = zh['/percentage-calculator'].articleOnlySections ?? [];
 
-    expect(english).toHaveLength(2);
+    expect(english).toHaveLength(3);
     expect(chinese).toHaveLength(english.length);
+    expect(english.map(section => section.title)).toContain('Reverse a change and choose the right comparison');
+    expect(chinese.map(section => section.title)).toContain('反推变化前的数值，并选对比较基数');
     expect(english[0].title).toBe('Choose the denominator before you calculate');
     expect(chinese[0].title).toBe('计算前先确定分母');
     expect(english[0].text).toMatch(/100%/);
