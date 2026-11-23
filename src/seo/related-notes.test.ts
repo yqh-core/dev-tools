@@ -56,7 +56,7 @@ describe('Safe Links security copy', () => {
       const guide = guides['/safelink-decoder'];
       const copy = [guide.about ?? '', ...(guide.faqs ?? []).map(item => `${item.q} ${item.a}`)].join(' ');
       expect(copy).not.toMatch(/opens directly|直达目标|绕开跟踪跳转|选择直达目标/);
-      expect(copy).toMatch(/does not replace|不替代/);
+      expect(copy).toMatch(/does not replace|不会替代/);
     }
   });
 });
