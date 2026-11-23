@@ -105,7 +105,7 @@ export function calculatePercentageBatch(input: string, mode: PercentageBatchMod
 }
 
 function csvCell(value: string): string {
-  return /[",\n\r]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value;
+  return /[",\t\n\r]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value;
 }
 
 export function exportPercentageBatch(rows: PercentageBatchRow[], delimiter: ',' | '\t' = ','): string {
