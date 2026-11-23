@@ -594,7 +594,8 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     intent: 'convert',
     priority: 'P1',
     competition: 'high',
-    landed: false,
+    landed: true,
+    lockedTitle: 'PDF Merge — Combine PDF Files Online',
     note: 'Candidate mapping matches the browser-side workflow requiring at least two PDFs and downloading one merged PDF. Competition is provisional; no volume/KD claim.',
   },
   {
@@ -614,7 +615,8 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     intent: 'parse',
     priority: 'P1',
     competition: 'medium',
-    landed: false,
+    landed: true,
+    lockedTitle: 'User Agent Parser — Browser, OS & Device Detection',
     note: 'Candidate mapping matches parsing browser, engine, OS, CPU and device details from a supplied user-agent string. Competition is provisional; no volume/KD claim.',
   },
   {
@@ -635,7 +637,8 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     intent: 'convert',
     priority: 'P1',
     competition: 'high',
-    landed: false,
+    landed: true,
+    lockedTitle: 'XML to JSON Converter — Convert XML Online',
     note: 'Matches validated XML input, compact XML-to-JavaScript conversion and downloadable JSON output. Competition is provisional; no volume/KD/SERP claim.',
   },
   {
@@ -645,7 +648,8 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     intent: 'convert',
     priority: 'P1',
     competition: 'high',
-    landed: false,
+    landed: true,
+    lockedTitle: 'Markdown to HTML Converter — Live Preview & HTML Output',
     note: 'Matches live Markdown rendering to HTML with copyable output and browser print. Competition is provisional; no volume/KD/SERP claim.',
   },
   {
