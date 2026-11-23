@@ -72,13 +72,9 @@ export function matchRegex(regex: string, text: string, flags: string): RegexMat
   while (match !== null) {
     const indices = match.indices;
     const captures: GroupCapture[] = [];
-    const namedRanges = new Set(
-      Object.values(indices.groups ?? {}).filter((range): range is [number, number] => range !== undefined)
-        .map(range => `${range[0]}:${range[1]}`),
-    );
     for (let index = 1; index < match.length; index++) {
       const range = indices[index];
-      if (range && !namedRanges.has(`${range[0]}:${range[1]}`)) {
+      if (range) {
         captures.push({
           name: String(index),
           value: match[index],
