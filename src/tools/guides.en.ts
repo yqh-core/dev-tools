@@ -997,9 +997,9 @@ export const GUIDES: Record<string, ToolGuide> = {
   },
 
   '/og-meta-generator': {
-    intro: 'Generates Open Graph and social-platform meta tags for share cards.',
-    steps: ['Enter the title, description, image URL and link', 'Click generate', 'Paste the resulting meta tags into your page head'],
-    notes: ['Platforms cache share cards, so you may need their debug tool to refresh the cache after a change'],
+    intro: 'Generates copyable Open Graph and Twitter Card HTML meta tags for social share metadata.',
+    steps: ['Enter the page title, description, URL and social image details', 'Choose the website, article, book, profile, music or video metadata type and Twitter Card options', 'Copy the generated HTML meta tags into your page head'],
+    notes: ['This tool generates markup only; it does not render a live social-card preview or validate how a platform will display the card', 'Platforms cache share cards, so you may need their debug tool to refresh the cache after a change'],
     example: { label: 'Fill in a sample site title', text: 'My Awesome Site' },
     about: 'Fill in a page title, description, URL and image, and get ready-to-paste Open Graph and Twitter meta tags. Social platforms read these tags to build share cards, so the difference between a bare link and an inviting preview is usually just this handful of meta tags in your page head.',
     faqs: [
@@ -1342,8 +1342,8 @@ export const GUIDES: Record<string, ToolGuide> = {
   },
 
   '/rsa-key-pair-generator': {
-    intro: 'Generates an RSA public/private key pair in PEM format, for encrypted transport or signature verification.',
-    steps: ['Choose the key length (2048 bits and up)', 'Click generate', 'Save the private and public keys separately'],
+    intro: 'Generates an RSA public/private key pair in PEM format, for applications that accept RSA keys.',
+    steps: ['Choose a key length from 256 to 16,384 bits in multiples of 8 (2048 bits is the default)', 'Click refresh key-pair to generate the keys', 'Copy and store the public and private PEM outputs separately'],
     notes: ['A lost private key cannot be recovered, so store it safely — and never commit it to a repository'],
     example: { label: 'Fill in a sample key size', text: '4096' },
     about: 'Generate an RSA key pair — private and public key in PEM format, in the key size you choose — directly in the browser. Useful for SSH keys, TLS client certificates, JWT RS256 signing setups, or anywhere you need a fresh pair without installing OpenSSL.',

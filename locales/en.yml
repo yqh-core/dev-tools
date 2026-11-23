@@ -431,12 +431,12 @@ tools:
     description: Compute your chmod permissions and commands with this online chmod calculator.
 
   rsa-key-pair-generator:
-    title: RSA Key Pair Generator
-    description: Generate an RSA private/public key pair online — PEM format, 2048 to 8192 bits, for SSH, TLS or JWT RS256. No OpenSSL install, keys never leave your browser.
+    title: "RSA Key Pair Generator — Create Public & Private PEM Keys"
+    description: "Generate an RSA public/private key pair in your browser and copy both PEM outputs. Choose a key size from 256 to 16,384 bits in 8-bit steps; no native OpenSSH output or other key algorithms are included."
 
   html-wysiwyg-editor:
-    title: HTML WYSIWYG editor
-    description: Online, feature-rich WYSIWYG HTML editor which generates the source code of the content immediately.
+    title: "HTML WYSIWYG Editor — Format Text & Copy HTML"
+    description: "Format text visually with headings, paragraphs, lists, quotes, inline formatting and code blocks, then copy the generated HTML. Tables, images, links and direct source editing are not supported."
 
   yaml-to-toml:
     title: YAML to TOML
@@ -475,8 +475,8 @@ tools:
     description: Calculate an IPv4 subnet from an address and CIDR prefix. See the network and broadcast addresses, netmask, wildcard mask, subnet size and first/last host addresses.
 
   og-meta-generator:
-    title: Open graph meta generator
-    description: Generate open-graph and socials HTML meta tags for your website.
+    title: "Open Graph & Twitter Meta Tag Generator — Create Social Share Tags"
+    description: "Generate copyable Open Graph and Twitter Card HTML meta tags for a page title, description, URL and social image. Choose website, article, book, profile, music or video metadata; no live share-card preview is included."
 
   ipv6-ula-generator:
     title: IPv6 ULA generator
@@ -770,8 +770,8 @@ tools:
     title: "JSON to model classes"
     description: "Generate TypeScript, C#, Java or Go model classes from JSON, splitting nested objects into their own classes."
   whois-lookup:
-    title: "WHOIS lookup"
-    description: "Look up domain registration data such as registrar, dates and status. Powered by RDAP, the official successor of WHOIS."
+    title: "Domain WHOIS & RDAP Lookup — Check Registration Details"
+    description: "Look up domain registration data through RDAP, including registrar, registration and expiry dates, status and nameservers when supplied by the registry. Coverage and returned fields vary by domain extension."
 
   http-status-checker:
     title: "HTTP status checker"
