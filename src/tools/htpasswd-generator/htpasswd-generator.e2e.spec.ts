@@ -51,6 +51,16 @@ test.describe('Tool - multi-user htpasswd generator', () => {
     await expect(page.getByText('Password matches')).toBeVisible();
   });
 
+  test('generates an Apache bcrypt hash and explains the Nginx format choice', async ({ page }) => {
+    await page.getByRole('combobox').first().click();
+    await page.getByRole('option', { name: 'bcrypt ($2a$, Apache)' }).click();
+    await page.getByLabel('Username:').nth(0).fill('apache-user');
+    await page.getByLabel('Password:').nth(0).fill('secret');
+    await page.getByRole('button', { name: 'Generate .htpasswd' }).click();
+    await expect(page.locator('pre')).toContainText(/^apache-user:\\$2a\\$04\\$/);
+    await expect(page.getByText(/Nginx auth_basic does not support bcrypt/)).toBeVisible();
+  });
+
   test('removes an added user row', async ({ page }) => {
     await page.getByRole('button', { name: 'Add user' }).click();
     await expect(page.getByText('2 users')).toBeVisible();
