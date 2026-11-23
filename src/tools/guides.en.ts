@@ -104,14 +104,14 @@ export const GUIDES: Record<string, ToolGuide> = {
   },
 
   '/bcrypt': {
-    intro: 'Hashes a password with bcrypt, or verifies that a plaintext password matches an existing hash — the standard approach for storing credentials.',
+    intro: 'Generates bcrypt password hashes and compares a plaintext value with an existing bcrypt hash using the browser-based bcryptjs library.',
     steps: ['Enter the plaintext password', 'Click generate to get the hash', 'To verify, put the hash in its field, enter the plaintext, then compare'],
     notes: [
       'bcrypt is a hash, not encryption: it is irreversible, there is no "decrypt"',
       'A higher cost is slower and more secure; 10–12 is typical in production',
       'The same plaintext produces a different hash every time — that is expected (random salt)',
     ],
-    about: 'bcrypt is a password-specific hash: unlike SHA-256 it is deliberately slow, and the cost factor lets you slow it down further as hardware improves. Every bcrypt output embeds its own random salt and the cost in the string itself ($2b$10$... means cost 10), which is why the same password hashes differently every time and why verification needs no separate salt storage — the algorithm, salt and cost are all read back from the hash. This tool hashes with bcryptjs and verifies by re-hashing the candidate and comparing, exactly how a server does at login. Typical cost is 10–12: each step doubles the work, so cost 12 is roughly four times slower than cost 10 — pick the slowest value your login latency tolerates.',
+    about: 'bcrypt is a password-specific hash: unlike SHA-256 it is deliberately slow, and the cost factor lets you slow it down further as hardware improves. Every bcrypt output embeds its own random salt and the cost in the string itself, which is why the same password hashes differently every time and why verification needs no separate salt storage. This tool hashes with bcryptjs and compares a candidate value with the supplied hash using bcryptjs’s comparison function; it does not connect to an account store or perform a server login. Typical cost is 10–12: each step doubles the work, so cost 12 is roughly four times slower than cost 10 — pick the slowest value your login latency tolerates.',
     faqs: [
       { q: 'Why does the same password produce different bcrypt hashes?', a: 'By design: a fresh random salt is generated for every hash, so identical passwords produce different outputs and rainbow tables are useless. bcrypt verification handles this automatically — it reads the salt back out of the hash before comparing.' },
       { q: 'What cost (salt rounds) should I choose?', a: 'The rule of thumb is "about 250 ms per hash on your production hardware". Cost 10 is a common floor; 11–12 is typical today. Each +1 doubles the time for both you and the attacker, so take the slowest your login path can afford.' },
@@ -535,7 +535,7 @@ export const GUIDES: Record<string, ToolGuide> = {
   },
 
   '/iban-validator-and-parser': {
-    intro: 'Validates an IBAN bank account number and breaks it down into country, check digits and BBAN.',
+    intro: 'Validates an IBAN’s country-specific structure and checksum, then extracts its country code, check digits and BBAN.',
     steps: ['Enter the IBAN (spaces are fine)', 'Read the validation result', 'Read the parsed country code and account parts below'],
     notes: ['An IBAN carries its own check digits, so a malformed one is rejected outright — first check you did not mistype it'],
     example: { label: 'Fill in a sample IBAN', text: 'DE89 3704 0044 0532 0130 00' },
@@ -1010,11 +1010,11 @@ export const GUIDES: Record<string, ToolGuide> = {
   },
 
   '/otp-generator': {
-    intro: 'Generates and verifies time-based one-time passwords (TOTP) for two-factor authentication setups.',
-    steps: ['Enter the secret (Base32)', 'Click generate to get the current code', 'To verify, enter the code the other party provided and compare'],
-    notes: ['TOTP depends on the device clock — too large a time difference makes codes fail to match indefinitely'],
+    intro: 'Generates six-digit TOTP codes from a Base32 secret, shows previous/current/next time windows and displays an authenticator setup QR URI.',
+    steps: ['Enter a Base32 secret or refresh to generate a new one', 'Read the current six-digit code and its 30-second countdown', 'Scan the QR code or open the otpauth URI to add the secret to an authenticator app'],
+    notes: ['Generated secrets use the browser Web Crypto API; treat the secret as a credential and never share it', 'This page generates codes but has no submitted-code verification form or account integration', 'TOTP depends on the device clock — too large a time difference makes codes fail to match indefinitely'],
     example: { label: 'Paste a sample Base32 secret', text: 'JBSWY3DPEHPK3PXP' },
-    about: 'Generate and validate time-based one-time passwords (TOTP) from a base32 secret — the same mechanism behind Google Authenticator-style codes. Useful for testing your own MFA implementation, decoding a setup key before scanning it into an app, or verifying that a code is currently valid.',
+    about: 'Generate six-digit TOTP codes from a Base32 secret — the same time-based HMAC-SHA1 scheme used by many authenticator apps. This page shows previous/current/next 30-second codes and creates an otpauth URI QR code for enrollment; it does not connect to accounts or verify a submitted code.',
     faqs: [
       { q: 'How does the 6-digit code get calculated?', a: 'The secret plus the current time (in 30-second steps) go through HMAC, and a slice of the result becomes the code. Same secret + same time window = same code, which is why phone and server agree.' },
       { q: 'Why did my code stop matching?', a: 'Clock drift. TOTP depends on the device clock — too large a difference from the server makes codes fail indefinitely. Re-sync the device time or re-enrol the secret.' },
@@ -1541,11 +1541,11 @@ export const GUIDES: Record<string, ToolGuide> = {
   },
 
   '/token-generator': {
-    intro: 'Generates a random string from a chosen character set — for temporary passwords and invite codes.',
+    intro: 'Generates a random string from a chosen character set for non-security-sensitive labels, sample data and placeholder values.',
     steps: ['Set the length', 'Tick the character classes you need', 'Click generate and copy'],
-    notes: ['This uses a regular random number generator; for security-sensitive cases use the platform cryptographic source'],
+    notes: ['This uses JavaScript Math.random, not a cryptographic random source; never use its output for passwords, API secrets, session IDs or recovery codes'],
     example: { label: 'Show a sample token', text: 'A1b2C3d4E5f6G7h8I9j0K1l2M3n4O5p6Q7r8S9t0U1v2W3x4Y5z6a7B8c9D0e1F2g3H4i5J6k7' },
-    about: 'A token is only as strong as the randomness behind it, and browsers have exactly one source worth using: the Web Crypto API\'s cryptographically secure generator, which this tool uses, not a predictable state machine — such generators have ended more than one session-handling project. Two properties decide whether a token is fit for its job. Length-times-alphabet gives entropy in bits: 32 characters from a 62-character set carries about 190 bits, far past the 128-bit floor for anything security-relevant; a 6-character password from the same set does not. Character-set choice should match the consumer: URL and cookie values want unreserved sets (letters, digits, dash) so nothing needs escaping; base64 tokens are fine in bodies but their +/= characters break in URLs unless made URL-safe. The subtler property is uniformity: drawing random bytes and mapping them with a modulo introduces bias when the alphabet size does not divide 256 evenly — the standard fix is rejection sampling, which this tool applies, so every character position is exactly uniform. Finally, match the token to its role: opaque session tokens can be raw random; secrets that humans copy should avoid look-alike characters; API keys benefit from a recognizable prefix so scanners can find leaks.',
+    about: 'This generator uses JavaScript Math.random and is intended for non-security-sensitive strings such as test data or temporary labels. It lets you choose a length from 1–512 and character groups; the output is not cryptographically secure and must not be used for passwords, API credentials, session IDs or recovery codes. For secrets, use a cryptographic random source such as Web Crypto.',
     faqs: [
       { q: 'Is this different from just rolling random numbers?', a: 'Yes — it reads from the browser cryptographic RNG (CSPRNG), not a predictable generator. Predictable ones have produced guessable session tokens in real incidents.' },
       { q: 'How long should my token be?', a: 'Count entropy bits: length × log2(alphabet size). Security values want at least 128 bits, which is roughly 22 characters from a 64-set or 32 from lowercase+digits.' },
