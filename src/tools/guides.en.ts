@@ -453,13 +453,13 @@ export const GUIDES: Record<string, ToolGuide> = {
     ],
     articleOnlySections: [
       {
-        "title": "Measure throughput before trusting the finish time",
-        "text": "An ETA is only as useful as the rate sample behind it. Measure completed work over a representative interval after startup, rather than timing the first few seconds while caches, warm-up, or connection setup distort throughput. Keep numerator and denominator consistent: 240 records in 8 minutes is 30 records per minute, not 30 percent complete. For a queue, count completed items rather than items merely picked up by a worker; otherwise the estimate can appear faster while unfinished work is still waiting. For parallel workers, measure aggregate completed throughput across the whole job instead of multiplying a per-worker rate unless every worker is continuously busy."
+        title: 'Measure throughput before trusting the finish time',
+        text: 'An ETA is only as useful as the rate sample behind it. Measure completed work over a representative interval after startup, rather than timing the first few seconds while caches, warm-up, or connection setup distort throughput. Keep numerator and denominator consistent: 240 records in 8 minutes is 30 records per minute, not 30 percent complete. For a queue, count completed items rather than items merely picked up by a worker; otherwise the estimate can appear faster while unfinished work is still waiting. For parallel workers, measure aggregate completed throughput across the whole job instead of multiplying a per-worker rate unless every worker is continuously busy.',
       },
       {
-        "title": "Know what a constant-rate ETA leaves out",
-        "text": "When some work has already finished, estimate the remaining workload and set the start time to the point from which that remaining work is expected to run; using the original total and original start time answers a different question. A rate-based calculation does not model pauses, retries, rate limits, changing file sizes, or dependencies that make later items slower. Recheck the observed rate after a meaningful interval and compare the new projection with the first one; a widening gap is evidence that the constant-rate assumption is failing."
-      }
+        title: 'Know what a constant-rate ETA leaves out',
+        text: 'When some work has already finished, estimate the remaining workload and set the start time to the point from which that remaining work is expected to run; using the original total and original start time answers a different question. A rate-based calculation does not model pauses, retries, rate limits, changing file sizes, or dependencies that make later items slower. Recheck the observed rate after a meaningful interval and compare the new projection with the first one; a widening gap is evidence that the constant-rate assumption is failing.',
+      },
     ],
   },
 
@@ -1385,13 +1385,13 @@ export const GUIDES: Record<string, ToolGuide> = {
     ],
     articleOnlySections: [
       {
-        "title": "JavaScript replacement tokens, not just match highlighting",
-        "text": "The replacement preview follows JavaScript String.prototype.replace semantics, so it is useful to test the output that browser code will produce rather than only checking whether a pattern matches. The token $& inserts the complete matched substring, while $1 inserts the first numbered capture and $<name> inserts a named capture such as $<word>. Use $$ when the replacement should contain a literal dollar sign. The tokens $` and $' insert the text before and after the current match respectively; they can repeat large parts of the input and unexpectedly expand the output. Without the global flag g, replacement affects only the first match; with g, it applies to each non-overlapping match."
+        title: 'JavaScript replacement tokens, not just match highlighting',
+        text: 'The replacement preview follows JavaScript String.prototype.replace semantics, so it is useful to test the output that browser code will produce rather than only checking whether a pattern matches. The token $& inserts the complete matched substring, while $1 inserts the first numbered capture and $<name> inserts a named capture such as $<word>. Use $$ when the replacement should contain a literal dollar sign. The tokens $` and $\' insert the text before and after the current match respectively; they can repeat large parts of the input and unexpectedly expand the output. Without the global flag g, replacement affects only the first match; with g, it applies to each non-overlapping match.',
       },
       {
-        "title": "Read match positions and handle expensive patterns",
-        "text": "The d flag exposes capture indices as zero-based JavaScript string offsets, which count UTF-16 code units rather than user-perceived characters; an emoji can therefore occupy two positions. A global pattern that can match an empty string needs careful advancement, or it can keep finding the same position; this tester advances by one Unicode code point after an empty match. Each evaluation runs in a dedicated Web Worker and is terminated after 300 milliseconds, allowing the interface to recover from catastrophic backtracking and create a fresh worker for the next edit. A timeout is a safety boundary, not proof that a pattern is efficient, so simplify nested quantifiers and test against realistic long inputs before shipping a pattern."
-      }
+        title: 'Read match positions and handle expensive patterns',
+        text: 'The d flag exposes capture indices as zero-based JavaScript string offsets, which count UTF-16 code units rather than user-perceived characters; an emoji can therefore occupy two positions. A global pattern that can match an empty string needs careful advancement, or it can keep finding the same position; this tester advances by one Unicode code point after an empty match. Each evaluation runs in a dedicated Web Worker and is terminated after 300 milliseconds, allowing the interface to recover from catastrophic backtracking and create a fresh worker for the next edit. A timeout is a safety boundary, not proof that a pattern is efficient, so simplify nested quantifiers and test against realistic long inputs before shipping a pattern.',
+      },
     ],
   },
 
@@ -1930,13 +1930,13 @@ export const GUIDES: Record<string, ToolGuide> = {
     ],
     articleOnlySections: [
       {
-        "title": "Connect the generated file to Apache or Nginx",
-        "text": "Apache and Nginx use the same line-oriented username:hash file format, but their server configuration directives differ. In an Apache protected Directory or Location block, Basic authentication is enabled with AuthType Basic, a realm with AuthName, the absolute file path with AuthUserFile, and an access rule such as Require valid-user. In an Nginx location block, use auth_basic for the challenge text and auth_basic_user_file for the absolute path to the credential file. These paths are resolved by the web server on the host; they are not browser download paths, so the service account must be able to read the file. Keep the file outside the public document root and grant only the owner and server group the access they need."
+        title: 'Connect the generated file to Apache or Nginx',
+        text: 'Apache and Nginx use the same line-oriented username:hash file format, but their server configuration directives differ. In an Apache protected Directory or Location block, Basic authentication is enabled with AuthType Basic, a realm with AuthName, the absolute file path with AuthUserFile, and an access rule such as Require valid-user. In an Nginx location block, use auth_basic for the challenge text and auth_basic_user_file for the absolute path to the credential file. These paths are resolved by the web server on the host; they are not browser download paths, so the service account must be able to read the file. Keep the file outside the public document root and grant only the owner and server group the access they need.',
       },
       {
-        "title": "Deploy and rotate credentials without exposing the file",
-        "text": "Before reloading a server, validate its configuration with apachectl configtest or nginx -t, then test the protected URL over HTTPS from a client that has no saved credentials. Keep one username:hash record per line and preserve the other users' records when rotating a single account. Use the local verifier to check a generated entry before deploying it, but never make the credential file itself publicly downloadable. The bcrypt format emitted here uses the $2a$ prefix accepted by Apache httpd 2.4; Nginx bcrypt support depends on the host's system crypt implementation, while apr1 is the more portable Apache/Nginx choice. SHA1 and plain-text entries are legacy/debug formats, not suitable choices for a new production deployment."
-      }
+        title: 'Deploy and rotate credentials without exposing the file',
+        text: 'Before reloading a server, validate its configuration with apachectl configtest or nginx -t, then test the protected URL over HTTPS from a client that has no saved credentials. Keep one username:hash record per line and preserve the other users\' records when rotating a single account. Use the local verifier to check a generated entry before deploying it, but never make the credential file itself publicly downloadable. The bcrypt format emitted here uses the $2a$ prefix accepted by Apache httpd 2.4; Nginx bcrypt support depends on the host\'s system crypt implementation, while apr1 is the more portable Apache/Nginx choice. SHA1 and plain-text entries are legacy/debug formats, not suitable choices for a new production deployment.',
+      },
     ],
   },
 
