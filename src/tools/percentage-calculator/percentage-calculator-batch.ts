@@ -27,7 +27,7 @@ const modeLabels: Record<PercentageBatchMode, string> = {
 };
 
 function numberText(value: number): string {
-  return Number.isFinite(value) ? String(value) : '';
+  return Number.isFinite(value) ? String(value) : 'undefined';
 }
 
 function calculate(mode: PercentageBatchMode, a: number, b: number): { formula: string; result: string } {
