@@ -23,7 +23,7 @@ test.describe('Tool - text statistics', () => {
   });
 
   test('counts non-ASCII text by UTF-8 bytes', async ({ page }) => {
-    await page.getByPlaceholder('Your text...').fill('你好');
+    await page.getByPlaceholder('Your text...').fill('\u4f60\u597d');
     await expect(page.getByTestId('character-count')).toContainText('2');
     await expect(page.getByTestId('byte-size')).toContainText('6 B');
   });
