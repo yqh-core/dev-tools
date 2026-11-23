@@ -1403,7 +1403,13 @@ export const GUIDES: Record<string, ToolGuide> = {
         url: 'https://notes.digdevbox.com/posts/url-encoding-guide',
         tag: 'URL',
       },
-      {"slug":"outlook-safelinks-decoder-guide","title":"Outlook Safe Links Decoder: Reveal the Original URL Without Opening It","description":"Learn how Outlook Safe Links wraps email URLs, how to reveal a destination without opening it, and what decoding does not verify or replace.","url":"https://notes.digdevbox.com/posts/outlook-safelinks-decoder-guide","tag":"Safe Links"},
+      {
+        slug: 'outlook-safelinks-decoder-guide',
+        title: 'Outlook Safe Links Decoder: Reveal the Original URL Without Opening It',
+        description: 'Learn how Outlook Safe Links wraps email URLs, how to reveal a destination without opening it, and what decoding does not verify or replace.',
+        url: 'https://notes.digdevbox.com/posts/outlook-safelinks-decoder-guide',
+        tag: 'Safe Links',
+      },
     ],
   },
 
