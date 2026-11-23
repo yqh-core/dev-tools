@@ -703,11 +703,11 @@ export const GUIDES: Record<string, ToolGuide> = {
     example: { label: '填入示例 cURL', text: 'curl https://httpbin.org/get -H \'Accept: application/json\'' },
     notes: [
       '中继复用与本站状态检查器同一套 SSRF 校验链：私网/保留 IP、内网主机名、重定向进私网一律拒绝；请求体上限 256 KiB、响应体上限 1 MiB。',
-      '凭据（Authorization、Cookie、API key、URL 内嵌密码）默认从分享的 cURL 中剔除，但请求正文不做脱敏——分享前请自查。历史与集合为支持重放，会在 localStorage 中保留原始凭据头：这是已知的功能权衡，不是安全存储（不防 XSS 或浏览器配置文件泄露）。凭据只在你显式发送或导出请求时离开浏览器。',
+      '凭据（Authorization、Cookie、API key、URL 内嵌密码）默认从分享的 cURL 中剔除，但请求正文不做脱敏——分享前请自查。历史与集合为支持重放，会在 localStorage 中保留原始凭据头：这是已知的功能权衡，不是安全存储（不防 XSS 或浏览器配置文件泄露）。只有点击 Send 时，请求凭据才会经临时中继传输。导出在本地生成，默认移除常见认证请求头和 URL 用户信息，但不会清理请求正文；分享前请检查其中是否含有敏感信息。',
       '变量在 URL/头/体中用 {{name}} 占位；「提取→变量」用 JSONPath 从响应取值，登录 token 可直接喂给下一个请求。',
       '集合运行器不执行 Postman pm.* 脚本，也不支持数据文件迭代。如果测试依赖这些能力，请使用 Postman/Newman 或 CI API 客户端。',
     ],
-    about: '多数浏览器 API 客户端到响应体就停了，而真正的工作恰恰从那里开始：从登录响应里取 token、重塑 payload、对比两个环境。本工作台把整条链留在同一页——cURL 进、请求出、响应进 JSON 管线——并把安全边界写明白：中继逐跳校验私网、限制体大小、不记录不存储，分享请求默认不含凭据。',
+    about: '多数浏览器 API 客户端到响应体就停了，而真正的工作恰恰从那里开始：从登录响应里取 token、重塑 payload、对比两个环境。本工作台把整条链留在同一页——cURL 进、请求出、响应进 JSON 管线——并把安全边界写明白：中继逐跳校验私网、限制体大小、不记录不存储，导出时会默认移除常见认证请求头和 URL 用户信息，但不会检查请求正文；分享前请自行检查其中的敏感信息。',
     articleOnlySections: [
       {
         title: '完整流程示例：登录、提取 token，再调用下一个接口',
