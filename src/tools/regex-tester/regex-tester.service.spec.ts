@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { evaluateRegex, matchRegex } from './regex-tester.service';
+import { evaluateRegex, matchRegex, REGEX_PRESETS } from './regex-tester.service';
 
 describe('matchRegex', () => {
   it('preserves match positions, numbered captures and named groups', () => {
@@ -28,8 +28,7 @@ describe('matchRegex', () => {
     expect(results[1].captures).toEqual([{ name: '1', value: 'a', start: 2, end: 3 }]);
   });
 
-  it('keeps every shipped preset valid in the JavaScript RegExp engine', async () => {
-    const { REGEX_PRESETS } = await import('./regex-tester.service');
+  it('keeps every shipped preset valid in the JavaScript RegExp engine', () => {
     for (const preset of REGEX_PRESETS) {
       expect(() => new RegExp(preset.pattern, preset.flags.replace('d', ''))).not.toThrow();
       expect(matchRegex(preset.pattern, preset.sample, preset.flags)).toHaveLength(1);
