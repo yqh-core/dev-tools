@@ -692,17 +692,41 @@ export const GUIDES: Record<string, ToolGuide> = {
   },
 
   '/api-debugger': {
-    intro: '在浏览器里端到端调试一个 API 请求：导入 cURL 命令、经边缘瞬时中继发送、查看状态码/耗时/响应头/响应体，再把响应直传 JSON 工作台，或提取为变量供下一个请求使用。',
+    intro: '在同一工作台测试和调试 REST API 请求：导入 cURL、OpenAPI 3.x 或 Postman v2.1 集合，经临时边缘中继发送请求，检查响应、添加断言，并按顺序运行已保存的请求。',
     steps: [
-      '粘贴 cURL 命令并解析（或手动填写方法、URL、头与体），点击发送，在同一页查看响应。',
+      '在 Import cURL command 中粘贴 cURL 命令并解析。如果已有请求定义，也可以导入 OpenAPI 3.x JSON/YAML 规范或 Postman v2.1 JSON 集合。',
+      '发送前先检查生成的请求：方法、URL、查询参数、请求头、认证字段和请求体。确认后点击 Send；新请求也可以手动填写这些字段。',
+      '检查响应状态码、耗时、响应头和响应体。在 Tests 中添加状态码、JSONPath、响应头或响应耗时断言；每次成功发送后都会重新运行断言，并显示各条结果。',
+      '在 Variables 中定义 Global、Collection 或 Environment 变量。在 URL、请求头或请求体中使用 {{name}}；Environment 优先级高于 Collection，Collection 又高于 Global。',
+      '使用 JSONPath（例如 $.access_token）从响应中提取变量，然后为请求命名并保存到 Collection。点击 Run collection 按保存顺序重放请求，并查看每次发送与断言的结果。',
     ],
     example: { label: '填入示例 cURL', text: 'curl https://httpbin.org/get -H \'Accept: application/json\'' },
     notes: [
       '中继复用与本站状态检查器同一套 SSRF 校验链：私网/保留 IP、内网主机名、重定向进私网一律拒绝；请求体上限 256 KiB、响应体上限 1 MiB。',
       '凭据（Authorization、Cookie、API key、URL 内嵌密码）默认从分享的 cURL 中剔除，但请求正文不做脱敏——分享前请自查。历史与集合为支持重放，会在 localStorage 中保留原始凭据头：这是已知的功能权衡，不是安全存储（不防 XSS 或浏览器配置文件泄露）。凭据只在你显式发送或导出请求时离开浏览器。',
       '变量在 URL/头/体中用 {{name}} 占位；「提取→变量」用 JSONPath 从响应取值，登录 token 可直接喂给下一个请求。',
+      '集合运行器不执行 Postman pm.* 脚本，也不支持数据文件迭代。如果测试依赖这些能力，请使用 Postman/Newman 或 CI API 客户端。',
     ],
     about: '多数浏览器 API 客户端到响应体就停了，而真正的工作恰恰从那里开始：从登录响应里取 token、重塑 payload、对比两个环境。本工作台把整条链留在同一页——cURL 进、请求出、响应进 JSON 管线——并把安全边界写明白：中继逐跳校验私网、限制体大小、不记录不存储，分享请求默认不含凭据。',
+    articleOnlySections: [
+      {
+        title: '完整流程示例：登录、提取 token，再调用下一个接口',
+        text: '先使用测试 API，创建一个指向登录接口的 POST 请求。按 API 要求填写 JSON 请求体，再添加状态码断言，以及用于检查响应 token 字段的 JSONPath 断言。收到响应后，在 Extract → variable 中填写 $.access_token 这样的路径，并把变量命名为 token。然后创建下一个请求，URL 可以使用 {{baseUrl}}/profile，请求头可以使用 Authorization: Bearer {{token}}。把 baseUrl 和 token 放在合适且尽可能小的变量作用域中，并为 staging 与 production 分别使用不同环境。运行器不会在请求之间自动提取响应值；需要先手动提取 token，再发送或运行下一个请求。',
+      },
+      {
+        title: '用集合运行器执行可重复的 API 检查',
+        text: '请求的方法、URL、请求体和认证信息确认无误后，为每个请求设置清晰名称并保存。保存前添加该请求需要的断言；成功发送后和集合运行时都会执行已保存的断言。Run collection 会按顺序执行已保存请求，并报告发送数量、失败数量和通过的断言数量。如果后续请求依赖前序成功，可以选择发送错误时停止。这个运行器用于可重复的请求检查，并不是完整的 Postman 运行时：它不执行 pm.* 脚本，也不支持数据文件迭代。',
+      },
+      {
+        title: '理解中继、浏览器存储与分享边界',
+        text: '请求并不是从浏览器直接发送到 API 源站。点击 Send 后，DigDevBox 会通过临时边缘中继转发请求；中继会校验目标地址、阻止私网和保留网段目标、拒绝重定向进入私网，并限制请求体和响应体大小。不要把它描述成完全本地处理；显式发送请求时，凭据会随请求传输。历史记录和集合使用浏览器 localStorage，可能保留你填写的原始请求头，因此它不是加密密码库。Secret 变量在界面中会被遮罩，导出时写为空字符串，但实际发送请求时仍会替换成原值。分享时会移除常见认证请求头和 URL 用户信息，但不会自动清理请求体；分享前请检查正文。',
+      },
+    ],
+    faqs: [
+      { q: 'API 请求会从浏览器直接发送到 API 吗？', a: '不会。点击 Send 后，请求会经过 DigDevBox 临时边缘中继。中继在转发前校验目标地址，并限制请求体和响应体大小。应将其理解为经中继转发的请求，而不是直连源站或完全本地处理。' },
+      { q: '保存的凭据是否受到密码管理器级别的保护？', a: '不是。历史记录和集合使用浏览器 localStorage，可能保留你填写的请求头。Secret 变量在界面中会被遮罩，导出时写为空字符串，但 localStorage 并不是加密存储。' },
+      { q: '集合运行器支持 Postman pm.* 脚本或数据文件迭代吗？', a: '不支持。它会按顺序运行已保存请求，并执行每个请求内置的断言；不会执行 Postman 脚本，也不会迭代数据文件。' },
+    ],
   },
 
   '/json-workspace': {
