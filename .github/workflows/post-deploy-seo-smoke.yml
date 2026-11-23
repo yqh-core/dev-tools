@@ -200,7 +200,18 @@ jobs:
             '/device-information',
             '/ipv4-range-expander',
             '/pdf-signature-checker',
-          ]) {
+          
+            '/api-debugger',
+            '/json-prettify',
+            '/json-workspace',
+            '/base-converter',
+            '/html-entities',
+            '/json-to-get-params',
+            '/docker-run-to-docker-compose-converter',
+            '/otp-generator',
+            '/htpasswd-generator',
+            '/json-to-toml',
+            '/text-statistics',]) {
             const expected = origin + route + '/';
             for (const variant of [route, route + '/']) {
               const result = await get(variant);
@@ -253,7 +264,7 @@ jobs:
           // priority English pages. This catches UA-dependent HTML/cache variants
           // and guarantees the crawler sees the same title, description, H1 and canonical.
           const browserUa = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/130.0.0.0 Safari/537.36';
-          const priorityPages = ['/', '/percentage-calculator/', '/numeronym-generator/', '/api-debugger/'];
+          const priorityPages = ['/', '/percentage-calculator/', '/numeronym-generator/', '/api-debugger/', '/json-prettify/', '/json-workspace/', '/base-converter/', '/html-entities/', '/json-to-get-params/', '/docker-run-to-docker-compose-converter/', '/otp-generator/', '/htpasswd-generator/', '/json-to-toml/', '/text-statistics/'];
           for (const path of priorityPages) {
             const [bot, browser] = await Promise.all([get(path), get(path, browserUa)]);
             for (const [label, result] of [['Googlebot', bot], ['browser', browser]]) {
@@ -278,18 +289,27 @@ jobs:
               throw new Error(path + ' Googlebot HTML differs from browser HTML: ' +
                 JSON.stringify({ googlebot: botMeta, browser: browserMeta }));
             }
-            if (path === '/percentage-calculator/' &&
-                (botMeta.title !== 'Percentage Calculator — Percent & Change - DigDevBox' ||
-                 botMeta.description !== 'Calculate a percentage of a number, find what percent one value is of another, measure percentage change, or apply a discount or sales tax. Four free calculators.' ||
-                 botMeta.h1 !== 'Percentage Calculator')) {
-              throw new Error('Percentage Calculator production SEO metadata does not match the approved title, description and H1');
-            }
-            if (path === '/api-debugger/' &&
-                (botMeta.title !== 'REST API Tester — cURL Import, Tests & Collections - DigDevBox' ||
-                 botMeta.description !== 'Send REST API requests, import cURL, inspect response status, headers and JSON, add assertions, and run saved collections. Requests pass through a temporary relay.' ||
-                 botMeta.h1 !== 'REST API Tester')) {
-              throw new Error('API Tester production SEO metadata mismatch: ' +
-                JSON.stringify({ title: botMeta.title, description: botMeta.description, h1: botMeta.h1 }));
+            const expectedMetadata = {
+              '/percentage-calculator/': { title: 'Percentage Calculator — Percent & Change - DigDevBox', description: 'Calculate a percentage of a number, find what percent one value is of another, measure percentage change, or apply a discount or sales tax. Four free calculators.', h1: 'Percentage Calculator' },
+              '/api-debugger/': { title: 'REST API Tester — cURL, Tests & Collections - DigDevBox', description: 'Send REST API requests, import cURL, inspect status, headers and JSON, add assertions, and run saved collections. Requests pass through a temporary relay.', h1: 'REST API Tester' },
+              '/json-prettify/': { title: 'JSON Formatter — Format, Validate & Diff - DigDevBox', description: 'Format and validate JSON online — pretty-print at your indent size, sort keys and spot syntax errors instantly, right in your browser.', h1: 'JSON Formatter & Validator' },
+              '/json-workspace/': { title: 'JSON Workspace — JSONPath, Tree & Schema - DigDevBox', description: 'Format and validate JSON, inspect an interactive tree, query with JSONPath, infer JSON Schema, and convert to YAML or CSV. Free in your browser.', h1: 'JSON Developer Workspace' },
+              '/base-converter/': { title: 'Number Base Converter — Bases 2–64 - DigDevBox', description: 'Convert non-negative integers between bases 2–64, including binary, octal, decimal, hexadecimal and custom alphabets. This converts numbers, not text.', h1: 'Integer Base Converter' },
+              '/html-entities/': { title: 'HTML Entity Encoder & Decoder - DigDevBox', description: 'Encode and decode HTML entities for ampersands, angle brackets, quotes and apostrophes. Search named and numeric references; encoding does not sanitize HTML.', h1: 'HTML Entity Encoder & Decoder' },
+              '/json-to-get-params/': { title: 'JSON to Query String Converter - DigDevBox', description: 'Percent-encode nested JSON as URL query parameters, or rebuild JSON from a query string or full URL. Supports bracketed object keys and indexed arrays.', h1: 'JSON to Query String Converter' },
+              '/docker-run-to-docker-compose-converter/': { title: 'Docker Run to Compose Converter - DigDevBox', description: 'Paste a docker run command and get a docker-compose service — ports, volumes and env mapped. Free online decomposerize alternative, in your browser.', h1: 'Docker Run to Compose Converter' },
+              '/otp-generator/': { title: 'TOTP Code Generator — 6-Digit Codes & QR - DigDevBox', description: 'Generate current, previous and next 6-digit TOTP codes from a Base32 secret, view the 30-second timer, and create an otpauth QR code. Uses Web Crypto.', h1: 'TOTP Code Generator' },
+              '/htpasswd-generator/': { title: 'htpasswd Generator & Checker — bcrypt & apr1 - DigDevBox', description: 'Build multi-user Apache/Nginx .htpasswd files with bcrypt or apr1. Copy, download or verify a username:hash line locally. Passwords stay in your browser.', h1: 'htpasswd Generator & Checker' },
+              '/json-to-toml/': { title: 'JSON to TOML Converter - DigDevBox', description: 'Convert JSON or JSON5 objects to TOML. Nested objects become tables or dotted keys; arrays become TOML arrays. Unsupported values may prevent conversion.', h1: 'JSON to TOML Converter' },
+              '/text-statistics/': { title: 'Text Statistics — Word & Character Counter - DigDevBox', description: 'Count words, characters and lines, and check UTF-8 text size in bytes. Paste text to see live statistics instantly — free and browser-based.', h1: 'Word & Character Counter' },
+            };
+            const expected = expectedMetadata[path];
+            if (expected &&
+                (botMeta.title !== expected.title ||
+                 botMeta.description !== expected.description ||
+                 botMeta.h1 !== expected.h1)) {
+              throw new Error(path + ' production SEO metadata mismatch: ' +
+                JSON.stringify({ expected, actual: botMeta }));
             }
             if (/<meta[^>]+name=["']robots["'][^>]+content=["'][^"']*noindex/i.test(bot.body)) {
               throw new Error(path + ' unexpectedly carries noindex');
