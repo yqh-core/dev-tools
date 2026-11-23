@@ -266,6 +266,46 @@ tools:
   percentage-calculator:
     title: "Percentage Calculator — Percent & Change"
     description: "Calculate a percentage, reverse an increase or discount, compare two values, and find percentage-point changes. Seven free calculator modes in your browser."
+    batch:
+      title: Batch percentage calculator
+      description: "Paste multiple rows below. Each row needs exactly two numbers separated by a tab or comma. Batch values and history stay in this browser and are never sent to analytics."
+      mode: Calculation type
+      input: Values (one row per line)
+      placeholder: "15\t80\n20\t50\n7\t120"
+      run: Run batch
+      copyAll: Copy all (TSV)
+      downloadCsv: Download CSV
+      downloadTsv: Download TSV
+      row: Row
+      formula: Formula
+      resultStatus: Result / status
+      action: Action
+      copy: Copy
+      historyTitle: Recent calculations (this browser only)
+      clearHistory: Clear history
+      restore: Restore
+      delete: Delete
+      rows: row(s)
+      rowsStatus: "{valid} row(s) calculated; {invalid} row(s) need attention."
+      empty: Paste one or more rows with exactly two values per row.
+      copied: Copied to clipboard.
+      clipboardUnavailable: Clipboard access is unavailable. Select and copy the result manually.
+      downloaded: "Downloaded {format} results."
+      restored: Previous batch restored from this browser’s local history.
+      cleared: Local calculation history cleared.
+      historySaveFailed: History could not be saved in this browser.
+      errors:
+        columns: Enter exactly two values separated by a tab or comma.
+        numbers: Both columns must contain finite numbers.
+        undefined: This calculation is undefined for the supplied values.
+      modes:
+        part: What is X% of Y?
+        ratio: X is what percent of Y?
+        change: Percentage change (from, to)
+        adjust: Increase and decrease (value, percent)
+        reverse: Reverse increase and decrease (final, percent)
+        difference: Symmetric percentage difference
+        points: Percentage-point change (old rate, new rate)
 
   svg-placeholder-generator:
     title: SVG placeholder generator
