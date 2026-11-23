@@ -314,6 +314,14 @@ jobs:
           set -euo pipefail
           mkdir -p reports
           set +e
+          # DigImg's target-size guide links intentionally carry target_kb + analytics
+          # query parameters to preselect a tool state. They are not separate indexable
+          # documents (all self-canonicalize to /), so strip query strings in this SEO
+          # crawl to avoid counting five copies of the same homepage as duplicate pages.
+          crawl_args=()
+          if [[ "${{ matrix.slug }}" == "digimg" ]]; then
+            crawl_args+=(--remove-query-params --accept-encoding=br)
+          fi
           "$SITEONE_BIN" \
             --url="${{ matrix.url }}" \
             --device=mobile \
@@ -326,7 +334,8 @@ jobs:
             --output=text \
             --output-json-file="reports/${{ matrix.slug }}.json" \
             --output-html-report="reports/${{ matrix.slug }}.html" \
-            --html-report-options="summary,seo-opengraph,visited-urls,security,redirects,404-pages,headers,best-practices,accessibility"
+            --html-report-options="summary,seo-opengraph,visited-urls,security,redirects,404-pages,headers,best-practices,accessibility" \
+            "${crawl_args[@]}"
           code=$?
           set -e
           echo "$code" > "reports/${{ matrix.slug }}.exit-code.txt"
