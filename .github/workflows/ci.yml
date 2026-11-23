@@ -63,6 +63,7 @@ jobs:
           src/tools/eta-calculator/eta-calculator.e2e.spec.ts
           src/tools/text-statistics/text-statistics.e2e.spec.ts
           src/tools/basic-auth-generator/basic-auth-generator.e2e.spec.ts
+          src/tools/htpasswd-generator/htpasswd-generator.e2e.spec.ts
           src/tools/safelink-decoder/safelink-decoder.e2e.spec.ts
           src/pages/home-task-discovery.e2e.spec.ts
           --project=chromium
