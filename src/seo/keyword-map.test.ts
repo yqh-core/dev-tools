@@ -167,11 +167,8 @@ describe('evidence-backed SEO keyword targets', () => {
   it.each([
     ['/email-normalizer', 'email normalizer', 'parse'],
     ['/ipv4-address-converter', 'IPv4 address converter', 'convert'],
-    ['/html-wysiwyg-editor', 'HTML WYSIWYG editor', 'format'],
-    ['/rsa-key-pair-generator', 'RSA key pair generator', 'generate'],
     ['/keycode-info', 'JavaScript keycode checker', 'inspect'],
     ['/math-evaluator', 'math expression evaluator', 'compute'],
-    ['/og-meta-generator', 'Open Graph meta tag generator', 'generate'],
     ['/mime-types', 'MIME type lookup', 'lookup'],
     ['/random-port-generator', 'random port generator', 'generate'],
   ])('keeps source-audited candidate %s capability-matched', (path, keyword, intent) => {
@@ -188,7 +185,6 @@ describe('evidence-backed SEO keyword targets', () => {
   it.each([
     ['/toml-to-yaml', 'TOML to YAML converter', 'convert'],
     ['/yaml-to-toml', 'YAML to TOML converter', 'convert'],
-    ['/whois-lookup', 'domain WHOIS lookup', 'lookup'],
     ['/mac-address-lookup', 'MAC address vendor lookup', 'lookup'],
     ['/otp-generator', 'TOTP generator online', 'generate'],
     ['/unit-converter', 'unit converter online', 'convert'],
@@ -296,6 +292,20 @@ describe('evidence-backed SEO keyword targets', () => {
     ['/text-to-unicode', 'text to Unicode converter', 'Text to Unicode Converter — Decimal HTML References & Code Points'],
     ['/pdf-signature-checker', 'PDF digital signature checker', 'PDF Signature Checker — Verify PDF Signatures & Certificates'],
     ['/text-to-binary', 'text to binary converter', 'Text to Binary Converter — ASCII 8-Bit Encoder & Decoder'],
+  ])('locks newly landed P1 utility %s to its capability-matched title', (path, keyword, lockedTitle) => {
+    const entry = CLUSTER_KEYWORD_ENTRIES.find(item => item.path === path);
+    expect(entry).toBeDefined();
+    expect(entry?.keyword).toBe(keyword);
+    expect(entry?.priority).toBe('P1');
+    expect(entry?.landed).toBe(true);
+    expect(entry?.lockedTitle).toBe(lockedTitle);
+  });
+
+  it.each([
+    ['/og-meta-generator', 'Open Graph meta tag generator', 'Open Graph & Twitter Meta Tag Generator — Create Social Share Tags'],
+    ['/whois-lookup', 'domain WHOIS lookup', 'Domain WHOIS & RDAP Lookup — Check Registration Details'],
+    ['/rsa-key-pair-generator', 'RSA key pair generator', 'RSA Key Pair Generator — Create Public & Private PEM Keys'],
+    ['/html-wysiwyg-editor', 'HTML WYSIWYG editor', 'HTML WYSIWYG Editor — Format Text & Copy HTML'],
   ])('locks newly landed P1 utility %s to its capability-matched title', (path, keyword, lockedTitle) => {
     const entry = CLUSTER_KEYWORD_ENTRIES.find(item => item.path === path);
     expect(entry).toBeDefined();
