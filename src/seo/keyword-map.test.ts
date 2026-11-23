@@ -174,4 +174,25 @@ describe('evidence-backed SEO keyword targets', () => {
     expect((entry?.keywords ?? []).length).toBeGreaterThanOrEqual(4);
     expect(entry?.note).toContain('Candidate mapping only');
   });
+
+  it.each([
+    ['/html-entities', 'HTML entities encoder and decoder', 'convert'],
+    ['/base-converter', 'number base converter', 'convert'],
+    ['/qrcode-generator', 'QR code generator', 'generate'],
+    ['/wifi-qrcode-generator', 'WiFi QR code generator', 'generate'],
+    ['/roman-numeral-converter', 'Roman numeral converter', 'convert'],
+    ['/svg-placeholder-generator', 'SVG placeholder generator', 'generate'],
+    ['/token-generator', 'random token generator', 'generate'],
+    ['/ascii-table', 'ASCII table lookup', 'lookup'],
+  ])('keeps source-audited utility candidate %s capability-matched', (path, keyword, intent) => {
+    const entry = CLUSTER_KEYWORD_ENTRIES.find(item => item.path === path);
+
+    expect(entry).toBeDefined();
+    expect(entry?.keyword).toBe(keyword);
+    expect(entry?.intent).toBe(intent);
+    expect(entry?.landed).toBe(false);
+    expect((entry?.keywords ?? []).length).toBeGreaterThanOrEqual(4);
+    expect(entry?.note).toContain('Candidate mapping only');
+  });
+
 });

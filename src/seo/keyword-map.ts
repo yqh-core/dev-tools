@@ -67,7 +67,7 @@ export const KNOWN_NOTE_SLUGS = [
 export const NOTES_ORIGIN = 'https://notes.digdevbox.com';
 
 /**
- * Keyword Map §1 总表：11 个原始关键词簇 / 24 行；截至 2026-11-23，PR #65 分支已扩展到 75 条主关键词记录，另有 5 条 aliases，共覆盖 80 条唯一工具路由；新增候选不代表已验证搜索量或流量。
+ * Keyword Map §1 总表：11 个原始关键词簇 / 24 行；截至 2026-11-23，PR #65 分支已扩展到 93 条主关键词记录，另有 5 条 aliases，共覆盖 98 条唯一工具路由；新增候选不代表已验证搜索量或流量。
  *
  * 行序与原文档一致（⛔ 不要按 path 重排 —— 序号本身就是「先做哪一批」的阅读顺序）。
  * 字段口径见 `KeywordMapEntry`。
@@ -1018,6 +1018,88 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     landed: false,
     note: 'Source confirms category-based unit conversion with selectable source units and converted result rows. Candidate mapping only; do not claim every physical unit or every measurement system. No volume/KD/SERP evidence.',
   },
+
+  {
+    path: '/html-entities',
+    keyword: 'HTML entities encoder and decoder',
+    keywords: ['HTML entity encoder', 'HTML entity decoder', 'escape HTML characters', 'unescape HTML entities', 'HTML entities reference'],
+    intent: 'convert',
+    priority: 'P1',
+    competition: 'medium',
+    landed: false,
+    note: 'Source confirms escape/unescape text controls and a searchable common-entity reference. Candidate mapping only; no volume/KD/SERP evidence.',
+  },
+  {
+    path: '/base-converter',
+    keyword: 'number base converter',
+    keywords: ['binary to decimal converter', 'decimal to hexadecimal converter', 'binary to hex converter', 'base 2 to base 16 converter', 'convert numbers between bases'],
+    intent: 'convert',
+    priority: 'P1',
+    competition: 'high',
+    landed: false,
+    note: 'Source confirms integer conversion between bases 2–64 with binary, octal, decimal, hexadecimal, Base64 and custom output base. Candidate mapping only; no volume/KD/SERP evidence.',
+  },
+  {
+    path: '/qrcode-generator',
+    keyword: 'QR code generator',
+    keywords: ['QR code generator online', 'create QR code from URL', 'text to QR code', 'custom color QR code', 'download QR code PNG'],
+    intent: 'generate',
+    priority: 'P1',
+    competition: 'high',
+    landed: false,
+    note: 'Source confirms QR generation from text or a link, foreground/background colors, error-correction levels and PNG download. Candidate mapping only; no logo, batch or analytics claims. No volume/KD/SERP evidence.',
+  },
+  {
+    path: '/wifi-qrcode-generator',
+    keyword: 'WiFi QR code generator',
+    keywords: ['WiFi QR code generator', 'create QR code for WiFi password', 'wireless network QR code', 'hidden SSID QR code', 'WPA WiFi QR code'],
+    intent: 'generate',
+    priority: 'P1',
+    competition: 'high',
+    landed: false,
+    note: 'Source confirms WiFi QR creation with SSID, password, hidden-network and enterprise identity fields. Candidate mapping only; no volume/KD/SERP evidence.',
+  },
+  {
+    path: '/roman-numeral-converter',
+    keyword: 'Roman numeral converter',
+    keywords: ['Roman to Arabic converter', 'Arabic to Roman numerals', 'convert Roman numerals online', 'Roman numeral translator'],
+    intent: 'convert',
+    priority: 'P2',
+    competition: 'medium',
+    landed: false,
+    note: 'Source confirms bidirectional Roman/Arabic conversion with input validation and a bounded supported numeric range. Candidate mapping only; no volume/KD/SERP evidence.',
+  },
+  {
+    path: '/svg-placeholder-generator',
+    keyword: 'SVG placeholder generator',
+    keywords: ['SVG placeholder image generator', 'custom size SVG placeholder', 'SVG mockup image generator', 'generate SVG placeholder online'],
+    intent: 'generate',
+    priority: 'P2',
+    competition: 'medium',
+    landed: false,
+    note: 'Source confirms configurable width, height, text, font size and colors, with SVG/Base64 output and download. Candidate mapping only; no volume/KD/SERP evidence.',
+  },
+  {
+    path: '/token-generator',
+    keyword: 'random token generator',
+    keywords: ['random string generator', 'alphanumeric token generator', 'random password string generator', 'secure token length generator'],
+    intent: 'generate',
+    priority: 'P1',
+    competition: 'high',
+    landed: false,
+    note: 'Source confirms random token output with selectable character groups and length 1–512. Candidate mapping only; inspect RNG implementation before making cryptographic-security claims. No volume/KD/SERP evidence.',
+  },
+  {
+    path: '/ascii-table',
+    keyword: 'ASCII table lookup',
+    keywords: ['ASCII character table', 'ASCII code lookup', 'decimal to ASCII character', 'hex to ASCII lookup', 'ASCII values chart'],
+    intent: 'lookup',
+    priority: 'P2',
+    competition: 'medium',
+    landed: false,
+    note: 'Source confirms searchable ASCII character/code entries by character, decimal and hexadecimal representation. Candidate mapping only; no volume/KD/SERP evidence.',
+  },
+
 ];
 
 /** 全部工具的真实路由集合（`tool.path`，⛔ 不是目录名）。 */
