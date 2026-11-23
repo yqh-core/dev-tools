@@ -19,6 +19,26 @@ home:
     badgeNoSignup: "No signup"
     badgeTools: "{count} tools"
     cta: "Browse all tools"
+  featured:
+    title: "Start with a task"
+    intro: "Choose the job you need to finish. Each entry opens a focused tool workflow; category browsing and the full directory remain available below."
+    open: "Open tool"
+    items:
+      api:
+        title: "Test & Debug APIs"
+        description: "Build requests, switch environments, inspect response history, add assertions and run collections."
+      json:
+        title: "Work with JSON & Data"
+        description: "Inspect JSON, format or compare it, then convert structured data across common formats."
+      jwt:
+        title: "Inspect JWT & Auth"
+        description: "Decode JWT headers and payloads and inspect claims. Decoding does not verify a token's signature."
+      convert:
+        title: "Calculate & Convert"
+        description: "Calculate percentages and task completion ETAs, encode URLs and Base64, and convert timestamps and units."
+      network:
+        title: "Diagnose HTTP & Network"
+        description: "Check a URL's HTTP response, review header references, calculate IPv4 subnets and query domain records."
   why:
     title: "Why DigDevBox"
     point1: "Fast: tools load in your browser with no round trip to a server."
