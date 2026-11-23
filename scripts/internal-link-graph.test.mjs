@@ -51,7 +51,7 @@ describe('analyzeInternalLinkGraph', () => {
     expect(result.counts).toEqual([{ route: '/tools/', inlinks: 1 }]);
   });
 
-  it('reports the course's 7+ diagnostic bands without enforcing them as a build failure', () => {
+  it("reports the course's 7+ diagnostic bands without enforcing them as a build failure", () => {
     const pages = [{ file: 'index.html', html: '<link rel="canonical" href="https://www.example.com/">' + Array.from({ length: 7 }, () => '<a href="/target/">Target</a>').join('') }];
     const result = analyzeInternalLinkGraph(pages, ['https://www.example.com/', 'https://www.example.com/target/'], origin);
     expect(result.distribution).toEqual({ zero: 1, oneToTwo: 0, threeToSix: 0, sevenPlus: 1 });
