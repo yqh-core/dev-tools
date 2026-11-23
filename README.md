@@ -31,9 +31,9 @@
 <!-- generated-tools-list:start -->
 ### Crypto
 
-- [Token Generator](https://digdevbox.com/token-generator) - Generate random tokens and strings online — pick the length (1-512) and character set (uppercase, lowercase, digits, symbols). Free, instant, nothing leaves your browser.
+- [Random Token Generator — Custom Length & Character Sets](https://digdevbox.com/token-generator) - Generate random strings 1–512 characters long using uppercase, lowercase, digits and optional symbols. Choose the character sets and copy or refresh the result. Uses non-cryptographic randomness; do not use for passwords, API secrets or security tokens.
 - [Hash Generator — MD5, SHA-1, SHA-256 Online](https://digdevbox.com/hash-text) - Hash a text string using the function you need : MD5, SHA1, SHA256, SHA224, SHA512, SHA384, SHA3 or RIPEMD160 — with 16-digit MD5 and upper/lower-case hex output
-- [Bcrypt](https://digdevbox.com/bcrypt) - Hash and compare text string using bcrypt. Bcrypt is a password-hashing function based on the Blowfish cipher.
+- [Bcrypt Hash Generator & Checker — Hash and Compare Passwords](https://digdevbox.com/bcrypt) - Generate bcrypt hashes with configurable salt rounds from 0 to 100 and compare a plaintext value against an existing bcrypt hash. The browser-based bcryptjs tool does not decrypt hashes or store account credentials.
 - [UUID Generator — v4, v1, v3, v5 and NIL IDs](https://digdevbox.com/uuid-generator) - Generate UUIDs online for free — v4 random, v1 time-based, v3/v5 namespace UUIDs and NIL, with one-click copy.
 - [ULID Generator — Time-Ordered, Sortable IDs Online](https://digdevbox.com/ulid-generator) - Generate ULIDs online — sortable, time-ordered unique identifiers, ideal for database keys and distributed systems.
 - [Nano ID Generator — Short, URL-safe Unique IDs Online](https://digdevbox.com/nanoid-generator) - Generate nanoid-style unique IDs online — URL-safe alphabet, any length, batch of up to 200, built with crypto randomness in your browser.
@@ -85,7 +85,7 @@
 - [Device information](https://digdevbox.com/device-information) - Get information about your current device (screen size, pixel-ratio, user agent, ...)
 - [Basic Auth Generator — Build an HTTP Authorization Header](https://digdevbox.com/basic-auth-generator) - Generate or decode an HTTP Basic Authorization header in your browser. Copy the Base64 value and use a cURL example with environment variables. Base64 is not encryption; use HTTPS.
 - [Open Graph & Twitter Meta Tag Generator — Create Social Share Tags](https://digdevbox.com/og-meta-generator) - Generate copyable Open Graph and Twitter Card HTML meta tags for a page title, description, URL and social image. Choose website, article, book, profile, music or video metadata; no live share-card preview is included.
-- [OTP code generator](https://digdevbox.com/otp-generator) - Generate and validate time-based OTP (one time password) for multi-factor authentication.
+- [TOTP Code Generator — 6-Digit Authenticator Codes & QR Setup](https://digdevbox.com/otp-generator) - Generate 6-digit time-based codes from a Base32 secret, view previous, current and next 30-second codes, and create an otpauth URI QR code for authenticator setup. Generated secrets use Web Crypto; no account integration or OTP verification UI is provided.
 - [MIME types](https://digdevbox.com/mime-types) - Convert MIME types to file extensions and vice-versa.
 - [JWT Decoder & Parser — Inspect Header, Payload and Expiration](https://digdevbox.com/jwt-parser) - Decode JWTs online — inspect header, payload, claims and expiration (exp/iat) as readable dates. Your token never leaves your browser. Free, no signup.
 - [Keycode info](https://digdevbox.com/keycode-info) - Find the javascript keycode, code, location and modifiers of any pressed key.
@@ -177,7 +177,7 @@
 ### Data
 
 - [Phone parser and formatter](https://digdevbox.com/phone-parser-and-formatter) - Parse, validate and format phone numbers. Get information about the phone number, like the country code, type, etc.
-- [IBAN validator and parser](https://digdevbox.com/iban-validator-and-parser) - Validate and parse IBAN numbers. Check if an IBAN is valid and get the country, BBAN, if it is a QR-IBAN and the IBAN friendly format.
+- [IBAN Validator & Parser — Check Format, Country & BBAN](https://digdevbox.com/iban-validator-and-parser) - Validate an IBAN's country-specific structure and checksum, inspect errors, identify QR-IBAN status and extract the country code and BBAN. A valid checksum does not confirm account ownership or payment availability.
 <!-- generated-tools-list:end -->
 
 ## Differences from upstream [it-tools](https://github.com/CorentinTh/it-tools)
