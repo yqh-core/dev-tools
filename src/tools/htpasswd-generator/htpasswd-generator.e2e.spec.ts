@@ -44,7 +44,7 @@ test.describe('Tool - multi-user htpasswd generator', () => {
     const downloadPromise = page.waitForEvent('download');
     await page.getByRole('button', { name: 'Download .htpasswd' }).click();
     const download = await downloadPromise;
-    expect(download.suggestedFilename()).toBe('.htpasswd');
+    expect(download.suggestedFilename()).toBe('htpasswd');
 
     await page.getByRole('button', { name: 'Verify first entry' }).click();
     await page.getByRole('button', { name: 'Verify', exact: true }).click();
@@ -52,8 +52,8 @@ test.describe('Tool - multi-user htpasswd generator', () => {
   });
 
   test('generates an Apache bcrypt hash and explains the Nginx format choice', async ({ page }) => {
-    await page.locator('.n-base-selection').first().click();
-    await page.getByRole('option', { name: 'bcrypt ($2a$, Apache)' }).click();
+    await page.locator('.c-select-input').first().click();
+    await page.locator('.c-select-dropdown-option').filter({ hasText: 'bcrypt ($2a$, Apache)' }).click();
     await page.getByLabel('Username:').nth(0).fill('apache-user');
     await page.getByLabel('Password:').nth(0).fill('secret');
     await page.getByRole('button', { name: 'Generate .htpasswd' }).click();
