@@ -51,6 +51,23 @@ test.describe('Tool - multi-user htpasswd generator', () => {
     await expect(page.getByText('Password matches')).toBeVisible();
   });
 
+  test('removes an added user row', async ({ page }) => {
+    await page.getByRole('button', { name: 'Add user' }).click();
+    await expect(page.getByText('2 users')).toBeVisible();
+    await page.getByRole('button', { name: 'Remove' }).click();
+    await expect(page.getByText('1 user', { exact: true })).toBeVisible();
+    await expect(page.getByLabel('Username:')).toHaveCount(1);
+  });
+
+  test('copies the complete generated file', async ({ page }) => {
+    await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
+    await page.getByLabel('Username:').nth(0).fill('alice');
+    await page.getByLabel('Password:').nth(0).fill('secret');
+    await page.getByRole('button', { name: 'Generate .htpasswd' }).click();
+    await page.getByRole('button', { name: 'Copy file' }).click();
+    await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toMatch(/^alice:\\$apr1\\$/);
+  });
+
   test('keeps the user workflow within a 390px viewport', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.getByRole('button', { name: 'Add user' }).click();
