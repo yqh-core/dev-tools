@@ -1,13 +1,15 @@
 <script setup lang="ts">
-import RandExp from 'randexp';
 import { render } from '@regexper/render';
 import type { ShadowRootExpose } from 'vue-shadow-dom';
-import { matchRegex } from './regex-tester.service';
+import { REGEX_PRESETS, type RegexEvaluation, type RegexMatch } from './regex-tester.service';
 import { useValidation } from '@/composable/validation';
 import { useQueryParamOrStorage } from '@/composable/queryParams';
 
 const regex = useQueryParamOrStorage({ name: 'regex', storageName: 'regex-tester:regex', defaultValue: '' });
 const text = ref('');
+const replacement = ref('');
+const selectedPreset = ref('');
+const presetOptions = REGEX_PRESETS.map(preset => ({ label: preset.label, value: preset.pattern }));
 const global = ref(true);
 const ignoreCase = ref(false);
 const multiline = ref(false);
@@ -29,43 +31,158 @@ const regexValidation = useValidation({
     },
   ],
 });
-const results = computed(() => {
-  let flags = 'd';
-  if (global.value) {
-    flags += 'g';
-  }
-  if (ignoreCase.value) {
-    flags += 'i';
-  }
-  if (multiline.value) {
-    flags += 'm';
-  }
-  if (dotAll.value) {
-    flags += 's';
-  }
-  if (unicode.value) {
-    flags += 'u';
-  }
-  else if (unicodeSets.value) {
-    flags += 'v';
-  }
 
-  try {
-    return matchRegex(regex.value, text.value, flags);
+watch(selectedPreset, (value) => {
+  const preset = REGEX_PRESETS.find(item => item.pattern === value);
+  if (!preset) {
+    return;
   }
-  catch (_) {
-    return [];
-  }
+  regex.value = preset.pattern;
+  global.value = preset.flags.includes('g');
+  ignoreCase.value = preset.flags.includes('i');
+  multiline.value = preset.flags.includes('m');
+  dotAll.value = preset.flags.includes('s');
+  unicode.value = preset.flags.includes('u');
+  unicodeSets.value = preset.flags.includes('v');
+  selectedPreset.value = '';
 });
 
-const sample = computed(() => {
+const flags = computed(() => {
+  let value = 'd';
+  if (global.value) {
+    value += 'g';
+  }
+  if (ignoreCase.value) {
+    value += 'i';
+  }
+  if (multiline.value) {
+    value += 'm';
+  }
+  if (dotAll.value) {
+    value += 's';
+  }
+  if (unicode.value) {
+    value += 'u';
+  }
+  else if (unicodeSets.value) {
+    value += 'v';
+  }
+  return value;
+});
+
+const results = ref<RegexMatch[]>([]);
+const replacementPreview = ref('');
+const sample = ref('');
+const evaluationError = ref('');
+const evaluationState = ref<'idle' | 'running' | 'done' | 'error' | 'timeout'>('idle');
+const TIMEOUT_MS = 300;
+const DEBOUNCE_MS = 100;
+
+let activeWorker: Worker | null = null;
+let debounceTimer: number | undefined;
+let timeoutTimer: number | undefined;
+let requestId = 0;
+
+interface RegexWorkerResponse {
+  id: number
+  result?: RegexEvaluation
+  error?: string
+}
+
+function terminateWorker() {
+  if (timeoutTimer !== undefined) {
+    window.clearTimeout(timeoutTimer);
+    timeoutTimer = undefined;
+  }
+  activeWorker?.terminate();
+  activeWorker = null;
+}
+
+function runEvaluation(id: number) {
+  let worker: Worker;
   try {
-    const randexp = new RandExp(new RegExp(regex.value.replace(/\(\?\<[^\>]*\>/g, '(?:')));
-    return randexp.gen();
+    worker = new Worker(new URL('./regex-tester.worker.ts', import.meta.url), { type: 'module' });
+    activeWorker = worker;
   }
-  catch (_) {
-    return '';
+  catch (error) {
+    evaluationError.value = error instanceof Error ? error.message : String(error);
+    evaluationState.value = 'error';
+    return;
   }
+
+  worker.onmessage = (event: MessageEvent<RegexWorkerResponse>) => {
+    if (id !== requestId || event.data.id !== id) {
+      return;
+    }
+    terminateWorker();
+    if (event.data.error) {
+      evaluationError.value = event.data.error;
+      evaluationState.value = 'error';
+      return;
+    }
+    results.value = event.data.result?.results ?? [];
+    replacementPreview.value = event.data.result?.replacementPreview ?? '';
+    sample.value = event.data.result?.sample ?? '';
+    evaluationError.value = '';
+    evaluationState.value = 'done';
+  };
+
+  worker.onerror = (event) => {
+    if (id !== requestId) {
+      return;
+    }
+    terminateWorker();
+    evaluationError.value = event.message || 'Regex worker failed';
+    evaluationState.value = 'error';
+  };
+
+  timeoutTimer = window.setTimeout(() => {
+    if (id !== requestId) {
+      return;
+    }
+    terminateWorker();
+    evaluationError.value = `Timed out after ${TIMEOUT_MS}ms. The worker was terminated; simplify the pattern or reduce the input.`;
+    evaluationState.value = 'timeout';
+  }, TIMEOUT_MS);
+
+  worker.postMessage({
+    id,
+    regex: regex.value,
+    text: text.value,
+    flags: flags.value,
+    replacement: replacement.value,
+  });
+}
+
+function scheduleEvaluation() {
+  if (debounceTimer !== undefined) {
+    window.clearTimeout(debounceTimer);
+    debounceTimer = undefined;
+  }
+  terminateWorker();
+  const id = ++requestId;
+  evaluationError.value = '';
+  results.value = [];
+  replacementPreview.value = '';
+  sample.value = '';
+  evaluationState.value = 'running';
+  debounceTimer = window.setTimeout(() => {
+    debounceTimer = undefined;
+    runEvaluation(id);
+  }, DEBOUNCE_MS);
+}
+
+watch(
+  [regex, text, replacement, global, ignoreCase, multiline, dotAll, unicode, unicodeSets],
+  scheduleEvaluation,
+  { immediate: true },
+);
+
+onBeforeUnmount(() => {
+  if (debounceTimer !== undefined) {
+    window.clearTimeout(debounceTimer);
+  }
+  terminateWorker();
 });
 
 watchEffect(
@@ -101,6 +218,7 @@ watchEffect(
         rows="3"
         :validation="regexValidation"
       />
+      <c-select v-model:value="selectedPreset" :options="presetOptions" label="Verified presets:" clearable />
       <router-link target="_blank" to="/regex-memo" mb-1 mt-1>
         See Regular Expression Cheatsheet
       </router-link>
@@ -134,20 +252,23 @@ watchEffect(
         multiline
         rows="5"
       />
+      <c-input-text
+        v-model:value="replacement"
+        label="Replacement:"
+        placeholder="Use JavaScript replacement tokens such as $1, $&, or $<name>"
+        multiline
+        rows="2"
+      />
+      <c-alert v-if="evaluationError">
+        {{ evaluationError }}
+      </c-alert>
+      <c-alert v-else-if="evaluationState === 'running'">
+        Evaluating in an isolated worker…
+      </c-alert>
     </c-card>
 
     <c-card title="Matches" mb-1 mt-3>
-      <!--
-        滚动壳：与 ipv4-subnet-calculator 同款的 `overflow-x-auto + max-w-full` 收口。
-        「Matches」表有 Index / Value / Captures / Groups 四列，Value 与 Captures 里装的是
-        匹配到的原文和 `"name" = value [start - end]` —— 用常见的邮箱/URL 正则一测，
-        390px 视口下这张表固有宽就到 ~546px（长邮箱更多），右边缘越过视口 ~599px，
-        而祖先链上没有可滚容器（naive-ui 的 .n-table 只 overflow-x:hidden，裁而不滚），
-        实测 6/12 单元格「滚不进视口」（脚本 scripts/probe-mobile-overflow.mjs）。
-        这正是任务1 已给 subnet-calculator 补过、但漏了同族 regex-tester 的那个缺陷。
-        max-w-full 不能省：否则壳自己就比视口宽，等于把溢出往里挪一层。
-      -->
-      <div v-if="results?.length > 0" class="relative max-w-full overflow-x-auto rounded">
+      <div v-if="evaluationState === 'done' && results.length > 0" class="relative max-w-full overflow-x-auto rounded">
         <n-table>
           <thead>
             <tr>
@@ -187,9 +308,13 @@ watchEffect(
           </tbody>
         </n-table>
       </div>
-      <c-alert v-else>
+      <c-alert v-else-if="evaluationState === 'done'">
         No match
       </c-alert>
+    </c-card>
+
+    <c-card title="Replacement preview" mt-3>
+      <pre class="max-w-full overflow-x-auto whitespace-pre-wrap break-all">{{ replacementPreview }}</pre>
     </c-card>
 
     <c-card title="Sample matching text" mt-3>
