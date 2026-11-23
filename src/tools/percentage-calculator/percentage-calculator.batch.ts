@@ -167,3 +167,21 @@ export function percentageBatchToCsv(rows: PercentageBatchRow[]): string {
   ].join(','));
   return [header.map(cell => csvCell(cell)).join(','), ...lines].join('\r\n');
 }
+
+function tsvCell(value: string, protectFormula = false): string {
+  const safe = protectFormula && /^[\\s]*[=+\\-@]/.test(value) ? `'${value}` : value;
+  return /["\\t\\n\\r]/.test(safe) ? `"${safe.replace(/"/g, '""')}"` : safe;
+}
+
+export function percentageBatchToTsv(rows: PercentageBatchRow[]): string {
+  const header = ['Row', 'Input A', 'Input B', 'Formula', 'Result', 'Error'];
+  const lines = rows.map(row => [
+    tsvCell(row.label, true),
+    tsvCell(row.inputs[0] || ''),
+    tsvCell(row.inputs[1] || ''),
+    tsvCell(row.formula),
+    tsvCell(row.result),
+    tsvCell(row.error),
+  ].join('\\t'));
+  return [header.join('\\t'), ...lines].join('\\r\\n');
+}
