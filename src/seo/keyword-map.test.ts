@@ -153,7 +153,6 @@ describe('evidence-backed SEO keyword targets', () => {
     expect(entry?.note).toContain('Candidate mapping only');
   });
 
-
   it.each([
     ['/json-to-toml', 'JSON to TOML converter', 'convert'],
     ['/toml-to-json', 'TOML to JSON converter', 'convert'],

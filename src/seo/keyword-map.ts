@@ -918,8 +918,6 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     note: 'Source generates a random port value with refresh/copy controls. Do not claim the port is guaranteed unused on the user machine. Candidate mapping only.',
   },
 
-
-
   {
     path: '/json-to-toml',
     keyword: 'JSON to TOML converter',
