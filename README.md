@@ -128,7 +128,7 @@
 - [XML Formatter — Beautify, Validate and Minify XML](https://digdevbox.com/xml-formatter) - Prettify or minify your XML string — human-readable indentation, or strip it back down to a single line.
 - [YAML Formatter & Validator — Format YAML Online](https://digdevbox.com/yaml-prettify) - Format and validate YAML online — fix indentation, catch tabs and syntax errors before kubectl or CI rejects your config. Free, runs in your browser.
 - [Email Address Normalizer](https://digdevbox.com/email-normalizer) - Normalize email addresses to a standard format for easier comparison, deduplication and data cleaning.
-- [Regular Expression Tester — JavaScript Regex](https://digdevbox.com/regex-tester) - Test regular expressions online with live match results — JavaScript flavor, toggle flags and capture groups instantly.
+- [Regular Expression Tester — JavaScript Regex](https://digdevbox.com/regex-tester) - Test JavaScript regular expressions online with live matches, capture groups and replacement preview. A 300ms worker timeout stops runaway patterns.
 - [Regex Cheat Sheet — Complete Regular Expression Reference](https://digdevbox.com/regex-memo) - A complete regex cheat sheet — common regular expression syntax, quantifiers, flags and character classes with examples.
 - [PX to REM Converter — Batch Conversion with Root Font Size](https://digdevbox.com/px-rem-converter) - Convert batches of CSS pixel and rem values in either direction. Set the root font size and decimal precision; values can be separated by spaces, commas or newlines.
 - [JSON to model classes](https://digdevbox.com/json-to-code) - Generate TypeScript, C#, Java or Go model classes from JSON, splitting nested objects into their own classes.
