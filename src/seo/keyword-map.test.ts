@@ -215,7 +215,6 @@ describe('evidence-backed SEO keyword targets', () => {
   });
 
   it.each([
-    ['/wifi-qrcode-generator', 'WiFi QR code generator', 'generate'],
     ['/roman-numeral-converter', 'Roman numeral converter', 'convert'],
     ['/svg-placeholder-generator', 'SVG placeholder generator', 'generate'],
     ['/ascii-table', 'ASCII table lookup', 'lookup'],
@@ -254,8 +253,6 @@ describe('evidence-backed SEO keyword targets', () => {
     ['/chronometer', 'online stopwatch', 'compute'],
     ['/device-information', 'browser device information checker', 'inspect'],
     ['/encryption', 'text encryption and decryption tool', 'convert'],
-    ['/git-memo', 'Git commands cheat sheet', 'lookup'],
-    ['/temperature-converter', 'temperature converter', 'convert'],
     ['/fullwidth-converter', 'full-width half-width converter', 'convert'],
     ['/today-in-history', 'today in history', 'lookup'],
   ])('keeps final source-audited candidate %s capability-matched', (path, keyword, intent) => {
@@ -316,6 +313,19 @@ describe('evidence-backed SEO keyword targets', () => {
     ['/token-generator', 'random token generator', 'Random Token Generator — Custom Length & Character Sets'],
     ['/bcrypt', 'bcrypt hash generator and checker', 'Bcrypt Hash Generator & Checker — Hash and Compare Passwords'],
     ['/iban-validator-and-parser', 'IBAN validator and parser', 'IBAN Validator & Parser — Check Format, Country & BBAN'],
+  ])('locks newly landed P1 utility %s to its capability-matched title', (path, keyword, lockedTitle) => {
+    const entry = CLUSTER_KEYWORD_ENTRIES.find(item => item.path === path);
+    expect(entry).toBeDefined();
+    expect(entry?.keyword).toBe(keyword);
+    expect(entry?.priority).toBe('P1');
+    expect(entry?.landed).toBe(true);
+    expect(entry?.lockedTitle).toBe(lockedTitle);
+  });
+
+  it.each([
+    ['/wifi-qrcode-generator', 'WiFi QR code generator', 'WiFi QR Code Generator — Create Network Login QR Codes'],
+    ['/git-memo', 'Git commands cheat sheet', 'Git Commands Cheat Sheet — Common Commands & Undo'],
+    ['/temperature-converter', 'temperature converter', 'Temperature Converter — Celsius, Fahrenheit, Kelvin & More'],
   ])('locks newly landed P1 utility %s to its capability-matched title', (path, keyword, lockedTitle) => {
     const entry = CLUSTER_KEYWORD_ENTRIES.find(item => item.path === path);
     expect(entry).toBeDefined();

@@ -295,8 +295,8 @@ tools:
     description: Easily compare execution time of tasks with this very simple online benchmark builder.
 
   git-memo:
-    title: Git cheatsheet
-    description: Git is a decentralized version management software. With this cheatsheet, you will have quick access to the most common git commands.
+    title: "Git Commands Cheat Sheet — Common Commands & Undo"
+    description: "Quick reference for Git configuration, init/clone, commits, amend, reset and branch rename commands, with copyable examples. Replace placeholders before running; hard reset can discard work."
 
   slugify-string:
     title: Slugify string
@@ -415,16 +415,16 @@ tools:
     description: "Create a QR code from a URL or text. Customize foreground and background colors, choose an error-correction level, and download a PNG image."
 
   wifi-qrcode-generator:
-    title: WiFi QR Code generator
-    description: Generate and download QR codes for quick connections to WiFi networks.
+    title: "WiFi QR Code Generator — Create Network Login QR Codes"
+    description: "Generate a WiFi QR code for WPA/WEP, open networks or WPA2-EAP. Enter SSID, password, hidden-network and EAP settings, customize colors and download a PNG. QR codes contain credentials in readable form."
 
   xml-formatter:
     title: XML Formatter — Beautify, Validate and Minify XML
     description: Prettify or minify your XML string — human-readable indentation, or strip it back down to a single line.
 
   temperature-converter:
-    title: Temperature converter
-    description: Degrees temperature conversions for Kelvin, Celsius, Fahrenheit, Rankine, Delisle, Newton, Réaumur, and Rømer.
+    title: "Temperature Converter — Celsius, Fahrenheit, Kelvin & More"
+    description: "Convert between Celsius, Fahrenheit, Kelvin, Rankine, Delisle, Newton, Réaumur and Rømer. Enter a value in any scale to update the other seven instantly."
 
   chmod-calculator:
     title: Chmod Calculator — Unix File Permissions (755, 644, 777)

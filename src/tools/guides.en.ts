@@ -1729,9 +1729,9 @@ export const GUIDES: Record<string, ToolGuide> = {
   },
 
   '/wifi-qrcode-generator': {
-    intro: 'Generates a Wi-Fi QR code so guests can join the network by scanning instead of typing the password.',
-    steps: ['Enter the network name (SSID)', 'Enter the password and pick the security type', 'Generate, then scan or download'],
-    notes: ['The QR code contains the password in plain form — be careful about posting it in public places'],
+    intro: 'Generates a scannable WiFi QR code for WPA, WEP, open networks or WPA2-EAP, with optional hidden-network and enterprise EAP settings.',
+    steps: ['Choose the network security mode and enter the SSID', 'Enter the password and, for WPA2-EAP, choose the EAP method and identity or anonymous option', 'Customize the foreground/background colors, then scan or download the PNG'],
+    notes: ['The QR payload contains the WiFi credentials in readable form — only share it with people who should be able to join the network'],
     example: { label: 'Fill in a sample SSID', text: 'Home-WiFi' },
     about: 'Turn your WiFi credentials into a QR code guests can scan to join instantly — no more reading passwords aloud. Fill in the network name (SSID), pick the security mode (WPA by default, or a no-password open network), type the password and optionally mark the SSID as hidden; then download the code as a PNG for printing.',
     faqs: [
