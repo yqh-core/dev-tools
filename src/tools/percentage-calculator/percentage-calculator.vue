@@ -93,6 +93,125 @@ const percentagePointChange = computed(() => {
   }
   return resultText(rateTo.value - rateFrom.value);
 });
+
+import { onMounted, ref, watch } from 'vue';
+import {
+  calculatePercentageBatch,
+  exportPercentageBatch,
+  getPercentageBatchModeLabel,
+  type PercentageBatchHistoryEntry,
+  type PercentageBatchMode,
+  type PercentageBatchRow,
+} from './percentage-calculator-batch';
+
+const BATCH_HISTORY_KEY = 'digdevbox:percentage-calculator:batch-history:v1';
+const batchMode = ref<PercentageBatchMode>('part');
+const batchInput = ref('');
+const batchRows = ref<PercentageBatchRow[]>([]);
+const batchHistory = ref<PercentageBatchHistoryEntry[]>([]);
+const batchStatus = ref('');
+const historyLoaded = ref(false);
+const batchModes: Array<{ label: string; value: PercentageBatchMode }> = [
+  { label: 'What is X% of Y?', value: 'part' },
+  { label: 'X is what percent of Y?', value: 'ratio' },
+  { label: 'Percentage change (from, to)', value: 'change' },
+  { label: 'Increase and decrease (value, percent)', value: 'adjust' },
+  { label: 'Reverse increase and decrease (final, percent)', value: 'reverse' },
+  { label: 'Percentage difference (A, B)', value: 'difference' },
+  { label: 'Percentage-point change (old rate, new rate)', value: 'points' },
+];
+
+onMounted(() => {
+  try {
+    const stored = localStorage.getItem(BATCH_HISTORY_KEY);
+    if (stored) {
+      const parsed: unknown = JSON.parse(stored);
+      if (Array.isArray(parsed)) {
+        batchHistory.value = parsed.slice(0, 10) as PercentageBatchHistoryEntry[];
+      }
+    }
+  }
+  catch {
+    batchHistory.value = [];
+  }
+  historyLoaded.value = true;
+});
+
+watch(batchHistory, (entries) => {
+  if (!historyLoaded.value) return;
+  try {
+    localStorage.setItem(BATCH_HISTORY_KEY, JSON.stringify(entries.slice(0, 10)));
+  }
+  catch {
+    batchStatus.value = 'History could not be saved in this browser.';
+  }
+}, { deep: true });
+
+function runBatchCalculation() {
+  batchRows.value = calculatePercentageBatch(batchInput.value, batchMode.value);
+  const validCount = batchRows.value.filter(row => !row.error).length;
+  const invalidCount = batchRows.value.length - validCount;
+  batchStatus.value = `${validCount} row(s) calculated; ${invalidCount} row(s) need attention.`;
+  if (!batchRows.value.length) {
+    batchStatus.value = 'Paste one or more rows with exactly two values per row.';
+    return;
+  }
+  const entry: PercentageBatchHistoryEntry = {
+    id: `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`,
+    createdAt: new Date().toISOString(),
+    mode: batchMode.value,
+    input: batchInput.value,
+    rows: batchRows.value,
+  };
+  batchHistory.value = [entry, ...batchHistory.value.filter(item => item.id !== entry.id)].slice(0, 10);
+}
+
+async function copyBatchText(value: string) {
+  try {
+    await navigator.clipboard.writeText(value);
+    batchStatus.value = 'Copied to clipboard.';
+  }
+  catch {
+    batchStatus.value = 'Clipboard access is unavailable. Select and copy the result manually.';
+  }
+}
+
+function copyBatchRow(row: PercentageBatchRow) {
+  return copyBatchText([row.raw, row.formula, row.result, row.error].join('\t'));
+}
+
+function copyAllBatchRows() {
+  return copyBatchText(exportPercentageBatch(batchRows.value, '\t'));
+}
+
+function downloadBatch(format: 'csv' | 'tsv') {
+  const content = exportPercentageBatch(batchRows.value, format === 'csv' ? ',' : '\t');
+  const blob = new Blob([content], { type: format === 'csv' ? 'text/csv;charset=utf-8' : 'text/tab-separated-values;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = `percentage-calculations.${format}`;
+  anchor.click();
+  URL.revokeObjectURL(url);
+  batchStatus.value = `Downloaded ${format.toUpperCase()} results.`;
+}
+
+function restoreBatchHistory(entry: PercentageBatchHistoryEntry) {
+  batchMode.value = entry.mode;
+  batchInput.value = entry.input;
+  batchRows.value = entry.rows;
+  batchStatus.value = 'Previous batch restored from this browser’s local history.';
+}
+
+function removeBatchHistory(id: string) {
+  batchHistory.value = batchHistory.value.filter(entry => entry.id !== id);
+}
+
+function clearBatchHistory() {
+  batchHistory.value = [];
+  batchStatus.value = 'Local calculation history cleared.';
+}
+
 </script>
 
 <template>
@@ -220,6 +339,80 @@ const percentagePointChange = computed(() => {
         <div flex items-center gap-2 mt-2>
           <input-copyable v-model:value="percentagePointChange" data-test-id="percentagePointChange" readonly placeholder="Result" />
           <span text-sm op-70>percentage points</span>
+        </div>
+      </c-card>
+
+      <c-card mb-3 data-test-id="percentage-batch-card">
+        <div class="mb-2 text-lg font-semibold">Batch percentage calculator</div>
+        <p class="mb-3 text-sm op-75">
+          Paste multiple rows below. Each row needs exactly two numbers separated by a tab or comma.
+          Batch values stay in this browser and are never sent to analytics.
+        </p>
+        <label class="mb-1 block text-sm font-medium" for="percentage-batch-mode">Calculation type</label>
+        <select
+          id="percentage-batch-mode"
+          v-model="batchMode"
+          data-test-id="percentageBatchMode"
+          class="mb-3 w-full rounded border border-gray-300 bg-transparent p-2"
+        >
+          <option v-for="mode in batchModes" :key="mode.value" :value="mode.value">{{ mode.label }}</option>
+        </select>
+        <label class="mb-1 block text-sm font-medium" for="percentage-batch-input">Values (one row per line)</label>
+        <textarea
+          id="percentage-batch-input"
+          v-model="batchInput"
+          data-test-id="percentageBatchInput"
+          rows="5"
+          spellcheck="false"
+          placeholder="15&#9;80&#10;20&#9;50&#10;7&#9;120"
+          class="mb-3 w-full rounded border border-gray-300 bg-transparent p-2 font-mono text-sm"
+        />
+        <div class="flex flex-wrap gap-2">
+          <n-button type="primary" data-test-id="runPercentageBatch" @click="runBatchCalculation">Run batch</n-button>
+          <n-button :disabled="batchRows.length === 0" data-test-id="copyPercentageBatch" @click="copyAllBatchRows">Copy all (TSV)</n-button>
+          <n-button :disabled="batchRows.length === 0" data-test-id="downloadPercentageBatchCsv" @click="downloadBatch('csv')">Download CSV</n-button>
+          <n-button :disabled="batchRows.length === 0" data-test-id="downloadPercentageBatchTsv" @click="downloadBatch('tsv')">Download TSV</n-button>
+        </div>
+        <p class="mt-3 text-sm" role="status" aria-live="polite" data-test-id="percentageBatchStatus">{{ batchStatus }}</p>
+        <div v-if="batchRows.length" class="mt-3 overflow-x-auto">
+          <table class="w-full border-collapse text-left text-sm" data-test-id="percentageBatchResults">
+            <thead>
+              <tr>
+                <th scope="col" class="border-b p-2">Row</th>
+                <th scope="col" class="border-b p-2">Formula</th>
+                <th scope="col" class="border-b p-2">Result / status</th>
+                <th scope="col" class="border-b p-2">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="row in batchRows" :key="row.rowNumber">
+                <th scope="row" class="border-b p-2">{{ row.rowNumber }}</th>
+                <td class="border-b p-2 font-mono">{{ row.formula || '—' }}</td>
+                <td class="border-b p-2">
+                  <span v-if="row.error" class="text-red-600">{{ row.error }}</span>
+                  <span v-else>{{ row.result }}</span>
+                </td>
+                <td class="border-b p-2">
+                  <n-button size="small" quaternary :disabled="!!row.error" :data-test-id="`copyPercentageBatchRow-${row.rowNumber}`" @click="copyBatchRow(row)">Copy</n-button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div v-if="batchHistory.length" class="mt-5 border-t pt-3" data-test-id="percentageBatchHistory">
+          <div class="mb-2 flex items-center justify-between gap-2">
+            <h3 class="font-semibold">Recent calculations (this browser only)</h3>
+            <n-button size="small" quaternary data-test-id="clearPercentageBatchHistory" @click="clearBatchHistory">Clear history</n-button>
+          </div>
+          <ul class="space-y-2">
+            <li v-for="entry in batchHistory" :key="entry.id" class="flex flex-wrap items-center justify-between gap-2 text-sm">
+              <span>{{ getPercentageBatchModeLabel(entry.mode) }} · {{ new Date(entry.createdAt).toLocaleString() }} · {{ entry.rows.length }} row(s)</span>
+              <span class="flex gap-1">
+                <n-button size="tiny" quaternary @click="restoreBatchHistory(entry)">Restore</n-button>
+                <n-button size="tiny" quaternary :data-test-id="`deletePercentageBatchHistory-${entry.id}`" @click="removeBatchHistory(entry.id)">Delete</n-button>
+              </span>
+            </li>
+          </ul>
         </div>
       </c-card>
     </div>
