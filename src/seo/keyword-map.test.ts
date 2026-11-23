@@ -111,7 +111,6 @@ describe('evidence-backed SEO keyword targets', () => {
     expect(entry?.note).toContain('provisional');
   });
 
-
   it.each([
     ['/yaml-to-json-converter', 'YAML to JSON converter', 'convert'],
     ['/case-converter', 'text case converter', 'convert'],
