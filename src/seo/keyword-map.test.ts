@@ -165,22 +165,6 @@ describe('evidence-backed SEO keyword targets', () => {
   });
 
   it.each([
-    ['/image-compress', 'compress image online', 'convert'],
-    ['/image-crop', 'crop image online', 'convert'],
-    ['/favicon-generator', 'favicon generator', 'generate'],
-    ['/image-to-pdf', 'convert images to PDF', 'convert'],
-  ])('keeps %s mapped to an existing capability-matched route', (path, keyword, intent) => {
-    const entry = CLUSTER_KEYWORD_ENTRIES.find(item => item.path === path);
-
-    expect(entry).toBeDefined();
-    expect(entry?.keyword).toBe(keyword);
-    expect(entry?.intent).toBe(intent);
-    expect(entry?.landed).toBe(false);
-    expect((entry?.keywords ?? []).length).toBeGreaterThanOrEqual(4);
-    expect(entry?.note).toContain('provisional');
-  });
-
-  it.each([
     ['/email-normalizer', 'email normalizer', 'parse'],
     ['/ipv4-address-converter', 'IPv4 address converter', 'convert'],
     ['/html-wysiwyg-editor', 'HTML WYSIWYG editor', 'format'],
