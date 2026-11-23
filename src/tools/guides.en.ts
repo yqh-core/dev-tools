@@ -432,11 +432,13 @@ export const GUIDES: Record<string, ToolGuide> = {
       { q: 'What if the processing rate changes?', a: 'The result is an estimate based on the rate you enter. If the workload speeds up or slows down, measure a new representative interval and update the rate to refresh the projected finish time.' },
     ],
     relatedNotes: [
-      { slug: 'eta-calculator-guide' },
-      { title: 'How to Calculate Task Completion Time from Processing Rate' },
-      { description: 'Estimate when a download, build or batch job will finish using total workload, processing rate and start time — with a worked example, formula and practical limits.' },
-      { url: 'https://notes.digdevbox.com/posts/eta-calculator-guide' },
-      { tag: 'ETA' },
+      {
+        slug: 'eta-calculator-guide',
+        title: 'How to Calculate Task Completion Time from Processing Rate',
+        description: 'Estimate when a download, build or batch job will finish using total workload, processing rate and start time — with a worked example, formula and practical limits.',
+        url: 'https://notes.digdevbox.com/posts/eta-calculator-guide',
+        tag: 'ETA',
+      },
     ],
   },
 
@@ -1236,11 +1238,13 @@ export const GUIDES: Record<string, ToolGuide> = {
       { q: 'Why are there separate fields instead of one formula?', a: 'Each question has a different unknown in a different position. Separating them avoids the most common error: rearranging the formula and dividing by the wrong base.' },
     ],
     relatedNotes: [
-      { slug: 'percentage-change-vs-percentage-points' },
-      { title: 'Percentage Change vs Percentage Points: Which Formula Should You Use?' },
-      { description: 'Learn when to use percent change, percentage points, percent difference and reverse-percentage formulas, with worked examples for rates, prices and discounts.' },
-      { url: 'https://notes.digdevbox.com/posts/percentage-change-vs-percentage-points' },
-      { tag: 'Percentages' },
+      {
+        slug: 'percentage-change-vs-percentage-points',
+        title: 'Percentage Change vs Percentage Points: Which Formula Should You Use?',
+        description: 'Learn when to use percent change, percentage points, percent difference and reverse-percentage formulas, with worked examples for rates, prices and discounts.',
+        url: 'https://notes.digdevbox.com/posts/percentage-change-vs-percentage-points',
+        tag: 'Percentages',
+      },
     ],
   },
 
