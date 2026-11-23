@@ -1,4 +1,14 @@
 <script setup lang="ts">
+import { onMounted } from 'vue';
+import {
+  percentageBatchToCsv,
+  runPercentageBatch,
+} from './percentage-calculator.batch';
+import type {
+  PercentageBatchMode,
+  PercentageBatchRow,
+} from './percentage-calculator.batch';
+
 function isFiniteNumber(value: unknown): value is number {
   return typeof value === 'number' && Number.isFinite(value);
 }
@@ -93,16 +103,6 @@ const percentagePointChange = computed(() => {
   }
   return resultText(rateTo.value - rateFrom.value);
 });
-import { onMounted } from 'vue';
-import {
-  percentageBatchToCsv,
-  runPercentageBatch,
-} from './percentage-calculator.batch';
-import type {
-  PercentageBatchMode,
-  PercentageBatchRow,
-} from './percentage-calculator.batch';
-
 interface PercentageBatchHistoryItem {
   id: string
   mode: PercentageBatchMode
@@ -115,8 +115,8 @@ const percentageBatchModeNames: Record<PercentageBatchMode, string> = {
   'percent-of': 'Percent of a number',
   'part-to-whole': 'What percent is one value of another?',
   'percentage-change': 'Percentage increase or decrease',
-  adjustment: 'Add or subtract a percentage',
-  reverse: 'Reverse a percentage change',
+  'adjustment': 'Add or subtract a percentage',
+  'reverse': 'Reverse a percentage change',
   'percentage-difference': 'Symmetric percentage difference',
   'percentage-points': 'Percentage-point change',
 };
@@ -124,8 +124,8 @@ const percentageBatchModeHints: Record<PercentageBatchMode, string> = {
   'percent-of': 'Columns: percentage, number. Example: 15<TAB>80',
   'part-to-whole': 'Columns: part, whole. Example: 30<TAB>120',
   'percentage-change': 'Columns: original value, new value. Example: 80<TAB>92',
-  adjustment: 'Columns: starting value, percentage. Each row returns both increase and decrease results.',
-  reverse: 'Columns: final value, percentage. Each row returns the original before an increase and before a decrease.',
+  'adjustment': 'Columns: starting value, percentage. Each row returns both increase and decrease results.',
+  'reverse': 'Columns: final value, percentage. Each row returns the original before an increase and before a decrease.',
   'percentage-difference': 'Columns: value A, value B. Example: 100<TAB>150',
   'percentage-points': 'Columns: old rate (%), new rate (%). Example: 5<TAB>7',
 };
@@ -140,7 +140,9 @@ function loadPercentageBatchHistory(): void {
   try {
     const saved = localStorage.getItem(percentageBatchHistoryKey);
     const parsed: unknown = saved ? JSON.parse(saved) : [];
-    if (!Array.isArray(parsed)) return;
+    if (!Array.isArray(parsed)) {
+      return;
+    }
     percentageBatchHistory.value = parsed
       .filter((item): item is PercentageBatchHistoryItem =>
         Boolean(item)
