@@ -41,7 +41,7 @@
 - [BIP39 passphrase generator](https://digdevbox.com/bip39-generator) - Generate a BIP39 passphrase from an existing or random mnemonic, or get the mnemonic from the passphrase.
 - [HMAC Generator — Sign Messages with SHA-256 Online](https://digdevbox.com/hmac-generator) - Generate HMAC signatures online with SHA-256/SHA-512 and a secret key — debug webhook signature mismatches, output hex or Base64. Keys stay in your browser.
 - [RSA Key Pair Generator](https://digdevbox.com/rsa-key-pair-generator) - Generate an RSA private/public key pair online — PEM format, 2048 to 8192 bits, for SSH, TLS or JWT RS256. No OpenSSL install, keys never leave your browser.
-- [Password strength analyser](https://digdevbox.com/password-strength-analyser) - Discover the strength of your password with this client-side-only password strength analyser and crack time estimation tool.
+- [Password Strength Checker — Entropy & Crack-Time Estimate](https://digdevbox.com/password-strength-analyser) - Estimate password length, character-set entropy, score and brute-force crack time locally in your browser. The estimate does not account for dictionary attacks and is not a guarantee; the password is not uploaded.
 - [Password Generator](https://digdevbox.com/password-generator) - Generate strong, secure random passwords online — pick the length (8-128) and character sets, with a cryptographic random source. Ambiguous characters (Il1O0) excluded by default, nothing leaves your browser.
 - [PDF signature checker](https://digdevbox.com/pdf-signature-checker) - Verify the signatures of a PDF file. A signed PDF file contains one or more signatures that may be used to determine whether the contents of the file have been altered since the file was signed.
 - [PDF Merge — Combine PDF Files Online](https://digdevbox.com/pdf-merge) - Combine two or more PDF files into one document in your browser. Files are merged in upload order, with page counts shown before you start; download the combined PDF.
@@ -67,9 +67,9 @@
 - [YAML to JSON Converter — Convert YAML Online](https://digdevbox.com/yaml-to-json-converter) - Convert YAML configuration data into JSON in your browser. Nested mappings become objects, sequences become arrays, and YAML scalar types are reflected in the JSON output; comments are not preserved.
 - [YAML to TOML](https://digdevbox.com/yaml-to-toml) - Parse and convert YAML to TOML.
 - [JSON to YAML converter](https://digdevbox.com/json-to-yaml-converter) - Simply convert JSON to YAML with this online live converter.
-- [JSON to TOML](https://digdevbox.com/json-to-toml) - Parse and convert JSON to TOML.
+- [JSON to TOML Converter — Convert JSON Config to TOML](https://digdevbox.com/json-to-toml) - Convert JSON objects to TOML configuration. Nested objects become TOML tables or dotted keys, arrays become TOML arrays, and JSON5 input is accepted; values unsupported by TOML may prevent conversion.
 - [List Converter — Sort, Deduplicate & Format Lines](https://digdevbox.com/list-converter) - Clean up a line-by-line list: remove duplicate lines, sort or reverse items, trim whitespace, change case, add item prefixes or suffixes, and join values with a chosen separator. Runs in your browser.
-- [TOML to JSON](https://digdevbox.com/toml-to-json) - Parse and convert TOML to JSON.
+- [TOML to JSON Converter — Convert TOML Config to JSON](https://digdevbox.com/toml-to-json) - Convert TOML configuration into formatted JSON. Tables and arrays of tables become nested objects and arrays; TOML date and time values are serialized as strings, while comments and formatting are not preserved.
 - [TOML to YAML](https://digdevbox.com/toml-to-yaml) - Parse and convert TOML to YAML.
 - [XML to JSON Converter — Convert XML Online](https://digdevbox.com/xml-to-json) - Convert XML into JSON in your browser. Elements become objects, repeated elements become arrays, and attributes and text are represented with separate keys.
 - [JSON to XML](https://digdevbox.com/json-to-xml) - Convert JSON data to XML format.
@@ -95,7 +95,7 @@
 - [HTTP status codes](https://digdevbox.com/http-status-codes) - The list of all HTTP status codes, their name, and their meaning.
 - [JSON diff](https://digdevbox.com/json-diff) - Compare two JSON objects and get the differences between them.
 - [Outlook Safe Links Decoder — Reveal the Original URL](https://digdevbox.com/safelink-decoder) - Decode Outlook Safe Links URLs, including nested wrappers, to reveal the final HTTP or HTTPS destination without opening it. Runs in your browser; decoding does not scan or verify the destination.
-- [JSON to GET params](https://digdevbox.com/json-to-get-params) - Flatten JSON into a URL query string (a[b][0]=1 style) and rebuild JSON from a query string or a full URL.
+- [JSON to Query String Converter — Convert Nested JSON to URL Parameters](https://digdevbox.com/json-to-get-params) - Convert nested JSON to percent-encoded URL query parameters with bracketed object keys and indexed arrays, or rebuild JSON from a query string or full URL. Null and empty values become empty strings.
 - [HTTP headers & request methods](https://digdevbox.com/http-headers) - A searchable reference of common HTTP request and response headers plus the nine standard request methods, covering CORS, caching, security fields and safe/idempotent semantics.
 
 ### Images and videos
