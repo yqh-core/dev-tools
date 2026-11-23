@@ -153,7 +153,8 @@ function loadPercentageBatchHistory(): void {
         && typeof item.savedAt === 'number',
       )
       .slice(0, 8);
-  } catch {
+  }
+  catch {
     percentageBatchHistory.value = [];
   }
 }
@@ -161,7 +162,8 @@ function loadPercentageBatchHistory(): void {
 function persistPercentageBatchHistory(): void {
   try {
     localStorage.setItem(percentageBatchHistoryKey, JSON.stringify(percentageBatchHistory.value));
-  } catch {
+  }
+  catch {
     percentageBatchStatus.value = 'Local history is unavailable in this browser; the current results are still available.';
   }
 }
@@ -177,7 +179,7 @@ function runPercentageBatchRows(): void {
   }
 
   const item: PercentageBatchHistoryItem = {
-    id: 'run-' + Date.now() + '-' + (percentageBatchHistory.value.length + 1),
+    id: `run-${Date.now()}-${percentageBatchHistory.value.length + 1}`,
     mode: percentageBatchMode.value,
     input: percentageBatchInput.value,
     savedAt: Date.now(),
@@ -188,23 +190,26 @@ function runPercentageBatchRows(): void {
   const successful = rows.filter(row => !row.error).length;
   const failed = rows.length - successful;
   percentageBatchStatus.value = failed
-    ? successful + ' of ' + rows.length + ' rows calculated; ' + failed + ' need attention. Inputs and history stay in this browser.'
-    : rows.length + ' rows calculated. Inputs and history stay in this browser.';
+    ? `${successful} of ${rows.length} rows calculated; ${failed} need attention. Inputs and history stay in this browser.`
+    : `${rows.length} rows calculated. Inputs and history stay in this browser.`;
 }
 
 async function copyPercentageBatchText(text: string, successMessage: string): Promise<void> {
   try {
-    if (!navigator.clipboard?.writeText) throw new Error('Clipboard API unavailable');
+    if (!navigator.clipboard?.writeText) {
+      throw new Error('Clipboard API unavailable');
+    }
     await navigator.clipboard.writeText(text);
     percentageBatchStatus.value = successMessage;
-  } catch {
+  }
+  catch {
     percentageBatchStatus.value = 'Clipboard access is unavailable. Select the result text and copy it manually.';
   }
 }
 
 function copyPercentageBatchRow(row: PercentageBatchRow): void {
   const text = [row.label, row.formula, row.result, row.error].filter(Boolean).join('\n');
-  void copyPercentageBatchText(text, 'Copied ' + row.label + ' with its formula and result.');
+  copyPercentageBatchText(text, `Copied ${row.label} with its formula and result.`);
 }
 
 function copyPercentageBatchCsv(): void {
@@ -212,7 +217,7 @@ function copyPercentageBatchCsv(): void {
     percentageBatchStatus.value = 'Calculate at least one row before copying the results.';
     return;
   }
-  void copyPercentageBatchText(
+  copyPercentageBatchText(
     percentageBatchToCsv(percentageBatchRows.value),
     'Copied all batch rows as CSV.',
   );
@@ -235,7 +240,8 @@ function clearPercentageBatchHistory(): void {
   percentageBatchHistory.value = [];
   try {
     localStorage.removeItem(percentageBatchHistoryKey);
-  } catch {
+  }
+  catch {
     // The in-memory history is still cleared even when storage is blocked.
   }
   percentageBatchStatus.value = 'Local history cleared. Current results are unchanged.';
