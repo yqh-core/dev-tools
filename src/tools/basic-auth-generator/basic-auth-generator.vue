@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { useCopy } from '@/composable/copy';
 import { decodeBasicAuthHeader } from './basic-auth-generator.service';
+import { useCopy } from '@/composable/copy';
 import { textToBase64 } from '@/utils/base64';
 
 const username = ref('');
