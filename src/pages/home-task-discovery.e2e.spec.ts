@@ -49,7 +49,7 @@ test.describe('Homepage task discovery', () => {
     for (const [query, expectedPath] of [
       ['device info', '/device-information/'],
       ['screen resolution', '/device-information/'],
-      ['browser info', '/user-agent-parser/'],
+      ['browser info', '/device-information/'],
       ['user agent', '/device-information/'],
     ]) {
       await page.getByRole('searchbox').fill(query);
