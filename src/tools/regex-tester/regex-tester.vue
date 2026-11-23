@@ -1,13 +1,15 @@
 <script setup lang="ts">
 import { render } from '@regexper/render';
 import type { ShadowRootExpose } from 'vue-shadow-dom';
-import type { RegexMatch, RegexEvaluation } from './regex-tester.service';
+import { REGEX_PRESETS, type RegexMatch, type RegexEvaluation } from './regex-tester.service';
 import { useValidation } from '@/composable/validation';
 import { useQueryParamOrStorage } from '@/composable/queryParams';
 
 const regex = useQueryParamOrStorage({ name: 'regex', storageName: 'regex-tester:regex', defaultValue: '' });
 const text = ref('');
 const replacement = ref('');
+const selectedPreset = ref('');
+const presetOptions = REGEX_PRESETS.map(preset => ({ label: preset.label, value: preset.pattern }));
 const global = ref(true);
 const ignoreCase = ref(false);
 const multiline = ref(false);
@@ -28,6 +30,21 @@ const regexValidation = useValidation({
       },
     },
   ],
+});
+
+watch(selectedPreset, (value) => {
+  const preset = REGEX_PRESETS.find(item => item.pattern === value);
+  if (!preset) {
+    return;
+  }
+  regex.value = preset.pattern;
+  global.value = preset.flags.includes('g');
+  ignoreCase.value = preset.flags.includes('i');
+  multiline.value = preset.flags.includes('m');
+  dotAll.value = preset.flags.includes('s');
+  unicode.value = preset.flags.includes('u');
+  unicodeSets.value = preset.flags.includes('v');
+  selectedPreset.value = '';
 });
 
 const flags = computed(() => {
@@ -198,6 +215,7 @@ watchEffect(
         rows="3"
         :validation="regexValidation"
       />
+      <c-select v-model:value="selectedPreset" :options="presetOptions" label="Verified presets:" clearable />
       <router-link target="_blank" to="/regex-memo" mb-1 mt-1>
         See Regular Expression Cheatsheet
       </router-link>
