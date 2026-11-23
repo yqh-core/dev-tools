@@ -1049,7 +1049,7 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     competition: 'medium',
     landed: true,
     lockedTitle: 'HTML Entity Encoder & Decoder — Escape Characters and Look Up Entities',
-    note: 'Source confirms escape/unescape text controls and a searchable common-entity reference. Candidate mapping only; no volume/KD/SERP evidence.',
+    note: 'Source verified: Lodash escape/unescape handles the five HTML-sensitive characters and the page includes a searchable common-entity reference. Escaping is output encoding, not HTML sanitization; no volume/KD/SERP evidence.',
   },
   {
     path: '/base-converter',
@@ -1060,7 +1060,7 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     competition: 'high',
     landed: true,
     lockedTitle: 'Integer Base Converter — Binary, Decimal, Hexadecimal and Base 2–64',
-    note: 'Source confirms integer conversion between bases 2–64 with binary, octal, decimal, hexadecimal, Base64 and custom output base. Candidate mapping only; no volume/KD/SERP evidence.',
+    note: 'Source verified: converts non-negative integers between bases 2–64 using a custom alphabet. This is number conversion, not text encoding; no volume/KD/SERP evidence.',
   },
   {
     path: '/qrcode-generator',
@@ -1273,7 +1273,7 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     competition: 'high',
     landed: true,
     lockedTitle: 'Color Converter — HEX, RGB, HSL, HWB, LCH and CMYK',
-    note: 'Source confirms color parsing/validation and conversion between HEX, RGB, HSL and CSS color formats. Candidate mapping only; no palette generation or contrast analysis claim. No volume/KD/SERP evidence.',
+    note: 'Source verified: Colord plugins provide HEX, RGB, HSL, HWB, LCH, CMYK, nearest CSS name and a picker. Nearest names are approximate; no palette or contrast analysis is claimed. No volume/KD/SERP evidence.',
   },
   {
     path: '/device-information',
@@ -1334,7 +1334,7 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     competition: 'high',
     landed: true,
     lockedTitle: 'PX to REM Converter — Batch Conversion with Root Font Size',
-    note: 'Source confirms batch px ↔ rem conversion with configurable root font size and decimal precision. Candidate mapping only; no volume/KD/SERP evidence.',
+    note: 'Source verified: batch px ↔ rem conversion with configurable root size and 0–10 decimal places. Inputs accept common separators and optional units; invalid tokens display a dash. No volume/KD/SERP evidence.',
   },
   {
     path: '/today-in-history',
