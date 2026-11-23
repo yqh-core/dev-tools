@@ -61,6 +61,8 @@ export const KNOWN_NOTE_SLUGS = [
   'what-is-a-numeronym',
   'yaml-vs-json-guide',
   'http-status-codes-guide',
+  'percentage-change-vs-percentage-points',
+  'eta-calculator-guide',
 ] as const;
 
 /** forge-notes 文章的站点根（`notes.digdevbox.com` 是 DigDevBox 站群的一员）。 */
