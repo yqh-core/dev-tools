@@ -680,7 +680,7 @@ tools:
 
   basic-auth-generator:
     title: "Basic Auth Generator — Build an HTTP Authorization Header"
-    description: "Generate an HTTP Basic Authorization header from a username and password. Copy the Base64 value for curl or API clients. Base64 is not encryption; use HTTPS."
+    description: "Generate or decode an HTTP Basic Authorization header in your browser. Copy the Base64 value and use a cURL example with environment variables. Base64 is not encryption; use HTTPS."
 
   text-to-unicode:
     title: Text to Unicode
