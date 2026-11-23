@@ -55,6 +55,8 @@ describe('evidence-backed SEO keyword targets', () => {
     ['/text-diff', 'text diff checker', 'Text Diff Checker — Compare Two Texts Side by Side'],
     ['/text-replacer', 'find and replace text online', 'Find and Replace Text — Plain Text & Regex Replacer'],
     ['/htpasswd-generator', 'htpasswd generator', 'htpasswd Generator & Checker — bcrypt, apr1 and SHA1'],
+    ['/url-parser', 'url parser online', 'URL Parser — Inspect Query Parameters and UTM Tags'],
+    ['/ipv4-range-expander', 'IP range to CIDR', 'IP Range to CIDR Converter — Convert IPv4 Ranges Online'],
   ])('locks the landed metadata for %s', (path, keyword, lockedTitle) => {
     const entry = CLUSTER_KEYWORD_ENTRIES.find(item => item.path === path);
 
