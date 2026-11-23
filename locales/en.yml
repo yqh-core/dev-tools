@@ -269,6 +269,8 @@ tools:
     batch:
       title: Batch percentage calculator
       description: "Paste multiple rows below. Each row needs exactly two numbers separated by a tab or comma. Batch values and history stay in this browser and are never sent to analytics."
+      guideTitle: Batch percentage calculations for lists and spreadsheets
+      guideText: "When you need the same percentage task for many values, choose a calculation type and paste one pair of numbers per line. Each row shows its substituted formula and result, with invalid or undefined rows identified separately. Copy an individual row or export the full result set as CSV or TSV. Your pasted values and recent batch history remain in this browser."
       mode: Calculation type
       input: Values (one row per line)
       placeholder: "15\t80\n20\t50\n7\t120"
