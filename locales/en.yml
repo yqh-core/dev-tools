@@ -336,7 +336,7 @@ tools:
 
   list-converter:
     title: List Converter — Sort, Deduplicate & Format Lines
-    description: Clean up a line-by-line list: remove duplicate lines, sort or reverse items, trim whitespace, change case, add item prefixes or suffixes, and join values with a chosen separator. Runs in your browser.
+    description: "Clean up a line-by-line list: remove duplicate lines, sort or reverse items, trim whitespace, change case, add item prefixes or suffixes, and join values with a chosen separator. Runs in your browser."
 
   base64-string-converter:
     title: Base64 Encoder & Decoder — Padding, URL-Safe, Binary-Safe
@@ -372,7 +372,7 @@ tools:
 
   case-converter:
     title: Text Case Converter — camelCase, snake_case & More
-    description: Convert text between camelCase, PascalCase, snake_case, kebab-case, CONSTANT_CASE, uppercase, lowercase and other naming styles. Paste once, choose a format and copy the result.
+    description: "Convert text between camelCase, PascalCase, snake_case, kebab-case, CONSTANT_CASE, uppercase, lowercase and other naming styles. Paste once, choose a format and copy the result."
 
   html-entities:
     title: Escape HTML entities
@@ -573,7 +573,7 @@ tools:
     buttonDownload: Download cropped image
   image-color-picker:
     title: Image Color Picker — Get HEX, RGB & HSL from Any Image
-    description: Pick a pixel in an image to read its stored HEX, RGB and HSL values. Sampling uses the original image bitmap locally in your browser; transparent pixels report stored RGB values without alpha compositing.
+    description: "Pick a pixel in an image to read its stored HEX, RGB and HSL values. Sampling uses the original image bitmap locally in your browser; transparent pixels report stored RGB values without alpha compositing."
     pickFile: Choose an image
     clickHint: Click a pixel to sample it.
   favicon-generator:
@@ -660,7 +660,7 @@ tools:
 
   yaml-to-json-converter:
     title: YAML to JSON Converter — Convert YAML Online
-    description: Convert YAML configuration data into JSON in your browser. Nested mappings become objects, sequences become arrays, and YAML scalar types are reflected in the JSON output; comments are not preserved.
+    description: "Convert YAML configuration data into JSON in your browser. Nested mappings become objects, sequences become arrays, and YAML scalar types are reflected in the JSON output; comments are not preserved."
 
   uuid-generator:
     title: UUID Generator — v4, v1, v3, v5 and NIL IDs
