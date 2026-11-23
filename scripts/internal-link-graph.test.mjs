@@ -47,7 +47,7 @@ describe('analyzeInternalLinkGraph', () => {
     const pages = [
       { file: 'guide/index.html', html: '<link rel="canonical" href="https://www.example.com/guide/"><a href="../tools/">Tool</a>' },
     ];
-    const result = analyzeInternalLinkGraph(pages, ['https://www.example.com/tools/'], origin);
+    const result = analyzeInternalLinkGraph(pages, ['https://www.example.com/guide/', 'https://www.example.com/tools/'], origin);
     expect(result.counts).toEqual([{ route: '/tools/', inlinks: 1 }]);
   });
 
