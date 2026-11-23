@@ -518,8 +518,8 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     priority: 'P0',
     competition: 'medium',
     landed: true,
-    lockedTitle: 'Percentage Calculator — Percent of a Number, Change & Discount',
-    note: 'GSC 90d: canonical 150 impressions plus slashless variant 74, zero clicks; average positions 9.1667 and 8.2568. One canonical intent/URL only. Query details are substantially anonymized and US page slice did not show this URL. This candidate updates the English snippet to describe the four actual calculator modes and the discount/tax use cases already explained in the page FAQs; do not claim CTR improvement until GSC confirms it.',
+    lockedTitle: 'Percentage Calculator — Percent & Change',
+    note: 'GSC 90d: 224 impressions and 0 clicks across slash/no-slash URL variants (slash 150 at avg position 9.17; no-slash 74 at 8.26). One canonical intent/URL only; visible query detail is substantially anonymized. Shortened the title to preserve the primary phrase and reduced the description to a concise summary of the four actual calculator modes, including discount/tax use cases. Re-measure after recrawl; no CTR lift claimed.',
   },
 
   // 2026-11-22 additions: extend existing developer-task clusters using the current tool registry.
