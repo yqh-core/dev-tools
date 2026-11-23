@@ -101,6 +101,12 @@ const { copy: copyCurl } = useCopy({ source: curlExample, text: 'cURL example co
         <li>Under the HTTP Basic scheme, a username cannot contain a colon because the first colon separates it from the password.</li>
         <li>This page generates and decodes credentials in your browser. Do not share the generated header or paste real credentials into an untrusted page.</li>
       </ul>
+
+      <h3 class="mb-2 text-lg font-semibold">Related developer tools</h3>
+      <p>
+        Use the <a href="/base64-string-converter/">Base64 String Converter</a> for standalone Base64 text,
+        or the <a href="/api-debugger/">API Debugger</a> to send requests and inspect HTTP headers.
+      </p>
     </section>
   </div>
 </template>
