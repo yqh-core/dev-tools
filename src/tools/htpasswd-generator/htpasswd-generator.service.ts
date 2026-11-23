@@ -18,7 +18,7 @@ export function buildHtpasswdLines(
     if (!username) {
       throw new Error(`User ${index + 1}: username is required`);
     }
-    if (/[\\r\\n:]/.test(username)) {
+    if (/[\r\n:]/.test(username)) {
       throw new Error(`User ${index + 1}: username cannot contain colons or line breaks`);
     }
 
