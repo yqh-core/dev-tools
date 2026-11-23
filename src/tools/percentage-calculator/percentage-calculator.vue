@@ -1,13 +1,17 @@
 <script setup lang="ts">
 import { onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 import {
   percentageBatchToCsv,
+  percentageBatchToTsv,
   runPercentageBatch,
 } from './percentage-calculator.batch';
 import type {
   PercentageBatchMode,
   PercentageBatchRow,
 } from './percentage-calculator.batch';
+
+const { t } = useI18n();
 
 function isFiniteNumber(value: unknown): value is number {
   return typeof value === 'number' && Number.isFinite(value);
@@ -111,30 +115,30 @@ interface PercentageBatchHistoryItem {
 }
 
 const percentageBatchHistoryKey = 'digdevbox.percentage-calculator.batch-history.v1';
-const percentageBatchModeNames: Record<PercentageBatchMode, string> = {
-  'percent-of': 'Percent of a number',
-  'part-to-whole': 'What percent is one value of another?',
-  'percentage-change': 'Percentage increase or decrease',
-  'adjustment': 'Add or subtract a percentage',
-  'reverse': 'Reverse a percentage change',
-  'percentage-difference': 'Symmetric percentage difference',
-  'percentage-points': 'Percentage-point change',
-};
-const percentageBatchModeHints: Record<PercentageBatchMode, string> = {
-  'percent-of': 'Columns: percentage, number. Example: 15<TAB>80',
-  'part-to-whole': 'Columns: part, whole. Example: 30<TAB>120',
-  'percentage-change': 'Columns: original value, new value. Example: 80<TAB>92',
-  'adjustment': 'Columns: starting value, percentage. Each row returns both increase and decrease results.',
-  'reverse': 'Columns: final value, percentage. Each row returns the original before an increase and before a decrease.',
-  'percentage-difference': 'Columns: value A, value B. Example: 100<TAB>150',
-  'percentage-points': 'Columns: old rate (%), new rate (%). Example: 5<TAB>7',
-};
+const percentageBatchModeNames = computed<Record<PercentageBatchMode, string>>(() => ({
+  'percent-of': t('tools.percentage-calculator.batch.modes.percent-of'),
+  'part-to-whole': t('tools.percentage-calculator.batch.modes.part-to-whole'),
+  'percentage-change': t('tools.percentage-calculator.batch.modes.percentage-change'),
+  'adjustment': t('tools.percentage-calculator.batch.modes.adjustment'),
+  'reverse': t('tools.percentage-calculator.batch.modes.reverse'),
+  'percentage-difference': t('tools.percentage-calculator.batch.modes.percentage-difference'),
+  'percentage-points': t('tools.percentage-calculator.batch.modes.percentage-points'),
+}));
+const percentageBatchModeHints = computed<Record<PercentageBatchMode, string>>(() => ({
+  'percent-of': t('tools.percentage-calculator.batch.hints.percent-of'),
+  'part-to-whole': t('tools.percentage-calculator.batch.hints.part-to-whole'),
+  'percentage-change': t('tools.percentage-calculator.batch.hints.percentage-change'),
+  'adjustment': t('tools.percentage-calculator.batch.hints.adjustment'),
+  'reverse': t('tools.percentage-calculator.batch.hints.reverse'),
+  'percentage-difference': t('tools.percentage-calculator.batch.hints.percentage-difference'),
+  'percentage-points': t('tools.percentage-calculator.batch.hints.percentage-points'),
+}));
 const percentageBatchMode = ref<PercentageBatchMode>('percent-of');
 const percentageBatchInput = ref('');
 const percentageBatchRows = ref<PercentageBatchRow[]>([]);
 const percentageBatchHistory = ref<PercentageBatchHistoryItem[]>([]);
 const percentageBatchStatus = ref('');
-const percentageBatchInputHint = computed(() => percentageBatchModeHints[percentageBatchMode.value]);
+const percentageBatchInputHint = computed(() => percentageBatchModeHints.value[percentageBatchMode.value]);
 
 function loadPercentageBatchHistory(): void {
   try {
@@ -149,7 +153,7 @@ function loadPercentageBatchHistory(): void {
         && typeof item.id === 'string'
         && typeof item.input === 'string'
         && typeof item.mode === 'string'
-        && Object.prototype.hasOwnProperty.call(percentageBatchModeNames, item.mode)
+        && Object.prototype.hasOwnProperty.call(percentageBatchModeNames.value, item.mode)
         && typeof item.savedAt === 'number',
       )
       .slice(0, 8);
@@ -164,7 +168,7 @@ function persistPercentageBatchHistory(): void {
     localStorage.setItem(percentageBatchHistoryKey, JSON.stringify(percentageBatchHistory.value));
   }
   catch {
-    percentageBatchStatus.value = 'Local history is unavailable in this browser; the current results are still available.';
+    percentageBatchStatus.value = t('tools.percentage-calculator.batch.historyUnavailable');
   }
 }
 
@@ -174,7 +178,7 @@ function runPercentageBatchRows(): void {
   const rows = runPercentageBatch(percentageBatchInput.value, percentageBatchMode.value);
   percentageBatchRows.value = rows;
   if (!rows.length) {
-    percentageBatchStatus.value = 'Paste at least one non-empty row to calculate.';
+    percentageBatchStatus.value = t('tools.percentage-calculator.batch.empty');
     return;
   }
 
@@ -190,8 +194,8 @@ function runPercentageBatchRows(): void {
   const successful = rows.filter(row => !row.error).length;
   const failed = rows.length - successful;
   percentageBatchStatus.value = failed
-    ? `${successful} of ${rows.length} rows calculated; ${failed} need attention. Inputs and history stay in this browser.`
-    : `${rows.length} rows calculated. Inputs and history stay in this browser.`;
+    ? t('tools.percentage-calculator.batch.rowsStatusPartial', { successful, total: rows.length, failed })
+    : t('tools.percentage-calculator.batch.rowsStatusSuccess', { total: rows.length });
 }
 
 async function copyPercentageBatchText(text: string, successMessage: string): Promise<void> {
@@ -203,37 +207,80 @@ async function copyPercentageBatchText(text: string, successMessage: string): Pr
     percentageBatchStatus.value = successMessage;
   }
   catch {
-    percentageBatchStatus.value = 'Clipboard access is unavailable. Select the result text and copy it manually.';
+    percentageBatchStatus.value = t('tools.percentage-calculator.batch.clipboardUnavailable');
   }
 }
 
 function copyPercentageBatchRow(row: PercentageBatchRow): void {
   const text = [row.label, row.formula, row.result, row.error].filter(Boolean).join('\n');
-  copyPercentageBatchText(text, `Copied ${row.label} with its formula and result.`);
+  copyPercentageBatchText(text, t('tools.percentage-calculator.batch.copiedRow', { label: row.label }));
 }
 
 function copyPercentageBatchCsv(): void {
   if (!percentageBatchRows.value.length) {
-    percentageBatchStatus.value = 'Calculate at least one row before copying the results.';
+    percentageBatchStatus.value = t('tools.percentage-calculator.batch.calculateBeforeCopy');
     return;
   }
   copyPercentageBatchText(
     percentageBatchToCsv(percentageBatchRows.value),
-    'Copied all batch rows as CSV.',
+    t('tools.percentage-calculator.batch.copiedCsv'),
   );
+}
+
+function copyPercentageBatchTsv(): void {
+  if (!percentageBatchRows.value.length) {
+    percentageBatchStatus.value = t('tools.percentage-calculator.batch.calculateBeforeCopy');
+    return;
+  }
+  copyPercentageBatchText(
+    percentageBatchToTsv(percentageBatchRows.value),
+    t('tools.percentage-calculator.batch.copiedTsv'),
+  );
+}
+
+function downloadPercentageBatch(format: 'csv' | 'tsv'): void {
+  if (!percentageBatchRows.value.length) {
+    percentageBatchStatus.value = t('tools.percentage-calculator.batch.calculateBeforeDownload');
+    return;
+  }
+  const content = format === 'csv'
+    ? percentageBatchToCsv(percentageBatchRows.value)
+    : percentageBatchToTsv(percentageBatchRows.value);
+  const blob = new Blob([content], {
+    type: format === 'csv' ? 'text/csv;charset=utf-8' : 'text/tab-separated-values;charset=utf-8',
+  });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = `percentage-calculations.${format}`;
+  anchor.click();
+  URL.revokeObjectURL(url);
+  percentageBatchStatus.value = t('tools.percentage-calculator.batch.downloaded', { format: format.toUpperCase() });
+}
+
+function percentageBatchErrorMessage(error: string): string {
+  const errorKeys: Record<string, string> = {
+    'Expected two numeric columns. Separate values with a tab or comma; an optional text label may come first.': 'tools.percentage-calculator.batch.errors.columns',
+    'Both input columns must contain finite numbers.': 'tools.percentage-calculator.batch.errors.numbers',
+    'The whole value cannot be zero.': 'tools.percentage-calculator.batch.errors.wholeZero',
+    'The starting value cannot be zero for percentage change.': 'tools.percentage-calculator.batch.errors.startZero',
+    'Percentage difference is undefined when both values are zero.': 'tools.percentage-calculator.batch.errors.differenceZero',
+  };
+  const key = errorKeys[error];
+  return key ? t(key) : error;
 }
 
 function restorePercentageBatchHistory(item: PercentageBatchHistoryItem): void {
   percentageBatchMode.value = item.mode;
   percentageBatchInput.value = item.input;
   percentageBatchRows.value = runPercentageBatch(item.input, item.mode);
-  percentageBatchStatus.value = `Restored a local run from ${new Date(item.savedAt).toLocaleString()}.`;
+  percentageBatchStatus.value = t('tools.percentage-calculator.batch.restored', { date: new Date(item.savedAt).toLocaleString() });
 }
 
 function removePercentageBatchHistory(id: string): void {
   percentageBatchHistory.value = percentageBatchHistory.value.filter(item => item.id !== id);
   persistPercentageBatchHistory();
-  percentageBatchStatus.value = 'Removed that run from local history.';
+  percentageBatchStatus.value = t('tools.percentage-calculator.batch.removed');
 }
 
 function clearPercentageBatchHistory(): void {
@@ -244,7 +291,7 @@ function clearPercentageBatchHistory(): void {
   catch {
     // The in-memory history is still cleared even when storage is blocked.
   }
-  percentageBatchStatus.value = 'Local history cleared. Current results are unchanged.';
+  percentageBatchStatus.value = t('tools.percentage-calculator.batch.cleared');
 }
 
 function percentageBatchSavedAt(timestamp: number): string {
