@@ -280,6 +280,7 @@ describe('evidence-backed SEO keyword targets', () => {
     expect((entry?.keywords ?? []).length).toBeGreaterThanOrEqual(4);
     expect(entry?.note).toContain('Candidate mapping only');
   });
+
   it.each([
     ['/html-entities', 'HTML entities encoder and decoder', 'HTML Entity Encoder & Decoder — Escape Characters and Look Up Entities'],
     ['/base-converter', 'number base converter', 'Integer Base Converter — Binary, Decimal, Hexadecimal and Base 2–64'],
@@ -293,5 +294,4 @@ describe('evidence-backed SEO keyword targets', () => {
     expect(entry?.landed).toBe(true);
     expect(entry?.lockedTitle).toBe(lockedTitle);
   });
-
 });
