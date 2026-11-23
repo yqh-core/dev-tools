@@ -1257,7 +1257,7 @@ export const GUIDES: Record<string, ToolGuide> = {
   },
 
   '/percentage-calculator': {
-    intro: 'Solves four common percentage tasks: find X% of Y, find what percent X is of Y, calculate percentage change, and increase or decrease a value by a percentage.',
+    intro: 'Solves seven common percentage tasks: find X% of Y, find what percent X is of Y, calculate percentage change, apply or reverse a percentage change, compare two values symmetrically, and measure percentage-point changes.',
     // example 已移除：requires-pair (G-02j): X 单独填入无可见结果，example=死按钮
     steps: ['Pick the mode matching your question', 'Enter the known values', 'Read the result'],
     notes: [
@@ -1273,13 +1273,19 @@ export const GUIDES: Record<string, ToolGuide> = {
         title: 'Worked examples: discounts, bills and rates',
         text: 'An item marked $72 after a 10% discount had an original price of $80: $72 ÷ 0.90 = $80. Adding 10% to $72 gives $79.20, not $80, because the discount was taken from the original price. If a monthly bill moves from $48 to $54, the increase is $6 ÷ $48 = 12.5%. If a conversion rate moves from 4% to 5%, it rose by 1 percentage point and by 25% relative to its starting rate. A $120 pre-tax amount with a hypothetical 15% tax adds $18, producing a $138 total.',
       },
+      {
+        title: 'Reverse a change and choose the right comparison',
+        text: 'If a final value is known after a rise, divide it by 1 plus the rate as a decimal; after a discount, divide it by 1 minus the rate. For two values with equal standing, symmetric percentage difference divides the absolute gap by the average of their absolute magnitudes. For two rates, subtract the old rate from the new one to get percentage points; only divide by the old rate when the question asks for relative growth. Keep these answers distinct in a report: a 2-percentage-point move is an absolute rate movement, while 40% is relative growth from 5% to 7%.',
+      },
     ],
-    about: 'Percentage mistakes in reports rarely come from arithmetic — they come from mixing up which base you divided by. "Revenue went from 80 to 100, so +25%" and "the new figure is 125% of the old" are the same fact told from two different denominators, and a third phrasing ("100 is 20% more than 80") uses yet another base. This calculator keeps four questions separate — what percent is X of Y, how much is P% of N, the change between two values, and the result after adding or subtracting a percentage — so you never silently swap denominators mid-calculation. For price and salary math, remember the classic trap: a 20% rise followed by a 20% fall leaves you 4% below the start, because the second percentage divides by the raised base. The fields recalculate together, so you can watch that asymmetry happen live.',
+    about: 'Percentage mistakes in reports rarely come from arithmetic — they come from mixing up which base you divided by. Revenue going from 80 to 100 is a 25% increase because the original 80 is the base; comparing 80 and 100 without choosing a starting point is a different question. This calculator keeps seven questions separate: part of a whole, part-to-whole percentage, directional change, applying a rate, reversing a rate, symmetric difference, and percentage-point change. Reverse percentage divides the final value by the multiplier that was applied; symmetric percentage difference uses the average magnitude of both values rather than choosing a starting point. Percentage points subtract one rate from another, while relative percentage change divides by the starting rate. For price and salary math, remember the classic trap: a 20% rise followed by a 20% fall leaves you 4% below the start, because the second percentage divides by the raised base. The fields recalculate together, so you can compare these formulas without silently swapping denominators.',
     faqs: [
       { q: 'Why does a 20% increase then a 20% decrease not return to the original?', a: 'Because the decrease is computed on the larger value. Going from 100 to 120 and back down by 20% gives 96 — a net 4% loss. Percentage changes are not symmetric.' },
       { q: 'What is the difference between percent change and percentage-point change?', a: 'If a rate moves from 5% to 7%, that is a 2-percentage-point change but a 40% relative increase. Reports mix these up constantly; state which one you mean.' },
       { q: 'How do I calculate a percentage off a price or add sales tax?', a: 'For a discount, use the decrease mode: multiply the original price by 1 − (discount ÷ 100). A $80 item with 20% off saves $16 and costs $64. For VAT or sales tax, use the increase mode with the tax rate.' },
       { q: 'How do I increase or decrease a value by a percentage?', a: 'Multiply the starting value by 1 + (rate ÷ 100) to increase it, or by 1 − (rate ÷ 100) to decrease it. For example, increasing 80 by 15% gives 92; decreasing it by 15% gives 68.' },
+      { q: 'How do I find the original value before a percentage increase or discount?', a: 'Divide the final value by 1 plus the increase rate, or by 1 minus the decrease rate. For example, $80 after a 20% discount came from $80 ÷ 0.80 = $100. Adding 20% back to $80 is not the inverse.' },
+      { q: 'How do I calculate percentage difference between two values?', a: 'Divide the absolute gap by the average of the absolute magnitudes of both values, then multiply by 100. This is symmetric, so swapping the two values produces the same percentage difference.' },
       { q: 'Why are there separate fields instead of one formula?', a: 'Each question has a different unknown in a different position. Separating them avoids the most common error: rearranging the formula and dividing by the wrong base.' },
     ],
     relatedNotes: [

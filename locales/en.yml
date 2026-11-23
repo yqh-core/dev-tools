@@ -265,7 +265,7 @@ tools:
       refresh: Refresh
   percentage-calculator:
     title: "Percentage Calculator — Percent & Change"
-    description: "Calculate a percentage of a number, find what percent one value is of another, measure percentage change, or apply a discount or sales tax. Four free calculators."
+    description: "Calculate a percentage, reverse an increase or discount, compare two values, and find percentage-point changes. Seven free calculator modes in your browser."
 
   svg-placeholder-generator:
     title: SVG placeholder generator
