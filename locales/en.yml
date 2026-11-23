@@ -266,6 +266,65 @@ tools:
   percentage-calculator:
     title: "Percentage Calculator — Percent & Change"
     description: "Free percentage calculator for percent of a number, percentage change, discounts and reverse rates. Batch formulas and CSV export run in your browser."
+    batch:
+      summary: Calculate a list of values — optional batch mode
+      title: Batch percentage calculator
+      description: "Paste one row per line. Separate the two numbers with a tab or comma; you may add a text label as the first column. Each row is calculated independently, so one invalid row does not stop the others."
+      calculation: Calculation
+      inputLabel: Values — one row per line
+      placeholder: "Groceries\t20\t150\nTaxi\t10\t40"
+      run: Calculate rows
+      copyCsv: Copy results as CSV
+      copyTsv: Copy results as TSV
+      downloadCsv: Download CSV
+      downloadTsv: Download TSV
+      row: Row
+      formula: Formula
+      resultIssue: Result / issue
+      action: Action
+      copyRow: Copy row
+      historyTitle: Recent runs — stored in this browser
+      clearHistory: Clear history
+      restore: Restore
+      remove: Remove
+      removeAria: "Remove {mode} from history"
+      privacy: "Calculations run locally. Batch values and recent history stay in this browser and are not sent to analytics. Clear local history whenever you need to remove saved runs."
+      rowsStatusPartial: "{successful} of {total} rows calculated; {failed} need attention. Inputs and history stay in this browser."
+      rowsStatusSuccess: "{total} rows calculated. Inputs and history stay in this browser."
+      historyUnavailable: Local history is unavailable in this browser; the current results are still available.
+      empty: Paste at least one non-empty row to calculate.
+      clipboardUnavailable: Clipboard access is unavailable. Select the result text and copy it manually.
+      copiedRow: "Copied {label} with its formula and result."
+      calculateBeforeCopy: Calculate at least one row before copying the results.
+      calculateBeforeDownload: Calculate at least one row before downloading results.
+      copiedCsv: Copied all batch rows as CSV.
+      copiedTsv: Copied all batch rows as TSV.
+      downloaded: "Downloaded {format} batch results."
+      restored: "Restored a local run from {date}."
+      removed: Removed that run from local history.
+      cleared: Local history cleared. Current results are unchanged.
+      modes:
+        percent-of: What is X% of Y?
+        part-to-whole: X is what percent of Y?
+        percentage-change: Percentage increase or decrease
+        adjustment: Add or subtract a percentage
+        reverse: Reverse a percentage increase or decrease
+        percentage-difference: Percentage difference between two values
+        percentage-points: Percentage-point change between two rates
+      hints:
+        percent-of: "Columns: percentage, number. Example: 15<TAB>80"
+        part-to-whole: "Columns: part, whole. Example: 30<TAB>120"
+        percentage-change: "Columns: original value, new value. Example: 80<TAB>92"
+        adjustment: "Columns: starting value, percentage. Each row returns both increase and decrease results."
+        reverse: "Columns: final value, percentage. Each row returns the original before an increase and before a decrease."
+        percentage-difference: "Columns: value A, value B. Example: 100<TAB>150"
+        percentage-points: "Columns: old rate (%), new rate (%). Example: 5<TAB>7"
+      errors:
+        columns: "Expected two numeric columns. Separate values with a tab or comma; an optional text label may come first."
+        numbers: Both input columns must contain finite numbers.
+        wholeZero: The whole value cannot be zero.
+        startZero: The starting value cannot be zero for percentage change.
+        differenceZero: Percentage difference is undefined when both values are zero.
 
   svg-placeholder-generator:
     title: SVG placeholder generator
