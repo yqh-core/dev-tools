@@ -24,7 +24,6 @@ test.describe('Tool - Percentage calculator', () => {
     await expect(guide).toContainText('original value of zero is undefined');
   });
 
-
   test('Answers common percentage questions with supported formulas', async ({ page }) => {
     const guide = page.getByTestId('percentage-calculator-guide');
     await expect(guide).toContainText('How do I calculate a percentage of a number?');
