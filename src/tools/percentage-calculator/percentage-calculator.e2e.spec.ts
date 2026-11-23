@@ -149,7 +149,7 @@ test.describe('Tool - Percentage calculator', () => {
   test('Copies a single row and all batch results', async ({ page, context, browserName }) => {
     test.skip(browserName !== 'chromium');
     await context.grantPermissions(['clipboard-read', 'clipboard-write']);
-    await page.getByTestId('percentageBatchInput').fill('15\\t80\\n20\\t50');
+    await page.getByTestId('percentageBatchInput').fill('15\t80\n20\t50');
     await page.getByTestId('runPercentageBatch').click();
 
     await page.getByTestId('copyPercentageBatchRow-1').click();
