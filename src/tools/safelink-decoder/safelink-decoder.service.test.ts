@@ -15,8 +15,8 @@ describe('safelink-decoder', () => {
 
     it('unwraps nested Outlook Safe Links URLs', () => {
       const destination = 'https://example.com/docs';
-      const inner = 'https://eur01.safelinks.protection.outlook.com/?url=' + encodeURIComponent(destination);
-      const outer = 'https://nam01.safelinks.protection.outlook.com/?url=' + encodeURIComponent(inner);
+      const inner = `https://eur01.safelinks.protection.outlook.com/?url=${encodeURIComponent(destination)}`;
+      const outer = `https://nam01.safelinks.protection.outlook.com/?url=${encodeURIComponent(inner)}`;
 
       expect(decodeSafeLinksURL(outer)).toBe(destination);
     });
@@ -41,7 +41,6 @@ describe('safelink-decoder', () => {
         .toThrow('missing its destination URL');
     });
 
-
     it('rejects a nested Safe Links wrapper that uses HTTP', () => {
       const inner = 'http://eur01.safelinks.protection.outlook.com/?url=https%3A%2F%2Fexample.com';
       const outer = 'https://nam01.safelinks.protection.outlook.com/?url=' + encodeURIComponent(inner);
@@ -50,12 +49,11 @@ describe('safelink-decoder', () => {
         .toThrow('Invalid SafeLinks URL provided');
     });
 
-
     it('accepts exactly five nested Outlook wrappers', () => {
       let nested = 'https://example.com/docs';
 
       for (let depth = 0; depth < 5; depth++) {
-        nested = 'https://nam01.safelinks.protection.outlook.com/?url=' + encodeURIComponent(nested);
+        nested = `https://nam01.safelinks.protection.outlook.com/?url=${encodeURIComponent(nested)}`;
       }
 
       expect(decodeSafeLinksURL(nested)).toBe('https://example.com/docs');
