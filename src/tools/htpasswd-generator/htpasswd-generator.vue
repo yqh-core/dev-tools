@@ -7,8 +7,8 @@ import { type HtpasswdEntry, buildHtpasswdLines, hashHtpasswdPassword } from './
 
 type Fmt = 'bcrypt' | 'apr1' | 'sha1' | 'plain';
 const FORMATS: { label: string; value: Fmt; hint: string }[] = [
-  { label: 'bcrypt ($2a$, Apache)', value: 'bcrypt', hint: 'Apache bcrypt. Nginx auth_basic does not support bcrypt; choose apr1 for Apache/Nginx compatibility.' },
-  { label: 'Apache MD5 ($apr1$)', value: 'apr1', hint: 'Supported by Apache and Nginx; legacy format compared with bcrypt.' },
+  { label: 'bcrypt ($2a$, Apache)', value: 'bcrypt', hint: 'Apache bcrypt. Nginx delegates to system crypt(); bcrypt support depends on the OS/libcrypt. Use apr1 for the most portable Apache/Nginx format.' },
+  { label: 'Apache MD5 ($apr1$)', value: 'apr1', hint: 'Supported by Apache and Nginx; legacy MD5-based format compared with bcrypt.' },
   { label: 'SHA1 ({SHA})', value: 'sha1', hint: 'Insecure legacy format; avoid for production' },
   { label: 'Plain text (never for production)', value: 'plain', hint: 'Debugging only; never use in production' },
 ];
