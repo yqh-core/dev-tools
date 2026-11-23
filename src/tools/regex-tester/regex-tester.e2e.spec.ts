@@ -21,7 +21,7 @@ test.describe('Tool - Regex Tester isolated execution', () => {
     // The main thread remains responsive and a fresh worker handles the next request.
     await page.getByLabel('Regex to test:').fill('a+');
     await page.getByLabel('Text to match:').fill('aaaa');
-    await expect(page.getByText('aaaa', { exact: true })).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('tbody tr').first().locator('td').nth(1)).toContainText('aaaa', { timeout: 5000 });
     await expect(page.getByText(/Timed out after/)).toHaveCount(0);
   });
 
@@ -31,13 +31,13 @@ test.describe('Tool - Regex Tester isolated execution', () => {
     await expect(page.getByText(/Invalid regular expression/)).toBeVisible();
 
     await page.getByLabel('Regex to test:').fill('hello');
-    await expect(page.getByText('hello', { exact: true })).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('tbody tr').first().locator('td').nth(1)).toContainText('hello', { timeout: 5000 });
   });
 
   test('supports keyboard input and remains within a 390px viewport', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.getByLabel('Regex to test:').focus();
-    await page.keyboard.type('\\\\d+');
+    await page.keyboard.type('\\d+');
     await page.getByLabel('Text to match:').fill('Order 123');
     await page.getByLabel('Replacement:').fill('#$&');
     await expect(page.locator('pre').first()).toContainText('Order #123', { timeout: 5000 });
@@ -53,6 +53,6 @@ test.describe('Tool - Regex Tester isolated execution', () => {
     await page.getByRole('combobox').first().click();
     await page.getByRole('option', { name: 'IPv4 address' }).click();
     await page.getByLabel('Text to match:').fill('Server: 192.168.1.42');
-    await expect(page.getByText('192.168.1.42', { exact: true })).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('tbody tr').first().locator('td').nth(1)).toContainText('192.168.1.42', { timeout: 5000 });
   });
 });
