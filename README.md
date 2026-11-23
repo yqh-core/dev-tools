@@ -83,7 +83,7 @@
 - [Escape HTML entities](https://digdevbox.com/html-entities) - Escape or unescape HTML entities (turn <, >, &, " and ' into their HTML form) and look up common characters — quotes, dashes, currency, math and Greek symbols — in a searchable entity reference table.
 - [URL parser](https://digdevbox.com/url-parser) - Parse a URL into its separate constituent parts (protocol, origin, params, port, username-password, ...)
 - [Device information](https://digdevbox.com/device-information) - Get information about your current device (screen size, pixel-ratio, user agent, ...)
-- [Basic Auth Generator — Build an HTTP Authorization Header](https://digdevbox.com/basic-auth-generator) - Generate an HTTP Basic Authorization header from a username and password. Copy the Base64 value for curl or API clients. Base64 is not encryption; use HTTPS.
+- [Basic Auth Generator — Build an HTTP Authorization Header](https://digdevbox.com/basic-auth-generator) - Generate or decode an HTTP Basic Authorization header in your browser. Copy the Base64 value and use a cURL example with environment variables. Base64 is not encryption; use HTTPS.
 - [Open graph meta generator](https://digdevbox.com/og-meta-generator) - Generate open-graph and socials HTML meta tags for your website.
 - [OTP code generator](https://digdevbox.com/otp-generator) - Generate and validate time-based OTP (one time password) for multi-factor authentication.
 - [MIME types](https://digdevbox.com/mime-types) - Convert MIME types to file extensions and vice-versa.
@@ -94,7 +94,7 @@
 - [User-agent parser](https://digdevbox.com/user-agent-parser) - Detect and parse Browser, Engine, OS, CPU, and Device type/model from an user-agent string.
 - [HTTP status codes](https://digdevbox.com/http-status-codes) - The list of all HTTP status codes, their name, and their meaning.
 - [JSON diff](https://digdevbox.com/json-diff) - Compare two JSON objects and get the differences between them.
-- [Outlook Safe Links Decoder — Reveal the Original URL](https://digdevbox.com/safelink-decoder) - Decode an Outlook Safe Links URL to reveal its original destination without opening it. Runs in your browser; decoding does not verify whether the destination is safe.
+- [Outlook Safe Links Decoder — Reveal the Original URL](https://digdevbox.com/safelink-decoder) - Decode Outlook Safe Links URLs, including nested wrappers, to reveal the final HTTP or HTTPS destination without opening it. Runs in your browser; decoding does not scan or verify the destination.
 - [JSON to GET params](https://digdevbox.com/json-to-get-params) - Flatten JSON into a URL query string (a[b][0]=1 style) and rebuild JSON from a query string or a full URL.
 - [HTTP headers & request methods](https://digdevbox.com/http-headers) - A searchable reference of common HTTP request and response headers plus the nine standard request methods, covering CORS, caching, security fields and safe/idempotent semantics.
 
