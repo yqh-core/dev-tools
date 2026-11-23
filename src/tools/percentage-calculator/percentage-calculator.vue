@@ -93,6 +93,156 @@ const percentagePointChange = computed(() => {
   }
   return resultText(rateTo.value - rateFrom.value);
 });
+import { onMounted } from 'vue';
+import {
+  percentageBatchToCsv,
+  runPercentageBatch,
+} from './percentage-calculator.batch';
+import type {
+  PercentageBatchMode,
+  PercentageBatchRow,
+} from './percentage-calculator.batch';
+
+interface PercentageBatchHistoryItem {
+  id: string
+  mode: PercentageBatchMode
+  input: string
+  savedAt: number
+}
+
+const percentageBatchHistoryKey = 'digdevbox.percentage-calculator.batch-history.v1';
+const percentageBatchModeNames: Record<PercentageBatchMode, string> = {
+  'percent-of': 'Percent of a number',
+  'part-to-whole': 'What percent is one value of another?',
+  'percentage-change': 'Percentage increase or decrease',
+  adjustment: 'Add or subtract a percentage',
+  reverse: 'Reverse a percentage change',
+  'percentage-difference': 'Symmetric percentage difference',
+  'percentage-points': 'Percentage-point change',
+};
+const percentageBatchModeHints: Record<PercentageBatchMode, string> = {
+  'percent-of': 'Columns: percentage, number. Example: 15<TAB>80',
+  'part-to-whole': 'Columns: part, whole. Example: 30<TAB>120',
+  'percentage-change': 'Columns: original value, new value. Example: 80<TAB>92',
+  adjustment: 'Columns: starting value, percentage. Each row returns both increase and decrease results.',
+  reverse: 'Columns: final value, percentage. Each row returns the original before an increase and before a decrease.',
+  'percentage-difference': 'Columns: value A, value B. Example: 100<TAB>150',
+  'percentage-points': 'Columns: old rate (%), new rate (%). Example: 5<TAB>7',
+};
+const percentageBatchMode = ref<PercentageBatchMode>('percent-of');
+const percentageBatchInput = ref('');
+const percentageBatchRows = ref<PercentageBatchRow[]>([]);
+const percentageBatchHistory = ref<PercentageBatchHistoryItem[]>([]);
+const percentageBatchStatus = ref('');
+const percentageBatchInputHint = computed(() => percentageBatchModeHints[percentageBatchMode.value]);
+
+function loadPercentageBatchHistory(): void {
+  try {
+    const saved = localStorage.getItem(percentageBatchHistoryKey);
+    const parsed: unknown = saved ? JSON.parse(saved) : [];
+    if (!Array.isArray(parsed)) return;
+    percentageBatchHistory.value = parsed
+      .filter((item): item is PercentageBatchHistoryItem =>
+        Boolean(item)
+        && typeof item.id === 'string'
+        && typeof item.input === 'string'
+        && typeof item.mode === 'string'
+        && Object.prototype.hasOwnProperty.call(percentageBatchModeNames, item.mode)
+        && typeof item.savedAt === 'number',
+      )
+      .slice(0, 8);
+  } catch {
+    percentageBatchHistory.value = [];
+  }
+}
+
+function persistPercentageBatchHistory(): void {
+  try {
+    localStorage.setItem(percentageBatchHistoryKey, JSON.stringify(percentageBatchHistory.value));
+  } catch {
+    percentageBatchStatus.value = 'Local history is unavailable in this browser; the current results are still available.';
+  }
+}
+
+onMounted(loadPercentageBatchHistory);
+
+function runPercentageBatchRows(): void {
+  const rows = runPercentageBatch(percentageBatchInput.value, percentageBatchMode.value);
+  percentageBatchRows.value = rows;
+  if (!rows.length) {
+    percentageBatchStatus.value = 'Paste at least one non-empty row to calculate.';
+    return;
+  }
+
+  const item: PercentageBatchHistoryItem = {
+    id: 'run-' + Date.now() + '-' + (percentageBatchHistory.value.length + 1),
+    mode: percentageBatchMode.value,
+    input: percentageBatchInput.value,
+    savedAt: Date.now(),
+  };
+  percentageBatchHistory.value = [item, ...percentageBatchHistory.value].slice(0, 8);
+  persistPercentageBatchHistory();
+
+  const successful = rows.filter(row => !row.error).length;
+  const failed = rows.length - successful;
+  percentageBatchStatus.value = failed
+    ? successful + ' of ' + rows.length + ' rows calculated; ' + failed + ' need attention. Inputs and history stay in this browser.'
+    : rows.length + ' rows calculated. Inputs and history stay in this browser.';
+}
+
+async function copyPercentageBatchText(text: string, successMessage: string): Promise<void> {
+  try {
+    if (!navigator.clipboard?.writeText) throw new Error('Clipboard API unavailable');
+    await navigator.clipboard.writeText(text);
+    percentageBatchStatus.value = successMessage;
+  } catch {
+    percentageBatchStatus.value = 'Clipboard access is unavailable. Select the result text and copy it manually.';
+  }
+}
+
+function copyPercentageBatchRow(row: PercentageBatchRow): void {
+  const text = [row.label, row.formula, row.result, row.error].filter(Boolean).join('\n');
+  void copyPercentageBatchText(text, 'Copied ' + row.label + ' with its formula and result.');
+}
+
+function copyPercentageBatchCsv(): void {
+  if (!percentageBatchRows.value.length) {
+    percentageBatchStatus.value = 'Calculate at least one row before copying the results.';
+    return;
+  }
+  void copyPercentageBatchText(
+    percentageBatchToCsv(percentageBatchRows.value),
+    'Copied all batch rows as CSV.',
+  );
+}
+
+function restorePercentageBatchHistory(item: PercentageBatchHistoryItem): void {
+  percentageBatchMode.value = item.mode;
+  percentageBatchInput.value = item.input;
+  percentageBatchRows.value = runPercentageBatch(item.input, item.mode);
+  percentageBatchStatus.value = 'Restored a local run from ' + new Date(item.savedAt).toLocaleString() + '.';
+}
+
+function removePercentageBatchHistory(id: string): void {
+  percentageBatchHistory.value = percentageBatchHistory.value.filter(item => item.id !== id);
+  persistPercentageBatchHistory();
+  percentageBatchStatus.value = 'Removed that run from local history.';
+}
+
+function clearPercentageBatchHistory(): void {
+  percentageBatchHistory.value = [];
+  try {
+    localStorage.removeItem(percentageBatchHistoryKey);
+  } catch {
+    // The in-memory history is still cleared even when storage is blocked.
+  }
+  percentageBatchStatus.value = 'Local history cleared. Current results are unchanged.';
+}
+
+function percentageBatchSavedAt(timestamp: number): string {
+  return new Date(timestamp).toLocaleString();
+}
+
 </script>
 
 <template>
@@ -223,6 +373,162 @@ const percentagePointChange = computed(() => {
         </div>
       </c-card>
     </div>
+
+    <details class="mx-auto mt-8 max-w-800px px-4" data-test-id="percentage-batch-panel">
+      <summary class="cursor-pointer rounded-lg border border-gray-300 px-4 py-3 font-semibold dark:border-gray-600">
+        Calculate a list of values — optional batch mode
+      </summary>
+      <div class="mt-4 rounded-lg border border-gray-200 p-4 dark:border-gray-700">
+        <h2 class="mb-2 text-lg font-semibold">Batch percentage calculator</h2>
+        <p class="mb-4 text-sm">
+          Paste one row per line. Separate the two numbers with a tab or comma; you may add a text label as the first column.
+          Each row is calculated independently, so one invalid row does not stop the others.
+        </p>
+
+        <label class="mb-2 block text-sm font-semibold" for="percentage-batch-mode">Calculation</label>
+        <select
+          id="percentage-batch-mode"
+          v-model="percentageBatchMode"
+          data-test-id="percentage-batch-mode"
+          class="mb-2 w-full rounded border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-900"
+        >
+          <option value="percent-of">What is X% of Y?</option>
+          <option value="part-to-whole">X is what percent of Y?</option>
+          <option value="percentage-change">Percentage increase or decrease</option>
+          <option value="adjustment">Add or subtract a percentage</option>
+          <option value="reverse">Reverse a percentage increase or decrease</option>
+          <option value="percentage-difference">Percentage difference between two values</option>
+          <option value="percentage-points">Percentage-point change between two rates</option>
+        </select>
+        <p class="mb-2 text-xs text-gray-600 dark:text-gray-300">{{ percentageBatchInputHint }}</p>
+
+        <label class="mb-2 block text-sm font-semibold" for="percentage-batch-input">Values — one row per line</label>
+        <textarea
+          id="percentage-batch-input"
+          v-model="percentageBatchInput"
+          data-test-id="percentage-batch-input"
+          rows="5"
+          spellcheck="false"
+          placeholder="Groceries&#9;20&#9;150&#10;Taxi&#9;10&#9;40"
+          class="w-full rounded border border-gray-300 bg-white p-3 font-mono text-sm dark:border-gray-600 dark:bg-gray-900"
+        />
+
+        <div class="mt-3 flex flex-wrap gap-2">
+          <button
+            type="button"
+            data-test-id="percentage-batch-run"
+            :disabled="!percentageBatchInput.trim()"
+            class="rounded bg-primary px-4 py-2 text-sm text-white disabled:cursor-not-allowed disabled:opacity-50"
+            @click="runPercentageBatchRows"
+          >
+            Calculate rows
+          </button>
+          <button
+            type="button"
+            data-test-id="percentage-batch-copy-csv"
+            :disabled="!percentageBatchRows.length"
+            class="rounded border border-gray-300 px-4 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600"
+            @click="copyPercentageBatchCsv"
+          >
+            Copy results as CSV
+          </button>
+        </div>
+
+        <div
+          class="mt-3 text-sm"
+          role="status"
+          aria-live="polite"
+          data-test-id="percentage-batch-status"
+        >
+          {{ percentageBatchStatus }}
+        </div>
+
+        <div v-if="percentageBatchRows.length" class="mt-4 overflow-x-auto">
+          <table class="w-full border-collapse text-left text-sm">
+            <thead>
+              <tr class="border-b border-gray-300 dark:border-gray-600">
+                <th class="px-2 py-2">Row</th>
+                <th class="px-2 py-2">Formula</th>
+                <th class="px-2 py-2">Result / issue</th>
+                <th class="px-2 py-2">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                v-for="row in percentageBatchRows"
+                :key="row.lineNumber"
+                :data-test-id="'percentage-batch-result-' + row.lineNumber"
+                class="border-b border-gray-200 align-top dark:border-gray-700"
+              >
+                <td class="px-2 py-2">{{ row.label }}</td>
+                <td class="px-2 py-2">
+                  <code class="break-words">{{ row.formula || '—' }}</code>
+                </td>
+                <td class="px-2 py-2">
+                  <span v-if="row.error" class="text-red-700 dark:text-red-300">{{ row.error }}</span>
+                  <span v-else>{{ row.result }}</span>
+                </td>
+                <td class="px-2 py-2">
+                  <button
+                    type="button"
+                    class="whitespace-nowrap rounded border border-gray-300 px-2 py-1 text-xs dark:border-gray-600"
+                    @click="copyPercentageBatchRow(row)"
+                  >
+                    Copy row
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <section v-if="percentageBatchHistory.length" class="mt-6 border-t border-gray-200 pt-4 dark:border-gray-700">
+          <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
+            <h3 class="font-semibold">Recent runs — stored in this browser</h3>
+            <button
+              type="button"
+              data-test-id="percentage-batch-clear-history"
+              class="rounded border border-gray-300 px-2 py-1 text-xs dark:border-gray-600"
+              @click="clearPercentageBatchHistory"
+            >
+              Clear history
+            </button>
+          </div>
+          <ul class="space-y-2">
+            <li
+              v-for="item in percentageBatchHistory"
+              :key="item.id"
+              data-test-id="percentage-batch-history-item"
+              class="flex flex-wrap items-center justify-between gap-2 rounded bg-gray-50 p-2 text-sm dark:bg-gray-900"
+            >
+              <span>{{ percentageBatchModeNames[item.mode] }} · {{ percentageBatchSavedAt(item.savedAt) }}</span>
+              <span class="flex gap-2">
+                <button
+                  type="button"
+                  class="rounded border border-gray-300 px-2 py-1 text-xs dark:border-gray-600"
+                  @click="restorePercentageBatchHistory(item)"
+                >
+                  Restore
+                </button>
+                <button
+                  type="button"
+                  class="rounded border border-gray-300 px-2 py-1 text-xs dark:border-gray-600"
+                  :aria-label="'Remove ' + percentageBatchModeNames[item.mode] + ' from history'"
+                  @click="removePercentageBatchHistory(item.id)"
+                >
+                  Remove
+                </button>
+              </span>
+            </li>
+          </ul>
+        </section>
+
+        <p class="mt-4 text-xs text-gray-600 dark:text-gray-300">
+          Calculations run locally. Batch values and recent history stay in this browser and are not sent to analytics.
+          Clear local history whenever you need to remove saved runs.
+        </p>
+      </div>
+    </details>
 
     <section class="mx-auto mt-8 max-w-800px px-4" data-test-id="percentage-calculator-guide">
       <h2 class="mb-3 text-xl font-semibold">How to calculate a percentage</h2>
