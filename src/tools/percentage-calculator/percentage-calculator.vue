@@ -113,7 +113,13 @@ const batchRows = ref<PercentageBatchRow[]>([]);
 const batchHistory = ref<PercentageBatchHistoryEntry[]>([]);
 const batchStatus = ref('');
 const historyLoaded = ref(false);
-const batchModes = vueComputed(() => (['part', 'ratio', 'change', 'adjust', 'reverse', 'difference', 'points'] as PercentageBatchMode[]).map(value => ({ value, label: t(`tools.percentage-calculator.batch.modes.${value}`) })));
+const batchModes = vueComputed(() => {
+  const modes: PercentageBatchMode[] = ['part', 'ratio', 'change', 'adjust', 'reverse', 'difference', 'points'];
+  return modes.map(value => ({
+    value,
+    label: t(`tools.percentage-calculator.batch.modes.${value}`),
+  }));
+});
 
 onMounted(() => {
   try {
