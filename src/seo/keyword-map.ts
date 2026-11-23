@@ -111,7 +111,7 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     article: 'json-formatting-guide',
     landed: true,
     lockedTitle: 'REST API Tester — cURL Import, Tests & Collections',
-    note: 'US/EU English snippet now targets REST API tester intent. Requests pass through a temporary edge relay; do not claim fully local/direct-to-origin processing. The usage guide remains intentionally out of the sitemap until its thin one-step structure is expanded with verified instructions.',
+    note: 'US/EU English snippet now targets REST API tester intent. The independent guide now has multi-step instructions, original workflow examples and explicit relay/storage boundaries; sitemap inclusion still depends on measured novel-content ratio. Requests pass through a temporary edge relay; do not claim fully local/direct-to-origin processing.',
   },
   {
     path: '/json-workspace',
