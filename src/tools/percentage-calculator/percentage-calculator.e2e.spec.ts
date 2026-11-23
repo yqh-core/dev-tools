@@ -146,6 +146,24 @@ test.describe('Tool - Percentage calculator', () => {
     await expect(page.getByTestId('percentageBatchStatus')).toContainText('0 row(s) calculated; 3 row(s) need attention');
   });
 
+  test('Copies a single row and all batch results', async ({ page, context, browserName }) => {
+    test.skip(browserName !== 'chromium');
+    await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+    await page.getByTestId('percentageBatchInput').fill('15\\t80\\n20\\t50');
+    await page.getByTestId('runPercentageBatch').click();
+
+    await page.getByTestId('copyPercentageBatchRow-1').click();
+    const oneRow = await page.evaluate(() => navigator.clipboard.readText());
+    expect(oneRow).toContain('(15 ÷ 100) × 80');
+    expect(oneRow).toContain('12');
+
+    await page.getByTestId('copyPercentageBatch').click();
+    const allRows = await page.evaluate(() => navigator.clipboard.readText());
+    expect(allRows).toContain('Row');
+    expect(allRows).toContain('20');
+    expect(allRows).toContain('10');
+  });
+
   test('Downloads batch results as CSV and TSV', async ({ page }) => {
     await page.getByTestId('percentageBatchInput').fill('15\t80');
     await page.getByTestId('runPercentageBatch').click();
