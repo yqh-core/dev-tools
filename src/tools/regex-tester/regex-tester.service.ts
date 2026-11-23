@@ -54,11 +54,9 @@ export const REGEX_PRESETS: RegexPreset[] = [
   },
 ];
 
-interface RegExpExecArrayWithIndices extends RegExpExecArray {
-  indices: Array<[number, number] | undefined> & {
-    groups: Record<string, [number, number] | undefined>
-  }
-}
+type RegExpExecArrayWithIndices = RegExpExecArray & {
+  indices: NonNullable<RegExpExecArray['indices']>
+};
 
 /** Evaluate a JavaScript RegExp. This function is called inside a dedicated Worker. */
 export function matchRegex(regex: string, text: string, flags: string): RegexMatch[] {
