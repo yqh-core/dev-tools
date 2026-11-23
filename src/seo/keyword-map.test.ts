@@ -195,7 +195,6 @@ describe('evidence-backed SEO keyword targets', () => {
     expect(entry?.note).toContain('Candidate mapping only');
   });
 
-
   it.each([
     ['/ascii-text-drawer', 'ASCII art text generator', 'generate'],
     ['/text-to-unicode', 'text to Unicode converter', 'convert'],
@@ -217,7 +216,6 @@ describe('evidence-backed SEO keyword targets', () => {
     expect((entry?.keywords ?? []).length).toBeGreaterThanOrEqual(4);
     expect(entry?.note).toContain('Candidate mapping only');
   });
-
 
   it.each([
     ['/text-to-nato-alphabet', 'NATO phonetic alphabet converter', 'convert'],
@@ -242,5 +240,4 @@ describe('evidence-backed SEO keyword targets', () => {
     expect((entry?.keywords ?? []).length).toBeGreaterThanOrEqual(4);
     expect(entry?.note).toContain('Candidate mapping only');
   });
-
 });

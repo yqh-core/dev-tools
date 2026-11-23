@@ -1100,7 +1100,6 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     note: 'Source confirms searchable ASCII character/code entries by character, decimal and hexadecimal representation. Candidate mapping only; no volume/KD/SERP evidence.',
   },
 
-
   {
     path: '/ascii-text-drawer',
     keyword: 'ASCII art text generator',
@@ -1201,7 +1200,6 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     landed: false,
     note: 'Source confirms a browser reaction-time test with repeated rounds and mean result. Results are device/browser-session measurements, not a clinical or standardized assessment. Candidate mapping only; no volume/KD/SERP evidence.',
   },
-
 
   {
     path: '/text-to-nato-alphabet',
