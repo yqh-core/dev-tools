@@ -25,8 +25,8 @@ function numberText(value: number): string {
 }
 
 function csvCell(value: string, protectFormula = false): string {
-  const safe = protectFormula && /^[\s]*[=+\-@]/.test(value) ? "'" + value : value;
-  return '"' + safe.replace(/"/g, '""') + '"';
+  const safe = protectFormula && /^[\s]*[=+\-@]/.test(value) ? \`'\${value}\` : value;
+  return \`"\${safe.replace(/"/g, '""')}"\`;
 }
 
 function makeError(
@@ -51,16 +51,18 @@ export function runPercentageBatch(
   const rows: PercentageBatchRow[] = [];
 
   lines.forEach((line, index) => {
-    if (!line.trim()) return;
+    if (!line.trim()) {
+      return;
+    }
 
     const lineNumber = index + 1;
     const delimiter = line.includes('\t') ? '\t' : line.includes(',') ? ',' : null;
-    let cells = delimiter ? line.split(delimiter).map(cell => cell.trim()) : line.trim().split(/\s+/);
-    let label = 'Row ' + lineNumber;
-
-    if (cells.length === 3 && cells[0] && !isNumericCell(cells[0])) {
-      label = cells.shift() || label;
-    }
+    const parsedCells = delimiter
+      ? line.split(delimiter).map(cell => cell.trim())
+      : line.trim().split(/\s+/);
+    const hasLabel = parsedCells.length === 3 && Boolean(parsedCells[0]) && !isNumericCell(parsedCells[0]);
+    const label = hasLabel ? parsedCells[0] : \`Row \${lineNumber}\`;
+    const cells = hasLabel ? parsedCells.slice(1) : parsedCells;
 
     if (cells.length !== 2) {
       rows.push(makeError(
@@ -85,7 +87,7 @@ export function runPercentageBatch(
     switch (mode) {
       case 'percent-of': {
         const value = a / 100 * b;
-        formula = '(' + numberText(a) + ' ÷ 100) × ' + numberText(b) + ' = ' + numberText(value);
+        formula = \`(\${numberText(a)} ÷ 100) × \${numberText(b)} = \${numberText(value)}\`;
         result = numberText(value);
         break;
       }
@@ -95,8 +97,8 @@ export function runPercentageBatch(
           break;
         }
         const value = a / b * 100;
-        formula = '(' + numberText(a) + ' ÷ ' + numberText(b) + ') × 100 = ' + numberText(value) + '%';
-        result = numberText(value) + '%';
+        formula = \`(\${numberText(a)} ÷ \${numberText(b)}) × 100 = \${numberText(value)}%\`;
+        result = \`\${numberText(value)}%\`;
         break;
       }
       case 'percentage-change': {
@@ -105,16 +107,15 @@ export function runPercentageBatch(
           break;
         }
         const value = (b - a) / a * 100;
-        formula = '(' + numberText(b) + ' − ' + numberText(a) + ') ÷ ' + numberText(a) + ' × 100 = ' + numberText(value) + '%';
-        result = numberText(value) + '%';
+        formula = \`(\${numberText(b)} − \${numberText(a)}) ÷ \${numberText(a)} × 100 = \${numberText(value)}%\`;
+        result = \`\${numberText(value)}%\`;
         break;
       }
       case 'adjustment': {
         const increased = a * (1 + b / 100);
         const decreased = a * (1 - b / 100);
-        formula = 'Increase: ' + numberText(a) + ' × (1 + ' + numberText(b) + ' ÷ 100) = ' + numberText(increased)
-          + '; Decrease: ' + numberText(a) + ' × (1 − ' + numberText(b) + ' ÷ 100) = ' + numberText(decreased);
-        result = 'Increase: ' + numberText(increased) + ' | Decrease: ' + numberText(decreased);
+        formula = \`Increase: \${numberText(a)} × (1 + \${numberText(b)} ÷ 100) = \${numberText(increased)}; Decrease: \${numberText(a)} × (1 − \${numberText(b)} ÷ 100) = \${numberText(decreased)}\`;
+        result = \`Increase: \${numberText(increased)} | Decrease: \${numberText(decreased)}\`;
         break;
       }
       case 'reverse': {
@@ -124,9 +125,8 @@ export function runPercentageBatch(
         const beforeDecrease = decreaseFactor === 0 ? null : a / decreaseFactor;
         const increaseText = beforeIncrease === null ? 'N/A' : numberText(beforeIncrease);
         const decreaseText = beforeDecrease === null ? 'N/A' : numberText(beforeDecrease);
-        formula = 'Before increase: ' + numberText(a) + ' ÷ (1 + ' + numberText(b) + ' ÷ 100) = ' + increaseText
-          + '; Before decrease: ' + numberText(a) + ' ÷ (1 − ' + numberText(b) + ' ÷ 100) = ' + decreaseText;
-        result = 'Before increase: ' + increaseText + ' | Before decrease: ' + decreaseText;
+        formula = \`Before increase: \${numberText(a)} ÷ (1 + \${numberText(b)} ÷ 100) = \${increaseText}; Before decrease: \${numberText(a)} ÷ (1 − \${numberText(b)} ÷ 100) = \${decreaseText}\`;
+        result = \`Before increase: \${increaseText} | Before decrease: \${decreaseText}\`;
         break;
       }
       case 'percentage-difference': {
@@ -136,14 +136,14 @@ export function runPercentageBatch(
           break;
         }
         const value = Math.abs(a - b) / averageMagnitude * 100;
-        formula = '|' + numberText(a) + ' − ' + numberText(b) + '| ÷ (' + numberText(averageMagnitude) + ') × 100 = ' + numberText(value) + '%';
-        result = numberText(value) + '%';
+        formula = \`|\${numberText(a)} − \${numberText(b)}| ÷ (\${numberText(averageMagnitude)}) × 100 = \${numberText(value)}%\`;
+        result = \`\${numberText(value)}%\`;
         break;
       }
       case 'percentage-points': {
         const value = b - a;
-        formula = numberText(b) + ' − ' + numberText(a) + ' = ' + numberText(value) + ' percentage points';
-        result = numberText(value) + ' percentage points';
+        formula = \`\${numberText(b)} − \${numberText(a)} = \${numberText(value)} percentage points\`;
+        result = \`\${numberText(value)} percentage points\`;
         break;
       }
     }
