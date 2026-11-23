@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref, watch, computed as vueComputed } from 'vue';
 import { useI18n } from 'vue-i18n';
-const { t } = useI18n();
 import {
   calculatePercentageBatch,
   exportPercentageBatch,
@@ -9,6 +8,8 @@ import {
   type PercentageBatchMode,
   type PercentageBatchRow,
 } from './percentage-calculator-batch';
+
+const { t } = useI18n();
 
 function isFiniteNumber(value: unknown): value is number {
   return typeof value === 'number' && Number.isFinite(value);
@@ -121,7 +122,15 @@ onMounted(() => {
     if (stored) {
       const parsed: unknown = JSON.parse(stored);
       if (Array.isArray(parsed)) {
-        batchHistory.value = parsed.slice(0, 10) as PercentageBatchHistoryEntry[];
+        const validModes: PercentageBatchMode[] = ['part', 'ratio', 'change', 'adjust', 'reverse', 'difference', 'points'];
+        batchHistory.value = parsed.filter((entry): entry is PercentageBatchHistoryEntry => (
+          !!entry
+          && typeof entry.id === 'string'
+          && typeof entry.createdAt === 'string'
+          && validModes.includes(entry.mode)
+          && typeof entry.input === 'string'
+          && Array.isArray(entry.rows)
+        )).slice(0, 10);
       }
     }
   }
@@ -390,7 +399,7 @@ function clearBatchHistory() {
                 <th scope="row" class="border-b p-2">{{ row.rowNumber }}</th>
                 <td class="border-b p-2 font-mono">{{ row.formula || '—' }}</td>
                 <td class="border-b p-2">
-                  <span v-if="row.error" class="text-red-600">{{ $t('tools.percentage-calculator.batch.errors.' + row.error) }}</span>
+                  <span v-if="row.error" class="text-red-600" role="alert">{{ $t('tools.percentage-calculator.batch.errors.' + row.error) }}</span>
                   <span v-else>{{ row.result }}</span>
                 </td>
                 <td class="border-b p-2">
