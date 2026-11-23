@@ -112,8 +112,9 @@ export function runPercentageBatch(
         break;
       }
       case 'adjustment': {
-        const increased = a * (1 + b / 100);
-        const decreased = a * (1 - b / 100);
+        const delta = a * b / 100;
+        const increased = a + delta;
+        const decreased = a - delta;
         formula = `Increase: ${numberText(a)} × (1 + ${numberText(b)} ÷ 100) = ${numberText(increased)}; Decrease: ${numberText(a)} × (1 − ${numberText(b)} ÷ 100) = ${numberText(decreased)}`;
         result = `Increase: ${numberText(increased)} | Decrease: ${numberText(decreased)}`;
         break;
