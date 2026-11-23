@@ -61,7 +61,7 @@ function generate() {
   generated.value = '';
   copyState.value = '';
   try {
-    generated.value = buildHtpasswdLines(entries.value, hashOne).join('\\n');
+    generated.value = buildHtpasswdLines(entries.value, hashOne).join('\n');
   }
   catch (error) {
     genError.value = error instanceof Error ? error.message : String(error);
@@ -79,7 +79,7 @@ async function copyOutput() {
 }
 
 function downloadOutput() {
-  const blob = new Blob([`${generated.value}\\n`], { type: 'text/plain;charset=utf-8' });
+  const blob = new Blob([`${generated.value}\n`], { type: 'text/plain;charset=utf-8' });
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement('a');
   anchor.href = url;
@@ -148,7 +148,7 @@ function verify() {
 }
 
 function useGenerated() {
-  line.value = generated.value.split('\\n')[0] ?? '';
+  line.value = generated.value.split('\n')[0] ?? '';
   passwordToCheck.value = entries.value[0]?.password ?? '';
   verifyResult.value = null;
 }
