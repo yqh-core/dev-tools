@@ -96,11 +96,13 @@ export const GUIDES: Record<string, ToolGuide> = {
       { q: 'Basic 认证的用户名可以包含冒号吗？', a: '不可以。Basic 格式用第一个冒号分隔用户名和密码；密码可以包含后续冒号。' },
     ],
     relatedNotes: [
-      { slug: 'http-basic-auth-header-guide' },
-      { title: 'HTTP Basic Authentication Header: Base64 Format, HTTPS & cURL' },
-      { description: 'Understand how an Authorization: Basic header is formed, why Base64 is not encryption, how to generate or decode it, and how to send credentials safely over HTTPS.' },
-      { url: 'https://notes.digdevbox.com/posts/http-basic-auth-header-guide' },
-      { tag: 'HTTP Auth' },
+      {
+        slug: 'http-basic-auth-header-guide',
+        title: 'HTTP Basic Authentication Header: Base64 Format, HTTPS & cURL',
+        description: 'Understand how an Authorization: Basic header is formed, why Base64 is not encryption, how to generate or decode it, and how to send credentials safely over HTTPS.',
+        url: 'https://notes.digdevbox.com/posts/http-basic-auth-header-guide',
+        tag: 'HTTP Auth',
+      },
     ],
   },
 
@@ -433,11 +435,13 @@ export const GUIDES: Record<string, ToolGuide> = {
       { q: '如果处理速度发生变化怎么办？', a: '结果基于你输入的速率估算。如果任务变快或变慢，请重新测量一个有代表性的时间区间并更新速率，预计完成时间就会相应调整。' },
     ],
     relatedNotes: [
-      { slug: 'eta-calculator-guide' },
-      { title: 'How to Calculate Task Completion Time from Processing Rate' },
-      { description: 'Estimate when a download, build or batch job will finish using total workload, processing rate and start time — with a worked example, formula and practical limits.' },
-      { url: 'https://notes.digdevbox.com/posts/eta-calculator-guide' },
-      { tag: 'ETA' },
+      {
+        slug: 'eta-calculator-guide',
+        title: 'How to Calculate Task Completion Time from Processing Rate',
+        description: 'Estimate when a download, build or batch job will finish using total workload, processing rate and start time — with a worked example, formula and practical limits.',
+        url: 'https://notes.digdevbox.com/posts/eta-calculator-guide',
+        tag: 'ETA',
+      },
     ],
   },
 
@@ -1237,11 +1241,13 @@ export const GUIDES: Record<string, ToolGuide> = {
       { q: '为什么分成多个输入而不是一个公式？', a: '三个问题的未知数位置不同。分开就避免了最常见的手误：移项之后除了错误的基数。' },
     ],
     relatedNotes: [
-      { slug: 'percentage-change-vs-percentage-points' },
-      { title: 'Percentage Change vs Percentage Points: Which Formula Should You Use?' },
-      { description: 'Learn when to use percent change, percentage points, percent difference and reverse-percentage formulas, with worked examples for rates, prices and discounts.' },
-      { url: 'https://notes.digdevbox.com/posts/percentage-change-vs-percentage-points' },
-      { tag: 'Percentages' },
+      {
+        slug: 'percentage-change-vs-percentage-points',
+        title: 'Percentage Change vs Percentage Points: Which Formula Should You Use?',
+        description: 'Learn when to use percent change, percentage points, percent difference and reverse-percentage formulas, with worked examples for rates, prices and discounts.',
+        url: 'https://notes.digdevbox.com/posts/percentage-change-vs-percentage-points',
+        tag: 'Percentages',
+      },
     ],
   },
 
