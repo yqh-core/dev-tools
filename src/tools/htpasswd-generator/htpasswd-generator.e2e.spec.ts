@@ -57,7 +57,7 @@ test.describe('Tool - multi-user htpasswd generator', () => {
     await page.getByLabel('Username:').nth(0).fill('apache-user');
     await page.getByLabel('Password:').nth(0).fill('secret');
     await page.getByRole('button', { name: 'Generate .htpasswd' }).click();
-    await expect(page.locator('pre')).toContainText(/^apache-user:\\$2a\\$04\\$/);
+    await expect(page.locator('pre')).toContainText(/^apache-user:\$2a\$04\$/);
     await expect(page.getByText(/Nginx auth_basic does not support bcrypt/)).toBeVisible();
   });
 
