@@ -18,7 +18,6 @@ describe('article-only guide content', () => {
     expect(zh['/api-debugger'].articleOnlySections).toHaveLength(en['/api-debugger'].articleOnlySections!.length);
   });
 
-
   it('adds unique percentage examples to the standalone guide and makes its shape indexable', () => {
     const page = GUIDE_ARTICLE_PAGES.find(item => item.toolPath === '/percentage-calculator');
     expect(page).toBeDefined();
