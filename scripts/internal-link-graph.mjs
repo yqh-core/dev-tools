@@ -1,5 +1,5 @@
 function readAttribute(tag, name) {
-  const match = tag.match(new RegExp('\\b' + name + '\\s*=\\s*(["\\'])(.*?)\\1', 'i'));
+  const match = tag.match(new RegExp("\\b" + name + "\\s*=\\s*([\"\'])(.*?)\\1", "i"));
   return match?.[2] ?? null;
 }
 
