@@ -7,15 +7,15 @@ const expected = [
   {
     path: '/percentage-calculator',
     slug: 'percentage-change-vs-percentage-points',
-    title: "Percentage Change vs Percentage Points: Which Formula Should You Use?",
-    description: "Learn when to use percent change, percentage points, percent difference and reverse-percentage formulas, with worked examples for rates, prices and discounts.",
+    title: 'Percentage Change vs Percentage Points: Which Formula Should You Use?',
+    description: 'Learn when to use percent change, percentage points, percent difference and reverse-percentage formulas, with worked examples for rates, prices and discounts.',
     tag: 'Percentages',
   },
   {
     path: '/eta-calculator',
     slug: 'eta-calculator-guide',
-    title: "How to Calculate Task Completion Time from Processing Rate",
-    description: "Estimate when a download, build or batch job will finish using total workload, processing rate and start time — with a worked example, formula and practical limits.",
+    title: 'How to Calculate Task Completion Time from Processing Rate',
+    description: 'Estimate when a download, build or batch job will finish using total workload, processing rate and start time — with a worked example, formula and practical limits.',
     tag: 'ETA',
   },
 ] as const;
