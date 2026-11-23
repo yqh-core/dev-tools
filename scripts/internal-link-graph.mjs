@@ -56,7 +56,7 @@ export function analyzeInternalLinkGraph(pages, sitemapUrls, origin) {
   for (const page of pages) {
     const sourcePath = canonicalPathFromHtml(page.html, canonicalOrigin)
       ?? fallbackPathFromFile(page.file);
-    if (!sourcePath) continue;
+    if (!sourcePath || !routePaths.has(sourcePath)) continue;
 
     const sourceUrl = new URL(sourcePath, canonicalOrigin + '/');
     for (const match of page.html.matchAll(/<a\b[^>]*\bhref\s*=\s*(["'])(.*?)\1/gi)) {
