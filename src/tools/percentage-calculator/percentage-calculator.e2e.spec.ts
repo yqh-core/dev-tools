@@ -190,12 +190,12 @@ test.describe('Percentage calculator batch Chinese localization', () => {
     await page.goto('/percentage-calculator');
     const panel = page.getByTestId('percentage-batch-panel');
     await panel.locator('summary').click();
-    await expect(panel).toContainText('\u767e\u5206\u6bd4\u6279\u91cf\u8ba1\u7b97\u5668');
-    await expect(panel).toContainText('\u8ba1\u7b97\u7c7b\u578b');
-    await expect(panel).toContainText('\u4e24\u5217\uff1a\u767e\u5206\u6bd4\u3001\u6570\u503c');
+    await expect(panel).toContainText('\u767E\u5206\u6BD4\u6279\u91CF\u8BA1\u7B97\u5668');
+    await expect(panel).toContainText('\u8BA1\u7B97\u7C7B\u578B');
+    await expect(panel).toContainText('\u4E24\u5217\uFF1A\u767E\u5206\u6BD4\u3001\u6570\u503C');
     await page.getByTestId('percentage-batch-mode').selectOption('part-to-whole');
-    await page.getByTestId('percentage-batch-input').fill('\u65e0\u6548\t30\t0');
+    await page.getByTestId('percentage-batch-input').fill('\u65E0\u6548\t30\t0');
     await page.getByTestId('percentage-batch-run').click();
-    await expect(page.getByTestId('percentage-batch-result-1')).toContainText('\u6574\u4f53\u6570\u503c\u4e0d\u80fd\u4e3a\u96f6');
+    await expect(page.getByTestId('percentage-batch-result-1')).toContainText('\u6574\u4F53\u6570\u503C\u4E0D\u80FD\u4E3A\u96F6');
   });
 });
