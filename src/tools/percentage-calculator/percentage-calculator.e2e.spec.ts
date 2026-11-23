@@ -24,6 +24,19 @@ test.describe('Tool - Percentage calculator', () => {
     await expect(guide).toContainText('original value of zero is undefined');
   });
 
+
+  test('Answers common percentage questions with supported formulas', async ({ page }) => {
+    const guide = page.getByTestId('percentage-calculator-guide');
+    await expect(guide).toContainText('How do I calculate a percentage of a number?');
+    await expect(guide).toContainText('18% of 250 is');
+    await expect(guide).toContainText('How do I find what percentage one number is of another?');
+    await expect(guide).toContainText('The total cannot be zero');
+    await expect(guide).toContainText('How do I calculate percentage increase or decrease?');
+    await expect(guide).toContainText('An original value of zero makes percentage change undefined');
+    await expect(guide).toContainText('How do I calculate a discount or add sales tax?');
+    await expect(guide).toContainText('actual tax rules depend on the product and location');
+  });
+
   test('Correctly works out percentages', async ({ page }) => {
     await page.getByTestId('percentageX').locator('input').fill('123');
     await page.getByTestId('percentageY').locator('input').fill('456');
