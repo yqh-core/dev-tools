@@ -60,15 +60,15 @@
 - [Base64 to Image — Online Decode, Preview and Download](https://digdevbox.com/base64-file-converter) - Convert a string, file, or image into its base64 representation.
 - [Color converter](https://digdevbox.com/color-converter) - Convert color between the different formats (hex, rgb, hsl and css name)
 - [Color Contrast Checker — Pass or Fail WCAG AA and AAA](https://digdevbox.com/color-contrast-checker) - Check the contrast ratio between two colours against WCAG 2.x AA and AAA thresholds for normal and large text, with a live text preview.
-- [Case converter](https://digdevbox.com/case-converter) - Transform the case of a string and choose between different formats
+- [Text Case Converter — camelCase, snake_case & More](https://digdevbox.com/case-converter) - Convert text between camelCase, PascalCase, snake_case, kebab-case, CONSTANT_CASE, uppercase, lowercase and other naming styles. Paste once, choose a format and copy the result.
 - [Text to NATO alphabet](https://digdevbox.com/text-to-nato-alphabet) - Transform text into the NATO phonetic alphabet for oral transmission.
 - [Text to ASCII binary](https://digdevbox.com/text-to-binary) - Convert text to its ASCII binary representation and vice-versa.
 - [Text to Unicode](https://digdevbox.com/text-to-unicode) - Parse and convert text to unicode and vice-versa — HTML entities or plain decimal code points.
-- [YAML to JSON converter](https://digdevbox.com/yaml-to-json-converter) - Simply convert YAML to JSON with this online live converter.
+- [YAML to JSON Converter — Convert YAML Online](https://digdevbox.com/yaml-to-json-converter) - Convert YAML configuration data into JSON in your browser. Nested mappings become objects, sequences become arrays, and YAML scalar types are reflected in the JSON output; comments are not preserved.
 - [YAML to TOML](https://digdevbox.com/yaml-to-toml) - Parse and convert YAML to TOML.
 - [JSON to YAML converter](https://digdevbox.com/json-to-yaml-converter) - Simply convert JSON to YAML with this online live converter.
 - [JSON to TOML](https://digdevbox.com/json-to-toml) - Parse and convert JSON to TOML.
-- [List converter](https://digdevbox.com/list-converter) - Remove duplicates, sort, reverse, lowercase, trim and add prefix/suffix to a list, one item per line. Everything runs in your browser — no upload.
+- [List Converter — Sort, Deduplicate & Format Lines](https://digdevbox.com/list-converter) - Clean up a line-by-line list: remove duplicate lines, sort or reverse items, trim whitespace, change case, add item prefixes or suffixes, and join values with a chosen separator. Runs in your browser.
 - [TOML to JSON](https://digdevbox.com/toml-to-json) - Parse and convert TOML to JSON.
 - [TOML to YAML](https://digdevbox.com/toml-to-yaml) - Parse and convert TOML to YAML.
 - [XML to JSON Converter — Convert XML Online](https://digdevbox.com/xml-to-json) - Convert XML into JSON in your browser. Elements become objects, repeated elements become arrays, and attributes and text are represented with separate keys.
@@ -107,7 +107,7 @@
 - [Image Resizer — Resize Images to Exact Dimensions](https://digdevbox.com/image-resize) - Resize an image to exact pixel width and height, with an optional aspect-ratio lock. Export PNG, JPEG or WebP when your browser supports the format; processing happens locally.
 - [Image Compressor](https://digdevbox.com/image-compress) - Compress JPEG and WebP images online to a quality level or a target file size — lossy re-encoding in your browser, so the file never leaves your machine.
 - [Image Cropper](https://digdevbox.com/image-crop) - Crop an image to an exact pixel region in your browser — drag the box, lock a ratio, and export at the true source resolution, not a scaled-down copy.
-- [Image Color Picker](https://digdevbox.com/image-color-picker) - Click any pixel of an image to read its exact colour as HEX, RGB and HSL — sampled from the original file, entirely offline in your browser.
+- [Image Color Picker — Get HEX, RGB & HSL from Any Image](https://digdevbox.com/image-color-picker) - Pick a pixel in an image to read its stored HEX, RGB and HSL values. Sampling uses the original image bitmap locally in your browser; transparent pixels report stored RGB values without alpha compositing.
 - [Favicon Generator](https://digdevbox.com/favicon-generator) - Turn any image into a real multi-size favicon.ico plus apple-touch-icon and 512px PNG — centre-cropped and resized in your browser, nothing uploaded.
 - [Images to PDF](https://digdevbox.com/image-to-pdf) - Combine images into one PDF, each on its own page at its own size — JPEG is carried in without re-compression, and everything runs in your browser.
 
