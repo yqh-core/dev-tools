@@ -142,6 +142,38 @@ const decreasedValue = computed(() => {
         <li>A percentage change from an original value of zero is undefined; choose a non-zero starting value.</li>
         <li>A 15% increase followed by a 15% decrease does not return to the starting value, because the second change uses a different base.</li>
       </ul>
+
+      <h3 class="mb-2 text-lg font-semibold">Common percentage questions</h3>
+      <div class="mb-4">
+        <h4 class="mb-1 font-semibold">How do I calculate a percentage of a number?</h4>
+        <p>
+          Divide the percentage by 100, then multiply by the number. For example, 18% of 250 is
+          (18 ÷ 100) × 250 = 45.
+        </p>
+      </div>
+      <div class="mb-4">
+        <h4 class="mb-1 font-semibold">How do I find what percentage one number is of another?</h4>
+        <p>
+          Divide the first number by the total, then multiply by 100. For example, 45 out of 250 is
+          (45 ÷ 250) × 100 = 18%. The total cannot be zero.
+        </p>
+      </div>
+      <div class="mb-4">
+        <h4 class="mb-1 font-semibold">How do I calculate percentage increase or decrease?</h4>
+        <p>
+          Subtract the original value from the new value, divide by the original value, and multiply
+          by 100. A positive result is an increase; a negative result is a decrease. An original
+          value of zero makes percentage change undefined.
+        </p>
+      </div>
+      <div class="mb-4">
+        <h4 class="mb-1 font-semibold">How do I calculate a discount or add sales tax?</h4>
+        <p>
+          Apply a discount with the decrease calculator and add a tax rate with the increase
+          calculator. If both apply, calculate each step using the updated amount; actual tax rules
+          depend on the product and location.
+        </p>
+      </div>
     </section>
   </div>
 </template>
