@@ -1,8 +1,9 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import {
   base32toHex,
   buildKeyUri,
   generateHOTP,
+  generateSecret,
   generateTOTP,
   hexToBytes,
   verifyHOTP,
@@ -126,6 +127,21 @@ describe('otp functions', () => {
       ).to.eql(
         'otpauth://totp/app-name:account?issuer=app-name&secret=JBSWY3DPEHPK3PXP&algorithm=algo&digits=7&period=10',
       );
+    });
+  });
+
+  describe('generateSecret', () => {
+    it('generates a 16-character Base32 secret using Web Crypto', () => {
+      const getRandomValues = vi.spyOn(globalThis.crypto, 'getRandomValues');
+      try {
+        const secret = generateSecret();
+        expect(getRandomValues).toHaveBeenCalledTimes(1);
+        expect(secret).toHaveLength(16);
+        expect(secret).toMatch(/^[A-Z2-7]{16}$/);
+      }
+      finally {
+        getRandomValues.mockRestore();
+      }
     });
   });
 });

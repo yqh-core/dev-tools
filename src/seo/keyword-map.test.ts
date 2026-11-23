@@ -186,7 +186,6 @@ describe('evidence-backed SEO keyword targets', () => {
     ['/toml-to-yaml', 'TOML to YAML converter', 'convert'],
     ['/yaml-to-toml', 'YAML to TOML converter', 'convert'],
     ['/mac-address-lookup', 'MAC address vendor lookup', 'lookup'],
-    ['/otp-generator', 'TOTP generator online', 'generate'],
     ['/unit-converter', 'unit converter online', 'convert'],
   ])('keeps source-audited candidates %s capability-matched', (path, keyword, intent) => {
     const entry = CLUSTER_KEYWORD_ENTRIES.find(item => item.path === path);
@@ -219,7 +218,6 @@ describe('evidence-backed SEO keyword targets', () => {
     ['/wifi-qrcode-generator', 'WiFi QR code generator', 'generate'],
     ['/roman-numeral-converter', 'Roman numeral converter', 'convert'],
     ['/svg-placeholder-generator', 'SVG placeholder generator', 'generate'],
-    ['/token-generator', 'random token generator', 'generate'],
     ['/ascii-table', 'ASCII table lookup', 'lookup'],
   ])('keeps source-audited utility candidate %s capability-matched', (path, keyword, intent) => {
     const entry = CLUSTER_KEYWORD_ENTRIES.find(item => item.path === path);
@@ -235,7 +233,6 @@ describe('evidence-backed SEO keyword targets', () => {
   it.each([
     ['/ascii-text-drawer', 'ASCII art text generator', 'generate'],
     ['/mac-address-generator', 'random MAC address generator', 'generate'],
-    ['/iban-validator-and-parser', 'IBAN validator and parser', 'inspect'],
     ['/string-obfuscator', 'string obfuscator', 'convert'],
     ['/emoji-picker', 'emoji picker and search', 'lookup'],
     ['/benchmark-builder', 'benchmark comparison calculator', 'compute'],
@@ -253,7 +250,6 @@ describe('evidence-backed SEO keyword targets', () => {
 
   it.each([
     ['/text-to-nato-alphabet', 'NATO phonetic alphabet converter', 'convert'],
-    ['/bcrypt', 'bcrypt hash generator and checker', 'generate'],
     ['/bip39-generator', 'BIP39 mnemonic generator', 'generate'],
     ['/chronometer', 'online stopwatch', 'compute'],
     ['/device-information', 'browser device information checker', 'inspect'],
@@ -306,6 +302,20 @@ describe('evidence-backed SEO keyword targets', () => {
     ['/whois-lookup', 'domain WHOIS lookup', 'Domain WHOIS & RDAP Lookup — Check Registration Details'],
     ['/rsa-key-pair-generator', 'RSA key pair generator', 'RSA Key Pair Generator — Create Public & Private PEM Keys'],
     ['/html-wysiwyg-editor', 'HTML WYSIWYG editor', 'HTML WYSIWYG Editor — Format Text & Copy HTML'],
+  ])('locks newly landed P1 utility %s to its capability-matched title', (path, keyword, lockedTitle) => {
+    const entry = CLUSTER_KEYWORD_ENTRIES.find(item => item.path === path);
+    expect(entry).toBeDefined();
+    expect(entry?.keyword).toBe(keyword);
+    expect(entry?.priority).toBe('P1');
+    expect(entry?.landed).toBe(true);
+    expect(entry?.lockedTitle).toBe(lockedTitle);
+  });
+
+  it.each([
+    ['/otp-generator', 'TOTP generator online', 'TOTP Code Generator — 6-Digit Authenticator Codes & QR Setup'],
+    ['/token-generator', 'random token generator', 'Random Token Generator — Custom Length & Character Sets'],
+    ['/bcrypt', 'bcrypt hash generator and checker', 'Bcrypt Hash Generator & Checker — Hash and Compare Passwords'],
+    ['/iban-validator-and-parser', 'IBAN validator and parser', 'IBAN Validator & Parser — Check Format, Country & BBAN'],
   ])('locks newly landed P1 utility %s to its capability-matched title', (path, keyword, lockedTitle) => {
     const entry = CLUSTER_KEYWORD_ENTRIES.find(item => item.path === path);
     expect(entry).toBeDefined();

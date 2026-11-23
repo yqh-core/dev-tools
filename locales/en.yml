@@ -230,8 +230,8 @@ tools:
       refresh: Refresh
 
   token-generator:
-    title: Token Generator
-    description: Generate random tokens and strings online — pick the length (1-512) and character set (uppercase, lowercase, digits, symbols). Free, instant, nothing leaves your browser.
+    title: "Random Token Generator — Custom Length & Character Sets"
+    description: "Generate random strings 1–512 characters long using uppercase, lowercase, digits and optional symbols. Choose the character sets and copy or refresh the result. Uses non-cryptographic randomness; do not use for passwords, API secrets or security tokens."
 
     uppercase: Uppercase (ABC...)
     lowercase: Lowercase (abc...)
@@ -275,8 +275,8 @@ tools:
     description: "Convert and edit colors between HEX, RGB, HSL, HWB, LCH, CMYK and the nearest CSS color name, with a color picker. Values are computed in your browser."
 
   bcrypt:
-    title: Bcrypt
-    description: Hash and compare text string using bcrypt. Bcrypt is a password-hashing function based on the Blowfish cipher.
+    title: "Bcrypt Hash Generator & Checker — Hash and Compare Passwords"
+    description: "Generate bcrypt hashes with configurable salt rounds from 0 to 100 and compare a plaintext value against an existing bcrypt hash. The browser-based bcryptjs tool does not decrypt hashes or store account credentials."
 
   crontab-generator:
     title: Crontab Generator — Cron Expressions with Plain-English Preview
@@ -359,8 +359,8 @@ tools:
     description: Parse a URL into its scheme, hostname, port, path, query parameters and fragment. Inspect UTM tags in the URL with your browser's built-in parser.
 
   iban-validator-and-parser:
-    title: IBAN validator and parser
-    description: Validate and parse IBAN numbers. Check if an IBAN is valid and get the country, BBAN, if it is a QR-IBAN and the IBAN friendly format.
+    title: "IBAN Validator & Parser — Check Format, Country & BBAN"
+    description: "Validate an IBAN's country-specific structure and checksum, inspect errors, identify QR-IBAN status and extract the country code and BBAN. A valid checksum does not confirm account ownership or payment availability."
 
   user-agent-parser:
     title: User Agent Parser — Browser, OS & Device Detection
@@ -695,8 +695,8 @@ tools:
     description: Compare two text inputs in a side-by-side diff editor to spot additions, deletions and changed lines.
 
   otp-generator:
-    title: OTP code generator
-    description: Generate and validate time-based OTP (one time password) for multi-factor authentication.
+    title: "TOTP Code Generator — 6-Digit Authenticator Codes & QR Setup"
+    description: "Generate 6-digit time-based codes from a Base32 secret, view previous, current and next 30-second codes, and create an otpauth URI QR code for authenticator setup. Generated secrets use Web Crypto; no account integration or OTP verification UI is provided."
 
   url-encoder:
     title: URL Encoder & Decoder — Percent-Encoding, encodeURIComponent Pitfalls
