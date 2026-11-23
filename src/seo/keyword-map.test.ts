@@ -195,4 +195,27 @@ describe('evidence-backed SEO keyword targets', () => {
     expect(entry?.note).toContain('Candidate mapping only');
   });
 
+
+  it.each([
+    ['/ascii-text-drawer', 'ASCII art text generator', 'generate'],
+    ['/text-to-unicode', 'text to Unicode converter', 'convert'],
+    ['/pdf-signature-checker', 'PDF digital signature checker', 'inspect'],
+    ['/mac-address-generator', 'random MAC address generator', 'generate'],
+    ['/text-to-binary', 'text to binary converter', 'convert'],
+    ['/iban-validator-and-parser', 'IBAN validator and parser', 'inspect'],
+    ['/string-obfuscator', 'string obfuscator', 'convert'],
+    ['/emoji-picker', 'emoji picker and search', 'lookup'],
+    ['/benchmark-builder', 'benchmark comparison calculator', 'compute'],
+    ['/reaction-time-test', 'reaction time test', 'compute'],
+  ])('keeps source-audited conversion candidate %s capability-matched', (path, keyword, intent) => {
+    const entry = CLUSTER_KEYWORD_ENTRIES.find(item => item.path === path);
+
+    expect(entry).toBeDefined();
+    expect(entry?.keyword).toBe(keyword);
+    expect(entry?.intent).toBe(intent);
+    expect(entry?.landed).toBe(false);
+    expect((entry?.keywords ?? []).length).toBeGreaterThanOrEqual(4);
+    expect(entry?.note).toContain('Candidate mapping only');
+  });
+
 });

@@ -67,7 +67,7 @@ export const KNOWN_NOTE_SLUGS = [
 export const NOTES_ORIGIN = 'https://notes.digdevbox.com';
 
 /**
- * Keyword Map §1 总表：11 个原始关键词簇 / 24 行；截至 2026-11-23，PR #65 分支已扩展到 93 条主关键词记录，另有 5 条 aliases，共覆盖 98 条唯一工具路由；新增候选不代表已验证搜索量或流量。
+ * Keyword Map §1 总表：11 个原始关键词簇 / 24 行；截至 2026-11-23，PR #65 分支已扩展到 103 条主关键词记录，另有 5 条 aliases，共覆盖 108 条唯一工具路由；新增候选不代表已验证搜索量或流量。
  *
  * 行序与原文档一致（⛔ 不要按 path 重排 —— 序号本身就是「先做哪一批」的阅读顺序）。
  * 字段口径见 `KeywordMapEntry`。
@@ -1098,6 +1098,108 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     competition: 'medium',
     landed: false,
     note: 'Source confirms searchable ASCII character/code entries by character, decimal and hexadecimal representation. Candidate mapping only; no volume/KD/SERP evidence.',
+  },
+
+
+  {
+    path: '/ascii-text-drawer',
+    keyword: 'ASCII art text generator',
+    keywords: ['ASCII text art generator', 'text to ASCII banner', 'FIGlet text generator', 'ASCII banner maker'],
+    intent: 'generate',
+    priority: 'P2',
+    competition: 'medium',
+    landed: false,
+    note: 'Source confirms text-to-ASCII-art rendering with selectable FIGlet fonts and output width. Candidate mapping only; font assets load from a CDN, so do not claim offline operation. No volume/KD/SERP evidence.',
+  },
+  {
+    path: '/text-to-unicode',
+    keyword: 'text to Unicode converter',
+    keywords: ['Unicode to text converter', 'Unicode code point converter', 'text to Unicode escape', 'decimal code points to text'],
+    intent: 'convert',
+    priority: 'P1',
+    competition: 'medium',
+    landed: false,
+    note: 'Source confirms bidirectional text/Unicode conversion and text ↔ decimal code-point lists. Candidate mapping only; no volume/KD/SERP evidence.',
+  },
+  {
+    path: '/pdf-signature-checker',
+    keyword: 'PDF digital signature checker',
+    keywords: ['verify PDF signature online', 'check digital signature in PDF', 'PDF certificate signature validator', 'inspect signed PDF'],
+    intent: 'inspect',
+    priority: 'P1',
+    competition: 'medium',
+    landed: false,
+    note: 'Source confirms local PDF signature inspection and cryptographic integrity/certificate checks for supported detached formats. Unsupported formats, invalid signatures and untrusted/expired certificates are distinguished; do not imply legal certification or universal signature support. No volume/KD/SERP evidence.',
+  },
+  {
+    path: '/mac-address-generator',
+    keyword: 'random MAC address generator',
+    keywords: ['MAC address generator online', 'generate random MAC addresses', 'MAC address with custom prefix', 'bulk MAC address generator'],
+    intent: 'generate',
+    priority: 'P2',
+    competition: 'medium',
+    landed: false,
+    note: 'Source confirms generation of 1–100 MAC addresses with optional prefix, case and separator controls. Candidate mapping only; generated addresses are not proof of vendor assignment or device availability. No volume/KD/SERP evidence.',
+  },
+  {
+    path: '/text-to-binary',
+    keyword: 'text to binary converter',
+    keywords: ['binary to text converter', 'ASCII to binary converter', 'binary code translator', 'convert binary string to text'],
+    intent: 'convert',
+    priority: 'P1',
+    competition: 'high',
+    landed: false,
+    note: 'Source confirms text-to-ASCII-binary and ASCII-binary-to-text conversion with validation for byte groups. Do not claim arbitrary Unicode binary encoding. Candidate mapping only; no volume/KD/SERP evidence.',
+  },
+  {
+    path: '/iban-validator-and-parser',
+    keyword: 'IBAN validator and parser',
+    keywords: ['validate IBAN online', 'IBAN checker', 'IBAN format validator', 'IBAN country code lookup', 'QR-IBAN checker'],
+    intent: 'inspect',
+    priority: 'P1',
+    competition: 'high',
+    landed: false,
+    note: 'Source confirms IBAN checksum/structure validation, country and BBAN extraction, friendly formatting and QR-IBAN identification. Do not claim bank-account ownership verification or payment authorization. Candidate mapping only; no volume/KD/SERP evidence.',
+  },
+  {
+    path: '/string-obfuscator',
+    keyword: 'string obfuscator',
+    keywords: ['obfuscate text online', 'mask part of a string', 'hide sensitive text', 'partially redact a string'],
+    intent: 'convert',
+    priority: 'P2',
+    competition: 'medium',
+    landed: false,
+    note: 'Source confirms reversible-looking display masking with configurable first/last visible characters and space preservation. Do not describe it as encryption or secure secret storage. Candidate mapping only; no volume/KD/SERP evidence.',
+  },
+  {
+    path: '/emoji-picker',
+    keyword: 'emoji picker and search',
+    keywords: ['search emoji online', 'copy emoji symbols', 'emoji finder by name', 'emoji Unicode code point lookup'],
+    intent: 'lookup',
+    priority: 'P2',
+    competition: 'high',
+    landed: false,
+    note: 'Source confirms searchable emoji catalog with names, keywords, groups and Unicode/code-point metadata. Candidate mapping only; no volume/KD/SERP evidence.',
+  },
+  {
+    path: '/benchmark-builder',
+    keyword: 'benchmark comparison calculator',
+    keywords: ['compare benchmark results', 'execution time benchmark comparison', 'calculate benchmark mean and variance', 'compare test suite performance'],
+    intent: 'compute',
+    priority: 'P2',
+    competition: 'medium',
+    landed: false,
+    note: 'Source confirms user-entered benchmark suite values are compared using mean and variance, sorted by mean, with Markdown/bullet export. It does not execute benchmarks. Candidate mapping only; no volume/KD/SERP evidence.',
+  },
+  {
+    path: '/reaction-time-test',
+    keyword: 'reaction time test',
+    keywords: ['online reaction time test', 'reflex test milliseconds', 'human reaction speed test', 'reaction time average calculator'],
+    intent: 'compute',
+    priority: 'P2',
+    competition: 'high',
+    landed: false,
+    note: 'Source confirms a browser reaction-time test with repeated rounds and mean result. Results are device/browser-session measurements, not a clinical or standardized assessment. Candidate mapping only; no volume/KD/SERP evidence.',
   },
 
 ];
