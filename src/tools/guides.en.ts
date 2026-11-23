@@ -1191,9 +1191,9 @@ export const GUIDES: Record<string, ToolGuide> = {
   },
 
   '/pdf-signature-checker': {
-    intro: 'Checks whether a PDF carries a digital signature and reports, for each one, its cryptographic integrity, certificate-chain trust and validity window — a technical check, not a legal opinion.',
+    intro: 'Checks supported PDF digital signatures and reports each signature’s cryptographic integrity, certificate-chain trust and validity window — a technical check, not a legal opinion.',
     steps: ['Choose or drag in a PDF file', 'Wait for it to be parsed', 'Read the number of signatures and the per-signature result'],
-    notes: ['Having a signature only means a signature field exists — trustworthiness also depends on the certificate chain', 'It does not check certificate revocation (CRL / OCSP) or a trusted signing timestamp, and a passing "verified" is never the same as a legally binding signature'],
+    notes: ['Supported signature subfilters are adbe.pkcs7.detached and ETSI.CAdES.detached; other formats are reported as unsupported', 'Having a signature only means a signature field exists — trustworthiness also depends on the certificate chain', 'It does not check certificate revocation (CRL / OCSP) or a trusted signing timestamp, and a passing "verified" is never the same as a legally binding signature'],
     about: 'Verify the digital signatures inside a PDF file: who signed it and whether the content has been altered since signing. The file is processed locally, so confidential contracts can be checked without uploading them to a third party — useful when a counterparty\'s PDF arrives and you need to trust it before acting.',
     faqs: [
       { q: 'What does a valid signature actually prove?', a: 'Two separate things this tool reports independently: cryptographic integrity (the bytes covered by the signature still match the hash embedded in it) and certificate-chain trust (the signer certificate chains to a root the tool trusts). Neither alone means "legally valid", and without a trusted timestamp it cannot confirm the certificate was valid at the moment of signing.' },
@@ -1244,8 +1244,8 @@ export const GUIDES: Record<string, ToolGuide> = {
   },
 
   '/qrcode-generator': {
-    intro: 'Turns text or a link into a QR code, with customisable colours and size, ready to download.',
-    steps: ['Enter what to encode (a URL or any text)', 'Adjust the foreground colour, background colour and size as needed', 'Click download to save the image'],
+    intro: 'Turns a URL or text into a QR code with customisable foreground and background colours and error correction, ready to download as a PNG.',
+    steps: ['Enter the URL or text to encode', 'Choose the foreground and background colours and an error-correction level', 'Download the generated PNG image'],
     notes: ['Longer content makes a denser code; if it will not scan, shorten the content or increase the size'],
     example: { label: 'Fill in a sample link', text: 'https://digdevbox.com' },
     about: 'A QR code is a choice you make three times: what data goes in, how much damage it must survive, and how big it must print. The data determines the version (the 21×21 to 177×177 module grid) — a URL under 100 characters lands in versions 3–5, while pasting a full vCard pushes toward version 10 and denser modules. Error correction is the dial most people never touch: level H survives about 30% of the code area being destroyed, which is exactly what a logo overlay needs, but it costs capacity — the same string at level H can jump two full versions. Print size has a physical floor: roughly 4 pixels per module on the target printer, and a version-4 code at 33 modules needs about 132 pixels minimum before it stops being scannable at arm\'s length. These three choices trade against each other, which is why "just paste a longer link" fails silently on posters. Static codes generated here encode exactly what you type — no redirect layer, no third-party hop. If you need to change the destination later, that is a different product shape (a short redirect URL you control); if you need one code that never breaks, the static one you can print and archive is the right tool.',
@@ -1473,13 +1473,13 @@ export const GUIDES: Record<string, ToolGuide> = {
   },
 
   '/text-to-binary': {
-    intro: 'Converts text to and from ASCII binary — for inspecting low-level representations or teaching.',
+    intro: 'Converts basic ASCII text to and from 8-bit binary groups — for inspecting low-level representations or teaching.',
     steps: ['Enter the text or the binary', 'The other side updates automatically', 'Copy and use it'],
     notes: ['Binary is grouped in 8-bit blocks; spaces between them are tolerated'],
     example: { label: 'Fill in sample text', text: 'Hi' },
     about: 'Convert text into its ASCII binary representation and back — each character becomes one 8-bit byte, so "Hi" is 01001000 01101001. Useful in teaching contexts, protocol debugging, and any moment you want to see what a string really is under the hood.',
     faqs: [
-      { q: 'Why 8 bits per character?', a: 'Extended ASCII and UTF-8 both represent the basic Latin range in single 8-bit bytes. For characters beyond that range, UTF-8 uses multiple bytes — check the Unicode tool for those.' },
+      { q: 'Why 8 bits per character?', a: 'Basic ASCII characters fit in one 8-bit byte. UTF-8 encodes non-ASCII characters as one or more bytes, which this tool does not produce; use the Unicode tool for decimal character references or code-point lists.' },
       { q: 'How do I convert back without losing data?', a: 'Split the binary into groups of 8 bits and map each to its character code. Groups that are not multiples of 8 indicate truncated or corrupted input.' },
       { q: 'Can binary text keep a message secret?', a: 'Not at all — it is a faithful encoding with no key. Anyone can decode it, which makes it great for illustration and useless for secrecy.' },
     ],
@@ -1505,8 +1505,8 @@ export const GUIDES: Record<string, ToolGuide> = {
   },
 
   '/text-to-unicode': {
-    intro: 'Converts text to and from Unicode code points — useful for tracking down mojibake or writing escape sequences.',
-    steps: ['Enter the text or the code point sequence', 'The other side shows the converted result', 'Copy and use it'],
+    intro: 'Converts text to decimal HTML numeric character references and back, and separately converts text to and from decimal Unicode code-point lists.',
+    steps: ['Enter text in the HTML-reference or decimal-code-point section, or paste values into its reverse field', 'Read the corresponding decimal references, code-point list or decoded text', 'Copy the result you need'],
     example: { label: 'Fill in sample text', text: 'Hello 你好' },
     notes: [
       'The numbers are UTF-16 code units, not Unicode code points: characters outside the Basic Multilingual Plane (most emoji) come out as a pair of surrogate references.',
@@ -1516,7 +1516,7 @@ export const GUIDES: Record<string, ToolGuide> = {
     about: 'Turn text into numeric character references and back. Each character becomes &#NN; holding its UTF-16 code-unit value, so “Hello” turns into &#72;&#101;&#108;&#108;&#111;, and the reverse field takes a run of those references and gives the text back. This is the form that survives systems which mangle non-ASCII bytes: paste it into HTML and the browser renders the original characters regardless of the file\'s encoding. Note what it is not — the numbers are code units rather than code points, and the only syntax either direction understands is decimal &#NN;.',
     faqs: [
       { q: 'Why does my "duplicate" username fail a comparison?', a: 'It very likely contains invisible characters — zero-width spaces, joiners or look-alike homoglyphs. Inspecting the code points exposes them; a character that should not be there will stand out immediately.' },
-      { q: 'What is the difference between U+ notation and \\u escapes?', a: 'They are two spellings of the same code point: U+1F600 and \\uD83D\\uDE00 (its surrogate pair in JS/JSON) both denote the same emoji. This tool converts between the views so you can paste whichever your context needs.' },
+      { q: 'What is the difference between U+ notation and \\u escapes?', a: 'This tool does not parse U+ notation or \\uXXXX escapes. Its first mode uses decimal HTML numeric references such as &#128512; (with UTF-16 code-unit behavior), while the separate code-point mode accepts decimal numbers such as 128512. Use a dedicated Unicode escape converter if you need hexadecimal U+ or \\u forms.' },
       { q: 'What are combining characters?', a: 'Accents and marks that attach to the previous character instead of standing alone. "é" can be one code point or "e" plus a combining accent — both display the same but compare differently, and this tool shows which one you have.' },
       { q: 'Why does my emoji turn into two numbers?', a: 'Because it sits outside the Basic Multilingual Plane, so JavaScript stores it as a surrogate pair — two UTF-16 code units. The tool reports both, and reading them back reassembles the emoji correctly. A tool that claims to emit code points would show one larger number instead.' },
       { q: 'Can it read \\u0048 or &#x48; style escapes?', a: 'No. The reverse pass matches decimal references only. Hexadecimal references mean the same character in HTML and \\uXXXX belongs to JavaScript string syntax rather than HTML, but neither is parsed here.' },

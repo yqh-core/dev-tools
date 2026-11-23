@@ -43,7 +43,7 @@
 - [RSA Key Pair Generator](https://digdevbox.com/rsa-key-pair-generator) - Generate an RSA private/public key pair online — PEM format, 2048 to 8192 bits, for SSH, TLS or JWT RS256. No OpenSSL install, keys never leave your browser.
 - [Password Strength Checker — Entropy & Crack-Time Estimate](https://digdevbox.com/password-strength-analyser) - Estimate password length, character-set entropy, score and brute-force crack time locally in your browser. The estimate does not account for dictionary attacks and is not a guarantee; the password is not uploaded.
 - [Password Generator](https://digdevbox.com/password-generator) - Generate strong, secure random passwords online — pick the length (8-128) and character sets, with a cryptographic random source. Ambiguous characters (Il1O0) excluded by default, nothing leaves your browser.
-- [PDF signature checker](https://digdevbox.com/pdf-signature-checker) - Verify the signatures of a PDF file. A signed PDF file contains one or more signatures that may be used to determine whether the contents of the file have been altered since the file was signed.
+- [PDF Signature Checker — Verify PDF Signatures & Certificates](https://digdevbox.com/pdf-signature-checker) - Inspect supported PDF digital signatures, check signed-byte integrity and certificate trust or expiry, and distinguish unsupported or unreadable files. These are technical checks, not legal certification.
 - [PDF Merge — Combine PDF Files Online](https://digdevbox.com/pdf-merge) - Combine two or more PDF files into one document in your browser. Files are merged in upload order, with page counts shown before you start; download the combined PDF.
 - [PDF Split — Split PDF Pages or Extract a Range](https://digdevbox.com/pdf-split) - Split a PDF into separate single-page files or extract a selected page range into a new PDF. Check the page count first; processing runs in your browser.
 - [PDF Watermark — Add Text Watermarks to PDF](https://digdevbox.com/pdf-watermark) - Add a text watermark to every page of a PDF. Adjust font size, opacity and angle, then choose a single centered line or a tiled layout; processing stays in your browser.
@@ -62,8 +62,8 @@
 - [Color Contrast Checker — Pass or Fail WCAG AA and AAA](https://digdevbox.com/color-contrast-checker) - Check the contrast ratio between two colours against WCAG 2.x AA and AAA thresholds for normal and large text, with a live text preview.
 - [Text Case Converter — camelCase, snake_case & More](https://digdevbox.com/case-converter) - Convert text between camelCase, PascalCase, snake_case, kebab-case, CONSTANT_CASE, uppercase, lowercase and other naming styles. Paste once, choose a format and copy the result.
 - [Text to NATO alphabet](https://digdevbox.com/text-to-nato-alphabet) - Transform text into the NATO phonetic alphabet for oral transmission.
-- [Text to ASCII binary](https://digdevbox.com/text-to-binary) - Convert text to its ASCII binary representation and vice-versa.
-- [Text to Unicode](https://digdevbox.com/text-to-unicode) - Parse and convert text to unicode and vice-versa — HTML entities or plain decimal code points.
+- [Text to Binary Converter — ASCII 8-Bit Encoder & Decoder](https://digdevbox.com/text-to-binary) - Convert basic ASCII text to 8-bit binary groups and decode byte-aligned ASCII binary back to text. This is not a Unicode or UTF-8 byte encoder.
+- [Text to Unicode Converter — Decimal HTML References & Code Points](https://digdevbox.com/text-to-unicode) - Convert text to decimal HTML numeric character references and back, or convert text to decimal Unicode code-point lists. HTML-reference mode uses UTF-16 code units and does not support hexadecimal entities or \u escapes.
 - [YAML to JSON Converter — Convert YAML Online](https://digdevbox.com/yaml-to-json-converter) - Convert YAML configuration data into JSON in your browser. Nested mappings become objects, sequences become arrays, and YAML scalar types are reflected in the JSON output; comments are not preserved.
 - [YAML to TOML](https://digdevbox.com/yaml-to-toml) - Parse and convert YAML to TOML.
 - [JSON to YAML converter](https://digdevbox.com/json-to-yaml-converter) - Simply convert JSON to YAML with this online live converter.
@@ -100,7 +100,7 @@
 
 ### Images and videos
 
-- [QR Code generator](https://digdevbox.com/qrcode-generator) - Generate and download a QR code for a URL (or just plain text), and customize the background and foreground colors.
+- [QR Code Generator — Create & Download Custom QR Codes](https://digdevbox.com/qrcode-generator) - Create a QR code from a URL or text. Customize foreground and background colors, choose an error-correction level, and download a PNG image.
 - [WiFi QR Code generator](https://digdevbox.com/wifi-qrcode-generator) - Generate and download QR codes for quick connections to WiFi networks.
 - [SVG placeholder generator](https://digdevbox.com/svg-placeholder-generator) - Generate svg images to use as a placeholder in your applications.
 - [Webcam Recorder — Record Video & Take Photos Online](https://digdevbox.com/camera-recorder) - Record webcam video or take still photos in your browser. Choose a camera and microphone, pause or resume recording, then download your clip. Files stay on your device.
