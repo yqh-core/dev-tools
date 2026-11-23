@@ -3,6 +3,22 @@ import { GUIDE_ARTICLE_PAGES, buildGuideSections } from '@/seo/guide-articles';
 import { loadGuides } from '@/tools/guides';
 
 describe('article-only guide content', () => {
+  it('adds an original API tester workflow to the standalone guide', async () => {
+    const page = GUIDE_ARTICLE_PAGES.find(item => item.toolPath === '/api-debugger');
+    expect(page).toBeDefined();
+    expect(page?.indexable).toBe(true);
+    expect(page?.sections.filter(section => section.id.startsWith('article-only-'))).toHaveLength(3);
+
+    const [en, zh] = await Promise.all([loadGuides('en'), loadGuides('zh')]);
+    expect(en['/api-debugger'].steps).toHaveLength(5);
+    expect(zh['/api-debugger'].steps).toHaveLength(en['/api-debugger'].steps.length);
+    expect(en['/api-debugger'].faqs).toHaveLength(3);
+    expect(zh['/api-debugger'].faqs).toHaveLength(en['/api-debugger'].faqs!.length);
+    expect(en['/api-debugger'].articleOnlySections).toHaveLength(3);
+    expect(zh['/api-debugger'].articleOnlySections).toHaveLength(en['/api-debugger'].articleOnlySections!.length);
+  });
+
+
   it('adds unique percentage examples to the standalone guide and makes its shape indexable', () => {
     const page = GUIDE_ARTICLE_PAGES.find(item => item.toolPath === '/percentage-calculator');
     expect(page).toBeDefined();
