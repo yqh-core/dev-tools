@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { textToBase64 } from '@/utils/base64';
 import { decodeBasicAuthHeader } from './basic-auth-generator.service';
+import { textToBase64 } from '@/utils/base64';
 
 describe('decodeBasicAuthHeader', () => {
   it('decodes a complete Authorization header', () => {
@@ -14,12 +14,12 @@ describe('decodeBasicAuthHeader', () => {
   });
 
   it('preserves additional colons in the password', () => {
-    expect(decodeBasicAuthHeader('Basic ' + textToBase64('service:pass:word')))
+    expect(decodeBasicAuthHeader(`Basic ${textToBase64('service:pass:word')}`))
       .toEqual({ username: 'service', password: 'pass:word' });
   });
 
   it('round-trips UTF-8 credentials', () => {
-    expect(decodeBasicAuthHeader('Basic ' + textToBase64('münchen:pässword')))
+    expect(decodeBasicAuthHeader(`Basic ${textToBase64('münchen:pässword')}`))
       .toEqual({ username: 'münchen', password: 'pässword' });
   });
 
@@ -29,7 +29,7 @@ describe('decodeBasicAuthHeader', () => {
   });
 
   it('rejects decoded values without a colon separator', () => {
-    expect(() => decodeBasicAuthHeader('Basic ' + textToBase64('no-separator')))
+    expect(() => decodeBasicAuthHeader(`Basic ${textToBase64('no-separator')}`))
       .toThrow('username/password separator');
   });
 });
