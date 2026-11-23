@@ -13,7 +13,7 @@ describe('buildHtpasswdLines', () => {
   });
 
   it('rejects empty usernames, unsafe delimiters and line breaks', () => {
-    for (const username of ['', '   ', 'bad:name', 'bad\\nname', 'bad\\rname']) {
+    for (const username of ['', '   ', 'bad:name', 'bad\nname', 'bad\rname']) {
       expect(() => buildHtpasswdLines([{ username, password: 'pw' }], () => 'hash')).toThrow();
     }
   });
