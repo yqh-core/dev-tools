@@ -411,8 +411,8 @@ tools:
     description: Generate lorem ipsum placeholder text — paragraphs, sentences or words — for layouts and mockups. The classic printing-industry dummy text since the 1500s, free and instant, right in your browser.
 
   qrcode-generator:
-    title: QR Code generator
-    description: Generate and download a QR code for a URL (or just plain text), and customize the background and foreground colors.
+    title: "QR Code Generator — Create & Download Custom QR Codes"
+    description: "Create a QR code from a URL or text. Customize foreground and background colors, choose an error-correction level, and download a PNG image."
 
   wifi-qrcode-generator:
     title: WiFi QR Code generator
@@ -632,8 +632,8 @@ tools:
       targetUnreachable: Even the lowest quality could not reach that size. Raise the target, or resize the image first.
 
   pdf-signature-checker:
-    title: PDF signature checker
-    description: Verify the signatures of a PDF file. A signed PDF file contains one or more signatures that may be used to determine whether the contents of the file have been altered since the file was signed.
+    title: "PDF Signature Checker — Verify PDF Signatures & Certificates"
+    description: "Inspect supported PDF digital signatures, check signed-byte integrity and certificate trust or expiry, and distinguish unsupported or unreadable files. These are technical checks, not legal certification."
 
   json-minify:
     title: JSON minify
@@ -683,8 +683,8 @@ tools:
     description: "Generate or decode an HTTP Basic Authorization header in your browser. Copy the Base64 value and use a cURL example with environment variables. Base64 is not encryption; use HTTPS."
 
   text-to-unicode:
-    title: Text to Unicode
-    description: Parse and convert text to unicode and vice-versa — HTML entities or plain decimal code points.
+    title: "Text to Unicode Converter — Decimal HTML References & Code Points"
+    description: "Convert text to decimal HTML numeric character references and back, or convert text to decimal Unicode code-point lists. HTML-reference mode uses UTF-16 code units and does not support hexadecimal entities or \\u escapes."
 
   ipv4-range-expander:
     title: IP Range to CIDR Converter — Convert IPv4 Ranges Online
@@ -703,8 +703,8 @@ tools:
     description: Encode text to URL-encoded format (also known as "percent-encoded"), or decode from it.
 
   text-to-binary:
-    title: Text to ASCII binary
-    description: Convert text to its ASCII binary representation and vice-versa.
+    title: "Text to Binary Converter — ASCII 8-Bit Encoder & Decoder"
+    description: "Convert basic ASCII text to 8-bit binary groups and decode byte-aligned ASCII binary back to text. This is not a Unicode or UTF-8 byte encoder."
 
   ascii-text-drawer:
     title: ASCII Art Generator
