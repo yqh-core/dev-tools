@@ -376,8 +376,8 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     priority: 'P1',
     competition: 'high',
     article: 'url-encoding-guide',
-    landed: false,
-    proposedTitle: 'URL Parser — Inspect Query Parameters and UTM Tags',
+    landed: true,
+    lockedTitle: 'URL Parser — Inspect Query Parameters and UTM Tags',
     note: '簇 8。同 /url-encoder，做基建，不给首页第一屏。',
   },
   {
@@ -538,8 +538,9 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     intent: 'convert',
     priority: 'P1',
     competition: 'medium',
-    landed: false,
-    note: 'Candidate mapping for the tool that converts a start/end IPv4 range into a valid subnet and CIDR notation. Competition is provisional; no volume/KD claims.',
+    landed: true,
+    lockedTitle: 'IP Range to CIDR Converter — Convert IPv4 Ranges Online',
+    note: 'Production title landed after US SERP review; capability is a minimal CIDR cover for a start/end IPv4 range. No volume/KD claims.',
   },
   {
     path: '/text-diff',
