@@ -85,7 +85,7 @@ export const GUIDES: Record<string, ToolGuide> = {
   '/basic-auth-generator': {
     intro: '根据用户名和密码生成 HTTP Basic Authorization 头，也可解码已有的 Basic 头或 Base64 凭据。',
     steps: ['填用户名', '填密码', '复制生成的 Authorization 头'],
-    notes: ['Basic 认证只是把账号密码做 Base64，必须配合 HTTPS 使用'],
+    notes: ['Basic 认证只是把账号密码做 Base64，必须配合 HTTPS 使用', 'Basic 认证的用户名不能包含冒号；密码中的冒号会保留。'],
     example: { label: '填入示例用户名', text: 'admin' },
     about: '生成 HTTP Basic 认证的 Authorization 头，也可以粘贴完整的 Authorization 头或 Base64 token 来解码。第一个冒号分隔用户名与密码，因此密码可以包含冒号，但用户名不能包含冒号。两种操作都在浏览器中计算，不会提交到账户服务。Base64 可逆，不是加密；必须使用 HTTPS，并把生成的头当作密码保护。',
     faqs: [
