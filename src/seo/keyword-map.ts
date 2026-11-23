@@ -1128,7 +1128,7 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     priority: 'P1',
     competition: 'medium',
     landed: false,
-    note: 'Source confirms local PDF signature inspection and cryptographic integrity/certificate checks for supported detached formats. Unsupported formats, invalid signatures and untrusted/expired certificates are distinguished; do not imply legal certification or universal signature support. No volume/KD/SERP evidence.',
+    note: 'Source confirms local PDF signature inspection and cryptographic integrity/certificate checks for supported detached formats. Unsupported formats, invalid signatures and untrusted/expired certificates are distinguished; do not imply legal certification or universal signature support. Candidate mapping only; no volume/KD/SERP evidence.',
   },
   {
     path: '/mac-address-generator',
