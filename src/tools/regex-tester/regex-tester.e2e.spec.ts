@@ -10,7 +10,7 @@ test.describe('Tool - Regex Tester isolated execution', () => {
     await page.getByLabel('Text to match:').fill('hello world');
     await page.getByLabel('Replacement:').fill('$<word>!');
     await expect(page.locator('pre').first()).toContainText('hello! world');
-    await expect(page.getByText('word')).toBeVisible();
+    await expect(page.getByText(/"word" = hello \[0 - 5\]/)).toBeVisible();
   });
 
   test('terminates catastrophic backtracking and recovers for the next request', async ({ page }) => {
@@ -28,7 +28,7 @@ test.describe('Tool - Regex Tester isolated execution', () => {
   test('shows invalid-pattern errors and recovers after correction', async ({ page }) => {
     await page.getByLabel('Regex to test:').fill('(');
     await page.getByLabel('Text to match:').fill('hello');
-    await expect(page.getByText(/Invalid regular expression/)).toBeVisible();
+    await expect(page.getByText(/Invalid regex:/)).toBeVisible();
 
     await page.getByLabel('Regex to test:').fill('hello');
     await expect(page.locator('tbody tr').first().locator('td').nth(1)).toContainText('hello', { timeout: 5000 });
@@ -50,7 +50,7 @@ test.describe('Tool - Regex Tester isolated execution', () => {
   });
 
   test('applies a verified JavaScript preset', async ({ page }) => {
-    await page.locator('.n-base-selection').first().click();
+    await page.getByText('Verified presets:').locator('..').locator('.n-base-selection').click();
     await page.getByRole('option', { name: 'IPv4 address' }).click();
     await page.getByLabel('Text to match:').fill('Server: 192.168.1.42');
     await expect(page.locator('tbody tr').first().locator('td').nth(1)).toContainText('192.168.1.42', { timeout: 5000 });
