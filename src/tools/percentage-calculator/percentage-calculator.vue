@@ -1,46 +1,95 @@
 <script setup lang="ts">
+const isFiniteNumber = (value: unknown): value is number =>
+  typeof value === 'number' && Number.isFinite(value);
+
+const resultText = (value: number): string =>
+  Number.isFinite(value) ? value.toString() : '';
+
 const percentageX = ref();
 const percentageY = ref();
 const percentageResult = computed(() => {
-  if (percentageX.value === undefined || percentageY.value === undefined) {
+  if (!isFiniteNumber(percentageX.value) || !isFiniteNumber(percentageY.value)) {
     return '';
   }
-  return (percentageX.value / 100 * percentageY.value).toString();
+  return resultText(percentageX.value / 100 * percentageY.value);
 });
 
 const numberX = ref();
 const numberY = ref();
 const numberResult = computed(() => {
-  if (numberX.value === undefined || numberY.value === undefined) {
+  if (!isFiniteNumber(numberX.value) || !isFiniteNumber(numberY.value) || numberY.value === 0) {
     return '';
   }
-  const result = 100 * numberX.value / numberY.value;
-  return (!Number.isFinite(result) || Number.isNaN(result)) ? '' : result.toString();
+  return resultText(100 * numberX.value / numberY.value);
 });
 
 const numberFrom = ref();
 const numberTo = ref();
 const percentageIncreaseDecrease = computed(() => {
-  if (numberFrom.value === undefined || numberTo.value === undefined) {
+  if (!isFiniteNumber(numberFrom.value) || !isFiniteNumber(numberTo.value) || numberFrom.value === 0) {
     return '';
   }
-  const result = (numberTo.value - numberFrom.value) / numberFrom.value * 100;
-  return (!Number.isFinite(result) || Number.isNaN(result)) ? '' : result.toString();
+  return resultText((numberTo.value - numberFrom.value) / numberFrom.value * 100);
 });
 
 const adjustmentValue = ref();
 const adjustmentPercent = ref();
 const increasedValue = computed(() => {
-  if (adjustmentValue.value === undefined || adjustmentPercent.value === undefined) {
+  if (!isFiniteNumber(adjustmentValue.value) || !isFiniteNumber(adjustmentPercent.value)) {
     return '';
   }
-  return (adjustmentValue.value * (1 + adjustmentPercent.value / 100)).toString();
+  return resultText(adjustmentValue.value * (1 + adjustmentPercent.value / 100));
 });
 const decreasedValue = computed(() => {
-  if (adjustmentValue.value === undefined || adjustmentPercent.value === undefined) {
+  if (!isFiniteNumber(adjustmentValue.value) || !isFiniteNumber(adjustmentPercent.value)) {
     return '';
   }
-  return (adjustmentValue.value * (1 - adjustmentPercent.value / 100)).toString();
+  return resultText(adjustmentValue.value * (1 - adjustmentPercent.value / 100));
+});
+
+const reverseFinalValue = ref();
+const reversePercent = ref();
+const originalBeforeIncrease = computed(() => {
+  if (!isFiniteNumber(reverseFinalValue.value) || !isFiniteNumber(reversePercent.value)) {
+    return '';
+  }
+  const factor = 1 + reversePercent.value / 100;
+  if (factor === 0) {
+    return '';
+  }
+  return resultText(reverseFinalValue.value / factor);
+});
+const originalBeforeDecrease = computed(() => {
+  if (!isFiniteNumber(reverseFinalValue.value) || !isFiniteNumber(reversePercent.value)) {
+    return '';
+  }
+  const factor = 1 - reversePercent.value / 100;
+  if (factor === 0) {
+    return '';
+  }
+  return resultText(reverseFinalValue.value / factor);
+});
+
+const differenceA = ref();
+const differenceB = ref();
+const percentageDifference = computed(() => {
+  if (!isFiniteNumber(differenceA.value) || !isFiniteNumber(differenceB.value)) {
+    return '';
+  }
+  const averageMagnitude = (Math.abs(differenceA.value) + Math.abs(differenceB.value)) / 2;
+  if (averageMagnitude === 0) {
+    return '';
+  }
+  return resultText(Math.abs(differenceA.value - differenceB.value) / averageMagnitude * 100);
+});
+
+const rateFrom = ref();
+const rateTo = ref();
+const percentagePointChange = computed(() => {
+  if (!isFiniteNumber(rateFrom.value) || !isFiniteNumber(rateTo.value)) {
+    return '';
+  }
+  return resultText(rateTo.value - rateFrom.value);
 });
 </script>
 
@@ -111,14 +160,75 @@ const decreasedValue = computed(() => {
           </div>
         </div>
       </c-card>
+
+      <c-card mb-3 data-test-id="reverse-percentage-card">
+        <div mb-3>
+          Find the original value before a percentage increase or decrease
+        </div>
+        <div grid grid-cols-2 gap-2>
+          <div>
+            <div text-sm op-70 mb-1>Final value</div>
+            <n-input-number v-model:value="reverseFinalValue" data-test-id="reverseFinalValue" placeholder="Final value" />
+          </div>
+          <div>
+            <div text-sm op-70 mb-1>Percentage applied</div>
+            <n-input-number v-model:value="reversePercent" data-test-id="reversePercent" placeholder="Percent" />
+          </div>
+        </div>
+        <div grid grid-cols-2 gap-2 mt-2>
+          <div>
+            <div text-sm op-70 mb-1>Original before an increase</div>
+            <input-copyable v-model:value="originalBeforeIncrease" data-test-id="originalBeforeIncrease" readonly placeholder="Result" />
+          </div>
+          <div>
+            <div text-sm op-70 mb-1>Original before a decrease</div>
+            <input-copyable v-model:value="originalBeforeDecrease" data-test-id="originalBeforeDecrease" readonly placeholder="Result" />
+          </div>
+        </div>
+      </c-card>
+
+      <c-card mb-3 data-test-id="percentage-difference-card">
+        <div mb-3>
+          Percentage difference between two values
+        </div>
+        <div grid grid-cols-2 gap-2>
+          <n-input-number v-model:value="differenceA" data-test-id="differenceA" placeholder="Value A" />
+          <n-input-number v-model:value="differenceB" data-test-id="differenceB" placeholder="Value B" />
+        </div>
+        <div mt-2>
+          <div text-sm op-70 mb-1>Symmetric percentage difference</div>
+          <input-copyable v-model:value="percentageDifference" data-test-id="percentageDifference" readonly placeholder="Result" />
+        </div>
+      </c-card>
+
+      <c-card mb-3 data-test-id="percentage-points-card">
+        <div mb-3>
+          Percentage-point change between two rates
+        </div>
+        <div grid grid-cols-2 gap-2>
+          <div>
+            <div text-sm op-70 mb-1>Old rate (%)</div>
+            <n-input-number v-model:value="rateFrom" data-test-id="rateFrom" placeholder="Old rate" />
+          </div>
+          <div>
+            <div text-sm op-70 mb-1>New rate (%)</div>
+            <n-input-number v-model:value="rateTo" data-test-id="rateTo" placeholder="New rate" />
+          </div>
+        </div>
+        <div flex items-center gap-2 mt-2>
+          <input-copyable v-model:value="percentagePointChange" data-test-id="percentagePointChange" readonly placeholder="Result" />
+          <span text-sm op-70>percentage points</span>
+        </div>
+      </c-card>
     </div>
 
     <section class="mx-auto mt-8 max-w-800px px-4" data-test-id="percentage-calculator-guide">
       <h2 class="mb-3 text-xl font-semibold">How to calculate a percentage</h2>
       <p class="mb-4">
-        Use the calculator above for four common percentage problems: finding a percent of a number,
-        expressing one number as a percent of another, measuring percentage change, and applying a
-        percent increase or decrease.
+        Use the calculator above for seven common percentage problems: finding a percent of a number,
+        expressing one number as a percent of another, measuring percentage change, applying an
+        increase or decrease, reversing a percentage change, comparing two values symmetrically, and
+        measuring percentage-point change between rates.
       </p>
 
       <h3 class="mb-2 text-lg font-semibold">Percentage formulas and examples</h3>
@@ -127,20 +237,27 @@ const decreasedValue = computed(() => {
         <li><strong>X is what percent of Y?</strong> Calculate (X ÷ Y) × 100. Example: 30 is 25% of 120.</li>
         <li><strong>Percentage change:</strong> Calculate ((new value − original value) ÷ original value) × 100. Example: a price rising from 80 to 92 is a 15% increase.</li>
         <li><strong>Increase or decrease by a percent:</strong> Multiply the starting value by (1 + p ÷ 100) to increase, or (1 − p ÷ 100) to decrease. Example: reducing 80 by 15% gives 68.</li>
+        <li><strong>Reverse percentage:</strong> Divide a final value by (1 + p ÷ 100) to find the value before an increase, or by (1 − p ÷ 100) to reverse a decrease. For example, 120 after a 20% increase came from 120 ÷ 1.20 = 100.</li>
+        <li><strong>Percentage difference:</strong> Divide the absolute difference by the average of the two values' absolute magnitudes, then multiply by 100. For 100 and 150, the symmetric difference is 40%.</li>
+        <li><strong>Percentage points:</strong> Subtract the old rate from the new rate. A move from 5% to 7% is +2 percentage points, or +40% relative change.</li>
       </ul>
 
       <h3 class="mb-2 text-lg font-semibold">Discounts, sales tax and percentage change</h3>
       <p class="mb-4">
         For a discount, use the decrease calculation: subtract the discount percentage from the original
-        price. For sales tax, use the increase calculation: add the tax percentage to the pre-tax price.
-        For example, a 10% discount on 50 gives 45 before any additional taxes or fees.
+        price. To recover the pre-discount price from a sale price, use reverse percentage instead.
+        For sales tax, use the increase calculation: add the tax percentage to the pre-tax price.
+        For example, a 10% discount on 50 gives 45 before any additional taxes or fees; reversing that
+        discount divides 45 by 0.90 to recover 50.
       </p>
 
       <h3 class="mb-2 text-lg font-semibold">Common percentage calculation mistakes</h3>
       <ul class="list-disc pl-6">
         <li>Percentage change uses the original value as its denominator, not the new value.</li>
+        <li>Percentage difference uses the average magnitude of both values, not the original value as a baseline.</li>
         <li>A percentage change from an original value of zero is undefined; choose a non-zero starting value.</li>
         <li>A 15% increase followed by a 15% decrease does not return to the starting value, because the second change uses a different base.</li>
+        <li>A percentage-point change is an absolute difference between rates, not the same as relative percentage change.</li>
       </ul>
 
       <h3 class="mb-2 text-lg font-semibold">Common percentage questions</h3>
@@ -164,6 +281,29 @@ const decreasedValue = computed(() => {
           Subtract the original value from the new value, divide by the original value, and multiply
           by 100. A positive result is an increase; a negative result is a decrease. An original
           value of zero makes percentage change undefined.
+        </p>
+      </div>
+      <div class="mb-4">
+        <h4 class="mb-1 font-semibold">How do I find the original value before a discount or increase?</h4>
+        <p>
+          Divide the final value by one plus the increase rate, or one minus the decrease rate. A
+          $80 item after a 20% discount had an original price of 80 ÷ 0.80 = $100; adding 20% to $80
+          would not reverse the discount.
+        </p>
+      </div>
+      <div class="mb-4">
+        <h4 class="mb-1 font-semibold">What is the difference between percentage change and percentage difference?</h4>
+        <p>
+          Percentage change is directional and uses the starting value as its base. Percentage
+          difference is symmetric: it divides the absolute gap by the average magnitude of both
+          values, so swapping A and B does not change the result.
+        </p>
+      </div>
+      <div class="mb-4">
+        <h4 class="mb-1 font-semibold">What is a percentage-point change?</h4>
+        <p>
+          It is the new rate minus the old rate. A move from 5% to 7% is +2 percentage points and
+          +40% relative change; the two measurements answer different questions.
         </p>
       </div>
       <div class="mb-4">
