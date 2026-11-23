@@ -121,7 +121,7 @@ jobs:
             const percentageMarkerReady = percentageResponse.ok &&
               percentageResponse.url === origin + '/percentage-calculator/' &&
               percentageHtml.includes('<title>Percentage Calculator — Percent & Change - DigDevBox</title>') &&
-              percentageHtml.includes('content="Calculate a percentage of a number, find what percent one value is of another, measure percentage change, or apply a discount or sales tax. Four free calculators."') &&
+              percentageHtml.includes('content="Calculate a percentage, reverse an increase or discount, compare two values, and find percentage-point changes. Seven free calculator modes in your browser."') &&
               percentageHtml.includes('href="' + origin + '/percentage-calculator/"');
             const htpasswdMarkerReady = htpasswdResponse.ok &&
               htpasswdResponse.url === origin + '/htpasswd-generator/' &&
@@ -301,7 +301,7 @@ jobs:
                 JSON.stringify({ googlebot: botMeta, browser: browserMeta }));
             }
             const expectedMetadata = {
-              '/percentage-calculator/': { title: 'Percentage Calculator — Percent & Change - DigDevBox', description: 'Calculate a percentage of a number, find what percent one value is of another, measure percentage change, or apply a discount or sales tax. Four free calculators.', h1: 'Percentage Calculator' },
+              '/percentage-calculator/': { title: 'Percentage Calculator — Percent & Change - DigDevBox', description: 'Calculate a percentage, reverse an increase or discount, compare two values, and find percentage-point changes. Seven free calculator modes in your browser.', h1: 'Percentage Calculator' },
               '/api-debugger/': { title: 'REST API Tester — cURL, Tests & Collections - DigDevBox', description: 'Send REST API requests, import cURL, inspect status, headers and JSON, add assertions, and run saved collections. Requests pass through a temporary relay.', h1: 'REST API Tester' },
               '/regex-tester/': { title: 'Regular Expression Tester — JavaScript Regex - DigDevBox', description: 'Test JavaScript regular expressions online with live matches, capture groups and replacement preview. A 300ms worker timeout stops runaway patterns.', h1: 'Regular Expression Tester' },
               '/json-prettify/': { title: 'JSON Formatter — Format, Validate & Diff - DigDevBox', description: 'Format and validate JSON online — pretty-print at your indent size, sort keys and spot syntax errors instantly, right in your browser.', h1: 'JSON Formatter' },
