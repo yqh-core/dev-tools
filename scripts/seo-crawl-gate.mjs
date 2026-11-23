@@ -80,6 +80,11 @@ function isHttpError(row) {
   return Boolean(match && Number(match[1]) >= 400);
 }
 
+function isCrawlerTransportError(row) {
+  const status = String(row?.status ?? '');
+  return /^-\d+:/.test(status) && !/^-\d+:SKIPPED$/.test(status);
+}
+
 async function evaluateSite(site) {
   const report = await readReport(site);
   const summary = report.summary?.items || [];
@@ -97,6 +102,15 @@ async function evaluateSite(site) {
     if (!item || item.status !== 'OK') {
       (site.priority ? errors : warnings).push(item?.text || code + ' result missing');
     }
+  }
+
+  const redirectTable = report.tables?.redirects;
+  if (!redirectTable || !Array.isArray(redirectTable.rows)) {
+    (site.priority ? errors : warnings).push('crawler report is missing its redirects evidence table');
+  }
+  const redirectRows = redirectTable?.rows || [];
+  if (redirectRows.length > 0) {
+    warnings.push(redirectRows.length + ' redirect hop(s) found; update internal links to point directly to final URLs');
   }
 
   const notFoundTable = report.tables?.['404'];
@@ -144,11 +158,21 @@ async function evaluateSite(site) {
     }
   }
 
+  // SiteOne negative statuses such as -4:SEND-ERROR are crawler transport
+  // failures, not HTTP responses. Surface them separately instead of allowing
+  // a zero-404 report to imply that every discovered URL was fetched.
+  const transportErrors = (report.results || []).filter(isCrawlerTransportError);
+  for (const row of transportErrors) {
+    warnings.push('Crawler transport failure (' + row.status + '): ' + row.url);
+  }
+
   return {
     site,
     pages: report.stats?.totalUrls ?? 'unknown',
     status200: report.stats?.countByStatus?.['200'] ?? 0,
     notFound: notFoundRows.length,
+    redirects: redirectRows.length,
+    transportErrors: transportErrors.length,
     skippedOutOfScope: skippedRows.length,
     accepted: accepted.length,
     errors,
@@ -170,6 +194,12 @@ async function main() {
     if (isHttpError({ status: '200' }) || isHttpError({ status: '301' }) || isHttpError({ status: '-6:SKIPPED' })) {
       throw new Error('self-test failed: accepted status was treated as an HTTP error');
     }
+    if (!isCrawlerTransportError({ status: '-4:SEND-ERROR' })) {
+      throw new Error('self-test failed: crawler SEND-ERROR was not surfaced');
+    }
+    if (isCrawlerTransportError({ status: '-6:SKIPPED' }) || isCrawlerTransportError({ status: '200' })) {
+      throw new Error('self-test failed: skipped or successful result was treated as a transport error');
+    }
     if (!imageForgeWorkerCandidate(good)) throw new Error('self-test failed: expected Browserify candidate');
     if (imageForgeWorkerCandidate(wrongTarget)) throw new Error('self-test failed: accepted wrong target');
     if (imageForgeWorkerCandidate(wrongSource)) throw new Error('self-test failed: accepted wrong source');
@@ -187,6 +217,8 @@ async function main() {
         pages: 'unknown',
         status200: 0,
         notFound: 'unknown',
+        redirects: 'unknown',
+        transportErrors: 'unknown',
         accepted: 0,
         errors: [error.message],
         warnings: [],
@@ -195,7 +227,7 @@ async function main() {
   }
 
   console.log('Production SEO crawl quality gate');
-  console.log('Growth-priority sites: zero untriaged 404s, robots.txt verified, title/description/canonical present.');
+  console.log('Growth-priority sites: zero untriaged 404s, robots.txt verified, title/description/canonical present; redirect hops and crawler transport failures are surfaced separately.');
   console.log('Technical-health-only sites are monitored and reported without blocking US/EU growth releases.');
   for (const result of results) {
     const label = result.site.priority ? 'GROWTH' : 'TECH-ONLY';
@@ -204,6 +236,8 @@ async function main() {
       + ' | crawled=' + result.pages
       + ' | HTTP 200=' + result.status200
       + ' | 404=' + result.notFound
+      + ' | redirect hops=' + result.redirects
+      + ' | crawler transport errors=' + result.transportErrors
       + ' | accepted false positives=' + result.accepted
       + ' | out-of-scope links skipped=' + result.skippedOutOfScope,
     );
