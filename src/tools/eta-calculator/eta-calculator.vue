@@ -24,11 +24,18 @@ const endAt = computed(() =>
 </script>
 
 <template>
-  <div>
-    <div text-justify op-70>
-      For example, if a batch processes 5 records in 3 minutes and contains 500 records, the estimated total duration is 5 hours.
-    </div>
-    <n-divider />
+  <div flex flex-col gap-3>
+    <c-card title="How the estimate works" data-test-id="eta-calculator-example">
+      <p>
+        Estimated duration = total amount ÷ amount processed per interval × interval length.
+      </p>
+      <p mt-2>
+        Example: 500 records ÷ 5 records per 3 minutes = 100 intervals, or 300 minutes (5 hours).
+      </p>
+      <p mt-2 text-xs opacity-60>
+        The estimate assumes a steady processing rate. Pauses, setup time and changes in workload are not included.
+      </p>
+    </c-card>
     <div flex gap-2>
       <n-form-item label="Total amount to process" flex-1>
         <n-input-number v-model:value="unitCount" :min="1" />
