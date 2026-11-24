@@ -1516,7 +1516,7 @@ export const GUIDES: Record<string, ToolGuide> = {
     ],
     example: {
       label: '每行粘贴一个 Outlook Safe Links 地址',
-      text: 'https://nam01.safelinks.protection.outlook.com/?url=https%3A%2F%2Fexample.com%2Fdocs\\nhttps://eur01.safelinks.protection.outlook.com/?url=https%3A%2F%2Fexample.org%2Faccount',
+      text: 'https://nam01.safelinks.protection.outlook.com/?url=https%3A%2F%2Fexample.com%2Fdocs\nhttps://eur01.safelinks.protection.outlook.com/?url=https%3A%2F%2Fexample.org%2Faccount',
     },
     about: 'Outlook Safe Links 批量解码器会提取每条 Microsoft Outlook Safe Links 包装链接中嵌入的目标地址。每行粘贴一个 URL，即可在浏览器本地批量处理、保留原始行号、分别显示错误，并一次复制成功结果。每条成功结果还会显示目标协议、主机和嵌套包装层数，帮助你先检查地址结构。解析器只接受 HTTPS Outlook Safe Links 包装链接，最多解开五层，并要求最终目标使用 HTTP 或 HTTPS。它不会请求或打开包装链接及目标网站，不会评估域名信誉，也不会替代或绕过 Microsoft 点击时的安全检查；请遵循组织批准的安全流程。',
     faqs: [
