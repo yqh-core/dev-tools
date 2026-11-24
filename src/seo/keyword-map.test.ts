@@ -353,4 +353,16 @@ describe('evidence-backed SEO keyword targets', () => {
     expect(entry?.lockedTitle).toBe(title);
     expect((title as string).length + ' - DigDevBox'.length).toBeLessThanOrEqual(60);
   });
+
+  it('locks JSON Diff Checker to its distinct structural comparison intent', () => {
+    const entry = CLUSTER_KEYWORD_ENTRIES.find(item => item.path === '/json-diff');
+
+    expect(entry).toBeDefined();
+    expect(entry?.keyword).toBe('json diff checker');
+    expect(entry?.priority).toBe('P1');
+    expect(entry?.intent).toBe('debug');
+    expect(entry?.landed).toBe(true);
+    expect(entry?.lockedTitle).toBe('JSON Diff Checker — Compare JSON Online');
+    expect(entry?.note).toContain('structural JSON comparison intent');
+  });
 });
