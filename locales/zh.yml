@@ -889,7 +889,20 @@ tools:
 
   text-statistics:
     title: 文本统计 — 在线字数与字符数统计工具
-    description: 在线统计字数、可见字符、Unicode 码点、UTF-16 单元和 UTF-8 字节，并计算句子、段落、行数与阅读时间。浏览器本地处理，不上传文本。
+    description: 统计字数、字符、Unicode 单元、行数和 UTF-8 字节，分析高频词，并估算阅读与演讲时间。所有文本均在浏览器本地处理。
+    speakingTime: 预计朗读时间
+    speakingSpeed: 朗读速度
+    speakingSpeedAria: 每分钟朗读词数
+    wordsPerMinute: 词/分钟
+    topTerms: 高频词统计
+    excludeEnglishStopWords: 排除常见英文停用词
+    stopWordsDescription: 仅英文分析可用。排除的词不会计入本表的分母，但不会改变上方总词数。
+    analyzedTokens: "参与统计的词元：{count}"
+    termColumn: 词语
+    countColumn: 出现次数
+    shareColumn: 占比
+    noTerms: 暂无可展示的词语。
+    termFrequencyNote: 占比以本表上方显示的词元总数为分母。词频仅描述输入文本，不代表搜索量、关键词需求或排名数据。
 
   text-to-nato-alphabet:
     title: 文本转北约字母表
