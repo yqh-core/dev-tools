@@ -1,3 +1,4 @@
+import { Buffer } from 'node:buffer';
 import { expect, test } from '@playwright/test';
 
 test.describe('Tool - local HTTP response header analyzer', () => {
@@ -30,6 +31,75 @@ test.describe('Tool - local HTTP response header analyzer', () => {
     await expect(page.getByTestId('analysis-results')).toContainText('SameSite is not explicit');
   });
 
+  test('imports a HAR locally and lets the user choose a response entry', async ({ page }) => {
+    const har = {
+      log: {
+        entries: [
+          {
+            request: { method: 'GET', url: 'https://example.com/page' },
+            response: {
+              status: 200,
+              statusText: 'OK',
+              httpVersion: 'HTTP/2',
+              headers: [
+                { name: 'content-type', value: 'text/html' },
+                { name: 'set-cookie', value: 'session=example; Secure' },
+              ],
+            },
+          },
+          {
+            request: { method: 'GET', url: 'https://api.example.com/items' },
+            response: {
+              status: 204,
+              statusText: 'No Content',
+              httpVersion: 'HTTP/2',
+              headers: [
+                { name: 'x-content-type-options', value: 'nosniff' },
+                { name: 'referrer-policy', value: 'no-referrer' },
+              ],
+            },
+          },
+        ],
+      },
+    };
+
+    await page.getByTestId('har-file-input').setInputFiles({
+      name: 'capture.har',
+      mimeType: 'application/json',
+      buffer: Buffer.from(JSON.stringify(har)),
+    });
+
+    await expect(page.getByTestId('analysis-results')).toContainText('HTTP/2 200 OK');
+    await expect(page.getByTestId('analysis-results')).toContainText('Cookie session');
+    await expect(page.getByTestId('har-entry-select')).toBeVisible();
+
+    await page.getByTestId('har-entry-select').click();
+    await page.getByText('GET https://api.example.com/items — 204 No Content').click();
+    await expect(page.getByTestId('analysis-results')).toContainText('HTTP/2 204 No Content');
+    await expect(page.getByTestId('header-checks')).toContainText('MIME sniffing protection');
+  });
+
+  test('imports a plain-text response header file locally', async ({ page }) => {
+    await page.getByTestId('har-file-input').setInputFiles({
+      name: 'response.txt',
+      mimeType: 'text/plain',
+      buffer: Buffer.from('HTTP/2 200 OK\\nX-Content-Type-Options: nosniff'),
+    });
+    await expect(page.getByTestId('analysis-results')).toContainText('HTTP/2 200 OK');
+    await expect(page.getByTestId('header-checks')).toContainText('MIME sniffing protection');
+  });
+
+  test('rejects invalid HAR files without replacing the current analysis', async ({ page }) => {
+    await page.getByTestId('raw-response-headers').locator('textarea').fill('HTTP/2 200 OK');
+    await page.getByTestId('har-file-input').setInputFiles({
+      name: 'invalid.har',
+      mimeType: 'application/json',
+      buffer: Buffer.from('{"log":{"entries":"not-an-array"}}'),
+    });
+    await expect(page.getByTestId('har-import-error')).toContainText('valid HAR 1.2 file');
+    await expect(page.getByTestId('analysis-results')).toContainText('HTTP/2 200 OK');
+  });
+
   test('generates copyable server-specific snippets only for missing low-context headers', async ({ page }) => {
     await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
     await page.getByTestId('raw-response-headers').locator('textarea').fill('HTTP/2 200 OK');
@@ -47,6 +117,14 @@ test.describe('Tool - local HTTP response header analyzer', () => {
     await page.getByTestId('remediation-platform').click();
     await page.getByText('Caddy', { exact: true }).click();
     await expect(snippet).toContainText('header {');
+
+    await page.getByTestId('remediation-platform').click();
+    await page.getByText('Vercel', { exact: true }).click();
+    const vercelConfig = JSON.parse(await snippet.textContent() || '{}');
+    expect(vercelConfig.headers[0].headers).toContainEqual({
+      key: 'X-Content-Type-Options',
+      value: 'nosniff',
+    });
 
     await page.getByTestId('remediation-platform').click();
     await page.getByText('Cloudflare Pages', { exact: true }).click();
