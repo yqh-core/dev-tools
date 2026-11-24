@@ -6,6 +6,10 @@ test.describe('Tool - local HTTP response header analyzer', () => {
     await page.goto('/http-headers');
   });
 
+  test('Has the capability-matched title', async ({ page }) => {
+    await expect(page).toHaveTitle('HTTP Header Analyzer — HAR Import & Security Score - DigDevBox');
+  });
+
   test('loads a sample and renders a transparent coverage report', async ({ page }) => {
     await page.getByTestId('header-analyzer').getByRole('button', { name: 'Load sample' }).click();
 
