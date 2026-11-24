@@ -23,10 +23,10 @@ const batchSuccessCount = computed(() => batchResults.value.filter(result => res
 const batchFailureCount = computed(() => batchResults.value.filter(result => result.error).length);
 const batchSummary = computed(() => batchResults.value.length
   ? t('tools.safelink-decoder.batch.summary', {
-      success: batchSuccessCount.value,
-      total: batchResults.value.length,
-      failed: batchFailureCount.value,
-    })
+    success: batchSuccessCount.value,
+    total: batchResults.value.length,
+    failed: batchFailureCount.value,
+  })
   : '');
 
 watch(batchInput, () => {
@@ -75,8 +75,12 @@ async function copySuccessfulBatchResults(): Promise<void> {
     </n-form-item>
 
     <section class="mx-auto mt-8 max-w-800px px-4" data-test-id="safelink-batch">
-      <h2 class="mb-3 text-xl font-semibold">{{ t('tools.safelink-decoder.batch.title') }}</h2>
-      <p class="mb-3">{{ t('tools.safelink-decoder.batch.instructions') }}</p>
+      <h2 class="mb-3 text-xl font-semibold">
+        {{ t('tools.safelink-decoder.batch.title') }}
+      </h2>
+      <p class="mb-3">
+        {{ t('tools.safelink-decoder.batch.instructions') }}
+      </p>
 
       <n-input
         v-model:value="batchInput"
