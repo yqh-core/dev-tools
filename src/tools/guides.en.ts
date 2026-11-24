@@ -2237,16 +2237,20 @@ export const GUIDES: Record<string, ToolGuide> = {
   },
 
   '/http-headers': {
-    intro: 'Paste HTTP response headers from curl or browser DevTools to check security-policy coverage, cookie flags, CORS configuration, caching and indexing hints without sending the data to a server.',
+    intro: 'Paste raw HTTP response headers or import a local HAR 1.2 or plain-text capture to check security-policy coverage, cookie flags, CORS configuration, caching and indexing hints. Files are processed in this browser tab and are never uploaded.',
     steps: [
-      'Capture the response headers for the page you want to inspect. For a GET response, run curl -sS -D - -o /dev/null https://example.com/; in DevTools, open Network, select the document request and copy Response Headers.',
-      'Paste the raw response block, including the HTTP status line. Repeated Set-Cookie lines are supported.',
+      'Capture the response headers for the page you want to inspect. For a GET response, run curl -sS -D - -o /dev/null https://example.com/; in DevTools, open Network, select the document request and copy Response Headers. You can also export a HAR 1.2 capture from the Network panel.',
+      'Import a .har file or a plain-text .txt response-header capture using the file picker or drop zone. HAR files can contain multiple requests; select the response you want to inspect. The file limit is 10 MB.',
+      'For a manual check, paste the raw response block including the HTTP status line. Repeated Set-Cookie lines are supported.',
       'Review the coverage checks, CSP directives, cookie findings and any CORS or X-Robots-Tag warnings.',
-      'For redirects captured with curl -L, the final response block is scored; earlier response blocks are counted in the report.',
+      'Choose Nginx, Apache, Caddy, Vercel or Cloudflare Pages to copy a configuration snippet for clearly missing, low-context headers.',
       'Test any proposed policy on staging first. The analyzer does not change your server configuration.',
     ],
     notes: [
-      'This page analyzes headers you paste; it does not fetch a URL or inspect TLS, response bodies, application code or server-side behavior.',
+      'This page analyzes pasted headers or a local capture; it does not fetch a URL or inspect TLS, application code or server-side behavior.',
+      'HAR files can contain cookies, authorization values and personal information. Review a capture before importing it, do not share it publicly, and keep exports under 10 MB.',
+      'The importer extracts response status and response headers for analysis. Request headers and response bodies are not displayed or sent to a server.',
+      'Generated configuration only adds clearly missing, low-context headers such as X-Content-Type-Options, Referrer-Policy and HSTS. It does not invent CSP, CORS, frame, Permissions-Policy or cookie rules that depend on your application.',
       'The score is a weighted header-coverage checklist, not an OWASP rating, penetration test or guarantee of application security.',
       'Send HSTS only over HTTPS. Confirm all covered subdomains support HTTPS before adding includeSubDomains; do not enable preload by default.',
       'CSP and cross-origin isolation policies can break scripts, embeds or third-party assets. Start CSP with report-only and test policy changes before enforcing them.',
@@ -2258,13 +2262,23 @@ export const GUIDES: Record<string, ToolGuide> = {
     about: 'HTTP response headers are metadata a server sends with a response. They influence browser security controls, content handling, caching, cross-origin access and sometimes search indexing. A header reference explains what each field means; an analyzer answers the next practical question: which controls are present in this captured response, which are weak or missing, and what should be checked next? This tool parses the response locally and shows its scoring rules instead of claiming that a single grade proves a site is secure.',
     articleOnlySections: [
       {
+        title: 'How to capture and import a HAR file safely',
+        text: 'Open your browser DevTools, select Network, reproduce the page load you want to inspect, then export the request list as a HAR file. HAR exports may include cookies or authorization values, so review the capture before sharing it. Import the file with the local file picker or drop it onto the analyzer; no upload is made. If the file contains several requests, choose the exact document or API response from the selector. The importer reads the response status and headers needed for the report; it does not display or transmit request headers or response bodies.',
+      },
+      {
+        title: 'How the server configuration snippets are scoped',
+        text: 'The generator can format missing X-Content-Type-Options, Referrer-Policy and HSTS values for Nginx, Apache, Caddy, Vercel and Cloudflare Pages. It adds only headers identified as missing and leaves present values untouched. HSTS is shown with an HTTPS warning and without includeSubDomains or preload. CSP, CORS, frame, Permissions-Policy and cookie settings are not generated automatically because their safe values depend on allowed origins, embeds, APIs and authentication behavior. Review every snippet and test it in staging before deployment.',
+      },
+      {
         title: 'How to capture the headers for the actual page response',
         text: 'A HEAD request from curl -I is useful for a quick check, but some servers or application routes respond differently to HEAD and GET. To inspect a GET response without printing its body, run curl -sS -D - -o /dev/null https://example.com/. Add -L to follow redirects; the command prints each response block, and this analyzer scores the final block. In browser DevTools, open Network, select the document request, then copy the raw Response Headers. Capture the document response rather than an unrelated image, script or API request when checking page-level indexing or security policy.',
       },
     ],
     faqs: [
-      { q: 'Does the analyzer send my headers to DigDevBox?', a: 'No. Parsing, scoring and findings run in the browser tab. The pasted header values are not added to analytics, URLs or a server request.' },
-      { q: 'Why can’t I enter a URL and scan it here?', a: 'A browser page cannot freely read another origin’s response headers because of the same-origin and CORS security model. Paste headers captured with curl or DevTools; this also works for private staging responses that are not publicly reachable.' },
+      { q: 'Does the analyzer upload my HAR file or pasted headers?', a: 'No. HAR and text files are read and parsed locally in this browser tab. The report uses response status and headers only; the file, request headers and response bodies are not sent to DigDevBox or added to analytics. HAR files may contain cookies or tokens, so review them before importing.' },
+      { q: 'How do I choose one response from a HAR capture?', a: 'Import the HAR file, then use the response selector to choose the exact request and status you want to inspect. This is useful when one capture contains a document request, API calls, redirects and static assets.' },
+      { q: 'Can the tool scan a URL directly?', a: 'No. A browser page cannot freely read another origin’s response headers because of the same-origin and CORS security model. Paste headers captured with curl or DevTools, or import a HAR; this also works for private staging responses that are not publicly reachable.' },
+      { q: 'Which server configuration formats can I copy?', a: 'The generator supports Nginx, Apache, Caddy, Vercel vercel.json and Cloudflare Pages _headers. It emits only selected low-context additions for missing headers and does not generate app-specific CSP, CORS or cookie policy.' },
       { q: 'Does an A grade mean my site is secure?', a: 'No. The score measures only the presence and selected characteristics of response headers. It does not test application code, authentication, dependencies, TLS configuration, server-side access control or vulnerabilities.' },
       { q: 'Should every site enable COEP, COOP and CORP?', a: 'No. These policies are useful for particular cross-origin isolation and resource-protection needs, but can block embeds and third-party resources. Enable them only when the application requires them and after compatibility testing.' },
       { q: 'Should I copy the suggested HSTS or CSP values directly?', a: 'No. HSTS can affect every subdomain when includeSubDomains is used, and CSP must match the resources an application really loads. Test changes on staging; begin CSP in report-only mode and review violations before enforcement.' },
