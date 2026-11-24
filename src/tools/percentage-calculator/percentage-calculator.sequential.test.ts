@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
 import {
-  calculateSequentialPercentage,
   MAX_SEQUENTIAL_PERCENTAGE_RATE,
   MAX_SEQUENTIAL_PERCENTAGE_STEPS,
+  calculateSequentialPercentage,
 } from './percentage-calculator.sequential';
 
 describe('sequential percentage adjustments', () => {
