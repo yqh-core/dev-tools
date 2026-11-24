@@ -30,7 +30,7 @@ const props = defineProps<{ entry: ToolSeoEntry }>();
 
 const { entry } = props;
 const { t, te } = useI18n();
-const titleKey = `tools.${entry.path.replace(/\\//g, '')}.title`;
+const titleKey = `tools.${entry.path.split('/').join('')}.title`;
 const pageToolTitle = te(titleKey) ? t(titleKey) : entry.name;
 
 usePageSeo(entry.path, `${pageToolTitle} - ${t('site.name')}`, entry.description);
