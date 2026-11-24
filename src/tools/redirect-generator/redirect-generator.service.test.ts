@@ -136,12 +136,12 @@ describe('generateRedirectOutput', () => {
     expect(lines[1]).toContain('"FALSE","FALSE","FALSE"');
   });
 
-  it('generates Netlify _redirects lines and only allows its documented 301/302 redirect codes', () => {
+  it('generates Netlify _redirects lines and enforces the tool's conservative 301/302 range', () => {
     const netlify = generateRedirectOutput(analysis, 'netlify', '301');
     expect(netlify).toContain('/old+page /new-page 301');
     expect(netlify).toContain('/legacy /final 301');
-    expect(() => generateRedirectOutput(analysis, 'netlify', '307')).toThrow('Netlify _redirects supports 301 and 302');
-    expect(() => generateRedirectOutput(analysis, 'netlify', '308')).toThrow('Netlify _redirects supports 301 and 302');
+    expect(() => generateRedirectOutput(analysis, 'netlify', '307')).toThrow('This generator limits Netlify _redirects output to 301 and 302.');
+    expect(() => generateRedirectOutput(analysis, 'netlify', '308')).toThrow('This generator limits Netlify _redirects output to 301 and 302.');
   });
 
   it('generates Vercel vercel.json with an exact statusCode and optional query preservation', () => {
