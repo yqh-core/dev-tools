@@ -77,12 +77,10 @@ let nextTestCaseId = 1;
 
 function addTestCase() {
   testCases.value.push({ id: `case-${nextTestCaseId++}`, name: `Test case ${nextTestCaseId - 1}`, text: '', shouldMatch: true });
-  scheduleEvaluation();
 }
 
 function removeTestCase(id: string) {
   testCases.value = testCases.value.filter(item => item.id !== id);
-  scheduleEvaluation();
 }
 const replacementPreview = ref('');
 const sample = ref('');
@@ -100,6 +98,7 @@ interface RegexWorkerResponse {
   id: number
   result?: RegexEvaluation
   error?: string
+  testCaseResults?: RegexTestCaseResult[]
 }
 
 function terminateWorker() {
