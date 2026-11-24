@@ -55,13 +55,14 @@ jobs:
       - name: Install Chromium for targeted E2E
         run: pnpm exec playwright install chromium
 
-      - name: E2E — JSON Diff, percentage, numeronym, ETA, text statistics, HTTP Headers, Slugify, Basic Auth and Safe Links
+      - name: E2E — JSON Diff, percentage, numeronym, ETA, IPv6 ULA, text statistics, HTTP Headers, Slugify, Basic Auth and Safe Links
         run: >-
           pnpm exec playwright test
           src/tools/json-diff/json-diff.e2e.spec.ts
           src/tools/percentage-calculator/percentage-calculator.e2e.spec.ts
           src/tools/numeronym-generator/numeronym-generator.e2e.spec.ts
           src/tools/eta-calculator/eta-calculator.e2e.spec.ts
+          src/tools/ipv6-ula-generator/ipv6-ula-generator.e2e.spec.ts
           src/tools/text-statistics/text-statistics.e2e.spec.ts
           src/tools/http-headers/http-headers.e2e.spec.ts
           src/tools/slugify-string/slugify-string.e2e.spec.ts

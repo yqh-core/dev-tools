@@ -29,7 +29,7 @@
     "/ipv4-address-converter": "192.168.1.1",
     "/ipv4-range-expander": "10.0.0.1",
     "/ipv4-subnet-calculator": "192.168.1.0/24",
-    "/ipv6-ula-generator": "00:11:22:33:44:55",
+    "/ipv6-ula-generator": "0123456789",
     "/json-diff": "{ \"name\": \"DigDevBox\", \"version\": 1, \"tags\": [\"a\", \"b\"] }",
     "/json-minify": "{\n  \"name\": \"DigDevBox\",\n  \"list\": [1, 2, 3]\n}",
     "/json-prettify": "{\"name\":\"DigDevBox\",\"tools\":[\"toolbox\",\"devtools\"],\"count\":2}",

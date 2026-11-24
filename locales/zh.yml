@@ -697,7 +697,27 @@ tools:
 
   ipv6-ula-generator:
     title: IPv6 ULA生成器
-    description: 根据RFC4193在网络上生成您自己的本地不可路由IP地址。
+    description: 按 RFC 4193 生成 fd00::/8 IPv6 唯一本地地址（ULA）/48 前缀。支持浏览器安全随机生成或手动指定 40 位 Global ID，批量查看首尾 /64 子网。
+    randomMode: 安全随机生成
+    manualMode: 手动指定 Global ID
+    quantity: 前缀数量
+    randomHelp: 使用浏览器 Web Crypto 安全随机数生成器，无需输入 MAC 地址，一次最多生成 20 个不重复前缀。
+    globalId: 40 位 Global ID
+    manualHelp: 输入恰好 10 个十六进制字符（也可带 0x 前缀），即可复现指定的 /48 前缀。
+    generate: 生成
+    copyAll: 复制全部前缀
+    resultNumber: 前缀 {number}
+    ulaPrefix: ULA 前缀（/48）
+    firstSubnet: 第一个 /64 子网
+    lastSubnet: 最后一个 /64 子网
+    subnetCount: 一个 /48 前缀包含 {count} 个 /64 子网。
+    copied: 已复制 ULA 前缀。
+    privacyNote: 随机生成使用浏览器本地 Web Crypto 完成。MAC 地址、Global ID 和生成的前缀不会发送到服务器或分析服务。
+    routingWarning: ULA 用于私有网络内部通信，不应路由到公网。随机 ID 能降低冲突风险，但不能保证绝对唯一；连接不同站点或 VPN 前，请检查现有前缀。ULA 也不是安全边界。
+    errors:
+      invalidQuantity: 前缀数量必须在 1 到 20 之间。
+      invalidGlobalId: 请输入恰好 10 个十六进制字符作为 40 位 Global ID。
+      randomUnavailable: 当前浏览器无法使用安全随机数，请使用启用了 Web Crypto 的现代浏览器。
 
   hash-text:
     title: Hash 文本

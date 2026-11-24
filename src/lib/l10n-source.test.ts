@@ -78,7 +78,7 @@ function toolFiles(): string[] {
       continue;
     }
     for (const f of readdirSync(dir)) {
-      if (f.endsWith('.vue') || (f.endsWith('.ts') && !f.endsWith('.test.ts'))) {
+      if (f.endsWith('.vue') || (f.endsWith('.ts') && !/\.(test|spec)\.ts$/.test(f))) {
         files.push(path.join(dir, f));
       }
     }

@@ -630,15 +630,37 @@ export const GUIDES: Record<string, ToolGuide> = {
   },
 
   '/ipv6-ula-generator': {
-    intro: 'Generates an IPv6 Unique Local Address (ULA) prefix per RFC 4193 for local networks — handy for addressing internal devices.',
-    steps: ['Click generate to get a prefix', 'Combine it with a subnet and interface ID as needed', 'Copy and use it'],
-    notes: ['A ULA is the IPv6 counterpart of a private IPv4 range and must not be routed on the public internet'],
-    example: { label: 'Paste a sample MAC address', text: '00:11:22:33:44:55' },
-    about: 'A ULA (Unique Local Address) is the IPv6 counterpart of the private IPv4 ranges: addresses under fd00::/8 that are free to use inside your organisation but must not be routed on the public internet. RFC 4193 asks for a randomly chosen 40-bit global ID so independently generated prefixes almost never collide, and that is exactly what this tool generates.',
+    intro: 'Generate RFC 4193 IPv6 Unique Local Address prefixes for private networks, with a cryptographically random 40-bit Global ID or a manually supplied ID.',
+    steps: [
+      'Choose Secure random to create one or more prefixes, or Manual Global ID to reproduce a known 10-digit hexadecimal value',
+      'Generate the /48 ULA prefix and review its first and last /64 subnets',
+      'Copy one prefix or copy the whole batch for your network plan',
+    ],
+    notes: [
+      'Locally assigned ULAs use fd00::/8 and a 40-bit Global ID; each /48 contains 65,536 /64 subnets.',
+      'Random Global IDs reduce collision risk but do not guarantee uniqueness; check existing allocations before joining networks.',
+      'ULA prefixes are intended for private routing and should not be advertised on the public internet; they are not a firewall or security boundary.',
+      'Generation happens in your browser using Web Crypto; no MAC address is required or uploaded.',
+    ],
+    example: { label: 'Use a sample 40-bit Global ID in Manual mode', text: '0123456789' },
+    about: 'A Unique Local Address (ULA) is IPv6 private address space for communication inside an organization, lab or VPN. Locally assigned ULAs use fd00::/8: a 40-bit Global ID identifies the site prefix, followed by a 16-bit subnet ID and a 64-bit interface ID. This tool generates one or up to 20 /48 prefixes with the browser cryptographic random generator, or accepts a manually supplied 10-hex-digit Global ID for reproducible plans. No MAC address is needed and generation stays in the browser.',
+    articleOnlySections: [
+      {
+        title: 'Understand the RFC 4193 prefix layout',
+        text: 'A locally assigned ULA begins with fd00::/8. The next 40 bits form the Global ID, and the final 16 bits of a /48 are available for the subnet ID. Each /48 therefore contains 65,536 distinct /64 subnets. Random Global IDs help reduce collisions when networks may later be connected, such as during a site merger or VPN rollout.',
+      },
+      {
+        title: 'Choose random or manual Global ID generation',
+        text: 'Random mode uses Web Crypto to produce five random bytes (40 bits) for each prefix. It can create up to 20 unique prefixes in one batch and avoids asking for a device MAC address. Manual mode accepts exactly 10 hexadecimal characters, optionally preceded by 0x, so an existing network plan can be reproduced. Neither mode proves global uniqueness: compare the generated prefix with existing network allocations before joining sites.',
+      },
+    ],
     faqs: [
-      { q: 'ULA vs public IPv6 — what is the difference?', a: 'Public addresses are globally routable and assigned by your provider. ULAs work only inside your network, never leave your router, and survive provider changes — good for infrastructure that should not be exposed.' },
-      { q: 'Why generate the prefix randomly instead of picking fd00::1?', a: 'RFC 4193 mandates a random global ID precisely so two sites that later merge their networks will not clash. Hand-picked prefixes like fd00::/64 are a common source of hard-to-debug conflicts.' },
-      { q: 'Can a ULA reach the internet?', a: 'No. Routers must not forward fd00::/8 to the public internet. Use it for internal services; hosts still get global addresses from your provider for outbound traffic.' },
+      { q: 'How many /64 subnets fit in a /48 ULA?', a: 'There are 65,536 /64 subnets. The 16 bits between the /48 site prefix and each /64 network ID provide that range.' },
+      { q: 'Does a random Global ID guarantee there will never be a collision?', a: 'No. A random 40-bit Global ID makes accidental collisions unlikely, but it cannot guarantee uniqueness. Check existing prefixes before connecting previously separate sites or VPNs.' },
+      { q: 'ULA vs public IPv6 — what is the difference?', a: 'Public IPv6 addresses are globally routable. ULAs are intended for private internal routing and should not be advertised on the public internet.' },
+      { q: 'Can I reproduce a previously chosen prefix?', a: 'Yes. Switch to Manual Global ID and enter the same 10 hexadecimal characters. The tool rebuilds the corresponding fd00::/8 /48 prefix and its first and last /64 subnet examples.' },
+      { q: 'Does the tool need my MAC address?', a: 'No. Random mode uses Web Crypto in your browser. The manual mode needs only the 40-bit Global ID you choose.' },
+      { q: 'Is a ULA a security boundary?', a: 'No. ULA addressing does not replace firewall rules, access controls or other network security measures.' },
     ],
   },
 

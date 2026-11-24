@@ -159,7 +159,13 @@ describe('evidence-backed SEO keyword targets', () => {
     expect(entry).toBeDefined();
     expect(entry?.keyword).toBe(keyword);
     expect(entry?.intent).toBe(intent);
-    if (path === '/phone-parser-and-formatter') {
+    if (path === '/ipv6-ula-generator') {
+      expect(entry?.landed).toBe(true);
+      expect(entry?.lockedTitle).toBe('IPv6 ULA generator');
+      expect((entry?.keywords ?? []).length).toBeGreaterThanOrEqual(6);
+      expect(entry?.note).toContain('Web Crypto');
+    }
+    else if (path === '/phone-parser-and-formatter') {
       expect(entry?.landed).toBe(true);
       expect(entry?.lockedTitle).toBe('International Phone Number Parser & Formatter — E.164');
       expect((entry?.keywords ?? []).length).toBeGreaterThanOrEqual(7);
