@@ -176,7 +176,7 @@ function cookieAudit(values: string[]): HeaderAnalysis['cookies'] {
 export function analyzeResponseHeaders(raw: string): HeaderAnalysis {
   const parsed = parseResponseHeaders(raw);
   const headers = parsed.headers;
-  const csp = firstHeader(headers, 'content-security-policy');
+  const csp = headerValues(headers, 'content-security-policy').join('; ');
   const cspReportOnly = firstHeader(headers, 'content-security-policy-report-only');
   const cspDirectives = parseCspDirectives(csp);
   const directive = (name: string) => cspDirectives.find(item => item.name === name)?.value ?? '';
