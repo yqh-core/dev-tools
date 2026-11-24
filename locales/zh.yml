@@ -536,6 +536,10 @@ tools:
     unitsPerHour: 单位/小时
     observedModeHelp: 根据已完成数量和已运行时间计算平均处理速率，预计完成时刻从当前时间开始推算。
     observedModeHint: 请填写大于零的已完成数量和已耗时间，才能推导处理速率。若任务已全部完成，则无需提供耗时样本。
+    localFinishTime: 本地完成时间
+    copyFinishTime: 复制完成时间
+    copyRemainingDuration: 复制剩余时间
+    copySuccess: 已复制到剪贴板
 
   roman-numeral-converter:
     title: 罗马数字转换器
