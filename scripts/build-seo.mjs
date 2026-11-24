@@ -27,6 +27,7 @@ import { fileURLToPath } from 'node:url';
 import { createServer } from 'vite';
 import { parse } from 'yaml';
 import { parseRegistry } from './lib/locale-registry.mjs';
+import { createSocialCardPng } from './social-cards.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const DRY_RUN = process.argv.includes('--dry-run');
@@ -117,6 +118,27 @@ function replaceOnce(haystack, needle, value) {
   }
 
   return haystack.replace(needle, () => value);
+}
+
+function decodeHtmlEntities(value) {
+  return String(value ?? '')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;|&#x27;/g, "'")
+    .replace(/&amp;/g, '&')
+    .replace(/&nbsp;/g, ' ');
+}
+
+function extractMetaContent(headTags, attribute, value) {
+  const tags = headTags.match(/<meta\b[^>]*>/gi) ?? [];
+  const tag = tags.find(item => item.includes(attribute + '="' + value + '"') || item.includes(attribute + "='" + value + "'"));
+  return decodeHtmlEntities(tag?.match(/\bcontent=(["'])(.*?)\1/i)?.[2] ?? '');
+}
+
+function extractSocialTitle(headTags) {
+  const title = decodeHtmlEntities(headTags.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1] ?? '');
+  return title.replace(/\s+-\s+DigDevBox$/i, '').trim();
 }
 
 function buildSitemap(entries) {
@@ -323,7 +345,7 @@ function buildFaqPageLd(entry) {
 
 try {
   // —— 全部从 TypeScript 侧取，保证与页面/路由使用同一份数据 ——
-  const { canonicalUrl, SITE_ORIGIN } = await vite.ssrLoadModule('/src/seo/site.ts');
+  const { canonicalUrl, socialImagePath, socialImageUrl, SITE_ORIGIN } = await vite.ssrLoadModule('/src/seo/site.ts');
   const { buildGuideMetaDescription } = await vite.ssrLoadModule('/src/seo/guide-links.ts');
   const robotsSource = await readFile(join(root, 'public/robots.txt'), 'utf8');
   if (!robotsSource.includes(`Sitemap: ${SITE_ORIGIN}/sitemap.xml`)) {
@@ -752,6 +774,7 @@ try {
   }
 
   let thinPages = 0;
+  let socialImagesCreated = 0;
   for (const { path, kind, html: rawHtml, headTags } of results) {
     const canonical = canonicalUrl(path);
     // 先剥注释再注入：dev 模式下 Vue 会把模板注释输出到渲染结果里（见 stripComments）
@@ -778,6 +801,36 @@ try {
     if (entry?.guide?.faqs?.length) {
       pageTags += `\n      <script type="application/ld+json">${buildFaqPageLd(entry)}</script>`;
     }
+
+    // Every prerendered route receives its own 1200×630 PNG social card.
+    const imagePath = socialImagePath(path);
+    const imageUrl = socialImageUrl(path);
+    const socialTitle = extractSocialTitle(pageTags);
+    const socialDescription = extractMetaContent(pageTags, 'name', 'description');
+    const socialImageTag = extractMetaContent(pageTags, 'property', 'og:image');
+    const twitterImageTag = extractMetaContent(pageTags, 'name', 'twitter:image');
+    if (!socialTitle || !socialDescription) {
+      throw new Error(`[build-seo] ${path} is missing the title or description required for its social card`);
+    }
+    if (socialImageTag !== imageUrl || twitterImageTag !== imageUrl) {
+      throw new Error(`[build-seo] ${path} has incorrect social image metadata: ${JSON.stringify({ expected: imageUrl, og: socialImageTag, twitter: twitterImageTag })}`);
+    }
+    const socialImage = createSocialCardPng({
+      title: socialTitle,
+      description: socialDescription,
+      path,
+      kind,
+    });
+    if (socialImage.readUInt32BE(16) !== 1200 || socialImage.readUInt32BE(20) !== 630) {
+      throw new Error(`[build-seo] ${path} social card is not 1200×630`);
+    }
+    if (!DRY_RUN) {
+      const socialFile = join(root, 'dist', imagePath.replace(/^\\/+/, ''));
+      await mkdir(dirname(socialFile), { recursive: true });
+      await writeFile(socialFile, socialImage);
+    }
+    socialImagesCreated += 1;
+
     // The prerenderer renders page components without App.vue's layout wrapper.
     // Add the main landmark to the initial HTML so crawlers and assistive tech see it
     // before the client app mounts; the per-page self-check below enforces exactly one.
@@ -898,7 +951,8 @@ try {
 
     if (bodyText < 200) { thinPages += 1; }
 
-    console.log(
+    console.log(`[social] ${socialImagesCreated}/${results.length} routes generated unique PNG Open Graph cards (1200×630)`);
+  console.log(
       `[build-seo] ${path.padEnd(42)} html=${String(html.length).padStart(6)}B`
       + `  text=${String(bodyText).padStart(5)}  canonical=${canonical}`,
     );
