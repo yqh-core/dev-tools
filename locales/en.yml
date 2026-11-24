@@ -479,7 +479,7 @@ tools:
       cloudflareSourceLimits: Cloudflare source URLs cannot include ports or user information. Remove them before exporting.
       cloudflareQueryConflict: The target URL query is discarded when Preserve query string is enabled. Remove the target query or disable this option.
       pathSuffixRequiresSubpath: Enable subpath matching before preserving the remaining path suffix.
-      netlifyStatusUnsupported: Netlify _redirects supports 301 and 302 redirects only. Choose one of these status codes or use another output format.
+      netlifyStatusUnsupported: This generator limits Netlify _redirects output to 301 and 302. Choose another format for 307 or 308.
 
   encryption:
     title: Encrypt / decrypt text
