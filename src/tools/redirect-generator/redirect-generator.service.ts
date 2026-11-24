@@ -176,7 +176,7 @@ function parseHttpUrl(value: string): URL | undefined {
 
 function normalizeSource(value: string): { path: string; url: string } {
   const source = value.trim();
-  if (!source || CONTROL_CHARS.test(source) || source.includes('\\')) {
+  if (!source || CONTROL_CHARS.test(source) || source.includes('\\') || source.includes('"')) {
     throw new Error('Enter a valid path or an absolute HTTP/HTTPS URL.');
   }
 
@@ -204,7 +204,7 @@ function normalizeSource(value: string): { path: string; url: string } {
 
 function normalizeTarget(value: string): { path: string; url: string } {
   const target = value.trim();
-  if (!target || CONTROL_CHARS.test(target) || target.includes('\\')) {
+  if (!target || CONTROL_CHARS.test(target) || target.includes('\\') || target.includes('"')) {
     throw new Error('Enter a valid destination path or HTTP/HTTPS URL.');
   }
 
