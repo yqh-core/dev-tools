@@ -141,8 +141,8 @@ describe('json-diff models', () => {
         'id',
       )).toBe(false);
       const fallback = flattenDifferences(diff(
-        [{ id: 1, name: 'Ada' }, { id: 2, name: 'Grace' }],
-        [{ id: 2, name: 'Grace' }, { id: 1, name: 'Ada' }],
+        [{ id: 1, name: 'Ada' }, { id: 1, name: 'Grace' }],
+        [{ id: 1, name: 'Grace' }, { id: 1, name: 'Ada' }],
         { onlyShowDifferences: true, arrayMode: 'id', arrayIdKey: 'id' },
       ));
       expect(fallback.length).toBeGreaterThan(0);
