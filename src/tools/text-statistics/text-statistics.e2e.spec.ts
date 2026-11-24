@@ -28,6 +28,29 @@ test.describe('Tool - text statistics', () => {
     await expect(page.getByTestId('bytes')).toContainText('18');
   });
 
+  test('checks a custom character budget using the selected Unicode counting unit', async ({ page }) => {
+    await page.getByTestId('text-input').locator('textarea').fill('👨‍👩‍👧');
+    const limitInput = page.getByTestId('character-limit-input');
+    await limitInput.fill('1');
+    await expect(page.getByTestId('character-limit-result')).toContainText('1 / 1');
+    await expect(page.getByTestId('character-limit-result')).toContainText('At your custom limit');
+
+    const unitSelect = page.getByTestId('character-limit-unit');
+    await unitSelect.selectOption('bytes');
+    await expect(unitSelect).toHaveValue('bytes');
+    await expect(limitInput).toHaveValue('1');
+    await expect(page.getByTestId('character-limit-result')).toContainText('18 / 1');
+    await expect(page.getByTestId('character-limit-result')).toContainText('Over your limit by 17 (UTF-8 bytes).');
+
+    await limitInput.fill('18');
+    await expect(page.getByTestId('character-limit-result')).toContainText('18 / 18');
+    await expect(page.getByTestId('character-limit-result')).toContainText('At your custom limit');
+    await limitInput.fill('17');
+    await expect(page.getByTestId('character-limit-result')).toContainText('Over your limit by 1 (UTF-8 bytes).');
+    await limitInput.fill('');
+    await expect(page.getByTestId('character-limit-result')).toHaveCount(0);
+  });
+
   test('supports a custom reading speed and exposes a complete statistics summary', async ({ page }) => {
     await page.getByTestId('text-input').locator('textarea').fill('one two three four');
     await page.getByLabel('Reading speed in words per minute').fill('2');
