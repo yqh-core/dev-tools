@@ -527,7 +527,7 @@ tools:
 
   json-diff:
     title: "JSON Diff Checker — Compare JSON Online"
-    description: "Compare JSON files or pasted JSON online. Find nested changes by path, export a local report, and compare arrays by index, ignore-order or stable object ID. JSON5 supported; files stay in your browser."
+    description: "Compare JSON files or pasted JSON online. Inspect nested changes by path, export a report, and match arrays by index, ignore-order or stable ID. Large comparisons run in a cancellable worker."
 
   jwt-parser:
     title: JWT Decoder & Parser — Inspect Header, Payload and Expiration
