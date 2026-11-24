@@ -2171,7 +2171,7 @@ export const GUIDES: Record<string, ToolGuide> = {
     ],
     example: {
       label: 'Fill in a sample response',
-      text: 'HTTP/2 200 OK\ncontent-security-policy: default-src 'self'\nx-content-type-options: nosniff\nreferrer-policy: strict-origin-when-cross-origin\nset-cookie: session=abc; Secure; HttpOnly; SameSite=Lax',
+      text: 'HTTP/2 200 OK\nstrict-transport-security: max-age=31536000\nx-content-type-options: nosniff\nset-cookie: session=abc; Secure; HttpOnly; SameSite=Lax',
     },
     about: 'HTTP response headers are metadata a server sends with a response. They influence browser security controls, content handling, caching, cross-origin access and sometimes search indexing. A header reference explains what each field means; an analyzer answers the next practical question: which controls are present in this captured response, which are weak or missing, and what should be checked next? This tool parses the response locally and shows its scoring rules instead of claiming that a single grade proves a site is secure.',
     articleOnlySections: [
