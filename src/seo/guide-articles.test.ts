@@ -40,8 +40,8 @@ describe('article-only guide content', () => {
     const english = en['/percentage-calculator'].articleOnlySections ?? [];
     const chinese = zh['/percentage-calculator'].articleOnlySections ?? [];
 
-    expect(en['/json-diff'].intro).toContain('structural JSON diff');
-    expect(zh['/json-diff'].intro).toContain('结构化 JSON diff');
+    expect(en['/json-diff'].intro).toContain('Compare JSON documents structurally');
+    expect(zh['/json-diff'].intro).toContain('结构化比较 JSON 文档');
     expect(english).toHaveLength(3);
     expect(chinese).toHaveLength(english.length);
     expect(english.map(section => section.title)).toContain('Reverse a change and choose the right comparison');
@@ -66,12 +66,12 @@ describe('article-only guide content', () => {
 
     expect(english).toHaveLength(3);
     expect(chinese).toHaveLength(english.length);
-    expect(english.map(section => section.title)).toContain('Structural JSON diff is not a line diff');
-    expect(chinese.map(section => section.title)).toContain('结构化 JSON diff 与逐行文本 diff 不同');
-    expect(english[1].text).toContain('does not match array records by ID');
-    expect(chinese[1].text).toContain('不按 ID 匹配数组记录');
-    expect(english[2].text).toContain('2^53 minus 1');
-    expect(chinese[2].text).toContain('2^53 减 1');
+    expect(english.map(section => section.title)).toContain('Choose the right array comparison mode');
+    expect(chinese.map(section => section.title)).toContain('选择适合的数组比较模式');
+    expect(english[0].text).toContain('unique, non-empty string or finite numeric ID');
+    expect(chinese[0].text).toContain('唯一、非空的字符串或有限数字 ID');
+    expect(english[2].text).toContain('2^53 - 1');
+    expect(chinese[2].text).toContain('2^53 - 1');
 
     const sections = buildGuideSections(en['/json-diff']);
     expect(sections.some(section => section.id === 'article-only-1')).toBe(true);

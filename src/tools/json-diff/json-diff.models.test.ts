@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { diff, flattenDifferences } from './json-diff.models';
+import { diff, flattenDifferences, hasValidArrayIds } from './json-diff.models';
 
 describe('json-diff models', () => {
   describe('diff', () => {
@@ -87,5 +87,65 @@ describe('json-diff models', () => {
 
     expect(result.map(item => item.path)).toEqual(['$[\"user\"][\"name\"]', '$[\"user\"][\"active\"]']);
     expect(result.map(item => item.status)).toEqual(['updated', 'added']);
+  });
+  describe('array comparison modes', () => {
+    it('ignores order while preserving duplicate multiplicity', () => {
+      const reordered = flattenDifferences(diff(
+        [1, 2, 1],
+        [1, 1, 2],
+        { onlyShowDifferences: true, arrayMode: 'ignore-order' },
+      ));
+      expect(reordered).toEqual([]);
+
+      const duplicates = flattenDifferences(diff(
+        [1, 1, 2],
+        [1, 2, 2],
+        { onlyShowDifferences: true, arrayMode: 'ignore-order' },
+      ));
+      expect(duplicates).toHaveLength(2);
+      expect(duplicates.map(item => item.status).sort()).toEqual(['added', 'removed']);
+    });
+
+    it('ignores order in nested arrays as well as top-level arrays', () => {
+      const result = flattenDifferences(diff(
+        [{ id: 1, tags: ['a', 'b'] }],
+        [{ id: 1, tags: ['b', 'a'] }],
+        { onlyShowDifferences: true, arrayMode: 'ignore-order' },
+      ));
+      expect(result).toEqual([]);
+    });
+
+    it('matches objects by a stable ID rather than array position', () => {
+      const changes = flattenDifferences(diff(
+        [{ id: 1, name: 'Ada' }, { id: 2, name: 'Grace' }],
+        [{ id: 2, name: 'Grace Hopper' }, { id: 1, name: 'Ada' }],
+        { onlyShowDifferences: true, arrayMode: 'id', arrayIdKey: 'id' },
+      ));
+      expect(changes).toEqual([{
+        path: '$[1]["name"]',
+        status: 'updated',
+        oldValue: 'Grace',
+        value: 'Grace Hopper',
+      }]);
+    });
+
+    it('falls back to index mode when IDs are missing or duplicated', () => {
+      expect(hasValidArrayIds(
+        [{ id: 1 }, { id: 1 }],
+        [{ id: 1 }],
+        'id',
+      )).toBe(false);
+      expect(hasValidArrayIds(
+        [{ name: 'Ada' }],
+        [{ id: 1 }],
+        'id',
+      )).toBe(false);
+      const fallback = flattenDifferences(diff(
+        [{ id: 1, name: 'Ada' }, { id: 1, name: 'Grace' }],
+        [{ id: 1, name: 'Grace' }, { id: 1, name: 'Ada' }],
+        { onlyShowDifferences: true, arrayMode: 'id', arrayIdKey: 'id' },
+      ));
+      expect(fallback.length).toBeGreaterThan(0);
+    });
   });
 });

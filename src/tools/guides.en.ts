@@ -637,41 +637,37 @@ export const GUIDES: Record<string, ToolGuide> = {
   },
 
   '/json-diff': {
-    intro: 'Compare two JSON objects online with a structural JSON diff. Find added, removed and changed values in nested data; object key order is ignored and arrays compare by position.',
-    steps: ['Paste the original JSON on the left', 'Paste the new JSON on the right', 'Review the highlighted additions, removals and changes'],
-    notes: ['Key order does not affect the comparison, but array order does'],
-    about: 'Comparing two JSON documents by eye does not scale: a changed port or a missing comma hides easily among hundreds of lines. A JSON diff parses both sides and reports the differences structurally — values that were added, removed, or changed — instead of diffing raw text lines. That means JSON that was merely reformatted compares as equal, while a real value change stands out.',
-    faqs: [
-      { q: 'Does key order affect the result?', a: 'No. JSON objects are unordered key-value pairs, so { "a": 1, "b": 2 } equals { "b": 2, "a": 1 }. Arrays are ordered by definition — reordering array elements is reported as a change.' },
-      { q: 'Why do two values that look identical show as different?', a: 'Usually the type changed: 1 (number) and "1" (string), or true and "true", render similarly but are different JSON values. A textual diff hides that; a structural diff points at the type mismatch.' },
-      { q: 'Can I compare large documents?', a: 'Everything runs in your browser, so the practical limit is tab memory — documents of a few megabytes are fine.' },
-      { q: 'Are array elements matched by their values or IDs?', a: 'They are compared by position. If a record is inserted near the beginning, later indexes can appear changed. This tool does not provide ID-based array matching or an ignore-order option.' },
-      { q: 'Is a missing property the same as null?', a: 'No. A missing property is reported as added or removed; null is an explicit value. The same applies to different JSON types, such as the number 1 and the string "1".' },
-      { q: 'Can I compare a JSON file without pasting it?', a: 'The current interface accepts text in two input fields. Open the file locally and paste its contents; direct file upload is not currently provided.' },
-    ],
-    articleOnlySections: [
-      {
-        title: 'Structural JSON diff is not a line diff',
-        text: 'The tool parses both inputs and compares JSON values recursively. Object member order and whitespace do not create differences, but arrays are compared by position: item 0 on the left is compared with item 0 on the right, and so on. A missing property is added or removed; null is a present value and is not the same as a missing property. A number such as 1 and a string such as "1" are different JSON types. Use a line diff when exact source formatting, comments or whitespace are what you need to review; use a structural diff when you need to understand changes in the data itself.',
-      },
-      {
-        title: 'A repeatable workflow for API responses and configuration',
-        text: 'Capture both versions from the same endpoint, environment, query parameters and authorization scope so the comparison reflects a real change rather than different test conditions. Redact credentials, access tokens and personal data before pasting either document. After comparing, enable Only show differences to focus on changed values, then expand the surrounding object to understand the field in context. Remember that arrays are compared by index: inserting an item near the beginning can make later positions appear changed. This tool does not match array records by ID, ignore selected paths, upload files or export JSON Patch; use a workflow that supports those operations when you need them.',
-      },
-      {
-        title: 'Input and numeric compatibility boundaries',
-        text: 'Both inputs are parsed with JSON5, so comments and trailing commas are accepted even though the comparison is about JSON data rather than source text. Parsing uses JavaScript numbers: integers larger than 2^53 minus 1 may lose precision, so quote long identifiers such as database IDs before comparing them. Comparison runs in the browser tab; very large documents are limited by the memory available to that tab.',
-      },
+    intro: 'Compare JSON documents structurally, inspect nested changes by path, import local files and choose how arrays should match.',
+    steps: ['Paste JSON or open a local JSON/JSON5 file on each side', 'Choose index, ignore-order or stable-ID array matching', 'Review changed paths and before/after values, then download a local report'],
+    notes: [
+      'Object key order and whitespace do not matter; arrays use index matching by default.',
+      'Ignore-order mode compares exact values as a multiset, preserving duplicate counts.',
+      'ID mode requires every array item to have a unique, non-empty string or finite numeric ID; invalid IDs fall back to index comparison.',
+      'Files are read locally and are limited to 5 MB each. Large documents are still limited by browser-tab memory.',
     ],
     example: { label: 'Fill in sample JSON', text: '{ "name": "DigDevBox", "version": 1, "tags": ["a", "b"] }' },
-    relatedNotes: [
+    about: 'A structural JSON diff for API responses, configuration files and data snapshots. Compare pasted text or local JSON/JSON5 files, see nested changes as JSONPath-like locations, and download a change report without uploading the input. Object key order is ignored. Arrays compare by index by default, can be compared as an order-independent multiset that preserves duplicates, or can match objects by a stable ID key.',
+    articleOnlySections: [
       {
-        slug: 'json-formatting-guide',
-        title: 'JSON Formatter Guide: Format, Validate and Compare JSON Online',
-        description: 'How to format, validate, minify and compare JSON online — a practical guide to cleaning up API responses, spotting syntax errors and diffing config files.',
-        url: 'https://notes.digdevbox.com/posts/json-formatting-guide',
-        tag: 'JSON',
+        title: 'Choose the right array comparison mode',
+        text: 'Index mode is the default and preserves the meaning of ordered lists: position 0 is compared with position 0. Ignore-order mode is useful for sets or result collections where order is irrelevant; it matches exact values and preserves multiplicity, so [1, 1, 2] is not equal to [1, 2, 2]. ID mode matches objects by a selected stable key such as id, then compares the remaining fields. It is applied only when every item in that array has a unique, non-empty string or finite numeric ID; arrays with missing or duplicate IDs fall back to index mode rather than guessing.',
       },
+      {
+        title: 'Import files and review changes by path',
+        text: 'Open one JSON or JSON5 file on each side, or paste content directly. Each file is limited to 5 MB and is read in the browser tab; no file content is uploaded. The change list reports JSONPath-like locations with before and after values, and the report download contains the changed paths and values. The current implementation still runs comparison on the main browser thread, so very large documents are limited by available tab memory.',
+      },
+      {
+        title: 'Structural comparison and data precision',
+        text: 'Object member order and whitespace do not create differences. A missing property is different from an explicit null, and the number 1 is different from the string "1". Parsing uses JSON5, so comments and trailing commas are accepted even though the comparison is performed on parsed values, not source formatting. JavaScript numbers may lose precision for integers above 2^53 - 1; represent long identifiers as strings.',
+      },
+    ],
+    faqs: [
+      { q: 'Does object key order affect the result?', a: 'No. JSON objects are unordered key-value pairs, so changing key order or whitespace does not create a difference.' },
+      { q: 'Which array comparison modes are available?', a: 'Index is the default. Ignore-order matches exact values without relying on position and preserves duplicate counts. ID mode matches objects by the selected key when every item has a unique, non-empty string or finite numeric ID; otherwise that array falls back to index mode.' },
+      { q: 'Can I compare JSON files directly?', a: 'Yes. Open a local JSON or JSON5 file on either side. Files are read in the browser, are limited to 5 MB each and are not uploaded.' },
+      { q: 'Can I compare very large files?', a: 'Comparison currently runs on the browser main thread. The practical limit depends on available tab memory; large documents may make the page unresponsive. Worker-based comparison and cancellation are not yet provided.' },
+      { q: 'Can I export JSON Patch?', a: 'No. You can download a JSON change report with paths and before/after values. RFC 6902 JSON Patch generation is not currently provided.' },
+      { q: 'Is a missing property the same as null?', a: 'No. Missing properties are added or removed; null is an explicit JSON value. Different types such as number 1 and string "1" are also treated as different.' },
     ],
   },
 

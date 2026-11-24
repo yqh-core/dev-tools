@@ -10,7 +10,7 @@ test.describe('Tool - JSON diff', () => {
     await expect(page).toHaveTitle('JSON Diff Checker — Compare JSON Online - DigDevBox');
     await expect(page.locator('meta[name="description"]')).toHaveAttribute(
       'content',
-      'Compare two JSON objects online. Find added, removed and changed values in nested data; object key order is ignored, and arrays compare by position.',
+      'Compare JSON files or pasted JSON online. Find nested changes by path, export a local report, and compare arrays by index, ignore-order or stable object ID. JSON5 supported; files stay in your browser.',
     );
     await expect(page.locator('h1')).toHaveText('JSON Diff Checker');
   });
@@ -78,5 +78,21 @@ test.describe('Tool - JSON diff', () => {
     await page.getByRole('button', { name: 'Download change report' }).click();
     const download = await downloadPromise;
     expect(download.suggestedFilename()).toBe('json-diff-report.json');
+  });
+  test('ignores array order while preserving duplicate counts', async ({ page }) => {
+    await page.getByTestId('array-mode-ignore-order').check();
+    await page.getByTestId('leftJson').fill('{"items":[1,2,1]}');
+    await page.getByTestId('rightJson').fill('{"items":[1,1,2]}');
+    await expect(page.getByTestId('change-list')).toContainText('0 changed paths');
+    await expect(page.getByTestId('change-list')).toContainText('No changed paths');
+  });
+
+  test('matches array objects by a selected stable ID', async ({ page }) => {
+    await page.getByTestId('array-mode-id').check();
+    await page.getByLabel('Array object ID key').fill('id');
+    await page.getByTestId('leftJson').fill('{"users":[{"id":1,"name":"Ada"},{"id":2,"name":"Grace"}]}');
+    await page.getByTestId('rightJson').fill('{"users":[{"id":2,"name":"Grace Hopper"},{"id":1,"name":"Ada"}]}');
+    await expect(page.getByTestId('change-list')).toContainText('$["users"][1]["name"]');
+    await expect(page.getByTestId('change-list')).toContainText('1 changed paths');
   });
 });
