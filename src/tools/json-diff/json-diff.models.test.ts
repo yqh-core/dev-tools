@@ -102,9 +102,9 @@ describe('json-diff models', () => {
     });
 
     it('enforces the 100-path and 8 KB limits', () => {
-      expect(parseIgnorePaths(Array.from({ length: 101 }, (_, index) => '/field' + index).join('\n')).error)
+      expect(parseIgnorePaths(Array.from({ length: 101 }, (_, index) => ['/field', index].join('')).join('\n')).error)
         .toContain('no more than 100');
-      expect(parseIgnorePaths('/' + 'a'.repeat(8192)).error)
+      expect(parseIgnorePaths(['/', 'a'.repeat(8192)].join('')).error)
         .toContain('8192 characters or fewer');
     });
 
