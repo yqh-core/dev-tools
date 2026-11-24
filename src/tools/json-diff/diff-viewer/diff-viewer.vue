@@ -9,8 +9,9 @@ const props = defineProps<{
   leftJson: unknown
   rightJson: unknown
   precomputedResult: Difference
+  largeInput: boolean
 }>();
-const onlyShowDifferences = ref(false);
+const onlyShowDifferences = ref(props.largeInput);
 const { leftJson, rightJson } = toRefs(props);
 const appTheme = useAppTheme();
 
