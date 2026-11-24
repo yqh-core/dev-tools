@@ -637,7 +637,7 @@ export const GUIDES: Record<string, ToolGuide> = {
   },
 
   '/json-diff': {
-    intro: 'Compares two JSON documents and highlights the differences — makes config changes or API response drift obvious.',
+    intro: 'Compare two JSON objects online with a structural JSON diff. Find added, removed and changed values in nested data; object key order is ignored and arrays compare by position.',
     steps: ['Paste the original JSON on the left', 'Paste the new JSON on the right', 'Review the highlighted additions, removals and changes'],
     notes: ['Key order does not affect the comparison, but array order does'],
     about: 'Comparing two JSON documents by eye does not scale: a changed port or a missing comma hides easily among hundreds of lines. A JSON diff parses both sides and reports the differences structurally — values that were added, removed, or changed — instead of diffing raw text lines. That means JSON that was merely reformatted compares as equal, while a real value change stands out.',
