@@ -473,17 +473,14 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
       '/json-to-xml',
       '/json-to-code',
     ],
-    // ⛔ 这一行**没有独立检索词**：原文档的 keyword 列写的是「JSON 簇矩阵承接」，
-    //   6 个兄弟页与承重墙 /json-prettify 的意图重叠，不另做定位。
-    //   所以这里记的是「承接说明」而不是搜索词，⛔ 不要把它当关键词下游使用。
-    keyword: '（无独立检索词 · JSON 簇矩阵承接）',
-    keywords: ['json diff', 'json minify', 'json to csv', 'json to yaml converter', 'json to xml'],
-    intent: 'convert',
+    keyword: 'json diff checker',
+    keywords: ['json diff', 'compare JSON online', 'compare two JSON objects', 'JSON difference checker', 'nested JSON diff'],
+    intent: 'debug',
     priority: 'P1',
     competition: 'high',
-    article: 'json-formatting-guide',
-    landed: false,
-    note: '簇 2 矩阵。与 #2 联动一起做：排名页普遍在做 formatter ↔ validator ↔ minifier ↔ diff ↔ repair 的互链闭环，这是可直接复制的模板。竞争度随 /json-prettify。',
+    lockedTitle: 'JSON Diff Checker — Compare JSON Online',
+    landed: true,
+    note: '2026-11-24 SERP spot-check confirms a distinct structural JSON comparison intent. Current implementation recursively compares nested objects and arrays, ignores object-key order, compares arrays by index, and can hide unchanged values. Competitors commonly add file input, JSON-path summaries and array-order controls; do not claim those features until implemented and tested.',
   },
   // 2026-11-20 additions: keyword targets selected from authenticated GSC/Bing data.
   // Evidence snapshots and query caveats: docs/seo/gsc-live-snapshot-2026-11-20.md and docs/seo/bing-serp-research-2026-11-20.md.
