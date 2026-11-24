@@ -637,7 +637,7 @@ export const GUIDES: Record<string, ToolGuide> = {
   },
 
   '/json-diff': {
-    intro: 'Compares two JSON documents and highlights the differences — makes config changes or API response drift obvious.',
+    intro: 'Compare two JSON objects online with a structural JSON diff. Find added, removed and changed values in nested data; object key order is ignored and arrays compare by position.',
     steps: ['Paste the original JSON on the left', 'Paste the new JSON on the right', 'Review the highlighted additions, removals and changes'],
     notes: ['Key order does not affect the comparison, but array order does'],
     about: 'Comparing two JSON documents by eye does not scale: a changed port or a missing comma hides easily among hundreds of lines. A JSON diff parses both sides and reports the differences structurally — values that were added, removed, or changed — instead of diffing raw text lines. That means JSON that was merely reformatted compares as equal, while a real value change stands out.',
@@ -645,6 +645,23 @@ export const GUIDES: Record<string, ToolGuide> = {
       { q: 'Does key order affect the result?', a: 'No. JSON objects are unordered key-value pairs, so { "a": 1, "b": 2 } equals { "b": 2, "a": 1 }. Arrays are ordered by definition — reordering array elements is reported as a change.' },
       { q: 'Why do two values that look identical show as different?', a: 'Usually the type changed: 1 (number) and "1" (string), or true and "true", render similarly but are different JSON values. A textual diff hides that; a structural diff points at the type mismatch.' },
       { q: 'Can I compare large documents?', a: 'Everything runs in your browser, so the practical limit is tab memory — documents of a few megabytes are fine.' },
+      { q: 'Are array elements matched by their values or IDs?', a: 'They are compared by position. If a record is inserted near the beginning, later indexes can appear changed. This tool does not provide ID-based array matching or an ignore-order option.' },
+      { q: 'Is a missing property the same as null?', a: 'No. A missing property is reported as added or removed; null is an explicit value. The same applies to different JSON types, such as the number 1 and the string "1".' },
+      { q: 'Can I compare a JSON file without pasting it?', a: 'The current interface accepts text in two input fields. Open the file locally and paste its contents; direct file upload is not currently provided.' },
+    ],
+    articleOnlySections: [
+      {
+        title: 'Structural JSON diff is not a line diff',
+        text: 'The tool parses both inputs and compares JSON values recursively. Object member order and whitespace do not create differences, but arrays are compared by position: item 0 on the left is compared with item 0 on the right, and so on. A missing property is added or removed; null is a present value and is not the same as a missing property. A number such as 1 and a string such as "1" are different JSON types. Use a line diff when exact source formatting, comments or whitespace are what you need to review; use a structural diff when you need to understand changes in the data itself.',
+      },
+      {
+        title: 'A repeatable workflow for API responses and configuration',
+        text: 'Capture both versions from the same endpoint, environment, query parameters and authorization scope so the comparison reflects a real change rather than different test conditions. Redact credentials, access tokens and personal data before pasting either document. After comparing, enable Only show differences to focus on changed values, then expand the surrounding object to understand the field in context. Remember that arrays are compared by index: inserting an item near the beginning can make later positions appear changed. This tool does not match array records by ID, ignore selected paths, upload files or export JSON Patch; use a workflow that supports those operations when you need them.',
+      },
+      {
+        title: 'Input and numeric compatibility boundaries',
+        text: 'Both inputs are parsed with JSON5, so comments and trailing commas are accepted even though the comparison is about JSON data rather than source text. Parsing uses JavaScript numbers: integers larger than 2^53 minus 1 may lose precision, so quote long identifiers such as database IDs before comparing them. Comparison runs in the browser tab; very large documents are limited by the memory available to that tab.',
+      },
     ],
     example: { label: 'Fill in sample JSON', text: '{ "name": "DigDevBox", "version": 1, "tags": ["a", "b"] }' },
     relatedNotes: [

@@ -521,8 +521,8 @@ tools:
     description: 输入数量和前缀。MAC地址将以您选择的大小写（大写或小写）生成
 
   json-diff:
-    title: JSON 差异比较
-    description: 比较两个JSON对象并获得它们之间的差异。
+    title: "JSON 差异比较器 — 在线比较 JSON"
+    description: "在线比较两个 JSON 对象，查看嵌套数据中的新增、删除和修改值。对象键顺序不影响结果；数组按位置比较，全部在浏览器本地完成。"
   jwt-parser:
     title: JWT 解码器与解析器 — 在线解析 JSON Web Token
     description: 在线解码并解析 JSON Web Token（JWT）— 一目了然查看 Header、Payload 与标准声明。
