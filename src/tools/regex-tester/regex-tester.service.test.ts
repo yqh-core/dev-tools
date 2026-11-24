@@ -115,6 +115,7 @@ describe('regex-tester pattern explanation', () => {
     expect(explainRegexFlags('gimsu').find(item => item.flag === 's')?.explanation).toContain('line terminators');
   });
 });
+
 describe('regex-tester named test cases', () => {
   it('reports positive and negative expectations independently', () => {
     const result = evaluateRegexTestCases('^ORD-[0-9]{4}$', 'd', [
