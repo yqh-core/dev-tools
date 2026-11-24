@@ -2,6 +2,11 @@
 import { useI18n } from 'vue-i18n';
 import { type HeaderAnalysis, analyzeResponseHeaders } from './http-headers.models';
 import { httpHeaderEntries, httpMethodEntries } from './http-headers.constants';
+import {
+  type HarResponseEntry,
+  formatHarResponseHeaders,
+  parseHarResponseEntries,
+} from './http-headers.har';
 import { type HeaderRemediationPlatform, buildHeaderRemediation } from './http-headers.remediation';
 import { useCopy } from '@/composable/copy';
 import { useFuzzySearch } from '@/composable/fuzzySearch';
@@ -22,6 +27,63 @@ const SAMPLE_HEADERS = [
   'cross-origin-resource-policy: same-origin',
   'set-cookie: session=example; Secure; HttpOnly; SameSite=Lax',
 ].join('\n');
+
+const harEntries = ref<HarResponseEntry[]>([]);
+const selectedHarEntry = ref('');
+const harImportError = ref('');
+const harEntryOptions = computed(() => harEntries.value.map(entry => ({
+  label: `${entry.method} ${entry.url} — ${entry.status} ${entry.statusText}`.trim(),
+  value: entry.id,
+})));
+
+function applyHarEntry(id: string) {
+  const entry = harEntries.value.find(item => item.id === id);
+  if (entry) {
+    selectedHarEntry.value = id;
+    rawHeaders.value = formatHarResponseHeaders(entry);
+  }
+}
+
+function selectHarEntry(id: string) {
+  applyHarEntry(id);
+}
+
+async function handleHarFileChange(event: Event) {
+  const input = event.target as HTMLInputElement;
+  const file = input.files?.[0];
+  harImportError.value = '';
+
+  if (!file) {
+    return;
+  }
+
+  if (file.size > 10 * 1024 * 1024) {
+    harImportError.value = t('tools.http-headers.analyzer.harTooLarge');
+    input.value = '';
+    return;
+  }
+
+  try {
+    const entries = parseHarResponseEntries(await file.text());
+    if (entries.length === 0) {
+      harEntries.value = [];
+      selectedHarEntry.value = '';
+      harImportError.value = t('tools.http-headers.analyzer.harNoResponses');
+      return;
+    }
+
+    harEntries.value = entries;
+    applyHarEntry(entries[0].id);
+  }
+  catch {
+    harEntries.value = [];
+    selectedHarEntry.value = '';
+    harImportError.value = t('tools.http-headers.analyzer.harInvalid');
+  }
+  finally {
+    input.value = '';
+  }
+}
 
 const rawHeaders = ref('');
 const analysis = computed<HeaderAnalysis | undefined>(() => (
@@ -125,6 +187,33 @@ function directionLabel(direction: string): string {
       <p mb-3 op-70>
         {{ t('tools.http-headers.analyzer.intro') }}
       </p>
+
+      <div mt-3 flex flex-wrap items-center gap-2>
+        <label class="har-upload-label">
+          {{ t('tools.http-headers.analyzer.harImportLabel') }}
+          <input
+            type="file"
+            accept=".har,application/json"
+            data-test-id="har-file-input"
+            :aria-label="t('tools.http-headers.analyzer.harImportLabel')"
+            @change="handleHarFileChange"
+          >
+        </label>
+        <span text-xs op-60>
+          {{ t('tools.http-headers.analyzer.harPrivacyNote') }}
+        </span>
+      </div>
+      <c-alert v-if="harImportError" mt-3 type="warning" data-test-id="har-import-error">
+        {{ harImportError }}
+      </c-alert>
+      <n-select
+        v-if="harEntries.length > 1"
+        :value="selectedHarEntry"
+        :options="harEntryOptions"
+        data-test-id="har-entry-select"
+        mt-3
+        @update:value="selectHarEntry"
+      />
 
       <n-input
         v-model:value="rawHeaders"
@@ -391,6 +480,21 @@ function directionLabel(direction: string): string {
 
 .methods-desc {
   color: var(--dd-text-soft);
+}
+
+.har-upload-label {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.har-upload-label input {
+  max-width: 100%;
+  font-size: 12px;
+  font-weight: 400;
 }
 
 .remediation-code {
