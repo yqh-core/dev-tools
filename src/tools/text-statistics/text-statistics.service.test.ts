@@ -111,5 +111,4 @@ describe('text-statistics', () => {
     expect(result.terms).toHaveLength(3);
     expect(result.totalTokens).toBe(7);
   });
-
 });
