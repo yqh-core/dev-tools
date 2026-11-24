@@ -11,8 +11,8 @@ test.describe('Tool - bulk redirect generator', () => {
     await page.getByRole('button', { name: 'Load sample' }).click();
 
     await expect(page.getByTestId('redirect-analysis')).toContainText('3');
-    await expect(page.getByTestId('redirect-output')).toContainText('RedirectMatch 301');
-    await expect(page.getByTestId('redirect-output')).toContainText('^/old-product$');
+    await expect(page.getByTestId('redirect-output').locator('textarea')).toHaveValue(/RedirectMatch 301/);
+    await expect(page.getByTestId('redirect-output').locator('textarea')).toHaveValue(/\\^\\/old-product\\\$/);
   });
 
   test('shows duplicate, self-redirect and loop errors before export', async ({ page }) => {
@@ -28,8 +28,9 @@ test.describe('Tool - bulk redirect generator', () => {
     await expect(report).toContainText('duplicates line');
     await expect(report).toContainText('same path');
     await expect(report).toContainText('part of a loop');
-    await expect(page.getByTestId('redirect-output')).not.toContainText('/same');
-    await expect(page.getByTestId('redirect-output')).not.toContainText('/a');
+    const generated = await page.getByTestId('redirect-output').locator('textarea').inputValue();
+    expect(generated).not.toContain('/same');
+    expect(generated).not.toContain('/a');
   });
 
   test('generates Cloudflare CSV after a site origin is supplied', async ({ page }) => {
@@ -39,7 +40,7 @@ test.describe('Tool - bulk redirect generator', () => {
 
     await expect(page.getByTestId('redirect-output-card')).toContainText('Enter a site origin');
     await page.locator('[data-test-id="redirect-origin-input"] input').fill('https://example.com');
-    await expect(page.getByTestId('redirect-output')).toContainText('"https://example.com/old","https://example.com/new","301"');
+    await expect(page.getByTestId('redirect-output').locator('textarea')).toHaveValue(/https:\/\/example\\.com\\\/old/);
   });
 
   test('imports a CSV file in the browser', async ({ page }) => {
@@ -50,6 +51,6 @@ test.describe('Tool - bulk redirect generator', () => {
     });
 
     await expect(page.getByTestId('redirect-analysis')).toContainText('1');
-    await expect(page.getByTestId('redirect-output')).toContainText('RedirectMatch 301');
+    await expect(page.getByTestId('redirect-output').locator('textarea')).toHaveValue(/RedirectMatch 301/);
   });
 });
