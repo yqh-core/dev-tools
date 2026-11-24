@@ -78,6 +78,15 @@ describe('slugify batch conversion', () => {
     expect(rows.every(row => row.outputLength <= 20)).toBe(true);
   });
 
+  it('keeps generated suffixes unique when an input already looks like a numbered slug', () => {
+    const rows = runSlugifyBatch('Guide\nGuide\nGuide-2', {
+      ...defaults,
+      unique: true,
+    });
+
+    expect(rows.map(row => row.slug)).toEqual(['guide', 'guide-2', 'guide-2-2']);
+  });
+
   it('trims at a word boundary rather than cutting through a word', () => {
     const [row] = runSlugifyBatch('hello extraordinarilylongword again', {
       ...defaults,
