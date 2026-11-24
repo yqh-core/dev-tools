@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { getStringSizeInBytes, getTextStatistics } from './text-statistics.service'
 
 describe('text-statistics', () => {
@@ -54,18 +54,18 @@ describe('text-statistics', () => {
   })
 
   it('falls back when Intl.Segmenter is unavailable', () => {
-    const original = Intl.Segmenter
-    // @ts-expect-error Simulate an older browser runtime.
-    Intl.Segmenter = undefined
+    const original = Object.getOwnPropertyDescriptor(Intl, 'Segmenter')
+    Object.defineProperty(Intl, 'Segmenter', { configurable: true, value: undefined })
     try {
       const result = getTextStatistics('Hello, world!\n你好')
       expect(result.words).toBe(3)
-      expect(result.codePoints).toBe(14)
-      expect(result.graphemes).toBe(14)
+      expect(result.codePoints).toBe(16)
+      expect(result.graphemes).toBe(16)
       expect(result.sentences).toBe(2)
     }
     finally {
-      Intl.Segmenter = original
+      if (original) Object.defineProperty(Intl, 'Segmenter', original)
+      else Reflect.deleteProperty(Intl, 'Segmenter')
     }
   })
 })
