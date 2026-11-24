@@ -11,6 +11,15 @@ test.describe('Homepage task discovery', () => {
     await expect(directoryLink).toBeVisible();
   });
 
+  test('shows a concrete JSON workflow preview linked to the real workspace', async ({ page }) => {
+    await page.goto('/');
+
+    const preview = page.locator('.home-hero-preview');
+    await expect(preview).toBeVisible();
+    await expect(preview.locator('pre code')).toContainText('"status": "ready"');
+    await expect(preview.locator('a.hero-preview-link')).toHaveAttribute('href', '/json-workspace/');
+  });
+
   test('uses one column without horizontal overflow at 390px', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('/');
