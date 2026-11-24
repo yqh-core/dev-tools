@@ -1111,6 +1111,17 @@ tools:
         redirect: "Redirect response"
         httpError: "HTTP error response"
         multipleBlocks: "Multiple response blocks detected"
+      remediation:
+        title: "Copy-ready server configuration"
+        intro: "Choose your server to generate a snippet for clearly missing, low-context headers."
+        copy: "Copy config"
+        copied: "Configuration copied"
+        caution: "Review in staging before deployment. HSTS is only effective over HTTPS. The generator intentionally excludes CSP, frame policy, Permissions-Policy, CORS and cookie changes because their correct settings depend on your application."
+        platforms:
+          nginx: "Nginx"
+          apache: "Apache"
+          caddy: "Caddy"
+          cloudflare: "Cloudflare Pages"
 
   ascii-table:
     title: "ASCII table"
