@@ -339,7 +339,7 @@ jobs:
                 JSON.stringify({ googlebot: botMeta, browser: browserMeta }));
             }
             const expectedMetadata = {
-              '/percentage-calculator/': { title: 'Percentage Calculator — Percent & Change - DigDevBox', description: 'Free percentage calculator for percent of a number, percentage change, stacked discounts and reverse rates. Batch formulas and CSV/TSV export run in your browser.', h1: 'Percentage Calculator' },
+              '/percentage-calculator/': { title: 'Percentage Calculator — Percent of, Change & Difference - DigDevBox', description: 'Find X% of Y, what percent one value is of another, percent change, difference and reverse rates. Seven modes with batch formulas and CSV/TSV export.', h1: 'Percentage Calculator' },
               '/eta-calculator/': { title: 'ETA Calculator — Task Completion Time - DigDevBox', description: 'Estimate time remaining for a download, build or batch job. Enter a known processing rate or derive throughput from completed work and elapsed time.', h1: 'ETA Calculator' },
               '/ipv6-ula-generator/': { title: 'IPv6 ULA generator - DigDevBox', description: 'Generate RFC 4193 fd00::/8 IPv6 Unique Local Address (ULA) /48 prefixes with secure random 40-bit Global IDs or a manual Global ID. Create up to 20 prefixes and inspect first/last /64 subnets in your browser.', h1: 'IPv6 ULA generator' },
               '/api-debugger/': { title: 'REST API Tester — cURL, Tests & Collections - DigDevBox', description: 'Send REST API requests, import cURL, inspect status, headers and JSON, add assertions, and run saved collections. Requests pass through a temporary relay.', h1: 'REST API Tester' },
