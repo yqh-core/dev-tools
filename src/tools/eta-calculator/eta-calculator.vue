@@ -122,7 +122,7 @@ const displayedDuration = computed(() =>
         h-full
         rounded
         bg-primary
-        :style="{ width: progressPercent + '%' }"
+        :style="{ width: `${progressPercent}%` }"
       />
     </div>
     <p text-xs opacity-70 data-test-id="eta-progress-label">
