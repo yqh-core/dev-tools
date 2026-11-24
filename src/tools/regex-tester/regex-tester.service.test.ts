@@ -1,10 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-  evaluateRegexTestCases,
-  explainRegexFlags,
-  explainRegexPattern,
-  matchRegex,
-} from './regex-tester.service';
+import { evaluateRegexTestCases, explainRegexFlags, explainRegexPattern, matchRegex } from './regex-tester.service';
 
 const regexesData = [
   {
