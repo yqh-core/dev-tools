@@ -1,27 +1,41 @@
 <script lang="ts" setup>
 import { isUndefined } from 'lodash';
-import { type ArrayComparisonMode, diff, flattenDifferences } from '../json-diff.models';
+import { flattenDifferences } from '../json-diff.models';
+import type { Difference } from '../json-diff.types';
 import { DiffRootViewer } from './diff-viewer.models';
 import { useAppTheme } from '@/ui/theme/themes';
 
 const props = defineProps<{
   leftJson: unknown
   rightJson: unknown
-  arrayMode: ArrayComparisonMode
-  arrayIdKey: string
+  precomputedResult: Difference
 }>();
 const onlyShowDifferences = ref(false);
-const { leftJson, rightJson, arrayMode, arrayIdKey } = toRefs(props);
+const { leftJson, rightJson } = toRefs(props);
 const appTheme = useAppTheme();
 
-const result = computed(() =>
-  diff(leftJson.value, rightJson.value, {
-    onlyShowDifferences: onlyShowDifferences.value,
-    arrayMode: arrayMode.value,
-    arrayIdKey: arrayIdKey.value,
-  }),
-);
+function filterUnchanged(difference: Difference): Difference | null {
+  if ('children' in difference) {
+    if (difference.status === 'unchanged') {
+      return null;
+    }
+    const children = difference.children
+      .map(filterUnchanged)
+      .filter((child): child is Difference => child !== null);
+    if (difference.status === 'children-updated' && children.length === 0) {
+      return null;
+    }
+    return { ...difference, children };
+  }
+  return difference.status === 'unchanged' ? null : difference;
+}
 
+const result = computed(() => {
+  if (!onlyShowDifferences.value) {
+    return props.precomputedResult;
+  }
+  return filterUnchanged(props.precomputedResult) ?? props.precomputedResult;
+});
 const jsonAreTheSame = computed(() => flattenDifferences(result.value).length === 0);
 const showResults = computed(() => !isUndefined(leftJson.value) && !isUndefined(rightJson.value));
 </script>
