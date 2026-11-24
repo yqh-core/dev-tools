@@ -79,8 +79,6 @@ function diff(
   newObj: unknown,
   options: DiffOptions = {},
 ): Difference {
-  const { onlyShowDifferences = false } = options;
-
   if (isArray(obj) && isArray(newObj)) {
     return {
       key: '',
