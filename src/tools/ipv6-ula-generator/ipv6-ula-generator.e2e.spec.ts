@@ -26,6 +26,15 @@ test.describe('Tool - IPv6 ULA generator', () => {
     expect(new Set(ids).size).toBe(3);
   });
 
+  test('clears stale random output when switching to manual mode', async ({ page }) => {
+    await expect(page.getByTestId('ula-result-1')).toBeVisible();
+    await page.getByTestId('ula-mode-manual').click();
+    await expect(page.getByTestId('ula-result-1')).toHaveCount(0);
+    await page.getByTestId('ula-manual-global-id').locator('input').fill('0123456789');
+    await page.getByTestId('ula-generate').click();
+    await expect(page.getByTestId('ula-prefix-1').locator('input')).toHaveValue('fd01:2345:6789::/48');
+  });
+
   test('accepts a reproducible manual 40-bit Global ID', async ({ page }) => {
     await page.getByTestId('ula-mode-manual').click();
     await page.getByTestId('ula-manual-global-id').locator('input').fill('0123456789');
