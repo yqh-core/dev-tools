@@ -143,22 +143,34 @@ const { copy: copyPythonRequests } = useCopy({ source: pythonRequestsExample, te
         {{ $t('tools.basic-auth-generator.invalidRequestUrl') }}
       </p>
       <template v-else-if="examplesState.examples">
-        <h4 class="mb-2 text-base font-semibold">{{ $t('tools.basic-auth-generator.curl') }}</h4>
+        <h4 class="mb-2 text-base font-semibold">
+          {{ $t('tools.basic-auth-generator.curl') }}
+        </h4>
         <pre class="mb-2 overflow-x-auto rounded bg-gray-500:5 p-3"><code data-test-id="basic-auth-curl-example">{{ curlExample }}</code></pre>
         <div mb-4 flex justify-start>
-          <c-button size="small" @click="copyCurl()">Copy cURL example</c-button>
+          <c-button size="small" @click="copyCurl()">
+            Copy cURL example
+          </c-button>
         </div>
 
-        <h4 class="mb-2 text-base font-semibold">{{ $t('tools.basic-auth-generator.nodeFetch') }}</h4>
+        <h4 class="mb-2 text-base font-semibold">
+          {{ $t('tools.basic-auth-generator.nodeFetch') }}
+        </h4>
         <pre class="mb-2 overflow-x-auto rounded bg-gray-500:5 p-3"><code data-test-id="basic-auth-node-fetch-example">{{ nodeFetchExample }}</code></pre>
         <div mb-4 flex justify-start>
-          <c-button size="small" @click="copyNodeFetch()">Copy Node.js example</c-button>
+          <c-button size="small" @click="copyNodeFetch()">
+            Copy Node.js example
+          </c-button>
         </div>
 
-        <h4 class="mb-2 text-base font-semibold">{{ $t('tools.basic-auth-generator.pythonRequests') }}</h4>
+        <h4 class="mb-2 text-base font-semibold">
+          {{ $t('tools.basic-auth-generator.pythonRequests') }}
+        </h4>
         <pre class="mb-2 overflow-x-auto rounded bg-gray-500:5 p-3"><code data-test-id="basic-auth-python-requests-example">{{ pythonRequestsExample }}</code></pre>
         <div mb-3 flex justify-start>
-          <c-button size="small" @click="copyPythonRequests()">Copy Python example</c-button>
+          <c-button size="small" @click="copyPythonRequests()">
+            Copy Python example
+          </c-button>
         </div>
       </template>
 
