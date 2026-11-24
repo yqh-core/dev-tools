@@ -6,8 +6,8 @@ import type {
   PercentageBatchRow,
 } from './percentage-calculator.batch';
 import {
-  calculateSequentialPercentage,
   MAX_SEQUENTIAL_PERCENTAGE_STEPS,
+  calculateSequentialPercentage,
   type SequentialPercentageError,
   type SequentialPercentageStepInput,
 } from './percentage-calculator.sequential';
@@ -334,7 +334,7 @@ const sequentialErrorMessage = computed(() => {
     'too-many-steps': 'tools.percentage-calculator.sequential.errors.tooManySteps',
     'invalid-rate': 'tools.percentage-calculator.sequential.errors.invalidRate',
     'discount-over-100': 'tools.percentage-calculator.sequential.errors.discountOver100',
-    overflow: 'tools.percentage-calculator.sequential.errors.overflow',
+    'overflow': 'tools.percentage-calculator.sequential.errors.overflow',
   };
   return t(keys[error], { maximum: MAX_SEQUENTIAL_PERCENTAGE_STEPS });
 });
@@ -413,7 +413,6 @@ async function copySequentialSummary(): Promise<void> {
     sequentialStatus.value = t('tools.percentage-calculator.sequential.clipboardUnavailable');
   }
 }
-
 </script>
 
 <template>
