@@ -1,9 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import {
-  createSocialCardPng,
-  socialImagePath,
-  socialImageSlug,
-} from './social-cards.mjs';
+import { socialImagePath, socialImageSlug, socialImageUrl } from '../src/seo/site';
+import { createSocialCardPng } from './social-cards.mjs';
 
 describe('route-specific Open Graph cards', () => {
   it('maps canonical routes to safe, unique image paths', () => {
@@ -18,6 +15,7 @@ describe('route-specific Open Graph cards', () => {
       socialImagePath('/eta-calculator/'),
       socialImagePath('/guides/eta-calculator/'),
     ]).size).toBe(3);
+    expect(socialImageUrl('/eta-calculator/')).toBe('https://www.digdevbox.com/og/eta-calculator.png?v=1');
   });
 
   it('creates valid 1200x630 PNG data', () => {
