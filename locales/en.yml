@@ -1054,7 +1054,7 @@ tools:
     guide:
       title: How to batch-decode Outlook Safe Links
       intro: The decoder accepts HTTPS Microsoft Outlook Safe Links wrappers and unwraps up to five nested layers. It parses URL text in your browser; it never requests or opens the wrapper or destination.
-      exampleTitle: Example: two links in one batch
+      exampleTitle: "Example: two links in one batch"
       example: |-
         Line 1: https://nam01.safelinks.protection.outlook.com/?url=https%3A%2F%2Fexample.com%2Fdocs
         Line 2: https://eur01.safelinks.protection.outlook.com/?url=https%3A%2F%2Fexample.org%2Faccount
