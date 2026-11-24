@@ -27,7 +27,7 @@ test.describe('Tool - bulk redirect generator', () => {
     ].join('\n'));
 
     const report = page.getByTestId('redirect-analysis');
-    await expect(report).toContainText('duplicates line');
+    await expect(report).toContainText('already used by another mapping');
     await expect(report).toContainText('same path');
     await expect(report).toContainText('part of a loop');
     const output = await page.getByTestId('redirect-output').locator('textarea').inputValue();
