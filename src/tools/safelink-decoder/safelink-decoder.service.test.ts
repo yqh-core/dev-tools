@@ -95,7 +95,7 @@ describe('decodeSafeLinksBatch', () => {
     const inner = 'https://eur01.safelinks.protection.outlook.com/?url=https%3A%2F%2Fexample.org%2Fguide';
     const nested = `https://nam01.safelinks.protection.outlook.com/?url=${encodeURIComponent(inner)}`;
 
-    const results = decodeSafeLinksBatch(`  \\n${valid}\\n\\n${invalid}\\n${nested}\\n`);
+    const results = decodeSafeLinksBatch(`  \n${valid}\n\n${invalid}\n${nested}\n`);
 
     expect(results).toHaveLength(3);
     expect(results.map(result => result.line)).toEqual([2, 4, 5]);
@@ -118,6 +118,6 @@ describe('decodeSafeLinksBatch', () => {
 
   it('returns no rows for empty or whitespace-only input', () => {
     expect(decodeSafeLinksBatch('')).toEqual([]);
-    expect(decodeSafeLinksBatch('  \\n\\n  ')).toEqual([]);
+    expect(decodeSafeLinksBatch('  \n\n  ')).toEqual([]);
   });
 });
