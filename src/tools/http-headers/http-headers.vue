@@ -28,6 +28,7 @@ const SAMPLE_HEADERS = [
   'set-cookie: session=example; Secure; HttpOnly; SameSite=Lax',
 ].join('\n');
 
+const rawHeaders = ref('');
 const harEntries = ref<HarResponseEntry[]>([]);
 const selectedHarEntry = ref('');
 const harImportError = ref('');
@@ -98,7 +99,6 @@ async function handleHarDrop(event: DragEvent) {
   }
 }
 
-const rawHeaders = ref('');
 const analysis = computed<HeaderAnalysis | undefined>(() => (
   rawHeaders.value.trim() ? analyzeResponseHeaders(rawHeaders.value) : undefined
 ));
