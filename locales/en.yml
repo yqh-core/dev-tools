@@ -1129,7 +1129,9 @@ tools:
           nginx: "Nginx"
           apache: "Apache"
           caddy: "Caddy"
+          vercel: "Vercel (vercel.json)"
           cloudflare: "Cloudflare Pages"
+      harDropNote: "Drop a .har or .txt response-header file here. Processing stays in this tab."
 
   ascii-table:
     title: "ASCII table"
