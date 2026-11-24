@@ -384,10 +384,11 @@ tools:
       title: "Bulk URL slug generator"
       intro: "Convert one title or a batch of titles. Each non-empty line becomes one URL-friendly slug."
       inputLabel: "Titles or phrases"
-      inputPlaceholder: "One title per line, e.g.:
-How to Build a Better API
-The Complete Guide to URL Slugs
-Déjà Vu and Unicode"
+      inputPlaceholder: |-
+        One title per line, e.g.:
+        How to Build a Better API
+        The Complete Guide to URL Slugs
+        Déjà Vu and Unicode
       separator: "Word separator"
       hyphen: "Hyphen (-)"
       underscore: "Underscore (_)"
