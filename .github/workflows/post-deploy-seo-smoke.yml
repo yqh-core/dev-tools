@@ -5,6 +5,7 @@ on:
     workflows: ["verify"]
     types: [completed]
     branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -24,6 +25,15 @@ jobs:
         with:
           script: |
             const { owner, repo } = context.repo;
+            // Allow an operator to re-run the production smoke against the live site
+            // after updating its assertions, without requiring a dummy product commit.
+            if (context.eventName === 'workflow_dispatch') {
+              core.setOutput('deploy_sha', context.sha);
+              core.setOutput('wait_for_deploy', 'false');
+              core.setOutput('check_eta_release', 'true');
+              core.info('Manual production smoke: validate the currently served release markers.');
+              return;
+            }
             if (context.payload.workflow_run.conclusion !== 'success') {
               core.info('Source verify did not succeed; production smoke will exit without checking deployment.');
               core.setOutput('deploy_sha', context.payload.workflow_run.head_sha);
@@ -171,7 +181,7 @@ jobs:
               etaResponse.ok &&
               etaResponse.url === origin + '/eta-calculator/' &&
               etaHtml.includes('<title>ETA Calculator — Task Completion Time - DigDevBox</title>') &&
-              etaHtml.includes('Estimate time remaining for a download, build or batch job. Enter a known processing rate or derive throughput from completed work and elapsed time.') &&
+              etaHtml.includes('Estimate time remaining for a download, build or batch job with an optional weekday work schedule, or derive throughput from completed work and elapsed time.') &&
               etaHtml.includes('Calculate from elapsed time') &&
               etaHtml.includes('href="' + origin + '/eta-calculator/"')
             );
@@ -354,7 +364,7 @@ jobs:
             const expectedMetadata = {
               '/http-headers/': { title: 'HTTP Header Analyzer — HAR Import & Security Score - DigDevBox', description: 'Import HAR or paste curl/DevTools headers. Check CSP, HSTS, cookies, CORS and indexing; get a score plus copy-ready Nginx, Vercel and Cloudflare fixes locally.', h1: 'HTTP Header Analyzer' },
               '/percentage-calculator/': { title: 'Percentage Calculator — Percent of, Change & Difference - DigDevBox', description: 'Calculate percentages, discounts, percentage change, reverse percentages and percentage points. Seven modes plus batch CSV/TSV export and worked formulas.', h1: 'Percentage Calculator' },
-              '/eta-calculator/': { title: 'ETA Calculator — Task Completion Time - DigDevBox', description: 'Estimate time remaining for a download, build or batch job. Enter a known processing rate or derive throughput from completed work and elapsed time.', h1: 'ETA Calculator' },
+              '/eta-calculator/': { title: 'ETA Calculator — Task Completion Time - DigDevBox', description: 'Estimate time remaining for a download, build or batch job with an optional weekday work schedule, or derive throughput from completed work and elapsed time.', h1: 'ETA Calculator' },
               '/ipv6-ula-generator/': { title: 'IPv6 ULA generator - DigDevBox', description: 'Generate RFC 4193 fd00::/8 IPv6 Unique Local Address (ULA) /48 prefixes with secure random 40-bit Global IDs or a manual Global ID. Create up to 20 prefixes and inspect first/last /64 subnets in your browser.', h1: 'IPv6 ULA generator' },
               '/api-debugger/': { title: 'REST API Tester — cURL, Tests & Collections - DigDevBox', description: 'Send REST API requests, import cURL, inspect status, headers and JSON, add assertions, and run saved collections. Requests pass through a temporary relay.', h1: 'REST API Tester' },
               '/regex-tester/': { title: 'Regular Expression Tester — JavaScript Regex - DigDevBox', description: 'Test JavaScript regular expressions online with live matches, capture groups, replacement preview and named positive/negative test cases with pass/fail results. A 300ms worker timeout stops runaway patterns.', h1: 'Regular Expression Tester' },
