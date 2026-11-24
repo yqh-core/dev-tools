@@ -57,6 +57,25 @@ describe('article-only guide content', () => {
     expect(chineseNumeronym[0].title).toBe('批量模式按行处理，不按短语处理');
   });
 
+  it('adds distinct JSON Diff guidance in both locales without claiming unsupported competitor features', async () => {
+    const [en, zh] = await Promise.all([loadGuides('en'), loadGuides('zh')]);
+    const english = en['/json-diff'].articleOnlySections ?? [];
+    const chinese = zh['/json-diff'].articleOnlySections ?? [];
+
+    expect(english).toHaveLength(3);
+    expect(chinese).toHaveLength(english.length);
+    expect(english.map(section => section.title)).toContain('Structural JSON diff is not a line diff');
+    expect(chinese.map(section => section.title)).toContain('结构化 JSON diff 与逐行文本 diff 不同');
+    expect(english[1].text).toContain('does not match array records by ID');
+    expect(chinese[1].text).toContain('不按 ID 匹配数组记录');
+    expect(english[2].text).toContain('2^53 minus 1');
+    expect(chinese[2].text).toContain('2^53 减 1');
+
+    const sections = buildGuideSections(en['/json-diff']);
+    expect(sections.some(section => section.id === 'article-only-1')).toBe(true);
+    expect(sections.some(section => section.id === 'article-only-3')).toBe(true);
+  });
+
   it('does not lose the original tool guide sections when article-only sections are added', async () => {
     const guides = await loadGuides('en');
     const sections = buildGuideSections(guides['/percentage-calculator']);
