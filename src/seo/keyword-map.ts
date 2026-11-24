@@ -485,7 +485,7 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
   // 2026-11-20 additions: keyword targets selected from authenticated GSC/Bing data.
   // Evidence snapshots and query caveats: docs/seo/gsc-live-snapshot-2026-11-20.md and docs/seo/bing-serp-research-2026-11-20.md.
   // Keep title locks synchronized with locales/en.yml and the generated README.
-  // These are existing live titles, locked unchanged; this adds governance/coverage, not metadata rewrites.
+  // Preserve exact live titles unless a deliberate intent/product change is made; update the lock and decision note together when changing one.
   {
     path: '/basic-auth-generator',
     keyword: 'basic auth generator',
@@ -505,8 +505,8 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     priority: 'P0',
     competition: 'medium',
     landed: true,
-    lockedTitle: 'Outlook Safe Links Decoder — Reveal the Original URL',
-    note: 'Bing Webmaster 90d: page 51 impressions, avg position 7.00; visible queries include outlook safelink decoder (9 impressions, position 9), decode safelink (4, position 8), and outlook link decoder (2, position 10); zero clicks. Page now unwraps nested Outlook wrappers up to five layers. Re-measure after release; decoding is not a safety scan or a bypass of click-time protection.',
+    lockedTitle: 'Outlook Safe Links Batch Decoder',
+    note: 'Bing Webmaster 90d: page 51 impressions, avg position 7.00; visible queries include outlook safelink decoder (9 impressions, position 9), decode safelink (4, position 8), and outlook link decoder (2, position 10); zero clicks. On 2026-11-24, the shipped batch workflow became primary: one HTTPS wrapper per line, independent local row parsing, up to five nested layers, and copyable results with scheme/host/depth context. The title lock was intentionally changed to reflect this real capability and improve batch-intent relevance; re-measure after recrawl, with no CTR or ranking lift claimed. Decoding is not a safety scan or a bypass of click-time protection.',
   },
   {
     path: '/percentage-calculator',
