@@ -262,7 +262,42 @@ tools:
       refresh: 刷新
   percentage-calculator:
     title: 百分比计算器 — 百分比计算、增减幅与折扣
-    description: 免费百分比计算器，支持占比、变化率、增减与折扣反推。可批量粘贴多行、逐行查看公式并导出 CSV，全部在浏览器本地完成。
+    description: 免费百分比计算器，支持占比、变化率、连续折扣、增减和折扣反推。提供逐步金额、综合变化率及浏览器本地批量 CSV/TSV 导出。
+    sequential:
+      summary: 连续折扣与百分比调整
+      title: 连续百分比调整
+      description: 输入起始金额，并将每次增加或减少应用于上一步的中间结果。逐步查看金额，以及相对于原始金额的综合变化率。
+      startingAmount: 起始金额
+      stepsTitle: 调整步骤
+      stepLimit: 最多 {maximum} 步
+      stepNumber: 第 {number} 步
+      percentage: 百分比
+      addStep: 添加步骤
+      loadExample: 加载示例
+      remove: 删除
+      moveUp: 上移
+      moveDown: 下移
+      operations:
+        increase: 增加
+        decrease: 减少
+      resultsTitle: 逐步计算结果
+      finalAmount: 最终金额
+      totalChange: 金额总变化
+      effectiveChange: 综合百分比变化
+      formula: 连乘公式
+      compoundingNote: 每一步百分比都作用于上一步的结果。例如先打八折，再减价 10%，总折扣是 28%，不是 30%。相同百分比乘数调换顺序会改变中间金额，但在数学计算中不会改变最终金额。显示结果最多保留 12 位有效数字，不进行特定货币的小数位舍入。
+      notDefined: 起始金额为零时无法定义
+      copySummary: 复制计算摘要
+      exampleLoaded: 已加载示例。修改金额或步骤即可计算自己的情况。
+      copied: 已复制计算摘要。
+      clipboardUnavailable: 当前浏览器无法访问剪贴板，请手动选择摘要并复制。
+      errors:
+        invalidStart: 请输入大于或等于零的有限起始金额。
+        noSteps: 请至少添加一个百分比步骤。
+        tooManySteps: 最多使用 {maximum} 步。
+        invalidRate: 每一步请输入 0 到 1,000 之间的有限百分比。
+        discountOver100: 减少比例不能超过 100%。
+        overflow: 结果超出可支持的数值范围，请调低金额或百分比。
     batch:
       summary: 批量计算多组数值（可选）
       title: 百分比批量计算器

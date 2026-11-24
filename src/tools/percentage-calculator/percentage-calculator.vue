@@ -6,6 +6,12 @@ import type {
   PercentageBatchRow,
 } from './percentage-calculator.batch';
 import {
+  MAX_SEQUENTIAL_PERCENTAGE_STEPS,
+  type SequentialPercentageError,
+  type SequentialPercentageStepInput,
+  calculateSequentialPercentage,
+} from './percentage-calculator.sequential';
+import {
   percentageBatchToCsv,
   percentageBatchToTsv,
   runPercentageBatch,
@@ -299,6 +305,114 @@ function clearPercentageBatchHistory(): void {
 function percentageBatchSavedAt(timestamp: number): string {
   return new Date(timestamp).toLocaleString();
 }
+
+interface SequentialStepEditor extends SequentialPercentageStepInput {
+  id: number
+}
+
+const sequentialStartingAmount = ref<number | null>(100);
+const sequentialSteps = ref<SequentialStepEditor[]>([
+  { id: 1, operation: 'decrease', percentage: 20 },
+  { id: 2, operation: 'decrease', percentage: 10 },
+]);
+let nextSequentialStepId = 3;
+const sequentialStatus = ref('');
+
+const sequentialCalculationResult = computed(() =>
+  calculateSequentialPercentage(sequentialStartingAmount.value, sequentialSteps.value),
+);
+const sequentialCalculation = computed(() => sequentialCalculationResult.value.calculation);
+
+const sequentialErrorMessage = computed(() => {
+  const error = sequentialCalculationResult.value.error;
+  if (!error) {
+    return '';
+  }
+  const keys: Record<SequentialPercentageError, string> = {
+    'invalid-start': 'tools.percentage-calculator.sequential.errors.invalidStart',
+    'no-steps': 'tools.percentage-calculator.sequential.errors.noSteps',
+    'too-many-steps': 'tools.percentage-calculator.sequential.errors.tooManySteps',
+    'invalid-rate': 'tools.percentage-calculator.sequential.errors.invalidRate',
+    'discount-over-100': 'tools.percentage-calculator.sequential.errors.discountOver100',
+    'overflow': 'tools.percentage-calculator.sequential.errors.overflow',
+  };
+  return t(keys[error], { maximum: MAX_SEQUENTIAL_PERCENTAGE_STEPS });
+});
+
+function addSequentialStep(): void {
+  if (sequentialSteps.value.length >= MAX_SEQUENTIAL_PERCENTAGE_STEPS) {
+    sequentialStatus.value = t('tools.percentage-calculator.sequential.errors.tooManySteps', {
+      maximum: MAX_SEQUENTIAL_PERCENTAGE_STEPS,
+    });
+    return;
+  }
+  sequentialSteps.value.push({
+    id: nextSequentialStepId++,
+    operation: 'decrease',
+    percentage: 10,
+  });
+  sequentialStatus.value = '';
+}
+
+function removeSequentialStep(id: number): void {
+  sequentialSteps.value = sequentialSteps.value.filter(step => step.id !== id);
+  sequentialStatus.value = '';
+}
+
+function moveSequentialStep(index: number, direction: -1 | 1): void {
+  const target = index + direction;
+  if (target < 0 || target >= sequentialSteps.value.length) {
+    return;
+  }
+  const steps = [...sequentialSteps.value];
+  [steps[index], steps[target]] = [steps[target], steps[index]];
+  sequentialSteps.value = steps;
+  sequentialStatus.value = '';
+}
+
+function loadSequentialExample(): void {
+  sequentialStartingAmount.value = 100;
+  sequentialSteps.value = [
+    { id: nextSequentialStepId++, operation: 'decrease', percentage: 20 },
+    { id: nextSequentialStepId++, operation: 'decrease', percentage: 10 },
+  ];
+  sequentialStatus.value = t('tools.percentage-calculator.sequential.exampleLoaded');
+}
+
+function sequentialSignedNumber(value: number): string {
+  const normalized = Object.is(value, -0) ? 0 : value;
+  return normalized > 0 ? `+${normalized}` : String(normalized);
+}
+
+async function copySequentialSummary(): Promise<void> {
+  const calculation = sequentialCalculation.value;
+  if (!calculation) {
+    sequentialStatus.value = sequentialErrorMessage.value;
+    return;
+  }
+
+  const lines = [
+    `${t('tools.percentage-calculator.sequential.startingAmount')}: ${calculation.startingAmount}`,
+    ...calculation.steps.map(step =>
+      `${step.stepNumber}. ${t(`tools.percentage-calculator.sequential.operations.${step.operation}`)} ${step.percentage}%: ${step.startingValue} → ${step.endingValue}`,
+    ),
+    `${t('tools.percentage-calculator.sequential.finalAmount')}: ${calculation.finalAmount}`,
+    `${t('tools.percentage-calculator.sequential.totalChange')}: ${sequentialSignedNumber(calculation.totalAmountChange)}`,
+    `${t('tools.percentage-calculator.sequential.effectiveChange')}: ${calculation.effectivePercentageChange === null ? t('tools.percentage-calculator.sequential.notDefined') : `${sequentialSignedNumber(calculation.effectivePercentageChange)}%`}`,
+    `${t('tools.percentage-calculator.sequential.formula')}: ${calculation.formula}`,
+  ];
+
+  try {
+    if (!navigator.clipboard?.writeText) {
+      throw new Error('Clipboard API unavailable');
+    }
+    await navigator.clipboard.writeText(lines.join('\n'));
+    sequentialStatus.value = t('tools.percentage-calculator.sequential.copied');
+  }
+  catch {
+    sequentialStatus.value = t('tools.percentage-calculator.sequential.clipboardUnavailable');
+  }
+}
 </script>
 
 <template>
@@ -429,6 +543,197 @@ function percentageBatchSavedAt(timestamp: number): string {
         </div>
       </c-card>
     </div>
+
+    <details class="mx-auto mt-8 max-w-800px px-4" data-test-id="percentage-sequential-panel">
+      <summary class="cursor-pointer rounded-lg border border-gray-300 px-4 py-3 font-semibold dark:border-gray-600">
+        {{ $t('tools.percentage-calculator.sequential.summary') }}
+      </summary>
+      <div class="mt-4 rounded-lg border border-gray-200 p-4 dark:border-gray-700">
+        <h2 class="mb-2 text-lg font-semibold">{{ $t('tools.percentage-calculator.sequential.title') }}</h2>
+        <p class="mb-4 text-sm text-gray-700 dark:text-gray-300">
+          {{ $t('tools.percentage-calculator.sequential.description') }}
+        </p>
+
+        <div class="mb-4 max-w-sm">
+          <label class="mb-1 block text-sm font-semibold" for="percentage-sequential-start">
+            {{ $t('tools.percentage-calculator.sequential.startingAmount') }}
+          </label>
+          <n-input-number
+            id="percentage-sequential-start"
+            v-model:value="sequentialStartingAmount"
+            data-test-id="percentage-sequential-start"
+            :min="0"
+            class="w-full"
+          />
+        </div>
+
+        <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
+          <h3 class="font-semibold">{{ $t('tools.percentage-calculator.sequential.stepsTitle') }}</h3>
+          <span class="text-xs text-gray-600 dark:text-gray-400">
+            {{ $t('tools.percentage-calculator.sequential.stepLimit', { maximum: MAX_SEQUENTIAL_PERCENTAGE_STEPS }) }}
+          </span>
+        </div>
+
+        <ol class="space-y-2">
+          <li
+            v-for="(step, index) in sequentialSteps"
+            :key="step.id"
+            :data-test-id="`percentage-sequential-step-${index + 1}`"
+            class="grid grid-cols-1 items-end gap-2 rounded border border-gray-200 p-3 dark:border-gray-700 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]"
+          >
+            <div>
+              <label class="mb-1 block text-xs font-semibold" :for="`percentage-sequential-operation-${step.id}`">
+                {{ $t('tools.percentage-calculator.sequential.stepNumber', { number: index + 1 }) }}
+              </label>
+              <select
+                :id="`percentage-sequential-operation-${step.id}`"
+                v-model="step.operation"
+                :data-test-id="`percentage-sequential-operation-${index + 1}`"
+                class="w-full rounded border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-900"
+              >
+                <option value="decrease">{{ $t('tools.percentage-calculator.sequential.operations.decrease') }}</option>
+                <option value="increase">{{ $t('tools.percentage-calculator.sequential.operations.increase') }}</option>
+              </select>
+            </div>
+            <div>
+              <label class="mb-1 block text-xs font-semibold" :for="`percentage-sequential-rate-${step.id}`">
+                {{ $t('tools.percentage-calculator.sequential.percentage') }}
+              </label>
+              <n-input-number
+                :id="`percentage-sequential-rate-${step.id}`"
+                v-model:value="step.percentage"
+                :data-test-id="`percentage-sequential-rate-${index + 1}`"
+                :min="0"
+                :max="1000"
+                :step="0.1"
+                class="w-full"
+              />
+            </div>
+            <div class="flex flex-wrap gap-1">
+              <button
+                type="button"
+                :aria-label="$t('tools.percentage-calculator.sequential.moveUp', { number: index + 1 })"
+                :disabled="index === 0"
+                :data-test-id="`percentage-sequential-up-${index + 1}`"
+                class="rounded border border-gray-300 px-2 py-2 text-xs disabled:cursor-not-allowed disabled:opacity-40 dark:border-gray-600"
+                @click="moveSequentialStep(index, -1)"
+              >
+                ↑
+              </button>
+              <button
+                type="button"
+                :aria-label="$t('tools.percentage-calculator.sequential.moveDown', { number: index + 1 })"
+                :disabled="index === sequentialSteps.length - 1"
+                :data-test-id="`percentage-sequential-down-${index + 1}`"
+                class="rounded border border-gray-300 px-2 py-2 text-xs disabled:cursor-not-allowed disabled:opacity-40 dark:border-gray-600"
+                @click="moveSequentialStep(index, 1)"
+              >
+                ↓
+              </button>
+              <button
+                type="button"
+                :aria-label="$t('tools.percentage-calculator.sequential.removeStep', { number: index + 1 })"
+                :data-test-id="`percentage-sequential-remove-${index + 1}`"
+                class="rounded border border-gray-300 px-2 py-2 text-xs dark:border-gray-600"
+                @click="removeSequentialStep(step.id)"
+              >
+                {{ $t('tools.percentage-calculator.sequential.remove') }}
+              </button>
+            </div>
+          </li>
+        </ol>
+
+        <div class="mt-3 flex flex-wrap gap-2">
+          <button
+            type="button"
+            data-test-id="percentage-sequential-add"
+            :disabled="sequentialSteps.length >= MAX_SEQUENTIAL_PERCENTAGE_STEPS"
+            class="rounded bg-primary px-4 py-2 text-sm text-white disabled:cursor-not-allowed disabled:opacity-50"
+            @click="addSequentialStep"
+          >
+            {{ $t('tools.percentage-calculator.sequential.addStep') }}
+          </button>
+          <button
+            type="button"
+            data-test-id="percentage-sequential-example"
+            class="rounded border border-gray-300 px-4 py-2 text-sm dark:border-gray-600"
+            @click="loadSequentialExample"
+          >
+            {{ $t('tools.percentage-calculator.sequential.loadExample') }}
+          </button>
+        </div>
+
+        <div
+          v-if="sequentialErrorMessage"
+          class="mt-3 text-sm text-red-700 dark:text-red-300"
+          role="alert"
+          data-test-id="percentage-sequential-error"
+        >
+          {{ sequentialErrorMessage }}
+        </div>
+
+        <section v-if="sequentialCalculation" class="mt-4 rounded bg-gray-50 p-3 dark:bg-gray-900" data-test-id="percentage-sequential-results">
+          <h3 class="mb-2 font-semibold">{{ $t('tools.percentage-calculator.sequential.resultsTitle') }}</h3>
+          <ol class="space-y-2 text-sm">
+            <li
+              v-for="step in sequentialCalculation.steps"
+              :key="step.stepNumber"
+              :data-test-id="`percentage-sequential-result-${step.stepNumber}`"
+              class="flex flex-wrap items-center justify-between gap-2"
+            >
+              <span>
+                {{ $t('tools.percentage-calculator.sequential.stepNumber', { number: step.stepNumber }) }}:
+                {{ $t(`tools.percentage-calculator.sequential.operations.${step.operation}`) }}
+                {{ step.percentage }}%
+              </span>
+              <code>{{ step.startingValue }} → {{ step.endingValue }}</code>
+            </li>
+          </ol>
+
+          <div class="mt-4 grid grid-cols-1 gap-3 border-t border-gray-200 pt-3 dark:border-gray-700 sm:grid-cols-3">
+            <div>
+              <div class="text-xs text-gray-600 dark:text-gray-400">{{ $t('tools.percentage-calculator.sequential.finalAmount') }}</div>
+              <div class="text-lg font-semibold" data-test-id="percentage-sequential-final">{{ sequentialCalculation.finalAmount }}</div>
+            </div>
+            <div>
+              <div class="text-xs text-gray-600 dark:text-gray-400">{{ $t('tools.percentage-calculator.sequential.totalChange') }}</div>
+              <div class="font-semibold" data-test-id="percentage-sequential-total-change">{{ sequentialSignedNumber(sequentialCalculation.totalAmountChange) }}</div>
+            </div>
+            <div>
+              <div class="text-xs text-gray-600 dark:text-gray-400">{{ $t('tools.percentage-calculator.sequential.effectiveChange') }}</div>
+              <div class="font-semibold" data-test-id="percentage-sequential-effective-change">
+                {{ sequentialCalculation.effectivePercentageChange === null ? $t('tools.percentage-calculator.sequential.notDefined') : `${sequentialSignedNumber(sequentialCalculation.effectivePercentageChange)}%` }}
+              </div>
+            </div>
+          </div>
+          <p class="mt-3 text-xs text-gray-600 dark:text-gray-400">
+            {{ $t('tools.percentage-calculator.sequential.formula') }}:
+            <code class="break-words">{{ sequentialCalculation.formula }}</code>
+          </p>
+          <p class="mt-2 text-xs text-gray-600 dark:text-gray-400">
+            {{ $t('tools.percentage-calculator.sequential.compoundingNote') }}
+          </p>
+          <div class="mt-3 flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              data-test-id="percentage-sequential-copy"
+              class="rounded border border-gray-300 px-3 py-2 text-sm dark:border-gray-600"
+              @click="copySequentialSummary"
+            >
+              {{ $t('tools.percentage-calculator.sequential.copySummary') }}
+            </button>
+            <span
+              role="status"
+              aria-live="polite"
+              data-test-id="percentage-sequential-status"
+              class="text-sm"
+            >
+              {{ sequentialStatus }}
+            </span>
+          </div>
+        </section>
+      </div>
+    </details>
 
     <details class="mx-auto mt-8 max-w-800px px-4" data-test-id="percentage-batch-panel">
       <summary class="cursor-pointer rounded-lg border border-gray-300 px-4 py-3 font-semibold dark:border-gray-600">

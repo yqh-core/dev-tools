@@ -265,7 +265,42 @@ tools:
       refresh: Refresh
   percentage-calculator:
     title: "Percentage Calculator — Percent & Change"
-    description: "Free percentage calculator for percent of a number, percentage change, discounts and reverse rates. Batch formulas and CSV export run in your browser."
+    description: "Free percentage calculator for percent of a number, percentage change, stacked discounts and reverse rates. Batch formulas and CSV/TSV export run in your browser."
+    sequential:
+      summary: Try a sequential discount or percentage chain
+      title: Sequential percentage adjustments
+      description: Start with an amount and apply each increase or decrease to the current intermediate value. Review every step and the effective change from the original amount.
+      startingAmount: Starting amount
+      stepsTitle: Adjustment steps
+      stepLimit: Up to {maximum} steps
+      stepNumber: Step {number}
+      percentage: Percentage
+      addStep: Add step
+      loadExample: Load example
+      remove: Remove
+      moveUp: Move up
+      moveDown: Move down
+      operations:
+        increase: Increase
+        decrease: Decrease
+      resultsTitle: Step-by-step results
+      finalAmount: Final amount
+      totalChange: Total amount change
+      effectiveChange: Effective percentage change
+      formula: Multiplier formula
+      compoundingNote: Each percentage applies to the previous step's result. For example, 20% off followed by another 10% off is 28% off overall, not 30%. Reordering the same percentage multipliers changes the intermediate values but not the mathematical final amount. Displayed values use up to 12 significant digits; no currency-specific rounding is applied.
+      notDefined: Undefined when the starting amount is zero
+      copySummary: Copy calculation summary
+      exampleLoaded: Example loaded. Edit the amount or steps to try your own calculation.
+      copied: Calculation summary copied.
+      clipboardUnavailable: Clipboard access is unavailable; select the summary and copy it manually.
+      errors:
+        invalidStart: Enter a finite starting amount that is zero or greater.
+        noSteps: Add at least one percentage step.
+        tooManySteps: Use no more than {maximum} steps.
+        invalidRate: Enter a finite percentage from 0 to 1,000 for each step.
+        discountOver100: A decrease cannot exceed 100%.
+        overflow: The result exceeds the supported numeric range. Reduce the amount or percentage.
     batch:
       summary: Calculate a list of values — optional batch mode
       title: Batch percentage calculator
