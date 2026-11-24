@@ -57,7 +57,7 @@ test.describe('Tool - Regex Tester isolated execution', () => {
     await expect(page.locator('tbody tr').first().locator('td').nth(1)).toContainText('192.168.1.42', { timeout: 5000 });
   });
   test('runs named positive and negative test cases with an aggregate summary', async ({ page }) => {
-    await page.getByLabel('Regex to test:').fill('^ORD-[0-9]{4}
+    await page.getByLabel('Regex to test:').fill('^ORD-[0-9]{4}$');
     await page.getByRole('button', { name: 'Add test case' }).click();
     await page.getByLabel('Test case name').last().fill('Valid order');
     await page.getByLabel('Test case input').last().fill('ORD-0042');
