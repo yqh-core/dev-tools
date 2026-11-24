@@ -490,8 +490,17 @@ tools:
     description: 将YAML字符串修饰为友好的可读格式。
 
   eta-calculator:
-    title: ETA 计算器
-    description: 输入任务总量、已完成数量、处理速率和可选缓冲比例，估算下载、构建或批处理任务的剩余耗时与预计完成时刻。
+    title: ETA 计算器 — 任务剩余时间估算
+    description: 为下载、构建或批处理估算剩余时间。可输入已知处理速率，也可根据已完成数量和已耗时自动推导吞吐速率。
+    rateMode: 输入已知处理速率
+    observedMode: 根据已耗时计算
+    elapsedTitle: 已运行时间
+    elapsedHours: 小时
+    elapsedMinutes: 分钟
+    elapsedSeconds: 秒
+    unitsPerHour: 单位/小时
+    observedModeHelp: 根据已完成数量和已运行时间计算平均处理速率，预计完成时刻从当前时间开始推算。
+    observedModeHint: 请填写大于零的已完成数量和已耗时间，才能推导处理速率。若任务已全部完成，则无需提供耗时样本。
 
   roman-numeral-converter:
     title: 罗马数字转换器
