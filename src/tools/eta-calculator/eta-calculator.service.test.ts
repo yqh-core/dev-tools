@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { calculateObservedPaceEta, calculateRemainingEta, calculateRequiredPaceForDeadline, calculateWorkingHoursFinishAt, calculateWorkingWindowDurationMs } from './eta-calculator.service';
+import {
+  calculateObservedPaceEta,
+  calculateRemainingEta,
+  calculateRequiredPaceForDeadline,
+  calculateWorkingHoursFinishAt,
+  calculateWorkingWindowDurationMs,
+} from './eta-calculator.service';
 
 describe('calculateRemainingEta', () => {
   it('calculates remaining work rather than estimating the original total again', () => {
