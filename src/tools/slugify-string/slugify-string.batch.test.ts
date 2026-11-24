@@ -124,7 +124,7 @@ describe('slugify batch conversion', () => {
     const rows = runSlugifyBatch('=HYPERLINK("https://example.com")\nTaxi', defaults);
     const csv = slugifyBatchToCsv(rows);
 
-    expect(csv).toContain("'=HYPERLINK(\"\"https://example.com\"\")");
+    expect(csv).toContain(`'=HYPERLINK(""https://example.com"")`);
     expect(csv).toContain('"Taxi","taxi"');
   });
 
