@@ -52,7 +52,7 @@ test.describe('Tool - bulk redirect generator', () => {
     await page.getByTestId('redirect-format').click();
     await page.getByText('Netlify _redirects file', { exact: true }).click();
     const output = page.getByTestId('redirect-output').locator('textarea');
-    await expect(output).toHaveValue(/\\/old \\/new 301/);
+    expect(await output.inputValue()).toContain('/old /new 301');
 
     await page.getByTestId('redirect-status').click();
     await page.getByText('307 — Temporary (preserve method)', { exact: true }).click();
@@ -75,7 +75,7 @@ test.describe('Tool - bulk redirect generator', () => {
     await page.getByTestId('redirect-subpath-matching').click();
     await page.getByTestId('redirect-preserve-path-suffix').click();
     const cloudflare = await page.getByTestId('redirect-output').locator('textarea').inputValue();
-    expect(cloudflare.split(',').slice(-3)).toEqual(['"TRUE"', '"TRUE"', '"TRUE"']);
+    expect(cloudflare.split('\\n')[0].split(',').slice(-3)).toEqual(['"TRUE"', '"TRUE"', '"TRUE"']);
   });
 
   test('imports a CSV file in the browser', async ({ page }) => {
