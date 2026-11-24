@@ -203,7 +203,9 @@ function characterClassEnd(pattern: string, start: number, unicodeSets: boolean)
     }
     else if (pattern[index] === ']') {
       depth -= 1;
-      if (depth === 0) return index;
+      if (depth === 0) {
+        return index;
+      }
     }
   }
   return -1;
@@ -419,7 +421,9 @@ export function explainRegexPattern(pattern: string, flags = ''): RegexTokenExpl
     if (quantifier) {
       let value = quantifier[0];
       const lazy = pattern[index + value.length] === '?';
-      if (lazy) value += '?';
+      if (lazy) {
+        value += '?';
+      }
       let explanation = value[0] === '*'
         ? 'Matches the previous token zero or more times.'
         : value[0] === '+'
@@ -427,7 +431,9 @@ export function explainRegexPattern(pattern: string, flags = ''): RegexTokenExpl
           : value[0] === '?'
             ? 'Makes the previous token optional (zero or one time).'
             : `Matches the previous token ${value.slice(1, -1)} times or within that range.`;
-      if (lazy) explanation += ' The trailing ? makes this quantifier lazy (prefers fewer characters).';
+      if (lazy) {
+        explanation += ' The trailing ? makes this quantifier lazy (prefers fewer characters).';
+      }
       output.push(tokenExplanation(value, explanation, 'quantifier'));
       index += value.length;
       continue;
