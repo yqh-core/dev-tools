@@ -542,7 +542,7 @@ tools:
     description: Convert a Unix epoch timestamp (seconds or milliseconds) to a readable date, or turn a date into a timestamp online.
 
   phone-parser-and-formatter:
-    title: Phone parser and formatter
+    title: "International Phone Number Parser & Formatter — E.164"
     description: "Parse and validate an international phone number, then copy E.164, national, international or RFC 3966 formats. Batch-check up to 200 numbers locally and export CSV."
 
   prepare-deployment:
