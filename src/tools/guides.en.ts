@@ -1622,15 +1622,22 @@ export const GUIDES: Record<string, ToolGuide> = {
   },
 
   '/text-statistics': {
-    intro: 'Counts visible characters, Unicode code points, words, sentences, paragraphs and UTF-8 bytes — with clear rules for each metric.',
-    steps: ['Paste or type text into the analyzer', 'Choose the language used for word and sentence segmentation', 'Review visible characters, code units, bytes, lines and reading time; copy the complete summary'],
+    intro: 'Counts Unicode characters, words, sentences, paragraphs and UTF-8 bytes, then adds locale-aware top-term frequency plus reading and speaking-time estimates.',
+    steps: ['Paste or type text into the analyzer', 'Choose the language used for word and sentence segmentation', 'Review Unicode metrics, reading and speaking time, and the top-term table; optionally exclude common English stop words', 'Copy the complete statistics summary'],
     notes: [
       'Grapheme counts follow browser Intl.Segmenter when available; older browsers fall back to code-point counts, which can differ for joined emoji and combining marks.',
       'Word segmentation in older browsers is approximate and does not provide dictionary-based CJK segmentation.',
-      'Reading time is an estimate using the selected words-per-minute rate, not a promise of actual reading duration.',
+      'Reading and speaking times are estimates using separate user-selected words-per-minute rates; they are not measurements of an individual.');',
+    ],
+    notes: [
+      'Grapheme counts follow browser Intl.Segmenter when available; older browsers fall back to code-point counts, which can differ for joined emoji and combining marks.',
+      'Word segmentation in older browsers is approximate and does not provide dictionary-based CJK segmentation.',
+      'Reading and speaking times are estimates using separate user-selected words-per-minute rates; they are not measurements of an individual.',
+      'Top-term shares use the analyzed token count as the denominator. The optional stop-word filter is English-only and does not change the headline word count.',
+      'Term frequency describes this input only. It is not search volume, keyword demand, keyword difficulty or a Google ranking signal.',
     ],
     example: { label: 'Fill in sample text', text: 'The quick brown fox jumps over the lazy dog. 👋' },
-    about: 'A browser-based text analyzer with explicit Unicode metrics. It reports visible grapheme clusters, Unicode code points, JavaScript UTF-16 code units, UTF-8 bytes, words, unique words, sentences, paragraphs, lines, non-empty lines and the longest line. Choose a segmentation language for word and sentence counts, set your reading speed, and copy a complete summary. The input is processed locally in your browser.',
+    about: 'A browser-based text analyzer with explicit Unicode metrics. It reports visible grapheme clusters, Unicode code points, JavaScript UTF-16 code units, UTF-8 bytes, words, unique words, sentences, paragraphs, lines, non-empty lines and the longest line. Choose a segmentation language for word and sentence counts, set your reading speed, and copy a complete summary. Inspect the top ten normalized terms with occurrence counts and token shares, and estimate speaking time separately from reading time. The input is processed locally in your browser.',
     articleOnlySections: [
       {
         title: 'Visible characters, code points and code units',
@@ -1640,11 +1647,26 @@ export const GUIDES: Record<string, ToolGuide> = {
         title: 'Word counts and reading-time estimates',
         text: 'Word and sentence counts use the browser Intl.Segmenter API with the selected language when available. Older browsers use an approximate Unicode-aware fallback; it does not promise dictionary-based word boundaries for Chinese, Japanese or Thai. Reading time is calculated from the current word count and your selected words-per-minute rate, rounded up to a whole minute. Treat it as a planning estimate, not a universal reading-speed benchmark.',
       },
+      {
+        title: 'How top-term frequency and token shares are calculated',
+        text: 'The top-term table reuses the same locale-selected word segmentation as the headline word count. Terms are normalized to lowercase for counting, ordered by occurrence count and then alphabetically, and limited to the ten most frequent terms. Each share is the term count divided by the analyzed token total shown above the table. When the English stop-word option is enabled, the denominator is the remaining tokens after those common words are removed; the headline word count is not changed. This is a descriptive analysis of the pasted text, not keyword search volume or ranking evidence.',
+      },
+      {
+        title: 'Use the English stop-word filter carefully',
+        text: 'The filter is available only when English is selected. It removes a built-in list of common English function words such as “the”, “and” and “of” from the term-frequency table so repeated content words are easier to inspect. It does not alter the source text, the main word count or the reading/speaking estimates. The filter is not applied to Chinese, Japanese, Thai, Spanish, French or German because an English stop list would distort those languages.',
+      },
+      {
+        title: 'Estimate reading and speaking time separately',
+        text: 'Reading time and speaking time use separate adjustable words-per-minute rates. The default reading rate is 200 words per minute and the default speaking rate is 150 words per minute; both can be changed to better fit a document, presentation or script. Each duration is rounded up to a whole minute and is only a rough planning estimate. Pauses, reading complexity, speaking style and language can make the actual duration different.',
+      },
     ],
     faqs: [
       { q: 'Why do visible characters, code points and UTF-16 units differ?', a: 'They count different layers of Unicode text. A joined emoji sequence can be one grapheme cluster but several code points and UTF-16 units. The browser grapheme counter is the closest of these metrics to what a person sees as one character.' },
       { q: 'Why is UTF-8 byte size larger than the character count?', a: 'UTF-8 uses one to four bytes per Unicode code point. ASCII letters use one byte, many CJK characters use three, and many emoji use four bytes per code point. Joined emoji sequences contain several code points.' },
       { q: 'How are words counted?', a: 'When supported, Intl.Segmenter uses the selected language for word boundaries. The fallback is an approximation based on Unicode letters and numbers; it may not split languages that do not use spaces between words.' },
+      { q: 'How are top terms and their percentages calculated?', a: 'The tool uses the selected language segmenter, normalizes terms to lowercase, counts occurrences and divides each count by the analyzed token total shown above the table. The English stop-word filter changes only this table denominator.' },
+      { q: 'Does term frequency show which keywords rank in Google?', a: 'No. It describes repeated words in the text you pasted. It does not query search engines and is not search volume, keyword difficulty, intent or ranking data.' },
+      { q: 'How is speaking time estimated?', a: 'The tool divides the word count by your selected speaking rate (150 words per minute by default) and rounds up to a whole minute. It is a planning estimate, not an acoustic measurement.' },
       { q: 'Why can another website show a different character limit?', a: 'Platforms may count graphemes, code points, UTF-16 units, UTF-8 bytes or weighted units. Use the receiving platform’s documented rule when a limit is important.' },
       { q: 'Is my text uploaded?', a: 'No. The analyzer runs in your browser and does not send the text to a server.' },
     ],
