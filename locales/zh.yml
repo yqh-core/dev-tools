@@ -1033,7 +1033,18 @@ tools:
 
   safelink-decoder:
     title: Outlook 安全链接解码器
-    description: 解码 Outlook 邮件里的 SafeLink 安全链接，还原真实地址。
+    description: 逐条或批量解码 Outlook Safe Links（含嵌套包装），在浏览器本地还原目标地址；解码不代表链接安全。
+    batch:
+      title: 批量解码多个 Safe Links
+      instructions: 每行粘贴一个 Outlook Safe Links 地址。空行会忽略；每一行都在浏览器本地解析，不会打开目标地址。
+      placeholder: 每行粘贴一个 Outlook Safe Links 地址...
+      decode: 开始批量解码
+      copy: 复制成功结果
+      summary: "已解码 {success}/{total} 条，失败 {failed} 条。"
+      line: "第 {line} 行"
+      success: 已提取目标地址（未进行安全检测）
+      copied: 已复制成功解码的地址。
+      copyFailed: 无法访问剪贴板，请手动选择并复制解码结果。
 
   xml-to-json:
     title: XML 转 JSON
