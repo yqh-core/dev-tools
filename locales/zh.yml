@@ -538,7 +538,7 @@ tools:
 
   eta-calculator:
     title: ETA 计算器 — 任务剩余时间估算
-    description: 为下载、构建或批处理估算剩余时间。可输入已知处理速率，也可根据已完成数量和已耗时自动推导吞吐速率。
+    description: 为下载、构建或批处理估算剩余时间；可选择周一至周五本地工作时段，也可输入已知处理速率或根据已完成数量和已耗时推导吞吐速率。
     rateMode: 输入已知处理速率
     observedMode: 根据已耗时间计算
     elapsedTitle: 已运行时间
