@@ -1,100 +1,100 @@
 import { describe, expect, it } from 'vitest';
 import {
   ESTABLISHED_NUMERONYMS,
+  countLetters,
   evaluate,
   generateNumeronym,
+  tokenizeNumeronymInput,
 } from './numeronym-generator.service';
 
 describe('numeronym-generator service', () => {
   describe('generateNumeronym', () => {
-    it('a numeronym of a word is the first letter, the number of letters between the first and the last letter, and the last letter', () => {
+    it('uses the first letter, middle-letter count and last letter', () => {
       expect(generateNumeronym('internationalization')).toBe('i18n');
       expect(generateNumeronym('accessibility')).toBe('a11y');
       expect(generateNumeronym('localization')).toBe('l10n');
       expect(generateNumeronym('canonicalization')).toBe('c14n');
     });
-    it('a numeronym of a word with 3 letters is the word itself', () => {
+
+    it('leaves words with three letters or fewer unchanged', () => {
       expect(generateNumeronym('abc')).toBe('abc');
+      expect(generateNumeronym('API')).toBe('API');
+    });
+
+    it('counts only letters in hyphenated and apostrophe compounds', () => {
+      expect(generateNumeronym('cross-platform')).toBe('c11m');
+      expect(generateNumeronym("don't")).toBe('d2t');
+    });
+
+    it('counts Unicode letters and preserves the original first/last letter case', () => {
+      expect(generateNumeronym('JavaScript')).toBe('J8t');
+      expect(generateNumeronym('Über')).toBe('Ü2r');
+      expect(generateNumeronym('café')).toBe('c2é');
+      expect(generateNumeronym('cafe\u0301')).toBe('c2é');
+    });
+
+    it('counts Unicode letter clusters rather than UTF-16 code units', () => {
+      expect(countLetters('cafe\u0301')).toBe(4);
+      expect(countLetters('cross-platform')).toBe(13);
+      expect(countLetters('💻')).toBe(0);
     });
   });
 
-  describe('验收点 1 · 词典覆盖范围', () => {
-    it('词典非空且每个键自身都能被反查（承诺=能力，逐条兑现）', () => {
-      const keys = Object.keys(ESTABLISHED_NUMERONYMS);
-      expect(keys.length).toBeGreaterThanOrEqual(8);
-      for (const key of keys) {
-        const r = evaluate(key);
-        expect(r.mode, key).toBe('decode');
-        expect(r.matches?.length, key).toBeGreaterThan(0);
-        for (const m of r.matches ?? []) {
-          expect(m.length, `${key}→${m}`).toBeGreaterThan(1);
-          expect(generateNumeronym(m).toLowerCase(), `${key} must match the literal letter count for ${m}`).toBe(key);
+  describe('dictionary accuracy', () => {
+    it('every established form round-trips through the literal letter-count rule', () => {
+      for (const [key, values] of Object.entries(ESTABLISHED_NUMERONYMS)) {
+        const result = evaluate(key);
+        expect(result.mode, key).toBe('decode');
+        expect(result.matches?.length, key).toBeGreaterThan(0);
+        for (const value of values) {
+          expect(generateNumeronym(value).toLowerCase(), `${key} must match ${value}`).toBe(key);
         }
       }
     });
 
-    it('未收录的 numeronym 形态串 → not-in-dictionary，绝不编造释义', () => {
-      const r = evaluate('e18n');
-      expect(r.mode).toBe('invalid');
-      expect(r.reason).toBe('not-in-dictionary');
-      expect(r.matches).toBeUndefined();
-      expect(r.output).toBe('');
+    it('includes common developer forms with exact expansions', () => {
+      expect(evaluate('m17n').matches).toEqual(['multilingualization']);
+      expect(evaluate('p13n').matches).toEqual(['personalization']);
+      expect(evaluate('o11y').matches).toEqual(['observability']);
+    });
+
+    it('does not invent meanings for unsupported or different abbreviation patterns', () => {
+      for (const value of ['e18n', 'e2e', 'b2b']) {
+        const result = evaluate(value);
+        expect(result.mode).toBe('invalid');
+        expect(result.reason).toBe('not-in-dictionary');
+        expect(result.matches).toBeUndefined();
+      }
     });
   });
 
-  describe('验收点 2 · dictionary accuracy', () => {
-    it('t9n is the literal numeronym for translation', () => {
-      const r = evaluate('t9n');
-      expect(r.mode).toBe('decode');
-      expect(r.matches).toEqual(['translation']);
-      expect(r.ambiguous).toBe(false);
+  describe('direction and tokenization', () => {
+    it('encodes a normal word and decodes a known key first', () => {
+      expect(evaluate('internationalization')).toMatchObject({ mode: 'encode', output: 'i18n' });
+      expect(evaluate('K8S')).toMatchObject({ mode: 'decode', matches: ['Kubernetes'], ambiguous: false });
     });
 
-    it('does not guess an unsupported t11n expansion', () => {
-      const r = evaluate('t11n');
-      expect(r.mode).toBe('invalid');
-      expect(r.reason).toBe('not-in-dictionary');
-      expect(r.matches).toBeUndefined();
+    it('tokenizes free text across spaces, commas, semicolons and newlines', () => {
+      expect(tokenizeNumeronymInput('Internationalization, accessibility; Kubernetes\nmultilingualization'))
+        .toEqual(['Internationalization', 'accessibility', 'Kubernetes', 'multilingualization']);
     });
 
-    it('c14n looks up canonicalization in XML contexts', () => {
-      const r = evaluate('c14n');
-      expect(r.mode).toBe('decode');
-      expect(r.matches).toEqual(['canonicalization']);
-    });
-  });
-
-  describe('验收点 3 · 方向识别', () => {
-    it('普通单词输入 → encode', () => {
-      const r = evaluate('internationalization');
-      expect(r.mode).toBe('encode');
-      expect(r.output).toBe('i18n');
+    it('keeps numeronyms, malformed mixed tokens and hyphenated words together', () => {
+      expect(tokenizeNumeronymInput("i18n e2e v2 cross-platform don't"))
+        .toEqual(['i18n', 'e2e', 'v2', 'cross-platform', "don't"]);
     });
 
-    it('词典键输入 → decode 优先（k8s 不被当成“再生成一遍”）', () => {
-      expect(evaluate('k8s').mode).toBe('decode');
+    it('keeps short words unchanged and ignores surrounding punctuation', () => {
+      expect(tokenizeNumeronymInput('API, a11y!')).toEqual(['API', 'a11y']);
+      expect(evaluate('abc')).toMatchObject({ mode: 'encode', output: 'abc' });
     });
 
-    it('大小写不敏感命中词典', () => {
-      expect(evaluate('K8S').mode).toBe('decode');
-      expect(evaluate('A11y').matches).toEqual(['accessibility']);
-    });
-
-    it('≤3 纯字母走 encode 原样返回（既有语义不变）', () => {
-      const r = evaluate('abc');
-      expect(r.mode).toBe('encode');
-      expect(r.output).toBe('abc');
-    });
-
-    it('空/混排输入 → invalid 带原因码', () => {
+    it('keeps empty and malformed inputs explicit', () => {
       expect(evaluate('   ').reason).toBe('empty');
       expect(evaluate('kubernetes 2024').reason).toBe('mixed');
       expect(evaluate('12345').reason).toBe('mixed');
-    });
-
-    it('前后空白不影响判定', () => {
-      expect(evaluate('  i18n  ').mode).toBe('decode');
-      expect(evaluate(' accessibility ').output).toBe('a11y');
+      expect(evaluate('x11y').reason).toBe('not-in-dictionary');
+      expect(evaluate('word 123').reason).toBe('mixed');
     });
   });
 });
