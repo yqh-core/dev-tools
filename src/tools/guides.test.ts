@@ -58,8 +58,8 @@ describe('G4: JSON Diff large-input guide accuracy', () => {
   it('describes main-thread and Web Worker thresholds consistently in English and Chinese', async () => {
     const english = await loadGuides('en');
     const chinese = await loadGuides('zh');
-    const enFaq = english['/json-diff']?.faqs.find(item => item.q === 'Can I compare very large files?');
-    const zhFaq = chinese['/json-diff']?.faqs.find(item => item.q === '可以比较超大文件吗？');
+    const enFaq = english?.['/json-diff']?.faqs.find(item => item.q === 'Can I compare very large files?');
+    const zhFaq = chinese?.['/json-diff']?.faqs.find(item => item.q === '可以比较超大文件吗？');
 
     expect(enFaq?.a).toContain('Small documents are compared on the browser main thread');
     expect(enFaq?.a).toContain('combined input exceeds 150,000 characters');
