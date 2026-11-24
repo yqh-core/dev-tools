@@ -178,9 +178,9 @@ test('ETA Calculator compares the current pace with the rate needed for a deadli
 
   await fill('eta-buffer', '20');
   await fill('eta-pause-minutes', '30');
-  await expect(page.getByTestId('eta-deadline-result')).toContainText('48 units/hour');
-  await expect(page.getByTestId('eta-deadline-result')).toContainText('33.33');
+  await expect(page.getByTestId('eta-deadline-result')).toContainText('57.6 units/hour');
+  await expect(page.getByTestId('eta-deadline-result')).toContainText('60');
 
   await deadline.fill(localDateTime(Date.now() - 60 * 60 * 1000));
-  await expect(page.getByTestId('eta-deadline-error')).toContainText('deadline is later than the estimate start time');
+  await expect(page.getByTestId('eta-deadline-error')).toContainText('must be later than the estimate start time');
 });
