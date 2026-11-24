@@ -542,7 +542,7 @@ tools:
 
   eta-calculator:
     title: ETA Calculator — Task Completion Time
-    description: Estimate time remaining for a download, build or batch job. Enter a known processing rate or derive throughput from completed work and elapsed time.
+    description: Estimate time remaining for a download, build or batch job with an optional weekday work schedule, or derive throughput from completed work and elapsed time.
     rateMode: Enter a known processing rate
     observedMode: Calculate from elapsed time
     elapsedTitle: Elapsed time so far
