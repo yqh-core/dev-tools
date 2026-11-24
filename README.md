@@ -168,7 +168,7 @@
 - [Emoji picker](https://digdevbox.com/emoji-picker) - Copy and paste emojis easily and get the unicode and code points value of each emoji.
 - [String obfuscator](https://digdevbox.com/string-obfuscator) - Obfuscate a string (like a secret, an IBAN, or a token) to make it shareable and identifiable without revealing its content.
 - [Text Diff Checker — Compare Two Texts Side by Side](https://digdevbox.com/text-diff) - Compare two text inputs in a side-by-side diff editor to spot additions, deletions and changed lines.
-- [Numeronym Generator — i18n, a11y & k8s](https://digdevbox.com/numeronym-generator) - Generate numeronyms from pasted words and phrases, including Unicode and hyphenated compounds. Preserve case, copy batch results and look up established forms such as i18n, a11y, k8s and o11y in your browser.
+- [Numeronym Generator — i18n, a11y & k8s](https://digdevbox.com/numeronym-generator) - Generate numeronyms from pasted words and phrases. Supports Unicode letters, hyphenated terms, case-preserving batch output and lookups for i18n, a11y and k8s.
 - [ASCII Art Generator](https://digdevbox.com/ascii-text-drawer) - Turn text into ASCII art with multiple fonts and styles.
 - [Full-width / half-width converter](https://digdevbox.com/fullwidth-converter) - Convert between full-width and half-width characters using the fixed Unicode offset 0xFEE0, or adjust punctuation only.
 - [Morse Code Translator — Encode Text & Decode Morse](https://digdevbox.com/morse-code-converter) - Translate text to Morse code or decode dot-and-dash sequences. Supports A–Z, digits and common punctuation; letters are separated by spaces and words by slashes.
