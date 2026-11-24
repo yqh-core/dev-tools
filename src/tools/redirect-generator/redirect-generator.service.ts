@@ -422,7 +422,8 @@ export function generateRedirectOutput(
     if (!absoluteTarget && !rowOrigin) {
       throw new Error('Enter a site origin to expand relative destination URLs.');
     }
-    const source = absoluteSource ? row.sourceUrl : `${suppliedOrigin}${row.sourcePath}`;
+    const sourceUrl = absoluteSource ?? new URL(`${suppliedOrigin}${row.sourcePath}`);
+    const source = `${sourceUrl.host}${sourceUrl.pathname}`;
     const target = absoluteTarget ? row.targetUrl : `${rowOrigin}${row.targetUrl}`;
     const fields = [
       source,
