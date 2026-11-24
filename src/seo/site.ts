@@ -23,8 +23,31 @@ export const SITE_HOST = 'www.digdevbox.com';
 
 export const SITE_NAME = 'DigDevBox';
 
-/** 社交卡片图（相对站点根）。带上版本号便于更换后绕过平台缓存。 */
-export const OG_IMAGE = `${SITE_ORIGIN}/og-image.jpg?v=2`;
+/** 社交卡片回退图（用于未知路由与开发服务器）。正式页面使用各自生成的 PNG。 */
+export const OG_IMAGE = `${SITE_ORIGIN}/og-image.jpg?v=3`;
+
+/** 每个预渲染路由拥有独立的 1200×630 PNG 社交卡片。 */
+export const SOCIAL_IMAGE_VERSION = '1';
+
+export function socialImageSlug(path: string): string {
+  const normalized = !path || path === '/' ? '/' : (path.startsWith('/') ? path : `/${path}`);
+  if (normalized === '/') {
+    return 'home';
+  }
+  return normalized
+    .replace(/^\\/+|\\/+$/g, '')
+    .replace(/\\//g, '--')
+    .replace(/[^a-zA-Z0-9_-]/g, '-')
+    .toLowerCase();
+}
+
+export function socialImagePath(path: string): string {
+  return `/og/${socialImageSlug(path)}.png`;
+}
+
+export function socialImageUrl(path: string): string {
+  return `${SITE_ORIGIN}${socialImagePath(path)}?v=${SOCIAL_IMAGE_VERSION}`;
+}
 
 /**
  * 把任意路由路径规范化成唯一形式：以 `/` 开头；非根路径以 `/` 结尾。
