@@ -34,15 +34,7 @@ export interface HeaderAnalysis {
   cspDirectives: { name: string; value: string }[]
 }
 
-const SECURITY_CHECKS = [
-  { id: 'csp', title: 'Content Security Policy', points: 25 },
-  { id: 'hsts', title: 'Strict Transport Security', points: 20 },
-  { id: 'frame', title: 'Frame protection', points: 15 },
-  { id: 'nosniff', title: 'MIME sniffing protection', points: 10 },
-  { id: 'referrer', title: 'Referrer policy', points: 10 },
-  { id: 'permissions', title: 'Permissions policy', points: 10 },
-  { id: 'isolation', title: 'Cross-origin isolation', points: 10 },
-] as const;
+;
 
 function headerValues(headers: Record<string, string[]>, name: string): string[] {
   return headers[name.toLowerCase()] ?? [];
