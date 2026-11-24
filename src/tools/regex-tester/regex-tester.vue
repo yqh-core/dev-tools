@@ -164,7 +164,8 @@ function runEvaluation(id: number) {
     text: text.value,
     flags: flags.value,
     replacement: replacement.value,
-    testCases: testCases.value,
+    // Vue reactive proxies cannot be structured-cloned by postMessage; send plain data.
+    testCases: testCases.value.map(({ id, name, text, shouldMatch }) => ({ id, name, text, shouldMatch })),
   });
 }
 
