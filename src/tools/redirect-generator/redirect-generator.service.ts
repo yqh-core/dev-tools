@@ -188,6 +188,9 @@ function normalizeSource(value: string): { path: string; url: string } {
 
   const absolute = parseHttpUrl(source);
   if (absolute) {
+    if (absolute.username || absolute.password) {
+      throw new Error('Source URLs must not contain user information.');
+    }
     if (absolute.search || absolute.hash) {
       throw new Error('Source URLs must not contain a query string or fragment.');
     }
