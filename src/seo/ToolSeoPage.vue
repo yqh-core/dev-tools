@@ -29,9 +29,11 @@ import { guideArticleHref } from './guide-links';
 const props = defineProps<{ entry: ToolSeoEntry }>();
 
 const { entry } = props;
-const { t } = useI18n();
+const { t, te } = useI18n();
+const titleKey = `tools.${entry.path.replace(/\\//g, '')}.title`;
+const pageToolTitle = te(titleKey) ? t(titleKey) : entry.name;
 
-usePageSeo(entry.path, `${entry.name} - ${t('site.name')}`, entry.description);
+usePageSeo(entry.path, `${pageToolTitle} - ${t('site.name')}`, entry.description);
 
 /**
  * 第 2 项「工具用途简介」。
