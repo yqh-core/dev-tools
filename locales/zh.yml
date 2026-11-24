@@ -475,7 +475,7 @@ tools:
       cloudflareSourceLimits: Cloudflare 来源 URL 不支持端口或用户凭据，请在导出前移除。
       cloudflareQueryConflict: 启用「保留查询参数」后，目标 URL 自带的查询参数会被丢弃。请移除目标查询参数或关闭此选项。
       pathSuffixRequiresSubpath: 请先启用子路径匹配，再选择保留匹配后的剩余路径。
-      netlifyStatusUnsupported: Netlify _redirects 仅支持 301 和 302。请选择这两种状态码之一，或改用其他输出格式。
+      netlifyStatusUnsupported: 本工具的 Netlify _redirects 导出仅生成 301 和 302。需要 307 或 308 时，请选择其他输出格式。
 
   encryption:
     title: 加密/解密文本
