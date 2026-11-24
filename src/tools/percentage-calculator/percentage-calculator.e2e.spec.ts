@@ -9,7 +9,7 @@ test.describe('Tool - Percentage calculator', () => {
     await expect(page).toHaveTitle('Percentage Calculator — Percent & Change - DigDevBox');
     await expect(page.locator('meta[name="description"]')).toHaveAttribute(
       'content',
-      'Free percentage calculator for percent of a number, percentage change, discounts and reverse rates. Batch formulas and CSV export run in your browser.',
+      'Free percentage calculator for percent of a number, percentage change, stacked discounts and reverse rates. Batch formulas and CSV/TSV export run in your browser.',
     );
     await expect(page.locator('h1')).toHaveText('Percentage Calculator');
   });
@@ -181,6 +181,49 @@ test.describe('Tool - Percentage calculator', () => {
     await page.getByTestId('percentage-batch-download-tsv').click();
     expect((await tsvPromise).suggestedFilename()).toBe('percentage-calculations.tsv');
   });
+  test('calculates stacked discounts step by step, reorders steps, and copies the summary', async ({ page }) => {
+    await page.evaluate(() => {
+      Object.defineProperty(navigator, 'clipboard', {
+        configurable: true,
+        value: {
+          writeText: async (text: string) => {
+            document.documentElement.setAttribute('data-test-clipboard', text);
+          },
+        },
+      });
+    });
+
+    const panel = page.getByTestId('percentage-sequential-panel');
+    await panel.locator('summary').click();
+    await expect(panel).toContainText('Sequential percentage adjustments');
+    await expect(page.getByTestId('percentage-sequential-result-1')).toContainText('100 → 80');
+    await expect(page.getByTestId('percentage-sequential-result-2')).toContainText('80 → 72');
+    await expect(page.getByTestId('percentage-sequential-final')).toHaveText('72');
+    await expect(page.getByTestId('percentage-sequential-effective-change')).toHaveText('-28%');
+    await expect(panel).toContainText('100 × 0.8 × 0.9 = 72');
+    await expect(panel).toContainText('28% off overall, not 30%');
+
+    await page.getByTestId('percentage-sequential-up-2').click();
+    await expect(page.getByTestId('percentage-sequential-result-1')).toContainText('100 → 90');
+    await expect(page.getByTestId('percentage-sequential-result-2')).toContainText('90 → 72');
+    await expect(page.getByTestId('percentage-sequential-final')).toHaveText('72');
+
+    await page.getByTestId('percentage-sequential-add').click();
+    await expect(page.getByTestId('percentage-sequential-step-3')).toBeVisible();
+    await expect(page.getByTestId('percentage-sequential-final')).toHaveText('64.8');
+    await page.getByTestId('percentage-sequential-remove-3').click();
+    await expect(page.getByTestId('percentage-sequential-step-3')).toHaveCount(0);
+    await expect(page.getByTestId('percentage-sequential-final')).toHaveText('72');
+
+    await page.getByTestId('percentage-sequential-rate-1').locator('input').fill('101');
+    await expect(page.getByTestId('percentage-sequential-error')).toContainText('A decrease cannot exceed 100%');
+    await page.getByTestId('percentage-sequential-example').click();
+    await page.getByTestId('percentage-sequential-copy').click();
+    await expect(page.locator('html')).toHaveAttribute('data-test-clipboard', /Starting amount: 100/);
+    await expect(page.locator('html')).toHaveAttribute('data-test-clipboard', /Final amount: 72/);
+    await expect(page.locator('html')).toHaveAttribute('data-test-clipboard', /-28%/);
+  });
+
 });
 
 test.describe('Percentage calculator batch Chinese localization', () => {
@@ -198,4 +241,15 @@ test.describe('Percentage calculator batch Chinese localization', () => {
     await page.getByTestId('percentage-batch-run').click();
     await expect(page.getByTestId('percentage-batch-result-1')).toContainText('\u6574\u4F53\u6570\u503C\u4E0D\u80FD\u4E3A\u96F6');
   });
+  test('renders the sequential adjustment workflow in Chinese', async ({ page }) => {
+    await page.goto('/percentage-calculator');
+    const panel = page.getByTestId('percentage-sequential-panel');
+    await panel.locator('summary').click();
+    await expect(panel).toContainText('连续百分比调整');
+    await expect(panel).toContainText('逐步计算结果');
+    await expect(page.getByTestId('percentage-sequential-final')).toHaveText('72');
+    await expect(page.getByTestId('percentage-sequential-effective-change')).toContainText('-28%');
+    await expect(panel).toContainText('总折扣是 28%');
+  });
+
 });
