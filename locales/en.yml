@@ -869,9 +869,8 @@ tools:
     description: "A searchable cheat sheet of common Linux commands with what they do and ready-to-use examples."
 
   http-headers:
-    title: "HTTP headers & request methods"
-    description: "A searchable reference of common HTTP request and response headers plus the nine standard request methods, covering CORS, caching, security fields and safe/idempotent semantics."
-
+    title: "HTTP Header Analyzer — Paste Headers, Get a Security Score"
+    description: "Paste response headers from curl or DevTools for local CSP, HSTS, cookie, CORS, caching and indexing checks. Get a transparent coverage score; nothing is uploaded."
   ascii-table:
     title: "ASCII table"
     description: "The standard ASCII table from 0 to 127 with decimal, hexadecimal, octal and binary values, searchable by character or code."
