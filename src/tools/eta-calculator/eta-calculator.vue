@@ -282,10 +282,10 @@ const displayedObservedRate = computed(() => {
         <n-statistic v-if="estimate && estimate.remainingUnits > 0" label="Estimated finish time" data-test-id="eta-finish">
           {{ endAt }}
         </n-statistic>
-        <p v-else-if="estimate" text-sm font-semibold data-test-id="eta-complete">
+        <p v-if="estimate && estimate.remainingUnits === 0" text-sm font-semibold data-test-id="eta-complete">
           All work items are complete.
         </p>
-        <p v-else role="alert" text-sm data-test-id="eta-observed-error">
+        <p v-else-if="calculationMode === 'observed' && !estimate" role="alert" text-sm data-test-id="eta-observed-error">
           {{ $t('tools.eta-calculator.observedModeHint') }}
         </p>
       </div>
