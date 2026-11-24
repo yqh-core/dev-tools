@@ -30,6 +30,46 @@ test.describe('Tool - local HTTP response header analyzer', () => {
     await expect(page.getByTestId('analysis-results')).toContainText('SameSite is not explicit');
   });
 
+  test('generates copyable server-specific snippets only for missing low-context headers', async ({ page }) => {
+    await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
+    await page.getByTestId('raw-response-headers').locator('textarea').fill('HTTP/2 200 OK');
+
+    const snippet = page.getByTestId('remediation-snippet');
+    await expect(snippet).toContainText('add_header X-Content-Type-Options "nosniff" always;');
+    await expect(snippet).toContainText('Strict-Transport-Security "max-age=31536000"');
+    await expect(snippet).not.toContainText('Content-Security-Policy:');
+    await expect(page.getByTestId('header-remediation')).toContainText('HTTPS');
+
+    await page.getByTestId('remediation-platform').click();
+    await page.getByText('Apache', { exact: true }).click();
+    await expect(snippet).toContainText('Header always set X-Content-Type-Options "nosniff"');
+
+    await page.getByTestId('remediation-platform').click();
+    await page.getByText('Caddy', { exact: true }).click();
+    await expect(snippet).toContainText('header {');
+
+    await page.getByTestId('remediation-platform').click();
+    await page.getByText('Cloudflare Pages', { exact: true }).click();
+    await expect(snippet).toContainText('/*');
+
+    await page.getByTestId('header-remediation').getByRole('button', { name: 'Copy config' }).click();
+    await expect.poll(() => page.evaluate(() => navigator.clipboard.readText()))
+      .toContain('X-Content-Type-Options: nosniff');
+  });
+
+  test('does not overwrite an existing referrer policy or short HSTS value', async ({ page }) => {
+    await page.getByTestId('raw-response-headers').locator('textarea').fill([
+      'HTTP/2 200 OK',
+      'Referrer-Policy: no-referrer',
+      'Strict-Transport-Security: max-age=86400',
+      'X-Content-Type-Options: nosniff',
+    ].join('\\n'));
+
+    await expect(page.getByTestId('remediation-snippet')).not.toContainText('Referrer-Policy');
+    await expect(page.getByTestId('remediation-snippet')).not.toContainText('Strict-Transport-Security');
+    await expect(page.getByTestId('remediation-snippet')).toContainText('No low-context header additions');
+  });
+
   test('uses the final response in a redirect chain and preserves repeated cookies', async ({ page }) => {
     await page.getByTestId('raw-response-headers').locator('textarea').fill([
       'HTTP/2 301 Moved Permanently',
