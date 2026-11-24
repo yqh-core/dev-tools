@@ -2230,16 +2230,20 @@ export const GUIDES: Record<string, ToolGuide> = {
   },
 
   '/http-headers': {
-    intro: '粘贴从 curl 或浏览器 DevTools 复制的 HTTP 响应头，在本地检查安全策略覆盖、Cookie 标志、CORS 配置、缓存与索引提示，不会把数据发送到服务器。',
+    intro: '粘贴 HTTP 响应头，或导入本地 HAR 1.2 / 纯文本捕获文件，在浏览器本地检查安全策略覆盖、Cookie 标志、CORS 配置、缓存与索引提示。文件不会上传到服务器。',
     steps: [
-      '先获取目标页面的响应头。要检查 GET 响应，可运行 curl -sS -D - -o /dev/null https://example.com/；也可在 DevTools 的 Network 中选择 document 请求并复制 Response Headers。',
-      '粘贴完整响应块，包括 HTTP 状态行；支持重复出现的 Set-Cookie。',
+      '先获取目标页面的响应头。要检查 GET 响应，可运行 curl -sS -D - -o /dev/null https://example.com/；也可在 DevTools 的 Network 中选择 document 请求并复制 Response Headers。你也可以从 Network 面板导出 HAR 1.2。',
+      '通过文件选择器或拖放方式导入 .har 或纯文本 .txt 响应头文件。一个 HAR 可能包含多个请求，可在选择器中挑选要检查的响应；文件最大 10 MB。',
+      '手动检查时，粘贴包含 HTTP 状态行的完整响应块；支持重复出现的 Set-Cookie。',
       '查看安全头覆盖情况、CSP 指令、Cookie 问题，以及 CORS 或 X-Robots-Tag 提示。',
-      '使用 curl -L 获取重定向链时，报告会评分最后一个响应块，同时显示检测到的响应块数量。',
+      '选择 Nginx、Apache、Caddy、Vercel 或 Cloudflare Pages，复制明确缺失且适合通用建议的响应头配置。',
       '任何策略调整都先在预发布环境验证；本工具不会修改服务器配置。',
     ],
     notes: [
-      '本页只分析你粘贴的响应头，不会主动请求 URL，也不检查 TLS、响应正文、应用代码或服务端行为。',
+      '本页只分析你粘贴的响应头或导入的本地捕获文件，不会主动请求 URL，也不检查 TLS、应用代码或服务端行为。',
+      'HAR 文件可能包含 Cookie、Authorization 值和个人信息。导入前请检查文件，不要公开分享；文件大小限制为 10 MB。',
+      '导入器只读取分析所需的响应状态和响应头；请求头和响应正文不会显示，也不会发送到服务器。',
+      '配置生成器只为明确缺失的低上下文响应头添加建议，例如 X-Content-Type-Options、Referrer-Policy 和 HSTS。不会自动编造依赖具体应用的 CSP、CORS、框架策略、Permissions-Policy 或 Cookie 规则。',
       '评分是按权重计算的响应头覆盖清单，不是 OWASP 评级、渗透测试，也不代表应用整体安全。',
       'HSTS 只能通过 HTTPS 响应下发。启用 includeSubDomains 前，先确认所有相关子域都支持 HTTPS；不要默认启用 preload。',
       'CSP 和跨源隔离策略可能影响脚本、嵌入内容或第三方资源。CSP 应先以 report-only 模式测试，再决定是否强制执行。',
@@ -2251,13 +2255,23 @@ export const GUIDES: Record<string, ToolGuide> = {
     about: 'HTTP 响应头是服务器随响应发送的元数据，会影响浏览器安全控制、内容处理、缓存、跨源访问，有时也影响搜索索引。响应头速查表回答每个字段是什么意思；分析器进一步回答实际问题：这次捕获的响应里有哪些控制、哪些缺失或配置较弱、接下来应该检查什么？本工具在浏览器本地解析，并公开评分规则，不会把一个分数包装成网站安全证明。',
     articleOnlySections: [
       {
+        title: '如何安全地捕获和导入 HAR 文件',
+        text: '打开浏览器 DevTools，进入 Network，重新加载要检查的页面，然后将请求列表导出为 HAR 文件。HAR 导出可能包含 Cookie 或 Authorization 信息，分享前请先检查捕获内容。通过本地文件选择器或拖放方式导入，不会上传文件。如果一个文件包含多个请求，可从选择器中挑选对应的文档或 API 响应。导入器只提取报告需要的响应状态和响应头，不会显示或传输请求头及响应正文。',
+      },
+      {
+        title: '服务器配置片段的适用范围',
+        text: '配置生成器可以为 Nginx、Apache、Caddy、Vercel 和 Cloudflare Pages 格式化缺失的 X-Content-Type-Options、Referrer-Policy 和 HSTS。它只添加检测为缺失的响应头，不会自动覆盖已有值。HSTS 会提示必须使用 HTTPS，且默认不添加 includeSubDomains 或 preload。CSP、CORS、框架策略、Permissions-Policy 和 Cookie 设置依赖应用允许的来源、嵌入内容、API 与身份验证行为，因此不会自动生成。部署前请检查每条配置并先在预发布环境测试。',
+      },
+      {
         title: '怎样获取真正页面的响应头',
         text: 'curl -I 发起的是 HEAD 请求，适合快速检查，但部分服务器或应用路由对 HEAD 和 GET 的响应可能不同。要检查 GET 响应且不输出正文，可运行 curl -sS -D - -o /dev/null https://example.com/。加上 -L 可以跟随重定向；命令会输出每个响应块，本工具会分析最后一个响应块。在浏览器 DevTools 中打开 Network，选择 document 请求，再复制原始 Response Headers。检查页面级索引或安全策略时，应选择 HTML 文档响应，而不是图片、脚本或无关 API 请求。',
       },
     ],
     faqs: [
-      { q: '分析器会把响应头发送给 DigDevBox 吗？', a: '不会。解析、评分和问题诊断都在当前浏览器标签页完成。粘贴的响应头不会写入分析事件、URL 或服务器请求。' },
-      { q: '为什么不能直接输入 URL 扫描？', a: '浏览器页面受同源策略和 CORS 限制，不能随意读取其他网站的响应头。请用 curl 或 DevTools 捕获后粘贴；私有预发布环境的响应头也可以这样检查。' },
+      { q: '分析器会上传 HAR 文件或粘贴的响应头吗？', a: '不会。HAR 和文本文件只在当前浏览器标签页本地读取和解析。报告只使用响应状态和响应头；文件、请求头和响应正文都不会发送给 DigDevBox，也不会加入分析事件。HAR 可能包含 Cookie 或令牌，导入前请先检查。' },
+      { q: '怎样从 HAR 捕获中选择某一个响应？', a: '导入 HAR 后，使用响应选择器挑选要检查的具体请求和状态。当一个捕获同时包含页面文档、API 请求、重定向和静态资源时，这样可以避免检查错对象。' },
+      { q: '可以直接扫描一个 URL 吗？', a: '不可以。浏览器页面受同源策略和 CORS 限制，不能随意读取其他网站的响应头。请用 curl 或 DevTools 捕获后粘贴，或导入 HAR；私有预发布环境的响应头也可以这样检查。' },
+      { q: '可以复制哪些服务器配置格式？', a: '支持 Nginx、Apache、Caddy、Vercel vercel.json 和 Cloudflare Pages _headers。生成器只对缺失的低上下文响应头给出建议，不会生成依赖具体应用的 CSP、CORS 或 Cookie 策略。' },
       { q: '得到 A 就代表网站安全吗？', a: '不代表。分数只衡量响应头是否存在及部分配置特征，不检查应用代码、身份验证、依赖、TLS 配置、服务端访问控制或漏洞。' },
       { q: '每个网站都应该启用 COEP、COOP 和 CORP 吗？', a: '不应该。这些策略适用于特定的跨源隔离和资源保护需求，但可能阻止嵌入内容或第三方资源。只有应用确实需要时才启用，并先完成兼容性测试。' },
       { q: '可以直接复制建议的 HSTS 或 CSP 值吗？', a: '不建议。HSTS 的 includeSubDomains 会影响所有相关子域；CSP 必须符合应用实际加载的资源。先在预发布环境测试，CSP 从 report-only 开始，检查违规报告后再强制执行。' },

@@ -421,13 +421,13 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
   {
     path: '/http-headers',
     keyword: 'http headers checker online',
-    keywords: ['HTTP response header analyzer', 'curl response header check', 'CSP header checker', 'HSTS header checker', 'cookie security flags', 'CORS response headers', 'X-Robots-Tag checker'],
+    keywords: ['HTTP response header analyzer', 'HAR file header analyzer', 'curl response header check', 'CSP header checker', 'HSTS header checker', 'cookie security flags', 'CORS response headers', 'Vercel headers config', 'X-Robots-Tag checker'],
     intent: 'inspect',
     priority: 'P2',
     competition: 'medium',
     landed: true,
-    lockedTitle: 'HTTP Header Analyzer — Paste Headers, Get a Security Score',
-    note: 'The existing canonical route now parses pasted curl/DevTools response headers locally, preserves repeated Set-Cookie fields, analyzes the final block of redirect chains and reports transparent weighted header coverage plus CSP, cookie, CORS, cache and X-Robots-Tag findings. The score is not an OWASP rating or a full security audit; search-volume metrics remain unclaimed.',
+    lockedTitle: 'HTTP Header Analyzer — HAR Import & Security Score',
+    note: 'The existing canonical route now accepts pasted curl/DevTools headers plus local HAR 1.2 and plain-text response-header files, allows selection among captured responses, preserves repeated Set-Cookie fields and sanitizes imported CR/LF. The local analyzer reports weighted coverage and CSP, cookie, CORS, cache and X-Robots-Tag findings; copy-ready low-context configuration is available for Nginx, Apache, Caddy, Vercel and Cloudflare Pages. It deliberately does not auto-generate application-specific CSP/CORS/cookie rules. The score is not an OWASP rating or a full security audit; search-volume metrics remain unclaimed.',
   },
   {
     path: '/linux-commands',

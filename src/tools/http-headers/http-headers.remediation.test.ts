@@ -16,6 +16,28 @@ describe('buildHeaderRemediation', () => {
     expect(result).not.toContain('Content-Security-Policy');
   });
 
+  it('formats Vercel vercel.json syntax as valid JSON', () => {
+    const parsed = JSON.parse(buildHeaderRemediation(missingHeaders, 'vercel'));
+    expect(parsed.headers[0].source).toBe('/(.*)');
+    expect(parsed.headers[0].headers).toContainEqual({
+      key: 'X-Content-Type-Options',
+      value: 'nosniff',
+    });
+    expect(parsed.headers[0].headers).toContainEqual({
+      key: 'Strict-Transport-Security',
+      value: 'max-age=31536000',
+    });
+    expect(JSON.parse(buildHeaderRemediation(
+      analyzeResponseHeaders([
+        'HTTP/2 200 OK',
+        'X-Content-Type-Options: nosniff',
+        'Referrer-Policy: no-referrer',
+        'Strict-Transport-Security: max-age=31536000',
+      ].join('\n')),
+      'vercel',
+    ))).toEqual({ headers: [] });
+  });
+
   it('formats Apache, Caddy and Cloudflare Pages syntax', () => {
     expect(buildHeaderRemediation(missingHeaders, 'apache'))
       .toContain('Header always set X-Content-Type-Options "nosniff"');

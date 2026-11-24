@@ -1059,8 +1059,8 @@ tools:
     description: "A searchable cheat sheet of common Linux commands with what they do and ready-to-use examples."
 
   http-headers:
-    title: "HTTP Header Analyzer — Paste Headers, Get a Security Score"
-    description: "Paste curl or DevTools response headers for local CSP, HSTS, cookie, CORS, cache and indexing checks. Get a coverage score; nothing is uploaded."
+    title: "HTTP Header Analyzer — HAR Import & Security Score"
+    description: "Import HAR or paste curl/DevTools headers. Check CSP, HSTS, cookies, CORS and indexing; get a score plus copy-ready Nginx, Vercel and Cloudflare fixes locally."
     analyzer:
       cardTitle: "HTTP response header analyzer"
       intro: "Paste response headers from curl or browser DevTools. Parsing and checks run locally in this tab; the pasted headers are not uploaded."
@@ -1068,6 +1068,12 @@ tools:
       loadSample: "Load sample"
       clear: "Clear"
       supportsFormats: "Supports repeated headers, curl -v response lines and redirect chains from curl -L."
+      harImportLabel: "Import HAR or response-header file"
+      harPrivacyNote: "HAR and header files can contain cookies or tokens. Imported data is read locally and is never uploaded."
+      harTooLarge: "This file is larger than 10 MB. Export a smaller capture and try again."
+      harNoResponses: "No HTTP response entries with valid status codes were found in this HAR file."
+      harInvalid: "Could not read this file. Choose a valid HAR 1.2 file with log.entries."
+      harDropNote: "Drop a .har or .txt response-header file here. Processing stays in this tab."
       scoreLabel: "Header coverage score"
       statusLineMissing: "Status line not included"
       responseBlocks: "{count} response blocks; final block scored"
@@ -1127,6 +1133,7 @@ tools:
           nginx: "Nginx"
           apache: "Apache"
           caddy: "Caddy"
+          vercel: "Vercel (vercel.json)"
           cloudflare: "Cloudflare Pages"
 
   ascii-table:

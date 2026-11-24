@@ -302,7 +302,7 @@ jobs:
           // priority English pages. This catches UA-dependent HTML/cache variants
           // and guarantees the crawler sees the same title, description, H1 and canonical.
           const browserUa = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/130.0.0.0 Safari/537.36';
-          const priorityPages = ['/', '/percentage-calculator/', '/eta-calculator/', '/ipv6-ula-generator/', '/numeronym-generator/', '/api-debugger/', '/regex-tester/', '/json-prettify/', '/json-workspace/', '/json-diff/', '/base-converter/', '/html-entities/', '/json-to-get-params/', '/docker-run-to-docker-compose-converter/', '/otp-generator/', '/htpasswd-generator/', '/json-to-toml/', '/text-statistics/', '/slugify-string/', '/redirect-generator/'];
+          const priorityPages = ['/', '/percentage-calculator/', '/http-headers/', '/eta-calculator/', '/ipv6-ula-generator/', '/numeronym-generator/', '/api-debugger/', '/regex-tester/', '/json-prettify/', '/json-workspace/', '/json-diff/', '/base-converter/', '/html-entities/', '/json-to-get-params/', '/docker-run-to-docker-compose-converter/', '/otp-generator/', '/htpasswd-generator/', '/json-to-toml/', '/text-statistics/', '/slugify-string/', '/redirect-generator/'];
           for (const path of priorityPages) {
             const [bot, browser] = await Promise.all([get(path), get(path, browserUa)]);
             for (const [label, result] of [['Googlebot', bot], ['browser', browser]]) {
@@ -339,6 +339,7 @@ jobs:
                 JSON.stringify({ googlebot: botMeta, browser: browserMeta }));
             }
             const expectedMetadata = {
+              '/http-headers/': { title: 'HTTP Header Analyzer — HAR Import & Security Score - DigDevBox', description: 'Import HAR or paste curl/DevTools headers. Check CSP, HSTS, cookies, CORS and indexing; get a score plus copy-ready Nginx, Vercel and Cloudflare fixes locally.', h1: 'HTTP Header Analyzer' },
               '/percentage-calculator/': { title: 'Percentage Calculator — Percent of, Change & Difference - DigDevBox', description: 'Find X% of Y, what percent one value is of another, percent change, difference and reverse rates. Seven modes with batch formulas and CSV/TSV export.', h1: 'Percentage Calculator' },
               '/eta-calculator/': { title: 'ETA Calculator — Task Completion Time - DigDevBox', description: 'Estimate time remaining for a download, build or batch job. Enter a known processing rate or derive throughput from completed work and elapsed time.', h1: 'ETA Calculator' },
               '/ipv6-ula-generator/': { title: 'IPv6 ULA generator - DigDevBox', description: 'Generate RFC 4193 fd00::/8 IPv6 Unique Local Address (ULA) /48 prefixes with secure random 40-bit Global IDs or a manual Global ID. Create up to 20 prefixes and inspect first/last /64 subnets in your browser.', h1: 'IPv6 ULA generator' },
