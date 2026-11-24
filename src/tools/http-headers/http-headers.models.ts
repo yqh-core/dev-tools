@@ -77,7 +77,8 @@ export function parseResponseHeaders(raw: string): ParsedResponseHeaders {
 
   for (const originalLine of raw.replace(/\r/g, '').split('\n')) {
     const line = originalLine.trimEnd();
-    const responseLine = line.startsWith('< ') ? line.slice(2).trim() : line.trim();
+    const headerLine = line.startsWith('< ') ? line.slice(2) : line;
+    const responseLine = headerLine.trim();
 
     if (/^HTTP\/\d(?:\.\d)?\s+\d{3}(?:\s|$)/i.test(responseLine)) {
       pushCurrent();
@@ -97,15 +98,15 @@ export function parseResponseHeaders(raw: string): ParsedResponseHeaders {
       continue;
     }
 
-    const separator = line.indexOf(':');
+    const separator = headerLine.indexOf(':');
     if (separator <= 0) {
       current.ignoredLines += 1;
       lastHeaderName = undefined;
       continue;
     }
 
-    const name = line.slice(0, separator).trim().toLowerCase();
-    const value = line.slice(separator + 1).trim();
+    const name = headerLine.slice(0, separator).trim().toLowerCase();
+    const value = headerLine.slice(separator + 1).trim();
     if (!/^[!#$%&'*+.^_`|~0-9a-z-]+$/i.test(name)) {
       current.ignoredLines += 1;
       lastHeaderName = undefined;
