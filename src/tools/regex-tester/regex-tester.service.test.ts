@@ -12,7 +12,14 @@ const regexesData = [
     regex: '.*',
     text: '',
     flags: '',
-    result: [],
+    result: [
+      {
+        captures: [],
+        groups: [],
+        index: 0,
+        value: '',
+      },
+    ],
   },
   {
     regex: '',
