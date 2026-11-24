@@ -942,6 +942,19 @@ tools:
     shareColumn: Share
     noTerms: No terms to display yet.
     termFrequencyNote: Shares use the analyzed token count shown above. Term frequency is descriptive text analysis, not search volume, keyword demand or ranking data.
+    customLimitTitle: Custom character budget
+    customLimitLabel: Your limit
+    customLimitAria: Custom character limit
+    customLimitUnit: Count by
+    customLimitHelp: Set a limit using the receiving service's documented counting rule. No platform limit is assumed.
+    limitUnits:
+      graphemes: Visible characters (graphemes)
+      codePoints: Unicode code points
+      utf16CodeUnits: UTF-16 code units
+      bytes: UTF-8 bytes
+    limitRemaining: '{count} {unit} remaining.'
+    limitReached: 'At your custom limit ({unit}).'
+    limitOver: 'Over your limit by {count} ({unit}).'
 
   text-to-nato-alphabet:
     title: Text to NATO alphabet
