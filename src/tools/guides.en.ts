@@ -1507,15 +1507,33 @@ export const GUIDES: Record<string, ToolGuide> = {
   },
 
   '/safelink-decoder': {
-    intro: 'Recovers the real link hidden behind an Outlook SafeLink wrapper.',
-    steps: ['Copy the very long SafeLink URL from the email', 'Paste it into the input', 'Click decode to get the original URL'],
-    notes: ['Decoding only reveals the address — you still have to judge for yourself whether it is trustworthy'],
-    example: { label: 'Fill in a sample SafeLink URL', text: 'https://nam.safelinks.protection.outlook.com/?url=https%3A%2F%2Fexample.com%2Fdocs' },
-    about: 'This tool extracts the destination embedded in an Outlook Safe Links URL without opening that destination. It accepts HTTPS wrappers on Outlook Safe Links hosts, unwraps up to five nested layers, and validates that the final address uses HTTP or HTTPS. It does not scan or rate the destination and does not replace or bypass Microsoft time-of-click protection; follow your organization\'s approved Safe Links workflow.',
+    intro: 'Decode a list of Microsoft Outlook Safe Links in one pass. Paste one HTTPS wrapper per line; blank lines are ignored, each row succeeds or fails independently, and successful destinations can be copied together.',
+    steps: [
+      'Copy the complete Microsoft Outlook Safe Links URL from the email message. This decoder accepts Outlook Safe Links HTTPS wrappers, not unrelated security-gateway formats.',
+      'Paste one wrapper URL per line. Leave blank lines wherever convenient; the result keeps each non-empty URL’s original line number.',
+      'Choose Decode links. Each row is processed independently, so one malformed wrapper does not block other valid rows.',
+      'Review the destination URL together with its scheme, host and number of Outlook wrapper layers. Copy the successful destinations when you need a plain-text list.',
+      'For a single URL, expand the optional single-link decoder below the batch workflow.',
+    ],
+    notes: [
+      'The parser unwraps up to five nested Microsoft Outlook Safe Links layers and requires the final destination to be an absolute HTTP or HTTPS URL.',
+      'The displayed scheme, host and wrapper depth describe URL structure only. They are not domain reputation, malware scanning or a safety verdict.',
+      'The tool parses pasted text in your browser. It does not fetch or open wrapper URLs or destinations, and it does not replace or bypass Microsoft click-time protection.',
+      'Blank rows are ignored. Invalid rows show their original input line number and an error; successful results are copied without failed rows.',
+      'Do not paste links containing credentials or one-time access tokens into tools unless your organization permits it. Follow your organization’s reporting and security process for suspicious email.',
+    ],
+    example: {
+      label: 'Paste two Outlook Safe Links URLs, one per line',
+      text: 'https://nam01.safelinks.protection.outlook.com/?url=https%3A%2F%2Fexample.com%2Fdocs\\nhttps://eur01.safelinks.protection.outlook.com/?url=https%3A%2F%2Fexample.org%2Faccount',
+    },
+    about: 'The Outlook Safe Links Batch Decoder extracts the destination embedded in each Microsoft Outlook Safe Links wrapper. Paste one wrapper per line to process a list locally, keep original line numbers, see independent row errors and copy successful destinations together. Each decoded row also shows the destination scheme, host and nested-wrapper depth so you can inspect the address structure before deciding what to do. The parser accepts HTTPS Outlook Safe Links wrappers, unwraps up to five layers and requires a final HTTP or HTTPS URL. It never requests or opens the wrapper or destination, does not assess domain reputation, and does not replace or bypass Microsoft time-of-click protection; follow your organization’s approved security workflow.',
     faqs: [
-      { q: 'What is SafeLink, and why do links look like that?', a: 'It is Microsoft\'s rewriter: mail links are replaced with a URL that routes through Microsoft servers for scanning, then forwards you. The original address is inside the wrapper as a query parameter.' },
-      { q: 'Why decode before deciding what to do?', a: 'To inspect the actual destination hostname and path before you decide whether to proceed. Do not open a URL just because it decodes; follow your organization\'s Safe Links workflow and report suspicious messages.' },
-      { q: 'Does decoding bypass or replace Microsoft Safe Links protection?', a: 'No. This tool parses the URL text without opening the destination, does not scan the destination, and does not replace or bypass Microsoft\'s time-of-click protection. Keep using the organization-approved Safe Links flow.' },
+      { q: 'Can I decode multiple Outlook Safe Links URLs at once?', a: 'Yes. Paste one Microsoft Outlook Safe Links HTTPS wrapper per line. Blank lines are ignored, each non-empty row is processed independently, original line numbers are kept, and successful destinations can be copied together.' },
+      { q: 'What do scheme, host and wrapper depth mean?', a: 'Scheme is the destination protocol, host is the destination hostname and optional port, and wrapper depth is the number of Outlook Safe Links layers removed. These fields describe URL structure; they are not reputation checks or a safety verdict.' },
+      { q: 'How many nested Outlook Safe Links layers are supported?', a: 'The decoder accepts up to five nested Microsoft Outlook Safe Links HTTPS wrappers. It reports an error when the nesting exceeds that limit.' },
+      { q: 'Does the decoder open or scan the destination?', a: 'No. It parses the pasted URL text in your browser and displays the extracted destination as text. It does not fetch, open, scan or certify the destination.' },
+      { q: 'Does decoding bypass Microsoft Safe Links protection?', a: 'No. Microsoft Safe Links can perform click-time checks according to your organization’s configuration. This decoder does not replace, disable or bypass those checks.' },
+      { q: 'Can it decode Proofpoint or other email security gateways?', a: 'No. This version is intentionally limited to Microsoft Outlook Safe Links wrappers. Other security gateways use different URL formats and are not claimed as supported.' },
     ],
     relatedNotes: [
       {
