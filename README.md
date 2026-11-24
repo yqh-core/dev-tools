@@ -165,7 +165,7 @@
 ### Text
 
 - [Lorem Ipsum Generator](https://digdevbox.com/lorem-ipsum-generator) - Generate lorem ipsum placeholder text — paragraphs, sentences or words — for layouts and mockups. The classic printing-industry dummy text since the 1500s, free and instant, right in your browser.
-- [Text Statistics — Word & Character Counter](https://digdevbox.com/text-statistics) - Free online word and character counter with Unicode grapheme, code point, UTF-16 and UTF-8 byte counts. Count words, unique words, sentences, paragraphs and lines, estimate reading time, and keep text private in your browser.
+- [Text Statistics — Word & Character Counter](https://digdevbox.com/text-statistics) - Count Unicode characters, words, lines and UTF-8 bytes; inspect locale-aware top-term frequency, estimate reading and speaking time, and analyze text locally in your browser.
 - [Emoji picker](https://digdevbox.com/emoji-picker) - Copy and paste emojis easily and get the unicode and code points value of each emoji.
 - [String obfuscator](https://digdevbox.com/string-obfuscator) - Obfuscate a string (like a secret, an IBAN, or a token) to make it shareable and identifiable without revealing its content.
 - [Text Diff Checker — Compare Two Texts Side by Side](https://digdevbox.com/text-diff) - Compare two text inputs in a side-by-side diff editor to spot additions, deletions and changed lines.
