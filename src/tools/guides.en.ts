@@ -1535,6 +1535,20 @@ export const GUIDES: Record<string, ToolGuide> = {
       { q: 'Does decoding bypass Microsoft Safe Links protection?', a: 'No. Microsoft Safe Links can perform click-time checks according to your organization’s configuration. This decoder does not replace, disable or bypass those checks.' },
       { q: 'Can it decode Proofpoint or other email security gateways?', a: 'No. This version is intentionally limited to Microsoft Outlook Safe Links wrappers. Other security gateways use different URL formats and are not claimed as supported.' },
     ],
+    articleOnlySections: [
+      {
+        title: 'Read the destination host, not only the visible link text',
+        text: 'An email client can display friendly anchor text that differs from the URL stored in the link target. In the decoded address, inspect the complete hostname between the scheme and the first path, query or fragment delimiter. Do not trust a familiar brand name that appears only inside a subdomain or later path segment. For example, \`microsoft.com.login-check.example\` is a host under \`login-check.example\`, not under \`microsoft.com\`. If a URL contains user information before an at sign, the hostname begins after that separator; text before it is not the destination host. Internationalized domain names can be represented with Unicode characters or punycode, so compare the full hostname against a known-good address using your organization’s approved process.',
+      },
+      {
+        title: 'Troubleshoot malformed or incomplete rows',
+        text: 'A failed row means the pasted text did not match this decoder’s supported Outlook wrapper format or did not contain a valid destination; it does not establish that the destination is malicious. Email clients sometimes copy visible link text instead of the actual hyperlink target, and a copied address can also be truncated. When an HTML source contains the entity \`&amp;\`, the parser normalizes that separator before reading the query parameter. For nested links, every inner layer must itself be a valid HTTPS Outlook Safe Links wrapper, and the total chain cannot exceed five layers. Preserve the original row and message context when investigating a failure instead of editing the URL until it appears to decode.',
+      },
+      {
+        title: 'Make batch results useful for a security handoff',
+        text: 'For an incident queue, paste only the URLs that your organization permits you to process and keep the input list as the source record. The copy action intentionally includes successful destinations only, so it is not a complete audit log of both successes and failures. Compare each extracted hostname with the expected service domain and the message sender context; scheme, host and wrapper depth are descriptive URL fields, not a risk score. Do not automatically open extracted addresses or treat a successful parse as permission to visit them. Route suspicious messages through your organization’s approved reporting or security-analysis process.',
+      },
+    ],
     relatedNotes: [
       {
         slug: 'url-encoding-guide',
