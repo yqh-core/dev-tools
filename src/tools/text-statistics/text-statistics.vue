@@ -1,40 +1,78 @@
 <script setup lang="ts">
-import { getStringSizeInBytes } from './text-statistics.service';
-import { formatBytes } from '@/utils/convert';
+import { computed, ref } from 'vue'
+import { getTextStatistics } from './text-statistics.service'
 
-const text = ref('');
+const text = ref('')
+const readingWpm = ref(200)
+const stats = computed(() => getTextStatistics(text.value))
+const readingMinutes = computed(() => stats.value.words === 0
+  ? 0
+  : Math.ceil(stats.value.words / Math.max(1, readingWpm.value || 200)))
+const summary = computed(() => [
+  `Words: ${stats.value.words}`,
+  `Unique words: ${stats.value.uniqueWords}`,
+  `Visible characters (graphemes): ${stats.value.graphemes}`,
+  `Characters without whitespace: ${stats.value.charactersWithoutWhitespace}`,
+  `Unicode code points: ${stats.value.codePoints}`,
+  `UTF-16 code units: ${stats.value.utf16CodeUnits}`,
+  `UTF-8 bytes: ${stats.value.bytes}`,
+  `Lines: ${stats.value.lines} (${stats.value.nonEmptyLines} non-empty)`,
+  `Paragraphs: ${stats.value.paragraphs}`,
+  `Sentences: ${stats.value.sentences}`,
+  `Longest line: ${stats.value.longestLine} visible characters`,
+  `Estimated reading time: ${readingMinutes.value} min at ${readingWpm.value || 200} words/min`,
+].join('\n'))
 </script>
 
 <template>
   <div flex flex-col gap-3>
-    <c-card title="Text statistics example" data-test-id="text-statistics-example">
-      <p mb-2 text-sm opacity-70>
-        Paste text to count characters, whitespace-separated words, lines and UTF-8 bytes. All calculations run locally in your browser.
-      </p>
-      <div rounded bg-gray-500:5 p-3 font-mono text-sm>
-        Hello, world!<br>
-        This is a test.
+    <c-card title="Text to analyze">
+      <c-input-text v-model:value="text" multiline placeholder="Paste or type your text here..." rows="7" data-test-id="text-input" />
+      <div mt-3 flex flex-wrap items-center justify-between gap-2>
+        <p text-xs opacity-70>All analysis runs locally in your browser. Your text is not uploaded.</p>
+        <input-copyable :value="summary" readonly placeholder="Copy statistics" test-id="copy-statistics" />
       </div>
-      <div mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4>
-        <div><strong>29</strong><div text-xs opacity-70>characters</div></div>
-        <div><strong>6</strong><div text-xs opacity-70>words</div></div>
-        <div><strong>2</strong><div text-xs opacity-70>lines</div></div>
-        <div><strong>29 B</strong><div text-xs opacity-70>UTF-8 bytes</div></div>
-      </div>
-      <p mt-2 text-xs opacity-60>
-        Word count splits on whitespace; byte size is measured from UTF-8 encoding. Character count follows JavaScript string length.
-      </p>
     </c-card>
 
-    <c-card>
-      <c-input-text v-model:value="text" multiline placeholder="Your text..." rows="5" />
-
-      <div mt-5 flex>
-        <div data-test-id="character-count"><n-statistic label="Character count" :value="text.length" flex-1 /></div>
-        <div data-test-id="word-count"><n-statistic label="Word count" :value="text === '' ? 0 : text.split(/\s+/).length" flex-1 /></div>
-        <div data-test-id="line-count"><n-statistic label="Line count" :value="text === '' ? 0 : text.split(/\r\n|\r|\n/).length" flex-1 /></div>
-        <div data-test-id="byte-size"><n-statistic label="Byte size" :value="formatBytes(getStringSizeInBytes(text))" flex-1 /></div>
+    <c-card title="Text statistics" data-test-id="text-statistics-results">
+      <div grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4>
+        <div data-test-id="words"><n-statistic label="Words" :value="stats.words" /></div>
+        <div data-test-id="unique-words"><n-statistic label="Unique words" :value="stats.uniqueWords" /></div>
+        <div data-test-id="graphemes"><n-statistic label="Visible characters" :value="stats.graphemes" /></div>
+        <div data-test-id="no-whitespace"><n-statistic label="Characters without whitespace" :value="stats.charactersWithoutWhitespace" /></div>
+        <div data-test-id="code-points"><n-statistic label="Unicode code points" :value="stats.codePoints" /></div>
+        <div data-test-id="utf16"><n-statistic label="UTF-16 code units" :value="stats.utf16CodeUnits" /></div>
+        <div data-test-id="bytes"><n-statistic label="UTF-8 bytes" :value="stats.bytes" /></div>
+        <div data-test-id="lines"><n-statistic label="Lines" :value="stats.lines" /></div>
+        <div data-test-id="non-empty-lines"><n-statistic label="Non-empty lines" :value="stats.nonEmptyLines" /></div>
+        <div data-test-id="paragraphs"><n-statistic label="Paragraphs" :value="stats.paragraphs" /></div>
+        <div data-test-id="sentences"><n-statistic label="Sentences" :value="stats.sentences" /></div>
+        <div data-test-id="longest-line"><n-statistic label="Longest line (visible chars)" :value="stats.longestLine" /></div>
       </div>
+    </c-card>
+
+    <c-card title="Reading time">
+      <div flex flex-wrap items-center gap-3>
+        <div data-test-id="reading-time">
+          <n-statistic label="Estimated reading time" :value="readingMinutes === 0 ? '0 min' : `${readingMinutes} min`" />
+        </div>
+        <label flex items-center gap-2 text-sm>
+          Reading speed
+          <input v-model.number="readingWpm" type="number" min="50" max="1000" step="10" aria-label="Reading speed in words per minute" w-24 border rounded px-2 py-1>
+          <span>words/min</span>
+        </label>
+      </div>
+      <p mt-2 text-xs opacity-70>Estimate = word count divided by your selected reading speed (default 200 words/min), rounded up to a whole minute. Actual reading speed varies.</p>
+    </c-card>
+
+    <c-card title="How counts are calculated" data-test-id="counting-methodology">
+      <ul list-disc pl-5 text-sm space-y-2>
+        <li><strong>Visible characters</strong> count Unicode grapheme clusters where the browser supports Intl.Segmenter. A joined emoji or accented letter can be one visible character.</li>
+        <li><strong>Unicode code points</strong> count Unicode values; <strong>UTF-16 code units</strong> match JavaScript string length; <strong>UTF-8 bytes</strong> measure encoded storage size. These numbers are different by design.</li>
+        <li><strong>Words and sentences</strong> use browser locale-aware segmentation when available. Older browsers use an approximate Unicode-aware fallback, which may not split Chinese, Japanese or Thai into dictionary words.</li>
+        <li><strong>Lines</strong> split on LF, CRLF or CR. Paragraphs are blocks separated by one or more blank lines. Longest line uses visible-character counts.</li>
+        <li>Different platforms may apply their own character, byte or weighted-length rules. Use the receiving platform's documented limit when precision matters.</li>
+      </ul>
     </c-card>
   </div>
 </template>
