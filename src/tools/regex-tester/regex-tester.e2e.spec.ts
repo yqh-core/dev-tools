@@ -102,7 +102,7 @@ test.describe('Tool - Regex Tester isolated execution', () => {
     await expect(panel).toContainText('named capture group called "id"');
     await expect(panel).toContainText('Matches one ASCII digit');
     await expect(panel).toContainText('Active flags');
-    await expect(panel).toContainText('Global search');
+    await expect(panel).toContainText('Finds all matches');
 
     await page.getByLabel('Regex to test:').fill('(?P<name>foo)\\K');
     await expect(panel).toContainText('Python-style named groups are not JavaScript RegExp syntax');
