@@ -88,7 +88,7 @@
     "/json-to-code": "{\n  \"id\": 1,\n  \"name\": \"Alice\",\n  \"email\": \"alice@example.com\",\n  \"active\": true\n}",
     "/unit-converter": "100",
     "/ascii-table": "A",
-    "/http-headers": "cache",
+    "/http-headers": "HTTP/2 200 OK\nstrict-transport-security: max-age=31536000\nx-content-type-options: nosniff\nset-cookie: session=abc; Secure; HttpOnly; SameSite=Lax",
     "/linux-commands": "grep",
     "/whois-lookup": "example.com",
     "/http-status-checker": "example.com"

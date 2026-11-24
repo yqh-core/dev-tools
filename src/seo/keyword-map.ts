@@ -421,13 +421,13 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
   {
     path: '/http-headers',
     keyword: 'http headers checker online',
-    keywords: ['OWASP secure headers', 'curl -I analyzer', 'HSTS / CSP score'],
+    keywords: ['HTTP response header analyzer', 'curl response header check', 'CSP header checker', 'HSTS header checker', 'cookie security flags', 'CORS response headers', 'X-Robots-Tag checker'],
     intent: 'inspect',
     priority: 'P2',
     competition: 'medium',
-    landed: false,
-    proposedTitle: 'HTTP Header Analyzer — Paste Headers, Get a Security Score',
-    note: '簇 10。需改形态：走「用户粘贴 curl -I 输出 → 纯前端解析 + OWASP 打分」，成本与风险都为零（对比 server-side fetch 路线）。',
+    landed: true,
+    lockedTitle: 'HTTP Header Analyzer — Paste Headers, Get a Security Score',
+    note: 'The existing canonical route now parses pasted curl/DevTools response headers locally, preserves repeated Set-Cookie fields, analyzes the final block of redirect chains and reports transparent weighted header coverage plus CSP, cookie, CORS, cache and X-Robots-Tag findings. The score is not an OWASP rating or a full security audit; search-volume metrics remain unclaimed.',
   },
   {
     path: '/linux-commands',
