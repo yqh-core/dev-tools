@@ -55,11 +55,11 @@ test.describe('Tool - Basic Auth generator', () => {
 
     const requestUrl = page.getByTestId('basic-auth-request-url').locator('input');
     await expect(page.getByTestId('basic-auth-curl-example')).toContainText('https://api.example.com/v1/resource');
-    await expect(page.getByTestId('basic-auth-node-fetch-example')).toContainText(`Buffer.from(credentials, 'utf8')`);
+    await expect(page.getByTestId('basic-auth-node-fetch-example')).toContainText('Buffer.from(credentials, \'utf8\')');
     await expect(page.getByTestId('basic-auth-python-requests-example')).toContainText('requests.get');
 
     await requestUrl.fill('https://api.example.com/v2/users?q=1&role=admin');
-    await expect(page.getByTestId('basic-auth-curl-example')).toContainText(`'https://api.example.com/v2/users?q=1&role=admin'`);
+    await expect(page.getByTestId('basic-auth-curl-example')).toContainText('\'https://api.example.com/v2/users?q=1&role=admin\'');
     await expect(page.getByTestId('basic-auth-node-fetch-example')).toContainText('https://api.example.com/v2/users?q=1&role=admin');
     await expect(page.getByTestId('basic-auth-python-requests-example')).toContainText('https://api.example.com/v2/users?q=1&role=admin');
 
