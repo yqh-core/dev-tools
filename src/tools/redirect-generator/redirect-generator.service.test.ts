@@ -72,6 +72,17 @@ describe('analyzeRedirects', () => {
     expect(result.errors).toBe(2);
   });
 
+  it('does not treat the same path on different hosts as a duplicate or chain', () => {
+    const result = analyzeRedirects('https://a.example/old,/new\nhttps://b.example/new,/final');
+    expect(result.errors).toBe(0);
+    expect(result.warnings).toBe(0);
+  });
+
+  it('detects chains across absolute source and destination hosts', () => {
+    const result = analyzeRedirects('https://a.example/old,https://b.example/new\nhttps://b.example/new,/final');
+    expect(result.rows[0].issues.some(issue => issue.code === 'redirect-chain')).toBe(true);
+  });
+
   it('warns when a destination continues through another redirect', () => {
     const result = analyzeRedirects('/old,/middle\n/middle,/final');
     expect(result.rows[0].issues).toContainEqual(expect.objectContaining({
@@ -113,6 +124,12 @@ describe('generateRedirectOutput', () => {
     expect(lines[0].split(',')).toHaveLength(7);
     expect(lines[0]).toContain('"https://example.com/old+page","https://example.com/new-page","301","TRUE"');
     expect(lines[1]).toContain('"FALSE","FALSE","FALSE"');
+  });
+
+  it('infers a Cloudflare origin from an absolute source URL', () => {
+    const absolute = analyzeRedirects('https://example.com/old,/new');
+    const output = generateRedirectOutput(absolute, 'cloudflare', '301');
+    expect(output).toContain('"https://example.com/old","https://example.com/new"');
   });
 
   it('rejects an invalid Cloudflare site origin', () => {
