@@ -2301,7 +2301,7 @@ export const GUIDES: Record<string, ToolGuide> = {
     ],
     example: {
       label: 'Load a redirect mapping sample',
-      text: 'Source URL,Target URL\\n/old-product,https://example.com/products/new-product\\n/legacy-guide,/guides/current-guide\\n/sale,/offers',
+      text: 'Source URL,Target URL\n/old-product,https://example.com/products/new-product\\n/legacy-guide,/guides/current-guide\\n/sale,/offers',
     },
     about: 'A redirect map connects an old URL to the page that replaces it. It is commonly used during site redesigns, URL restructuring, content consolidation and domain migrations. This tool turns a batch of source and destination pairs into exact-path rules for Apache mod_alias, Nginx, Cloudflare Bulk Redirect CSV, Netlify _redirects or Vercel vercel.json. Before export it checks the submitted mappings for malformed URLs, duplicate sources, self-redirects, loops and avoidable chains. All parsing and generation run in the browser; your mapping list is not uploaded.',
     articleOnlySections: [
