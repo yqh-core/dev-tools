@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { decodeSafeLinksBatch, decodeSafeLinksURL } from './safelink-decoder.service';
+import type { SafeLinksBatchResult } from './safelink-decoder.service';
 import TextareaCopyable from '@/components/TextareaCopyable.vue';
 
 const { t } = useI18n();
@@ -48,7 +49,7 @@ async function copySuccessfulBatchResults(): Promise<void> {
   }
 
   try {
-    await navigator.clipboard.writeText(successfulUrls.join('\\n'));
+    await navigator.clipboard.writeText(successfulUrls.join('\n'));
     batchCopyStatus.value = t('tools.safelink-decoder.batch.copied');
   }
   catch {
