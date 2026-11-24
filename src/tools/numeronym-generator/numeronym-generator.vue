@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n';
 import {
   ESTABLISHED_NUMERONYMS,
   NUMERONYM_CONTEXT,
@@ -7,6 +8,7 @@ import {
   tokenizeNumeronymInput,
 } from './numeronym-generator.service';
 
+const { t } = useI18n();
 const word = ref('');
 
 const tokens = computed(() => tokenizeNumeronymInput(word.value));
@@ -23,11 +25,14 @@ const batchResults = computed(() => tokens.value.map((input, index) => {
 }));
 const isBatch = computed(() => batchResults.value.length > 1);
 const batchOutput = computed(() => batchResults.value
-  .map(({ result: itemResult }) => itemResult.mode === 'encode'
-    ? itemResult.output
-    : itemResult.mode === 'decode'
+  .map(({ input, result: itemResult }) => {
+    if (itemResult.mode === 'encode') {
+      return countLetters(input) > 3 ? itemResult.output : '';
+    }
+    return itemResult.mode === 'decode'
       ? (itemResult.matches ?? []).join(' / ')
-      : '')
+      : '';
+  })
   .filter(Boolean)
   .join('\n'));
 const dictionaryKeys = Object.keys(ESTABLISHED_NUMERONYMS);
@@ -39,7 +44,9 @@ const referenceRows = Object.entries(ESTABLISHED_NUMERONYMS).map(([short, expans
 
 function batchResultLabel(item: (typeof batchResults.value)[number]): string {
   if (item.result.mode === 'encode') {
-    return item.result.output;
+    return (item.letterCount ?? 0) <= 3
+      ? t('tools.numeronym-generator.shortWordResult')
+      : item.result.output;
   }
   if (item.result.mode === 'decode') {
     return (item.result.matches ?? []).join(' / ');
@@ -115,6 +122,9 @@ function batchResultLabel(item: (typeof batchResults.value)[number]): string {
       <icon-mdi-arrow-down text-30px />
       <input-copyable :value="result.output" size="large" readonly placeholder="Your numeronym will be here, e.g. 'i18n'" test-id="numeronym" />
       <p text-sm opacity-60 data-test-id="single-letter-count">{{ countLetters(singleInput) }} letters counted</p>
+      <p v-if="countLetters(singleInput) <= 3" text-xs opacity-70 data-test-id="short-word-note">
+        {{ t('tools.numeronym-generator.shortWordNote') }}
+      </p>
     </template>
 
     <c-card
