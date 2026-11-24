@@ -6,10 +6,10 @@ test.describe('Tool - Percentage calculator', () => {
   });
 
   test('Has the intended search title, description and H1', async ({ page }) => {
-    await expect(page).toHaveTitle('Percentage Calculator — Percent & Change - DigDevBox');
+    await expect(page).toHaveTitle('Percentage Calculator — Percent of, Change & Difference - DigDevBox');
     await expect(page.locator('meta[name="description"]')).toHaveAttribute(
       'content',
-      'Free percentage calculator for percent of a number, percentage change, stacked discounts and reverse rates. Batch formulas and CSV/TSV export run in your browser.',
+      'Find X% of Y, what percent one value is of another, percent change, difference and reverse rates. Seven modes with batch formulas and CSV/TSV export.',
     );
     await expect(page.locator('h1')).toHaveText('Percentage Calculator');
   });
