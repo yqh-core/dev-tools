@@ -59,8 +59,8 @@ test.describe('Tool - Regex Tester isolated execution', () => {
   test('runs named positive and negative test cases with an aggregate summary', async ({ page }) => {
     await page.getByLabel('Regex to test:').fill('^ORD-[0-9]{4}$');
     await page.getByRole('button', { name: 'Add test case' }).click();
-    await page.getByLabel('Test case name').last().fill('Valid order');
-    await page.getByLabel('Test case input').last().fill('ORD-0042');
+    await page.getByLabel('Test case name').last().locator('input').fill('Valid order');
+    await page.getByLabel('Test case input').last().locator('textarea').fill('ORD-0042');
 
     await page.getByRole('button', { name: 'Add test case' }).click();
     await page.getByLabel('Test case name').last().fill('Too short');
@@ -69,7 +69,7 @@ test.describe('Tool - Regex Tester isolated execution', () => {
 
     await expect(page.getByText('2 / 2 test cases passed')).toBeVisible({ timeout: 5000 });
     await expect(page.getByText('PASS')).toHaveCount(2);
-    await page.getByLabel('Test case input').first().fill('ORD-42');
+    await page.getByLabel('Test case input').first().locator('textarea').fill('ORD-42');
     await expect(page.getByText('1 / 2 test cases passed')).toBeVisible({ timeout: 5000 });
     await expect(page.getByText('FAIL')).toHaveCount(1);
   });
