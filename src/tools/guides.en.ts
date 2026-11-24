@@ -659,7 +659,7 @@ export const GUIDES: Record<string, ToolGuide> = {
       },
       {
         title: 'Import files and review changes by path',
-        text: 'Open one JSON or JSON5 file on each side, or paste content directly. Each file is limited to 5 MB and is read in the browser tab; no file content is uploaded. The change list reports JSONPath-like locations with before and after values, and the report download contains the changed paths and values. Small documents are compared on the main thread. When the combined input exceeds 150,000 characters, parsing and comparison move to a dedicated Web Worker; users can cancel the job, and a 15-second timeout stops unresponsive work.',
+        text: 'Open one JSON or JSON5 file on each side, or paste content directly. Each file is limited to 5 MB and is read in the browser tab; no file content is uploaded. The change list reports JSONPath-like locations with before and after values. Select a path to jump to and highlight the corresponding node in the structural comparison; the report download contains the changed paths and values. Small documents are compared on the main thread. When the combined input exceeds 150,000 characters, parsing and comparison move to a dedicated Web Worker; users can cancel the job, and a 15-second timeout stops unresponsive work.',
       },
       {
         title: 'Structural comparison and data precision',
