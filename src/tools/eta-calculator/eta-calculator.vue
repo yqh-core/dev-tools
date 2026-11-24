@@ -85,7 +85,12 @@ const displayedDuration = computed(() => {
     : formatMsDuration(estimate.value.durationMs);
 });
 const displayedObservedRate = computed(() => {
-  if (calculationMode.value !== 'observed' || !estimate.value || !('unitsPerHour' in estimate.value)) {
+  if (
+    calculationMode.value !== 'observed'
+    || !estimate.value
+    || !('unitsPerHour' in estimate.value)
+    || typeof estimate.value.unitsPerHour !== 'number'
+  ) {
     return '';
   }
   return new Intl.NumberFormat(undefined, { maximumFractionDigits: 4 })
