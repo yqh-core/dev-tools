@@ -2282,30 +2282,36 @@ export const GUIDES: Record<string, ToolGuide> = {
     ],
   },
   '/redirect-generator': {
-    intro: 'Map old URLs to their replacement destinations and generate bulk redirect rules for Apache, Nginx or Cloudflare. The validator checks the mapping list before you export it.',
+    intro: 'Map old URLs to replacement destinations and generate bulk redirects for Apache, Nginx, Cloudflare, Netlify or Vercel. The validator checks your submitted mapping list before export.',
     steps: [
       'Paste a two-column CSV or tab-separated list with the old URL first and the destination second. You can also enter one old URL -> new URL pair per line, or import a CSV/TSV file.',
       'Choose the response status. Use 301 or 308 for a permanent move, and 302 or 307 for a temporary redirect.',
-      'Choose Apache .htaccess, an Nginx server block or Cloudflare Bulk Redirect CSV. Cloudflare requires a site origin when your mappings use relative paths.',
+      'Choose Apache .htaccess, an Nginx server block, Cloudflare Bulk Redirect CSV, Netlify _redirects or Vercel vercel.json. Cloudflare requires a site origin when your mappings use relative paths.',
+      'For Cloudflare, choose whether to include subdomains, match paths below each source and preserve the unmatched path suffix. Preserving the suffix requires subpath matching.',
       'Review duplicate sources, invalid paths, self-redirects, loops and redirect-chain warnings. Fix rows marked as errors before exporting.',
       'Copy the generated rules or download the file, then test the configuration on a staging host before deploying it.',
     ],
     notes: [
       'The analyzer only checks mappings you provide. It does not send requests, verify that destinations return HTTP 200, or inspect redirects already configured on your server.',
       'Chain detection is limited to paths in the current input. A destination that is redirected by a rule outside this list cannot be detected here.',
-      'Cloudflare Bulk Redirect CSV has no header row. Source URLs omit the scheme so a mapping can match both HTTP and HTTPS; target URLs are absolute. This generator sets include-subdomains, subpath-matching and preserve-path-suffix to FALSE. When Preserve query string is enabled, Cloudflare uses the incoming query and discards any fixed query string on the target.',
-      'Cloudflare bulk redirects are static source-to-destination mappings; they do not support regex replacement patterns. Use Apache or Nginx configuration when you need pattern-based rewrites.',
+      'Cloudflare Bulk Redirect CSV has seven columns and no header row. Source URLs omit the scheme so a mapping can match both HTTP and HTTPS. Include-subdomains, subpath-matching and preserve-path-suffix are explicit options; preserving the suffix only applies when subpath matching is enabled.',
+      'Netlify uses a plain-text _redirects file with one source, destination and status per line. Netlify documents 301 as the default and 302 as the temporary alternative, and explicitly notes that 307 is unsupported. This generator deliberately limits its Netlify export to 301 and 302; choose another format if you need 307 or 308. The downloaded text file must be renamed exactly to _redirects in the publish directory.',
+      'Vercel output is a vercel.json redirects array with source, destination and statusCode fields. Preserve query parameters is included only when selected. Review exact paths and routing interactions in your project before deploying.',
       'Changing a permanent redirect after search engines and visitors have seen it can take time to be reflected. Keep mappings stable and avoid redirect chains where possible.',
     ],
     example: {
       label: 'Load a redirect mapping sample',
       text: 'Source URL,Target URL\n/old-product,https://example.com/products/new-product\n/legacy-guide,/guides/current-guide\n/sale,/offers',
     },
-    about: 'A redirect map connects an old URL to the page that replaces it. It is commonly used during site redesigns, URL restructuring, content consolidation and domain migrations. This tool turns a batch of source and destination pairs into exact-path rules for Apache mod_alias, Nginx or a Cloudflare Bulk Redirect CSV. Before export it checks the submitted mappings for malformed URLs, duplicate sources, self-redirects, loops and avoidable chains. All parsing and generation run in the browser; your mapping list is not uploaded.',
+    about: 'A redirect map connects an old URL to the page that replaces it. It is commonly used during site redesigns, URL restructuring, content consolidation and domain migrations. This tool turns a batch of source and destination pairs into exact-path rules for Apache mod_alias, Nginx, Cloudflare Bulk Redirect CSV, Netlify _redirects or Vercel vercel.json. Before export it checks the submitted mappings for malformed URLs, duplicate sources, self-redirects, loops and avoidable chains. All parsing and generation run in the browser; your mapping list is not uploaded.',
     articleOnlySections: [
       {
-        title: 'Choose a redirect status that matches the move',
-        text: 'Use 301 or 308 when the destination is intended to replace the source permanently. Use 302 or 307 for a temporary change. The 307 and 308 status codes preserve the request method, while 301 and 302 may be handled differently by clients for non-GET requests. For ordinary page migrations, make the permanent or temporary nature of the move explicit and test the behavior with the requests your application actually receives.',
+        title: 'Choose a redirect format that matches your host',
+        text: 'Apache mod_alias and Nginx server blocks produce exact-path server rules. Cloudflare Bulk Redirect CSV is a seven-column import format with explicit host and path matching options. Netlify uses a plain-text _redirects file and supports 301 or 302 in that format. Vercel reads a redirects array from vercel.json, where each entry has a source, destination and statusCode. These formats are not interchangeable: place the output in the correct project or server configuration location and verify how your host handles existing files and routes.',
+      },
+      {
+        title: 'Configure Cloudflare matching without broadening rules by accident',
+        text: 'Include subdomains expands the hostnames that a source mapping can match. Subpath matching also catches requests below the source path. Preserve path suffix forwards the remaining unmatched path segments to the destination, and only applies when subpath matching is enabled. Keep these options disabled unless the migration plan intentionally needs the broader match; test representative URLs before importing a large list.',
       },
       {
         title: 'Avoid redirect chains during a site migration',
@@ -2314,11 +2320,11 @@ export const GUIDES: Record<string, ToolGuide> = {
     ],
     faqs: [
       { q: 'What input formats does the redirect generator accept?', a: 'Paste comma-separated CSV, tab-separated pairs or one “old URL -> new URL” mapping per line. You can also import a CSV or TSV file. CSV headers such as Source URL and Target URL are recognized.' },
-      { q: 'Which status code should I choose: 301, 302, 307 or 308?', a: 'Choose 301 or 308 for a permanent move and 302 or 307 for a temporary one. The 307 and 308 codes preserve the request method; use them when that distinction matters to your application.' },
+      { q: 'Which platforms and output formats are supported?', a: 'The generator exports Apache .htaccess RedirectMatch rules, Nginx exact-match locations, seven-column Cloudflare Bulk Redirect CSV, Netlify _redirects lines and a Vercel vercel.json redirects array.' },
+      { q: 'Which status code should I choose: 301, 302, 307 or 308?', a: 'Choose 301 or 308 for a permanent move and 302 or 307 for a temporary one. The 307 and 308 codes preserve the request method; use them when that distinction matters to your application. This generator limits Netlify _redirects output to 301 and 302; choose Apache, Nginx, Cloudflare or Vercel output when you need 307 or 308.' },
+      { q: 'How do the Cloudflare subdomain and path options work?', a: 'Include subdomains lets a source mapping match subdomains. Subpath matching also matches URLs below the source path. Preserve path suffix forwards the remaining path segments to the destination and requires subpath matching. Keep broader matching disabled unless the migration requires it.' },
       { q: 'Does the tool check whether the new URL exists?', a: 'No. It validates URL syntax and relationships within the mapping list, but it does not make network requests or confirm that a destination responds successfully. Check target URLs separately before deployment.' },
       { q: 'How are redirect loops and chains detected?', a: 'The analyzer follows path-to-path mappings included in the current batch. It marks loops as errors and warns when one submitted destination continues through another submitted redirect. Rules outside the pasted list are not visible to the analyzer.' },
-      { q: 'What does the Cloudflare CSV contain?', a: 'It generates the seven Cloudflare Bulk Redirect columns: source URL, target URL, status code, preserve query string, include subdomains, subpath matching and preserve path suffix. The export has no header row. Cloudflare source URLs omit the scheme to match both HTTP and HTTPS; relative paths are expanded using your site origin.' },
-      { q: 'Can Cloudflare Bulk Redirects use regular expressions?', a: 'No. Cloudflare Bulk Redirects are static mappings. Use Apache or Nginx output for exact-path server rules, or use a separate rewrite mechanism when you need pattern-based replacements.' },
       { q: 'Does generating a 301 redirect guarantee better rankings?', a: 'No. A 301 is a technical migration signal, not a ranking guarantee. Use it when a page has permanently moved, point to the most relevant final destination and update internal links and sitemaps.' },
     ],
   },

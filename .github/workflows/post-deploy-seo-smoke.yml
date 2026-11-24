@@ -331,7 +331,7 @@ jobs:
               '/text-statistics/': { title: 'Text Statistics — Word & Character Counter - DigDevBox', description: 'Free online word and character counter with Unicode grapheme, code point, UTF-16 and UTF-8 byte counts. Count words, unique words, sentences, paragraphs and lines, estimate reading time, and keep text private in your browser.', h1: 'Text Statistics' },
               '/json-diff/': { title: 'JSON Diff Checker — Compare JSON Online - DigDevBox', description: 'Compare JSON files or pasted JSON online. Inspect nested changes by path, export a report, and match arrays by index, ignore-order or stable ID. Large comparisons run in a cancellable worker.', h1: 'JSON Diff Checker' },
               '/slugify-string/': { title: 'URL Slug Generator — Create SEO-Friendly Slugs in Bulk - DigDevBox', description: 'Generate URL slugs from titles in bulk. Choose hyphens, underscores or dots, remove English stop words, set a word-safe length cap and preview full URLs.', h1: 'URL Slug Generator' },
-              '/redirect-generator/': { title: 'Bulk 301 Redirect Generator — Apache, Nginx & Cloudflare - DigDevBox', description: 'Create bulk 301, 302, 307 or 308 redirects for Apache, Nginx and Cloudflare. Import CSV, detect duplicates, loops and redirect chains. Runs locally.', h1: 'Bulk 301 Redirect Generator' },
+              '/redirect-generator/': { title: 'Bulk 301 Redirect Generator — Apache, Nginx & Cloudflare - DigDevBox', description: 'Generate bulk redirects for Apache, Nginx, Cloudflare, Netlify and Vercel. Import CSV, detect loops and chains, and export server-ready rules locally.', h1: 'Bulk 301 Redirect Generator' },
             };
             const expected = expectedMetadata[path];
             if (expected &&

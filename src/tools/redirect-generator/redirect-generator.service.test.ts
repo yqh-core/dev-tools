@@ -136,6 +136,39 @@ describe('generateRedirectOutput', () => {
     expect(lines[1]).toContain('"FALSE","FALSE","FALSE"');
   });
 
+  it('generates Netlify _redirects lines and enforces the conservative 301/302 range', () => {
+    const netlify = generateRedirectOutput(analysis, 'netlify', '301');
+    expect(netlify).toContain('/old+page /new-page 301');
+    expect(netlify).toContain('/legacy /final 301');
+    expect(() => generateRedirectOutput(analysis, 'netlify', '307')).toThrow('This generator limits Netlify _redirects output to 301 and 302.');
+    expect(() => generateRedirectOutput(analysis, 'netlify', '308')).toThrow('This generator limits Netlify _redirects output to 301 and 302.');
+  });
+
+  it('generates Vercel vercel.json with an exact statusCode and optional query preservation', () => {
+    const output = generateRedirectOutput(analysis, 'vercel', '308', { preserveQueryString: true });
+    const config = JSON.parse(output);
+    expect(config.$schema).toBe('https://openapi.vercel.sh/vercel.json');
+    expect(config.redirects).toEqual([
+      { source: '/old+page', destination: '/new-page', statusCode: 308, preserveQueryParams: true },
+      { source: '/legacy', destination: '/final', statusCode: 308, preserveQueryParams: true },
+    ]);
+  });
+
+  it('generates Cloudflare matching flags and requires subpath matching for a preserved suffix', () => {
+    const output = generateRedirectOutput(analysis, 'cloudflare', '301', {
+      origin: 'https://example.com',
+      includeSubdomains: true,
+      subpathMatching: true,
+      preservePathSuffix: true,
+    });
+    expect(output.split('\n')[0].split(',')).toHaveLength(7);
+    expect(output.split('\n')[0]).toContain('"TRUE","TRUE","TRUE"');
+    expect(() => generateRedirectOutput(analysis, 'cloudflare', '301', {
+      origin: 'https://example.com',
+      preservePathSuffix: true,
+    })).toThrow('Preserve path suffix requires subpath matching');
+  });
+
   it('infers a Cloudflare origin from an absolute source URL', () => {
     const absolute = analyzeRedirects('https://example.com/old,/new');
     const output = generateRedirectOutput(absolute, 'cloudflare', '301');

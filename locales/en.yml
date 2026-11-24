@@ -420,9 +420,9 @@ tools:
 
   redirect-generator:
     title: Bulk 301 Redirect Generator — Apache, Nginx & Cloudflare
-    description: Create bulk 301, 302, 307 or 308 redirects for Apache, Nginx and Cloudflare. Import CSV, detect duplicates, loops and redirect chains. Runs locally.
+    description: Generate bulk redirects for Apache, Nginx, Cloudflare, Netlify and Vercel. Import CSV, detect loops and chains, and export server-ready rules locally.
     cardTitle: Bulk URL redirect mapping
-    intro: Import or paste old and new URL pairs, validate the mapping list, then export exact-path rules for your server or Cloudflare Bulk Redirects.
+    intro: Import or paste old and new URL pairs, validate the mapping list, then export server-ready redirect configuration for five platforms.
     inputPlaceholder: "Source URL,Target URL\n/old-page,https://example.com/new-page\n/legacy,/current"
     loadSample: Load sample
     clear: Clear
@@ -431,7 +431,12 @@ tools:
     statusCode: Redirect status
     siteOrigin: Site origin for relative Cloudflare URLs
     preserveQueryString: Preserve incoming query strings
-    cloudflareNote: Cloudflare CSV has no header row. Source URLs omit the scheme to match HTTP and HTTPS; the site origin expands relative paths.
+    includeSubdomains: Match subdomains
+    subpathMatching: Match paths below the source path
+    preservePathSuffix: Preserve the path suffix after the match
+    cloudflareNote: Cloudflare CSV has seven columns and no header. Source URLs omit the scheme; choose subdomain and path matching explicitly. Preserving the suffix requires subpath matching.
+    netlifyNote: Netlify uses a plain-text _redirects file. Download the generated .txt file and rename it exactly to _redirects in the publish directory. This generator supports Netlify 301 and 302 rules.
+    vercelNote: Vercel output is a vercel.json redirects array. Source and destination values use the exact paths from your mapping; review them against your deployment's routing rules.
     summary:
       total: Mappings
       ready: Ready to export
@@ -450,6 +455,8 @@ tools:
       apache: Apache .htaccess (mod_alias)
       nginx: Nginx server block
       cloudflare: Cloudflare Bulk Redirect CSV
+      netlify: Netlify _redirects file
+      vercel: Vercel vercel.json
     status:
       permanent: Permanent
       temporary: Temporary
@@ -471,6 +478,8 @@ tools:
       redirectLoop: This mapping is part of a redirect loop. Break the loop before exporting.
       cloudflareSourceLimits: Cloudflare source URLs cannot include ports or user information. Remove them before exporting.
       cloudflareQueryConflict: The target URL query is discarded when Preserve query string is enabled. Remove the target query or disable this option.
+      pathSuffixRequiresSubpath: Enable subpath matching before preserving the remaining path suffix.
+      netlifyStatusUnsupported: This generator limits Netlify _redirects output to 301 and 302. Choose another format for 307 or 308.
 
   encryption:
     title: Encrypt / decrypt text

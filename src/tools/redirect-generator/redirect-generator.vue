@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import type { RedirectFormat, RedirectIssue, RedirectStatus } from './redirect-generator.service';
 import { analyzeRedirects, generateRedirectOutput } from './redirect-generator.service';
@@ -20,7 +20,24 @@ const format = ref<RedirectFormat>('apache');
 const status = ref<RedirectStatus>('301');
 const origin = ref('');
 const preserveQueryString = ref(false);
+const includeSubdomains = ref(false);
+const subpathMatching = ref(false);
+const preservePathSuffix = ref(false);
 const importError = ref('');
+
+watch(subpathMatching, (enabled) => {
+  if (!enabled) {
+    preservePathSuffix.value = false;
+  }
+});
+
+const outputOptions = computed(() => ({
+  origin: origin.value,
+  preserveQueryString: preserveQueryString.value,
+  includeSubdomains: includeSubdomains.value,
+  subpathMatching: subpathMatching.value,
+  preservePathSuffix: preservePathSuffix.value,
+}));
 
 const analysis = computed(() => {
   try {
@@ -47,10 +64,7 @@ const outputError = computed(() => {
     return '';
   }
   try {
-    generateRedirectOutput(analysis.value, format.value, status.value, {
-      origin: origin.value,
-      preserveQueryString: preserveQueryString.value,
-    });
+    generateRedirectOutput(analysis.value, format.value, status.value, outputOptions.value);
     return '';
   }
   catch (error) {
@@ -66,6 +80,12 @@ const outputError = computed(() => {
     if (error.message.includes('target query string is ignored')) {
       return t('tools.redirect-generator.errors.cloudflareQueryConflict');
     }
+    if (error.message.includes('Preserve path suffix requires subpath matching')) {
+      return t('tools.redirect-generator.errors.pathSuffixRequiresSubpath');
+    }
+    if (error.message.includes('This generator limits Netlify _redirects output to 301 and 302.')) {
+      return t('tools.redirect-generator.errors.netlifyStatusUnsupported');
+    }
     return t('tools.redirect-generator.errors.outputFailed');
   }
 });
@@ -75,10 +95,7 @@ const output = computed(() => {
     return '';
   }
   try {
-    return generateRedirectOutput(analysis.value, format.value, status.value, {
-      origin: origin.value,
-      preserveQueryString: preserveQueryString.value,
-    });
+    return generateRedirectOutput(analysis.value, format.value, status.value, outputOptions.value);
   }
   catch {
     return '';
@@ -89,6 +106,8 @@ const formatOptions = computed(() => [
   { label: t('tools.redirect-generator.formats.apache'), value: 'apache' },
   { label: t('tools.redirect-generator.formats.nginx'), value: 'nginx' },
   { label: t('tools.redirect-generator.formats.cloudflare'), value: 'cloudflare' },
+  { label: t('tools.redirect-generator.formats.netlify'), value: 'netlify' },
+  { label: t('tools.redirect-generator.formats.vercel'), value: 'vercel' },
 ]);
 
 const statusOptions = computed(() => [
@@ -98,11 +117,11 @@ const statusOptions = computed(() => [
   { label: `308 — ${t('tools.redirect-generator.status.permanentMethod')}`, value: '308' },
 ]);
 
-const outputLanguage = computed(() => format.value === 'cloudflare' ? 'csv' : 'txt');
+const outputLanguage = computed(() => format.value === 'cloudflare' ? 'csv' : format.value === 'vercel' ? 'json' : 'txt');
 const { copy } = useCopy({ source: output, text: t('tools.redirect-generator.copied') });
 const { download } = useDownloadTextFile({
   source: output,
-  filename: computed(() => `redirect-rules-${format.value}`),
+  filename: computed(() => format.value === 'vercel' ? 'vercel' : format.value === 'netlify' ? 'netlify-redirects' : `redirect-rules-${format.value}`),
   language: outputLanguage,
 });
 
@@ -198,23 +217,43 @@ async function importFile(event: Event) {
         </div>
       </div>
 
-      <div v-if="format === 'cloudflare'" mt-4>
-        <label for="redirect-origin" block text-sm font-medium mb-1>
-          {{ t('tools.redirect-generator.siteOrigin') }}
-        </label>
-        <n-input
-          id="redirect-origin"
-          v-model:value="origin"
-          placeholder="https://example.com"
-          data-test-id="redirect-origin-input"
-        />
-        <n-checkbox v-model:checked="preserveQueryString" mt-3>
+      <div v-if="format === 'cloudflare' || format === 'vercel'" mt-4>
+        <template v-if="format === 'cloudflare'">
+          <label for="redirect-origin" block text-sm font-medium mb-1>
+            {{ t('tools.redirect-generator.siteOrigin') }}
+          </label>
+          <n-input
+            id="redirect-origin"
+            v-model:value="origin"
+            placeholder="https://example.com"
+            data-test-id="redirect-origin-input"
+          />
+        </template>
+        <n-checkbox v-model:checked="preserveQueryString" mt-3 data-test-id="redirect-preserve-query">
           {{ t('tools.redirect-generator.preserveQueryString') }}
         </n-checkbox>
-        <p mt-1 text-xs op-60>
-          {{ t('tools.redirect-generator.cloudflareNote') }}
+        <template v-if="format === 'cloudflare'">
+          <n-checkbox v-model:checked="includeSubdomains" mt-2 data-test-id="redirect-include-subdomains">
+            {{ t('tools.redirect-generator.includeSubdomains') }}
+          </n-checkbox>
+          <n-checkbox v-model:checked="subpathMatching" mt-2 data-test-id="redirect-subpath-matching">
+            {{ t('tools.redirect-generator.subpathMatching') }}
+          </n-checkbox>
+          <n-checkbox v-model:checked="preservePathSuffix" mt-2 :disabled="!subpathMatching" data-test-id="redirect-preserve-path-suffix">
+            {{ t('tools.redirect-generator.preservePathSuffix') }}
+          </n-checkbox>
+          <p mt-2 text-xs op-60>
+            {{ t('tools.redirect-generator.cloudflareNote') }}
+          </p>
+        </template>
+        <p v-else mt-2 text-xs op-60>
+          {{ t('tools.redirect-generator.vercelNote') }}
         </p>
       </div>
+
+      <p v-if="format === 'netlify'" mt-4 text-xs op-60>
+        {{ t('tools.redirect-generator.netlifyNote') }}
+      </p>
 
       <div v-if="analysis" mt-5 data-test-id="redirect-analysis">
         <div class="summary-grid" mb-3>
