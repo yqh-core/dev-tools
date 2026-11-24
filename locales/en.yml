@@ -530,7 +530,16 @@ tools:
 
   eta-calculator:
     title: ETA Calculator — Task Completion Time
-    description: Estimate time remaining for a download, build or batch job. Enter total and completed work, processing rate and a buffer to calculate duration and finish time.
+    description: Estimate time remaining for a download, build or batch job. Enter a known processing rate or derive throughput from completed work and elapsed time.
+    rateMode: Enter a known processing rate
+    observedMode: Calculate from elapsed time
+    elapsedTitle: Elapsed time so far
+    elapsedHours: Hours
+    elapsedMinutes: Minutes
+    elapsedSeconds: Seconds
+    unitsPerHour: units/hour
+    observedModeHelp: Derive the average processing pace from completed work and elapsed time. The finish time is projected from now.
+    observedModeHint: Enter completed work greater than zero and a positive elapsed time to derive a pace. A completed workload needs no elapsed-time sample.
 
   roman-numeral-converter:
     title: Roman numeral converter
