@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import type { RedirectFormat, RedirectStatus } from './redirect-generator.service';
+import type { RedirectFormat, RedirectIssue, RedirectStatus } from './redirect-generator.service';
 import { analyzeRedirects, generateRedirectOutput } from './redirect-generator.service';
 import { useCopy } from '@/composable/copy';
 import { useDownloadTextFile } from '@/composable/downloadText';
@@ -33,7 +33,11 @@ const analysis = computed(() => {
       valid: 0,
       errors: 1,
       warnings: 0,
-      fatalError: error instanceof Error ? error.message : t('tools.redirect-generator.errors.invalidInput'),
+      fatalError: error instanceof RangeError
+        ? (error.message.includes('characters')
+            ? t('tools.redirect-generator.errors.inputTooLarge')
+            : t('tools.redirect-generator.errors.tooManyRows'))
+        : t('tools.redirect-generator.errors.invalidInput'),
     };
   }
 });
@@ -50,7 +54,9 @@ const outputError = computed(() => {
     return '';
   }
   catch (error) {
-    return error instanceof Error ? error.message : t('tools.redirect-generator.errors.outputFailed');
+    return error instanceof Error && error.message.includes('site origin')
+      ? t('tools.redirect-generator.errors.originRequired')
+      : t('tools.redirect-generator.errors.outputFailed');
   }
 });
 
@@ -89,6 +95,19 @@ const { download } = useDownloadTextFile({
   filename: computed(() => `redirect-rules-${format.value}`),
   language: outputLanguage,
 });
+
+function issueMessage(issue: RedirectIssue): string {
+  const messages: Record<RedirectIssue['code'], string> = {
+    'parse-error': t('tools.redirect-generator.errors.parseRow'),
+    'invalid-source': t('tools.redirect-generator.errors.invalidSource'),
+    'invalid-target': t('tools.redirect-generator.errors.invalidTarget'),
+    'duplicate-source': t('tools.redirect-generator.errors.duplicateSource'),
+    'self-redirect': t('tools.redirect-generator.errors.selfRedirect'),
+    'redirect-chain': t('tools.redirect-generator.errors.redirectChain'),
+    'redirect-loop': t('tools.redirect-generator.errors.redirectLoop'),
+  };
+  return messages[issue.code];
+}
 
 function loadSample() {
   input.value = sample;
@@ -227,7 +246,7 @@ async function importFile(event: Event) {
           </div>
           <div mt-1 class="issue-path">{{ row.source || '—' }} → {{ row.target || '—' }}</div>
           <p v-for="issue of row.issues" :key="issue.code" mt-1 text-sm op-75>
-            {{ issue.message }}
+            {{ issueMessage(issue) }}
           </p>
         </div>
       </div>
