@@ -26,7 +26,7 @@ export function parseIgnorePaths(raw: string): IgnorePathParseResult {
     return { paths: [], error: `Ignore paths must be ${MAX_IGNORE_PATHS_LENGTH} characters or fewer.` };
   }
 
-  const entries = raw.split(/\\r?\\n/).filter(line => line.length > 0);
+  const entries = raw.split(/\r?\n/).filter(line => line.length > 0);
   if (entries.length > MAX_IGNORE_PATHS) {
     return { paths: [], error: `Use no more than ${MAX_IGNORE_PATHS} ignore paths.` };
   }
@@ -44,7 +44,7 @@ export function parseIgnorePaths(raw: string): IgnorePathParseResult {
 }
 
 function appendPointer(parent: string, segment: string | number): string {
-  const escaped = String(segment).replace(/~/g, '~0').replace(/\\//g, '~1');
+  const escaped = String(segment).replace(/~/g, '~0').replace(/\//g, '~1');
   return `${parent}/${escaped}`;
 }
 
@@ -273,8 +273,10 @@ function isEqualIgnoringArrayOrder(left: unknown, right: unknown, options: DiffO
   ) {
     const leftRecord = left as Record<string, unknown>;
     const rightRecord = right as Record<string, unknown>;
-    const leftKeys = Object.keys(leftRecord);
-    const rightKeys = Object.keys(rightRecord);
+    const leftKeys = Object.keys(leftRecord)
+      .filter(key => !isIgnoredPath(appendPointer(path, key), options));
+    const rightKeys = Object.keys(rightRecord)
+      .filter(key => !isIgnoredPath(appendPointer(path, key), options));
     return leftKeys.length === rightKeys.length
       && leftKeys.every(key =>
         Object.prototype.hasOwnProperty.call(rightRecord, key)
