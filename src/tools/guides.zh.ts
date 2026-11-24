@@ -2286,7 +2286,7 @@ export const GUIDES: Record<string, ToolGuide> = {
     notes: [
       '分析器只检查你提交的映射，不会发起网络请求、验证目标地址是否返回 HTTP 200，也不会读取服务器上已有的重定向配置。',
       '重定向链检测仅限当前输入中的路径。若目标地址还会被清单之外的 CDN 或服务器规则重定向，本工具无法发现。',
-      'Cloudflare Bulk Redirect CSV 不包含表头，且使用完整 URL。本工具将 include-subdomains、subpath-matching 和 preserve-path-suffix 等可选字段固定输出为 FALSE。',
+      'Cloudflare Bulk Redirect CSV 不包含表头。来源 URL 会省略协议，使映射同时匹配 HTTP 和 HTTPS；目标 URL 使用完整地址。本工具将 include-subdomains、subpath-matching 和 preserve-path-suffix 固定输出为 FALSE。启用 Preserve query string 后，Cloudflare 使用请求原有查询参数，并丢弃目标 URL 中固定写入的查询参数。',
       'Cloudflare Bulk Redirect 是静态来源到目标的映射，不支持正则替换。需要模式匹配或动态重写时，请使用 Apache 或 Nginx 等服务器配置。',
       '搜索引擎和访客已经使用永久重定向后，再修改映射可能需要时间才能反映。尽量保持映射稳定，并避免不必要的重定向链。',
     ],
