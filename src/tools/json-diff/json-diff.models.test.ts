@@ -106,7 +106,6 @@ describe('json-diff models', () => {
       expect(duplicates.map(item => item.status).sort()).toEqual(['added', 'removed']);
     });
 
-
     it('ignores order in nested arrays as well as top-level arrays', () => {
       const result = flattenDifferences(diff(
         [{ id: 1, tags: ['a', 'b'] }],
@@ -149,5 +148,4 @@ describe('json-diff models', () => {
       expect(fallback.length).toBeGreaterThan(0);
     });
   });
-
 });
