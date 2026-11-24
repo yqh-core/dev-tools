@@ -230,7 +230,7 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     competition: 'medium',
     landed: true,
     lockedTitle: 'ETA Calculator — Task Completion Time',
-    note: 'The canonical tool estimates remaining duration from total and completed units, measured throughput, a start time and an optional 0–100% buffer. It does not target travel ETA, route traffic or full project scheduling.'
+    note: 'The canonical tool estimates remaining duration from total and completed units, measured throughput, a start time and an optional 0–100% buffer. It does not target travel ETA, route traffic or full project scheduling.',
   },
   {
     path: '/text-statistics',
