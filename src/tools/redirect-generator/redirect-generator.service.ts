@@ -451,7 +451,7 @@ export function generateRedirectOutput(
     return [
       '# Netlify _redirects — save as a file named _redirects in the publish directory.',
       ...rows.map(row => `${row.sourcePath} ${row.targetUrl} ${status}`),
-    ].join('\\n');
+    ].join('\n');
   }
 
   if (format === 'vercel') {
