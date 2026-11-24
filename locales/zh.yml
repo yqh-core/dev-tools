@@ -522,7 +522,7 @@ tools:
 
   json-diff:
     title: "JSON 差异比较器 — 在线比较 JSON"
-    description: "在线比较粘贴内容或本地 JSON 文件，按路径查看嵌套增删改并导出差异报告。数组支持按索引、忽略顺序或稳定 ID 匹配；支持 JSON5，文件只在浏览器本地处理。"
+    description: "在线比较粘贴内容或本地 JSON/JSON5 文件，按路径查看嵌套变化并导出报告。数组支持按索引、忽略顺序或稳定 ID 匹配；大文档使用可取消的后台 Worker 比较。"
   jwt-parser:
     title: JWT 解码器与解析器 — 在线解析 JSON Web Token
     description: 在线解码并解析 JSON Web Token（JWT）— 一目了然查看 Header、Payload 与标准声明。
