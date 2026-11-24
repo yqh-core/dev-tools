@@ -1,7 +1,7 @@
 <script setup lang="ts">
 // Duplicate issue with sub directory
 
-import { addMilliseconds, formatRelative } from 'date-fns';
+import { formatRelative } from 'date-fns';
 import { enGB } from 'date-fns/locale';
 import { useI18n } from 'vue-i18n';
 
@@ -9,15 +9,25 @@ import {
   calculateObservedPaceEta,
   calculateRemainingEta,
   calculateRequiredPaceForDeadline,
+  calculateWorkingHoursFinishAt,
+  calculateWorkingWindowDurationMs,
   formatMsDuration,
 } from './eta-calculator.service';
 import { useCopy } from '@/composable/copy';
 
 type EtaMode = 'rate' | 'observed';
+type EtaScheduleMode = 'calendar' | 'weekdays';
 
 const { t } = useI18n();
 const { copy } = useCopy({ text: t('tools.eta-calculator.copySuccess') });
 const localTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'local time';
+const scheduleMode = ref<EtaScheduleMode>('calendar');
+const workingDayStart = ref('09:00');
+const workingDayEnd = ref('17:00');
+const workingHoursSchedule = computed(() => ({
+  startTime: workingDayStart.value,
+  endTime: workingDayEnd.value,
+}));
 
 const calculationMode = ref<EtaMode>('rate');
 const unitCount = ref(3 * 62);
@@ -82,17 +92,35 @@ const projectedDurationMs = computed(() => (
   estimate.value ? estimate.value.durationMs + additionalPauseMs.value : 0
 ));
 
+const projectedFinishAt = computed<number | null>(() => {
+  if (!estimate.value) {
+    return null;
+  }
+  const anchor = calculationMode.value === 'observed' ? Date.now() : startedAt.value;
+  if (scheduleMode.value === 'calendar') {
+    return anchor + projectedDurationMs.value;
+  }
+  try {
+    return calculateWorkingHoursFinishAt(anchor, projectedDurationMs.value, workingHoursSchedule.value);
+  }
+  catch (error) {
+    if (error instanceof RangeError) {
+      return null;
+    }
+    throw error;
+  }
+});
+
 const progressPercent = computed(() => Math.round(
   estimate.value?.completionPercent
     ?? (unitCount.value > 0 ? (completedUnitCount.value / unitCount.value) * 100 : 0),
 ));
 const endAt = computed(() => {
-  if (!estimate.value) {
+  if (projectedFinishAt.value === null) {
     return '';
   }
-  const anchor = calculationMode.value === 'observed' ? Date.now() : startedAt.value;
   return formatRelative(
-    addMilliseconds(anchor, projectedDurationMs.value),
+    new Date(projectedFinishAt.value),
     Date.now(),
     { locale: enGB },
   );
@@ -106,15 +134,13 @@ const displayedDuration = computed(() => {
     : formatMsDuration(projectedDurationMs.value);
 });
 const formattedEndAt = computed(() => {
-  if (!estimate.value) {
+  if (projectedFinishAt.value === null) {
     return '';
   }
-  const anchor = calculationMode.value === 'observed' ? Date.now() : startedAt.value;
-  const finish = addMilliseconds(anchor, projectedDurationMs.value);
   const formatted = new Intl.DateTimeFormat(undefined, {
     dateStyle: 'medium',
     timeStyle: 'short',
-  }).format(finish);
+  }).format(projectedFinishAt.value);
   return `${formatted} (${localTimeZone})`;
 });
 function copyFinishTime() {
@@ -141,9 +167,12 @@ const deadlineAnalysis = computed(() => {
     : unitPerTimeSpan.value / (timeSpan.value * timeSpanUnitMultiplier.value) * 60 * 60 * 1000;
 
   try {
+    const availableMs = scheduleMode.value === 'weekdays'
+      ? calculateWorkingWindowDurationMs(anchor, deadlineAt.value, workingHoursSchedule.value)
+      : deadlineAt.value - anchor;
     const required = calculateRequiredPaceForDeadline({
       remainingUnits: estimate.value.remainingUnits,
-      availableMs: deadlineAt.value - anchor,
+      availableMs,
       bufferPercent: bufferPercent.value,
       additionalPauseMs: additionalPauseMs.value,
     });
@@ -214,6 +243,65 @@ const displayedObservedRate = computed(() => {
         {{ $t('tools.eta-calculator.observedMode') }}
       </n-button>
     </div>
+
+    <c-card data-test-id="eta-schedule-card">
+      <div flex flex-col gap-2>
+        <strong>{{ $t('tools.eta-calculator.scheduleTitle') }}</strong>
+        <div role="group" :aria-label="$t('tools.eta-calculator.scheduleTitle')" flex flex-wrap gap-2>
+          <n-button
+            data-test-id="eta-schedule-calendar"
+            :type="scheduleMode === 'calendar' ? 'primary' : 'default'"
+            @click="scheduleMode = 'calendar'"
+          >
+            {{ $t('tools.eta-calculator.calendarSchedule') }}
+          </n-button>
+          <n-button
+            data-test-id="eta-schedule-weekdays"
+            :type="scheduleMode === 'weekdays' ? 'primary' : 'default'"
+            @click="scheduleMode = 'weekdays'"
+          >
+            {{ $t('tools.eta-calculator.weekdaySchedule') }}
+          </n-button>
+        </div>
+        <template v-if="scheduleMode === 'weekdays'">
+          <div flex flex-col gap-2 sm:flex-row>
+            <label flex flex-1 flex-col gap-1 text-sm>
+              {{ $t('tools.eta-calculator.workingDayStart') }}
+              <input
+                v-model="workingDayStart"
+                type="time"
+                data-test-id="eta-working-start"
+                class="w-full rounded border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
+              >
+            </label>
+            <label flex flex-1 flex-col gap-1 text-sm>
+              {{ $t('tools.eta-calculator.workingDayEnd') }}
+              <input
+                v-model="workingDayEnd"
+                type="time"
+                data-test-id="eta-working-end"
+                class="w-full rounded border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
+              >
+            </label>
+          </div>
+          <p text-xs opacity-70 data-test-id="eta-working-schedule-help">
+            {{ $t('tools.eta-calculator.weekdayScheduleHelp', { timezone: localTimeZone }) }}
+          </p>
+          <p
+            v-if="projectedFinishAt === null && estimate"
+            role="alert"
+            text-sm
+            data-test-id="eta-working-schedule-error"
+          >
+            {{ $t('tools.eta-calculator.workingScheduleError') }}
+          </p>
+          <p v-if="estimate && estimate.remainingUnits > 0" text-sm data-test-id="eta-working-window-counted">
+            {{ $t('tools.eta-calculator.workingWindowCounted') }}:
+            <strong tabular-nums>{{ formatMsDuration(projectedDurationMs) }}</strong>
+          </p>
+        </template>
+      </div>
+    </c-card>
 
     <div flex flex-col gap-2 md:flex-row>
       <n-form-item label="Total amount to process" flex-1>

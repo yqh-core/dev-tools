@@ -197,3 +197,88 @@ test('ETA Calculator compares the current pace with the rate needed for a deadli
   await deadline.fill(await localDateTime(-60 * 60 * 1000));
   await expect(page.getByTestId('eta-deadline-error')).toContainText('must be later than the estimate start time');
 });
+
+test.describe('ETA Calculator weekday schedule in the device timezone', () => {
+  test.use({ timezoneId: 'America/New_York' });
+
+  test('counts a same-day weekday window and moves after-hours work to the next opening', async ({ page }) => {
+    const fill = async (id: string, value: string) => {
+      await page.getByTestId(id).locator('input').fill(value);
+    };
+
+    await page.addInitScript((fixedNow) => {
+      Date.now = () => fixedNow;
+    }, Date.parse('2026-11-23T15:00:00Z'));
+    await page.goto('/eta-calculator');
+    await fill('eta-total', '6');
+    await fill('eta-completed', '0');
+    await page.getByTestId('eta-schedule-weekdays').click();
+
+    await expect(page.getByTestId('eta-working-window-counted')).toContainText('10 minutes');
+    await expect(page.getByTestId('eta-finish-local')).toContainText('23 Nov 2026');
+    await expect(page.getByTestId('eta-finish-local')).toContainText('10:10');
+    await expect(page.getByTestId('eta-working-schedule-help')).toContainText('America/New_York');
+
+    await page.addInitScript((fixedNow) => {
+      Date.now = () => fixedNow;
+    }, Date.parse('2026-11-23T23:00:00Z'));
+    await page.reload();
+    await fill('eta-total', '6');
+    await fill('eta-completed', '0');
+    await page.getByTestId('eta-schedule-weekdays').click();
+    await expect(page.getByTestId('eta-finish-local')).toContainText('24 Nov 2026');
+    await expect(page.getByTestId('eta-finish-local')).toContainText('09:10');
+
+    await page.getByTestId('eta-schedule-calendar').click();
+    await expect(page.getByTestId('eta-finish-local')).toContainText('23 Nov 2026');
+    await expect(page.getByTestId('eta-finish-local')).toContainText('18:10');
+  });
+
+  test('carries Friday work over a DST weekend while keeping local work hours stable', async ({ page }) => {
+    await page.addInitScript((fixedNow) => {
+      Date.now = () => fixedNow;
+    }, Date.parse('2026-03-06T21:00:00Z'));
+    await page.goto('/eta-calculator');
+
+    const fill = async (id: string, value: string) => {
+      await page.getByTestId(id).locator('input').fill(value);
+    };
+    await fill('eta-total', '72');
+    await fill('eta-completed', '0');
+    await page.getByTestId('eta-schedule-weekdays').click();
+
+    await expect(page.getByTestId('eta-working-window-counted')).toContainText('2 hours');
+    await expect(page.getByTestId('eta-finish-local')).toContainText('9 Mar 2026');
+    await expect(page.getByTestId('eta-finish-local')).toContainText('10:00');
+    await expect(page.getByTestId('eta-finish-local')).toContainText('America/New_York');
+  });
+
+  test('rejects deadlines before the estimate start and deadlines with no weekday window', async ({ page }) => {
+    await page.addInitScript((fixedNow) => {
+      Date.now = () => fixedNow;
+    }, Date.parse('2026-11-23T23:00:00Z'));
+    await page.goto('/eta-calculator');
+    await page.getByTestId('eta-schedule-weekdays').click();
+
+    const deadline = page.getByTestId('eta-deadline-input');
+    await deadline.fill('2026-11-23T17:30');
+    await expect(page.getByTestId('eta-deadline-error')).toBeVisible();
+
+    await deadline.fill('2026-11-24T08:30');
+    await expect(page.getByTestId('eta-deadline-error')).toBeVisible();
+  });
+
+  test('keeps the working-hours controls within a mobile viewport', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/eta-calculator');
+    await page.getByTestId('eta-schedule-weekdays').click();
+
+    await expect(page.getByTestId('eta-working-start')).toBeVisible();
+    await expect(page.getByTestId('eta-working-end')).toBeVisible();
+    const dimensions = await page.evaluate(() => ({
+      viewport: document.documentElement.clientWidth,
+      content: document.documentElement.scrollWidth,
+    }));
+    expect(dimensions.content).toBeLessThanOrEqual(dimensions.viewport + 1);
+  });
+});
