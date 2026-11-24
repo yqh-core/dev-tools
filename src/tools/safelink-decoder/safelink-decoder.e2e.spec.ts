@@ -26,8 +26,6 @@ test.describe('Tool - Outlook Safe Links decoder', () => {
     await page.getByPlaceholder('Your input Outlook SafeLink Url...').fill(outer);
     await expect(page.getByTestId('area-content')).toContainText('https://example.com/docs');
   });
-});
-
 
   test('decodes multiple links locally and keeps each row independent', async ({ page }) => {
     await page.goto('/safelink-decoder');
@@ -43,7 +41,7 @@ test.describe('Tool - Outlook Safe Links decoder', () => {
     page.on('request', request => requests.push(request.url()));
     const requestsBeforeDecode = requests.length;
 
-    await textarea.fill(`${valid}\\n\\n${invalid}\\n${nested}`);
+    await textarea.fill(`${valid}\n\n${invalid}\n${nested}`);
     await page.getByTestId('safelink-batch-decode').click();
 
     const results = page.getByTestId('safelink-batch-result');
@@ -60,7 +58,6 @@ test.describe('Tool - Outlook Safe Links decoder', () => {
     await expect(batch.getByRole('link')).toHaveCount(0);
     expect(page.url()).toContain('/safelink-decoder');
     expect(requests).toHaveLength(requestsBeforeDecode);
-
     await page.evaluate(() => {
       Object.defineProperty(navigator, 'clipboard', {
         configurable: true,
@@ -74,7 +71,7 @@ test.describe('Tool - Outlook Safe Links decoder', () => {
     await page.getByTestId('safelink-batch-copy').click();
     await expect(page.locator('html')).toHaveAttribute(
       'data-copied-results',
-      'https://example.com/docs\\nhttps://example.org/guide',
+      'https://example.com/docs\nhttps://example.org/guide',
     );
 
     await textarea.fill(valid);
@@ -82,3 +79,5 @@ test.describe('Tool - Outlook Safe Links decoder', () => {
     await expect(page.getByTestId('safelink-batch-summary')).toHaveCount(0);
     await expect(page.getByTestId('safelink-batch-copy-status')).toHaveCount(0);
   });
+
+});
