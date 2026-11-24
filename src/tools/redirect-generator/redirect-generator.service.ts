@@ -375,8 +375,16 @@ function csvCell(value: string): string {
 
 function validOrigin(value: string): string {
   const url = parseHttpUrl(value.trim());
-  if (!url || url.pathname !== '/' || url.search || url.hash) {
-    throw new Error('Enter a site origin such as https://example.com (no path or query).');
+  if (
+    !url
+    || url.pathname !== '/'
+    || url.search
+    || url.hash
+    || url.username
+    || url.password
+    || url.port
+  ) {
+    throw new Error('Enter a site origin such as https://example.com without a path, query, credentials or port.');
   }
   return url.origin;
 }
@@ -394,6 +402,18 @@ export function generateRedirectOutput(
   const rows = eligibleRows(analysis);
   if (rows.length === 0) {
     return '';
+  }
+
+  if (format === 'cloudflare') {
+    for (const row of rows) {
+      const source = parseHttpUrl(row.sourceUrl);
+      if (source && (source.username || source.password || source.port)) {
+        throw new Error('Cloudflare source URLs cannot include user information or ports.');
+      }
+      if (options.preserveQueryString && row.targetUrl.includes('?')) {
+        throw new Error('A target query string is ignored when Preserve query string is enabled. Remove it or disable that option.');
+      }
+    }
   }
 
   if (format === 'apache') {
