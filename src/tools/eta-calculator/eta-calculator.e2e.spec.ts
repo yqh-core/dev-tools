@@ -37,6 +37,7 @@ test('ETA Calculator clearly reports a completed workload', async ({ page }) => 
   await fill('eta-completed', '500');
   await expect(page.getByTestId('eta-remaining')).toContainText('0');
   await expect(page.getByTestId('eta-duration')).toContainText('0 seconds');
+  await expect(page.getByTestId('eta-observed-rate')).toHaveCount(0);
   await expect(page.getByTestId('eta-complete')).toContainText('All work items are complete');
   await expect(page.getByTestId('eta-finish')).toHaveCount(0);
 });
