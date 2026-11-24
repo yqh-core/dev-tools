@@ -1331,7 +1331,7 @@ export const GUIDES: Record<string, ToolGuide> = {
       { q: 'Why are there separate fields instead of one formula?', a: 'Each question has a different unknown in a different position. Separating them avoids the most common error: rearranging the formula and dividing by the wrong base.' },
       { q: 'Can I calculate a list of percentage problems at once?', a: 'Yes. Open optional batch mode, choose one of the seven calculations, and paste one row per case with two tab- or comma-separated values. Add a text label as the first column if useful. Each row shows its substituted formula and result or its own validation error; copy one row or export all rows as CSV. Recent runs stay in this browser and can be cleared.' },
       { q: 'How do stacked discounts work?', a: 'Each discount applies to the amount remaining after the previous step. Starting at $100, 20% off leaves $80; taking another 10% off leaves $72. That is 28% off overall, not 30%, because the second discount is calculated from $80.' },
-      { q: 'Does changing the order of percentage steps change the final amount?', a: 'For simple percentage increases and decreases applied as multipliers, the exact final amount is the same when the same rates are reordered. The intermediate amounts and the step-by-step explanation do change, so keep the displayed order when it represents a real promotion or pricing sequence.' },
+      { q: 'Does changing the order of percentage steps change the final amount?', a: 'Mathematically, the same percentage multipliers produce the same final amount when reordered. The intermediate amounts and step-by-step explanation do change, so keep the displayed order when it represents a real promotion or pricing sequence.' },
     ],
     relatedNotes: [
       {
