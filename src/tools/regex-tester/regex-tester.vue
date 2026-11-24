@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { render } from '@regexper/render';
 import type { ShadowRootExpose } from 'vue-shadow-dom';
-import { REGEX_PRESETS, type RegexEvaluation, type RegexMatch } from './regex-tester.service';
+import { REGEX_PRESETS, type RegexEvaluation, type RegexMatch, type RegexTestCase, type RegexTestCaseResult } from './regex-tester.service';
 import { useValidation } from '@/composable/validation';
 import { useQueryParamOrStorage } from '@/composable/queryParams';
 
@@ -71,6 +71,19 @@ const flags = computed(() => {
 });
 
 const results = ref<RegexMatch[]>([]);
+const testCases = ref<RegexTestCase[]>([]);
+const testCaseResults = ref<RegexTestCaseResult[]>([]);
+let nextTestCaseId = 1;
+
+function addTestCase() {
+  testCases.value.push({ id: `case-${nextTestCaseId++}`, name: `Test case ${nextTestCaseId - 1}`, text: '', shouldMatch: true });
+  scheduleEvaluation();
+}
+
+function removeTestCase(id: string) {
+  testCases.value = testCases.value.filter(item => item.id !== id);
+  scheduleEvaluation();
+}
 const replacementPreview = ref('');
 const sample = ref('');
 const evaluationError = ref('');
@@ -123,6 +136,7 @@ function runEvaluation(id: number) {
     results.value = event.data.result?.results ?? [];
     replacementPreview.value = event.data.result?.replacementPreview ?? '';
     sample.value = event.data.result?.sample ?? '';
+    testCaseResults.value = event.data.testCaseResults ?? [];
     evaluationError.value = '';
     evaluationState.value = 'done';
   };
@@ -151,6 +165,7 @@ function runEvaluation(id: number) {
     text: text.value,
     flags: flags.value,
     replacement: replacement.value,
+    testCases: testCases.value,
   });
 }
 
@@ -165,6 +180,7 @@ function scheduleEvaluation() {
   results.value = [];
   replacementPreview.value = '';
   sample.value = '';
+  testCaseResults.value = [];
   evaluationState.value = 'running';
   debounceTimer = window.setTimeout(() => {
     debounceTimer = undefined;
