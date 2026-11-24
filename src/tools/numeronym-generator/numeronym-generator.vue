@@ -114,7 +114,7 @@ function batchResultLabel(item: (typeof batchResults.value)[number]): string {
         <n-input :value="batchOutput" type="textarea" readonly data-test-id="batch-numeronyms" />
         <input-copyable :value="batchOutput" readonly placeholder="Copy all generated results and lookups" test-id="batch-copy" />
       </div>
-      <p mt-2 text-xs opacity-60>Unsupported items remain visible in the table and are excluded from the copyable output.</p>
+      <p mt-2 text-xs opacity-60>{{ t('tools.numeronym-generator.batchCopyNote') }}</p>
     </c-card>
 
     <!-- Keep the established single-word output contract. -->
