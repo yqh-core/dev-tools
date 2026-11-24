@@ -284,14 +284,15 @@ export function analyzeRedirects(input: string): RedirectAnalysis {
 
     const absoluteSource = parseHttpUrl(row.sourceUrl);
     const absoluteTarget = parseHttpUrl(row.targetUrl);
-    const sameOrigin = (!absoluteSource && !absoluteTarget)
-      || Boolean(absoluteSource && absoluteTarget && absoluteSource.origin === absoluteTarget.origin);
+    const effectiveTargetOrigin = absoluteTarget?.origin ?? absoluteSource?.origin;
+    const sameOrigin = absoluteSource
+      ? absoluteSource.origin === effectiveTargetOrigin
+      : !absoluteTarget;
     if (
       row.sourcePath
       && row.targetPath
       && row.sourcePath === row.targetPath
       && sameOrigin
-      && !absoluteTarget?.search
     ) {
       addIssue(row, 'error', 'self-redirect', 'The source and destination are the same path.');
     }
