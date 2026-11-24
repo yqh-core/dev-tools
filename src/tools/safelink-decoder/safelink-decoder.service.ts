@@ -82,12 +82,11 @@ export function decodeSafeLinksURL(safeLinksUrl: string): string {
   return destination;
 }
 
-
 export interface SafeLinksBatchResult {
-  line: number;
-  input: string;
-  decodedUrl: string | null;
-  error: string | null;
+  line: number,
+  input: string,
+  decodedUrl: string | null,
+  error: string | null,
 }
 
 /**
