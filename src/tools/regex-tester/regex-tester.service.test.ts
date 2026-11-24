@@ -84,58 +84,8 @@ describe('regex-tester', () => {
 describe('regex-tester pattern explanation', () => {
   it('explains anchors, literals, named captures, classes and quantifiers', () => {
     const slash = String.fromCharCode(92);
-    const items = explainRegexPattern('^(?<id>[A-Z]{2}' + slash + 'd+)
-  it('reports positive and negative expectations independently', () => {
-    const result = evaluateRegexTestCases('^ORD-[0-9]{4}$', 'd', [
-      { id: '1', name: 'valid order', text: 'ORD-0042', shouldMatch: true },
-      { id: '2', name: 'too short', text: 'ORD-42', shouldMatch: false },
-      { id: '3', name: 'wrong prefix', text: 'XORD-0001', shouldMatch: false },
-    ]);
-    expect(result.map(item => item.passed)).toEqual([true, true, true]);
-    expect(result.map(item => item.actualMatch)).toEqual([true, false, false]);
-  });
-
-  it('returns first match and capture details for a passing case', () => {
-    const [result] = evaluateRegexTestCases('(?<id>ORD-[0-9]{4})', 'd', [
-      { id: '1', name: 'capture order', text: 'pending ORD-0042', shouldMatch: true },
-    ]);
-    expect(result.firstMatch?.value).toBe('ORD-0042');
-    expect(result.firstMatch?.groups[0]).toMatchObject({ name: 'id', value: 'ORD-0042', start: 8, end: 16 });
-  });
-
-  it('marks invalid patterns as errors rather than false test results', () => {
-    expect(() => evaluateRegexTestCases('(', 'd', [
-      { id: '1', name: 'invalid', text: 'x', shouldMatch: true },
-    ])).toThrow();
-  });
-});
-, 'dgu');
-    expect(items.map(item => item.token)).toEqual(['^', '(?<id>', '[A-Z]', '{2}', slash + 'd', '+', ')', '
-  it('reports positive and negative expectations independently', () => {
-    const result = evaluateRegexTestCases('^ORD-[0-9]{4}$', 'd', [
-      { id: '1', name: 'valid order', text: 'ORD-0042', shouldMatch: true },
-      { id: '2', name: 'too short', text: 'ORD-42', shouldMatch: false },
-      { id: '3', name: 'wrong prefix', text: 'XORD-0001', shouldMatch: false },
-    ]);
-    expect(result.map(item => item.passed)).toEqual([true, true, true]);
-    expect(result.map(item => item.actualMatch)).toEqual([true, false, false]);
-  });
-
-  it('returns first match and capture details for a passing case', () => {
-    const [result] = evaluateRegexTestCases('(?<id>ORD-[0-9]{4})', 'd', [
-      { id: '1', name: 'capture order', text: 'pending ORD-0042', shouldMatch: true },
-    ]);
-    expect(result.firstMatch?.value).toBe('ORD-0042');
-    expect(result.firstMatch?.groups[0]).toMatchObject({ name: 'id', value: 'ORD-0042', start: 8, end: 16 });
-  });
-
-  it('marks invalid patterns as errors rather than false test results', () => {
-    expect(() => evaluateRegexTestCases('(', 'd', [
-      { id: '1', name: 'invalid', text: 'x', shouldMatch: true },
-    ])).toThrow();
-  });
-});
-]);
+    const items = explainRegexPattern('^(?<id>[A-Z]{2}' + slash + 'd+)$', 'dgu');
+    expect(items.map(item => item.token)).toEqual(['^', '(?<id>', '[A-Z]', '{2}', slash + 'd', '+', ')', '$']);
     expect(items.find(item => item.token === '(?<id>')?.explanation).toContain('named capture group called "id"');
     expect(items.find(item => item.token === '[A-Z]')?.explanation).toContain('character class');
     expect(items.every(item => item.recognized)).toBe(true);
