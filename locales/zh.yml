@@ -473,8 +473,8 @@ tools:
     description: 通过设备的MAC地址查找设备的供应商和制造商。
 
   mime-types:
-    title: mime类型
-    description: 将mime类型转换为扩展，反之亦然。
+    title: "MIME 类型查询 — Content-Type、扩展名与服务器配置"
+    description: "按扩展名查询 MIME 类型，或反向查找文件扩展名；基于查询结果生成可复制的 Nginx、Apache AddType 和静态站点 _headers 规则。"
 
   toml-to-json:
     title: TOML 到 JSON
