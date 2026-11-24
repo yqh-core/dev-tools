@@ -41,10 +41,14 @@ const selectedExtension = ref(undefined);
 const mimeTypeFound = computed(() => (selectedExtension.value ? extensionToMimeType[selectedExtension.value] : []));
 
 watch(selectedMimeType, (value) => {
-  if (value) selectedExtension.value = undefined;
+  if (value) {
+    selectedExtension.value = undefined;
+  }
 });
 watch(selectedExtension, (value) => {
-  if (value) selectedMimeType.value = undefined;
+  if (value) {
+    selectedMimeType.value = undefined;
+  }
 });
 
 const selectedMapping = computed(() => {
