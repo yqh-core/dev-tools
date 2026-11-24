@@ -643,7 +643,7 @@ export const GUIDES: Record<string, ToolGuide> = {
       'Object key order and whitespace do not matter; arrays use index matching by default.',
       'Ignore-order mode compares exact values as a multiset, preserving duplicate counts.',
       'ID mode requires every array item to have a unique, non-empty string or finite numeric ID; invalid IDs fall back to index comparison.',
-      'Files are read locally and are limited to 5 MB each. Large documents are still limited by browser-tab memory.',
+      'Files are read locally and are limited to 5 MB each. Combined inputs above 150,000 characters are parsed and compared in a dedicated Web Worker; users can cancel the work, and it times out after 15 seconds.',
     ],
     example: { label: 'Fill in sample JSON', text: '{ "name": "DigDevBox", "version": 1, "tags": ["a", "b"] }' },
     about: 'A structural JSON diff for API responses, configuration files and data snapshots. Compare pasted text or local JSON/JSON5 files, see nested changes as JSONPath-like locations, and download a change report without uploading the input. Object key order is ignored. Arrays compare by index by default, can be compared as an order-independent multiset that preserves duplicates, or can match objects by a stable ID key.',
@@ -654,7 +654,7 @@ export const GUIDES: Record<string, ToolGuide> = {
       },
       {
         title: 'Import files and review changes by path',
-        text: 'Open one JSON or JSON5 file on each side, or paste content directly. Each file is limited to 5 MB and is read in the browser tab; no file content is uploaded. The change list reports JSONPath-like locations with before and after values, and the report download contains the changed paths and values. The current implementation still runs comparison on the main browser thread, so very large documents are limited by available tab memory.',
+        text: 'Open one JSON or JSON5 file on each side, or paste content directly. Each file is limited to 5 MB and is read in the browser tab; no file content is uploaded. The change list reports JSONPath-like locations with before and after values, and the report download contains the changed paths and values. Small documents are compared on the main thread. When the combined input exceeds 150,000 characters, parsing and comparison move to a dedicated Web Worker; users can cancel the job, and a 15-second timeout stops unresponsive work.',
       },
       {
         title: 'Structural comparison and data precision',
@@ -665,7 +665,7 @@ export const GUIDES: Record<string, ToolGuide> = {
       { q: 'Does object key order affect the result?', a: 'No. JSON objects are unordered key-value pairs, so changing key order or whitespace does not create a difference.' },
       { q: 'Which array comparison modes are available?', a: 'Index is the default. Ignore-order matches exact values without relying on position and preserves duplicate counts. ID mode matches objects by the selected key when every item has a unique, non-empty string or finite numeric ID; otherwise that array falls back to index mode.' },
       { q: 'Can I compare JSON files directly?', a: 'Yes. Open a local JSON or JSON5 file on either side. Files are read in the browser, are limited to 5 MB each and are not uploaded.' },
-      { q: 'Can I compare very large files?', a: 'Comparison currently runs on the browser main thread. The practical limit depends on available tab memory; large documents may make the page unresponsive. Worker-based comparison and cancellation are not yet provided.' },
+      { q: 'Can I compare very large files?', a: 'Comparison currently runs on the browser main thread. The practical limit depends on available tab memory; large documents may make the page unresponsive. For combined inputs above 150,000 characters, parsing and comparison run in a Web Worker. You can cancel the job; it also stops automatically after 15 seconds. Each local file is still limited to 5 MB.' },
       { q: 'Can I export JSON Patch?', a: 'No. You can download a JSON change report with paths and before/after values. RFC 6902 JSON Patch generation is not currently provided.' },
       { q: 'Is a missing property the same as null?', a: 'No. Missing properties are added or removed; null is an explicit JSON value. Different types such as number 1 and string "1" are also treated as different.' },
     ],
