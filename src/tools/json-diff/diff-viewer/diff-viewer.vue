@@ -1,14 +1,14 @@
 <script lang="ts" setup>
 import { isUndefined } from 'lodash';
-import { diff, flattenDifferences, type ArrayComparisonMode } from '../json-diff.models';
+import { type ArrayComparisonMode, diff, flattenDifferences } from '../json-diff.models';
 import { DiffRootViewer } from './diff-viewer.models';
 import { useAppTheme } from '@/ui/theme/themes';
 
 const props = defineProps<{
-  leftJson: unknown;
-  rightJson: unknown;
-  arrayMode: ArrayComparisonMode;
-  arrayIdKey: string;
+  leftJson: unknown
+  rightJson: unknown
+  arrayMode: ArrayComparisonMode
+  arrayIdKey: string
 }>();
 const onlyShowDifferences = ref(false);
 const { leftJson, rightJson, arrayMode, arrayIdKey } = toRefs(props);
