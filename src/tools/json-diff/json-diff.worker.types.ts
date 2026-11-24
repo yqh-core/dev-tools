@@ -1,5 +1,5 @@
-import type { Difference } from './json-diff.types';
 import type { DiffOptions } from './json-diff.models';
+import type { Difference } from './json-diff.types';
 
 export interface JsonDiffWorkerRequest {
   leftText: string
