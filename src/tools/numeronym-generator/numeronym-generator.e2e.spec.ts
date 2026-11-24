@@ -47,6 +47,7 @@ test.describe('Tool - Numeronym generator', () => {
     const table = page.getByTestId('numeronym-batch-table');
     await expect(table).toContainText('Too short — unchanged');
     await expect(page.getByTestId('batch-numeronyms').locator('textarea')).toHaveValue('i18n\na11y\nKubernetes');
+    await expect(page.getByTestId('numeronym-batch')).toContainText('short words remain visible in the table but are omitted from Copy All');
   });
 
   test('shows a useful reference table when empty', async ({ page }) => {
