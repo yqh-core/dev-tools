@@ -423,7 +423,7 @@ tools:
     description: Generate bulk redirects for Apache, Nginx, Cloudflare, Netlify and Vercel. Import CSV, detect loops and chains, and export server-ready rules locally.
     cardTitle: Bulk URL redirect mapping
     intro: Import or paste old and new URL pairs, validate the mapping list, then export server-ready redirect configuration for five platforms.
-    inputPlaceholder: "Source URL,Target URL\\n/old-page,https://example.com/new-page\\n/legacy,/current"
+    inputPlaceholder: "Source URL,Target URL\n/old-page,https://example.com/new-page\n/legacy,/current"
     loadSample: Load sample
     clear: Clear
     importCsv: Import CSV / TSV
