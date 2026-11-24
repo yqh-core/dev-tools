@@ -264,8 +264,8 @@ tools:
       copy: Copy
       refresh: Refresh
   percentage-calculator:
-    title: "Percentage Calculator — Percent & Change"
-    description: "Free percentage calculator for percent of a number, percentage change, stacked discounts and reverse rates. Batch formulas and CSV/TSV export run in your browser."
+    title: "Percentage Calculator — Percent of, Change & Difference"
+    description: "Find X% of Y, what percent one value is of another, percent change, difference and reverse rates. Seven modes with batch formulas and CSV/TSV export."
     sequential:
       summary: Try a sequential discount or percentage chain
       title: Sequential percentage adjustments
