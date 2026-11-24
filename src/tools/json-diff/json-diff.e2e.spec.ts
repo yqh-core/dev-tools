@@ -95,4 +95,18 @@ test.describe('Tool - JSON diff', () => {
     await expect(page.getByTestId('change-list')).toContainText('$["users"][1]["name"]');
     await expect(page.getByTestId('change-list')).toContainText('1 changed paths');
   });
+  test('runs large comparisons in a cancellable background worker', async ({ page }) => {
+    await page.getByTestId('array-mode-ignore-order').check();
+    const values = Array.from({ length: 25000 }, (_, index) => index);
+    const left = JSON.stringify(values);
+    const right = JSON.stringify([...values].reverse());
+    await page.getByTestId('leftJson').fill(left);
+    await page.getByTestId('rightJson').fill(right);
+
+    await expect(page.getByTestId('comparison-status')).toBeVisible({ timeout: 10000 });
+    await page.getByTestId('cancel-comparison').click();
+    await expect(page.getByTestId('comparison-error')).toContainText('Comparison cancelled');
+    await expect(page.getByTestId('comparison-status')).toHaveCount(0);
+  });
+
 });
