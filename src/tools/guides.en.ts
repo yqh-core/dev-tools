@@ -648,6 +648,7 @@ export const GUIDES: Record<string, ToolGuide> = {
       'Object key order and whitespace do not matter; arrays use index matching by default.',
       'Ignore-order mode compares exact values as a multiset, preserving duplicate counts.',
       'ID mode requires every array item to have a unique, non-empty string or finite numeric ID; invalid IDs fall back to index comparison.',
+      'Ignore exact JSON Pointer paths, one per line, to exclude subtrees from both documents. Escape / as ~1 and ~ as ~0; wildcards are not supported, with a maximum of 100 paths and 8 KB total.',
       'Files are read locally and are limited to 5 MB each. Combined inputs above 150,000 characters are parsed and compared in a dedicated Web Worker; users can cancel the work, and it times out after 15 seconds.',
     ],
     example: { label: 'Fill in sample JSON', text: '{ "name": "DigDevBox", "version": 1, "tags": ["a", "b"] }' },
@@ -662,6 +663,10 @@ export const GUIDES: Record<string, ToolGuide> = {
         text: 'Open one JSON or JSON5 file on each side, or paste content directly. Each file is limited to 5 MB and is read in the browser tab; no file content is uploaded. The change list reports JSONPath-like locations with before and after values. Select a path to jump to and highlight the corresponding node in the structural comparison; the report download contains the changed paths and values. Small documents are compared on the main thread. When the combined input exceeds 150,000 characters, parsing and comparison move to a dedicated Web Worker; users can cancel the job, and a 15-second timeout stops unresponsive work.',
       },
       {
+        title: 'Ignore volatile fields with exact JSON Pointers',
+        text: 'Use one RFC 6901 JSON Pointer per line to ignore a subtree on both sides, such as /meta/requestId or /items/0/updatedAt. A slash inside an object key is escaped as ~1 and a tilde as ~0. Matching is exact: there are no wildcard expressions, and the input is limited to 100 paths and 8 KB. Array-order matching evaluates ignored child paths relative to the original left-side item position.',
+      },
+      {
         title: 'Structural comparison and data precision',
         text: 'Object member order and whitespace do not create differences. A missing property is different from an explicit null, and the number 1 is different from the string "1". Parsing uses JSON5, so comments and trailing commas are accepted even though the comparison is performed on parsed values, not source formatting. JavaScript numbers may lose precision for integers above 2^53 - 1; represent long identifiers as strings.',
       },
@@ -671,6 +676,7 @@ export const GUIDES: Record<string, ToolGuide> = {
       { q: 'Which array comparison modes are available?', a: 'Index is the default. Ignore-order matches exact values without relying on position and preserves duplicate counts. ID mode matches objects by the selected key when every item has a unique, non-empty string or finite numeric ID; otherwise that array falls back to index mode.' },
       { q: 'Can I compare JSON files directly?', a: 'Yes. Open a local JSON or JSON5 file on either side. Files are read in the browser, are limited to 5 MB each and are not uploaded.' },
       { q: 'Can I compare very large files?', a: 'Comparison currently runs on the browser main thread. The practical limit depends on available tab memory; large documents may make the page unresponsive. For combined inputs above 150,000 characters, parsing and comparison run in a Web Worker. You can cancel the job; it also stops automatically after 15 seconds. Each local file is still limited to 5 MB.' },
+      { q: 'Can I ignore timestamps or request IDs?', a: 'Yes. Enter exact JSON Pointer paths, one per line, such as /meta/requestId or /items/0/updatedAt. Escape / as ~1 and ~ as ~0. Wildcards are not supported; up to 100 paths and 8 KB are accepted.' },
       { q: 'Can I export JSON Patch?', a: 'No. You can download a JSON change report with paths and before/after values. RFC 6902 JSON Patch generation is not currently provided.' },
       { q: 'Is a missing property the same as null?', a: 'No. Missing properties are added or removed; null is an explicit JSON value. Different types such as number 1 and string "1" are also treated as different.' },
     ],
