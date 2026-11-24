@@ -82,6 +82,20 @@ function addTestCase() {
 function removeTestCase(id: string) {
   testCases.value = testCases.value.filter(item => item.id !== id);
 }
+
+function moveTestCase(id: string, offset: -1 | 1) {
+  const currentIndex = testCases.value.findIndex(item => item.id === id);
+  const targetIndex = currentIndex + offset;
+  const item = testCases.value[currentIndex];
+  if (!item || targetIndex < 0 || targetIndex >= testCases.value.length) {
+    return;
+  }
+
+  const reordered = [...testCases.value];
+  reordered.splice(currentIndex, 1);
+  reordered.splice(targetIndex, 0, item);
+  testCases.value = reordered;
+}
 const replacementPreview = ref('');
 const sample = ref('');
 const evaluationError = ref('');
@@ -275,18 +289,24 @@ watchEffect(
           <n-button size="small" @click="addTestCase">Add test case</n-button>
         </div>
         <p class="mb-2 text-sm op-70">Keep accepted and rejected examples together. Each case runs in the isolated worker.</p>
-        <div v-for="testCase in testCases" :key="testCase.id" class="mb-2 rounded border p-2">
+        <div v-for="(testCase, index) in testCases" :key="testCase.id" class="regex-test-case mb-2 rounded border p-2">
           <div class="mb-2 flex items-center gap-2">
             <n-input v-model:value="testCase.name" size="small" aria-label="Test case name" placeholder="Case name" />
+            <n-button size="tiny" quaternary aria-label="Move test case up" :disabled="index === 0" @click="moveTestCase(testCase.id, -1)">Move up</n-button>
+            <n-button size="tiny" quaternary aria-label="Move test case down" :disabled="index === testCases.length - 1" @click="moveTestCase(testCase.id, 1)">Move down</n-button>
             <n-button size="tiny" quaternary type="error" @click="removeTestCase(testCase.id)">Remove</n-button>
           </div>
           <n-input v-model:value="testCase.text" type="textarea" size="small" aria-label="Test case input" placeholder="Input text" :autosize="{ minRows: 1, maxRows: 3 }" />
           <n-checkbox v-model:checked="testCase.shouldMatch" class="mt-2">Expected to match</n-checkbox>
-          <span v-if="evaluationState === 'done' && testCaseResults.find(result => result.id === testCase.id)" class="ml-2 text-sm font-semibold" :class="testCaseResults.find(result => result.id === testCase.id)?.passed ? 'text-green-600' : 'text-red-600'">
+          <span v-if="evaluationState === 'done' && testCaseResults.find(result => result.id === testCase.id)" role="status" aria-live="polite" class="ml-2 text-sm font-semibold" :class="testCaseResults.find(result => result.id === testCase.id)?.passed ? 'text-green-600' : 'text-red-600'" :aria-label="`Test case result: ${testCaseResults.find(result => result.id === testCase.id)?.passed ? 'PASS' : 'FAIL'}`">
             {{ testCaseResults.find(result => result.id === testCase.id)?.passed ? 'PASS' : 'FAIL' }}
           </span>
           <div v-if="evaluationState === 'done' && testCaseResults.find(result => result.id === testCase.id)?.firstMatch" class="mt-2 text-sm">
-            <div>First match: <code>{{ testCaseResults.find(result => result.id === testCase.id)?.firstMatch?.value }}</code></div>
+            <div>
+              First match: <code>{{ testCaseResults.find(result => result.id === testCase.id)?.firstMatch?.value }}</code>
+              · index {{ testCaseResults.find(result => result.id === testCase.id)?.firstMatch?.index }}
+              · range [{{ testCaseResults.find(result => result.id === testCase.id)?.firstMatch?.index }}, {{ (testCaseResults.find(result => result.id === testCase.id)?.firstMatch?.index ?? 0) + (testCaseResults.find(result => result.id === testCase.id)?.firstMatch?.value.length ?? 0) }})
+            </div>
             <div v-for="capture in testCaseResults.find(result => result.id === testCase.id)?.firstMatch?.captures ?? []" :key="capture.name">
               Group {{ capture.name }}: <code>{{ capture.value }}</code> [{{ capture.start }}–{{ capture.end }}]
             </div>
@@ -323,6 +343,9 @@ watchEffect(
                 Index in text
               </th>
               <th scope="col">
+                Source range
+              </th>
+              <th scope="col">
                 Value
               </th>
               <th scope="col">
@@ -336,6 +359,7 @@ watchEffect(
           <tbody>
             <tr v-for="match of results" :key="match.index">
               <td>{{ match.index }}</td>
+              <td>[{{ match.index }}, {{ match.index + match.value.length }})</td>
               <td>{{ match.value }}</td>
               <td>
                 <ul>
