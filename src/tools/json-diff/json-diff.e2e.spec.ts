@@ -11,7 +11,7 @@ test.describe('Tool - JSON diff', () => {
       'content',
       'Compare two JSON objects online. Find added, removed and changed values in nested data; object key order is ignored, and arrays compare by position.',
     );
-    await expect(page.locator('h1')).toHaveText('JSON Diff Checker — Compare JSON Online');
+    await expect(page.locator('h1')).toHaveText('JSON Diff Checker');
   });
 
   test('Identical JSONs have a custom result message', async ({ page }) => {
