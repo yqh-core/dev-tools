@@ -40,12 +40,12 @@ export function buildBasicAuthExamples(requestUrl: string): BasicAuthExamples {
 
   const curl = `curl --user "$BASIC_AUTH_USERNAME:$BASIC_AUTH_PASSWORD" ${shellQuote(url)}`;
   const nodeFetch = [
-    `import { Buffer } from 'node:buffer';`,
+    'import { Buffer } from \'node:buffer\';',
     '',
-    `const credentials = process.env.BASIC_AUTH_USERNAME + ':' + process.env.BASIC_AUTH_PASSWORD;`,
-    `const token = Buffer.from(credentials, 'utf8').toString('base64');`,
+    'const credentials = process.env.BASIC_AUTH_USERNAME + \':\' + process.env.BASIC_AUTH_PASSWORD;',
+    'const token = Buffer.from(credentials, \'utf8\').toString(\'base64\');',
     `const response = await fetch(${JSON.stringify(url)}, {`,
-    `  headers: { Authorization: 'Basic ' + token },`,
+    '  headers: { Authorization: \'Basic \' + token },',
     '});',
     '',
     'console.log(response.status);',
