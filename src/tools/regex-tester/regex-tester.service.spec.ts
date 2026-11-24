@@ -25,6 +25,24 @@ describe('matchRegex', () => {
     expect(results.map(result => result.index)).toEqual([0, 1, 2]);
   });
 
+  it('uses JavaScript UTF-16 source offsets while matching Unicode code points', () => {
+    const results = matchRegex('.', '😀a', 'dgu');
+    expect(results.map(result => ({ index: result.index, value: result.value }))).toEqual([
+      { index: 0, value: '😀' },
+      { index: 2, value: 'a' },
+    ]);
+  });
+
+  it('retains participating empty captures with a zero-width source range', () => {
+    const [result] = matchRegex('(?<empty>a*)', 'b', 'd');
+    expect(result).toMatchObject({
+      index: 0,
+      value: '',
+      captures: [{ name: '1', value: '', start: 0, end: 0 }],
+      groups: [{ name: 'empty', value: '', start: 0, end: 0 }],
+    });
+  });
+
   it('handles optional unmatched captures without throwing', () => {
     const results = matchRegex('(a)?b', 'b ab', 'dg');
     expect(results[0].captures).toEqual([]);
