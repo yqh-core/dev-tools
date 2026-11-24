@@ -751,7 +751,7 @@ tools:
 
   text-statistics:
     title: "Text Statistics — Word & Character Counter"
-    description: "Count words, characters and lines, and check UTF-8 text size in bytes. Paste text to see live statistics instantly — free and browser-based."
+    description: "Free online word and character counter with Unicode grapheme, code point, UTF-16 and UTF-8 byte counts. Count words, unique words, sentences, paragraphs and lines, estimate reading time, and keep text private in your browser."
 
   text-to-nato-alphabet:
     title: Text to NATO alphabet
