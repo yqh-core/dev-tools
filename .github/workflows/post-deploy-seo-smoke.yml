@@ -327,7 +327,7 @@ jobs:
               '/htpasswd-generator/': { title: 'htpasswd Generator & Checker — bcrypt & apr1 - DigDevBox', description: 'Build multi-user Apache/Nginx .htpasswd files with bcrypt or apr1. Copy, download or verify a username:hash line locally. Passwords stay in your browser.', h1: 'htpasswd Generator & Checker' },
               '/json-to-toml/': { title: 'JSON to TOML Converter - DigDevBox', description: 'Convert JSON or JSON5 objects to TOML. Nested objects become tables or dotted keys; arrays become TOML arrays. Unsupported values may prevent conversion.', h1: 'JSON to TOML Converter' },
               '/text-statistics/': { title: 'Text Statistics — Word & Character Counter - DigDevBox', description: 'Free online word and character counter with Unicode grapheme, code point, UTF-16 and UTF-8 byte counts. Count words, unique words, sentences, paragraphs and lines, estimate reading time, and keep text private in your browser.', h1: 'Text Statistics' },
-              '/json-diff/': { title: 'JSON Diff Checker — Compare JSON Online - DigDevBox', description: 'Compare two JSON objects online. Find added, removed and changed values in nested data; object key order is ignored, and arrays compare by position.', h1: 'JSON Diff Checker' },
+              '/json-diff/': { title: 'JSON Diff Checker — Compare JSON Online - DigDevBox', description: 'Compare pasted JSON or local JSON/JSON5 files, inspect nested changes by path, export a local report, and match arrays by index, ignore-order or stable object ID.', h1: 'JSON Diff Checker' },
             };
             const expected = expectedMetadata[path];
             if (expected &&
@@ -392,6 +392,37 @@ jobs:
               apiGuideCanonical !== origin + apiGuidePath ||
               /<meta[^>]+name=["']robots["'][^>]+content=["'][^"']*noindex/i.test(apiGuideResult.body)) {
             throw new Error('API Tester guide must be live, indexable, self-canonical and have a distinct meta description');
+          }
+
+          // The JSON Diff guide must be live, self-canonical and distinct from its tool page.
+          const jsonDiffGuidePath = '/guides/json-diff/';
+          const jsonDiffGuideResult = await get(jsonDiffGuidePath);
+          const jsonDiffToolResult = await get('/json-diff/');
+          const jsonDiffGuideDescription = extractDescription(jsonDiffGuideResult.body);
+          const jsonDiffToolDescription = extractDescription(jsonDiffToolResult.body);
+          const jsonDiffGuideCanonical = jsonDiffGuideResult.body.match(/<link[^>]+rel=["']canonical["'][^>]+href=["']([^"']+)["']/i)?.[1] || '';
+          if (!jsonDiffGuideResult.response.ok ||
+              jsonDiffGuideResult.finalUrl !== origin + jsonDiffGuidePath ||
+              !jsonDiffGuideDescription || !jsonDiffToolDescription ||
+              jsonDiffGuideDescription === jsonDiffToolDescription ||
+              jsonDiffGuideCanonical !== origin + jsonDiffGuidePath ||
+              /<meta[^>]+name=["']robots["'][^>]+content=["'][^"']*noindex/i.test(jsonDiffGuideResult.body)) {
+            throw new Error('JSON Diff guide must be live, indexable, self-canonical and have a distinct meta description');
+          }
+
+          const textStatisticsGuidePath = '/guides/text-statistics/';
+          const textStatisticsGuideResult = await get(textStatisticsGuidePath);
+          const textStatisticsToolResult = await get('/text-statistics/');
+          const textStatisticsGuideDescription = extractDescription(textStatisticsGuideResult.body);
+          const textStatisticsToolDescription = extractDescription(textStatisticsToolResult.body);
+          const textStatisticsGuideCanonical = textStatisticsGuideResult.body.match(/<link[^>]+rel=["']canonical["'][^>]+href=["']([^"']+)["']/i)?.[1] || '';
+          if (!textStatisticsGuideResult.response.ok ||
+              textStatisticsGuideResult.finalUrl !== origin + textStatisticsGuidePath ||
+              !textStatisticsGuideDescription || !textStatisticsToolDescription ||
+              textStatisticsGuideDescription === textStatisticsToolDescription ||
+              textStatisticsGuideCanonical !== origin + textStatisticsGuidePath ||
+              /<meta[^>]+name=["']robots["'][^>]+content=["'][^"']*noindex/i.test(textStatisticsGuideResult.body)) {
+            throw new Error('Text Statistics guide must be live, indexable, self-canonical and have a distinct meta description');
           }
 
           const robots = await get('/robots.txt');
