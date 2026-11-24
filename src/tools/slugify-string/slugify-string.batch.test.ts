@@ -104,9 +104,10 @@ describe('slugify batch conversion', () => {
       maxLength: 2,
     });
 
-    expect(rows[0].slug).toBe('');
+    expect(rows[0].slug).toBe('a');
     expect(rows[1].slug).toBe('');
-    expect(rows.every(row => row.error.length > 0)).toBe(true);
+    expect(rows[0].error).toBe('');
+    expect(rows[1].error).toContain('complete word');
   });
 
   it('returns a row-level error when no full word fits the maximum length', () => {
