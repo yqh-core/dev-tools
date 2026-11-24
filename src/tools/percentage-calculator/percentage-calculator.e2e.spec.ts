@@ -145,6 +145,10 @@ test.describe('Tool - Percentage calculator', () => {
     await expect(page.locator('html')).toHaveAttribute('data-test-clipboard', /"Groceries","20","150"/);
     await expect(page.locator('html')).toHaveAttribute('data-test-clipboard', /"Taxi","10","40"/);
 
+    await page.getByTestId('percentage-batch-copy-tsv').click();
+    await expect(page.locator('html')).toHaveAttribute('data-test-clipboard', /Input A\tInput B/);
+    await expect(page.locator('html')).toHaveAttribute('data-test-clipboard', /Groceries\t20\t150/);
+
     await page.getByTestId('percentage-batch-history-item').getByRole('button', { name: 'Restore' }).click();
     await expect(page.getByTestId('percentage-batch-input')).toHaveValue('Groceries\t20\t150\nTaxi\t10\t40');
 
@@ -162,5 +166,36 @@ test.describe('Tool - Percentage calculator', () => {
     await expect(page.getByTestId('percentage-batch-result-1')).toContainText('whole value cannot be zero');
     await expect(page.getByTestId('percentage-batch-result-2')).toContainText('25%');
     await expect(page.getByTestId('percentage-batch-status')).toContainText('1 of 2 rows calculated');
+  });
+
+  test('downloads CSV and TSV files from the batch results', async ({ page }) => {
+    await page.getByTestId('percentage-batch-panel').locator('summary').click();
+    await page.getByTestId('percentage-batch-input').fill('Groceries\t20\t150\nTaxi\t10\t40');
+    await page.getByTestId('percentage-batch-run').click();
+
+    const csvPromise = page.waitForEvent('download');
+    await page.getByTestId('percentage-batch-download-csv').click();
+    expect((await csvPromise).suggestedFilename()).toBe('percentage-calculations.csv');
+
+    const tsvPromise = page.waitForEvent('download');
+    await page.getByTestId('percentage-batch-download-tsv').click();
+    expect((await tsvPromise).suggestedFilename()).toBe('percentage-calculations.tsv');
+  });
+});
+
+test.describe('Percentage calculator batch Chinese localization', () => {
+  test.use({ locale: 'zh-CN' });
+
+  test('renders batch controls and validation in Chinese when browser language is Chinese', async ({ page }) => {
+    await page.goto('/percentage-calculator');
+    const panel = page.getByTestId('percentage-batch-panel');
+    await panel.locator('summary').click();
+    await expect(panel).toContainText('\u767E\u5206\u6BD4\u6279\u91CF\u8BA1\u7B97\u5668');
+    await expect(panel).toContainText('\u8BA1\u7B97\u7C7B\u578B');
+    await expect(panel).toContainText('\u4E24\u5217\uFF1A\u767E\u5206\u6BD4\u3001\u6570\u503C');
+    await page.getByTestId('percentage-batch-mode').selectOption('part-to-whole');
+    await page.getByTestId('percentage-batch-input').fill('\u65E0\u6548\t30\t0');
+    await page.getByTestId('percentage-batch-run').click();
+    await expect(page.getByTestId('percentage-batch-result-1')).toContainText('\u6574\u4F53\u6570\u503C\u4E0D\u80FD\u4E3A\u96F6');
   });
 });
