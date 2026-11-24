@@ -5,7 +5,7 @@ import { getTextStatistics } from './text-statistics.service';
 const text = ref('');
 const readingWpm = ref(200);
 const stats = computed(() => getTextStatistics(text.value));
-const effectiveReadingWpm = computed(() => Math.min(1000, Math.max(50, readingWpm.value || 200)));
+const effectiveReadingWpm = computed(() => Math.min(1000, Math.max(1, readingWpm.value || 200)));
 const readingMinutes = computed(() => stats.value.words === 0
   ? 0
   : Math.ceil(stats.value.words / effectiveReadingWpm.value));
@@ -61,7 +61,7 @@ const summary = computed(() => [
         </div>
         <label flex items-center gap-2 text-sm>
           Reading speed
-          <input v-model.number="readingWpm" type="number" min="50" max="1000" step="10" aria-label="Reading speed in words per minute" w-24 border rounded px-2 py-1>
+          <input v-model.number="readingWpm" type="number" min="1" max="1000" step="10" aria-label="Reading speed in words per minute" w-24 border rounded px-2 py-1>
           <span>words/min</span>
         </label>
       </div>
