@@ -1388,8 +1388,8 @@ export const GUIDES: Record<string, ToolGuide> = {
   },
 
   '/regex-tester': {
-    intro: 'Tests regular expression matches live, so you can verify as you write.',
-    steps: ['Write the pattern in the top field (without the surrounding slashes)', 'Enter the text to match in the bottom field', 'Review the highlighted matches and capture groups'],
+    intro: 'Test JavaScript regular expressions online with live match and capture details, replacement preview, and named positive and negative test cases that report pass or fail.',
+    steps: ['Write the JavaScript pattern in the top field (without the surrounding slashes)', 'Enter text to inspect live matches and capture groups', 'Add named test cases, choose whether each should match, and review the PASS/FAIL summary', 'Use replacement preview to verify JavaScript replacement tokens'],
     notes: ['Add the g flag for global matching, otherwise only the first match is reported'],
     about: 'The single most useful fact about testing regular expressions in a browser: JavaScript regex is not PCRE. Python-flavored constructs like named groups with single quotes, atomic groups or possessive quantifiers either fail to parse or mean something different here. Everything else follows the same engine the browser itself uses at runtime, which is exactly what makes this tester worth using — the match you see is the match your code will get, no translation layer. Two behaviors surprise people: the global flag changes what the result list means (all matches versus the first with capture groups), and an empty capture group and a group that did not participate are different things the plain text view flattens. Catastrophic backtracking is real — a nested-quantifier pattern against long input can hang the tab, which is why input length is bounded here. When a pattern works in another tool but not here, check flavor first, flags second, and escaping inside the character class third.',
     faqs: [
@@ -1397,6 +1397,8 @@ export const GUIDES: Record<string, ToolGuide> = {
       { q: 'What do the flags actually change?', a: 'g collects all matches instead of the first; i ignores case; m makes ^ and $ match line boundaries inside multiline text. The tester shows matches per the flags you set, same as runtime.' },
       { q: 'Can a regex freeze the page?', a: 'Yes — nested quantifiers on long strings cause catastrophic backtracking. If the tester stops responding, simplify the pattern; this is a property of backtracking engines, not a bug.' },
       { q: 'Why does a group match empty?', a: 'A group that participated with zero width and one that did not participate are different. The highlighted match list shows positions; check group capture separately when debugging alternations.' },
+      { q: 'Can I save positive and negative examples as regression tests?', a: 'Yes. Add named test cases, mark each as expected to match or not match, and review an individual PASS/FAIL result plus the aggregate summary. Cases run locally in an isolated Web Worker with the same JavaScript regex flags as the live tester.' },
+      { q: 'Which regex flavors are supported by the test suite?', a: 'The tester and its test cases use the browser JavaScript RegExp engine. PCRE, Python, Go and .NET syntax are not emulated.' },
     ],
     example: { label: 'Fill in a sample pattern', text: '\\d{3}-\\d{4}' },
     relatedNotes: [

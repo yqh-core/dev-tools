@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { render } from '@regexper/render';
 import type { ShadowRootExpose } from 'vue-shadow-dom';
-import { REGEX_PRESETS, type RegexEvaluation, type RegexMatch } from './regex-tester.service';
+import { REGEX_PRESETS, type RegexEvaluation, type RegexMatch, type RegexTestCase, type RegexTestCaseResult } from './regex-tester.service';
 import { useValidation } from '@/composable/validation';
 import { useQueryParamOrStorage } from '@/composable/queryParams';
 
@@ -71,6 +71,17 @@ const flags = computed(() => {
 });
 
 const results = ref<RegexMatch[]>([]);
+const testCases = ref<RegexTestCase[]>([]);
+const testCaseResults = ref<RegexTestCaseResult[]>([]);
+let nextTestCaseId = 1;
+
+function addTestCase() {
+  testCases.value.push({ id: `case-${nextTestCaseId++}`, name: `Test case ${nextTestCaseId - 1}`, text: '', shouldMatch: true });
+}
+
+function removeTestCase(id: string) {
+  testCases.value = testCases.value.filter(item => item.id !== id);
+}
 const replacementPreview = ref('');
 const sample = ref('');
 const evaluationError = ref('');
@@ -87,6 +98,7 @@ interface RegexWorkerResponse {
   id: number
   result?: RegexEvaluation
   error?: string
+  testCaseResults?: RegexTestCaseResult[]
 }
 
 function terminateWorker() {
@@ -123,6 +135,7 @@ function runEvaluation(id: number) {
     results.value = event.data.result?.results ?? [];
     replacementPreview.value = event.data.result?.replacementPreview ?? '';
     sample.value = event.data.result?.sample ?? '';
+    testCaseResults.value = event.data.testCaseResults ?? [];
     evaluationError.value = '';
     evaluationState.value = 'done';
   };
@@ -151,6 +164,8 @@ function runEvaluation(id: number) {
     text: text.value,
     flags: flags.value,
     replacement: replacement.value,
+    // Vue reactive proxies cannot be structured-cloned by postMessage; send plain data.
+    testCases: testCases.value.map(({ id, name, text, shouldMatch }) => ({ id, name, text, shouldMatch })),
   });
 }
 
@@ -165,6 +180,7 @@ function scheduleEvaluation() {
   results.value = [];
   replacementPreview.value = '';
   sample.value = '';
+  testCaseResults.value = [];
   evaluationState.value = 'running';
   debounceTimer = window.setTimeout(() => {
     debounceTimer = undefined;
@@ -177,6 +193,7 @@ watch(
   scheduleEvaluation,
   { immediate: true },
 );
+watch(testCases, scheduleEvaluation, { deep: true });
 
 onBeforeUnmount(() => {
   if (debounceTimer !== undefined) {
@@ -252,6 +269,36 @@ watchEffect(
         multiline
         rows="5"
       />
+      <div class="mt-3">
+        <div class="mb-2 flex items-center justify-between gap-2">
+          <strong>Test cases</strong>
+          <n-button size="small" @click="addTestCase">Add test case</n-button>
+        </div>
+        <p class="mb-2 text-sm op-70">Keep accepted and rejected examples together. Each case runs in the isolated worker.</p>
+        <div v-for="testCase in testCases" :key="testCase.id" class="mb-2 rounded border p-2">
+          <div class="mb-2 flex items-center gap-2">
+            <n-input v-model:value="testCase.name" size="small" aria-label="Test case name" placeholder="Case name" />
+            <n-button size="tiny" quaternary type="error" @click="removeTestCase(testCase.id)">Remove</n-button>
+          </div>
+          <n-input v-model:value="testCase.text" type="textarea" size="small" aria-label="Test case input" placeholder="Input text" :autosize="{ minRows: 1, maxRows: 3 }" />
+          <n-checkbox v-model:checked="testCase.shouldMatch" class="mt-2">Expected to match</n-checkbox>
+          <span v-if="evaluationState === 'done' && testCaseResults.find(result => result.id === testCase.id)" class="ml-2 text-sm font-semibold" :class="testCaseResults.find(result => result.id === testCase.id)?.passed ? 'text-green-600' : 'text-red-600'">
+            {{ testCaseResults.find(result => result.id === testCase.id)?.passed ? 'PASS' : 'FAIL' }}
+          </span>
+          <div v-if="evaluationState === 'done' && testCaseResults.find(result => result.id === testCase.id)?.firstMatch" class="mt-2 text-sm">
+            <div>First match: <code>{{ testCaseResults.find(result => result.id === testCase.id)?.firstMatch?.value }}</code></div>
+            <div v-for="capture in testCaseResults.find(result => result.id === testCase.id)?.firstMatch?.captures ?? []" :key="capture.name">
+              Group {{ capture.name }}: <code>{{ capture.value }}</code> [{{ capture.start }}–{{ capture.end }}]
+            </div>
+            <div v-for="group in testCaseResults.find(result => result.id === testCase.id)?.firstMatch?.groups ?? []" :key="group.name">
+              Named group {{ group.name }}: <code>{{ group.value }}</code> [{{ group.start }}–{{ group.end }}]
+            </div>
+          </div>
+        </div>
+        <div v-if="evaluationState === 'done' && testCases.length" class="mt-2 text-sm font-semibold" role="status" aria-live="polite">
+          {{ testCaseResults.filter(item => item.passed).length }} / {{ testCaseResults.length }} test cases passed
+        </div>
+      </div>
       <c-input-text
         v-model:value="replacement"
         label="Replacement:"
