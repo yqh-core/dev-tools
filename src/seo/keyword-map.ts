@@ -673,8 +673,9 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     intent: 'generate',
     priority: 'P1',
     competition: 'medium',
-    landed: false,
-    note: 'Builds exact-path redirect rules for Apache mod_alias, Nginx and Cloudflare Bulk Redirect CSV. The mapping analyzer flags duplicate sources, self-redirects, loops and avoidable chains. Competitor feature evidence is available; search volume and ranking impact are not claimed.',
+    landed: true,
+    lockedTitle: 'Bulk 301 Redirect Generator — Apache, Nginx & Cloudflare',
+    note: 'Candidate mapping only: competitor feature coverage supports the workflow, but SERP composition, search volume, KD and ranking impact are not verified. The tool builds exact-path rules for Apache mod_alias, Nginx and Cloudflare and flags duplicate sources, self-redirects, loops and avoidable chains.',
   },
   {
     path: '/slugify-string',
