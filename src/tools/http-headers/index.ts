@@ -23,7 +23,7 @@ export const tool = defineTool({
     'content-type',
     'authorization',
     ...httpHeaderEntries.map(({ name }) => name),
-  ].slice(0, 40),
+  , 'response header security analyzer', 'CSP header checker', 'HSTS header checker'].slice(0, 40),
   component: () => import('./http-headers.vue'),
   icon: FileCode,
   createdAt: new Date('2026-09-18'),
