@@ -2155,16 +2155,37 @@ export const GUIDES: Record<string, ToolGuide> = {
   },
 
   '/http-headers': {
-    intro: 'A reference for common HTTP request and response headers plus the nine standard request methods — to consult when writing APIs or debugging caching, CORS and method semantics.',
-    steps: ['Type a field name (e.g. Cookie) or a purpose keyword (e.g. cache, CORS) in the search box', 'The header list filters live', 'Each entry shows the field name, direction (request / response) and a short description', 'Below the headers, the request-methods table lists each verb with its safe / idempotent flags'],
-    notes: ['Search matches the field name, the description and the direction', 'The request-methods table is always shown under the header reference'],
-    example: { label: 'Fill in a sample query', text: 'cache' },
-    about: 'A searchable reference of common HTTP request and response headers, joined by a table of the standard request methods. Instead of digging through RFCs to remember what Strict-Transport-Security does, which direction a header travels, or whether PATCH is idempotent, search by name and read a focused description — with CORS, caching and security headers grouped for fast scanning, and GET/POST/PUT/PATCH/DELETE/OPTIONS marked by their safety and idempotency so you pick the right verb, not just the right header.',
+    intro: 'Paste HTTP response headers from curl or browser DevTools to check security-policy coverage, cookie flags, CORS configuration, caching and indexing hints without sending the data to a server.',
+    steps: [
+      'Capture the response headers for the page you want to inspect. For a GET response, run curl -sS -D - -o /dev/null https://example.com/; in DevTools, open Network, select the document request and copy Response Headers.',
+      'Paste the raw response block, including the HTTP status line. Repeated Set-Cookie lines are supported.',
+      'Review the coverage checks, CSP directives, cookie findings and any CORS or X-Robots-Tag warnings.',
+      'For redirects captured with curl -L, the final response block is scored; earlier response blocks are counted in the report.',
+      'Test any proposed policy on staging first. The analyzer does not change your server configuration.',
+    ],
+    notes: [
+      'This page analyzes headers you paste; it does not fetch a URL or inspect TLS, response bodies, application code or server-side behavior.',
+      'The score is a weighted header-coverage checklist, not an OWASP rating, penetration test or guarantee of application security.',
+      'Send HSTS only over HTTPS. Confirm all covered subdomains support HTTPS before adding includeSubDomains; do not enable preload by default.',
+      'CSP and cross-origin isolation policies can break scripts, embeds or third-party assets. Start CSP with report-only and test policy changes before enforcing them.',
+    ],
+    example: {
+      label: 'Fill in a sample response',
+      text: 'HTTP/2 200 OK\ncontent-type: text/html; charset=utf-8\ncache-control: public, max-age=3600\ncontent-security-policy: default-src \'self\'; object-src \'none\'; base-uri \'self\'; frame-ancestors \'none\'\nstrict-transport-security: max-age=31536000; includeSubDomains\nx-content-type-options: nosniff\nreferrer-policy: strict-origin-when-cross-origin\npermissions-policy: camera=(), microphone=(), geolocation=()\nset-cookie: session=example; Secure; HttpOnly; SameSite=Lax',
+    },
+    about: 'HTTP response headers are metadata a server sends with a response. They influence browser security controls, content handling, caching, cross-origin access and sometimes search indexing. A header reference explains what each field means; an analyzer answers the next practical question: which controls are present in this captured response, which are weak or missing, and what should be checked next? This tool parses the response locally and shows its scoring rules instead of claiming that a single grade proves a site is secure.',
+    articleOnlySections: [
+      {
+        title: 'How to capture the headers for the actual page response',
+        text: 'A HEAD request from curl -I is useful for a quick check, but some servers or application routes respond differently to HEAD and GET. To inspect a GET response without printing its body, run curl -sS -D - -o /dev/null https://example.com/. Add -L to follow redirects; the command prints each response block, and this analyzer scores the final block. In browser DevTools, open Network, select the document request, then copy the raw Response Headers. Capture the document response rather than an unrelated image, script or API request when checking page-level indexing or security policy.',
+      },
+    ],
     faqs: [
-      { q: 'Which security headers should every site send?', a: 'The usual baseline is Content-Security-Policy, Strict-Transport-Security, X-Content-Type-Options: nosniff and a frame policy (X-Frame-Options or CSP frame-ancestors). Search each one here for what it does.' },
-      { q: 'Which headers matter for CORS?', a: 'Requests trigger Origin; responses need Access-Control-Allow-Origin (plus Allow-Methods/Allow-Headers for preflights). The reference groups these so you can debug a blocked request quickly.' },
-      { q: 'Which headers control caching?', a: 'Cache-Control is the primary switch, with ETag/If-None-Match and Last-Modified/If-Modified-Since driving conditional revalidation. Note that Cache-Control is sent by the server but also honoured by browsers and CDNs.' },
-      { q: 'What is the difference between PUT and PATCH?', a: 'PUT replaces the whole resource, so it is idempotent — sending the same body again yields the same result. PATCH applies a partial update and is not necessarily idempotent; the server decides. The methods table on this page flags each verb as safe and/or idempotent.' },
+      { q: 'Does the analyzer send my headers to DigDevBox?', a: 'No. Parsing, scoring and findings run in the browser tab. The pasted header values are not added to analytics, URLs or a server request.' },
+      { q: 'Why can’t I enter a URL and scan it here?', a: 'A browser page cannot freely read another origin’s response headers because of the same-origin and CORS security model. Paste headers captured with curl or DevTools; this also works for private staging responses that are not publicly reachable.' },
+      { q: 'Does an A grade mean my site is secure?', a: 'No. The score measures only the presence and selected characteristics of response headers. It does not test application code, authentication, dependencies, TLS configuration, server-side access control or vulnerabilities.' },
+      { q: 'Should every site enable COEP, COOP and CORP?', a: 'No. These policies are useful for particular cross-origin isolation and resource-protection needs, but can block embeds and third-party resources. Enable them only when the application requires them and after compatibility testing.' },
+      { q: 'Should I copy the suggested HSTS or CSP values directly?', a: 'No. HSTS can affect every subdomain when includeSubDomains is used, and CSP must match the resources an application really loads. Test changes on staging; begin CSP in report-only mode and review violations before enforcement.' },
     ],
   },
 
