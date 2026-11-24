@@ -375,6 +375,72 @@ jobs:
             if (/noindex/i.test(robotsHeader)) throw new Error(path + ' unexpectedly carries X-Robots-Tag: ' + robotsHeader);
           }
 
+          // Social cards must be route-specific raster files that work for common share crawlers.
+          const socialRoutes = [
+            '/',
+            '/ipv6-ula-generator/',
+            '/text-statistics/',
+            '/eta-calculator/',
+            '/guides/eta-calculator/',
+            '/guides/redirect-generator/',
+          ];
+          const socialImageUrls = new Set();
+          const extractMetaContent = (html, attribute, value) => {
+            const tags = html.match(/<meta[^>]*>/gi) || [];
+            const tag = tags.find(item =>
+              item.includes(attribute + '="' + value + '"') || item.includes(attribute + "='" + value + "'"));
+            return tag?.match(/content=["']([^"']*)["']/i)?.[1] || '';
+          };
+          for (const path of socialRoutes) {
+            const page = await get(path);
+            if (!page.response.ok || page.finalUrl !== origin + path) {
+              throw new Error('Social card source page is not live at its canonical route: ' + path);
+            }
+            const imageUrl = extractMetaContent(page.body, 'property', 'og:image');
+            const twitterImage = extractMetaContent(page.body, 'name', 'twitter:image');
+            const imageType = extractMetaContent(page.body, 'property', 'og:image:type');
+            const imageWidth = extractMetaContent(page.body, 'property', 'og:image:width');
+            const imageHeight = extractMetaContent(page.body, 'property', 'og:image:height');
+            if (!imageUrl || imageUrl !== twitterImage || imageType !== 'image/png' ||
+                imageWidth !== '1200' || imageHeight !== '630') {
+              throw new Error(path + ' has incomplete or inconsistent OG/Twitter image metadata: ' +
+                JSON.stringify({ imageUrl, twitterImage, imageType, imageWidth, imageHeight }));
+            }
+            const parsedImageUrl = new URL(imageUrl);
+            if (parsedImageUrl.origin !== origin || !parsedImageUrl.pathname.startsWith('/og/') ||
+                !parsedImageUrl.pathname.endsWith('.png')) {
+              throw new Error(path + ' social image must be an absolute same-origin PNG URL: ' + imageUrl);
+            }
+            if (socialImageUrls.has(imageUrl)) {
+              throw new Error(path + ' reuses a social image URL already assigned to another page: ' + imageUrl);
+            }
+            socialImageUrls.add(imageUrl);
+            const imageResponse = await fetch(imageUrl, {
+              headers: { 'user-agent': ua, 'cache-control': 'no-cache' },
+              redirect: 'follow',
+              signal: AbortSignal.timeout(15000),
+            });
+            const imageBytes = Buffer.from(await imageResponse.arrayBuffer());
+            const pngSignature = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
+            if (!imageResponse.ok || imageResponse.url !== imageUrl ||
+                imageResponse.headers.get('content-type')?.split(';')[0] !== 'image/png' ||
+                imageBytes.length < 24 || !imageBytes.subarray(0, 8).equals(pngSignature) ||
+                imageBytes.readUInt32BE(16) !== 1200 || imageBytes.readUInt32BE(20) !== 630 ||
+                imageBytes.length > 5 * 1024 * 1024) {
+              throw new Error(path + ' social image is unavailable or invalid: ' +
+                JSON.stringify({
+                  status: imageResponse.status,
+                  finalUrl: imageResponse.url,
+                  contentType: imageResponse.headers.get('content-type'),
+                  bytes: imageBytes.length,
+                  width: imageBytes.length >= 24 ? imageBytes.readUInt32BE(16) : null,
+                  height: imageBytes.length >= 24 ? imageBytes.readUInt32BE(20) : null,
+                }));
+            }
+          }
+          console.log('PASS: ' + socialImageUrls.size +
+            ' route-specific 1200x630 PNG social cards return HTTP 200 with correct metadata and unique URLs');
+
           // Guide pages must have their own knowledge summary, not reuse the paired tool-page snippet.
           const guidePath = '/guides/numeronym-generator/';
           const guideResult = await get(guidePath);
