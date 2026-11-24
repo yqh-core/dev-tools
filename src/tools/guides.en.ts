@@ -432,8 +432,8 @@ export const GUIDES: Record<string, ToolGuide> = {
   },
 
   '/eta-calculator': {
-    intro: 'Estimate time remaining for a download, build or batch job in two ways: enter a known processing rate, or derive the average pace from completed work and elapsed time.',
-    steps: ['Enter the total amount and how much has already completed', 'Choose a known rate or observed pace from elapsed time', 'For observed pace, enter the time already spent on the completed work', 'Optionally set a buffer for expected pauses or rate variation', 'Read the remaining duration, measured rate and projected finish time'],
+    intro: 'Estimate time remaining for a download, build or batch job from a known rate or observed pace, then choose continuous 24/7 time or a Monday-Friday local work schedule.',
+    steps: ['Enter the total amount and how much has already completed', 'Choose a known rate or observed pace from elapsed time', 'For observed pace, enter the time already spent on the completed work', 'Optionally set a buffer for expected pauses or rate variation', 'Choose 24/7 calendar time or configure Monday-Friday local working hours', 'Read the remaining duration, counted work-window time and projected finish time'],
     example: { label: 'Example total workload', text: '500' },
     about: 'This is a throughput-based ETA calculator for task completion, not a route or travel-time planner. Enter the total amount of work, the completed amount, a representative processing rate and the time from which the remaining work is expected to run. The calculator subtracts completed work from the total, divides the remainder by the rate and optionally adds a percentage buffer. For example, a 500-record batch with 200 complete has 300 remaining; at 5 records every 3 minutes, that is 3 hours before a buffer. Use the same unit for total, completed and rate values, such as files, records, pages or requests. Alternatively, choose observed pace and enter elapsed time: if 200 of 500 records finish in 2 hours, the measured average is 100 records per hour and the remaining 300 take about 3 hours before a buffer. The observed mode projects the remaining work from now; it does not track a running process or read telemetry. Both methods assume a representative, steady rate and do not infer network conditions or changing workload complexity.',
     faqs: [
@@ -443,6 +443,8 @@ export const GUIDES: Record<string, ToolGuide> = {
       { q: 'Which units should I use?', a: 'Use the same unit for total work, completed work and observed rate: for example, records and records per minute, files and files per hour, or pages and pages per second.' },
       { q: 'What if the processing rate changes?', a: 'The result is based on the rate you enter. Measure a new representative interval and update the rate when throughput changes; the projected finish time will recalculate.' },
       { q: 'Can I estimate an ETA from elapsed time instead of entering a rate?', a: 'Yes. Choose observed pace, enter how much work is complete and how long that took. The calculator derives the average rate and estimates only the remaining work. For example, 200 of 500 records in 2 hours is 100 records per hour, leaving about 3 hours before a buffer. This is a manual estimate, not live process monitoring.' },
+      { q: 'Can the ETA calculator skip weekends and evenings?', a: 'Yes. Select Monday-Friday working hours and set the local daily opening and closing time. Work outside the window and on weekends is skipped; 24/7 calendar time remains the default for continuous jobs.' },
+      { q: 'Which timezone and holiday calendar does weekday mode use?', a: 'It uses the browser device timezone and keeps the configured local wall-clock hours across daylight-saving transitions. It does not provide a separate timezone selector or automatically exclude public holidays and company closure days.' },
     ],
     relatedNotes: [
       {
@@ -465,6 +467,22 @@ export const GUIDES: Record<string, ToolGuide> = {
       {
         title: 'Add a buffer without hiding the constant-rate assumption',
         text: 'A percentage buffer extends the remaining duration to allow for expected pauses or uncertainty. It does not model retries, rate limits, variable file sizes, dependencies or traffic conditions. Re-measure throughput after a meaningful interval and compare the new projection with the previous one; a widening gap indicates that the constant-rate assumption is no longer representative. Use a buffer as a transparent planning allowance, not as a replacement for updating the rate.',
+      },
+      {
+        title: 'Choose calendar time or a weekday work schedule',
+        text: 'The default 24/7 calendar mode is appropriate for continuous downloads, servers and automated jobs that can make progress overnight and at weekends. Choose Monday-Friday working hours when the task is only expected to run during a staffed or approved window. The schedule uses the browser device’s local timezone and a same-day opening and closing time; it does not infer a public-holiday calendar, company shutdown days or a different team timezone. For example, a two-hour task started at 4:00 p.m. on Friday with a 9:00 a.m.–5:00 p.m. window uses one hour on Friday and finishes at 10:00 a.m. on Monday.',
+      },
+      {
+        title: 'Understand what happens outside the configured window',
+        text: 'If a weekday estimate starts before opening, the countdown begins at that day’s opening time. A start at or after closing moves to the next weekday opening; Saturdays and Sundays are skipped. The remaining-duration figure still represents the estimated time counted inside the selected work windows, while the projected finish date reflects the intervening evenings and weekends. The displayed work-window total includes the configured buffer and additional planned pause time, so it is the scheduled window occupancy rather than a claim that every minute is active processing.',
+      },
+      {
+        title: 'Use the same work schedule when checking a deadline',
+        text: 'The optional required-pace comparison counts only the configured Monday-Friday overlap between the estimate start and the target deadline. It then accounts for planned pauses and the selected buffer before calculating the units per working hour required. A deadline before the start, entirely outside available work windows, or consumed by pauses and buffer cannot produce a positive required pace; the calculator reports that constraint instead of dividing by zero. Calendar mode continues to use continuous elapsed time, preserving the original 24/7 behavior.',
+      },
+      {
+        title: 'Keep local work hours stable across daylight-saving changes',
+        text: 'Weekdays are advanced as local calendar dates, not as fixed 24-hour blocks. The configured opening and closing times therefore remain the same local wall-clock hours when the device timezone enters or leaves daylight-saving time. A Friday-to-Monday estimate can have a different number of absolute elapsed hours across a DST weekend, but the weekday work-window hours counted remain tied to the configured local schedule. The tool uses the device timezone; it does not offer a separate timezone selector or a regional holiday list.',
       },
     ],
   },
