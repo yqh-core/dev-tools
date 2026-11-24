@@ -55,7 +55,7 @@
     "/roman-numeral-converter": "2024",
     "/rsa-key-pair-generator": "4096",
     "/safelink-decoder": "https://nam.safelinks.protection.outlook.com/?url=https%3A%2F%2Fexample.com%2Fdocs",
-    "/slugify-string": "Hello World! 你好 2026",
+    "/slugify-string": "How to Build a Better API\nThe Complete Guide to URL Slugs\nDéjà Vu and Unicode",
     "/sql-prettify": "select id,name,created_at from users where status=1 order by created_at desc limit 10",
     "/string-obfuscator": "my-secret-token-123456",
     "/svg-placeholder-generator": "800",
