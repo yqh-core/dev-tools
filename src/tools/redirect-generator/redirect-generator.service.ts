@@ -164,6 +164,13 @@ export function parseRedirectInput(input: string): ParsedRedirectRow[] {
   });
 }
 
+function hasControlCharacters(value: string): boolean {
+  return Array.from(value).some((character) => {
+    const code = character.codePointAt(0) ?? 0;
+    return code < 0x20 || code === 0x7f;
+  });
+}
+
 function parseHttpUrl(value: string): URL | undefined {
   try {
     const url = new URL(value);
@@ -176,7 +183,7 @@ function parseHttpUrl(value: string): URL | undefined {
 
 function normalizeSource(value: string): { path: string; url: string } {
   const source = value.trim();
-  if (!source || CONTROL_CHARS.test(source) || source.includes('\\') || source.includes('"')) {
+  if (!source || hasControlCharacters(source) || source.includes('\\') || source.includes('"')) {
     throw new Error('Enter a valid path or an absolute HTTP/HTTPS URL.');
   }
 
@@ -204,7 +211,7 @@ function normalizeSource(value: string): { path: string; url: string } {
 
 function normalizeTarget(value: string): { path: string; url: string } {
   const target = value.trim();
-  if (!target || CONTROL_CHARS.test(target) || target.includes('\\') || target.includes('"')) {
+  if (!target || hasControlCharacters(target) || target.includes('\\') || target.includes('"')) {
     throw new Error('Enter a valid destination path or HTTP/HTTPS URL.');
   }
 
