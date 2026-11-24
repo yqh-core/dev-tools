@@ -1,16 +1,16 @@
 <script setup lang="ts">
 import { computed, reactive, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { useCopy } from '@/composable/copy';
-import { useDownloadTextFile } from '@/composable/downloadText';
+import type { SlugSeparator } from './slugify-string.batch';
 import {
   MAX_SLUG_BATCH_ROWS,
   MAX_SLUG_INPUT_LENGTH,
   runSlugifyBatch,
   slugifyBatchToCsv,
   slugifyBatchToText,
-  type SlugSeparator,
 } from './slugify-string.batch';
+import { useCopy } from '@/composable/copy';
+import { useDownloadTextFile } from '@/composable/downloadText';
 
 const { t } = useI18n();
 
@@ -68,9 +68,9 @@ const validBaseUrl = computed(() => {
   }
 });
 
-const previewUrl = (slug: string) => (
-  validBaseUrl.value && slug ? `${validBaseUrl.value}/${slug}` : ''
-);
+function previewUrl(slug: string): string {
+  return validBaseUrl.value && slug ? `${validBaseUrl.value}/${slug}` : '';
+}
 
 const { copy } = useCopy({ source: allSlugs, text: t('tools.slugify-string.batch.copied') });
 const { download: downloadCsv } = useDownloadTextFile({
@@ -113,8 +113,8 @@ function displayRowError(error: string): string {
       </p>
 
       <c-input-text
-        data-test-id="slug-titles-input"
         v-model:value="input"
+        data-test-id="slug-titles-input"
         multiline
         rows="8"
         :placeholder="t('tools.slugify-string.batch.inputPlaceholder')"
@@ -165,7 +165,7 @@ function displayRowError(error: string): string {
         <n-input
           id="slug-base-url"
           v-model:value="baseUrl"
-          :placeholder="'https://example.com/blog'"
+          placeholder="https://example.com/blog"
           clearable
         />
         <p v-if="baseUrl.trim() && !validBaseUrl" mt-1 text-xs text-red-600>
