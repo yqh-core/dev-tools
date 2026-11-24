@@ -60,7 +60,7 @@ export function inspectSafeLinksURL(safeLinksUrl: string): SafeLinksTargetDetail
   }
 
   if (getSafeLinksDestination(destination)) {
-    throw new Error(\`SafeLinks nesting exceeds the maximum of \${MAX_NESTED_SAFE_LINKS} layers\`);
+    throw new Error(`SafeLinks nesting exceeds the maximum of ${MAX_NESTED_SAFE_LINKS} layers`);
   }
 
   let parsedDestination: URL;
