@@ -1063,7 +1063,7 @@ tools:
     guide:
       title: How to decode Outlook Safe Links in bulk
       intro: Paste one HTTPS Outlook Safe Links wrapper per line. The tool ignores blank lines, unwraps up to five nested wrappers, reports each row independently and lets you copy successful destinations together.
-      exampleTitle: Example: two links in one batch
+      exampleTitle: "Example: two links in one batch"
       example: "https://nam01.safelinks.protection.outlook.com/?url=https%3A%2F%2Fexample.com%2Fdocs\nhttps://eur01.safelinks.protection.outlook.com/?url=https%3A%2F%2Fexample.org%2Fguide"
       securityTitle: What this decoder does — and does not do
       localParsing: Parsing runs in your browser. This tool does not fetch or open the Safe Links wrappers or decoded destinations.
