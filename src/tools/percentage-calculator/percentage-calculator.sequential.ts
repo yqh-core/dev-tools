@@ -122,10 +122,10 @@ export function calculateSequentialPercentage(
       totalAmountChange: displayNumber(currentValue - startingAmount),
       effectivePercentageChange,
       steps: results,
-      formula: [
+      formula: `${[
         numberText(startingAmount),
         ...factors,
-      ].join(' × ') + ` = ${numberText(finalAmount)}`,
+      ].join(' × ')} = ${numberText(finalAmount)}`,
     },
     error: null,
   };
