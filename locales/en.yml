@@ -895,7 +895,20 @@ tools:
 
   text-statistics:
     title: "Text Statistics — Word & Character Counter"
-    description: "Free online word and character counter with Unicode grapheme, code point, UTF-16 and UTF-8 byte counts. Count words, unique words, sentences, paragraphs and lines, estimate reading time, and keep text private in your browser."
+    description: "Count words, characters, Unicode units, lines and UTF-8 bytes. Analyze top-term frequency and estimate reading and speaking time in your browser, with no text upload."
+    speakingTime: Estimated speaking time
+    speakingSpeed: Speaking speed
+    speakingSpeedAria: Speaking speed in words per minute
+    wordsPerMinute: words/min
+    topTerms: Top terms
+    excludeEnglishStopWords: Exclude common English stop words
+    stopWordsDescription: Available only for English. Excluded words are removed from this table's denominator; the headline word count stays unchanged.
+    analyzedTokens: "Analyzed tokens: {count}"
+    termColumn: Term
+    countColumn: Count
+    shareColumn: Share
+    noTerms: No terms to display yet.
+    termFrequencyNote: Shares use the analyzed token count shown above. Term frequency is descriptive text analysis, not search volume, keyword demand or ranking data.
 
   text-to-nato-alphabet:
     title: Text to NATO alphabet
