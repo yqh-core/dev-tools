@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { evaluateRegexTestCases, matchRegex } from './regex-tester.service';
+import { evaluateRegexTestCases, explainRegexFlags, explainRegexPattern, matchRegex } from './regex-tester.service';
 
 const regexesData = [
   {
@@ -104,5 +104,40 @@ describe('regex-tester named test cases', () => {
     expect(() => evaluateRegexTestCases('(', 'd', [
       { id: '1', name: 'invalid', text: 'x', shouldMatch: true },
     ])).toThrow();
+  });
+});
+
+describe('regex-tester pattern explanation', () => {
+  it('explains anchors, literals, named captures, classes and quantifiers', () => {
+    const slash = String.fromCharCode(92);
+    const items = explainRegexPattern(`^(?<id>[A-Z]{2}${slash}d+)$`, 'dgu');
+    expect(items.map(item => item.token)).toEqual(['^', '(?<id>', '[A-Z]', '{2}', `${slash}d`, '+', ')', '$']);
+    expect(items.find(item => item.token === '(?<id>')?.explanation).toContain('named capture group called "id"');
+    expect(items.find(item => item.token === '[A-Z]')?.explanation).toContain('character class');
+    expect(items.every(item => item.recognized)).toBe(true);
+  });
+
+  it('explains lookarounds and lazy quantifiers', () => {
+    const items = explainRegexPattern('(?=.*?foo)(?!bar)');
+    expect(items.find(item => item.token === '(?=')?.explanation).toContain('positive lookahead');
+    expect(items.find(item => item.token === '*?')?.explanation).toContain('lazy');
+    expect(items.find(item => item.token === '(?!')?.explanation).toContain('negative lookahead');
+  });
+
+  it('marks unsupported syntax clearly instead of inventing an explanation', () => {
+    const slash = String.fromCharCode(92);
+    const items = explainRegexPattern(`(?P<name>foo)${slash}K`);
+    expect(items.find(item => item.token === '(?P<name>')?.recognized).toBe(false);
+    expect(items.find(item => item.token === `${slash}K`)?.recognized).toBe(false);
+    expect(items.filter(item => !item.recognized)).toHaveLength(2);
+  });
+
+  it('supports nested Unicode sets and explains active flags', () => {
+    const items = explainRegexPattern('[a-z&&[^aeiou]]', 'v');
+    expect(items).toHaveLength(1);
+    expect(items[0].recognized).toBe(true);
+    expect(items[0].explanation).toContain('nested sets');
+    expect(explainRegexFlags('dgimsu').map(item => item.flag)).toEqual(['d', 'g', 'i', 'm', 's', 'u']);
+    expect(explainRegexFlags('gimsu').find(item => item.flag === 's')?.explanation).toContain('line terminators');
   });
 });

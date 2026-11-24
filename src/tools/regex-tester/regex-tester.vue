@@ -1,7 +1,15 @@
 <script setup lang="ts">
 import { render } from '@regexper/render';
 import type { ShadowRootExpose } from 'vue-shadow-dom';
-import { REGEX_PRESETS, type RegexEvaluation, type RegexMatch, type RegexTestCase, type RegexTestCaseResult } from './regex-tester.service';
+import {
+  REGEX_PRESETS,
+  type RegexEvaluation,
+  type RegexMatch,
+  type RegexTestCase,
+  type RegexTestCaseResult,
+  explainRegexFlags,
+  explainRegexPattern,
+} from './regex-tester.service';
 import { useValidation } from '@/composable/validation';
 import { useQueryParamOrStorage } from '@/composable/queryParams';
 
@@ -69,6 +77,9 @@ const flags = computed(() => {
   }
   return value;
 });
+
+const patternExplanation = computed(() => explainRegexPattern(regex.value, flags.value));
+const flagExplanation = computed(() => explainRegexFlags(flags.value));
 
 const results = ref<RegexMatch[]>([]);
 const testCases = ref<RegexTestCase[]>([]);
@@ -247,6 +258,7 @@ watchEffect(
         placeholder="Put the regex to test"
         multiline
         rows="3"
+        data-test-id="regex-input"
         :validation="regexValidation"
       />
       <c-select v-model:value="selectedPreset" :options="presetOptions" label="Verified presets:" clearable />
@@ -273,6 +285,27 @@ watchEffect(
           <span title="An upgrade to the u mode with more Unicode features.">Unicode Sets (<code>v</code>)</span>
         </n-checkbox>
       </n-space>
+
+      <div v-if="regex" class="mt-3 rounded border p-3" data-test-id="pattern-explanation">
+        <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
+          <strong>Pattern explanation</strong>
+          <span class="text-xs op-60">JavaScript RegExp · best effort</span>
+        </div>
+        <p class="mb-3 text-xs op-65">
+          Common tokens are explained below. This is a lightweight guide, not a complete parser; syntax marked “Review” needs a manual compatibility check.
+        </p>
+        <div v-for="(item, index) in patternExplanation" :key="index" class="mb-2 flex flex-wrap items-start gap-2 text-sm">
+          <code class="shrink-0 rounded bg-gray-100 px-1 py-0.5">{{ item.token }}</code>
+          <span class="min-w-0 flex-1">{{ item.explanation }}</span>
+          <span v-if="!item.recognized" class="shrink-0 text-xs font-semibold text-amber-700">Review syntax</span>
+        </div>
+        <div class="mt-3 border-t pt-2 text-xs">
+          <strong>Active flags:</strong>
+          <span v-for="flag in flagExplanation" :key="flag.flag" class="ml-2 inline-block">
+            <code>{{ flag.flag }}</code> {{ flag.explanation }}
+          </span>
+        </div>
+      </div>
 
       <n-divider />
 
