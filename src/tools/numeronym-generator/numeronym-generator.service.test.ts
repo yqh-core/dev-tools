@@ -23,7 +23,7 @@ describe('numeronym-generator service', () => {
 
     it('counts only letters in hyphenated and apostrophe compounds', () => {
       expect(generateNumeronym('cross-platform')).toBe('c11m');
-      expect(generateNumeronym("don't")).toBe('d2t');
+      expect(generateNumeronym('don\'t')).toBe('d2t');
     });
 
     it('counts Unicode letters and preserves the original first/last letter case', () => {
@@ -80,8 +80,8 @@ describe('numeronym-generator service', () => {
     });
 
     it('keeps numeronyms, malformed mixed tokens and hyphenated words together', () => {
-      expect(tokenizeNumeronymInput("i18n e2e v2 cross-platform don't"))
-        .toEqual(['i18n', 'e2e', 'v2', 'cross-platform', "don't"]);
+      expect(tokenizeNumeronymInput('i18n e2e v2 cross-platform don\'t'))
+        .toEqual(['i18n', 'e2e', 'v2', 'cross-platform', 'don\'t']);
     });
 
     it('keeps short words unchanged and ignores surrounding punctuation', () => {
