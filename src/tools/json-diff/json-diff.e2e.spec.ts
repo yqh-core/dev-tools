@@ -88,6 +88,26 @@ test.describe('Tool - JSON diff', () => {
     const download = await downloadPromise;
     expect(download.suggestedFilename()).toBe('json-diff-report.json');
   });
+  test('ignores exact JSON Pointer subtrees and keeps sibling changes', async ({ page }) => {
+    await page.getByTestId('ignore-paths').fill('/meta/requestId\n/items/0/updatedAt');
+    await page.getByTestId('leftJson').fill('{"meta":{"requestId":"old","status":200},"items":[{"updatedAt":"old","value":1}]}');
+    await page.getByTestId('rightJson').fill('{"meta":{"requestId":"new","status":500},"items":[{"updatedAt":"new","value":2}]}');
+
+    const changes = page.getByTestId('change-list');
+    await expect(changes).toContainText('$["meta"]["status"]');
+    await expect(changes).toContainText('$["items"][0]["value"]');
+    await expect(changes).not.toContainText('$["meta"]["requestId"]');
+    await expect(changes).not.toContainText('$["items"][0]["updatedAt"]');
+    await expect(changes).toContainText('2 changed paths');
+  });
+
+  test('rejects malformed JSON Pointer escape sequences', async ({ page }) => {
+    await page.getByTestId('ignore-paths').fill('/meta/~2field');
+    await page.getByTestId('leftJson').fill('{"meta":{"field":1}}');
+    await page.getByTestId('rightJson').fill('{"meta":{"field":2}}');
+    await expect(page.getByTestId('ignore-path-error')).toContainText('escape ~ as ~0');
+  });
+
   test('ignores array order while preserving duplicate counts', async ({ page }) => {
     await page.getByTestId('array-mode-ignore-order').check();
     await page.getByTestId('leftJson').fill('{"items":[1,2,1]}');
