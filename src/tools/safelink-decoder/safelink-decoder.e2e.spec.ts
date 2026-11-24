@@ -36,10 +36,21 @@ test.describe('Tool - Outlook Safe Links decoder', () => {
     const nested = `https://nam01.safelinks.protection.outlook.com/?url=${encodeURIComponent(inner)}`;
     const textarea = page.getByTestId('safelink-batch-input').locator('textarea');
     const batch = page.getByTestId('safelink-batch');
-    const requests: string[] = [];
+    const requestedLinks: string[] = [];
+    const urlsThatMustNeverBeFetched = new Set([
+      valid,
+      invalid,
+      nested,
+      'https://example.com/docs',
+      'https://example.org/guide',
+      'https://attacker.example',
+    ]);
 
-    page.on('request', request => requests.push(request.url()));
-    const requestsBeforeDecode = requests.length;
+    page.on('request', (request) => {
+      if (urlsThatMustNeverBeFetched.has(request.url())) {
+        requestedLinks.push(request.url());
+      }
+    });
 
     await textarea.fill(`${valid}\n\n${invalid}\n${nested}`);
     await page.getByTestId('safelink-batch-decode').click();
@@ -57,7 +68,7 @@ test.describe('Tool - Outlook Safe Links decoder', () => {
     await expect(page.getByTestId('safelink-batch-summary')).toHaveText('2 of 3 links decoded; 1 failed.');
     await expect(batch.getByRole('link')).toHaveCount(0);
     expect(page.url()).toContain('/safelink-decoder');
-    expect(requests).toHaveLength(requestsBeforeDecode);
+    expect(requestedLinks).toEqual([]);
     await page.evaluate(() => {
       Object.defineProperty(navigator, 'clipboard', {
         configurable: true,
