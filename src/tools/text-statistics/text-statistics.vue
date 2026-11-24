@@ -85,10 +85,14 @@ const summary = computed(() => [
   `Estimated speaking time: ${speakingMinutes.value} min at ${effectiveSpeakingWpm.value} words/min`,
   `Top terms: ${termAnalysis.value.terms.map(term => `${term.term} (${term.count}, ${(term.share * 100).toFixed(1)}%)`).join(', ') || 'None'}`,
   `Analyzed term tokens: ${termAnalysis.value.totalTokens}`,
-  ...(customCharacterLimit.value !== null ? [
-    `Custom character limit: ${measuredLength.value} / ${customCharacterLimit.value} ${characterLimitUnitLabel.value}`,
-    characterLimitStatus.value,
-  ] : []),
+  ...(
+    customCharacterLimit.value !== null
+      ? [
+          `Custom character limit: ${measuredLength.value} / ${customCharacterLimit.value} ${characterLimitUnitLabel.value}`,
+          characterLimitStatus.value,
+        ]
+      : []
+  ),
 ].join('\n'));
 </script>
 
