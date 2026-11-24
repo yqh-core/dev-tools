@@ -4,6 +4,7 @@ on:
   workflow_run:
     workflows: ["verify"]
     types: [completed]
+    branches: [main]
 
 permissions:
   contents: read
@@ -11,7 +12,6 @@ permissions:
 
 jobs:
   detect-site-changes:
-    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' }}
     runs-on: ubuntu-latest
     outputs:
       wait_for_deploy: ${{ steps.detect.outputs.wait_for_deploy }}
@@ -23,6 +23,12 @@ jobs:
         with:
           script: |
             const { owner, repo } = context.repo;
+            if (context.payload.workflow_run.conclusion !== 'success') {
+              core.info('Source verify did not succeed; production smoke will exit without checking deployment.');
+              core.setOutput('deploy_sha', context.payload.workflow_run.head_sha);
+              core.setOutput('wait_for_deploy', 'false');
+              return;
+            }
             let cursor = context.payload.workflow_run.head_sha;
             let deploySha = cursor;
             let waitForDeploy = false;
@@ -49,7 +55,6 @@ jobs:
 
   production-smoke:
     needs: detect-site-changes
-    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -65,8 +70,13 @@ jobs:
           GITHUB_REPOSITORY: ${{ github.repository }}
           GITHUB_TOKEN: ${{ github.token }}
           WAIT_FOR_DEPLOY: ${{ needs.detect-site-changes.outputs.wait_for_deploy }}
+          SOURCE_CONCLUSION: ${{ github.event.workflow_run.conclusion }}
         run: |
           node --input-type=module <<'NODE'
+          if (process.env.SOURCE_CONCLUSION !== 'success') {
+            console.log('Source verify did not succeed; skipping production SEO smoke.');
+            process.exit(0);
+          }
           const origin = process.env.SITE_ORIGIN;
           const expectedTitle = process.env.EXPECTED_TITLE;
           const ua = 'Googlebot/2.1 (+http://www.google.com/bot.html)';
@@ -213,7 +223,8 @@ jobs:
             '/otp-generator',
             '/htpasswd-generator',
             '/json-to-toml',
-            '/text-statistics',]) {
+            '/text-statistics',
+            '/json-diff',]) {
             const expected = origin + route + '/';
             for (const variant of [route, route + '/']) {
               const result = await get(variant);
@@ -266,7 +277,7 @@ jobs:
           // priority English pages. This catches UA-dependent HTML/cache variants
           // and guarantees the crawler sees the same title, description, H1 and canonical.
           const browserUa = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/130.0.0.0 Safari/537.36';
-          const priorityPages = ['/', '/percentage-calculator/', '/numeronym-generator/', '/api-debugger/', '/regex-tester/', '/json-prettify/', '/json-workspace/', '/base-converter/', '/html-entities/', '/json-to-get-params/', '/docker-run-to-docker-compose-converter/', '/otp-generator/', '/htpasswd-generator/', '/json-to-toml/', '/text-statistics/'];
+          const priorityPages = ['/', '/percentage-calculator/', '/numeronym-generator/', '/api-debugger/', '/regex-tester/', '/json-prettify/', '/json-workspace/', '/json-diff/', '/base-converter/', '/html-entities/', '/json-to-get-params/', '/docker-run-to-docker-compose-converter/', '/otp-generator/', '/htpasswd-generator/', '/json-to-toml/', '/text-statistics/'];
           for (const path of priorityPages) {
             const [bot, browser] = await Promise.all([get(path), get(path, browserUa)]);
             for (const [label, result] of [['Googlebot', bot], ['browser', browser]]) {
@@ -315,7 +326,8 @@ jobs:
               '/otp-generator/': { title: 'TOTP Code Generator — 6-Digit Codes & QR - DigDevBox', description: 'Generate current, previous and next 6-digit TOTP codes from a Base32 secret, view the 30-second timer, and create an otpauth QR code. Uses Web Crypto.', h1: 'TOTP Code Generator' },
               '/htpasswd-generator/': { title: 'htpasswd Generator & Checker — bcrypt & apr1 - DigDevBox', description: 'Build multi-user Apache/Nginx .htpasswd files with bcrypt or apr1. Copy, download or verify a username:hash line locally. Passwords stay in your browser.', h1: 'htpasswd Generator & Checker' },
               '/json-to-toml/': { title: 'JSON to TOML Converter - DigDevBox', description: 'Convert JSON or JSON5 objects to TOML. Nested objects become tables or dotted keys; arrays become TOML arrays. Unsupported values may prevent conversion.', h1: 'JSON to TOML Converter' },
-              '/text-statistics/': { title: 'Text Statistics — Word & Character Counter - DigDevBox', description: 'Count words, characters and lines, and check UTF-8 text size in bytes. Paste text to see live statistics instantly — free and browser-based.', h1: 'Text Statistics' },
+              '/text-statistics/': { title: 'Text Statistics — Word & Character Counter - DigDevBox', description: 'Free online word and character counter with Unicode grapheme, code point, UTF-16 and UTF-8 byte counts. Count words, unique words, sentences, paragraphs and lines, estimate reading time, and keep text private in your browser.', h1: 'Text Statistics' },
+              '/json-diff/': { title: 'JSON Diff Checker — Compare JSON Online - DigDevBox', description: 'Compare two JSON objects online. Find added, removed and changed values in nested data; object key order is ignored, and arrays compare by position.', h1: 'JSON Diff Checker' },
             };
             const expected = expectedMetadata[path];
             if (expected &&
