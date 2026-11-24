@@ -1106,6 +1106,17 @@ tools:
         redirect: "当前响应是重定向"
         httpError: "HTTP 错误响应"
         multipleBlocks: "检测到多个响应块"
+      remediation:
+        title: "可复制的服务器配置"
+        intro: "选择服务器类型，为明确缺失且风险较低的响应头生成配置片段。"
+        copy: "复制配置"
+        copied: "配置已复制"
+        caution: "部署前请先在预发布环境验证。HSTS 仅在 HTTPS 响应中生效。生成器刻意不自动生成 CSP、框架嵌入策略、Permissions-Policy、CORS 和 Cookie 修改，因为正确配置取决于具体应用。"
+        platforms:
+          nginx: "Nginx"
+          apache: "Apache"
+          caddy: "Caddy"
+          cloudflare: "Cloudflare Pages"
 
   ascii-table:
     title: "ASCII 码表"
