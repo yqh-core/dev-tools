@@ -265,7 +265,17 @@ export function analyzeRedirects(input: string): RedirectAnalysis {
       addIssue(row, 'error', 'invalid-target', error instanceof Error ? error.message : 'Invalid destination URL.');
     }
 
-    if (row.sourcePath && row.targetPath && row.sourcePath === row.targetPath && !parseHttpUrl(row.targetUrl)) {
+    const absoluteSource = parseHttpUrl(row.sourceUrl);
+    const absoluteTarget = parseHttpUrl(row.targetUrl);
+    const sameOrigin = (!absoluteSource && !absoluteTarget)
+      || Boolean(absoluteSource && absoluteTarget && absoluteSource.origin === absoluteTarget.origin);
+    if (
+      row.sourcePath
+      && row.targetPath
+      && row.sourcePath === row.targetPath
+      && sameOrigin
+      && !absoluteTarget?.search
+    ) {
       addIssue(row, 'error', 'self-redirect', 'The source and destination are the same path.');
     }
     return row;
