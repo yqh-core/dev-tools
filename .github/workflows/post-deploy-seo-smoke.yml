@@ -118,7 +118,7 @@ jobs:
             // GitHub's Cloudflare status can lag the edge rollout. The exact
             // production SEO marker is a stronger fallback: it proves the new
             // deployable commit is already serving the approved metadata.
-            const [percentageResponse, htpasswdResponse, etaResponse] = await Promise.all([
+            const [percentageResponse, htpasswdResponse, safeLinksResponse, etaResponse] = await Promise.all([
               fetch(origin + '/percentage-calculator/', {
                 redirect: 'follow',
                 headers: { 'user-agent': ua, 'cache-control': 'no-cache' },
@@ -129,15 +129,21 @@ jobs:
                 headers: { 'user-agent': ua, 'cache-control': 'no-cache' },
                 signal: AbortSignal.timeout(10000),
               }),
+              fetch(origin + '/safelink-decoder/', {
+                redirect: 'follow',
+                headers: { 'user-agent': ua, 'cache-control': 'no-cache' },
+                signal: AbortSignal.timeout(10000),
+              }),
               fetch(origin + '/eta-calculator/', {
                 redirect: 'follow',
                 headers: { 'user-agent': ua, 'cache-control': 'no-cache' },
                 signal: AbortSignal.timeout(10000),
               }),
             ]);
-            const [percentageHtml, htpasswdHtml, etaHtml] = await Promise.all([
+            const [percentageHtml, htpasswdHtml, safeLinksHtml, etaHtml] = await Promise.all([
               percentageResponse.text(),
               htpasswdResponse.text(),
+              safeLinksResponse.text(),
               etaResponse.text(),
             ]);
             const percentageMarkerReady = percentageResponse.ok &&
@@ -151,9 +157,16 @@ jobs:
               percentageHtml.includes('href="' + origin + '/percentage-calculator/"');
             const htpasswdMarkerReady = htpasswdResponse.ok &&
               htpasswdResponse.url === origin + '/htpasswd-generator/' &&
-              htpasswdHtml.includes('content="Build a multi-user Apache/Nginx .htpasswd file with bcrypt or apr1 hashes. Copy or download it, then verify an existing username:hash line locally. Passwords stay in your browser."') &&
+              htpasswdHtml.includes('content="Build multi-user Apache/Nginx .htpasswd files with bcrypt or apr1. Copy, download or verify a username:hash line locally. Passwords stay in your browser."') &&
               htpasswdHtml.includes('Build a complete .htpasswd file with one line per user for Apache or Nginx Basic Auth') &&
               htpasswdHtml.includes('href="' + origin + '/htpasswd-generator/"');
+            const safeLinksMarkerReady = safeLinksResponse.ok &&
+              safeLinksResponse.url === origin + '/safelink-decoder/' &&
+              safeLinksHtml.includes('<title>Outlook Safe Links Batch Decoder — Reveal Original URLs - DigDevBox</title>') &&
+              safeLinksHtml.includes('content="Batch-decode Microsoft Outlook Safe Links one wrapper per line. Unwrap up to five layers, inspect destination scheme and host, and copy valid URLs; local parsing only, no safety scan."') &&
+              safeLinksHtml.includes('Outlook Safe Links Batch Decoder') &&
+              safeLinksHtml.includes('one wrapper per line') &&
+              safeLinksHtml.includes('href="' + origin + '/safelink-decoder/"');
             const etaMarkerReady = process.env.CHECK_ETA_RELEASE !== 'true' || (
               etaResponse.ok &&
               etaResponse.url === origin + '/eta-calculator/' &&
@@ -162,7 +175,7 @@ jobs:
               etaHtml.includes('Calculate from elapsed time') &&
               etaHtml.includes('href="' + origin + '/eta-calculator/"')
             );
-            const productionMarkerReady = percentageMarkerReady && htpasswdMarkerReady && etaMarkerReady;
+            const productionMarkerReady = percentageMarkerReady && htpasswdMarkerReady && safeLinksMarkerReady && etaMarkerReady;
             if (productionMarkerReady) {
               cloudflareReady = true;
               console.log('Production SEO marker confirms the exact release is serving, despite a pending/stale Cloudflare check');
@@ -302,7 +315,7 @@ jobs:
           // priority English pages. This catches UA-dependent HTML/cache variants
           // and guarantees the crawler sees the same title, description, H1 and canonical.
           const browserUa = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/130.0.0.0 Safari/537.36';
-          const priorityPages = ['/', '/percentage-calculator/', '/http-headers/', '/eta-calculator/', '/ipv6-ula-generator/', '/numeronym-generator/', '/api-debugger/', '/regex-tester/', '/json-prettify/', '/json-workspace/', '/json-diff/', '/base-converter/', '/html-entities/', '/json-to-get-params/', '/docker-run-to-docker-compose-converter/', '/otp-generator/', '/htpasswd-generator/', '/json-to-toml/', '/text-statistics/', '/slugify-string/', '/redirect-generator/'];
+          const priorityPages = ['/', '/safelink-decoder/', '/percentage-calculator/', '/http-headers/', '/eta-calculator/', '/ipv6-ula-generator/', '/numeronym-generator/', '/api-debugger/', '/regex-tester/', '/json-prettify/', '/json-workspace/', '/json-diff/', '/base-converter/', '/html-entities/', '/json-to-get-params/', '/docker-run-to-docker-compose-converter/', '/otp-generator/', '/htpasswd-generator/', '/json-to-toml/', '/text-statistics/', '/slugify-string/', '/redirect-generator/'];
           for (const path of priorityPages) {
             const [bot, browser] = await Promise.all([get(path), get(path, browserUa)]);
             for (const [label, result] of [['Googlebot', bot], ['browser', browser]]) {
@@ -353,6 +366,7 @@ jobs:
               '/docker-run-to-docker-compose-converter/': { title: 'Docker Run to Compose Converter - DigDevBox', description: 'Paste a docker run command and get a docker-compose service — ports, volumes and env mapped. Free online decomposerize alternative, in your browser.', h1: 'Docker Run to Compose Converter' },
               '/otp-generator/': { title: 'TOTP Code Generator — 6-Digit Codes & QR - DigDevBox', description: 'Generate current, previous and next 6-digit TOTP codes from a Base32 secret, view the 30-second timer, and create an otpauth QR code. Uses Web Crypto.', h1: 'TOTP Code Generator' },
               '/htpasswd-generator/': { title: 'htpasswd Generator & Checker — bcrypt & apr1 - DigDevBox', description: 'Build multi-user Apache/Nginx .htpasswd files with bcrypt or apr1. Copy, download or verify a username:hash line locally. Passwords stay in your browser.', h1: 'htpasswd Generator & Checker' },
+              '/safelink-decoder/': { title: 'Outlook Safe Links Batch Decoder — Reveal Original URLs - DigDevBox', description: 'Batch-decode Microsoft Outlook Safe Links one wrapper per line. Unwrap up to five layers, inspect destination scheme and host, and copy valid URLs; local parsing only, no safety scan.', h1: 'Outlook Safe Links Batch Decoder' },
               '/json-to-toml/': { title: 'JSON to TOML Converter - DigDevBox', description: 'Convert JSON or JSON5 objects to TOML. Nested objects become tables or dotted keys; arrays become TOML arrays. Unsupported values may prevent conversion.', h1: 'JSON to TOML Converter' },
               '/text-statistics/': { title: 'Text Statistics — Word & Character Counter - DigDevBox', description: 'Count words, characters, Unicode units, lines and UTF-8 bytes. Analyze top-term frequency and estimate reading and speaking time in your browser, with no text upload.', h1: 'Text Statistics' },
               '/json-diff/': { title: 'JSON Diff Checker — Compare JSON Online - DigDevBox', description: 'Compare JSON files or pasted JSON online. Inspect nested changes by path, export a report, and match arrays by index, ignore-order or stable ID. Large comparisons run in a cancellable worker.', h1: 'JSON Diff Checker' },
@@ -583,7 +597,7 @@ jobs:
           }
           const sitemap = await get('/sitemap.xml');
           if (!sitemap.response.ok || !sitemap.body.includes('<urlset')) throw new Error('sitemap.xml unavailable or malformed');
-          for (const path of ['/slugify-string/', '/redirect-generator/', '/guides/slugify-string/', '/guides/redirect-generator/']) {
+          for (const path of ['/safelink-decoder/', '/slugify-string/', '/redirect-generator/', '/guides/slugify-string/', '/guides/redirect-generator/']) {
             if (!sitemap.body.includes(origin + path)) {
               throw new Error('sitemap.xml missing live tool or guide URL: ' + path);
             }
