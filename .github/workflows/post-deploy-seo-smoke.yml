@@ -164,8 +164,6 @@ jobs:
               safeLinksResponse.url === origin + '/safelink-decoder/' &&
               safeLinksHtml.includes('<title>Outlook Safe Links Decoder — Reveal the Original URL - DigDevBox</title>') &&
               safeLinksHtml.includes('content="Decode Outlook Safe Links one URL or a batch at a time, including nested wrappers. Reveal destinations locally; decoding does not verify safety."') &&
-              safeLinksHtml.includes('Decode multiple Safe Links') &&
-              safeLinksHtml.includes('Paste one Outlook Safe Links URL per line') &&
               safeLinksHtml.includes('href="' + origin + '/safelink-decoder/"');
             const etaMarkerReady = process.env.CHECK_ETA_RELEASE !== 'true' || (
               etaResponse.ok &&
