@@ -984,7 +984,13 @@ tools:
 
   basic-auth-generator:
     title: 基本身份验证生成器
-    description: 从用户名和密码生成 base64 基本身份验证标头。
+    description: 生成或解码 HTTP Basic Authorization 标头，并复制 cURL、Node.js 和 Python 示例。运算在浏览器本地完成；请求请使用 HTTPS。
+    requestUrl: 代码示例的请求 URL
+    requestUrlPlaceholder: https://api.example.com/v1/resource
+    invalidRequestUrl: 请输入有效的 HTTP 或 HTTPS URL，且不要在 URL 中嵌入用户名或密码。
+    curl: cURL
+    nodeFetch: Node.js fetch
+    pythonRequests: Python requests
     decodedPassword:
       show: 显示解码后的密码
       hide: 隐藏解码后的密码

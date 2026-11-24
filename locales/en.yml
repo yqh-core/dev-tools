@@ -990,7 +990,13 @@ tools:
 
   basic-auth-generator:
     title: "Basic Auth Generator & Decoder — HTTP Header"
-    description: "Generate or decode an HTTP Basic Authorization header in your browser. Copy the Base64 token for cURL; Base64 is not encryption, so use HTTPS."
+    description: "Generate or decode an HTTP Basic Authorization header, then copy ready-to-use cURL, Node.js and Python examples. Runs locally; use HTTPS."
+    requestUrl: Request URL for code examples
+    requestUrlPlaceholder: https://api.example.com/v1/resource
+    invalidRequestUrl: Enter a valid HTTP or HTTPS URL without embedded credentials.
+    curl: cURL
+    nodeFetch: Node.js fetch
+    pythonRequests: Python requests
     decodedPassword:
       show: Show decoded password
       hide: Hide decoded password
