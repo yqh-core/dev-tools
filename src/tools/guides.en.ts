@@ -1623,11 +1623,11 @@ export const GUIDES: Record<string, ToolGuide> = {
 
   '/text-statistics': {
     intro: 'Counts Unicode characters, words, sentences, paragraphs and UTF-8 bytes, then adds locale-aware top-term frequency plus reading and speaking-time estimates.',
-    steps: ['Paste or type text into the analyzer', 'Choose the language used for word and sentence segmentation', 'Review Unicode metrics, reading and speaking time, and the top-term table; optionally exclude common English stop words', 'Copy the complete statistics summary'],
-    notes: [
-      'Grapheme counts follow browser Intl.Segmenter when available; older browsers fall back to code-point counts, which can differ for joined emoji and combining marks.',
-      'Word segmentation in older browsers is approximate and does not provide dictionary-based CJK segmentation.',
-      'Reading and speaking times are estimates using separate user-selected words-per-minute rates; they are not measurements of an individual.');',
+    steps: [
+      'Paste or type text into the analyzer',
+      'Choose the language used for word and sentence segmentation',
+      'Review Unicode metrics, reading and speaking time, and the top-term table; optionally exclude common English stop words',
+      'Copy the complete statistics summary',
     ],
     notes: [
       'Grapheme counts follow browser Intl.Segmenter when available; older browsers fall back to code-point counts, which can differ for joined emoji and combining marks.',
@@ -1637,7 +1637,7 @@ export const GUIDES: Record<string, ToolGuide> = {
       'Term frequency describes this input only. It is not search volume, keyword demand, keyword difficulty or a Google ranking signal.',
     ],
     example: { label: 'Fill in sample text', text: 'The quick brown fox jumps over the lazy dog. 👋' },
-    about: 'A browser-based text analyzer with explicit Unicode metrics. It reports visible grapheme clusters, Unicode code points, JavaScript UTF-16 code units, UTF-8 bytes, words, unique words, sentences, paragraphs, lines, non-empty lines and the longest line. Choose a segmentation language for word and sentence counts, set your reading speed, and copy a complete summary. Inspect the top ten normalized terms with occurrence counts and token shares, and estimate speaking time separately from reading time. The input is processed locally in your browser.',
+    about: 'A browser-based text analyzer with explicit Unicode metrics and text-frequency analysis. It reports visible grapheme clusters, Unicode code points, JavaScript UTF-16 code units, UTF-8 bytes, words, unique words, sentences, paragraphs, lines, non-empty lines and the longest line. Choose a segmentation language, inspect the top ten normalized terms with occurrence counts and token shares, optionally filter common English stop words, and estimate reading and speaking time at separate rates. The input is processed locally in your browser.',
     articleOnlySections: [
       {
         title: 'Visible characters, code points and code units',
