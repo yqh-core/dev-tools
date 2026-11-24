@@ -418,6 +418,49 @@ tools:
       noCharacters: "No URL-safe characters remain after conversion."
       copied: "All slugs copied to clipboard"
 
+  redirect-generator:
+    title: Bulk 301 Redirect Generator — Apache, Nginx & Cloudflare
+    description: Create bulk 301, 302, 307 or 308 redirects for Apache, Nginx and Cloudflare. Import CSV, detect duplicates, loops and redirect chains. Runs locally.
+    cardTitle: Bulk URL redirect mapping
+    intro: Import or paste old and new URL pairs, validate the mapping list, then export exact-path rules for your server or Cloudflare Bulk Redirects.
+    inputPlaceholder: "Source URL,Target URL\n/old-page,https://example.com/new-page\n/legacy,/current"
+    loadSample: Load sample
+    clear: Clear
+    importCsv: Import CSV / TSV
+    outputFormat: Output format
+    statusCode: Redirect status
+    siteOrigin: Site origin for relative Cloudflare URLs
+    preserveQueryString: Preserve incoming query strings
+    cloudflareNote: Cloudflare CSV uses absolute URLs and has no header row. The site origin is added to relative source and destination paths.
+    summary:
+      total: Mappings
+      ready: Ready to export
+      errors: Errors
+      warnings: Warnings
+    line: Line {line}
+    invalid: Fix this row
+    review: Review recommended
+    outputTitle: Generated redirect rules
+    copy: Copy rules
+    download: Download file
+    copied: Redirect rules copied
+    emptyState: Paste a two-column CSV, tab-separated list or one "old URL -> new URL" pair per line to get started.
+    safetyNote: Review the generated rules in a staging environment before deploying. Keep old URLs stable where possible and update internal links to point directly to their final destinations.
+    formats:
+      apache: Apache .htaccess (mod_alias)
+      nginx: Nginx server block
+      cloudflare: Cloudflare Bulk Redirect CSV
+    status:
+      permanent: Permanent
+      temporary: Temporary
+      temporaryMethod: Temporary (preserve method)
+      permanentMethod: Permanent (preserve method)
+    errors:
+      invalidInput: The input could not be analyzed.
+      originRequired: Enter a site origin before generating a Cloudflare CSV.
+      outputFailed: Could not generate this output format.
+      fileRead: The selected file could not be read.
+
   encryption:
     title: Encrypt / decrypt text
     description: Encrypt clear text and decrypt ciphertext using crypto algorithms like AES, TripleDES, Rabbit or RC4.
