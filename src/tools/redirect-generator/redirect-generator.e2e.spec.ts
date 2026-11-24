@@ -56,7 +56,7 @@ test.describe('Tool - bulk redirect generator', () => {
 
     await page.getByTestId('redirect-status').click();
     await page.getByText('307 — Temporary (preserve method)', { exact: true }).click();
-    await expect(page.getByTestId('redirect-output-card')).toContainText('Netlify _redirects supports 301 and 302 redirects only');
+    await expect(page.getByTestId('redirect-output-card')).toContainText('This generator limits Netlify _redirects output to 301 and 302. Choose another format for 307 or 308.');
   });
 
   test('generates Vercel JSON and Cloudflare advanced match settings', async ({ page }) => {
