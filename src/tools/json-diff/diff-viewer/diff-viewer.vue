@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import { isUndefined } from 'lodash';
-import { diff, flattenDifferences } from '../json-diff.models';
-import type { ArrayComparisonMode } from '../json-diff.models';
+import { diff, flattenDifferences, type ArrayComparisonMode } from '../json-diff.models';
 import { DiffRootViewer } from './diff-viewer.models';
 import { useAppTheme } from '@/ui/theme/themes';
 
