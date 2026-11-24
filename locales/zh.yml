@@ -599,7 +599,7 @@ tools:
     batchCopyNote: 不支持的项目及三个字母或更短的单词会保留在表格中，但不会包含在“全部复制”的结果中。
     breakdownHeader: 缩略规则拆解
     middleLetters: 个中间字母
-    shortWordBreakdown: 单词太短，没有可替换的中间字母。
+    shortWordBreakdown: 短词缩写后不会更短，因此保持原样。
 
   case-converter:
     title: 大小写转换
