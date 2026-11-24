@@ -528,7 +528,7 @@ tools:
     title: ETA 计算器 — 任务剩余时间估算
     description: 为下载、构建或批处理估算剩余时间。可输入已知处理速率，也可根据已完成数量和已耗时自动推导吞吐速率。
     rateMode: 输入已知处理速率
-    observedMode: 根据已耗时计算
+    observedMode: 根据已耗时间计算
     elapsedTitle: 已运行时间
     elapsedHours: 小时
     elapsedMinutes: 分钟
