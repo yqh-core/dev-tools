@@ -81,6 +81,9 @@ function uniqueSlug(
       ? options.maxLength - suffix.length
       : 0;
     const trimmed = trimAtWordBoundary(value, baseLimit, options.separator);
+    if (!trimmed.value) {
+      return { value: '', truncated: trimmed.truncated };
+    }
     const candidate = `${trimmed.value}${suffix}`;
 
     if (!candidate) {
