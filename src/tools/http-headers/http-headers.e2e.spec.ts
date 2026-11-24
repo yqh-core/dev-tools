@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { Buffer } from 'node:buffer';
 
 test.describe('Tool - local HTTP response header analyzer', () => {
   test.beforeEach(async ({ page }) => {
