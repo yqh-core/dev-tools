@@ -1030,27 +1030,32 @@ export const GUIDES: Record<string, ToolGuide> = {
   },
 
   '/numeronym-generator': {
-    intro: 'Generates numeronyms such as i18n, a11y and k8s from one word or a batch of words, and looks up established short forms.',
-    steps: ['Enter one English word or known short form per line', 'Use multiple lines to convert a batch at once', 'Copy the generated results or look up established forms such as k8s'],
+    intro: 'Generates numeronyms from words, phrases and pasted lists, counts Unicode letters, and looks up established short forms.',
+    steps: ['Paste one word or known short form; separate multiple items with spaces, commas, semicolons or newlines', 'Review the letter count and generated form for each item', 'Copy all successful results or look up established forms such as i18n, a11y and o11y'],
     example: { label: 'Fill in a sample word', text: 'internationalization' },
-    about: 'A numeronym keeps the first and last letters of a word and replaces the middle letters with their count. Familiar developer examples include i18n (internationalization), l10n (localization), a11y (accessibility), k8s (Kubernetes), g11n (globalization) and t9n (translation). In XML canonicalization, c14n is a specialist abbreviation for canonicalization. This generator applies the literal count rule to plain ASCII English words, accepts one word per line for batch conversion, and only reverse-looks up entries in a curated dictionary. It does not invent meanings for unknown strings. Very short words often produce awkward results, so words of three letters or fewer are returned unchanged.',
+    about: 'A numeronym keeps the first and last letters of a word and replaces the middle letters with their count. This generator counts Unicode letter clusters, normalizes canonically equivalent accented text, preserves the case of the first and last letters, and ignores hyphens or apostrophes inside compounds. Familiar technical forms include i18n (internationalization), l10n (localization), a11y (accessibility), k8s (Kubernetes), g11n (globalization), c14n (canonicalization), t9n (translation), m17n (multilingualization), p13n (personalization) and o11y (observability). It only reverse-looks up entries in a curated reference list and never invents meanings for unknown strings. Words with three letters or fewer are returned unchanged. This is a mechanical letter-count rule, not translation or language-aware word analysis.',
     articleOnlySections: [
       {
-        title: 'Batch mode is line-based, not phrase-based',
-        text: 'Paste one plain-English word or one known numeronym per line. The tool trims leading and trailing spaces and ignores blank lines, but a line containing spaces, punctuation or mixed characters is not treated as a word. Words of three letters or fewer are returned unchanged, so a short token such as API stays API rather than being expanded. In batch mode, each line is evaluated independently; warning rows remain visible, while the copyable batch output contains only successful conversions. Review warning rows before copying if every input line must be accounted for.',
+        title: 'Paste a list or phrase — separators are flexible',
+        text: 'You can paste a space-, comma-, semicolon- or newline-separated list. Each extracted word or numeronym is shown in its own row with the letter count when it is generated. Successful outputs can be copied together; unsupported tokens remain visible in the table and are not silently included in the copied result. Duplicate inputs remain separate rows, so repeated terms are not lost.',
       },
       {
-        title: 'Reverse lookup is deliberately dictionary-bound',
-        text: 'Encoding is mechanical for plain A–Z words, but decoding is not guessed from a numeronym-shaped string. The lookup table recognizes i18n, l10n, a11y, k8s, g11n, c14n, n7m and t9n; a form that looks like a numeronym but is not in that list returns a not-in-dictionary warning. Lookup ignores letter case, so K8S resolves to Kubernetes, but an unknown form such as x11y is not assigned an invented expansion. In external documentation, keep the full term nearby when a short form is not established, and check the supported list before relying on reverse lookup.',
+        title: 'Unicode letters and compounds are counted literally',
+        text: 'The generator counts Unicode letters and attached combining marks, normalizes canonically equivalent text to NFC, and preserves the case of the first and last letters. Hyphens and straight or curly apostrophes are ignored for the letter count, so cross-platform becomes c11m and don\'t becomes d2t. This is a mechanical character rule; it does not transliterate scripts, infer pronunciation or apply language-specific morphology. Words of three letters or fewer remain unchanged.',
+      },
+      {
+        title: 'The reference list is curated, not guessed',
+        text: 'The lookup table includes i18n, l10n, a11y, k8s, g11n, c14n, n7m, t9n, m17n, p13n and o11y with their listed expansions and typical contexts. A numeronym-shaped input that is not in the table displays an explicit not-in-reference-list message. Pattern abbreviations such as e2e and b2b use different conventions and are not treated as generated first-letter / middle-count / last-letter numeronyms.',
       },
     ],
     faqs: [
       { q: 'How is the number in a numeronym calculated?', a: 'It is the number of letters between the first and last letters. Internationalization has 18 middle letters, so it becomes i18n; accessibility has 11, so it becomes a11y.' },
-      { q: 'What does t9n mean?', a: 'T9n is a common numeronym for translation: the first letter is t, the last letter is n, and the nine letters between them are omitted.' },
-      { q: 'Can every numeronym be decoded?', a: 'No. The pattern can generate many possible strings, but the same shape does not prove a meaning. This tool only expands entries in its curated dictionary and does not guess unknown forms.' },
-      { q: 'What is c14n?', a: 'C14N is used in XML canonicalization contexts. It is a specialist abbreviation; in general writing, spell out canonicalization unless the XML context is clear.' },
-      { q: 'Should I invent a new numeronym?', a: 'Usually not. Use a short form only when the intended audience already recognizes it. For a new term, write the full word first and define any shorthand before reusing it.' },
-      { q: 'What happens with very short words?', a: 'Words of three letters or fewer are returned unchanged. A generated form for a very short word can look more like a typo than a useful abbreviation.' },
+      { q: 'Can I paste multiple words at once?', a: 'Yes. Separate words or known short forms with spaces, commas, semicolons or newlines. The result table keeps each input visible and provides a copyable list of successful outputs.' },
+      { q: 'Are accented and Unicode words supported?', a: 'Yes. Unicode letters and combining marks are counted as letter clusters, and the output preserves the case of the first and last letters. The rule is mechanical and does not translate or transliterate the word.' },
+      { q: 'Are hyphenated words supported?', a: 'Yes. Hyphens and straight or curly apostrophes are ignored for counting. For example, cross-platform becomes c11m and don\'t becomes d2t.' },
+      { q: 'Can every numeronym be decoded?', a: 'No. The same letter-number-letter shape can have many possible meanings. This tool only expands entries in its curated reference list and does not guess unknown forms.' },
+      { q: 'Does the tool support e2e or b2b?', a: 'Those are established abbreviations, but they do not follow the first-letter / middle-letter-count / last-letter rule used by this generator. They are not included in its numeronym lookup list.' },
+      { q: 'What happens with very short words?', a: 'Words with three letters or fewer are returned unchanged because a generated abbreviation is usually not useful.' },
     ],
     relatedNotes: [
       {
