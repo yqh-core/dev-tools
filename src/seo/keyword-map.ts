@@ -235,13 +235,13 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
   {
     path: '/text-statistics',
     keyword: 'text statistics',
-    keywords: ['word counter', 'character counter', 'word count online', 'character count online', 'text byte counter', 'line counter'],
+    keywords: ['word counter', 'character counter', 'word count online', 'character count online', 'text byte counter', 'line counter', 'keyword frequency counter', 'top word frequency', 'speaking time calculator', 'reading time calculator'],
     intent: 'compute',
     priority: 'P1',
     competition: 'medium',
     landed: true,
     lockedTitle: 'Text Statistics — Word & Character Counter',
-    note: 'The page measures characters, words, lines and UTF-8 byte size. Title is aligned to the actual live feature; validate rendered snippet and CTR after deployment.',
+    note: 'The page measures Unicode graphemes/code points/UTF-16 units, words, sentences, lines and UTF-8 bytes; it also estimates reading and speaking time and shows locale-aware top-term counts with an English-only stop-word filter. The term-share denominator is explicit and remains local; frequency is not search volume or ranking data.',
   },
   {
     path: '/regex-tester',

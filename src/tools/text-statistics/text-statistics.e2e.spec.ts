@@ -51,4 +51,19 @@ test.describe('Tool - text statistics', () => {
     await expect(page.getByTestId('bytes')).toContainText('0');
     await expect(page.getByTestId('paragraphs')).toContainText('0');
   });
+  test('shows live top-term counts and updates the denominator when English stop words are excluded', async ({ page }) => {
+    await page.getByTestId('text-input').locator('textarea').fill('the cat and the cat dog dog');
+    await expect(page.getByTestId('term-denominator')).toContainText('7');
+    await expect(page.getByTestId('top-terms')).toContainText('cat');
+    await expect(page.getByTestId('top-terms')).toContainText('2');
+    await page.getByTestId('exclude-stop-words').check();
+    await expect(page.getByTestId('term-denominator')).toContainText('4');
+    await expect(page.getByTestId('top-terms')).toContainText('50.0%');
+  });
+
+  test('estimates speaking time using an adjustable rate', async ({ page }) => {
+    await page.getByTestId('text-input').locator('textarea').fill('one two three four');
+    await page.getByLabel('Speaking speed in words per minute').fill('2');
+    await expect(page.getByTestId('speaking-time')).toContainText('2 min');
+  });
 });
