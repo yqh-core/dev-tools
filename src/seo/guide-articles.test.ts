@@ -68,8 +68,8 @@ describe('article-only guide content', () => {
     expect(chinese).toHaveLength(english.length);
     expect(english.map(section => section.title)).toContain('Choose the right array comparison mode');
     expect(chinese.map(section => section.title)).toContain('选择适合的数组比较模式');
-    expect(english[1].text).toContain('unique, non-empty string or finite numeric ID');
-    expect(chinese[1].text).toContain('唯一、非空的字符串或有限数字 ID');
+    expect(english[0].text).toContain('unique, non-empty string or finite numeric ID');
+    expect(chinese[0].text).toContain('唯一、非空的字符串或有限数字 ID');
     expect(english[2].text).toContain('2^53 - 1');
     expect(chinese[2].text).toContain('2^53 - 1');
 
