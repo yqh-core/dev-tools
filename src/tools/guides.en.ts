@@ -2155,12 +2155,15 @@ export const GUIDES: Record<string, ToolGuide> = {
   },
 
   '/http-headers': {
-    intro: 'A reference for common HTTP request and response headers plus the nine standard request methods — to consult when writing APIs or debugging caching, CORS and method semantics.',
-    steps: ['Type a field name (e.g. Cookie) or a purpose keyword (e.g. cache, CORS) in the search box', 'The header list filters live', 'Each entry shows the field name, direction (request / response) and a short description', 'Below the headers, the request-methods table lists each verb with its safe / idempotent flags'],
-    notes: ['Search matches the field name, the description and the direction', 'The request-methods table is always shown under the header reference'],
+    intro: 'Paste raw HTTP response headers or curl -I output to check six security-header baselines and common CORS or cookie misconfigurations. All parsing runs locally in your browser.'
+    steps: ['Paste a raw response header block or curl -I output, including the HTTP status line when available', 'Review the six baseline checks for HSTS, CSP, frame protection, nosniff, Referrer-Policy and Permissions-Policy', 'Review additional findings such as credentialed wildcard CORS, SameSite=None without Secure and server fingerprinting', 'Use the recommendations as a starting point and verify changes against your application'],
+    notes: ['The analyzer only inspects the text you paste; it does not fetch or scan a URL and sends no header values to a server', 'This is a heuristic best-practice review, not a complete vulnerability scanner, CSP parser or security grade', 'The input is limited to 64 KB; duplicate response header fields are retained during parsing'],
     example: { label: 'Fill in a sample query', text: 'cache' },
     about: 'A searchable reference of common HTTP request and response headers, joined by a table of the standard request methods. Instead of digging through RFCs to remember what Strict-Transport-Security does, which direction a header travels, or whether PATCH is idempotent, search by name and read a focused description — with CORS, caching and security headers grouped for fast scanning, and GET/POST/PUT/PATCH/DELETE/OPTIONS marked by their safety and idempotency so you pick the right verb, not just the right header.',
     faqs: [
+      { q: 'Does this scan a live website URL?', a: 'No. Paste the response headers yourself or copy them from curl -I. The tool does not make network requests, and the pasted header values stay in your browser.' },
+      { q: 'Does a complete baseline mean the site is secure?', a: 'No. The six checks are a limited header best-practice baseline. They do not evaluate application logic, TLS configuration, every CSP directive, cookies in context or other vulnerability classes.' },
+
       { q: 'Which security headers should every site send?', a: 'The usual baseline is Content-Security-Policy, Strict-Transport-Security, X-Content-Type-Options: nosniff and a frame policy (X-Frame-Options or CSP frame-ancestors). Search each one here for what it does.' },
       { q: 'Which headers matter for CORS?', a: 'Requests trigger Origin; responses need Access-Control-Allow-Origin (plus Allow-Methods/Allow-Headers for preflights). The reference groups these so you can debug a blocked request quickly.' },
       { q: 'Which headers control caching?', a: 'Cache-Control is the primary switch, with ETag/If-None-Match and Last-Modified/If-Modified-Since driving conditional revalidation. Note that Cache-Control is sent by the server but also honoured by browsers and CDNs.' },
