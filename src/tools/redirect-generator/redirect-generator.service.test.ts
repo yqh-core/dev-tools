@@ -142,6 +142,21 @@ describe('generateRedirectOutput', () => {
     expect(output).toContain('"example.com/old","https://example.com/new"');
   });
 
+  it('rejects unsupported ports and credentials in Cloudflare source URLs', () => {
+    const withPort = analyzeRedirects('https://example.com:8443/old,/new');
+    const withCredentials = analyzeRedirects('https://user:pass@example.com/old,/new');
+    expect(() => generateRedirectOutput(withPort, 'cloudflare', '301')).toThrow('user information or ports');
+    expect(() => generateRedirectOutput(withCredentials, 'cloudflare', '301')).toThrow('user information or ports');
+  });
+
+  it('rejects fixed target query strings when preserve-query is enabled', () => {
+    const withQuery = analyzeRedirects('/old,/new?campaign=summer');
+    expect(() => generateRedirectOutput(withQuery, 'cloudflare', '301', {
+      origin: 'https://example.com',
+      preserveQueryString: true,
+    })).toThrow('target query string is ignored');
+  });
+
   it('rejects an invalid Cloudflare site origin', () => {
     expect(() => generateRedirectOutput(analysis, 'cloudflare', '301', { origin: 'https://example.com/path' }))
       .toThrow('site origin');
