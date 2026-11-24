@@ -47,6 +47,37 @@ test.describe('Tool - bulk redirect generator', () => {
     expect(await output.inputValue()).toContain('"example.com/old","https://example.com/new","301"');
   });
 
+  test('generates Netlify _redirects and explains unsupported method-preserving statuses', async ({ page }) => {
+    await page.getByTestId('redirect-mappings').locator('textarea').fill('/old,/new');
+    await page.getByTestId('redirect-format').click();
+    await page.getByText('Netlify _redirects file', { exact: true }).click();
+    const output = page.getByTestId('redirect-output').locator('textarea');
+    await expect(output).toHaveValue(/\\/old \\/new 301/);
+
+    await page.getByTestId('redirect-status').click();
+    await page.getByText('307 — Temporary (preserve method)', { exact: true }).click();
+    await expect(page.getByTestId('redirect-output-card')).toContainText('Netlify _redirects supports 301 and 302 redirects only');
+  });
+
+  test('generates Vercel JSON and Cloudflare advanced match settings', async ({ page }) => {
+    await page.getByTestId('redirect-mappings').locator('textarea').fill('/old,/new');
+    await page.getByTestId('redirect-format').click();
+    await page.getByText('Vercel vercel.json', { exact: true }).click();
+    await page.getByTestId('redirect-preserve-query').click();
+    const vercelOutput = page.getByTestId('redirect-output').locator('textarea');
+    const vercel = JSON.parse(await vercelOutput.inputValue());
+    expect(vercel.redirects[0]).toMatchObject({ source: '/old', destination: '/new', statusCode: 301, preserveQueryParams: true });
+
+    await page.getByTestId('redirect-format').click();
+    await page.getByText('Cloudflare Bulk Redirect CSV', { exact: true }).click();
+    await page.locator('[data-test-id="redirect-origin-input"] input').fill('https://example.com');
+    await page.getByTestId('redirect-include-subdomains').click();
+    await page.getByTestId('redirect-subpath-matching').click();
+    await page.getByTestId('redirect-preserve-path-suffix').click();
+    const cloudflare = await page.getByTestId('redirect-output').locator('textarea').inputValue();
+    expect(cloudflare.split(',').slice(-3)).toEqual(['"TRUE"', '"TRUE"', '"TRUE"']);
+  });
+
   test('imports a CSV file in the browser', async ({ page }) => {
     await page.getByTestId('redirect-file-import').setInputFiles({
       name: 'redirects.csv',
