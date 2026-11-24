@@ -2293,7 +2293,7 @@ export const GUIDES: Record<string, ToolGuide> = {
     notes: [
       'The analyzer only checks mappings you provide. It does not send requests, verify that destinations return HTTP 200, or inspect redirects already configured on your server.',
       'Chain detection is limited to paths in the current input. A destination that is redirected by a rule outside this list cannot be detected here.',
-      'Cloudflare Bulk Redirect CSV has no header row and uses absolute URLs. This generator sets the optional include-subdomains, subpath-matching and preserve-path-suffix fields to FALSE.',
+      'Cloudflare Bulk Redirect CSV has no header row. Source URLs omit the scheme so a mapping can match both HTTP and HTTPS; target URLs are absolute. This generator sets include-subdomains, subpath-matching and preserve-path-suffix to FALSE. When Preserve query string is enabled, Cloudflare uses the incoming query and discards any fixed query string on the target.',
       'Cloudflare bulk redirects are static source-to-destination mappings; they do not support regex replacement patterns. Use Apache or Nginx configuration when you need pattern-based rewrites.',
       'Changing a permanent redirect after search engines and visitors have seen it can take time to be reflected. Keep mappings stable and avoid redirect chains where possible.',
     ],
