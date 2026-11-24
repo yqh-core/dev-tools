@@ -1289,13 +1289,14 @@ export const GUIDES: Record<string, ToolGuide> = {
   },
 
   '/percentage-calculator': {
-    intro: 'Solves seven common percentage tasks: find X% of Y, find what percent X is of Y, calculate percentage change, apply or reverse a percentage change, compare two values symmetrically, and measure percentage-point changes.',
+    intro: 'Solves seven common percentage tasks—part-of, part-to-whole, percentage change, applying or reversing a rate, symmetric comparison and percentage-point change—and adds an optional step-by-step workflow for sequential discounts and adjustments.',
     // example 已移除：requires-pair (G-02j): X 单独填入无可见结果，example=死按钮
-    steps: ['Pick the mode matching your question', 'Enter the known values', 'Read the result', 'For a list, open batch mode and paste one row per line'],
+    steps: ['Pick the mode matching your question', 'Enter the known values', 'Read the result', 'For repeated discounts or increases, open sequential adjustments to see every intermediate amount', 'For a list, open batch mode and paste one row per line'],
     notes: [
       'When reversing a discount, divide the sale price by 1 minus the discount rate; adding the same percentage back to the sale price is not the inverse.',
       'For percentage change, use the starting value as the denominator. Reversing the direction changes the base and can produce a different rate.',
       'Batch mode uses two numeric columns per row (or a text label followed by two values); one invalid row does not stop the other calculations.',
+      'Sequential adjustments apply each rate to the previous intermediate amount. Do not add discount percentages together: 20% off followed by 10% off is 28% off overall, not 30%.',
     ],
     articleOnlySections: [
       {
@@ -1310,8 +1311,16 @@ export const GUIDES: Record<string, ToolGuide> = {
         title: 'Reverse a change and choose the right comparison',
         text: 'If a final value is known after a rise, divide it by 1 plus the rate as a decimal; after a discount, divide it by 1 minus the rate. For two values with equal standing, symmetric percentage difference divides the absolute gap by the average of their absolute magnitudes. For two rates, subtract the old rate from the new one to get percentage points; only divide by the old rate when the question asks for relative growth. Keep these answers distinct in a report: a 2-percentage-point move is an absolute rate movement, while 40% is relative growth from 5% to 7%.',
       },
+      {
+        title: 'Apply stacked discounts to the current price',
+        text: 'A second discount is calculated from the price left after the first discount, not from the original amount. Starting at $100, 20% off gives $80; another 10% off gives $72. The combined reduction is $28, or 28% of the original amount—not 30%. The formula is 100 × 0.80 × 0.90 = 72. The same multiplier method works for sequential increases and mixed increases/decreases.',
+      },
+      {
+        title: 'Understand step order and the final total',
+        text: 'The step list shows the intermediate amount after each adjustment, which is useful for auditing a sequence of promotions or rate changes. For simple percentage multipliers applied without conditional rules or intermediate rounding, the exact final amount is independent of the order because multiplication is commutative; changing the order still changes the intermediate values shown in the breakdown. The effective percentage is calculated by comparing the final amount with the original starting amount.',
+      },
     ],
-    about: 'Percentage mistakes in reports rarely come from arithmetic — they come from mixing up which base you divided by. Revenue going from 80 to 100 is a 25% increase because the original 80 is the base; comparing 80 and 100 without choosing a starting point is a different question. This calculator keeps seven questions separate: part of a whole, part-to-whole percentage, directional change, applying a rate, reversing a rate, symmetric difference, and percentage-point change. Reverse percentage divides the final value by the multiplier that was applied; symmetric percentage difference uses the average magnitude of both values rather than choosing a starting point. Percentage points subtract one rate from another, while relative percentage change divides by the starting rate. For price and salary math, remember the classic trap: a 20% rise followed by a 20% fall leaves you 4% below the start, because the second percentage divides by the raised base. The fields recalculate together, so you can compare these formulas without silently swapping denominators. For repeated calculations, optional batch mode accepts two values per row (or a label plus two values), shows each substituted formula and result, and lets you copy a CSV; recent runs are saved only in this browser and can be cleared.',
+    about: 'Percentage mistakes in reports rarely come from arithmetic — they come from mixing up which base you divided by. Revenue going from 80 to 100 is a 25% increase because the original 80 is the base; comparing 80 and 100 without choosing a starting point is a different question. This calculator keeps seven questions separate: part of a whole, part-to-whole percentage, directional change, applying a rate, reversing a rate, symmetric difference, and percentage-point change. Reverse percentage divides the final value by the multiplier that was applied; symmetric percentage difference uses the average magnitude of both values rather than choosing a starting point. Percentage points subtract one rate from another, while relative percentage change divides by the starting rate. For price and salary math, remember the classic trap: a 20% rise followed by a 20% fall leaves you 4% below the start, because the second percentage divides by the raised base. The fields recalculate together, so you can compare these formulas without silently swapping denominators. For repeated calculations, optional batch mode accepts two values per row (or a label plus two values), shows each substituted formula and result, and lets you copy or download CSV/TSV; recent runs are saved only in this browser and can be cleared. The optional sequential workflow shows every intermediate amount when discounts or increases are applied one after another.',
     faqs: [
       { q: 'Why does a 20% increase then a 20% decrease not return to the original?', a: 'Because the decrease is computed on the larger value. Going from 100 to 120 and back down by 20% gives 96 — a net 4% loss. Percentage changes are not symmetric.' },
       { q: 'What is the difference between percent change and percentage-point change?', a: 'If a rate moves from 5% to 7%, that is a 2-percentage-point change but a 40% relative increase. Reports mix these up constantly; state which one you mean.' },
@@ -1321,6 +1330,8 @@ export const GUIDES: Record<string, ToolGuide> = {
       { q: 'How do I calculate percentage difference between two values?', a: 'Divide the absolute gap by the average of the absolute magnitudes of both values, then multiply by 100. This is symmetric, so swapping the two values produces the same percentage difference.' },
       { q: 'Why are there separate fields instead of one formula?', a: 'Each question has a different unknown in a different position. Separating them avoids the most common error: rearranging the formula and dividing by the wrong base.' },
       { q: 'Can I calculate a list of percentage problems at once?', a: 'Yes. Open optional batch mode, choose one of the seven calculations, and paste one row per case with two tab- or comma-separated values. Add a text label as the first column if useful. Each row shows its substituted formula and result or its own validation error; copy one row or export all rows as CSV. Recent runs stay in this browser and can be cleared.' },
+      { q: 'How do stacked discounts work?', a: 'Each discount applies to the amount remaining after the previous step. Starting at $100, 20% off leaves $80; taking another 10% off leaves $72. That is 28% off overall, not 30%, because the second discount is calculated from $80.' },
+      { q: 'Does changing the order of percentage steps change the final amount?', a: 'For simple percentage increases and decreases applied as multipliers, the exact final amount is the same when the same rates are reordered. The intermediate amounts and the step-by-step explanation do change, so keep the displayed order when it represents a real promotion or pricing sequence.' },
     ],
     relatedNotes: [
       {
