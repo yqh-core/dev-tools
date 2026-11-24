@@ -1502,15 +1502,41 @@ export const GUIDES: Record<string, ToolGuide> = {
   },
 
   '/slugify-string': {
-    intro: 'Turns a title or filename into a slug containing only lowercase letters, digits and hyphens, for URLs and file naming.',
-    steps: ['Enter the original string', 'Read the generated slug', 'Copy and use it'],
-    notes: ['Input longer than 100,000 characters is rejected outright — slug generation is skipped rather than blocking the page', 'Non-ASCII text is transliterated or handled by rule; English words make the best slugs'],
-    example: { label: 'Fill in sample text', text: 'Hello World! 你好 2026' },
-    about: 'Turn any string into a URL-, filename- and ID-safe slug: accents transliterated, spaces and symbols replaced, lowercase throughout. Slugs keep URLs readable and stable, and this tool shows exactly what your title becomes before it hits routing or a filesystem.',
+    intro: 'Turn one title or a whole list of titles into readable, URL-safe slugs. Choose a separator, preserve or lowercase letter case, split camelCase, remove common English stop words, avoid duplicate slugs and preview the final URL.',
+    steps: [
+      'Enter one page title or phrase per line. Blank lines are ignored and each result keeps its original line number.',
+      'Choose hyphens, underscores or dots. Keep lowercase enabled for a consistent URL style, and leave camelCase splitting on when converting developer identifiers.',
+      'Optionally remove a small built-in list of common English stop words. This does not translate Chinese to Pinyin or rewrite the meaning of a title.',
+      'Set a maximum length only when your own CMS or URL policy requires it. Truncation stops at a complete word; if no complete word fits, the row shows an error instead of cutting a word in half.',
+      'Enable duplicate protection when generating a group of pages, then copy all slugs or download TXT/CSV results.',
+    ],
+    notes: [
+      'The current input safety limit is 100,000 characters and the batch limit is 1,000 non-empty lines. Oversized batches are rejected rather than silently dropping rows.',
+      'The optional stop-word list is English-only and can be too aggressive for some phrases. Review the output before publishing.',
+      'A slug is not guaranteed to be unique across your whole website or CMS. The duplicate option only makes entries unique within the current batch.',
+      'Changing an existing URL can break bookmarks and external links. Keep established URLs stable or add a permanent redirect when a route must change.',
+      'There is no universal character count that guarantees a better Google ranking. Prefer concise, descriptive URLs that match your site structure.',
+    ],
+    example: { label: 'Try a small batch', text: 'How to Build a Better API\nThe Complete Guide to URL Slugs\nDéjà Vu and Unicode' },
+    about: 'A URL slug is the readable final part of a web address. This tool turns titles into URL-friendly strings and makes common publishing tasks repeatable across many pages. It uses the project’s pinned slugify library for Unicode transliteration and word normalization, then adds practical batch controls: separator choice, optional English stop-word removal, duplicate handling, whole-word length limits and a base URL preview. It runs in your browser and does not submit your title list to a server.',
+    articleOnlySections: [
+      {
+        title: 'How to choose a URL slug that stays useful',
+        text: 'Start with the words that identify the page topic and remove punctuation that does not help a reader understand the destination. Hyphens are a familiar default, while underscores or dots may be required by an existing publishing convention. A short slug is not automatically better: preserve the important subject words, avoid repeated filler and keep the path consistent with the site hierarchy. Do not change an established URL only to shave off a few characters; update internal links and add a permanent redirect if a route genuinely needs to move.',
+      },
+      {
+        title: 'Should you remove stop words or set a maximum length?',
+        text: 'Treat both as editorial options rather than ranking rules. Removing words such as “the” or “and” can make some English titles cleaner, but it may also change a phrase’s meaning or readability. Maximum length is useful when a CMS or your team has a documented constraint; this generator truncates at a word boundary so it does not cut a word in half. Google does not publish a universal slug character limit that guarantees rankings, so choose clarity and URL stability over an arbitrary number.',
+      },
+    ],
     faqs: [
-      { q: 'Why do URLs use slugs instead of titles?', a: 'Titles contain spaces, punctuation and encodable characters that make URLs long and brittle. A slug is one safe token that still reads — better for users, sharing and SEO than an opaque ID.' },
-      { q: 'What happens to accented characters?', a: 'They are transliterated to their base form (é to e, ü to u) so the slug stays ASCII-safe. If you need to preserve accents in URLs, modern browsers can display them — but ASCII slugs are the portable choice.' },
-      { q: 'Can two different titles produce the same slug?', a: 'Yes — "Café!" and "cafe" both become "cafe". That is why systems append IDs or dates when uniqueness matters; the slug guarantees safety and readability, not uniqueness.' },
+      { q: 'Can I generate slugs for many titles at once?', a: 'Yes. Put one title per line. The tool ignores blank lines, shows each result with its source line number and supports copy-all, TXT and CSV output.' },
+      { q: 'Which separator should I use: hyphen, underscore or dot?', a: 'Hyphens are a familiar, readable default for web paths. Use underscores or dots when your product, router or publishing convention specifically calls for them, and keep the choice consistent across related pages.' },
+      { q: 'Does a shorter slug automatically rank higher?', a: 'No. There is no universal character-count threshold that guarantees a ranking improvement. Use a concise, descriptive path, include the topic naturally and avoid changing URLs without a redirect plan.' },
+      { q: 'What does stop-word removal do?', a: 'It optionally removes a small built-in set of common English words such as “the”, “and” and “to”. It does not remove words from other languages, and if every word would be removed the original generated slug is kept.' },
+      { q: 'Will the duplicate option make every site URL unique?', a: 'No. It adds numeric suffixes to duplicates within the current input batch. A site-wide CMS or database must still enforce uniqueness against existing routes.' },
+      { q: 'Does this tool translate Chinese titles into Pinyin?', a: 'No Pinyin conversion is claimed. The underlying slugify dependency transliterates supported scripts according to its own language rules; review non-Latin output before publishing.' },
+      { q: 'What happens when I set a maximum length?', a: 'The tool keeps complete words up to the selected limit. If even the first word is longer than the limit, it reports that no complete word fits instead of cutting the word in the middle.' },
     ],
   },
 
