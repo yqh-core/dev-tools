@@ -645,6 +645,9 @@ export const GUIDES: Record<string, ToolGuide> = {
       { q: 'Does key order affect the result?', a: 'No. JSON objects are unordered key-value pairs, so { "a": 1, "b": 2 } equals { "b": 2, "a": 1 }. Arrays are ordered by definition — reordering array elements is reported as a change.' },
       { q: 'Why do two values that look identical show as different?', a: 'Usually the type changed: 1 (number) and "1" (string), or true and "true", render similarly but are different JSON values. A textual diff hides that; a structural diff points at the type mismatch.' },
       { q: 'Can I compare large documents?', a: 'Everything runs in your browser, so the practical limit is tab memory — documents of a few megabytes are fine.' },
+      { q: 'Are array elements matched by their values or IDs?', a: 'They are compared by position. If a record is inserted near the beginning, later indexes can appear changed. This tool does not provide ID-based array matching or an ignore-order option.' },
+      { q: 'Is a missing property the same as null?', a: 'No. A missing property is reported as added or removed; null is an explicit value. The same applies to different JSON types, such as the number 1 and the string "1".' },
+      { q: 'Can I compare a JSON file without pasting it?', a: 'The current interface accepts text in two input fields. Open the file locally and paste its contents; direct file upload is not currently provided.' },
     ],
     articleOnlySections: [
       {
@@ -659,11 +662,6 @@ export const GUIDES: Record<string, ToolGuide> = {
         title: 'Input and numeric compatibility boundaries',
         text: 'Both inputs are parsed with JSON5, so comments and trailing commas are accepted even though the comparison is about JSON data rather than source text. Parsing uses JavaScript numbers: integers larger than 2^53 minus 1 may lose precision, so quote long identifiers such as database IDs before comparing them. Comparison runs in the browser tab; very large documents are limited by the memory available to that tab.',
       },
-    ],
-    faqs: [
-      { q: 'Are array elements matched by their values or IDs?', a: 'They are compared by position. If a record is inserted near the beginning, later indexes can appear changed. This tool does not provide ID-based array matching or an ignore-order option.' },
-      { q: 'Is a missing property the same as null?', a: 'No. A missing property is reported as added or removed; null is an explicit value. The same applies to different JSON types, such as the number 1 and the string "1".' },
-      { q: 'Can I compare a JSON file without pasting it?', a: 'The current interface accepts text in two input fields. Open the file locally and paste its contents; direct file upload is not currently provided.' },
     ],
     example: { label: 'Fill in sample JSON', text: '{ "name": "DigDevBox", "version": 1, "tags": ["a", "b"] }' },
     relatedNotes: [
