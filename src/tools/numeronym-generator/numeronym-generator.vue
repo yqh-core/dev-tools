@@ -4,6 +4,7 @@ import {
   ESTABLISHED_NUMERONYMS,
   NUMERONYM_CONTEXT,
   countLetters,
+  describeNumeronym,
   evaluate,
   tokenizeNumeronymInput,
 } from './numeronym-generator.service';
@@ -14,12 +15,16 @@ const word = ref('');
 const tokens = computed(() => tokenizeNumeronymInput(word.value));
 const singleInput = computed(() => tokens.value[0] ?? word.value.trim());
 const result = computed(() => evaluate(singleInput.value));
+const singleBreakdown = computed(() => result.value.mode === 'encode'
+  ? describeNumeronym(singleInput.value)
+  : undefined);
 const batchResults = computed(() => tokens.value.map((input, index) => {
   const itemResult = evaluate(input);
   return {
     index,
     input,
     letterCount: itemResult.mode === 'encode' ? countLetters(input) : null,
+    breakdown: itemResult.mode === 'encode' ? describeNumeronym(input) : undefined,
     result: itemResult,
   };
 }));
@@ -99,6 +104,7 @@ function batchResultLabel(item: (typeof batchResults.value)[number]): string {
           <tr>
             <th text-left>Input</th>
             <th text-right>Letters</th>
+            <th text-left>{{ t('tools.numeronym-generator.breakdownHeader') }}</th>
             <th text-left>Numeronym or meaning</th>
           </tr>
         </thead>
@@ -106,6 +112,16 @@ function batchResultLabel(item: (typeof batchResults.value)[number]): string {
           <tr v-for="item in batchResults" :key="item.index">
             <td><span font-mono>{{ item.input }}</span></td>
             <td text-right>{{ item.letterCount ?? '—' }}</td>
+            <td class="breakdown-cell">
+              <template v-if="item.breakdown && !item.breakdown.unchanged">
+                <code>{{ item.breakdown.first }}</code>
+                + <strong>{{ item.breakdown.middleCount }}</strong> {{ t('tools.numeronym-generator.middleLetters') }}
+                + <code>{{ item.breakdown.last }}</code>
+                = <code>{{ item.breakdown.output }}</code>
+              </template>
+              <span v-else-if="item.breakdown">{{ t('tools.numeronym-generator.shortWordBreakdown') }}</span>
+              <span v-else>—</span>
+            </td>
             <td>{{ batchResultLabel(item) }}</td>
           </tr>
         </tbody>
@@ -122,6 +138,17 @@ function batchResultLabel(item: (typeof batchResults.value)[number]): string {
       <icon-mdi-arrow-down text-30px />
       <input-copyable :value="result.output" size="large" readonly placeholder="Your numeronym will be here, e.g. 'i18n'" test-id="numeronym" />
       <p text-sm opacity-60 data-test-id="single-letter-count">{{ countLetters(singleInput) }} letters counted</p>
+      <p
+        v-if="singleBreakdown && !singleBreakdown.unchanged"
+        text-xs
+        opacity-70
+        data-test-id="numeronym-breakdown"
+      >
+        <code>{{ singleBreakdown.first }}</code>
+        + <strong>{{ singleBreakdown.middleCount }}</strong> {{ t('tools.numeronym-generator.middleLetters') }}
+        + <code>{{ singleBreakdown.last }}</code>
+        = <code>{{ singleBreakdown.output }}</code>
+      </p>
       <p v-if="countLetters(singleInput) <= 3" text-xs opacity-70 data-test-id="short-word-note">
         {{ t('tools.numeronym-generator.shortWordNote') }}
       </p>
