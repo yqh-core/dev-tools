@@ -1,6 +1,6 @@
 import type { HeaderAnalysis } from './http-headers.models';
 
-export type HeaderRemediationPlatform = 'nginx' | 'apache' | 'caddy' | 'cloudflare-pages';
+export type HeaderRemediationPlatform = 'nginx' | 'apache' | 'caddy' | 'vercel' | 'cloudflare-pages';
 
 const SAFE_HEADER_FIXES = {
   nosniff: {
@@ -42,11 +42,26 @@ export function buildHeaderRemediation(
   ].filter((item): item is (typeof SAFE_HEADER_FIXES)[keyof typeof SAFE_HEADER_FIXES] => Boolean(item));
 
   if (directives.length === 0) {
+    if (platform === 'vercel') {
+      return JSON.stringify({ headers: [] }, null, 2);
+    }
     return [
       '# No low-context header additions are suggested for this response.',
       '# Review the individual findings for app-specific configuration.',
       '# CSP, CORS, cookies, frame policy and Permissions-Policy are intentionally not generated here.',
     ].join('\n');
+  }
+
+  if (platform === 'vercel') {
+    return JSON.stringify({
+      headers: [{
+        source: '/(.*)',
+        headers: directives.map(directive => ({
+          key: directive.name,
+          value: directive.value,
+        })),
+      }],
+    }, null, 2);
   }
 
   const lines: string[] = [
