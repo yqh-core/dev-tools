@@ -379,6 +379,8 @@ jobs:
               !percentageGuideDescription || !percentageToolDescription ||
               percentageGuideDescription === percentageToolDescription ||
               percentageGuideCanonical !== origin + percentageGuidePath ||
+              !percentageGuideResult.body.includes('20% off gives $80; another 10% off gives $72') ||
+              !percentageGuideResult.body.includes('28% of the original amount—not 30%') ||
               /<meta[^>]+name=["']robots["'][^>]+content=["'][^"']*noindex/i.test(percentageGuideResult.body)) {
             throw new Error('Percentage Calculator guide must be live, indexable, self-canonical and have a distinct meta description');
           }
