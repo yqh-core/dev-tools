@@ -64,21 +64,33 @@ function trimAtWordBoundary(
 
 function uniqueSlug(
   value: string,
-  used: Map<string, number>,
+  occurrences: Map<string, number>,
+  usedSlugs: Set<string>,
   options: SlugifyBatchOptions,
 ): { value: string; truncated: boolean } {
   const key = value.toLowerCase();
-  const nextOccurrence = (used.get(key) ?? 0) + 1;
-  const suffix = nextOccurrence > 1 ? `${options.separator}${nextOccurrence}` : '';
-  const baseLimit = options.maxLength > 0
-    ? Math.max(0, options.maxLength - suffix.length)
-    : 0;
-  const trimmed = trimAtWordBoundary(value, baseLimit, options.separator);
+  let occurrence = occurrences.get(key) ?? 0;
 
-  return {
-    value: `${trimmed.value}${suffix}`,
-    truncated: trimmed.truncated,
-  };
+  while (true) {
+    const suffix = occurrence > 0 ? `${options.separator}${occurrence + 1}` : '';
+    const baseLimit = options.maxLength > 0
+      ? Math.max(0, options.maxLength - suffix.length)
+      : 0;
+    const trimmed = trimAtWordBoundary(value, baseLimit, options.separator);
+    const candidate = `${trimmed.value}${suffix}`;
+
+    if (!candidate) {
+      return { value: '', truncated: trimmed.truncated };
+    }
+
+    if (!usedSlugs.has(candidate.toLowerCase())) {
+      occurrences.set(key, occurrence + 1);
+      usedSlugs.add(candidate.toLowerCase());
+      return { value: candidate, truncated: trimmed.truncated };
+    }
+
+    occurrence += 1;
+  }
 }
 
 /**
@@ -104,6 +116,7 @@ export function runSlugifyBatch(
   }
 
   const used = new Map<string, number>();
+  const usedSlugs = new Set<string>();
 
   return nonEmptyLines.map(({ source, lineNumber }) => {
     const generated = slugify(source, {
@@ -130,7 +143,7 @@ export function runSlugifyBatch(
     let truncated = false;
 
     if (options.unique) {
-      const result = uniqueSlug(withoutStopWords, used, options);
+      const result = uniqueSlug(withoutStopWords, used, usedSlugs, options);
       slug = result.value;
       truncated = result.truncated;
       if (slug) {
