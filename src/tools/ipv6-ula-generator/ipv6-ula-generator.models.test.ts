@@ -43,8 +43,8 @@ describe('IPv6 ULA generator models', () => {
   describe('generateRandomUlaPrefixes', () => {
     it('generates deterministic test vectors from an injected five-byte source', () => {
       const values = [
-        new Uint8Array([1, 35, 69, 103, 137]),
-        new Uint8Array([170, 187, 204, 221, 238]),
+        new Uint8Array([0x01, 0x23, 0x45, 0x67, 0x89]),
+        new Uint8Array([0xAA, 0xBB, 0xCC, 0xDD, 0xEE]),
       ];
       const source = () => values.shift()!;
 
