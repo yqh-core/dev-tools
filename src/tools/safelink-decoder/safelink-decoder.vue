@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { decodeSafeLinksURL } from './safelink-decoder.service';
+import { decodeSafeLinksBatch, decodeSafeLinksURL } from './safelink-decoder.service';
 import TextareaCopyable from '@/components/TextareaCopyable.vue';
 
 const { t } = useI18n();
@@ -13,13 +13,6 @@ const outputDecodedUrl = computed(() => {
     return e.toString();
   }
 });
-
-interface SafeLinksBatchResult {
-  line: number;
-  input: string;
-  decodedUrl: string | null;
-  error: string | null;
-}
 
 const batchInput = ref('');
 const batchResults = ref<SafeLinksBatchResult[]>([]);
@@ -42,29 +35,7 @@ watch(batchInput, () => {
 });
 
 function decodeBatch(): void {
-  const rows = batchInput.value
-    .split(/\\r?\\n/)
-    .map((value, index) => ({ line: index + 1, value: value.trim() }))
-    .filter(row => row.value.length > 0);
-
-  batchResults.value = rows.map(({ line, value }) => {
-    try {
-      return {
-        line,
-        input: value,
-        decodedUrl: decodeSafeLinksURL(value),
-        error: null,
-      };
-    }
-    catch (error) {
-      return {
-        line,
-        input: value,
-        decodedUrl: null,
-        error: error instanceof Error ? error.message : String(error),
-      };
-    }
-  });
+  batchResults.value = decodeSafeLinksBatch(batchInput.value);
 }
 
 async function copySuccessfulBatchResults(): Promise<void> {
