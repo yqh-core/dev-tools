@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { decodeSafeLinksBatch, decodeSafeLinksURL } from './safelink-decoder.service';
+import { decodeSafeLinksBatch, decodeSafeLinksURL, inspectSafeLinksURL } from './safelink-decoder.service';
 
 describe('safelink-decoder', () => {
   describe('decodeSafeLinksURL', () => {
@@ -87,6 +87,21 @@ describe('safelink-decoder', () => {
   });
 });
 
+describe('inspectSafeLinksURL', () => {
+  it('returns destination scheme, host and nested wrapper depth without changing the decoded URL', () => {
+    const destination = 'https://example.org:8443/guide';
+    const inner = 'https://eur01.safelinks.protection.outlook.com/?url=' + encodeURIComponent(destination);
+    const outer = 'https://nam01.safelinks.protection.outlook.com/?url=' + encodeURIComponent(inner);
+
+    expect(inspectSafeLinksURL(outer)).toEqual({
+      url: destination,
+      scheme: 'https',
+      host: 'example.org:8443',
+      depth: 2,
+    });
+  });
+});
+
 describe('decodeSafeLinksBatch', () => {
   it('ignores blank lines, preserves source line numbers, and isolates invalid rows', () => {
     const valid = 'https://nam01.safelinks.protection.outlook.com/?url=https%3A%2F%2Fexample.com%2Fdocs';
@@ -102,6 +117,9 @@ describe('decodeSafeLinksBatch', () => {
       input: valid,
       decodedUrl: 'https://example.com/docs',
       error: null,
+      scheme: 'https',
+      host: 'example.com',
+      depth: 1,
     });
     expect(results[1]).toMatchObject({
       input: invalid,
@@ -112,6 +130,9 @@ describe('decodeSafeLinksBatch', () => {
       input: nested,
       decodedUrl: 'https://example.org/guide',
       error: null,
+      scheme: 'https',
+      host: 'example.org',
+      depth: 2,
     });
   });
 
