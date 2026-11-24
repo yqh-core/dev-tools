@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { diff, flattenDifferences, hasValidArrayIds } from './json-diff.models';
+import { diff, flattenDifferences, hasValidArrayIds, parseIgnorePaths } from './json-diff.models';
 
 describe('json-diff models', () => {
   describe('diff', () => {
@@ -88,6 +88,45 @@ describe('json-diff models', () => {
     expect(result.map(item => item.path)).toEqual(['$[\"user\"][\"name\"]', '$[\"user\"][\"active\"]']);
     expect(result.map(item => item.status)).toEqual(['updated', 'added']);
   });
+  describe('JSON Pointer ignore paths', () => {
+    it('parses exact JSON Pointer paths and removes duplicates', () => {
+      expect(parseIgnorePaths('/meta/requestId\n/meta/requestId\n/items/0/updatedAt')).toEqual({
+        paths: ['/meta/requestId', '/items/0/updatedAt'],
+      });
+    });
+
+    it('requires a leading slash and valid RFC 6901 escapes', () => {
+      expect(parseIgnorePaths('meta/requestId').error).toContain('must start with /');
+      expect(parseIgnorePaths('/meta/~2key').error).toContain('escape ~ as ~0');
+      expect(parseIgnorePaths('/meta/~').error).toContain('escape ~ as ~0');
+    });
+
+    it('enforces the 100-path and 8 KB limits', () => {
+      expect(parseIgnorePaths(Array.from({ length: 101 }, (_, index) => ['/field', index].join('')).join('\n')).error)
+        .toContain('no more than 100');
+      expect(parseIgnorePaths(['/', 'a'.repeat(8192)].join('')).error)
+        .toContain('8192 characters or fewer');
+    });
+
+    it('ignores an exact nested subtree while preserving sibling differences', () => {
+      const changes = flattenDifferences(diff(
+        { meta: { requestId: 'old', status: 200 }, user: { name: 'Ada' } },
+        { meta: { requestId: 'new', status: 500 }, user: { name: 'Grace' } },
+        { onlyShowDifferences: true, ignorePaths: ['/meta/requestId'] },
+      ));
+      expect(changes.map(item => item.path)).toEqual(['$["meta"]["status"]', '$["user"]["name"]']);
+    });
+
+    it('escapes slash and tilde in object keys and matches numeric array positions', () => {
+      const changes = flattenDifferences(diff(
+        { 'a/b~c': { items: [{ updatedAt: 'old', value: 1 }] } },
+        { 'a/b~c': { items: [{ updatedAt: 'new', value: 2 }] } },
+        { onlyShowDifferences: true, ignorePaths: ['/a~1b~0c/items/0/updatedAt'] },
+      ));
+      expect(changes.map(item => item.path)).toEqual(['$["a/b~c"]["items"][0]["value"]']);
+    });
+  });
+
   describe('array comparison modes', () => {
     it('ignores order while preserving duplicate multiplicity', () => {
       const reordered = flattenDifferences(diff(
@@ -113,6 +152,15 @@ describe('json-diff models', () => {
         { onlyShowDifferences: true, arrayMode: 'ignore-order' },
       ));
       expect(result).toEqual([]);
+    });
+
+    it('ignores selected nested fields when matching reordered arrays by value', () => {
+      const changes = flattenDifferences(diff(
+        { items: [{ id: 1, updatedAt: 'old', name: 'Ada' }, { id: 2, name: 'Grace' }] },
+        { items: [{ id: 2, name: 'Grace' }, { id: 1, updatedAt: 'new', name: 'Ada' }] },
+        { onlyShowDifferences: true, arrayMode: 'ignore-order', ignorePaths: ['/items/0/updatedAt'] },
+      ));
+      expect(changes).toEqual([]);
     });
 
     it('matches objects by a stable ID rather than array position', () => {

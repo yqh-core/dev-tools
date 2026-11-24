@@ -3,7 +3,7 @@ import JSON5 from 'json5';
 import { nextTick, onBeforeUnmount, ref, shallowRef, watch } from 'vue';
 
 import DiffsViewer from './diff-viewer/diff-viewer.vue';
-import { type ArrayComparisonMode, diff, flattenDifferences } from './json-diff.models';
+import { type ArrayComparisonMode, diff, flattenDifferences, parseIgnorePaths } from './json-diff.models';
 import type { Difference } from './json-diff.types';
 import type { JsonDiffWorkerResponse } from './json-diff.worker.types';
 import { isNotThrowing } from '@/utils/boolean';
@@ -22,6 +22,8 @@ const showAllChanges = ref(false);
 const focusedPath = ref('');
 const arrayMode = ref<ArrayComparisonMode>('index');
 const arrayIdKey = ref('id');
+const ignorePathsText = ref('');
+const ignorePathsResult = computed(() => parseIgnorePaths(ignorePathsText.value));
 const leftJson = shallowRef<unknown>();
 const rightJson = shallowRef<unknown>();
 const differenceTree = shallowRef<Difference | null>(null);
@@ -60,6 +62,10 @@ function compareInputs() {
 
   const leftText = rawLeftJson.value;
   const rightText = rawRightJson.value;
+  if (ignorePathsResult.value.error) {
+    comparisonError.value = ignorePathsResult.value.error;
+    return;
+  }
   if (!leftText.trim() || !rightText.trim()) {
     return;
   }
@@ -68,6 +74,7 @@ function compareInputs() {
     onlyShowDifferences: false,
     arrayMode: arrayMode.value,
     arrayIdKey: arrayIdKey.value,
+    ignorePaths: ignorePathsResult.value.paths,
   };
   const totalCharacters = leftText.length + rightText.length;
 
@@ -134,7 +141,7 @@ function compareInputs() {
   }
 }
 
-watch([rawLeftJson, rawRightJson, arrayMode, arrayIdKey], () => {
+watch([rawLeftJson, rawRightJson, arrayMode, arrayIdKey, ignorePathsText], () => {
   if (debounceHandle) {
     clearTimeout(debounceHandle);
   }
@@ -359,6 +366,24 @@ function downloadReport() {
     <p mt-2 text-xs opacity-70>
       Ignore-order compares exact values as a multiset: duplicate items still count. ID mode matches objects by the selected key and shows field changes without treating reordering as a change.
     </p>
+  </c-card>
+
+  <c-card title="Ignore specific paths" mt-3 data-test-id="ignore-path-controls">
+    <p mb-2 text-sm op-70>
+      Enter one exact JSON Pointer per line to ignore that subtree in both documents. Escape / as ~1 and ~ as ~0. Wildcards are not supported; up to 100 paths and 8 KB total.
+    </p>
+    <c-input-text
+      v-model:value="ignorePathsText"
+      label="JSON Pointer paths"
+      placeholder="/meta/requestId&#10;/items/0/updatedAt"
+      rows="4"
+      multiline
+      raw-text
+      test-id="ignore-paths"
+    />
+    <c-alert v-if="ignorePathsResult.error" type="warning" mt-2 data-test-id="ignore-path-error">
+      {{ ignorePathsResult.error }}
+    </c-alert>
   </c-card>
 
   <DiffsViewer
