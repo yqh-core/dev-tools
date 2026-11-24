@@ -7,9 +7,7 @@ describe('article-only guide content', () => {
     const page = GUIDE_ARTICLE_PAGES.find(item => item.toolPath === '/api-debugger');
     expect(page).toBeDefined();
     expect(page?.indexable).toBe(true);
-    expect(page?.sections.filter(section => section.id.startsWith('article-only-'))).toHaveLength(5);
-    expect(page?.sections.map(section => section.title)).toContain('Apply stacked discounts to the current price');
-    expect(page?.sections.map(section => section.title)).toContain('Understand step order and the final total');
+    expect(page?.sections.filter(section => section.id.startsWith('article-only-'))).toHaveLength(3);
 
     const [en, zh] = await Promise.all([loadGuides('en'), loadGuides('zh')]);
     expect(en['/api-debugger'].steps).toHaveLength(5);
@@ -24,7 +22,9 @@ describe('article-only guide content', () => {
     const page = GUIDE_ARTICLE_PAGES.find(item => item.toolPath === '/percentage-calculator');
     expect(page).toBeDefined();
     expect(page?.indexable).toBe(true);
-    expect(page?.sections.filter(section => section.id.startsWith('article-only-'))).toHaveLength(3);
+    expect(page?.sections.filter(section => section.id.startsWith('article-only-'))).toHaveLength(5);
+    expect(page?.sections.map(section => section.title)).toContain('Apply stacked discounts to the current price');
+    expect(page?.sections.map(section => section.title)).toContain('Understand step order and the final total');
     expect(page?.sections.map(section => section.title)).toContain('Choose the denominator before you calculate');
     expect(page?.sections.map(section => section.title)).toContain('Reverse a change and choose the right comparison');
   });
