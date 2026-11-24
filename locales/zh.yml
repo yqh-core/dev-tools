@@ -556,7 +556,7 @@ tools:
     additionalPauseHelp: 在处理速率和缓冲时间之外，加入预计的暂停或休息时间。
     additionalPauseResult: 额外计划暂停时间
     deadlineLabel: 目标截止时间（本地时间）
-    deadlineHelp: 可选。比较当前处理速度与按时完成所需的速度；计算已包含计划暂停时间和缓冲比例。
+    deadlineHelp: 可选。比较当前处理速度与按时完成所需的速度；计算已包含计划暂停和缓冲比例。工作日模式只统计配置的周一至周五本地工作时段。
     requiredPace: 按时完成所需速度
     currentPace: 当前处理速度
     deadlineOnTrack: 当前处理速度足以在截止时间前完成。
