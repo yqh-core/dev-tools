@@ -36,9 +36,7 @@ const ZH: Record<string, PageMeta> = {
   },
   '/about': {
     description:
-      '关于DigDevBox：项目定位、收录范围、技术栈与许可说明。'
-      + '前端采用 Vue 3 + Naive UI、Vite 构建，部署在 Cloudflare Pages；'
-      + '基于开源项目 it-tools（GPL-3.0）二次开发。',
+      "Learn what DigDevBox offers, how its browser-based tools handle data, the technologies behind the site, its open-source license and how to contact the team.",
   },
   '/privacy': {
     description:
@@ -52,8 +50,7 @@ const ZH: Record<string, PageMeta> = {
   },
   '/contact': {
     description:
-      '联系DigDevBox：工具使用问题与缺陷反馈、新工具建议、隐私与数据相关咨询、'
-      + '广告与商务合作。页内附反馈时需要提供的信息清单。',
+      "Contact DigDevBox about tool bugs, feature requests, privacy or data questions, accessibility issues, and business or advertising enquiries.",
   },
   '/tools': {
     description:
@@ -62,12 +59,8 @@ const ZH: Record<string, PageMeta> = {
   },
   '/faq': {
     description:
-      'DigDevBox 常见问题：是否收费、粘贴的内容会不会上传、手机上能不能用、'
-      + '工具结果出错或有新工具需求该找谁、无障碍问题反馈给谁、/legacy/ 是什么。',
+      "Answers about free tools, browser-local data handling, mobile use, bug reports, new tool requests, accessibility and the legacy tools area.",
   },
-};
-
-const EN: Record<string, PageMeta> = {
   '/': {
     description:
       `${TOOL_COUNT} free developer tools — JSON formatter, JWT decoder, regex tester, UUID & timestamp converters. `
