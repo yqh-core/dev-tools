@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { matchRegex } from './regex-tester.service';
+import { evaluateRegexTestCases, matchRegex } from './regex-tester.service';
 
 const regexesData = [
   {
@@ -107,8 +107,32 @@ describe('regex-tester', () => {
 
 describe('regex-tester named test cases', () => {
   it('reports positive and negative expectations independently', async () => {
+    const result = evaluateRegexTestCases('^ORD-[0-9]{4}
+      { id: '1', name: 'valid order', text: 'ORD-0042', shouldMatch: true },
+      { id: '2', name: 'too short', text: 'ORD-42', shouldMatch: false },
+      { id: '3', name: 'wrong prefix', text: 'XORD-0001', shouldMatch: false },
+    ]);
+    expect(result.map(item => item.passed)).toEqual([true, true, true]);
+    expect(result.map(item => item.actualMatch)).toEqual([true, false, false]);
+  });
+
+  it('returns first match and capture details for a passing case', async () => {
     const { evaluateRegexTestCases } = await import('./regex-tester.service');
-    const result = evaluateRegexTestCases('^ORD-[0-9]{4}$', '', [
+    const [result] = evaluateRegexTestCases('(?<id>ORD-[0-9]{4})', 'd', [
+      { id: '1', name: 'capture order', text: 'pending ORD-0042', shouldMatch: true },
+    ]);
+    expect(result.firstMatch?.value).toBe('ORD-0042');
+    expect(result.firstMatch?.groups[0]).toMatchObject({ name: 'id', value: 'ORD-0042', start: 8, end: 16 });
+  });
+
+  it('marks invalid patterns as errors rather than false test results', async () => {
+    const { evaluateRegexTestCases } = await import('./regex-tester.service');
+    expect(() => evaluateRegexTestCases('(', 'd', [
+      { id: '1', name: 'invalid', text: 'x', shouldMatch: true },
+    ])).toThrow();
+  });
+});
+, 'd', [
       { id: '1', name: 'valid order', text: 'ORD-0042', shouldMatch: true },
       { id: '2', name: 'too short', text: 'ORD-42', shouldMatch: false },
       { id: '3', name: 'wrong prefix', text: 'XORD-0001', shouldMatch: false },
