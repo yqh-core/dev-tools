@@ -137,6 +137,7 @@ describe('evidence-backed SEO keyword targets', () => {
     ['/case-converter', 'text case converter', 'convert'],
     ['/list-converter', 'list converter', 'convert'],
     ['/image-color-picker', 'image color picker', 'inspect'],
+    ['/http-headers', 'http headers checker online', 'HTTP Header Analyzer — HAR Import & Security Score'],
   ])('keeps newly landed P1 route %s capability-matched', (path, keyword, intent) => {
     const entry = CLUSTER_KEYWORD_ENTRIES.find(item => item.path === path);
 
