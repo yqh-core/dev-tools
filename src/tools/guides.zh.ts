@@ -2248,4 +2248,46 @@ export const GUIDES: Record<string, ToolGuide> = {
       { q: '页面需要联网吗？', a: '需要——事件在页面打开时实时拉取。请求失败时页面会明确提示，而不是展示过期数据。' },
     ],
   },
+
+  '/redirect-generator': {
+    intro: '将旧 URL 映射到替代目标页面，为 Apache、Nginx 或 Cloudflare 批量生成重定向规则。导出前会先检查整份映射清单。',
+    steps: [
+      '粘贴两列 CSV 或制表符分隔清单，第一列是旧 URL，第二列是目标 URL。也可以每行输入一条「旧 URL -> 新 URL」，或导入 CSV/TSV 文件。',
+      '选择响应状态码。永久迁移使用 301 或 308；临时调整使用 302 或 307。',
+      '选择 Apache .htaccess、Nginx server block 或 Cloudflare Bulk Redirect CSV。映射中包含相对路径时，Cloudflare 格式需要填写站点源地址。',
+      '检查重复来源、无效路径、自重定向、循环和重定向链警告。导出前先修正标记为错误的行。',
+      '复制生成的规则或下载文件，部署前先在预发布主机验证配置。',
+    ],
+    notes: [
+      '分析器只检查你提交的映射，不会发起网络请求、验证目标地址是否返回 HTTP 200，也不会读取服务器上已有的重定向配置。',
+      '重定向链检测仅限当前输入中的路径。若目标地址还会被清单之外的 CDN 或服务器规则重定向，本工具无法发现。',
+      'Cloudflare Bulk Redirect CSV 不包含表头，且使用完整 URL。本工具将 include-subdomains、subpath-matching 和 preserve-path-suffix 等可选字段固定输出为 FALSE。',
+      'Cloudflare Bulk Redirect 是静态来源到目标的映射，不支持正则替换。需要模式匹配或动态重写时，请使用 Apache 或 Nginx 等服务器配置。',
+      '搜索引擎和访客已经使用永久重定向后，再修改映射可能需要时间才能反映。尽量保持映射稳定，并避免不必要的重定向链。',
+    ],
+    example: {
+      label: '加载重定向映射示例',
+      text: 'Source URL,Target URL\n/old-product,https://example.com/products/new-product\n/legacy-guide,/guides/current-guide\n/sale,/offers',
+    },
+    about: '重定向映射将旧 URL 连接到替代它的新页面，常用于网站改版、URL 结构调整、内容合并和域名迁移。本工具把一批来源与目标地址转换为 Apache mod_alias、Nginx 或 Cloudflare Bulk Redirect CSV 的精确路径规则。导出前会检查 URL 格式、重复来源、自重定向、循环以及可避免的重定向链。解析和生成全部在浏览器本地完成，映射清单不会上传。',
+    articleOnlySections: [
+      {
+        title: '根据迁移类型选择重定向状态码',
+        text: '目标页面将永久替代旧页面时使用 301 或 308；仅临时调整时使用 302 或 307。307 和 308 会保留请求方法，而客户端对非 GET 请求的 301 和 302 处理可能不同。普通页面迁移也应明确这是永久还是临时变更，并使用应用实际接收的请求方式测试行为。',
+      },
+      {
+        title: '网站迁移时尽量避免重定向链',
+        text: '让每个旧 URL 直接指向最终目标，而不是经过多个中间地址。更新站内链接、canonical 引用和 XML sitemap，让它们直接使用目标 URL，不要长期依赖重定向。工具能够发现本次提交映射中的链和循环，但无法读取 CDN、应用路由或其他服务器配置中的规则。',
+      },
+    ],
+    faqs: [
+      { q: '重定向生成器支持哪些输入格式？', a: '支持逗号分隔 CSV、制表符分隔的两列数据，或每行一条「旧 URL -> 新 URL」映射，也可以导入 CSV/TSV 文件。Source URL、Target URL 等表头会自动识别。' },
+      { q: '应该选择 301、302、307 还是 308？', a: '永久迁移使用 301 或 308，临时调整使用 302 或 307。307 和 308 会保留请求方法；当应用需要区分 POST 等请求时，应考虑这一点。' },
+      { q: '工具会检查新 URL 是否真实存在吗？', a: '不会。它只检查 URL 格式和当前映射表中的关系，不会发起网络请求，也不会确认目标页面能否成功访问。部署前请单独检查目标 URL。' },
+      { q: '如何检测重定向循环和重定向链？', a: '分析器会沿着当前批次中的路径映射进行追踪。循环会标记为错误；某个目标仍然指向另一条已提交的重定向时，会提示可能存在重定向链。清单之外的规则不可见。' },
+      { q: 'Cloudflare CSV 会包含哪些字段？', a: '导出包含 Cloudflare Bulk Redirect 的七列：来源 URL、目标 URL、状态码、保留查询参数、包含子域名、子路径匹配和保留路径后缀。文件不带表头，相对路径会使用你填写的站点源地址补全。' },
+      { q: 'Cloudflare Bulk Redirect 支持正则表达式吗？', a: '不支持。Cloudflare Bulk Redirect 是静态映射。需要精确路径服务器规则可使用 Apache 或 Nginx 输出；需要模式替换时应使用其他重写机制。' },
+      { q: '生成 301 就能保证排名提升吗？', a: '不能。301 是网站迁移时的技术信号，不是排名保证。只在页面永久迁移时使用，并指向最相关的最终目标，同时更新站内链接和 sitemap。' },
+    ],
+  },
 };
