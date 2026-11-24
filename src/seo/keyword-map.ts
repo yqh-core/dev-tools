@@ -495,7 +495,7 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     competition: 'medium',
     landed: true,
     lockedTitle: 'Basic Auth Generator & Decoder — HTTP Header',
-    note: 'Bing Webmaster 90d: page 33 impressions, avg position 6.24; exact query `basic auth generator` 17 impressions, avg position 5.41; zero clicks. Shortened the title while retaining the primary phrase and added decoder intent; tightened the description to a concise generation/decoding + HTTPS security promise. Re-measure after recrawl; no CTR lift claimed.',
+    note: 'Bing Webmaster 90d baseline showed the page near average position 5–6 with zero clicks. Existing generator and decoder flows are preserved; this iteration adds request-URL-driven cURL, Node.js fetch and Python requests examples with credentials kept in environment variables. Current period Bing page report: 20 impressions, avg position 5.75, zero clicks; measure after recrawl; no CTR lift claimed.',
   },
   {
     path: '/safelink-decoder',

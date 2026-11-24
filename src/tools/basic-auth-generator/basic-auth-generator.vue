@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { decodeBasicAuthHeader } from './basic-auth-generator.service';
+import { buildBasicAuthExamples, decodeBasicAuthHeader } from './basic-auth-generator.service';
 import { useCopy } from '@/composable/copy';
 import { textToBase64 } from '@/utils/base64';
 
@@ -11,7 +11,18 @@ const usernameError = computed(() => username.value.includes(':')
 const header = computed(() => usernameError.value
   ? ''
   : `Authorization: Basic ${textToBase64(`${username.value}:${password.value}`)}`);
-const curlExample = 'curl --user "$BASIC_AUTH_USERNAME:$BASIC_AUTH_PASSWORD" https://example.com/';
+const requestUrl = ref('https://api.example.com/v1/resource');
+const examplesState = computed(() => {
+  try {
+    return { examples: buildBasicAuthExamples(requestUrl.value), error: '' };
+  }
+  catch (error: any) {
+    return { examples: null, error: error.message };
+  }
+});
+const curlExample = computed(() => examplesState.value.examples?.curl ?? '');
+const nodeFetchExample = computed(() => examplesState.value.examples?.nodeFetch ?? '');
+const pythonRequestsExample = computed(() => examplesState.value.examples?.pythonRequests ?? '');
 
 const decodeInput = ref('');
 const showDecodedPassword = ref(false);
@@ -33,6 +44,8 @@ const decodedCredentials = computed(() => {
 
 const { copy: copyHeader } = useCopy({ source: header, text: 'Header copied to the clipboard' });
 const { copy: copyCurl } = useCopy({ source: curlExample, text: 'cURL example copied to the clipboard' });
+const { copy: copyNodeFetch } = useCopy({ source: nodeFetchExample, text: 'Node.js fetch example copied to the clipboard' });
+const { copy: copyPythonRequests } = useCopy({ source: pythonRequestsExample, text: 'Python requests example copied to the clipboard' });
 </script>
 
 <template>
@@ -109,14 +122,57 @@ const { copy: copyCurl } = useCopy({ source: curlExample, text: 'cURL example co
       <p class="mb-2">For the sample credentials demo and example, the encoded value is:</p>
       <pre class="mb-3 overflow-x-auto rounded bg-gray-500:5 p-3"><code>Authorization: Basic ZGVtbzpleGFtcGxl</code></pre>
       <p class="mb-3">
-        The same request can be made with curl. Set the environment variables in your shell or secret manager first:
+        Use a request URL to generate copy-ready examples for common developer clients. Credentials stay in environment variables in the snippets; only the header itself is generated in this browser.
       </p>
-      <pre class="mb-2 overflow-x-auto rounded bg-gray-500:5 p-3"><code data-test-id="basic-auth-curl-example">{{ curlExample }}</code></pre>
-      <div mb-3 flex justify-start>
-        <c-button size="small" @click="copyCurl()">
-          Copy cURL example
-        </c-button>
-      </div>
+      <c-input-text
+        v-model:value="requestUrl"
+        :label="$t('tools.basic-auth-generator.requestUrl')"
+        :placeholder="$t('tools.basic-auth-generator.requestUrlPlaceholder')"
+        raw-text
+        clearable
+        type="url"
+        mb-3
+        data-test-id="basic-auth-request-url"
+      />
+      <p
+        v-if="examplesState.error"
+        role="alert"
+        class="mb-3 text-error"
+        data-test-id="basic-auth-request-url-error"
+      >
+        {{ $t('tools.basic-auth-generator.invalidRequestUrl') }}
+      </p>
+      <template v-else-if="examplesState.examples">
+        <h4 class="mb-2 text-base font-semibold">
+          {{ $t('tools.basic-auth-generator.curl') }}
+        </h4>
+        <pre class="mb-2 overflow-x-auto rounded bg-gray-500:5 p-3"><code data-test-id="basic-auth-curl-example">{{ curlExample }}</code></pre>
+        <div mb-4 flex justify-start>
+          <c-button size="small" @click="copyCurl()">
+            Copy cURL example
+          </c-button>
+        </div>
+
+        <h4 class="mb-2 text-base font-semibold">
+          {{ $t('tools.basic-auth-generator.nodeFetch') }}
+        </h4>
+        <pre class="mb-2 overflow-x-auto rounded bg-gray-500:5 p-3"><code data-test-id="basic-auth-node-fetch-example">{{ nodeFetchExample }}</code></pre>
+        <div mb-4 flex justify-start>
+          <c-button size="small" @click="copyNodeFetch()">
+            Copy Node.js example
+          </c-button>
+        </div>
+
+        <h4 class="mb-2 text-base font-semibold">
+          {{ $t('tools.basic-auth-generator.pythonRequests') }}
+        </h4>
+        <pre class="mb-2 overflow-x-auto rounded bg-gray-500:5 p-3"><code data-test-id="basic-auth-python-requests-example">{{ pythonRequestsExample }}</code></pre>
+        <div mb-3 flex justify-start>
+          <c-button size="small" @click="copyPythonRequests()">
+            Copy Python example
+          </c-button>
+        </div>
+      </template>
 
       <h3 class="mb-2 text-lg font-semibold">Security and format notes</h3>
       <ul class="list-disc pl-6">

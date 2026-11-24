@@ -50,6 +50,24 @@ test.describe('Tool - Basic Auth generator', () => {
     await expect(decodedPassword).toHaveText('example');
   });
 
+  test('creates copy-ready cURL, Node.js and Python examples for a validated request URL', async ({ page }) => {
+    await page.goto('/basic-auth-generator');
+
+    const requestUrl = page.getByTestId('basic-auth-request-url').locator('input');
+    await expect(page.getByTestId('basic-auth-curl-example')).toContainText('https://api.example.com/v1/resource');
+    await expect(page.getByTestId('basic-auth-node-fetch-example')).toContainText('Buffer.from(credentials, \'utf8\')');
+    await expect(page.getByTestId('basic-auth-python-requests-example')).toContainText('requests.get');
+
+    await requestUrl.fill('https://api.example.com/v2/users?q=1&role=admin');
+    await expect(page.getByTestId('basic-auth-curl-example')).toContainText('\'https://api.example.com/v2/users?q=1&role=admin\'');
+    await expect(page.getByTestId('basic-auth-node-fetch-example')).toContainText('https://api.example.com/v2/users?q=1&role=admin');
+    await expect(page.getByTestId('basic-auth-python-requests-example')).toContainText('https://api.example.com/v2/users?q=1&role=admin');
+
+    await requestUrl.fill('javascript:alert(1)');
+    await expect(page.getByTestId('basic-auth-request-url-error')).toBeVisible();
+    await expect(page.getByTestId('basic-auth-curl-example')).toHaveCount(0);
+  });
+
   test('shows a useful error for an invalid Basic Auth token', async ({ page }) => {
     await page.goto('/basic-auth-generator');
 
