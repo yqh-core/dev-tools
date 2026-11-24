@@ -123,7 +123,7 @@ test.describe('Tool - local HTTP response header analyzer', () => {
     await expect(snippet).toContainText('header {');
 
     await page.getByTestId('remediation-platform').click();
-    await page.getByText('Vercel', { exact: true }).click();
+    await page.getByText('Vercel (vercel.json)', { exact: true }).click();
     const vercelConfig = JSON.parse(await snippet.textContent() || '{}');
     expect(vercelConfig.headers[0].headers).toContainEqual({
       key: 'X-Content-Type-Options',
