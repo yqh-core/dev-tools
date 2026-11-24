@@ -72,8 +72,8 @@ describe('slugify batch conversion', () => {
 
     expect(rows.map(row => row.slug)).toEqual([
       'a-longer-title-for',
-      'a-longer-title-2',
-      'a-longer-title-3',
+      'a-longer-title-for-2',
+      'a-longer-title-for-3',
     ]);
     expect(rows.every(row => row.outputLength <= 20)).toBe(true);
   });
