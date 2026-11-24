@@ -184,6 +184,44 @@ function diffArrays(
   ).filter(difference => !onlyShowDifferences || difference.status !== 'unchanged');
 }
 
+function isEqualIgnoringArrayOrder(left: unknown, right: unknown): boolean {
+  if (Array.isArray(left) && Array.isArray(right)) {
+    if (left.length !== right.length) {
+      return false;
+    }
+    const matchedIndexes = new Set<number>();
+    return left.every((leftItem) => {
+      const matchIndex = right.findIndex((rightItem, index) =>
+        !matchedIndexes.has(index) && isEqualIgnoringArrayOrder(leftItem, rightItem),
+      );
+      if (matchIndex < 0) {
+        return false;
+      }
+      matchedIndexes.add(matchIndex);
+      return true;
+    });
+  }
+
+  if (
+    left !== null
+    && right !== null
+    && typeof left === 'object'
+    && typeof right === 'object'
+  ) {
+    const leftRecord = left as Record<string, unknown>;
+    const rightRecord = right as Record<string, unknown>;
+    const leftKeys = Object.keys(leftRecord);
+    const rightKeys = Object.keys(rightRecord);
+    return leftKeys.length === rightKeys.length
+      && leftKeys.every(key =>
+        Object.prototype.hasOwnProperty.call(rightRecord, key)
+        && isEqualIgnoringArrayOrder(leftRecord[key], rightRecord[key]),
+      );
+  }
+
+  return isEqual(left, right);
+}
+
 function diffArraysIgnoringOrder(
   arr: unknown[],
   newArr: unknown[],
@@ -194,7 +232,7 @@ function diffArraysIgnoringOrder(
 
   arr.forEach((oldItem, oldIndex) => {
     const matchIndex = newArr.findIndex((newItem, index) =>
-      !matchedNewIndexes.has(index) && isEqual(oldItem, newItem),
+      !matchedNewIndexes.has(index) && isEqualIgnoringArrayOrder(oldItem, newItem),
     );
 
     if (matchIndex >= 0) {
