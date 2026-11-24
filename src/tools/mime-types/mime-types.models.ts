@@ -8,7 +8,7 @@ export interface MimeServerSnippets {
 export function createMimeServerSnippets(mimeType: string, extensions: string[]): MimeServerSnippets {
   const normalizedExtensions = [...new Set(
     extensions
-      .map(extension => extension.trim().replace(/^\\.+/, ''))
+      .map(extension => extension.trim().replace(/^\.+/, ''))
       .filter(Boolean),
   )];
 
@@ -18,10 +18,10 @@ export function createMimeServerSnippets(mimeType: string, extensions: string[])
   }
 
   return {
-    nginx: ['types {', `    ${mimeType} ${normalizedExtensions.join(' ')};`, '}'].join('\\n'),
+    nginx: ['types {', `    ${mimeType} ${normalizedExtensions.join(' ')};`, '}'].join('\n'),
     apache: `AddType ${mimeType} ${normalizedExtensions.map(extension => `.${extension}`).join(' ')}`,
     headers: normalizedExtensions
-      .map(extension => `/*.${extension}\\n  Content-Type: ${mimeType}`)
-      .join('\\n\\n'),
+      .map(extension => `/*.${extension}\n  Content-Type: ${mimeType}`)
+      .join('\n\n'),
   };
 }
