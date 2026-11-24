@@ -146,12 +146,23 @@ const summary = computed(() => [
             py-1
           >
         </label>
-        <c-select
-          v-model:value="characterLimitUnit"
-          :options="characterLimitOptions"
-          :label="t('tools.text-statistics.customLimitUnit')"
-          data-test-id="character-limit-unit"
-        />
+        <label class="flex flex-col gap-1 text-sm">
+          <span>{{ t('tools.text-statistics.customLimitUnit') }}</span>
+          <select
+            v-model="characterLimitUnit"
+            :aria-label="t('tools.text-statistics.customLimitUnit')"
+            data-test-id="character-limit-unit"
+            class="min-w-48 rounded border border-gray-300 bg-white px-2 py-1 text-gray-900 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
+          >
+            <option
+              v-for="option in characterLimitOptions"
+              :key="option.value"
+              :value="option.value"
+            >
+              {{ option.label }}
+            </option>
+          </select>
+        </label>
       </div>
       <p mt-2 text-xs opacity-70>
         {{ t('tools.text-statistics.customLimitHelp') }}
