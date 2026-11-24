@@ -161,7 +161,7 @@ describe('generateRedirectOutput', () => {
       subpathMatching: true,
       preservePathSuffix: true,
     });
-    expect(output.split('\\n')[0].split(',')).toHaveLength(7);
+    expect(output.split('\n')[0].split(',')).toHaveLength(7);
     expect(output.split('\\n')[0]).toContain('"TRUE","TRUE","TRUE"');
     expect(() => generateRedirectOutput(analysis, 'cloudflare', '301', {
       origin: 'https://example.com',
