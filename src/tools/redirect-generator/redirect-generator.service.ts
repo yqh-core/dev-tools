@@ -135,7 +135,7 @@ export function parseRedirectInput(input: string): ParsedRedirectRow[] {
   }
 
   const delimiter = !text.includes(',') && text.includes('\t') ? '\t' : ',';
-  const records = delimiter === ','
+  const records: { values: string[]; line: number; error?: string }[] = delimiter === ','
     ? parseCsvRecords(text)
     : text.split(/\r?\n/).map((line, index) => ({ values: line.split('\t').map(value => value.trim()), line: index + 1 }));
 
