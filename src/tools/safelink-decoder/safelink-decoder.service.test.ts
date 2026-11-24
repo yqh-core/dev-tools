@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { decodeSafeLinksURL } from './safelink-decoder.service';
+import { decodeSafeLinksBatch, decodeSafeLinksURL } from './safelink-decoder.service';
 
 describe('safelink-decoder', () => {
   describe('decodeSafeLinksURL', () => {
@@ -84,5 +84,39 @@ describe('safelink-decoder', () => {
       expect(() => decodeSafeLinksURL('https://google.com'))
         .toThrow('Invalid SafeLinks URL provided');
     });
+  });
+});
+
+describe('decodeSafeLinksBatch', () => {
+  it('ignores blank lines, preserves source line numbers, and isolates invalid rows', () => {
+    const valid = 'https://nam01.safelinks.protection.outlook.com/?url=https%3A%2F%2Fexample.com%2Fdocs';
+    const invalid = 'https://not-safelinks.example/?url=https%3A%2F%2Fattacker.example';
+    const inner = 'https://eur01.safelinks.protection.outlook.com/?url=https%3A%2F%2Fexample.org%2Fguide';
+    const nested = `https://nam01.safelinks.protection.outlook.com/?url=${encodeURIComponent(inner)}`;
+
+    const results = decodeSafeLinksBatch(`  \n${valid}\n\n${invalid}\n${nested}\n`);
+
+    expect(results).toHaveLength(3);
+    expect(results.map(result => result.line)).toEqual([2, 4, 5]);
+    expect(results[0]).toMatchObject({
+      input: valid,
+      decodedUrl: 'https://example.com/docs',
+      error: null,
+    });
+    expect(results[1]).toMatchObject({
+      input: invalid,
+      decodedUrl: null,
+      error: 'Invalid SafeLinks URL provided',
+    });
+    expect(results[2]).toMatchObject({
+      input: nested,
+      decodedUrl: 'https://example.org/guide',
+      error: null,
+    });
+  });
+
+  it('returns no rows for empty or whitespace-only input', () => {
+    expect(decodeSafeLinksBatch('')).toEqual([]);
+    expect(decodeSafeLinksBatch('  \n\n  ')).toEqual([]);
   });
 });

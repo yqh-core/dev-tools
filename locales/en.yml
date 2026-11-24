@@ -1037,7 +1037,18 @@ tools:
 
   safelink-decoder:
     title: "Outlook Safe Links Decoder — Reveal the Original URL"
-    description: "Decode Outlook Safe Links URLs, including nested wrappers, to reveal the final HTTP or HTTPS destination without opening it. Runs in your browser; decoding does not scan or verify the destination."
+    description: "Decode Outlook Safe Links one URL or a batch at a time, including nested wrappers. Reveal destinations locally; decoding does not verify safety."
+    batch:
+      title: Decode multiple Safe Links
+      instructions: Paste one Outlook Safe Links URL per line. Blank lines are ignored; each line is parsed locally and the destination is never opened.
+      placeholder: Paste one Outlook Safe Links URL per line...
+      decode: Decode links
+      copy: Copy successful URLs
+      summary: "{success} of {total} links decoded; {failed} failed."
+      line: "Line {line}"
+      success: Destination decoded (not safety-checked)
+      copied: Successful URLs copied.
+      copyFailed: Clipboard access failed. Select and copy the decoded URLs manually.
 
   xml-to-json:
     title: XML to JSON Converter — Convert XML Online

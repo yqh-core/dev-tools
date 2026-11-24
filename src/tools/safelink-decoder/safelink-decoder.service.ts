@@ -81,3 +81,40 @@ export function decodeSafeLinksURL(safeLinksUrl: string): string {
 
   return destination;
 }
+
+export interface SafeLinksBatchResult {
+  line: number
+  input: string
+  decodedUrl: string | null
+  error: string | null
+}
+
+/**
+ * Decode one Safe Links wrapper per non-empty line.
+ * Blank lines are ignored, source line numbers are preserved, and one invalid
+ * wrapper never prevents other rows from being decoded.
+ */
+export function decodeSafeLinksBatch(input: string): SafeLinksBatchResult[] {
+  return input
+    .split(/\r?\n/)
+    .map((value, index) => ({ line: index + 1, input: value.trim() }))
+    .filter(row => row.input.length > 0)
+    .map(({ line, input: value }) => {
+      try {
+        return {
+          line,
+          input: value,
+          decodedUrl: decodeSafeLinksURL(value),
+          error: null,
+        };
+      }
+      catch (error) {
+        return {
+          line,
+          input: value,
+          decodedUrl: null,
+          error: error instanceof Error ? error.message : String(error),
+        };
+      }
+    });
+}

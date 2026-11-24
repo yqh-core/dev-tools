@@ -95,7 +95,7 @@
 - [User Agent Parser — Browser, OS & Device Detection](https://digdevbox.com/user-agent-parser) - Parse a user-agent string to identify its browser, rendering engine, operating system, CPU and device type. Use the results for debugging and analytics, not authentication.
 - [HTTP status codes](https://digdevbox.com/http-status-codes) - The list of all HTTP status codes, their name, and their meaning.
 - [JSON Diff Checker — Compare JSON Online](https://digdevbox.com/json-diff) - Compare JSON files or pasted JSON online. Inspect nested changes by path, export a report, and match arrays by index, ignore-order or stable ID. Large comparisons run in a cancellable worker.
-- [Outlook Safe Links Decoder — Reveal the Original URL](https://digdevbox.com/safelink-decoder) - Decode Outlook Safe Links URLs, including nested wrappers, to reveal the final HTTP or HTTPS destination without opening it. Runs in your browser; decoding does not scan or verify the destination.
+- [Outlook Safe Links Decoder — Reveal the Original URL](https://digdevbox.com/safelink-decoder) - Decode Outlook Safe Links one URL or a batch at a time, including nested wrappers. Reveal destinations locally; decoding does not verify safety.
 - [JSON to Query String Converter](https://digdevbox.com/json-to-get-params) - Percent-encode nested JSON as URL query parameters, or rebuild JSON from a query string or full URL. Supports bracketed object keys and indexed arrays.
 - [HTTP Header Analyzer — HAR Import & Security Score](https://digdevbox.com/http-headers) - Import HAR or paste curl/DevTools headers. Check CSP, HSTS, cookies, CORS and indexing; get a score plus copy-ready Nginx, Vercel and Cloudflare fixes locally.
 

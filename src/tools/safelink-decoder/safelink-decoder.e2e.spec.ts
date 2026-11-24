@@ -26,4 +26,68 @@ test.describe('Tool - Outlook Safe Links decoder', () => {
     await page.getByPlaceholder('Your input Outlook SafeLink Url...').fill(outer);
     await expect(page.getByTestId('area-content')).toContainText('https://example.com/docs');
   });
+
+  test('decodes multiple links locally and keeps each row independent', async ({ page }) => {
+    await page.goto('/safelink-decoder');
+
+    const valid = 'https://nam01.safelinks.protection.outlook.com/?url=https%3A%2F%2Fexample.com%2Fdocs';
+    const invalid = 'https://not-safelinks.example/?url=https%3A%2F%2Fattacker.example';
+    const inner = 'https://eur01.safelinks.protection.outlook.com/?url=https%3A%2F%2Fexample.org%2Fguide';
+    const nested = `https://nam01.safelinks.protection.outlook.com/?url=${encodeURIComponent(inner)}`;
+    const textarea = page.getByTestId('safelink-batch-input').locator('textarea');
+    const batch = page.getByTestId('safelink-batch');
+    const requestedLinks: string[] = [];
+    const urlsThatMustNeverBeFetched = new Set([
+      valid,
+      invalid,
+      nested,
+      'https://example.com/docs',
+      'https://example.org/guide',
+      'https://attacker.example',
+    ]);
+
+    page.on('request', (request) => {
+      if (urlsThatMustNeverBeFetched.has(request.url())) {
+        requestedLinks.push(request.url());
+      }
+    });
+
+    await textarea.fill(`${valid}\n\n${invalid}\n${nested}`);
+    await page.getByTestId('safelink-batch-decode').click();
+
+    const results = page.getByTestId('safelink-batch-result');
+    await expect(results).toHaveCount(3);
+    await expect(results.nth(0)).toHaveAttribute('data-test-line', '1');
+    await expect(results.nth(1)).toHaveAttribute('data-test-line', '3');
+    await expect(results.nth(2)).toHaveAttribute('data-test-line', '4');
+    await expect(results.nth(0)).toHaveAttribute('data-test-status', 'success');
+    await expect(results.nth(0).getByTestId('safelink-batch-decoded-url')).toHaveText('https://example.com/docs');
+    await expect(results.nth(1)).toHaveAttribute('data-test-status', 'error');
+    await expect(results.nth(1)).toContainText('Invalid SafeLinks URL provided');
+    await expect(results.nth(2).getByTestId('safelink-batch-decoded-url')).toHaveText('https://example.org/guide');
+    await expect(page.getByTestId('safelink-batch-summary')).toHaveText('2 of 3 links decoded; 1 failed.');
+    await expect(batch.getByRole('link')).toHaveCount(0);
+    expect(page.url()).toContain('/safelink-decoder');
+    expect(requestedLinks).toEqual([]);
+    await page.evaluate(() => {
+      Object.defineProperty(navigator, 'clipboard', {
+        configurable: true,
+        value: {
+          writeText: async (value: string) => {
+            document.documentElement.setAttribute('data-copied-results', value);
+          },
+        },
+      });
+    });
+    await page.getByTestId('safelink-batch-copy').click();
+    await expect(page.locator('html')).toHaveAttribute(
+      'data-copied-results',
+      'https://example.com/docs\nhttps://example.org/guide',
+    );
+
+    await textarea.fill(valid);
+    await expect(results).toHaveCount(0);
+    await expect(page.getByTestId('safelink-batch-summary')).toHaveCount(0);
+    await expect(page.getByTestId('safelink-batch-copy-status')).toHaveCount(0);
+  });
 });
