@@ -8,14 +8,24 @@ test.describe('Tool - Regex Tester isolated execution', () => {
   test('explains common JavaScript tokens and flags, and flags syntax it cannot explain', async ({ page }) => {
     const panel = page.getByTestId('pattern-explanation');
     const slash = String.fromCharCode(92);
-    await page.getByLabel('Regex to test:').fill('^(?<id>[A-Z]{2}' + slash + 'd+)$');
+    await page.getByLabel('Regex to test:').fill(`^(?<id>[A-Z]{2}${slash}d+)import { expect, test } from '@playwright/test';
+
+test.describe('Tool - Regex Tester isolated execution', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/regex-tester');
+  });
+
+  test('explains common JavaScript tokens and flags, and flags syntax it cannot explain', async ({ page }) => {
+    const panel = page.getByTestId('pattern-explanation');
+    const slash = String.fromCharCode(92);
+    await page.getByLabel('Regex to test:').fill();
     await expect(panel).toContainText('Pattern explanation');
     await expect(panel).toContainText('named capture group called "id"');
     await expect(panel).toContainText('Matches one ASCII digit');
     await expect(panel).toContainText('Active flags');
     await expect(panel).toContainText('Finds all matches');
 
-    await page.getByLabel('Regex to test:').fill('(?P<name>foo)' + slash + 'K');
+    await page.getByLabel('Regex to test:').fill(`(?P<name>foo)${slash}K`);
     await expect(panel).toContainText('Python-style named groups are not JavaScript RegExp syntax');
     await expect(panel.getByText('Review syntax')).toHaveCount(2);
   });
