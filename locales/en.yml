@@ -265,7 +265,19 @@ tools:
       refresh: Refresh
   percentage-calculator:
     title: "Percentage Calculator — Percent of, Change & Difference"
-    description: "Find X% of Y, what percent one value is of another, percent change, difference and reverse rates. Seven modes with batch formulas and CSV/TSV export."
+    description: "Calculate percentages, discounts, percentage change, reverse percentages and percentage points. Seven modes plus batch CSV/TSV export and worked formulas."
+    resultDetails:
+      inWords: In words
+      formula: Formula
+      percentOf: "{percent}% of {whole} is {result}."
+      partToWhole: "{part} is {result}% of {whole}."
+      percentageChange: "The percentage change from {oldValue} to {newValue} is {result}%."
+      increase: "Increasing {value} by {percent}% gives {result}."
+      decrease: "Decreasing {value} by {percent}% gives {result}."
+      reverseIncrease: "Before a {percent}% increase, {finalValue} was {originalValue}."
+      reverseDecrease: "Before a {percent}% decrease, {finalValue} was {originalValue}."
+      percentageDifference: "The symmetric percentage difference between {first} and {second} is {result}%."
+      percentagePoints: "The change from {oldRate}% to {newRate}% is {result} percentage points."
     sequential:
       summary: Try a sequential discount or percentage chain
       title: Sequential percentage adjustments
