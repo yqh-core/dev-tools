@@ -30,7 +30,7 @@ test.describe('Tool - Outlook Safe Links batch decoder', () => {
     await single.locator('summary').click();
 
     const inner = 'https://eur01.safelinks.protection.outlook.com/?url=https%3A%2F%2Fexample.com%2Fdocs';
-    const outer = 'https://nam01.safelinks.protection.outlook.com/?url=' + encodeURIComponent(inner);
+    const outer = `https://nam01.safelinks.protection.outlook.com/?url=${encodeURIComponent(inner)}`;
 
     await single.getByPlaceholder('Paste one Outlook Safe Links URL...').fill(outer);
     await expect(single.getByTestId('area-content')).toContainText('https://example.com/docs');
@@ -42,7 +42,7 @@ test.describe('Tool - Outlook Safe Links batch decoder', () => {
     const valid = 'https://nam01.safelinks.protection.outlook.com/?url=https%3A%2F%2Fexample.com%2Fdocs';
     const invalid = 'https://not-safelinks.example/?url=https%3A%2F%2Fattacker.example';
     const inner = 'https://eur01.safelinks.protection.outlook.com/?url=https%3A%2F%2Fexample.org%2Fguide';
-    const nested = 'https://nam01.safelinks.protection.outlook.com/?url=' + encodeURIComponent(inner);
+    const nested = `https://nam01.safelinks.protection.outlook.com/?url=${encodeURIComponent(inner)}`;
     const textarea = page.getByTestId('safelink-batch-input').locator('textarea');
     const batch = page.getByTestId('safelink-batch');
     const requestedLinks: string[] = [];
@@ -61,7 +61,7 @@ test.describe('Tool - Outlook Safe Links batch decoder', () => {
       }
     });
 
-    await textarea.fill(valid + '\n\n' + invalid + '\n' + nested);
+    await textarea.fill(`${valid}\n\n${invalid}\n${nested}`);
     await page.getByTestId('safelink-batch-decode').click();
 
     const results = page.getByTestId('safelink-batch-result');
