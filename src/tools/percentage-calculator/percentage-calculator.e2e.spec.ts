@@ -223,7 +223,6 @@ test.describe('Tool - Percentage calculator', () => {
     await expect(page.locator('html')).toHaveAttribute('data-test-clipboard', /Final amount: 72/);
     await expect(page.locator('html')).toHaveAttribute('data-test-clipboard', /-28%/);
   });
-
 });
 
 test.describe('Percentage calculator batch Chinese localization', () => {
@@ -251,5 +250,4 @@ test.describe('Percentage calculator batch Chinese localization', () => {
     await expect(page.getByTestId('percentage-sequential-effective-change')).toContainText('-28%');
     await expect(panel).toContainText('总折扣是 28%');
   });
-
 });
