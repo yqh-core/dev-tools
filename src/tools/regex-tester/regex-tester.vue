@@ -286,7 +286,7 @@ watchEffect(
         </n-checkbox>
       </n-space>
 
-      <div v-if="regex" class="mt-3 rounded border p-3" data-testid="pattern-explanation">
+      <div v-if="regex" class="mt-3 rounded border p-3" data-test-id="pattern-explanation">
         <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
           <strong>Pattern explanation</strong>
           <span class="text-xs op-60">JavaScript RegExp · best effort</span>
