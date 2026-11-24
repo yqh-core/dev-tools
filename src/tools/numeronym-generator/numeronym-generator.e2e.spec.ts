@@ -36,9 +36,18 @@ test.describe('Tool - Numeronym generator', () => {
     await expect(page.getByTestId('batch-numeronyms').locator('textarea')).toHaveValue('observability\npersonalization');
   });
 
-  test('when a word has 3 letters or less, the numeronym is the word itself', async ({ page }) => {
+  test('explains why short single words remain unchanged', async ({ page }) => {
     await page.getByTestId('word-input').locator('textarea').fill('abc');
     expect(await page.getByTestId('numeronym').inputValue()).toEqual('abc');
+    await expect(page.getByTestId('short-word-note')).toContainText('three letters or fewer');
+  });
+
+  test('marks short batch terms and excludes unchanged words from Copy All', async ({ page }) => {
+    await page.getByTestId('word-input').locator('textarea').fill('internationalization, fox, accessibility, k8s, api');
+    const table = page.getByTestId('numeronym-batch-table');
+    await expect(table).toContainText('Too short — unchanged');
+    await expect(page.getByTestId('batch-numeronyms').locator('textarea')).toHaveValue('i18n\na11y\nKubernetes');
+    await expect(page.getByTestId('numeronym-batch')).toContainText('short words remain visible in the table but are omitted from Copy All');
   });
 
   test('shows a useful reference table when empty', async ({ page }) => {
