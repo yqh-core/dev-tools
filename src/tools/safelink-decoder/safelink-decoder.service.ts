@@ -32,12 +32,21 @@ function getSafeLinksDestination(value: string): string | null {
   return destination;
 }
 
-export function decodeSafeLinksURL(safeLinksUrl: string): string {
+export interface SafeLinksDecodeDetails {
+  destinationUrl: string
+  scheme: 'http' | 'https'
+  host: string
+  nestedLayers: number
+}
+
+function decodeSafeLinksURLWithDetails(safeLinksUrl: string): SafeLinksDecodeDetails {
   let destination = getSafeLinksDestination(safeLinksUrl);
 
   if (!destination) {
     throw new Error('Invalid SafeLinks URL provided');
   }
+
+  let nestedLayers = 1;
 
   for (let depth = 1; depth < MAX_NESTED_SAFE_LINKS; depth++) {
     const nestedDestination = getSafeLinksDestination(destination);
@@ -56,10 +65,16 @@ export function decodeSafeLinksURL(safeLinksUrl: string): string {
         throw new Error('SafeLinks destination must use HTTP or HTTPS');
       }
 
-      return destination;
+      return {
+        destinationUrl: destination,
+        scheme: parsedDestination.protocol.slice(0, -1) as 'http' | 'https',
+        host: parsedDestination.host,
+        nestedLayers,
+      };
     }
 
     destination = nestedDestination;
+    nestedLayers += 1;
   }
 
   if (getSafeLinksDestination(destination)) {
@@ -79,7 +94,16 @@ export function decodeSafeLinksURL(safeLinksUrl: string): string {
     throw new Error('SafeLinks destination must use HTTP or HTTPS');
   }
 
-  return destination;
+  return {
+    destinationUrl: destination,
+    scheme: parsedDestination.protocol.slice(0, -1) as 'http' | 'https',
+    host: parsedDestination.host,
+    nestedLayers,
+  };
+}
+
+export function decodeSafeLinksURL(safeLinksUrl: string): string {
+  return decodeSafeLinksURLWithDetails(safeLinksUrl).destinationUrl;
 }
 
 export interface SafeLinksBatchResult {
@@ -87,6 +111,9 @@ export interface SafeLinksBatchResult {
   input: string
   decodedUrl: string | null
   error: string | null
+  scheme: 'http' | 'https' | null
+  host: string | null
+  nestedLayers: number | null
 }
 
 /**
@@ -101,11 +128,16 @@ export function decodeSafeLinksBatch(input: string): SafeLinksBatchResult[] {
     .filter(row => row.input.length > 0)
     .map(({ line, input: value }) => {
       try {
+        const details = decodeSafeLinksURLWithDetails(value);
+
         return {
           line,
           input: value,
-          decodedUrl: decodeSafeLinksURL(value),
+          decodedUrl: details.destinationUrl,
           error: null,
+          scheme: details.scheme,
+          host: details.host,
+          nestedLayers: details.nestedLayers,
         };
       }
       catch (error) {
@@ -114,6 +146,9 @@ export function decodeSafeLinksBatch(input: string): SafeLinksBatchResult[] {
           input: value,
           decodedUrl: null,
           error: error instanceof Error ? error.message : String(error),
+          scheme: null,
+          host: null,
+          nestedLayers: null,
         };
       }
     });
