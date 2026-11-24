@@ -33,8 +33,9 @@ const characterLimitOptions = computed(() => [
   { label: t('tools.text-statistics.limitUnits.bytes'), value: 'bytes' },
 ]);
 const customCharacterLimit = computed(() => {
-  const value = Number(characterLimitInput.value);
-  return characterLimitInput.value.trim() !== '' && Number.isSafeInteger(value) && value > 0 && value <= 10_000_000
+  const rawValue = String(characterLimitInput.value ?? '').trim();
+  const value = Number(rawValue);
+  return rawValue !== '' && Number.isSafeInteger(value) && value > 0 && value <= 10_000_000
     ? value
     : null;
 });
