@@ -230,6 +230,17 @@ function addIssue(row: RedirectRow, severity: RedirectIssue['severity'], code: R
   row.issues.push({ severity, code, message });
 }
 
+function sourceKey(row: RedirectRow): string {
+  const source = parseHttpUrl(row.sourceUrl);
+  return `${source?.origin ?? ''}${row.sourcePath}`;
+}
+
+function destinationKey(row: RedirectRow): string {
+  const source = parseHttpUrl(row.sourceUrl);
+  const target = parseHttpUrl(row.targetUrl);
+  return `${target?.origin ?? source?.origin ?? ''}${row.targetPath}`;
+}
+
 export function analyzeRedirects(input: string): RedirectAnalysis {
   const parsed = parseRedirectInput(input);
   const rows: RedirectRow[] = parsed.map((item) => {
@@ -286,7 +297,7 @@ export function analyzeRedirects(input: string): RedirectAnalysis {
     if (!row.sourcePath || row.issues.some(issue => issue.severity === 'error')) {
       continue;
     }
-    const key = row.sourcePath;
+    const key = sourceKey(row);
     if (firstBySource.has(key)) {
       addIssue(row, 'error', 'duplicate-source', `This source duplicates line ${firstBySource.get(key)?.line}.`);
     }
@@ -297,12 +308,12 @@ export function analyzeRedirects(input: string): RedirectAnalysis {
 
   // Trace path-to-path redirects so avoidable chains and loops are visible before export.
   for (const row of firstBySource.values()) {
-    if (row.issues.some(issue => issue.severity === 'error') || parseHttpUrl(row.targetUrl)) {
+    if (row.issues.some(issue => issue.severity === 'error')) {
       continue;
     }
 
-    let next = row.targetPath;
-    const visited = new Set<string>([row.sourcePath]);
+    let next = destinationKey(row);
+    const visited = new Set<string>([sourceKey(row)]);
     let hops = 0;
     let loop = false;
     while (firstBySource.has(next) && hops <= firstBySource.size) {
@@ -315,13 +326,13 @@ export function analyzeRedirects(input: string): RedirectAnalysis {
       if (!nextRow) {
         break;
       }
-      next = nextRow.targetPath;
+      next = destinationKey(nextRow);
       hops += 1;
     }
 
     if (loop) {
-      for (const path of visited) {
-        const cycleRow = firstBySource.get(path);
+      for (const key of visited) {
+        const cycleRow = firstBySource.get(key);
         if (cycleRow && !cycleRow.issues.some(issue => issue.code === 'redirect-loop')) {
           addIssue(cycleRow, 'error', 'redirect-loop', 'This redirect is part of a loop. Break the loop before exporting.');
         }
@@ -392,14 +403,21 @@ export function generateRedirectOutput(
     ].join('\n\n');
   }
 
-  const origin = validOrigin(options.origin ?? '');
+  const suppliedOrigin = options.origin?.trim()
+    ? validOrigin(options.origin)
+    : undefined;
   return rows.map((row) => {
-    const source = parseHttpUrl(row.sourceUrl)
-      ? row.sourceUrl
-      : `${origin}${row.sourcePath}`;
-    const target = parseHttpUrl(row.targetUrl)
-      ? row.targetUrl
-      : `${origin}${row.targetUrl}`;
+    const absoluteSource = parseHttpUrl(row.sourceUrl);
+    const absoluteTarget = parseHttpUrl(row.targetUrl);
+    const rowOrigin = absoluteSource?.origin ?? suppliedOrigin;
+    if (!absoluteSource && !suppliedOrigin) {
+      throw new Error('Enter a site origin to expand relative source URLs.');
+    }
+    if (!absoluteTarget && !rowOrigin) {
+      throw new Error('Enter a site origin to expand relative destination URLs.');
+    }
+    const source = absoluteSource ? row.sourceUrl : `${suppliedOrigin}${row.sourcePath}`;
+    const target = absoluteTarget ? row.targetUrl : `${rowOrigin}${row.targetUrl}`;
     const fields = [
       source,
       target,
