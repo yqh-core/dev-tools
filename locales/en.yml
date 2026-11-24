@@ -378,8 +378,44 @@ tools:
     description: "Quick reference for Git configuration, init/clone, commits, amend, reset and branch rename commands, with copyable examples. Replace placeholders before running; hard reset can discard work."
 
   slugify-string:
-    title: Slugify string
-    description: Make a string url, filename and id safe.
+    title: "URL Slug Generator — Create SEO-Friendly Slugs in Bulk"
+    description: "Generate URL slugs from titles in bulk. Choose hyphens, underscores or dots, remove English stop words, set a word-safe length cap and preview full URLs."
+    batch:
+      title: "Bulk URL slug generator"
+      intro: "Convert one title or a batch of titles. Each non-empty line becomes one URL-friendly slug."
+      inputLabel: "Titles or phrases"
+      inputPlaceholder: "One title per line, e.g.:
+How to Build a Better API
+The Complete Guide to URL Slugs
+Déjà Vu and Unicode"
+      separator: "Word separator"
+      hyphen: "Hyphen (-)"
+      underscore: "Underscore (_)"
+      dot: "Dot (.)"
+      maximumLength: "Maximum length"
+      noLimit: "No limit"
+      characters: "{count} characters"
+      lowercase: "Lowercase"
+      decamelize: "Split camelCase words"
+      stopWords: "Remove common English stop words"
+      unique: "Make duplicate slugs unique"
+      baseUrl: "Optional base URL preview"
+      invalidBaseUrl: "Enter a valid http:// or https:// base URL."
+      copyAll: "Copy all slugs"
+      downloadTxt: "Download TXT"
+      downloadCsv: "Download CSV"
+      generated: "{count} slugs generated"
+      shortened: "{count} shortened"
+      warnings: "{count} warnings"
+      line: "Line {number}"
+      chars: "{count} chars"
+      truncated: "Shortened at a word boundary to fit the selected limit."
+      emptyState: "Enter one title per line. Blank lines are ignored; results stay in this browser."
+      inputTooLarge: "Input is too large. Please use {count} characters or fewer."
+      tooManyRows: "This batch has {actual} lines. The limit is {limit}."
+      rowTooLong: "The maximum length is too short to keep a complete word."
+      noCharacters: "No URL-safe characters remain after conversion."
+      copied: "All slugs copied to clipboard"
 
   encryption:
     title: Encrypt / decrypt text
