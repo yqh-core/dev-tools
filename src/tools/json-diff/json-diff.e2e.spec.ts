@@ -57,7 +57,7 @@ test.describe('Tool - JSON diff', () => {
 
     await page.getByRole('button', { name: 'Focus $["user"]["name"] in comparison' }).click();
 
-    await expect(page.locator('li[data-json-path]').filter({ hasText: 'Grace' }).first()).toHaveClass(/is-focused/);
+    await expect(page.locator('li[data-json-path]').filter({ hasText: 'Grace' }).last()).toHaveClass(/is-focused/);
   });
 
   test('loads a local JSON file without uploading it', async ({ page }) => {
