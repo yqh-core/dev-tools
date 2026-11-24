@@ -122,7 +122,7 @@ describe('generateRedirectOutput', () => {
     const lines = output.split('\n');
     expect(lines).toHaveLength(2);
     expect(lines[0].split(',')).toHaveLength(7);
-    expect(lines[0]).toContain('"https://example.com/old+page","https://example.com/new-page","301","TRUE"');
+    expect(lines[0]).toContain('"example.com/old+page","https://example.com/new-page","301","TRUE"');
     expect(lines[1]).toContain('"FALSE","FALSE","FALSE"');
   });
 
