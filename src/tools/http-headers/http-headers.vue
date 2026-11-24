@@ -65,10 +65,10 @@ function statusType(status: string): 'success' | 'warning' | 'error' {
       />
 
       <div flex flex-wrap items-center gap-2 mt-3>
-        <c-button size="small" type="primary" @click="loadSample">
+        <c-button size="small" @click="loadSample">
           Load sample
         </c-button>
-        <c-button size="small" secondary @click="rawHeaders = ''">
+        <c-button size="small" @click="rawHeaders = ''">
           Clear
         </c-button>
         <span text-xs op-60>
