@@ -330,6 +330,7 @@ jobs:
               '/json-to-toml/': { title: 'JSON to TOML Converter - DigDevBox', description: 'Convert JSON or JSON5 objects to TOML. Nested objects become tables or dotted keys; arrays become TOML arrays. Unsupported values may prevent conversion.', h1: 'JSON to TOML Converter' },
               '/text-statistics/': { title: 'Text Statistics — Word & Character Counter - DigDevBox', description: 'Free online word and character counter with Unicode grapheme, code point, UTF-16 and UTF-8 byte counts. Count words, unique words, sentences, paragraphs and lines, estimate reading time, and keep text private in your browser.', h1: 'Text Statistics' },
               '/json-diff/': { title: 'JSON Diff Checker — Compare JSON Online - DigDevBox', description: 'Compare JSON files or pasted JSON online. Inspect nested changes by path, export a report, and match arrays by index, ignore-order or stable ID. Large comparisons run in a cancellable worker.', h1: 'JSON Diff Checker' },
+              '/slugify-string/': { title: 'URL Slug Generator — Create SEO-Friendly Slugs in Bulk - DigDevBox', description: 'Generate URL slugs from titles in bulk. Choose hyphens, underscores or dots, remove English stop words, set a word-safe length cap and preview full URLs.', h1: 'URL Slug Generator' },
               '/redirect-generator/': { title: 'Bulk 301 Redirect Generator — Apache, Nginx & Cloudflare - DigDevBox', description: 'Create bulk 301, 302, 307 or 308 redirects for Apache, Nginx and Cloudflare. Import CSV, detect duplicates, loops and redirect chains. Runs locally.', h1: 'Bulk 301 Redirect Generator' },
             };
             const expected = expectedMetadata[path];
@@ -428,6 +429,22 @@ jobs:
             throw new Error('Text Statistics guide must be live, indexable, self-canonical and have a distinct meta description');
           }
 
+          // Bulk Slug Generator guide: keep the editorial landing page distinct from its tool route.
+          const slugGuidePath = '/guides/slugify-string/';
+          const slugGuideResult = await get(slugGuidePath);
+          const slugToolResult = await get('/slugify-string/');
+          const slugGuideDescription = extractDescription(slugGuideResult.body);
+          const slugToolDescription = extractDescription(slugToolResult.body);
+          const slugGuideCanonical = slugGuideResult.body.match(/<link[^>]+rel=["']canonical["'][^>]+href=["']([^"']+)["']/i)?.[1] || '';
+          if (!slugGuideResult.response.ok ||
+              slugGuideResult.finalUrl !== origin + slugGuidePath ||
+              !slugGuideDescription || !slugToolDescription ||
+              slugGuideDescription === slugToolDescription ||
+              slugGuideCanonical !== origin + slugGuidePath ||
+              /<meta[^>]+name=["']robots["'][^>]+content=["'][^"']*noindex/i.test(slugGuideResult.body)) {
+            throw new Error('Bulk Slug Generator guide must be live, indexable, self-canonical and have a distinct meta description');
+          }
+
           // Bulk Redirect Generator guide: keep the editorial landing page distinct from its tool route.
           const redirectGuidePath = '/guides/redirect-generator/';
           const redirectGuideResult = await get(redirectGuidePath);
@@ -450,6 +467,11 @@ jobs:
           }
           const sitemap = await get('/sitemap.xml');
           if (!sitemap.response.ok || !sitemap.body.includes('<urlset')) throw new Error('sitemap.xml unavailable or malformed');
+          for (const path of ['/slugify-string/', '/redirect-generator/', '/guides/slugify-string/', '/guides/redirect-generator/']) {
+            if (!sitemap.body.includes(origin + path)) {
+              throw new Error('sitemap.xml missing live tool or guide URL: ' + path);
+            }
+          }
 
           // Verify the new English numeronym content cluster is connected in both directions.
           const numeronymLanding = await get('/numeronym-generator/');
@@ -518,5 +540,5 @@ jobs:
             throw new Error('Legacy archive URLs must not appear in the canonical sitemap');
           }
 
-          console.log('PASS: production homepage, canonical host, robots.txt, sitemap.xml, legacy noindex header and selected search landing pages, including Bulk Slug and Redirect generators');
+          console.log('PASS: production homepage, canonical host, robots.txt, sitemap.xml, legacy noindex header and selected search landing pages, including Bulk Slug and Redirect tool/guide routes');
           NODE
