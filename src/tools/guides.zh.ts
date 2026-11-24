@@ -2148,12 +2148,15 @@ export const GUIDES: Record<string, ToolGuide> = {
   },
 
   '/http-headers': {
-    intro: '常见 HTTP 请求头 / 响应头与九种标准请求方法的速查，写接口、排查缓存与 CORS、选动词时对照着看。',
-    steps: ['在搜索框里输入字段名（如 Cookie）或用途关键词（如 缓存、CORS）', '头部列表实时过滤', '每条给出字段名、方向（请求 / 响应）与中文说明', '头部表下方的请求方法表列出每个动词及其 safe / idempotent 标记'],
-    notes: ['搜索匹配字段名、中文说明与方向', '请求方法表固定展示在头部参考的下方'],
+    intro: '粘贴 HTTP 响应头或 curl -I 输出，检查六类安全响应头基线，以及常见 CORS 和 Cookie 配置问题。所有解析都在浏览器本地完成。'
+    steps: ['粘贴原始 HTTP 响应头或 curl -I 输出；有 HTTP 状态行时一并保留', '查看 HSTS、CSP、Frame Protection、nosniff、Referrer-Policy 和 Permissions-Policy 六类基线检查', '检查凭据型通配符 CORS、缺少 Secure 的 SameSite=None Cookie、服务器指纹等附加发现', '把建议作为排查起点，并结合应用实际验证配置'],
+    notes: ['分析器只检查你粘贴的文本；不会访问或扫描 URL，也不会把响应头发送到服务器', '这是启发式最佳实践检查，不是完整漏洞扫描器、完整 CSP 解析器或安全评分', '输入上限为 64 KB；解析时会保留重复的响应头字段'],
     example: { label: '填入示例查询', text: 'cache' },
     about: '常见 HTTP 请求头与响应头的可搜索参考，并附一张标准请求方法表。想不起 Strict-Transport-Security 的作用、分不清某个头属于请求还是响应、或拿不准 PATCH 是否幂等时，按名字一搜就能读到聚焦的说明——CORS、缓存与安全类头部已分组，GET/POST/PUT/PATCH/DELETE/OPTIONS 也按其安全与幂等标记列出，帮你选对动词而不仅是选对头。',
     faqs: [
+      { q: '可以直接扫描网站 URL 吗？', a: '不可以。请自行粘贴响应头，或从 curl -I 复制结果。工具不会发起网络请求，粘贴的响应头也只留在浏览器中。' },
+      { q: '基线全部通过是否代表网站安全？', a: '不代表。六项检查只是有限的响应头最佳实践基线，不会评估应用逻辑、TLS 配置、所有 CSP 指令、Cookie 的完整上下文或其他漏洞类型。' },
+
       { q: '每个网站都应该下发哪些安全头？', a: '常见基线是 Content-Security-Policy、Strict-Transport-Security、X-Content-Type-Options: nosniff，以及帧策略（X-Frame-Options 或 CSP 的 frame-ancestors）。每个头的作用都可以在这里搜索确认。' },
       { q: 'CORS 相关的头有哪些？', a: '请求侧是 Origin；响应侧需要 Access-Control-Allow-Origin（预检还要 Allow-Methods/Allow-Headers）。参考表把这些归在一组，排查被拦的请求很快。' },
       { q: '控制缓存的是哪些头？', a: 'Cache-Control 是主开关，ETag/If-None-Match 与 Last-Modified/If-Modified-Since 负责条件重验证。注意 Cache-Control 由服务器下发，但浏览器和 CDN 都要遵守它。' },
