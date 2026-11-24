@@ -153,7 +153,9 @@ export interface RegexTestCaseResult extends RegexTestCase {
   firstMatch: RegexMatch | null
 }
 
-/** Run a named positive/negative suite inside the same isolated Worker as matching. */
+/** Run a named positive/negative suite inside the same isolated Worker as matching.
+ * Each case reuses the live match semantics and retains its first match for capture inspection.
+ */
 export function evaluateRegexTestCases(
   regex: string,
   flags: string,
