@@ -385,10 +385,10 @@ jobs:
           ];
           const socialImageUrls = new Set();
           const extractMetaContent = (html, attribute, value) => {
-            const tags = html.match(/<meta\\b[^>]*>/gi) || [];
+            const tags = html.match(/<meta[^>]*>/gi) || [];
             const tag = tags.find(item =>
               item.includes(attribute + '="' + value + '"') || item.includes(attribute + "='" + value + "'"));
-            return tag?.match(/\\bcontent=(["'])(.*?)\\1/i)?.[2] || '';
+            return tag?.match(/content=["']([^"']*)["']/i)?.[1] || '';
           };
           for (const path of socialRoutes) {
             const page = await get(path);
