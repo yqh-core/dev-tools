@@ -1524,7 +1524,7 @@ export const GUIDES: Record<string, ToolGuide> = {
     ],
     example: {
       label: 'Paste two Outlook Safe Links URLs, one per line',
-      text: 'https://nam01.safelinks.protection.outlook.com/?url=https%3A%2F%2Fexample.com%2Fdocs\\nhttps://eur01.safelinks.protection.outlook.com/?url=https%3A%2F%2Fexample.org%2Faccount',
+      text: 'https://nam01.safelinks.protection.outlook.com/?url=https%3A%2F%2Fexample.com%2Fdocs\nhttps://eur01.safelinks.protection.outlook.com/?url=https%3A%2F%2Fexample.org%2Faccount',
     },
     about: 'The Outlook Safe Links Batch Decoder extracts the destination embedded in each Microsoft Outlook Safe Links wrapper. Paste one wrapper per line to process a list locally, keep original line numbers, see independent row errors and copy successful destinations together. Each decoded row also shows the destination scheme, host and nested-wrapper depth so you can inspect the address structure before deciding what to do. The parser accepts HTTPS Outlook Safe Links wrappers, unwraps up to five layers and requires a final HTTP or HTTPS URL. It never requests or opens the wrapper or destination, does not assess domain reputation, and does not replace or bypass Microsoft time-of-click protection; follow your organization’s approved security workflow.',
     faqs: [
