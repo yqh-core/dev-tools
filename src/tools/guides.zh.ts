@@ -1012,17 +1012,20 @@ export const GUIDES: Record<string, ToolGuide> = {
   },
 
   '/mime-types': {
-    intro: 'MIME 类型与文件扩展名互查，配置服务器或写上传校验时用。',
-    steps: ['输入 MIME 类型或扩展名', '看对应的另一种形式', '复制使用'],
+    intro: '按扩展名查询 MIME 类型，或按 MIME 类型查询关联扩展名，并生成可复制的 Nginx、Apache 和静态托管响应头配置。',
+    steps: ['搜索 application/json 等 MIME 类型，或选择 .woff2 等文件扩展名', '查看对应的扩展名列表或 MIME 类型', '复制 Nginx types、Apache .htaccess AddType 或静态站点 _headers 配置片段'],
     notes: [
-      '这份映射来自社区的 mime-types 数据集，不是完整的 IANA 注册表——最新或私有的类型可能缺失，涉及官方类型请以 IANA 媒体类型注册表为准',
-      '默认视图是空的：输入检索词或打开「展开全部」才会出现条目——完整表有数百行，首屏不全量铺出是刻意设计',
+      '映射来自社区 mime-types 数据集，不是完整 IANA 注册表；最新或私有类型可能缺失，正式配置前请核对 IANA 媒体类型注册表',
+      '生成的配置仅反映当前选中的映射；部署前请确认插入位置、服务器上下文及已有 MIME 规则',
+      '默认视图为空：输入检索词或打开「展开全部」才会显示记录，避免首屏一次渲染数百行',
     ],
-    about: '双向查表：给扩展名找 MIME 类型，或给 MIME 类型找对应扩展名。两个方向都支持搜索——既能查「.woff2 该发什么 Content-Type」，也能查「audio/mpeg 覆盖哪些文件」。配置 Web 服务器、写上传接口、排查「文件明明能渲染却变成下载」时都要用到这层映射。',
+    about: '除了双向查询 MIME 类型和文件扩展名，还可把查询结果转换成服务器配置，减少手工编写 Content-Type 规则时的拼写错误。工具会为每个关联扩展名生成 Nginx types 块、Apache AddType 指令和静态托管 _headers 规则。可用于配置服务器响应头、上传校验，或排查文件被错误下载而不是正常渲染的问题。',
     faqs: [
-      { q: '为什么一个扩展名对应多个 MIME 类型？', a: '格式会随时间积累别名（.mp3 规范是 audio/mpeg，但老系统认 audio/mp3）。服务器认规范名，工具列出常见映射，按你的技术栈能接受的选。' },
-      { q: 'Content-Type 发错了会怎样？', a: '浏览器可能拒绝执行脚本（严格 MIME 检查）、把内容当纯文本渲染，或触发下载。API 客户端也按 Content-Type 选解析器，类型错了会静默解析失败。' },
-      { q: 'text/plain 和 application/octet-stream 有什么区别？', a: 'text/plain 告诉客户端字节是人类可读文本；octet-stream 意思是「不透明二进制，另存吧」。可渲染的内容发 octet-stream，就是「强制下载」问题的经典原因。' },
+      { q: '支持生成哪些服务器配置？', a: '支持 Nginx types、Apache .htaccess 的 AddType，以及静态托管 _headers 规则。配置片段反映当前查到的映射，仍需放入正确的服务器上下文。' },
+      { q: '这是完整的 IANA 注册表吗？', a: '不是。当前数据来自 mime-types 社区数据集。新增、私有或安全敏感的媒体类型请以 IANA 媒体类型注册表为准。' },
+      { q: '为什么一个扩展名会有多个 MIME 类型？', a: '格式会随时间积累历史别名。服务器配置应优先采用你的服务端和应用实际要求的规范 MIME 类型。' },
+      { q: 'Content-Type 发错了会怎样？', a: '浏览器可能拒绝执行脚本（严格 MIME 检查）、把内容当纯文本渲染，或触发下载。API 客户端也按 Content-Type 选择解析器，类型错误可能导致解析失败。' },
+      { q: 'text/plain 和 application/octet-stream 有什么区别？', a: 'text/plain 表示字节是人类可读文本；octet-stream 表示不透明二进制内容，通常应下载保存。可正常渲染的内容若错误地发送 octet-stream，可能被强制下载。' },
     ],
   },
 
