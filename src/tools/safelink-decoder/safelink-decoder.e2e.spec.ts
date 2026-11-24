@@ -79,5 +79,4 @@ test.describe('Tool - Outlook Safe Links decoder', () => {
     await expect(page.getByTestId('safelink-batch-summary')).toHaveCount(0);
     await expect(page.getByTestId('safelink-batch-copy-status')).toHaveCount(0);
   });
-
 });
