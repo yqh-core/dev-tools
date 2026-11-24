@@ -151,3 +151,36 @@ test.describe('ETA Calculator observed pace Chinese localization', () => {
     await expect(page.getByTestId('eta-observed-rate')).toContainText('\u5355\u4F4D/\u5C0F\u65F6');
   });
 });
+
+test('ETA Calculator compares the current pace with the rate needed for a deadline', async ({ page }) => {
+  await page.goto('/eta-calculator');
+  const fill = async (id: string, value: string) => {
+    await page.getByTestId(id).locator('input').fill(value);
+  };
+  const localDateTime = (timestamp: number) => {
+    const date = new Date(timestamp);
+    const pad = (value: number) => String(value).padStart(2, '0');
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+  };
+
+  await fill('eta-total', '180');
+  await fill('eta-completed', '60');
+  await fill('eta-rate', '3');
+  await fill('eta-interval', '5');
+  const deadline = page.getByTestId('eta-deadline-input');
+  await deadline.fill(localDateTime(Date.now() + 4 * 60 * 60 * 1000));
+  await expect(page.getByTestId('eta-deadline-result')).toContainText('30 units/hour');
+  await expect(page.getByTestId('eta-deadline-result')).toContainText('sufficient to meet this deadline');
+
+  await deadline.fill(localDateTime(Date.now() + 3 * 60 * 60 * 1000));
+  await expect(page.getByTestId('eta-deadline-result')).toContainText('40 units/hour');
+  await expect(page.getByTestId('eta-deadline-result')).toContainText('11.11');
+
+  await fill('eta-buffer', '20');
+  await fill('eta-pause-minutes', '30');
+  await expect(page.getByTestId('eta-deadline-result')).toContainText('48 units/hour');
+  await expect(page.getByTestId('eta-deadline-result')).toContainText('33.33');
+
+  await deadline.fill(localDateTime(Date.now() - 60 * 60 * 1000));
+  await expect(page.getByTestId('eta-deadline-error')).toContainText('deadline is later than the estimate start time');
+});
