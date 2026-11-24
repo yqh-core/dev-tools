@@ -2,6 +2,8 @@
 import { useI18n } from 'vue-i18n';
 import { type HeaderAnalysis, analyzeResponseHeaders } from './http-headers.models';
 import { httpHeaderEntries, httpMethodEntries } from './http-headers.constants';
+import { type HeaderRemediationPlatform, buildHeaderRemediation } from './http-headers.remediation';
+import { useCopy } from '@/composable/copy';
 import { useFuzzySearch } from '@/composable/fuzzySearch';
 
 const { t } = useI18n();
@@ -28,6 +30,22 @@ const analysis = computed<HeaderAnalysis | undefined>(() => (
 const hasParsedHeaders = computed(() => Boolean(
   analysis.value && Object.keys(analysis.value.parsed.headers).length > 0,
 ));
+const { copy } = useCopy({ text: t('tools.http-headers.analyzer.remediation.copied') });
+const remediationPlatform = ref<HeaderRemediationPlatform>('nginx');
+const remediationOptions = computed(() => [
+  { label: t('tools.http-headers.analyzer.remediation.platforms.nginx'), value: 'nginx' },
+  { label: t('tools.http-headers.analyzer.remediation.platforms.apache'), value: 'apache' },
+  { label: t('tools.http-headers.analyzer.remediation.platforms.caddy'), value: 'caddy' },
+  { label: t('tools.http-headers.analyzer.remediation.platforms.cloudflare'), value: 'cloudflare-pages' },
+]);
+const remediationSnippet = computed(() => analysis.value
+  ? buildHeaderRemediation(analysis.value, remediationPlatform.value)
+  : '');
+function copyRemediation() {
+  if (remediationSnippet.value) {
+    copy(remediationSnippet.value);
+  }
+}
 
 function loadSample() {
   rawHeaders.value = SAMPLE_HEADERS;
@@ -193,6 +211,31 @@ function directionLabel(direction: string): string {
           </div>
         </div>
 
+        <div mt-5 data-test-id="header-remediation">
+          <n-h3 mb-2>
+            {{ t('tools.http-headers.analyzer.remediation.title') }}
+          </n-h3>
+          <p text-sm op-70 mb-3>
+            {{ t('tools.http-headers.analyzer.remediation.intro') }}
+          </p>
+          <div flex flex-wrap items-center gap-2 mb-3>
+            <n-select
+              v-model:value="remediationPlatform"
+              data-test-id="remediation-platform"
+              :options="remediationOptions"
+              w-full
+              max-w-260px
+            />
+            <c-button size="small" @click="copyRemediation">
+              {{ t('tools.http-headers.analyzer.remediation.copy') }}
+            </c-button>
+          </div>
+          <pre class="remediation-code" data-test-id="remediation-snippet"><code>{{ remediationSnippet }}</code></pre>
+          <c-alert mt-3 type="warning">
+            {{ t('tools.http-headers.analyzer.remediation.caution') }}
+          </c-alert>
+        </div>
+
         <div v-if="analysis.cspDirectives.length" mt-5 data-test-id="csp-directives">
           <n-h3 mb-2>
             {{ t('tools.http-headers.analyzer.parsedCsp') }}
@@ -345,5 +388,18 @@ function directionLabel(direction: string): string {
 
 .methods-desc {
   color: var(--dd-text-soft);
+}
+
+.remediation-code {
+  max-height: 280px;
+  overflow: auto;
+  padding: 12px;
+  border: 1px solid var(--dd-border);
+  border-radius: var(--dd-radius);
+  background: var(--dd-surface-2);
+  font-family: var(--dd-font-mono);
+  font-size: 12px;
+  line-height: 1.6;
+  white-space: pre;
 }
 </style>
