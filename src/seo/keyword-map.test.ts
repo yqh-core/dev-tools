@@ -24,7 +24,7 @@ describe('evidence-backed SEO keyword targets', () => {
     [
       '/safelink-decoder',
       'outlook safelink decoder',
-      'Outlook Safe Links Decoder — Reveal the Original URL',
+      'Outlook Safe Links Batch Decoder — Reveal Original URLs',
     ],
     [
       '/percentage-calculator',

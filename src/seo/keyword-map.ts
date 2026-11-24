@@ -500,13 +500,13 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
   {
     path: '/safelink-decoder',
     keyword: 'outlook safelink decoder',
-    keywords: ['safelink decoder', 'decode outlook safelink', 'how to open the outlook safelink original url', 'convert outlook safelinke to url', 'original URL from Outlook Safe Links', 'outlook link decoder', 'decode safelink', 'nested Outlook Safe Links'],
+    keywords: ['safelink decoder', 'decode outlook safelink', 'outlook link decoder', 'nested Outlook Safe Links', 'batch Outlook Safe Links decoder', 'decode multiple Outlook Safe Links', 'bulk Safe Links decoder', 'how to open the Outlook Safe Links original URL'],
     intent: 'inspect',
     priority: 'P0',
     competition: 'medium',
     landed: true,
-    lockedTitle: 'Outlook Safe Links Decoder — Reveal the Original URL',
-    note: 'Bing Webmaster 90d: page 51 impressions, avg position 7.00; visible queries include outlook safelink decoder (9 impressions, position 9), decode safelink (4, position 8), and outlook link decoder (2, position 10); zero clicks. Page now unwraps nested Outlook wrappers up to five layers. Re-measure after release; decoding is not a safety scan or a bypass of click-time protection.',
+    lockedTitle: 'Outlook Safe Links Batch Decoder — Reveal Original URLs',
+    note: 'Bing Webmaster 90d snapshot: page 51 impressions, avg position 7.00; visible queries include outlook safelink decoder (9 impressions, position 9), decode safelink (4, position 8) and outlook link decoder (2, position 10); zero clicks. Batch-related phrases are candidate intent variants, not measured search volume. The existing canonical route now makes one-URL-per-line decoding, independent row results, URL structure context and local-only processing explicit; re-measure after recrawl. Decoding is not a safety scan or a click-time protection bypass.',
   },
   {
     path: '/percentage-calculator',
