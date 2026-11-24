@@ -118,7 +118,7 @@ jobs:
             // GitHub's Cloudflare status can lag the edge rollout. The exact
             // production SEO marker is a stronger fallback: it proves the new
             // deployable commit is already serving the approved metadata.
-            const [percentageResponse, htpasswdResponse, etaResponse] = await Promise.all([
+            const [percentageResponse, htpasswdResponse, safeLinksResponse, etaResponse] = await Promise.all([
               fetch(origin + '/percentage-calculator/', {
                 redirect: 'follow',
                 headers: { 'user-agent': ua, 'cache-control': 'no-cache' },
@@ -129,15 +129,21 @@ jobs:
                 headers: { 'user-agent': ua, 'cache-control': 'no-cache' },
                 signal: AbortSignal.timeout(10000),
               }),
+              fetch(origin + '/safelink-decoder/', {
+                redirect: 'follow',
+                headers: { 'user-agent': ua, 'cache-control': 'no-cache' },
+                signal: AbortSignal.timeout(10000),
+              }),
               fetch(origin + '/eta-calculator/', {
                 redirect: 'follow',
                 headers: { 'user-agent': ua, 'cache-control': 'no-cache' },
                 signal: AbortSignal.timeout(10000),
               }),
             ]);
-            const [percentageHtml, htpasswdHtml, etaHtml] = await Promise.all([
+            const [percentageHtml, htpasswdHtml, safeLinksHtml, etaHtml] = await Promise.all([
               percentageResponse.text(),
               htpasswdResponse.text(),
+              safeLinksResponse.text(),
               etaResponse.text(),
             ]);
             const percentageMarkerReady = percentageResponse.ok &&
@@ -154,6 +160,13 @@ jobs:
               htpasswdHtml.includes('content="Build multi-user Apache/Nginx .htpasswd files with bcrypt or apr1. Copy, download or verify a username:hash line locally. Passwords stay in your browser."') &&
               htpasswdHtml.includes('Build a complete .htpasswd file with one line per user for Apache or Nginx Basic Auth') &&
               htpasswdHtml.includes('href="' + origin + '/htpasswd-generator/"');
+            const safeLinksMarkerReady = safeLinksResponse.ok &&
+              safeLinksResponse.url === origin + '/safelink-decoder/' &&
+              safeLinksHtml.includes('<title>Outlook Safe Links Decoder — Reveal the Original URL - DigDevBox</title>') &&
+              safeLinksHtml.includes('content="Decode Outlook Safe Links one URL or a batch at a time, including nested wrappers. Reveal destinations locally; decoding does not verify safety."') &&
+              safeLinksHtml.includes('Decode multiple Safe Links') &&
+              safeLinksHtml.includes('Paste one Outlook Safe Links URL per line') &&
+              safeLinksHtml.includes('href="' + origin + '/safelink-decoder/"');
             const etaMarkerReady = process.env.CHECK_ETA_RELEASE !== 'true' || (
               etaResponse.ok &&
               etaResponse.url === origin + '/eta-calculator/' &&
@@ -162,7 +175,7 @@ jobs:
               etaHtml.includes('Calculate from elapsed time') &&
               etaHtml.includes('href="' + origin + '/eta-calculator/"')
             );
-            const productionMarkerReady = percentageMarkerReady && htpasswdMarkerReady && etaMarkerReady;
+            const productionMarkerReady = percentageMarkerReady && htpasswdMarkerReady && safeLinksMarkerReady && etaMarkerReady;
             if (productionMarkerReady) {
               cloudflareReady = true;
               console.log('Production SEO marker confirms the exact release is serving, despite a pending/stale Cloudflare check');
@@ -353,6 +366,7 @@ jobs:
               '/docker-run-to-docker-compose-converter/': { title: 'Docker Run to Compose Converter - DigDevBox', description: 'Paste a docker run command and get a docker-compose service — ports, volumes and env mapped. Free online decomposerize alternative, in your browser.', h1: 'Docker Run to Compose Converter' },
               '/otp-generator/': { title: 'TOTP Code Generator — 6-Digit Codes & QR - DigDevBox', description: 'Generate current, previous and next 6-digit TOTP codes from a Base32 secret, view the 30-second timer, and create an otpauth QR code. Uses Web Crypto.', h1: 'TOTP Code Generator' },
               '/htpasswd-generator/': { title: 'htpasswd Generator & Checker — bcrypt & apr1 - DigDevBox', description: 'Build multi-user Apache/Nginx .htpasswd files with bcrypt or apr1. Copy, download or verify a username:hash line locally. Passwords stay in your browser.', h1: 'htpasswd Generator & Checker' },
+              '/safelink-decoder/': { title: 'Outlook Safe Links Decoder — Reveal the Original URL - DigDevBox', description: 'Decode Outlook Safe Links one URL or a batch at a time, including nested wrappers. Reveal destinations locally; decoding does not verify safety.', h1: 'Outlook Safe Links Decoder' },
               '/json-to-toml/': { title: 'JSON to TOML Converter - DigDevBox', description: 'Convert JSON or JSON5 objects to TOML. Nested objects become tables or dotted keys; arrays become TOML arrays. Unsupported values may prevent conversion.', h1: 'JSON to TOML Converter' },
               '/text-statistics/': { title: 'Text Statistics — Word & Character Counter - DigDevBox', description: 'Count words, characters, Unicode units, lines and UTF-8 bytes. Analyze top-term frequency and estimate reading and speaking time in your browser, with no text upload.', h1: 'Text Statistics' },
               '/json-diff/': { title: 'JSON Diff Checker — Compare JSON Online - DigDevBox', description: 'Compare JSON files or pasted JSON online. Inspect nested changes by path, export a report, and match arrays by index, ignore-order or stable ID. Large comparisons run in a cancellable worker.', h1: 'JSON Diff Checker' },
