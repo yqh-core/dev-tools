@@ -4,7 +4,7 @@ test.describe('Tool - Outlook Safe Links batch decoder', () => {
   test('presents batch decoding first and explains its local-only scope', async ({ page }) => {
     await page.goto('/safelink-decoder');
 
-    await expect(page).toHaveTitle('Outlook Safe Links Batch Decoder — Local URL Unwrapper - DigDevBox');
+    await expect(page).toHaveTitle('Outlook Safe Links Batch Decoder - DigDevBox');
     await expect(page.getByTestId('safelink-batch').locator('h2')).toHaveText('Batch decode Outlook Safe Links');
     await expect(page.getByTestId('safelink-single')).toBeVisible();
 
