@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { clusterOf, resolveRelated, resolveWorkflow } from './clusters';
 
-type Tool = { path: string; category: string };
+interface Tool { path: string; category: string }
 
 const tools: Tool[] = [
   { path: '/regex-tester', category: 'Development' },
