@@ -469,6 +469,8 @@ tools:
       selfRedirect: The source and destination point to the same path on the same host.
       redirectChain: This destination continues through another redirect in the current batch. Point it directly to the final destination.
       redirectLoop: This mapping is part of a redirect loop. Break the loop before exporting.
+      cloudflareSourceLimits: Cloudflare source URLs cannot include ports or user information. Remove them before exporting.
+      cloudflareQueryConflict: The target URL query is discarded when Preserve query string is enabled. Remove the target query or disable this option.
 
   encryption:
     title: Encrypt / decrypt text
