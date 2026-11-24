@@ -83,7 +83,8 @@ describe('regex-tester', () => {
 
 describe('regex-tester pattern explanation', () => {
   it('explains anchors, literals, named captures, classes and quantifiers', () => {
-    const items = explainRegexPattern('^(?<id>[A-Z]{2}\\d+)
+    const slash = String.fromCharCode(92);
+    const items = explainRegexPattern('^(?<id>[A-Z]{2}' + slash + 'd+)
   it('reports positive and negative expectations independently', () => {
     const result = evaluateRegexTestCases('^ORD-[0-9]{4}$', 'd', [
       { id: '1', name: 'valid order', text: 'ORD-0042', shouldMatch: true },
@@ -109,7 +110,7 @@ describe('regex-tester pattern explanation', () => {
   });
 });
 , 'dgu');
-    expect(items.map(item => item.token)).toEqual(['^', '(?<id>', '[A-Z]', '{2}', '\\d', '+', ')', '
+    expect(items.map(item => item.token)).toEqual(['^', '(?<id>', '[A-Z]', '{2}', slash + 'd', '+', ')', '
   it('reports positive and negative expectations independently', () => {
     const result = evaluateRegexTestCases('^ORD-[0-9]{4}$', 'd', [
       { id: '1', name: 'valid order', text: 'ORD-0042', shouldMatch: true },
@@ -148,9 +149,10 @@ describe('regex-tester pattern explanation', () => {
   });
 
   it('marks unsupported syntax clearly instead of inventing an explanation', () => {
-    const items = explainRegexPattern('(?P<name>foo)\\K');
+    const slash = String.fromCharCode(92);
+    const items = explainRegexPattern('(?P<name>foo)' + slash + 'K');
     expect(items.find(item => item.token === '(?P<name>')?.recognized).toBe(false);
-    expect(items.find(item => item.token === '\\K')?.recognized).toBe(false);
+    expect(items.find(item => item.token === slash + 'K')?.recognized).toBe(false);
     expect(items.filter(item => !item.recognized)).toHaveLength(2);
   });
 
@@ -163,7 +165,6 @@ describe('regex-tester pattern explanation', () => {
     expect(explainRegexFlags('gimsu').find(item => item.flag === 's')?.explanation).toContain('line terminators');
   });
 });
-
 describe('regex-tester named test cases', () => {
   it('reports positive and negative expectations independently', () => {
     const result = evaluateRegexTestCases('^ORD-[0-9]{4}$', 'd', [
