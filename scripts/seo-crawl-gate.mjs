@@ -139,7 +139,8 @@ function isHttpError(row) {
 }
 
 function httpStatusCode(row) {
-  return Number.parseInt(String(row?.status ?? '').slice(0, 3), 10) || 0;
+  const code = Number.parseInt(String(row?.status ?? '').slice(0, 3), 10);
+  return Number.isInteger(code) && code >= 100 && code <= 599 ? code : 0;
 }
 
 function isCrawlerTransportError(row) {
