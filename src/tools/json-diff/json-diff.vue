@@ -3,6 +3,7 @@ import JSON5 from 'json5';
 
 import DiffsViewer from './diff-viewer/diff-viewer.vue';
 import { diff, flattenDifferences } from './json-diff.models';
+import type { ArrayComparisonMode } from './json-diff.models';
 import { withDefaultOnError } from '@/utils/defaults';
 import { isNotThrowing } from '@/utils/boolean';
 
@@ -10,6 +11,8 @@ const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const rawLeftJson = ref('');
 const rawRightJson = ref('');
 const fileError = ref('');
+const arrayMode = ref<ArrayComparisonMode>('index');
+const arrayIdKey = ref('id');
 
 const leftJson = computed(() => withDefaultOnError(() => JSON5.parse(rawLeftJson.value), undefined));
 const rightJson = computed(() => withDefaultOnError(() => JSON5.parse(rawRightJson.value), undefined));
@@ -25,11 +28,21 @@ const differenceTree = computed(() => {
   if (leftJson.value === undefined || rightJson.value === undefined) {
     return null;
   }
-  return diff(leftJson.value, rightJson.value, { onlyShowDifferences: true });
+  return diff(leftJson.value, rightJson.value, {
+    onlyShowDifferences: true,
+    arrayMode: arrayMode.value,
+    arrayIdKey: arrayIdKey.value,
+  });
 });
 const differenceList = computed(() => differenceTree.value
   ? flattenDifferences(differenceTree.value)
   : []);
+const changeCounts = computed(() => differenceList.value.reduce((counts, item) => {
+  if (item.status === 'added') counts.added++;
+  else if (item.status === 'removed') counts.removed++;
+  else counts.changed++;
+  return counts;
+}, { added: 0, removed: 0, changed: 0 }));
 
 function formatValue(value: unknown): string {
   if (value === undefined) {
@@ -145,11 +158,45 @@ function downloadReport() {
     {{ fileError }}
   </c-alert>
 
-  <DiffsViewer :left-json="leftJson" :right-json="rightJson" />
+  <c-card title="Array comparison" mt-3 data-test-id="array-comparison-controls">
+    <div flex flex-wrap gap-4>
+      <label flex items-center gap-2>
+        <input v-model="arrayMode" type="radio" value="index" data-test-id="array-mode-index">
+        Compare by index (default)
+      </label>
+      <label flex items-center gap-2>
+        <input v-model="arrayMode" type="radio" value="ignore-order" data-test-id="array-mode-ignore-order">
+        Ignore order (preserve duplicates)
+      </label>
+      <label flex items-center gap-2>
+        <input v-model="arrayMode" type="radio" value="id" data-test-id="array-mode-id">
+        Match objects by ID
+      </label>
+    </div>
+    <div v-if="arrayMode === 'id'" mt-3>
+      <label flex items-center gap-2 text-sm>
+        ID property
+        <input v-model="arrayIdKey" type="text" aria-label="Array object ID key" value="id" border rounded px-2 py-1>
+      </label>
+      <p mt-2 text-xs opacity-70>
+        ID matching is used only when every array item has a unique, non-empty string or finite numeric ID. Invalid or duplicate IDs fall back to index comparison.
+      </p>
+    </div>
+    <p mt-2 text-xs opacity-70>
+      Ignore-order compares exact values as a multiset: duplicate items still count. ID mode matches objects by the selected key and shows field changes without treating reordering as a change.
+    </p>
+  </c-card>
+
+  <DiffsViewer :left-json="leftJson" :right-json="rightJson" :array-mode="arrayMode" :array-id-key="arrayIdKey" />
 
   <c-card v-if="differenceTree" title="Change list" mt-3 data-test-id="change-list">
     <div flex flex-wrap items-center justify-between gap-2 mb-3>
-      <span text-sm>{{ differenceList.length }} changed paths</span>
+      <div flex flex-wrap gap-3 text-sm>
+        <span>{{ differenceList.length }} changed paths</span>
+        <span>Added: {{ changeCounts.added }}</span>
+        <span>Removed: {{ changeCounts.removed }}</span>
+        <span>Changed: {{ changeCounts.changed }}</span>
+      </div>
       <c-button v-if="differenceList.length > 0" @click="downloadReport">
         Download change report
       </c-button>
