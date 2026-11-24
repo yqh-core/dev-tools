@@ -807,7 +807,7 @@ tools:
 
   regex-tester:
     title: Regular Expression Tester — JavaScript Regex
-    description: Test JavaScript regular expressions online with live matches, capture groups and replacement preview. A 300ms worker timeout stops runaway patterns.
+    description: Test JavaScript regular expressions online with live matches, capture groups, replacement preview and named positive/negative test cases with pass/fail results. A 300ms worker timeout stops runaway patterns.
 
   safelink-decoder:
     title: "Outlook Safe Links Decoder — Reveal the Original URL"
