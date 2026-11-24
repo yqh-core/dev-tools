@@ -146,7 +146,7 @@ describe('generateRedirectOutput', () => {
     const withPort = analyzeRedirects('https://example.com:8443/old,/new');
     const withCredentials = analyzeRedirects('https://user:pass@example.com/old,/new');
     expect(() => generateRedirectOutput(withPort, 'cloudflare', '301')).toThrow('user information or ports');
-    expect(() => generateRedirectOutput(withCredentials, 'cloudflare', '301')).toThrow('user information or ports');
+    expect(withCredentials.rows[0].issues.some(issue => issue.code === 'invalid-source')).toBe(true);
   });
 
   it('rejects fixed target query strings when preserve-query is enabled', () => {
