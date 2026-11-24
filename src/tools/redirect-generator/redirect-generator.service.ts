@@ -32,7 +32,6 @@ export interface RedirectAnalysis {
 
 const MAX_ROWS = 1000;
 const MAX_INPUT_LENGTH = 200_000;
-const CONTROL_CHARS = /[\u0000-\u001f\u007f]/;
 const ALLOWED_STATUS = new Set<RedirectStatus>(['301', '302', '307', '308']);
 
 function parseCsvRecords(input: string): { values: string[]; line: number; error?: string }[] {
