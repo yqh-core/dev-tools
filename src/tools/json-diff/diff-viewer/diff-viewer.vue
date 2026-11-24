@@ -1,16 +1,26 @@
 <script lang="ts" setup>
 import { isEqual, isUndefined } from 'lodash';
 import { diff } from '../json-diff.models';
+import type { ArrayComparisonMode } from '../json-diff.models';
 import { DiffRootViewer } from './diff-viewer.models';
 import { useAppTheme } from '@/ui/theme/themes';
 
-const props = defineProps<{ leftJson: unknown; rightJson: unknown }>();
+const props = defineProps<{
+  leftJson: unknown;
+  rightJson: unknown;
+  arrayMode: ArrayComparisonMode;
+  arrayIdKey: string;
+}>();
 const onlyShowDifferences = ref(false);
-const { leftJson, rightJson } = toRefs(props);
+const { leftJson, rightJson, arrayMode, arrayIdKey } = toRefs(props);
 const appTheme = useAppTheme();
 
 const result = computed(() =>
-  diff(leftJson.value, rightJson.value, { onlyShowDifferences: onlyShowDifferences.value }),
+  diff(leftJson.value, rightJson.value, {
+    onlyShowDifferences: onlyShowDifferences.value,
+    arrayMode: arrayMode.value,
+    arrayIdKey: arrayIdKey.value,
+  }),
 );
 
 const jsonAreTheSame = computed(() => isEqual(leftJson.value, rightJson.value));
