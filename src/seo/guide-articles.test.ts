@@ -7,7 +7,9 @@ describe('article-only guide content', () => {
     const page = GUIDE_ARTICLE_PAGES.find(item => item.toolPath === '/api-debugger');
     expect(page).toBeDefined();
     expect(page?.indexable).toBe(true);
-    expect(page?.sections.filter(section => section.id.startsWith('article-only-'))).toHaveLength(3);
+    expect(page?.sections.filter(section => section.id.startsWith('article-only-'))).toHaveLength(5);
+    expect(page?.sections.map(section => section.title)).toContain('Apply stacked discounts to the current price');
+    expect(page?.sections.map(section => section.title)).toContain('Understand step order and the final total');
 
     const [en, zh] = await Promise.all([loadGuides('en'), loadGuides('zh')]);
     expect(en['/api-debugger'].steps).toHaveLength(5);
@@ -43,8 +45,12 @@ describe('article-only guide content', () => {
 
     expect(en['/json-diff'].intro).toContain('Compare JSON documents structurally');
     expect(zh['/json-diff'].intro).toContain('结构化比较 JSON 文档');
-    expect(english).toHaveLength(3);
+    expect(english).toHaveLength(5);
     expect(chinese).toHaveLength(english.length);
+    expect(english.map(section => section.title)).toContain('Apply stacked discounts to the current price');
+    expect(chinese.map(section => section.title)).toContain('连续折扣要按当前价格逐步计算');
+    expect(english.map(section => section.title)).toContain('Understand step order and the final total');
+    expect(chinese.map(section => section.title)).toContain('理解步骤顺序和最终总额');
     expect(english.map(section => section.title)).toContain('Reverse a change and choose the right comparison');
     expect(chinese.map(section => section.title)).toContain('反推变化前的数值，并选对比较基数');
     expect(english[0].title).toBe('Choose the denominator before you calculate');
