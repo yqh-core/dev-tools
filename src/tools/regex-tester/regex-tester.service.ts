@@ -64,8 +64,8 @@ type RegExpExecArrayWithIndices = RegExpExecArray & {
 
 /** Evaluate a JavaScript RegExp. This function is called inside a dedicated Worker. */
 export function matchRegex(regex: string, text: string, flags: string): RegexMatch[] {
-  // Preserve the existing tool contract: empty pattern or empty input yields no rows.
-  if (!regex || !text) {
+  // An empty pattern is treated as unset, but a non-empty pattern may validly match an empty input.
+  if (!regex) {
     return [];
   }
 
