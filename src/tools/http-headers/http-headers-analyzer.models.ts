@@ -134,16 +134,19 @@ export function analyzeResponseHeaders(raw: string): HttpHeaderAnalysis | { erro
   const csp = get('content-security-policy')
   const scriptPolicy = getDirective(csp, 'script-src') || getDirective(csp, 'default-src')
   const hasUnsafeScriptSource = /(?:'unsafe-inline'|'unsafe-eval'|\*)/i.test(scriptPolicy)
+  const hasScriptPolicy = Boolean(scriptPolicy)
   baselineChecks.push({
     id: 'csp',
     label: 'Content-Security-Policy',
-    status: !has('content-security-policy') ? 'missing' : hasUnsafeScriptSource ? 'review' : 'present',
+    status: !has('content-security-policy') ? 'missing' : !hasScriptPolicy || hasUnsafeScriptSource ? 'review' : 'present',
     value: csp || undefined,
     detail: !has('content-security-policy')
       ? 'No enforcing Content-Security-Policy header was found.'
-      : hasUnsafeScriptSource
-        ? 'The effective script source directive contains a broad or unsafe source expression.'
-        : 'An enforcing Content-Security-Policy header is present; this parser does not validate the full policy grammar.',
+      : !hasScriptPolicy
+        ? 'The policy has no script-src or default-src directive for this baseline check.'
+        : hasUnsafeScriptSource
+          ? 'The effective script source directive contains a broad or unsafe source expression.'
+          : 'An enforcing Content-Security-Policy header is present; this parser does not validate the full policy grammar.',
     recommendation: 'Build a policy around the resources your app needs. Avoid broad sources and unsafe script directives; test changes with Content-Security-Policy-Report-Only first.',
   })
 
@@ -183,10 +186,11 @@ export function analyzeResponseHeaders(raw: string): HttpHeaderAnalysis | { erro
 
   const referrerPolicy = get('referrer-policy').split(',').map(value => value.trim().toLowerCase()).filter(Boolean)
   const recognizedReferrerPolicy = referrerPolicy.some(value => SAFE_REFERRER_POLICIES.has(value))
+  const hasUnsafeReferrerPolicy = referrerPolicy.includes('unsafe-url')
   baselineChecks.push({
     id: 'referrer',
     label: 'Referrer-Policy',
-    status: !has('referrer-policy') ? 'missing' : recognizedReferrerPolicy ? 'present' : 'review',
+    status: !has('referrer-policy') ? 'missing' : recognizedReferrerPolicy && !hasUnsafeReferrerPolicy ? 'present' : 'review',
     value: get('referrer-policy') || undefined,
     detail: !has('referrer-policy')
       ? 'No Referrer-Policy header was found.'
