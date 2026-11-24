@@ -18,6 +18,7 @@ const rawRightJson = ref('');
 const fileError = ref('');
 const comparisonError = ref('');
 const isComparing = ref(false);
+const showAllChanges = ref(false);
 const arrayMode = ref<ArrayComparisonMode>('index');
 const arrayIdKey = ref('id');
 const leftJson = shallowRef<unknown>();
@@ -141,6 +142,7 @@ watch([rawLeftJson, rawRightJson, arrayMode, arrayIdKey], () => {
   rightJson.value = undefined;
   differenceTree.value = null;
   comparisonError.value = '';
+  showAllChanges.value = false;
   debounceHandle = setTimeout(compareInputs, INPUT_DEBOUNCE_MS);
 }, { flush: 'post' });
 
@@ -162,6 +164,9 @@ onBeforeUnmount(() => {
 const differenceList = computed(() => differenceTree.value
   ? flattenDifferences(differenceTree.value)
   : []);
+const visibleDifferences = computed(() => showAllChanges.value
+  ? differenceList.value
+  : differenceList.value.slice(0, 500));
 const changeCounts = computed(() => differenceList.value.reduce((counts, item) => {
   if (item.status === 'added') {
     counts.added++;
@@ -340,6 +345,7 @@ function downloadReport() {
     :left-json="leftJson"
     :right-json="rightJson"
     :precomputed-result="differenceTree"
+    :large-input="rawLeftJson.length + rawRightJson.length >= WORKER_THRESHOLD"
   />
 
   <c-card v-if="differenceTree" title="Change list" mt-3 data-test-id="change-list">
@@ -354,6 +360,12 @@ function downloadReport() {
         Download change report
       </c-button>
     </div>
+    <div v-if="differenceList.length > 500" flex items-center justify-between gap-2 mb-2 text-sm>
+      <span>Showing {{ visibleDifferences.length }} of {{ differenceList.length }} changed paths</span>
+      <c-button size="small" @click="showAllChanges = !showAllChanges">
+        {{ showAllChanges ? 'Show first 500' : 'Show all changes' }}
+      </c-button>
+    </div>
     <div v-if="differenceList.length > 0" class="max-w-full overflow-x-auto">
       <table w-full text-sm>
         <thead>
@@ -365,7 +377,7 @@ function downloadReport() {
           </tr>
         </thead>
         <tbody>
-          <tr v-for="item in differenceList" :key="item.path" border-t>
+          <tr v-for="item in visibleDifferences" :key="item.path" border-t>
             <td p-2 font-mono data-test-id="change-path">{{ item.path }}</td>
             <td p-2>{{ item.status }}</td>
             <td p-2 font-mono>{{ formatValue(item.oldValue) }}</td>
