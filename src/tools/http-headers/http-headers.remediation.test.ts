@@ -28,7 +28,12 @@ describe('buildHeaderRemediation', () => {
       value: 'max-age=31536000',
     });
     expect(JSON.parse(buildHeaderRemediation(
-      analyzeResponseHeaders('HTTP/2 200 OK\\nX-Content-Type-Options: nosniff\\nReferrer-Policy: no-referrer\\nStrict-Transport-Security: max-age=31536000'),
+      analyzeResponseHeaders([
+        'HTTP/2 200 OK',
+        'X-Content-Type-Options: nosniff',
+        'Referrer-Policy: no-referrer',
+        'Strict-Transport-Security: max-age=31536000',
+      ].join('\n')),
       'vercel',
     ))).toEqual({ headers: [] });
   });
