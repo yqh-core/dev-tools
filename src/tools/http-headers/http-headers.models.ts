@@ -270,7 +270,7 @@ export function analyzeResponseHeaders(raw: string): HeaderAnalysis {
     });
   }
 
-  if (csp.includes("'unsafe-inline'") || csp.includes("'unsafe-eval'")) {
+  if (csp.includes('\'unsafe-inline\'') || csp.includes('\'unsafe-eval\'')) {
     findings.push({
       severity: 'high',
       title: 'Weak CSP source expressions',
