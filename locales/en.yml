@@ -271,7 +271,7 @@ tools:
       copy: Copy
       refresh: Refresh
   percentage-calculator:
-    title: "Percentage Calculator — Percent of, Change & Difference"
+    title: "Percentage Calculator — 7 Modes"
     description: "Calculate percentages, discounts, percentage change, reverse percentages and percentage points. Seven modes plus batch CSV/TSV export and worked formulas."
     resultDetails:
       inWords: In words
@@ -388,8 +388,8 @@ tools:
     title: JSON to CSV
     description: Convert JSON to CSV with automatic header detection.
   csv-to-json:
-    title: CSV to JSON Converter — Preview Rows & Convert Online
-    description: Paste CSV, choose whether the first row contains column names, preview parsed rows and copy or download the resulting JSON. Handles quoted fields and reports parse warnings.
+    title: "CSV to JSON Converter — Preview & Export"
+    description: "Convert CSV to JSON with an optional header row, row preview and downloadable output. Handles quoted fields and reports parsing warnings."
 
   camera-recorder:
     title: "Webcam Recorder — Record Video & Take Photos Online"
@@ -408,11 +408,11 @@ tools:
     description: "Convert and edit colors between HEX, RGB, HSL, HWB, LCH, CMYK and the nearest CSS color name, with a color picker. Values are computed in your browser."
 
   bcrypt:
-    title: "Bcrypt Hash Generator & Checker — Hash and Compare Passwords"
-    description: "Generate bcrypt hashes with configurable salt rounds from 0 to 100 and compare a plaintext value against an existing bcrypt hash. The browser-based bcryptjs tool does not decrypt hashes or store account credentials."
+    title: "Bcrypt Hash Generator & Checker"
+    description: "Generate bcrypt hashes with configurable salt rounds and compare plaintext against an existing hash. Runs in your browser; bcrypt hashes cannot be decrypted."
 
   crontab-generator:
-    title: Crontab Generator — Cron Expressions with Plain-English Preview
+    title: "Crontab Generator — Cron Builder"
     description: Build cron expressions with a plain-English preview — every 5 minutes, weekdays, {'@'}reboot. Validate crontab and GitHub Actions schedules free in your browser.
 
   http-status-codes:
@@ -596,15 +596,15 @@ tools:
     description: Generate a BIP39 passphrase from an existing or random mnemonic, or get the mnemonic from the passphrase.
 
   base64-file-converter:
-    title: Base64 to Image — Online Decode, Preview and Download
-    description: Convert a string, file, or image into its base64 representation.
+    title: "Base64 File Converter — Encode & Decode"
+    description: "Encode files as Base64 or decode Base64 strings and data URIs to preview and download images or documents. Processing stays in your browser."
 
   list-converter:
-    title: List Converter — Sort, Deduplicate & Format Lines
-    description: "Clean up a line-by-line list: remove duplicate lines, sort or reverse items, trim whitespace, change case, add item prefixes or suffixes, and join values with a chosen separator. Runs in your browser."
+    title: "List Converter — Sort & Deduplicate"
+    description: "Clean up line-by-line lists: remove duplicates, sort or reverse items, trim whitespace, change case, add prefixes or suffixes, and join with a separator."
 
   base64-string-converter:
-    title: Base64 Encoder & Decoder — Padding, URL-Safe, Binary-Safe
+    title: "Base64 Encoder & Decoder — URL-Safe"
     description: Encode and decode Base64 online — URL-safe base64url, padding options, binary-safe text, with RFC 4648 and atob()/btoa() notes. Free, in your browser.
 
   toml-to-yaml:
@@ -670,8 +670,8 @@ tools:
     description: Find the vendor and manufacturer of a device by its MAC address.
 
   mime-types:
-    title: "MIME Type Lookup — Content-Type, Extensions & Server Config"
-    description: "Look up MIME types by extension or find extensions by Content-Type. Generate copy-ready Nginx types, Apache AddType and static _headers rules from the selected mapping."
+    title: "MIME Type Lookup — Types & Extensions"
+    description: "Find MIME types by file extension or find extensions by Content-Type. Generate copy-ready Nginx, Apache and Cloudflare _headers snippets."
 
   toml-to-json:
     title: "TOML to JSON Converter — Convert TOML Config to JSON"
@@ -679,7 +679,7 @@ tools:
 
   lorem-ipsum-generator:
     title: Lorem Ipsum Generator
-    description: Generate lorem ipsum placeholder text — paragraphs, sentences or words — for layouts and mockups. The classic printing-industry dummy text since the 1500s, free and instant, right in your browser.
+    description: "Generate placeholder text for layouts and mockups by paragraph, sentence or word count. Uses the classic printing-industry Lorem Ipsum text; free and instant in your browser."
 
   qrcode-generator:
     title: "QR Code Generator — Create & Download Custom QR Codes"
@@ -722,7 +722,7 @@ tools:
     description: "Compare JSON files or pasted JSON online. Inspect nested changes by path, export a report, and match arrays by index, ignore-order or stable ID. Large comparisons run in a cancellable worker."
 
   jwt-parser:
-    title: JWT Decoder & Parser — Inspect Header, Payload and Expiration
+    title: "JWT Decoder & Parser — Claims & Expiration"
     description: Decode JWTs online — inspect header, payload, claims and expiration (exp/iat) as readable dates. Your token never leaves your browser. Free, no signup.
 
   date-converter:
@@ -742,12 +742,12 @@ tools:
     description: Pre-deployment readiness gate for your project. Paste package.json, lockfile, Dockerfile and CI workflow, or import Trivy/Checkov/Hadolint/SARIF JSON or actionlint text; get a READY / READY_WITH_WARNINGS / BLOCKED / NOT_ASSESSED verdict with evidence-backed findings (reproducible builds, pinned images, non-root containers, CI injection risks, hardcoded secrets, real scanner results) and an exportable release report. Inspired by Vercel/Netlify preflight checks; runs fully in your browser.
 
   ipv4-subnet-calculator:
-    title: IPv4 Subnet Calculator — CIDR, Netmask & Usable Hosts
-    description: Calculate an IPv4 subnet from an address and CIDR prefix. See the network and broadcast addresses, netmask, wildcard mask, subnet size and first/last host addresses.
+    title: "IPv4 Subnet Calculator — CIDR & Hosts"
+    description: "Calculate a subnet from an IPv4 address and CIDR prefix. View network and broadcast addresses, netmask, wildcard mask, subnet size and usable host range."
 
   og-meta-generator:
-    title: "Open Graph & Twitter Meta Tag Generator — Create Social Share Tags"
-    description: "Generate copyable Open Graph and Twitter Card HTML meta tags for a page title, description, URL and social image. Choose website, article, book, profile, music or video metadata; no live share-card preview is included."
+    title: "Open Graph & Twitter Meta Generator"
+    description: "Create copyable Open Graph and Twitter Card tags for a page title, description, URL and image. Choose website, article, profile, book, music or video metadata."
 
   ipv6-ula-generator:
     title: IPv6 ULA generator
@@ -852,7 +852,7 @@ tools:
 
   image-crop:
     title: Image Cropper — Crop Photos to Any Aspect Ratio
-    description: Crop an image to an exact pixel region online. Choose a preset aspect ratio or freeform selection, then export at the selected dimensions in a supported image format.
+    description: "Crop an image to exact pixel dimensions using a preset aspect ratio or freeform selection, then export in a supported image format."
     pickFile: Choose an image
     ratio: Aspect ratio
     ratioFree: Free
@@ -863,8 +863,8 @@ tools:
     button: Crop image
     buttonDownload: Download cropped image
   image-color-picker:
-    title: Image Color Picker — Get HEX, RGB & HSL from Any Image
-    description: "Pick a pixel in an image to read its stored HEX, RGB and HSL values. Sampling uses the original image bitmap locally in your browser; transparent pixels report stored RGB values without alpha compositing."
+    title: "Image Color Picker — HEX, RGB & HSL"
+    description: "Sample a pixel from an image and read its HEX, RGB and HSL values. Processing uses the original image locally; transparent pixels retain their stored RGB."
     pickFile: Choose an image
     clickHint: Click a pixel to sample it.
   favicon-generator:
@@ -881,7 +881,7 @@ tools:
     htmlSnippet: HTML to paste
     copySnippet: Copy HTML
   image-to-pdf:
-    title: Images to PDF Converter — Combine JPG & PNG Online
+    title: "Images to PDF Converter — JPG & PNG"
     description: Combine multiple images into one PDF, with each image placed on its own page. Add images, review the selection and create a downloadable PDF in your browser.
     pickFile: Choose images
     selected: '{count} image selected | {count} images selected'
@@ -894,8 +894,8 @@ tools:
       unreadable: This file could not be decoded as an image
 
   image-resize:
-    title: Image Resizer — Resize Images to Exact Dimensions
-    description: Resize an image to exact pixel width and height, with an optional aspect-ratio lock. Export PNG, JPEG or WebP when your browser supports the format; processing happens locally.
+    title: "Image Resizer — Exact Dimensions"
+    description: "Resize images to exact pixel width and height with an optional aspect-ratio lock. Export PNG, JPEG or WebP when supported; processing stays local."
     pickFile: Choose an image
     width: Target width (px)
     height: Target height (px)
@@ -909,7 +909,7 @@ tools:
     buttonDownload: Download resized image
   image-compress:
     title: Image Compressor — Reduce JPEG & WebP File Size
-    description: Compress JPEG and WebP images in your browser. Adjust output quality or set a target file size in KB; compression is lossy, and the target may be unreachable for some images.
+    description: "Compress JPEG and WebP images in your browser. Adjust quality or set a target size in KB; lossy output may not reach every target."
     pickFile: Choose an image
     format: Output format
     quality: 'Quality: {q}'
@@ -1013,8 +1013,8 @@ tools:
     description: "Convert text to decimal HTML numeric character references and back, or convert text to decimal Unicode code-point lists. HTML-reference mode uses UTF-16 code units and does not support hexadecimal entities or \\u escapes."
 
   ipv4-range-expander:
-    title: IP Range to CIDR Converter — Convert IPv4 Ranges Online
-    description: Convert a start and end IPv4 address into the smallest set of CIDR blocks that covers the full range. Useful for firewall rules, cloud security groups and routing tables.
+    title: "IP Range to CIDR Converter"
+    description: "Convert a start and end IPv4 address into the smallest set of CIDR blocks covering the range. Copy the result for firewall rules, cloud security groups and routing."
 
   text-diff:
     title: Text Diff Checker — Compare Two Texts Side by Side
@@ -1041,8 +1041,8 @@ tools:
     description: Normalize email addresses to a standard format for easier comparison, deduplication and data cleaning.
 
   json-to-xml:
-    title: JSON to XML
-    description: Convert JSON data to XML format.
+    title: "JSON to XML Converter"
+    description: "Convert JSON objects and arrays to XML. Set the root element and array item names, preview the output, then copy or download the generated XML in your browser."
 
   markdown-to-html:
     title: Markdown to HTML Converter — Live Preview & HTML Output
@@ -1106,8 +1106,8 @@ tools:
     description: "Convert between full-width and half-width characters using the fixed Unicode offset 0xFEE0, or adjust punctuation only."
 
   morse-code-converter:
-    title: "Morse Code Translator — Encode Text & Decode Morse"
-    description: "Translate text to Morse code or decode dot-and-dash sequences. Supports A–Z, digits and common punctuation; letters are separated by spaces and words by slashes."
+    title: "Morse Code Translator — Encode & Decode"
+    description: "Translate text to Morse code or decode dot-and-dash sequences. Supports A–Z, digits and common punctuation; letters use spaces and words use slashes."
 
   rmb-uppercase:
     title: "RMB amount in Chinese uppercase"
@@ -1153,7 +1153,7 @@ tools:
     description: "A searchable cheat sheet of common Linux commands with what they do and ready-to-use examples."
 
   http-headers:
-    title: "HTTP Header Analyzer — HAR Import & Security Score"
+    title: "HTTP Header Analyzer — HAR & Security"
     description: "Import HAR or paste curl/DevTools headers. Check CSP, HSTS, cookies, CORS and indexing; get a score plus copy-ready Nginx, Vercel and Cloudflare fixes locally."
     analyzer:
       cardTitle: "HTTP response header analyzer"
