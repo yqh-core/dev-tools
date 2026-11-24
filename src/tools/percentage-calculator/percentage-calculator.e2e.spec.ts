@@ -9,7 +9,7 @@ test.describe('Tool - Percentage calculator', () => {
     await expect(page).toHaveTitle('Percentage Calculator — Percent of, Change & Difference - DigDevBox');
     await expect(page.locator('meta[name="description"]')).toHaveAttribute(
       'content',
-      'Find X% of Y, what percent one value is of another, percent change, difference and reverse rates. Seven modes with batch formulas and CSV/TSV export.',
+      'Calculate percentages, discounts, percentage change, reverse percentages and percentage points. Seven modes plus batch CSV/TSV export and worked formulas.',
     );
     await expect(page.locator('h1')).toHaveText('Percentage Calculator');
   });
@@ -27,6 +27,61 @@ test.describe('Tool - Percentage calculator', () => {
     await expect(guide).toContainText('An original value of zero makes percentage change undefined');
   });
 
+  test('shows live in-words explanations and substituted formulas for all seven operations', async ({ page }) => {
+    await page.getByTestId('percentageX').locator('input').fill('15');
+    await page.getByTestId('percentageY').locator('input').fill('80');
+    await expect(page.getByTestId('percentage-details-percent-of')).toContainText('15% of 80 is 12.');
+    await expect(page.getByTestId('percentage-details-percent-of')).toContainText('(15 ÷ 100) × 80 = 12');
+
+    await page.getByTestId('numberX').locator('input').fill('30');
+    await page.getByTestId('numberY').locator('input').fill('120');
+    await expect(page.getByTestId('percentage-details-part-to-whole')).toContainText('30 is 25% of 120.');
+    await expect(page.getByTestId('percentage-details-part-to-whole')).toContainText('(30 ÷ 120) × 100 = 25%');
+
+    await page.getByTestId('numberFrom').locator('input').fill('80');
+    await page.getByTestId('numberTo').locator('input').fill('92');
+    await expect(page.getByTestId('percentage-details-change')).toContainText('The percentage change from 80 to 92 is 15%.');
+    await expect(page.getByTestId('percentage-details-change')).toContainText('(92 − 80) ÷ 80 × 100 = 15%');
+
+    await page.getByTestId('adjustmentValue').locator('input').fill('80');
+    await page.getByTestId('adjustmentPercent').locator('input').fill('15');
+    await expect(page.getByTestId('percentage-details-adjustment')).toContainText('Increasing 80 by 15% gives 92.');
+    await expect(page.getByTestId('percentage-details-adjustment')).toContainText('Decreasing 80 by 15% gives 68.');
+
+    await page.getByTestId('reverseFinalValue').locator('input').fill('120');
+    await page.getByTestId('reversePercent').locator('input').fill('20');
+    await expect(page.getByTestId('percentage-details-reverse')).toContainText('Before a 20% increase, 120 was 100.');
+    await expect(page.getByTestId('percentage-details-reverse')).toContainText('Before a 20% decrease, 120 was 150.');
+
+    await page.getByTestId('differenceA').locator('input').fill('100');
+    await page.getByTestId('differenceB').locator('input').fill('150');
+    await expect(page.getByTestId('percentage-details-difference')).toContainText('The symmetric percentage difference between 100 and 150 is 40%.');
+
+    await page.getByTestId('rateFrom').locator('input').fill('5');
+    await page.getByTestId('rateTo').locator('input').fill('7');
+    await expect(page.getByTestId('percentage-details-points')).toContainText('The change from 5% to 7% is 2 percentage points.');
+  });
+
+  test.describe('Chinese result explanations', () => {
+    test('shows localized explanation labels and formula for a percentage result', async ({ page }) => {
+      // Simulate a first visit from a Chinese-language browser deterministically.
+      // Reset the persisted choice before the app bootstraps on the next navigation.
+      await page.addInitScript(() => {
+        localStorage.removeItem('locale');
+        Object.defineProperty(navigator, 'languages', {
+          configurable: true,
+          get: () => ['zh-CN', 'zh'],
+        });
+      });
+      await page.reload();
+      await page.getByTestId('percentageX').locator('input').fill('15');
+      await page.getByTestId('percentageY').locator('input').fill('80');
+      const details = page.getByTestId('percentage-details-percent-of');
+      await expect(details).toContainText('结果说明');
+      await expect(details).toContainText('80 的 15% 是 12。');
+      await expect(details).toContainText('计算公式');
+    });
+  });
   test('Answers common percentage questions with supported formulas', async ({ page }) => {
     const guide = page.getByTestId('percentage-calculator-guide');
     await expect(guide).toContainText('How do I calculate a percentage of a number?');

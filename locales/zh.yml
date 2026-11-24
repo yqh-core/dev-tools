@@ -262,7 +262,19 @@ tools:
       refresh: 刷新
   percentage-calculator:
     title: 百分比计算器 — 百分比计算、增减幅与折扣
-    description: 免费百分比计算器，支持占比、变化率、连续折扣、增减和折扣反推。提供逐步金额、综合变化率及浏览器本地批量 CSV/TSV 导出。
+    description: 免费计算百分比、折扣、百分比变化、反向百分比和百分点。支持七种计算模式、批量 CSV/TSV 导出及逐步公式说明。
+    resultDetails:
+      inWords: 结果说明
+      formula: 计算公式
+      percentOf: "{whole} 的 {percent}% 是 {result}。"
+      partToWhole: "{part} 占 {whole} 的 {result}%。"
+      percentageChange: "数值从 {oldValue} 变化到 {newValue}，百分比变化为 {result}%。"
+      increase: "将 {value} 增加 {percent}% 后得到 {result}。"
+      decrease: "将 {value} 减少 {percent}% 后得到 {result}。"
+      reverseIncrease: "增加 {percent}% 后得到 {finalValue}，增加前的数值是 {originalValue}。"
+      reverseDecrease: "减少 {percent}% 后得到 {finalValue}，减少前的数值是 {originalValue}。"
+      percentageDifference: "{first} 和 {second} 之间的对称百分比差异为 {result}%。"
+      percentagePoints: "比率从 {oldRate}% 变化到 {newRate}%，相差 {result} 个百分点。"
     sequential:
       summary: 连续折扣与百分比调整
       title: 连续百分比调整

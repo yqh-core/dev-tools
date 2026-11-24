@@ -113,6 +113,168 @@ const percentagePointChange = computed(() => {
   }
   return resultText(rateTo.value - rateFrom.value);
 });
+const percentageResultDetails = computed(() => {
+  if (
+    !isFiniteNumber(percentageX.value)
+    || !isFiniteNumber(percentageY.value)
+    || percentageResult.value === ''
+  ) {
+    return null;
+  }
+  return {
+    words: t('tools.percentage-calculator.resultDetails.percentOf', {
+      percent: percentageX.value,
+      whole: percentageY.value,
+      result: percentageResult.value,
+    }),
+    formula: `(${percentageX.value} ÷ 100) × ${percentageY.value} = ${percentageResult.value}`,
+  };
+});
+
+const partToWholeDetails = computed(() => {
+  if (
+    !isFiniteNumber(numberX.value)
+    || !isFiniteNumber(numberY.value)
+    || numberY.value === 0
+    || numberResult.value === ''
+  ) {
+    return null;
+  }
+  return {
+    words: t('tools.percentage-calculator.resultDetails.partToWhole', {
+      part: numberX.value,
+      whole: numberY.value,
+      result: numberResult.value,
+    }),
+    formula: `(${numberX.value} ÷ ${numberY.value}) × 100 = ${numberResult.value}%`,
+  };
+});
+
+const percentageChangeDetails = computed(() => {
+  if (
+    !isFiniteNumber(numberFrom.value)
+    || !isFiniteNumber(numberTo.value)
+    || numberFrom.value === 0
+    || percentageIncreaseDecrease.value === ''
+  ) {
+    return null;
+  }
+  return {
+    words: t('tools.percentage-calculator.resultDetails.percentageChange', {
+      oldValue: numberFrom.value,
+      newValue: numberTo.value,
+      result: percentageIncreaseDecrease.value,
+    }),
+    formula: `(${numberTo.value} − ${numberFrom.value}) ÷ ${numberFrom.value} × 100 = ${percentageIncreaseDecrease.value}%`,
+  };
+});
+
+const adjustmentDetails = computed(() => {
+  if (
+    !isFiniteNumber(adjustmentValue.value)
+    || !isFiniteNumber(adjustmentPercent.value)
+    || increasedValue.value === ''
+    || decreasedValue.value === ''
+  ) {
+    return null;
+  }
+  return {
+    increaseWords: t('tools.percentage-calculator.resultDetails.increase', {
+      value: adjustmentValue.value,
+      percent: adjustmentPercent.value,
+      result: increasedValue.value,
+    }),
+    decreaseWords: t('tools.percentage-calculator.resultDetails.decrease', {
+      value: adjustmentValue.value,
+      percent: adjustmentPercent.value,
+      result: decreasedValue.value,
+    }),
+    increaseFormula: `${adjustmentValue.value} × (1 + ${adjustmentPercent.value} ÷ 100) = ${increasedValue.value}`,
+    decreaseFormula: `${adjustmentValue.value} × (1 − ${adjustmentPercent.value} ÷ 100) = ${decreasedValue.value}`,
+  };
+});
+
+const reverseIncreaseDetails = computed(() => {
+  if (
+    !isFiniteNumber(reverseFinalValue.value)
+    || !isFiniteNumber(reversePercent.value)
+    || originalBeforeIncrease.value === ''
+  ) {
+    return null;
+  }
+  return {
+    words: t('tools.percentage-calculator.resultDetails.reverseIncrease', {
+      percent: reversePercent.value,
+      finalValue: reverseFinalValue.value,
+      originalValue: originalBeforeIncrease.value,
+    }),
+    formula: `${reverseFinalValue.value} ÷ (1 + ${reversePercent.value} ÷ 100) = ${originalBeforeIncrease.value}`,
+  };
+});
+
+const reverseDecreaseDetails = computed(() => {
+  if (
+    !isFiniteNumber(reverseFinalValue.value)
+    || !isFiniteNumber(reversePercent.value)
+    || originalBeforeDecrease.value === ''
+  ) {
+    return null;
+  }
+  return {
+    words: t('tools.percentage-calculator.resultDetails.reverseDecrease', {
+      percent: reversePercent.value,
+      finalValue: reverseFinalValue.value,
+      originalValue: originalBeforeDecrease.value,
+    }),
+    formula: `${reverseFinalValue.value} ÷ (1 − ${reversePercent.value} ÷ 100) = ${originalBeforeDecrease.value}`,
+  };
+});
+
+const reverseDetails = computed(() => {
+  if (!isFiniteNumber(reverseFinalValue.value) || !isFiniteNumber(reversePercent.value)) {
+    return null;
+  }
+  return {
+    increase: reverseIncreaseDetails.value,
+    decrease: reverseDecreaseDetails.value,
+  };
+});
+
+const percentageDifferenceDetails = computed(() => {
+  if (
+    !isFiniteNumber(differenceA.value)
+    || !isFiniteNumber(differenceB.value)
+    || percentageDifference.value === ''
+  ) {
+    return null;
+  }
+  return {
+    words: t('tools.percentage-calculator.resultDetails.percentageDifference', {
+      first: differenceA.value,
+      second: differenceB.value,
+      result: percentageDifference.value,
+    }),
+    formula: `|${differenceA.value} − ${differenceB.value}| ÷ ((|${differenceA.value}| + |${differenceB.value}|) ÷ 2) × 100 = ${percentageDifference.value}%`,
+  };
+});
+
+const percentagePointsDetails = computed(() => {
+  if (
+    !isFiniteNumber(rateFrom.value)
+    || !isFiniteNumber(rateTo.value)
+    || percentagePointChange.value === ''
+  ) {
+    return null;
+  }
+  return {
+    words: t('tools.percentage-calculator.resultDetails.percentagePoints', {
+      oldRate: rateFrom.value,
+      newRate: rateTo.value,
+      result: percentagePointChange.value,
+    }),
+    formula: `${rateTo.value} − ${rateFrom.value} = ${percentagePointChange.value} percentage points`,
+  };
+});
 interface PercentageBatchHistoryItem {
   id: string
   mode: PercentageBatchMode
@@ -433,6 +595,10 @@ async function copySequentialSummary(): Promise<void> {
           <n-input-number v-model:value="percentageY" data-test-id="percentageY" placeholder="Y" />
           <input-copyable v-model:value="percentageResult" data-test-id="percentageResult" readonly placeholder="Result" style="max-width: 150px;" />
         </div>
+        <div v-if="percentageResultDetails" class="mt-2 rounded border border-gray-200 p-2 text-xs dark:border-gray-700" data-test-id="percentage-details-percent-of">
+          <p><strong>{{ $t('tools.percentage-calculator.resultDetails.inWords') }}:</strong> {{ percentageResultDetails.words }}</p>
+          <p class="mt-1"><strong>{{ $t('tools.percentage-calculator.resultDetails.formula') }}:</strong> <code class="break-words">{{ percentageResultDetails.formula }}</code></p>
+        </div>
       </c-card>
 
       <c-card mb-3>
@@ -447,6 +613,10 @@ async function copySequentialSummary(): Promise<void> {
           <n-input-number v-model:value="numberY" data-test-id="numberY" placeholder="Y" />
           <input-copyable v-model:value="numberResult" data-test-id="numberResult" readonly placeholder="Result" style="max-width: 150px;" />
         </div>
+        <div v-if="partToWholeDetails" class="mt-2 rounded border border-gray-200 p-2 text-xs dark:border-gray-700" data-test-id="percentage-details-part-to-whole">
+          <p><strong>{{ $t('tools.percentage-calculator.resultDetails.inWords') }}:</strong> {{ partToWholeDetails.words }}</p>
+          <p class="mt-1"><strong>{{ $t('tools.percentage-calculator.resultDetails.formula') }}:</strong> <code class="break-words">{{ partToWholeDetails.formula }}</code></p>
+        </div>
       </c-card>
 
       <c-card mb-3>
@@ -457,6 +627,10 @@ async function copySequentialSummary(): Promise<void> {
           <n-input-number v-model:value="numberFrom" data-test-id="numberFrom" placeholder="From" />
           <n-input-number v-model:value="numberTo" data-test-id="numberTo" placeholder="To" />
           <input-copyable v-model:value="percentageIncreaseDecrease" data-test-id="percentageIncreaseDecrease" readonly placeholder="Result" style="max-width: 150px;" />
+        </div>
+        <div v-if="percentageChangeDetails" class="mt-2 rounded border border-gray-200 p-2 text-xs dark:border-gray-700" data-test-id="percentage-details-change">
+          <p><strong>{{ $t('tools.percentage-calculator.resultDetails.inWords') }}:</strong> {{ percentageChangeDetails.words }}</p>
+          <p class="mt-1"><strong>{{ $t('tools.percentage-calculator.resultDetails.formula') }}:</strong> <code class="break-words">{{ percentageChangeDetails.formula }}</code></p>
         </div>
       </c-card>
 
@@ -480,6 +654,12 @@ async function copySequentialSummary(): Promise<void> {
             <div text-sm op-70 mb-1>Decreased</div>
             <input-copyable v-model:value="decreasedValue" data-test-id="decreasedValue" readonly placeholder="Result" />
           </div>
+        </div>
+        <div v-if="adjustmentDetails" class="mt-2 rounded border border-gray-200 p-2 text-xs dark:border-gray-700" data-test-id="percentage-details-adjustment">
+          <p><strong>{{ $t('tools.percentage-calculator.resultDetails.inWords') }}:</strong> {{ adjustmentDetails.increaseWords }}</p>
+          <p><strong>{{ $t('tools.percentage-calculator.resultDetails.formula') }}:</strong> <code class="break-words">{{ adjustmentDetails.increaseFormula }}</code></p>
+          <p class="mt-2"><strong>{{ $t('tools.percentage-calculator.resultDetails.inWords') }}:</strong> {{ adjustmentDetails.decreaseWords }}</p>
+          <p><strong>{{ $t('tools.percentage-calculator.resultDetails.formula') }}:</strong> <code class="break-words">{{ adjustmentDetails.decreaseFormula }}</code></p>
         </div>
       </c-card>
 
@@ -507,6 +687,16 @@ async function copySequentialSummary(): Promise<void> {
             <input-copyable v-model:value="originalBeforeDecrease" data-test-id="originalBeforeDecrease" readonly placeholder="Result" />
           </div>
         </div>
+        <div v-if="reverseDetails" class="mt-2 rounded border border-gray-200 p-2 text-xs dark:border-gray-700" data-test-id="percentage-details-reverse">
+          <template v-if="reverseDetails.increase">
+            <p><strong>{{ $t('tools.percentage-calculator.resultDetails.inWords') }}:</strong> {{ reverseDetails.increase.words }}</p>
+            <p><strong>{{ $t('tools.percentage-calculator.resultDetails.formula') }}:</strong> <code class="break-words">{{ reverseDetails.increase.formula }}</code></p>
+          </template>
+          <template v-if="reverseDetails.decrease">
+            <p class="mt-2"><strong>{{ $t('tools.percentage-calculator.resultDetails.inWords') }}:</strong> {{ reverseDetails.decrease.words }}</p>
+            <p><strong>{{ $t('tools.percentage-calculator.resultDetails.formula') }}:</strong> <code class="break-words">{{ reverseDetails.decrease.formula }}</code></p>
+          </template>
+        </div>
       </c-card>
 
       <c-card mb-3 data-test-id="percentage-difference-card">
@@ -520,6 +710,10 @@ async function copySequentialSummary(): Promise<void> {
         <div mt-2>
           <div text-sm op-70 mb-1>Symmetric percentage difference</div>
           <input-copyable v-model:value="percentageDifference" data-test-id="percentageDifference" readonly placeholder="Result" />
+        </div>
+        <div v-if="percentageDifferenceDetails" class="mt-2 rounded border border-gray-200 p-2 text-xs dark:border-gray-700" data-test-id="percentage-details-difference">
+          <p><strong>{{ $t('tools.percentage-calculator.resultDetails.inWords') }}:</strong> {{ percentageDifferenceDetails.words }}</p>
+          <p class="mt-1"><strong>{{ $t('tools.percentage-calculator.resultDetails.formula') }}:</strong> <code class="break-words">{{ percentageDifferenceDetails.formula }}</code></p>
         </div>
       </c-card>
 
@@ -540,6 +734,10 @@ async function copySequentialSummary(): Promise<void> {
         <div flex items-center gap-2 mt-2>
           <input-copyable v-model:value="percentagePointChange" data-test-id="percentagePointChange" readonly placeholder="Result" />
           <span text-sm op-70>percentage points</span>
+        </div>
+        <div v-if="percentagePointsDetails" class="mt-2 rounded border border-gray-200 p-2 text-xs dark:border-gray-700" data-test-id="percentage-details-points">
+          <p><strong>{{ $t('tools.percentage-calculator.resultDetails.inWords') }}:</strong> {{ percentagePointsDetails.words }}</p>
+          <p class="mt-1"><strong>{{ $t('tools.percentage-calculator.resultDetails.formula') }}:</strong> <code class="break-words">{{ percentagePointsDetails.formula }}</code></p>
         </div>
       </c-card>
     </div>
