@@ -1,5 +1,5 @@
-import { expect, test } from '@playwright/test';
 import { Buffer } from 'node:buffer';
+import { expect, test } from '@playwright/test';
 
 test.describe('Tool - bulk redirect generator', () => {
   test.beforeEach(async ({ page }) => {
