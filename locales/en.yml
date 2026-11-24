@@ -288,7 +288,7 @@ tools:
       totalChange: Total amount change
       effectiveChange: Effective percentage change
       formula: Multiplier formula
-      compoundingNote: Each percentage applies to the previous step's result. For example, 20% off followed by another 10% off is 28% off overall, not 30%. Reordering the same percentage multipliers changes the intermediate values but not the exact final amount.
+      compoundingNote: Each percentage applies to the previous step's result. For example, 20% off followed by another 10% off is 28% off overall, not 30%. Reordering the same percentage multipliers changes the intermediate values but not the mathematical final amount. Displayed values use up to 12 significant digits; no currency-specific rounding is applied.
       notDefined: Undefined when the starting amount is zero
       copySummary: Copy calculation summary
       exampleLoaded: Example loaded. Edit the amount or steps to try your own calculation.
