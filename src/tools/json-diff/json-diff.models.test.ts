@@ -102,9 +102,9 @@ describe('json-diff models', () => {
     });
 
     it('enforces the 100-path and 8 KB limits', () => {
-      expect(parseIgnorePaths(Array.from({ length: 101 }, (_, index) => \`/field\${index}\`).join('\n')).error)
+      expect(parseIgnorePaths(Array.from({ length: 101 }, (_, index) => '/field' + index).join('\n')).error)
         .toContain('no more than 100');
-      expect(parseIgnorePaths(\`/\${'a'.repeat(8192)}\`).error)
+      expect(parseIgnorePaths('/' + 'a'.repeat(8192)).error)
         .toContain('8192 characters or fewer');
     });
 
@@ -156,12 +156,11 @@ describe('json-diff models', () => {
 
     it('ignores selected nested fields when matching reordered arrays by value', () => {
       const changes = flattenDifferences(diff(
-        { items: [{ id: 1, updatedAt: 'old', name: 'Ada' }] },
-        { items: [{ id: 1, updatedAt: 'new', name: 'Grace' }] },
+        { items: [{ id: 1, updatedAt: 'old', name: 'Ada' }, { id: 2, name: 'Grace' }] },
+        { items: [{ id: 2, name: 'Grace' }, { id: 1, updatedAt: 'new', name: 'Ada' }] },
         { onlyShowDifferences: true, arrayMode: 'ignore-order', ignorePaths: ['/items/0/updatedAt'] },
       ));
-      expect(changes.map(item => item.status)).toEqual(['updated']);
-      expect(changes[0].path).toBe('$["items"][0]["name"]');
+      expect(changes).toEqual([]);
     });
 
     it('matches objects by a stable ID rather than array position', () => {
