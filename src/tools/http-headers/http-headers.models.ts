@@ -56,7 +56,7 @@ function parseCspDirectives(value: string): { name: string; value: string }[] {
   return value
     .split(';')
     .map((directive) => {
-      const [name = '', ...parts] = directive.trim().split(/\\s+/);
+      const [name = '', ...parts] = directive.trim().split(/\s+/);
       return { name: name.toLowerCase(), value: parts.join(' ') };
     })
     .filter(directive => directive.name);
@@ -83,23 +83,23 @@ export function parseResponseHeaders(raw: string): ParsedResponseHeaders {
     lastHeaderName = undefined;
   };
 
-  for (const originalLine of raw.replace(/\\r/g, '').split('\\n')) {
+  for (const originalLine of raw.replace(/\r/g, '').split('\n')) {
     const line = originalLine.trimEnd();
     const responseLine = line.startsWith('< ') ? line.slice(2).trim() : line.trim();
 
-    if (/^HTTP\\/\\d(?:\\.\\d)?\\s+\\d{3}(?:\\s|$)/i.test(responseLine)) {
+    if (/^HTTP\/\d(?:\.\d)?\s+\d{3}(?:\s|$)/i.test(responseLine)) {
       pushCurrent();
       current.statusLine = responseLine;
       continue;
     }
 
     // curl -v's request headers and transfer diagnostics are not response headers.
-    if (/^(?:> |\\* |\\[|\\$ )/.test(line) || !line.trim()) {
+    if (/^(?:> |\* |\[|\$ )/.test(line) || !line.trim()) {
       continue;
     }
 
     // Obsolete folded header continuation: attach it to the preceding field.
-    if (/^\\s/.test(line) && lastHeaderName) {
+    if (/^\s/.test(line) && lastHeaderName) {
       const values = current.headers[lastHeaderName];
       values[values.length - 1] = `${values.at(-1) ?? ''} ${line.trim()}`.trim();
       continue;
@@ -127,7 +127,7 @@ export function parseResponseHeaders(raw: string): ParsedResponseHeaders {
 
   pushCurrent();
   const selected = blocks.at(-1) ?? { headers: {}, ignoredLines: 0 };
-  const code = selected.statusLine?.match(/\\s(\\d{3})(?:\\s|$)/)?.[1];
+  const code = selected.statusLine?.match(/\s(\d{3})(?:\s|$)/)?.[1];
 
   return {
     statusLine: selected.statusLine,
@@ -190,7 +190,7 @@ export function analyzeResponseHeaders(raw: string): HeaderAnalysis {
   const directive = (name: string) => cspDirectives.find(item => item.name === name)?.value ?? '';
   const findings: HeaderFinding[] = [];
 
-  const cspUnsafe = /(?:'unsafe-inline'|'unsafe-eval'|\\*)/i.test(csp);
+  const cspUnsafe = /(?:'unsafe-inline'|'unsafe-eval'|\*)/i.test(csp);
   const cspEarned = csp ? (cspUnsafe ? 18 : directive('default-src') || directive('script-src') ? 25 : 20) : 0;
   const cspDetail = csp
     ? cspUnsafe
@@ -201,7 +201,7 @@ export function analyzeResponseHeaders(raw: string): HeaderAnalysis {
       : 'No enforcing Content-Security-Policy header was found.';
 
   const hsts = firstHeader(headers, 'strict-transport-security');
-  const maxAge = Number(hsts.match(/max-age\\s*=\\s*(\\d+)/i)?.[1] ?? 0);
+  const maxAge = Number(hsts.match(/max-age\s*=\s*(\d+)/i)?.[1] ?? 0);
   const hstsEarned = hsts ? (maxAge >= 31536000 ? 20 : maxAge > 0 ? 12 : 0) : 0;
 
   const framePolicy = directive('frame-ancestors');
@@ -294,7 +294,7 @@ export function analyzeResponseHeaders(raw: string): HeaderAnalysis {
   }
 
   const xRobots = firstHeader(headers, 'x-robots-tag');
-  if (/\\bnoindex\\b/i.test(xRobots)) {
+  if (/\bnoindex\b/i.test(xRobots)) {
     findings.push({
       severity: 'high',
       title: 'X-Robots-Tag prevents indexing',
