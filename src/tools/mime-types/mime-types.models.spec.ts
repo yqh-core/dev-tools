@@ -4,9 +4,9 @@ import { createMimeServerSnippets } from './mime-types.models';
 describe('createMimeServerSnippets', () => {
   it('creates Nginx, Apache and static headers rules from a MIME mapping', () => {
     expect(createMimeServerSnippets('application/json', ['json', 'map'])).toEqual({
-      nginx: 'types {\\n    application/json json map;\\n}',
+      nginx: 'types {\n    application/json json map;\n}',
       apache: 'AddType application/json .json .map',
-      headers: '/*.json\\n  Content-Type: application/json\\n\\n/*.map\\n  Content-Type: application/json',
+      headers: '/*.json\n  Content-Type: application/json\n\n/*.map\n  Content-Type: application/json',
     });
   });
 
