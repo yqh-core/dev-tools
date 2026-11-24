@@ -111,7 +111,7 @@ function hasHeader(values: string[]): boolean {
   const first = (values[0] ?? '').toLowerCase().replace(/[\s_-]+/g, '');
   const second = (values[1] ?? '').toLowerCase().replace(/[\s_-]+/g, '');
   return ['source', 'from', 'oldurl', 'old', 'sourceurl'].includes(first)
-    && ['target', 'to', 'newurl', 'destination', 'destinationurl', 'new'].includes(second);
+    && ['target', 'targeturl', 'to', 'newurl', 'destination', 'destinationurl', 'new'].includes(second);
 }
 
 /** Accept comma CSV, tab-separated pairs, or one "old -> new" pair per line. */
