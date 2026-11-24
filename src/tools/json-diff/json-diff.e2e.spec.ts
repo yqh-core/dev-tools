@@ -1,3 +1,4 @@
+import { Buffer } from 'node:buffer';
 import { expect, test } from '@playwright/test';
 
 test.describe('Tool - JSON diff', () => {
@@ -78,5 +79,4 @@ test.describe('Tool - JSON diff', () => {
     const download = await downloadPromise;
     expect(download.suggestedFilename()).toBe('json-diff-report.json');
   });
-
 });
