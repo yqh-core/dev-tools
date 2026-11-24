@@ -90,8 +90,8 @@ function severityLabel(severity: string): string {
 
 function directionLabel(direction: string): string {
   const labels: Record<string, string> = {
-    Request: t('tools.http-headers.analyzer.direction.request'),
-    Response: t('tools.http-headers.analyzer.direction.response'),
+    'Request': t('tools.http-headers.analyzer.direction.request'),
+    'Response': t('tools.http-headers.analyzer.direction.response'),
     'Request and response': t('tools.http-headers.analyzer.direction.both'),
   };
   return labels[direction] ?? direction;
