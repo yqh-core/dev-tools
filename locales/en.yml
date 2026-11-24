@@ -602,6 +602,9 @@ tools:
     shortWordResult: Too short — unchanged
     shortWordNote: Words with three letters or fewer stay unchanged because a shorter numeronym would not be useful.
     batchCopyNote: Unsupported items and short words remain visible in the table but are omitted from Copy All.
+    breakdownHeader: Rule breakdown
+    middleLetters: middle letters
+    shortWordBreakdown: No middle letters to replace.
 
   case-converter:
     title: Text Case Converter — camelCase, snake_case & More
