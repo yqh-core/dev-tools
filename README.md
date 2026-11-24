@@ -86,7 +86,7 @@
 - [Basic Auth Generator & Decoder — HTTP Header](https://digdevbox.com/basic-auth-generator) - Generate or decode an HTTP Basic Authorization header in your browser. Copy the Base64 token for cURL; Base64 is not encryption, so use HTTPS.
 - [Open Graph & Twitter Meta Tag Generator — Create Social Share Tags](https://digdevbox.com/og-meta-generator) - Generate copyable Open Graph and Twitter Card HTML meta tags for a page title, description, URL and social image. Choose website, article, book, profile, music or video metadata; no live share-card preview is included.
 - [TOTP Code Generator — 6-Digit Codes & QR](https://digdevbox.com/otp-generator) - Generate current, previous and next 6-digit TOTP codes from a Base32 secret, view the 30-second timer, and create an otpauth QR code. Uses Web Crypto.
-- [MIME types](https://digdevbox.com/mime-types) - Convert MIME types to file extensions and vice-versa.
+- [MIME Type Lookup — Content-Type, Extensions & Server Config](https://digdevbox.com/mime-types) - Look up MIME types by extension or find extensions by Content-Type. Generate copy-ready Nginx types, Apache AddType and static _headers rules from the selected mapping.
 - [JWT Decoder & Parser — Inspect Header, Payload and Expiration](https://digdevbox.com/jwt-parser) - Decode JWTs online — inspect header, payload, claims and expiration (exp/iat) as readable dates. Your token never leaves your browser. Free, no signup.
 - [Keycode info](https://digdevbox.com/keycode-info) - Find the javascript keycode, code, location and modifiers of any pressed key.
 - [Slugify string](https://digdevbox.com/slugify-string) - Make a string url, filename and id safe.

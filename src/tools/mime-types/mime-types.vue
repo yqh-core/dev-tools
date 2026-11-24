@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { types as extensionToMimeType, extensions as mimeTypeToExtension } from 'mime-types';
+import { createMimeServerSnippets } from './mime-types.models';
+import { useCopy } from '@/composable/copy';
 import { useFuzzySearch } from '@/composable/fuzzySearch';
 
 const mimeInfos = Object.entries(mimeTypeToExtension).map(([mimeType, extensions]) => ({ mimeType, extensions }));
@@ -37,6 +39,50 @@ const extensionToMimeTypeOptions = Object.keys(extensionToMimeType).map((label) 
 const selectedExtension = ref(undefined);
 
 const mimeTypeFound = computed(() => (selectedExtension.value ? extensionToMimeType[selectedExtension.value] : []));
+
+watch(selectedMimeType, (value) => {
+  if (value) {
+    selectedExtension.value = undefined;
+  }
+});
+watch(selectedExtension, (value) => {
+  if (value) {
+    selectedMimeType.value = undefined;
+  }
+});
+
+const selectedMapping = computed(() => {
+  if (selectedMimeType.value) {
+    return {
+      mimeType: selectedMimeType.value,
+      extensions: (mimeTypeToExtension[selectedMimeType.value] ?? []) as string[],
+    };
+  }
+
+  if (selectedExtension.value) {
+    const mimeType = extensionToMimeType[selectedExtension.value];
+    return mimeType ? { mimeType, extensions: [selectedExtension.value] } : undefined;
+  }
+
+  return undefined;
+});
+
+const serverSnippets = computed(() => selectedMapping.value
+  ? createMimeServerSnippets(selectedMapping.value.mimeType, selectedMapping.value.extensions)
+  : undefined);
+
+const { copy: copyNginx } = useCopy({
+  source: computed(() => serverSnippets.value?.nginx ?? ''),
+  text: 'Nginx snippet copied',
+});
+const { copy: copyApache } = useCopy({
+  source: computed(() => serverSnippets.value?.apache ?? ''),
+  text: 'Apache snippet copied',
+});
+const { copy: copyHeaders } = useCopy({
+  source: computed(() => serverSnippets.value?.headers ?? ''),
+  text: 'Static _headers snippet copied',
+});
 </script>
 
 <template>
@@ -99,6 +145,39 @@ const mimeTypeFound = computed(() => (selectedExtension.value ? extensionToMimeT
           {{ mimeTypeFound }}
         </n-tag>
       </div>
+    </div>
+  </c-card>
+
+  <c-card v-if="serverSnippets" title="Server configuration snippets" mt-6 data-test-id="server-config">
+    <p mb-3 text-sm op-70>
+      Copy a ready-to-paste mapping for the selected MIME type. Check the target server context before applying it.
+    </p>
+    <div mb-4>
+      <div flex items-center justify-between gap-2 mb-2>
+        <strong>Nginx</strong>
+        <c-button size="small" @click="copyNginx()">
+          Copy
+        </c-button>
+      </div>
+      <pre data-test-id="nginx-snippet" class="overflow-x-auto rounded p-3 text-sm"><code>{{ serverSnippets.nginx }}</code></pre>
+    </div>
+    <div mb-4>
+      <div flex items-center justify-between gap-2 mb-2>
+        <strong>Apache (.htaccess)</strong>
+        <c-button size="small" @click="copyApache()">
+          Copy
+        </c-button>
+      </div>
+      <pre data-test-id="apache-snippet" class="overflow-x-auto rounded p-3 text-sm"><code>{{ serverSnippets.apache }}</code></pre>
+    </div>
+    <div>
+      <div flex items-center justify-between gap-2 mb-2>
+        <strong>Static hosting (_headers)</strong>
+        <c-button size="small" @click="copyHeaders()">
+          Copy
+        </c-button>
+      </div>
+      <pre data-test-id="headers-snippet" class="overflow-x-auto rounded p-3 text-sm"><code>{{ serverSnippets.headers }}</code></pre>
     </div>
   </c-card>
 
