@@ -69,6 +69,64 @@ async function verifyImageForgeWorkerFalsePositive(row) {
     && bundle.includes('createObjectURL(y)');
 }
 
+const HTTP_500_RECHECK_USER_AGENTS = [
+  'Googlebot/2.1 (+http://www.google.com/bot.html)',
+  'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/130.0.0.0 Safari/537.36',
+];
+
+/**
+ * SiteOne occasionally records an isolated 500 while the same production
+ * document is available to both Googlebot and a normal browser. Never waive
+ * a 500 on that evidence alone: require two independent no-cache GETs, both
+ * HTTP-successful and both resolving to the exact original canonical URL.
+ * Persistent failures, redirects, timeouts and transport errors still fail.
+ */
+async function recheckSiteOne500(row, fetchImpl = fetch) {
+  let expectedUrl;
+  try {
+    expectedUrl = new URL(row.url).href;
+  } catch {
+    return { ok: false, reason: 'invalid finding URL', probes: [] };
+  }
+
+  const probes = [];
+  for (const userAgent of HTTP_500_RECHECK_USER_AGENTS) {
+    try {
+      const response = await fetchImpl(expectedUrl, {
+        redirect: 'follow',
+        headers: {
+          'user-agent': userAgent,
+          'cache-control': 'no-cache',
+          accept: 'text/html,application/xhtml+xml',
+        },
+        signal: AbortSignal.timeout(15000),
+      });
+      probes.push({
+        userAgent: userAgent.startsWith('Googlebot/') ? 'Googlebot' : 'browser',
+        status: response.status,
+        finalUrl: response.url,
+        ok: response.ok && response.url === expectedUrl,
+      });
+    } catch (error) {
+      probes.push({
+        userAgent: userAgent.startsWith('Googlebot/') ? 'Googlebot' : 'browser',
+        status: null,
+        finalUrl: '',
+        ok: false,
+        error: error.message,
+      });
+    }
+  }
+
+  return {
+    ok: probes.length === HTTP_500_RECHECK_USER_AGENTS.length && probes.every(probe => probe.ok),
+    reason: probes.every(probe => probe.ok)
+      ? 'Googlebot and browser both returned HTTP success at the exact canonical URL'
+      : 'at least one independent probe did not return HTTP success at the exact canonical URL',
+    probes,
+  };
+}
+
 async function readReport(site) {
   const file = join(ROOT, 'seo-crawl-' + site.slug, site.slug + '.json');
   const raw = await readFile(file, 'utf8');
@@ -121,6 +179,7 @@ async function evaluateSite(site) {
   const notFoundRows = notFoundTable?.rows || [];
   const skippedRows = report.tables?.skipped?.rows || [];
   const accepted = [];
+  const accepted500s = [];
   const untriaged = [];
 
   for (const row of notFoundRows) {
@@ -154,6 +213,26 @@ async function evaluateSite(site) {
   if (httpErrors.length > 0) {
     for (const row of httpErrors) {
       const message = 'HTTP ' + row.status + ': ' + row.url;
+      const statusCode = Number(String(row.status).match(/^(\\d{3})/)?.[1] || 0);
+
+      if (site.priority && statusCode === 500) {
+        const recheck = await recheckSiteOne500(row);
+        if (recheck.ok) {
+          accepted500s.push(row);
+          warnings.push(
+            'SiteOne reported HTTP 500 for ' + row.url
+            + ', but independent Googlebot and browser GETs both returned HTTP success at the exact canonical URL; '
+            + 'treated as an isolated crawler response and retained for monitoring',
+          );
+          continue;
+        }
+        errors.push(
+          message + '; independent Googlebot/browser recheck failed: '
+          + JSON.stringify(recheck.probes),
+        );
+        continue;
+      }
+
       (site.priority ? errors : warnings).push(message);
     }
   }
@@ -174,7 +253,7 @@ async function evaluateSite(site) {
     redirects: redirectRows.length,
     transportErrors: transportErrors.length,
     skippedOutOfScope: skippedRows.length,
-    accepted: accepted.length,
+    accepted: accepted.length + accepted500s.length,
     errors,
     warnings,
   };
@@ -203,7 +282,28 @@ async function main() {
     if (!imageForgeWorkerCandidate(good)) throw new Error('self-test failed: expected Browserify candidate');
     if (imageForgeWorkerCandidate(wrongTarget)) throw new Error('self-test failed: accepted wrong target');
     if (imageForgeWorkerCandidate(wrongSource)) throw new Error('self-test failed: accepted wrong source');
-    console.log('PASS: SEO crawl gate self-tests');
+    const recovered500 = await recheckSiteOne500(
+      { url: 'https://www.digdevbox.com/uuid-generator/' },
+      async url => ({ ok: true, status: 200, url }),
+    );
+    if (!recovered500.ok || recovered500.probes.length !== 2) {
+      throw new Error('self-test failed: two successful canonical rechecks should classify a SiteOne 500 as transient');
+    }
+    const persistent500 = await recheckSiteOne500(
+      { url: 'https://www.digdevbox.com/uuid-generator/' },
+      async url => ({ ok: false, status: 500, url }),
+    );
+    if (persistent500.ok) {
+      throw new Error('self-test failed: a persistent 500 must remain a blocking finding');
+    }
+    const redirected200 = await recheckSiteOne500(
+      { url: 'https://www.digdevbox.com/uuid-generator/' },
+      async url => ({ ok: true, status: 200, url: 'https://www.digdevbox.com/other-page/' }),
+    );
+    if (redirected200.ok) {
+      throw new Error('self-test failed: a redirected URL must not clear the original route 500');
+    }
+    console.log('PASS: SEO crawl gate self-tests (including strict dual-UA HTTP 500 recheck)');
     return;
   }
 
