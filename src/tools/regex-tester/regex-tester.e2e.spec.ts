@@ -5,7 +5,6 @@ test.describe('Tool - Regex Tester isolated execution', () => {
     await page.goto('/regex-tester');
   });
 
-
   test('explains common JavaScript tokens and flags, and flags syntax it cannot explain', async ({ page }) => {
     const panel = page.getByTestId('pattern-explanation');
     const slash = String.fromCharCode(92);
