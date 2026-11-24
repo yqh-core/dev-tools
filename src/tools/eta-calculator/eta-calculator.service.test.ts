@@ -205,7 +205,6 @@ describe('calculateRequiredPaceForDeadline', () => {
   });
 });
 
-
 describe('weekday working-hours schedule', () => {
   const schedule = { startTime: '09:00', endTime: '17:00' };
   const local = (year: number, month: number, day: number, hour: number, minute = 0) =>
