@@ -25,7 +25,8 @@ test.describe('Tool - batch URL slug generator', () => {
     const titles = page.getByTestId('slug-titles-input').locator('textarea');
     await titles.fill('API Design Guide');
 
-    await page.locator('#slug-base-url').fill('https://example.com/blog/');
+    // Naive UI puts the supplied id on its wrapper; target the actual input control.
+    await page.locator('#slug-base-url input').fill('https://example.com/blog/');
     await expect(page.getByTestId('slug-results')).toContainText('https://example.com/blog/api-design-guide');
   });
 
