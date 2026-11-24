@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { diff } from './json-diff.models';
+import { diff, flattenDifferences } from './json-diff.models';
 
 describe('json-diff models', () => {
   describe('diff', () => {
@@ -76,5 +76,16 @@ describe('json-diff models', () => {
         status: 'children-updated',
       });
     });
+  });
+
+  it('flattens nested changes into JSON path rows', () => {
+    const result = flattenDifferences(diff(
+      { user: { name: 'Ada', role: 'admin' } },
+      { user: { name: 'Grace', role: 'admin', active: true } },
+      { onlyShowDifferences: true },
+    ));
+
+    expect(result.map(item => item.path)).toEqual(['$[\"user\"][\"name\"]', '$[\"user\"][\"active\"]']);
+    expect(result.map(item => item.status)).toEqual(['updated', 'added']);
   });
 });
