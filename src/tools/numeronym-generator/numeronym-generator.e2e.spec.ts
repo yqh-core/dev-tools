@@ -18,7 +18,7 @@ test.describe('Tool - Numeronym generator', () => {
   test('converts multiple words with free-text separators and provides copyable results', async ({ page }) => {
     await page.getByTestId('word-input').locator('textarea').fill('internationalization, accessibility; Kubernetes\nmultilingualization');
     await expect(page.getByTestId('batch-numeronyms').locator('textarea')).toHaveValue('i18n\na11y\nK8s\nm17n');
-    await expect(page.getByTestId('numeronym-batch-table')).toContainText('Internationalization');
+    await expect(page.getByTestId('numeronym-batch-table')).toContainText('internationalization');
     await expect(page.getByTestId('numeronym-batch-table')).toContainText('20');
   });
 
