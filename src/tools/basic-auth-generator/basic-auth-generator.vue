@@ -14,6 +14,10 @@ const header = computed(() => usernameError.value
 const curlExample = 'curl --user "$BASIC_AUTH_USERNAME:$BASIC_AUTH_PASSWORD" https://example.com/';
 
 const decodeInput = ref('');
+const showDecodedPassword = ref(false);
+watch(decodeInput, () => {
+  showDecodedPassword.value = false;
+});
 const decodedCredentials = computed(() => {
   if (!decodeInput.value.trim()) {
     return null;
@@ -75,7 +79,19 @@ const { copy: copyCurl } = useCopy({ source: curlExample, text: 'cURL example co
       />
       <div v-if="decodedCredentials?.credentials" mt-3 rounded bg-gray-500:5 p-3>
         <p><strong>Username:</strong> <code data-test-id="basic-auth-decoded-username">{{ decodedCredentials.credentials.username }}</code></p>
-        <p mt-2><strong>Password:</strong> <code data-test-id="basic-auth-decoded-password">{{ decodedCredentials.credentials.password }}</code></p>
+        <p mt-2 flex items-center gap-2 flex-wrap>
+          <strong>Password:</strong>
+          <code data-test-id="basic-auth-decoded-password">{{ showDecodedPassword ? decodedCredentials.credentials.password : '••••••••' }}</code>
+          <c-button
+            size="small"
+            data-test-id="basic-auth-toggle-password"
+            :aria-pressed="showDecodedPassword"
+            :aria-label="$t(showDecodedPassword ? 'tools.basic-auth-generator.decodedPassword.hide' : 'tools.basic-auth-generator.decodedPassword.show')"
+            @click="showDecodedPassword = !showDecodedPassword"
+          >
+            {{ $t(showDecodedPassword ? 'tools.basic-auth-generator.decodedPassword.hide' : 'tools.basic-auth-generator.decodedPassword.show') }}
+          </c-button>
+        </p>
       </div>
       <p v-else-if="decodedCredentials?.error" mt-3 role="alert" text-error data-test-id="basic-auth-decode-error">
         {{ decodedCredentials.error }}

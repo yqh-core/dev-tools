@@ -27,7 +27,27 @@ test.describe('Tool - Basic Auth generator', () => {
       'Authorization: Basic c3ZjOnBhc3M6d29yZA==',
     );
     await expect(page.getByTestId('basic-auth-decoded-username')).toHaveText('svc');
-    await expect(page.getByTestId('basic-auth-decoded-password')).toHaveText('pass:word');
+
+    const decodedPassword = page.getByTestId('basic-auth-decoded-password');
+    const togglePassword = page.getByTestId('basic-auth-toggle-password');
+    await expect(decodedPassword).toHaveText('••••••••');
+    await expect(togglePassword).toHaveText('Show decoded password');
+    await expect(togglePassword).toHaveAttribute('aria-pressed', 'false');
+
+    await togglePassword.click();
+    await expect(decodedPassword).toHaveText('pass:word');
+    await expect(togglePassword).toHaveText('Hide decoded password');
+    await expect(togglePassword).toHaveAttribute('aria-pressed', 'true');
+
+    // A new credential must return to the safe hidden state.
+    await page.getByPlaceholder('Paste Authorization: Basic ...').fill(
+      'Authorization: Basic ZGVtbzpleGFtcGxl',
+    );
+    await expect(decodedPassword).toHaveText('••••••••');
+    await expect(togglePassword).toHaveAttribute('aria-pressed', 'false');
+
+    await togglePassword.click();
+    await expect(decodedPassword).toHaveText('example');
   });
 
   test('shows a useful error for an invalid Basic Auth token', async ({ page }) => {
