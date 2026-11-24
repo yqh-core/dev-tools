@@ -181,7 +181,7 @@ function downloadReport() {
     <div v-if="arrayMode === 'id'" mt-3>
       <label flex items-center gap-2 text-sm>
         ID property
-        <input v-model="arrayIdKey" type="text" aria-label="Array object ID key" value="id" border rounded px-2 py-1>
+        <input v-model="arrayIdKey" type="text" aria-label="Array object ID key" border rounded px-2 py-1>
       </label>
       <p mt-2 text-xs opacity-70>
         ID matching is used only when every array item has a unique, non-empty string or finite numeric ID. Invalid or duplicate IDs fall back to index comparison.
