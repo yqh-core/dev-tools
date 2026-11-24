@@ -16,6 +16,7 @@ jobs:
     outputs:
       wait_for_deploy: ${{ steps.detect.outputs.wait_for_deploy }}
       deploy_sha: ${{ steps.detect.outputs.deploy_sha }}
+      check_eta_release: ${{ steps.detect.outputs.check_eta_release }}
     steps:
       - name: Detect whether this exact commit changes deployable site files
         id: detect
@@ -27,11 +28,13 @@ jobs:
               core.info('Source verify did not succeed; production smoke will exit without checking deployment.');
               core.setOutput('deploy_sha', context.payload.workflow_run.head_sha);
               core.setOutput('wait_for_deploy', 'false');
+              core.setOutput('check_eta_release', 'false');
               return;
             }
             let cursor = context.payload.workflow_run.head_sha;
             let deploySha = cursor;
             let waitForDeploy = false;
+            let checkEtaRelease = false;
             // A workflow-only follow-up commit must still wait for the latest
             // ancestor that actually changed the deployed site (e.g. locale files).
             for (let depth = 0; depth < 20 && cursor; depth++) {
@@ -45,6 +48,7 @@ jobs:
               if (deployable.length) {
                 deploySha = cursor;
                 waitForDeploy = true;
+                checkEtaRelease = deployable.some(({ filename }) => filename.startsWith('src/tools/eta-calculator/'));
                 core.info('Latest deployable site commit: ' + deploySha);
                 break;
               }
@@ -52,6 +56,7 @@ jobs:
             }
             core.setOutput('deploy_sha', deploySha);
             core.setOutput('wait_for_deploy', waitForDeploy ? 'true' : 'false');
+            core.setOutput('check_eta_release', checkEtaRelease ? 'true' : 'false');
 
   production-smoke:
     needs: detect-site-changes
@@ -70,6 +75,7 @@ jobs:
           GITHUB_REPOSITORY: ${{ github.repository }}
           GITHUB_TOKEN: ${{ github.token }}
           WAIT_FOR_DEPLOY: ${{ needs.detect-site-changes.outputs.wait_for_deploy }}
+          CHECK_ETA_RELEASE: ${{ needs.detect-site-changes.outputs.check_eta_release }}
           SOURCE_CONCLUSION: ${{ github.event.workflow_run.conclusion }}
         run: |
           node --input-type=module <<'NODE'
@@ -112,7 +118,7 @@ jobs:
             // GitHub's Cloudflare status can lag the edge rollout. The exact
             // production SEO marker is a stronger fallback: it proves the new
             // deployable commit is already serving the approved metadata.
-            const [percentageResponse, htpasswdResponse] = await Promise.all([
+            const [percentageResponse, htpasswdResponse, etaResponse] = await Promise.all([
               fetch(origin + '/percentage-calculator/', {
                 redirect: 'follow',
                 headers: { 'user-agent': ua, 'cache-control': 'no-cache' },
@@ -123,10 +129,16 @@ jobs:
                 headers: { 'user-agent': ua, 'cache-control': 'no-cache' },
                 signal: AbortSignal.timeout(10000),
               }),
+              fetch(origin + '/eta-calculator/', {
+                redirect: 'follow',
+                headers: { 'user-agent': ua, 'cache-control': 'no-cache' },
+                signal: AbortSignal.timeout(10000),
+              }),
             ]);
-            const [percentageHtml, htpasswdHtml] = await Promise.all([
+            const [percentageHtml, htpasswdHtml, etaHtml] = await Promise.all([
               percentageResponse.text(),
               htpasswdResponse.text(),
+              etaResponse.text(),
             ]);
             const percentageMarkerReady = percentageResponse.ok &&
               percentageResponse.url === origin + '/percentage-calculator/' &&
@@ -142,7 +154,15 @@ jobs:
               htpasswdHtml.includes('content="Build a multi-user Apache/Nginx .htpasswd file with bcrypt or apr1 hashes. Copy or download it, then verify an existing username:hash line locally. Passwords stay in your browser."') &&
               htpasswdHtml.includes('Build a complete .htpasswd file with one line per user for Apache or Nginx Basic Auth') &&
               htpasswdHtml.includes('href="' + origin + '/htpasswd-generator/"');
-            const productionMarkerReady = percentageMarkerReady && htpasswdMarkerReady;
+            const etaMarkerReady = process.env.CHECK_ETA_RELEASE !== 'true' || (
+              etaResponse.ok &&
+              etaResponse.url === origin + '/eta-calculator/' &&
+              etaHtml.includes('<title>ETA Calculator — Task Completion Time - DigDevBox</title>') &&
+              etaHtml.includes('Estimate time remaining for a download, build or batch job. Enter a known processing rate or derive throughput from completed work and elapsed time.') &&
+              etaHtml.includes('Calculate from elapsed time') &&
+              etaHtml.includes('href="' + origin + '/eta-calculator/"')
+            );
+            const productionMarkerReady = percentageMarkerReady && htpasswdMarkerReady && etaMarkerReady;
             if (productionMarkerReady) {
               cloudflareReady = true;
               console.log('Production SEO marker confirms the exact release is serving, despite a pending/stale Cloudflare check');
@@ -228,7 +248,8 @@ jobs:
             '/text-statistics',
             '/json-diff',
             '/slugify-string',
-            '/redirect-generator',]) {
+            '/redirect-generator',
+            '/eta-calculator',]) {
             const expected = origin + route + '/';
             for (const variant of [route, route + '/']) {
               const result = await get(variant);
@@ -281,7 +302,7 @@ jobs:
           // priority English pages. This catches UA-dependent HTML/cache variants
           // and guarantees the crawler sees the same title, description, H1 and canonical.
           const browserUa = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/130.0.0.0 Safari/537.36';
-          const priorityPages = ['/', '/percentage-calculator/', '/numeronym-generator/', '/api-debugger/', '/regex-tester/', '/json-prettify/', '/json-workspace/', '/json-diff/', '/base-converter/', '/html-entities/', '/json-to-get-params/', '/docker-run-to-docker-compose-converter/', '/otp-generator/', '/htpasswd-generator/', '/json-to-toml/', '/text-statistics/', '/slugify-string/', '/redirect-generator/'];
+          const priorityPages = ['/', '/percentage-calculator/', '/eta-calculator/', '/numeronym-generator/', '/api-debugger/', '/regex-tester/', '/json-prettify/', '/json-workspace/', '/json-diff/', '/base-converter/', '/html-entities/', '/json-to-get-params/', '/docker-run-to-docker-compose-converter/', '/otp-generator/', '/htpasswd-generator/', '/json-to-toml/', '/text-statistics/', '/slugify-string/', '/redirect-generator/'];
           for (const path of priorityPages) {
             const [bot, browser] = await Promise.all([get(path), get(path, browserUa)]);
             for (const [label, result] of [['Googlebot', bot], ['browser', browser]]) {
@@ -318,7 +339,8 @@ jobs:
                 JSON.stringify({ googlebot: botMeta, browser: browserMeta }));
             }
             const expectedMetadata = {
-              '/percentage-calculator/': { title: 'Percentage Calculator — Percent & Change - DigDevBox', description: 'Free percentage calculator for percent of a number, percentage change, discounts and reverse rates. Batch formulas and CSV export run in your browser.', h1: 'Percentage Calculator' },
+              '/percentage-calculator/': { title: 'Percentage Calculator — Percent & Change - DigDevBox', description: 'Free percentage calculator for percent of a number, percentage change, stacked discounts and reverse rates. Batch formulas and CSV/TSV export run in your browser.', h1: 'Percentage Calculator' },
+              '/eta-calculator/': { title: 'ETA Calculator — Task Completion Time - DigDevBox', description: 'Estimate time remaining for a download, build or batch job. Enter a known processing rate or derive throughput from completed work and elapsed time.', h1: 'ETA Calculator' },
               '/api-debugger/': { title: 'REST API Tester — cURL, Tests & Collections - DigDevBox', description: 'Send REST API requests, import cURL, inspect status, headers and JSON, add assertions, and run saved collections. Requests pass through a temporary relay.', h1: 'REST API Tester' },
               '/regex-tester/': { title: 'Regular Expression Tester — JavaScript Regex - DigDevBox', description: 'Test JavaScript regular expressions online with live matches, capture groups, replacement preview and named positive/negative test cases with pass/fail results. A 300ms worker timeout stops runaway patterns.', h1: 'Regular Expression Tester' },
               '/json-prettify/': { title: 'JSON Formatter — Format, Validate & Diff - DigDevBox', description: 'Format and validate JSON online — pretty-print at your indent size, sort keys and spot syntax errors instantly, right in your browser.', h1: 'JSON Formatter' },
@@ -335,7 +357,9 @@ jobs:
               '/slugify-string/': { title: 'URL Slug Generator — Create SEO-Friendly Slugs in Bulk - DigDevBox', description: 'Generate URL slugs from titles in bulk. Choose hyphens, underscores or dots, remove English stop words, set a word-safe length cap and preview full URLs.', h1: 'URL Slug Generator' },
               '/redirect-generator/': { title: 'Bulk 301 Redirect Generator — Apache, Nginx & Cloudflare - DigDevBox', description: 'Generate bulk redirects for Apache, Nginx, Cloudflare, Netlify and Vercel. Import CSV, detect loops and chains, and export server-ready rules locally.', h1: 'Bulk 301 Redirect Generator' },
             };
-            const expected = expectedMetadata[path];
+            const expected = path === '/eta-calculator/' && process.env.CHECK_ETA_RELEASE !== 'true'
+              ? null
+              : expectedMetadata[path];
             if (expected &&
                 (botMeta.title !== expected.title ||
                  botMeta.description !== expected.description ||
@@ -400,6 +424,26 @@ jobs:
               apiGuideCanonical !== origin + apiGuidePath ||
               /<meta[^>]+name=["']robots["'][^>]+content=["'][^"']*noindex/i.test(apiGuideResult.body)) {
             throw new Error('API Tester guide must be live, indexable, self-canonical and have a distinct meta description');
+          }
+
+
+          if (process.env.CHECK_ETA_RELEASE === 'true') {
+            const etaGuidePath = '/guides/eta-calculator/';
+            const etaGuideResult = await get(etaGuidePath);
+            const etaToolResult = await get('/eta-calculator/');
+            const etaGuideDescription = extractDescription(etaGuideResult.body);
+            const etaToolDescription = extractDescription(etaToolResult.body);
+            const etaGuideCanonical = etaGuideResult.body.match(/<link[^>]+rel=["']canonical["'][^>]+href=["']([^"']+)["']/i)?.[1] || '';
+            if (!etaGuideResult.response.ok ||
+                etaGuideResult.finalUrl !== origin + etaGuidePath ||
+                !etaGuideDescription || !etaToolDescription ||
+                etaGuideDescription === etaToolDescription ||
+                etaGuideCanonical !== origin + etaGuidePath ||
+                !etaGuideResult.body.includes('100 records per hour') ||
+                !etaGuideResult.body.includes('manual estimate, not live process monitoring') ||
+                /<meta[^>]+name=["']robots["'][^>]+content=["'][^"']*noindex/i.test(etaGuideResult.body)) {
+              throw new Error('ETA Calculator guide must be live, indexable, self-canonical and document the observed-pace calculation');
+            }
           }
 
           // The JSON Diff guide must be live, self-canonical and distinct from its tool page.
@@ -496,6 +540,8 @@ jobs:
           for (const route of [
             "/",
             "/tools/",
+            "/eta-calculator/",
+            "/guides/eta-calculator/",
             "/percentage-calculator/",
             "/guides/percentage-calculator/",
             "/guides/numeronym-generator/",
