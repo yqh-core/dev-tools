@@ -43,7 +43,8 @@ const estimate = computed(() => {
         elapsedMs: elapsedMs.value,
         bufferPercent: bufferPercent.value,
       });
-    } catch (error) {
+    }
+    catch (error) {
       if (error instanceof RangeError) {
         return null;
       }
