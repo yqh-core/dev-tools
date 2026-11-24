@@ -67,17 +67,27 @@ describe('article-only guide content', () => {
     const english = en['/json-diff'].articleOnlySections ?? [];
     const chinese = zh['/json-diff'].articleOnlySections ?? [];
 
-    expect(english).toHaveLength(3);
+    expect(english).toHaveLength(4);
     expect(chinese).toHaveLength(english.length);
     expect(english.map(section => section.title)).toContain('Choose the right array comparison mode');
     expect(chinese.map(section => section.title)).toContain('选择适合的数组比较模式');
-    expect(english[0].text).toContain('unique, non-empty string or finite numeric ID');
-    expect(chinese[0].text).toContain('唯一、非空的字符串或有限数字 ID');
-    expect(english[2].text).toContain('2^53 - 1');
-    expect(chinese[2].text).toContain('2^53 - 1');
-    expect(english[1].text).toContain('dedicated Web Worker');
-    expect(english[1].text).toContain('15-second timeout');
-    expect(chinese[1].text).toContain('Web Worker');
+    expect(english.map(section => section.title)).toContain('Ignore volatile fields with exact JSON Pointers');
+    expect(chinese.map(section => section.title)).toContain('使用精确 JSON Pointer 忽略易变字段');
+
+    const englishArrayMode = english.find(section => section.title === 'Choose the right array comparison mode');
+    const chineseArrayMode = chinese.find(section => section.title === '选择适合的数组比较模式');
+    const englishFiles = english.find(section => section.title === 'Import files and review changes by path');
+    const chineseFiles = chinese.find(section => section.title === '导入文件并按路径查看变化');
+    const englishPrecision = english.find(section => section.title === 'Structural comparison and data precision');
+    const chinesePrecision = chinese.find(section => section.title === '结构化比较与数值精度');
+
+    expect(englishArrayMode?.text).toContain('unique, non-empty string or finite numeric ID');
+    expect(chineseArrayMode?.text).toContain('唯一、非空的字符串或有限数字 ID');
+    expect(englishPrecision?.text).toContain('2^53 - 1');
+    expect(chinesePrecision?.text).toContain('2^53 - 1');
+    expect(englishFiles?.text).toContain('dedicated Web Worker');
+    expect(englishFiles?.text).toContain('15-second timeout');
+    expect(chineseFiles?.text).toContain('Web Worker');
 
     const sections = buildGuideSections(en['/json-diff']);
     expect(sections.some(section => section.id === 'article-only-1')).toBe(true);
