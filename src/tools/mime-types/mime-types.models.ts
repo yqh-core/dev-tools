@@ -13,15 +13,15 @@ export function createMimeServerSnippets(mimeType: string, extensions: string[])
   )];
 
   if (normalizedExtensions.length === 0) {
-    const empty = '# No known file extensions for ' + mimeType;
+    const empty = `# No known file extensions for ${mimeType}`;
     return { nginx: empty, apache: empty, headers: empty };
   }
 
   return {
-    nginx: ['types {', '    ' + mimeType + ' ' + normalizedExtensions.join(' ') + ';', '}'].join('\\n'),
-    apache: 'AddType ' + mimeType + ' ' + normalizedExtensions.map(extension => '.' + extension).join(' '),
+    nginx: ['types {', `    ${mimeType} ${normalizedExtensions.join(' ')};`, '}'].join('\\n'),
+    apache: `AddType ${mimeType} ${normalizedExtensions.map(extension => `.${extension}`).join(' ')}`,
     headers: normalizedExtensions
-      .map(extension => '/*.' + extension + '\\n  Content-Type: ' + mimeType)
+      .map(extension => `/*.${extension}\\n  Content-Type: ${mimeType}`)
       .join('\\n\\n'),
   };
 }
