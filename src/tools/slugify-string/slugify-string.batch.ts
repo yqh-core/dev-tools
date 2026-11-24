@@ -163,7 +163,7 @@ export function runSlugifyBatch(
         source,
         slug: '',
         outputLength: 0,
-        truncated,
+        truncated: false,
         error: 'The maximum length is too short to keep a complete word.',
       };
     }
