@@ -23,8 +23,8 @@ test.describe('Tool - Numeronym generator', () => {
   });
 
   test('handles Unicode words and compound words in one batch', async ({ page }) => {
-    await page.getByTestId('word-input').locator('textarea').fill('JavaScript, Über; café\ncross-platform\ndon\'t');
-    await expect(page.getByTestId('batch-numeronyms').locator('textarea')).toHaveValue('J8t\nÜ2r\nc2é\nc11m\nd2t');
+    await page.getByTestId('word-input').locator('textarea').fill('JavaScript, Über; café\ncross-platform\ndon\'t\nこんにちは');
+    await expect(page.getByTestId('batch-numeronyms').locator('textarea')).toHaveValue('J8t\nÜ2r\nc2é\nc11m\nd2t\nこ3は');
   });
 
   test('looks up established terms and leaves unsupported forms visible', async ({ page }) => {
