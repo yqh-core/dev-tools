@@ -31,10 +31,12 @@ describe('numeronym-generator service', () => {
       expect(generateNumeronym('Über')).toBe('Ü2r');
       expect(generateNumeronym('café')).toBe('c2é');
       expect(generateNumeronym('cafe\u0301')).toBe('c2é');
+      expect(generateNumeronym('こんにちは')).toBe('こ3は');
     });
 
     it('counts Unicode letter clusters rather than UTF-16 code units', () => {
       expect(countLetters('cafe\u0301')).toBe(4);
+      expect(countLetters('こんにちは')).toBe(5);
       expect(countLetters('cross-platform')).toBe(13);
       expect(countLetters('💻')).toBe(0);
     });
