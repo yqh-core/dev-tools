@@ -185,6 +185,154 @@ export function calculateRequiredPaceForDeadline(
 
   return { availableWorkMs, requiredUnitsPerHour };
 }
+export interface WorkingHoursSchedule {
+  /** Local wall-clock opening time in HH:mm format. */
+  startTime: string
+  /** Local wall-clock closing time in HH:mm format. */
+  endTime: string
+}
+
+function parseWorkingTime(value: string): number {
+  const match = /^([01]\d|2[0-3]):([0-5]\d)$/.exec(value);
+  if (!match) {
+    throw new RangeError('Working hours must use a valid 24-hour HH:mm time');
+  }
+  return Number(match[1]) * 60 + Number(match[2]);
+}
+
+function validateWorkingHours(schedule: WorkingHoursSchedule) {
+  const startMinutes = parseWorkingTime(schedule.startTime);
+  const endMinutes = parseWorkingTime(schedule.endTime);
+  if (endMinutes <= startMinutes) {
+    throw new RangeError('Working hours must end later than they start on the same day');
+  }
+  return { startMinutes, endMinutes };
+}
+
+function localTimeOnDate(date: Date, minutesAfterMidnight: number): Date {
+  return new Date(
+    date.getFullYear(),
+    date.getMonth(),
+    date.getDate(),
+    Math.floor(minutesAfterMidnight / 60),
+    minutesAfterMidnight % 60,
+    0,
+    0,
+  );
+}
+
+function nextLocalDay(date: Date): Date {
+  const next = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  next.setDate(next.getDate() + 1);
+  return next;
+}
+
+function isWeekday(date: Date): boolean {
+  return date.getDay() >= 1 && date.getDay() <= 5;
+}
+
+/**
+ * Project a duration across Monday-Friday local work windows.
+ *
+ * Calendar dates are advanced with local setDate()/constructors rather than
+ * adding 24 hours, so weekends and daylight-saving transitions do not shift
+ * the configured wall-clock opening and closing times.
+ */
+export function calculateWorkingHoursFinishAt(
+  startAt: number | Date,
+  durationMs: number,
+  schedule: WorkingHoursSchedule,
+): number {
+  const startTimestamp = startAt instanceof Date ? startAt.getTime() : startAt;
+  if (!Number.isFinite(startTimestamp) || !Number.isFinite(durationMs) || durationMs < 0) {
+    throw new RangeError('Working-hours estimate requires a finite start and non-negative duration');
+  }
+  const { startMinutes, endMinutes } = validateWorkingHours(schedule);
+  if (durationMs === 0) {
+    return startTimestamp;
+  }
+
+  let remainingMs = durationMs;
+  let cursor = new Date(startTimestamp);
+
+  for (let dayCount = 0; dayCount < 36_600; dayCount += 1) {
+    const dayStart = new Date(cursor.getFullYear(), cursor.getMonth(), cursor.getDate());
+    if (!isWeekday(dayStart)) {
+      cursor = localTimeOnDate(nextLocalDay(dayStart), startMinutes);
+      continue;
+    }
+
+    const opening = localTimeOnDate(dayStart, startMinutes);
+    const closing = localTimeOnDate(dayStart, endMinutes);
+    if (cursor < opening) {
+      cursor = opening;
+    }
+    if (cursor >= closing) {
+      cursor = localTimeOnDate(nextLocalDay(dayStart), startMinutes);
+      continue;
+    }
+
+    const availableTodayMs = closing.getTime() - cursor.getTime();
+    if (remainingMs <= availableTodayMs) {
+      return cursor.getTime() + remainingMs;
+    }
+
+    remainingMs -= availableTodayMs;
+    cursor = localTimeOnDate(nextLocalDay(dayStart), startMinutes);
+  }
+
+  throw new RangeError('Working-hours estimate exceeds the supported calendar range');
+}
+
+/**
+ * Count the overlap between a local calendar interval and Monday-Friday
+ * working windows. A zero result means there is no productive window before
+ * the deadline; the deadline calculator can then report that no pace is valid.
+ */
+export function calculateWorkingWindowDurationMs(
+  startAt: number | Date,
+  endAt: number | Date,
+  schedule: WorkingHoursSchedule,
+): number {
+  const startTimestamp = startAt instanceof Date ? startAt.getTime() : startAt;
+  const endTimestamp = endAt instanceof Date ? endAt.getTime() : endAt;
+  if (!Number.isFinite(startTimestamp) || !Number.isFinite(endTimestamp)) {
+    throw new RangeError('Working-hours interval requires finite start and end times');
+  }
+  if (endTimestamp < startTimestamp) {
+    throw new RangeError('Deadline must be later than the estimate start time');
+  }
+
+  const { startMinutes, endMinutes } = validateWorkingHours(schedule);
+  if (endTimestamp === startTimestamp) {
+    return 0;
+  }
+
+  let countedMs = 0;
+  let dayStart = new Date(
+    new Date(startTimestamp).getFullYear(),
+    new Date(startTimestamp).getMonth(),
+    new Date(startTimestamp).getDate(),
+  );
+  for (let dayCount = 0; dayCount < 36_600 && dayStart.getTime() <= endTimestamp; dayCount += 1) {
+    if (isWeekday(dayStart)) {
+      const opening = localTimeOnDate(dayStart, startMinutes).getTime();
+      const closing = localTimeOnDate(dayStart, endMinutes).getTime();
+      const overlapStart = Math.max(startTimestamp, opening);
+      const overlapEnd = Math.min(endTimestamp, closing);
+      if (overlapEnd > overlapStart) {
+        countedMs += overlapEnd - overlapStart;
+      }
+    }
+    dayStart = nextLocalDay(dayStart);
+  }
+
+  if (!Number.isFinite(countedMs)) {
+    throw new RangeError('Working-hours interval exceeds the supported numeric range');
+  }
+  return countedMs;
+}
+
 export function formatMsDuration(duration: number) {
   const ms = Math.floor(duration % 1000);
   const secs = Math.floor(((duration - ms) / 1000) % 60);
