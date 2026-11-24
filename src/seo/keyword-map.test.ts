@@ -86,6 +86,7 @@ describe('evidence-backed SEO keyword targets', () => {
     ['/case-converter', 'text case converter', 'Text Case Converter — camelCase, snake_case & More'],
     ['/list-converter', 'list converter', 'List Converter — Sort, Deduplicate & Format Lines'],
     ['/image-color-picker', 'image color picker', 'Image Color Picker — Get HEX, RGB & HSL from Any Image'],
+    ['/http-headers', 'http headers checker online', 'HTTP Header Analyzer — HAR Import & Security Score'],
   ])('locks the landed metadata for %s', (path, keyword, lockedTitle) => {
     const entry = CLUSTER_KEYWORD_ENTRIES.find(item => item.path === path);
 
@@ -137,7 +138,6 @@ describe('evidence-backed SEO keyword targets', () => {
     ['/case-converter', 'text case converter', 'convert'],
     ['/list-converter', 'list converter', 'convert'],
     ['/image-color-picker', 'image color picker', 'inspect'],
-    ['/http-headers', 'http headers checker online', 'HTTP Header Analyzer — HAR Import & Security Score'],
   ])('keeps newly landed P1 route %s capability-matched', (path, keyword, intent) => {
     const entry = CLUSTER_KEYWORD_ENTRIES.find(item => item.path === path);
 
