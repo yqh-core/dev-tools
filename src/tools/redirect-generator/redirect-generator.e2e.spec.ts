@@ -75,7 +75,7 @@ test.describe('Tool - bulk redirect generator', () => {
     await page.getByTestId('redirect-subpath-matching').click();
     await page.getByTestId('redirect-preserve-path-suffix').click();
     const cloudflare = await page.getByTestId('redirect-output').locator('textarea').inputValue();
-    expect(cloudflare.split('\\n')[0].split(',').slice(-3)).toEqual(['"TRUE"', '"TRUE"', '"TRUE"']);
+    expect(cloudflare.split('\n')[0].split(',').slice(-3)).toEqual(['"TRUE"', '"TRUE"', '"TRUE"']);
   });
 
   test('imports a CSV file in the browser', async ({ page }) => {
