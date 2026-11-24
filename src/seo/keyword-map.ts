@@ -224,7 +224,7 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
   {
     path: '/eta-calculator',
     keyword: 'eta calculator',
-    keywords: ['task completion time calculator', 'processing time calculator', 'remaining time calculator', 'time remaining calculator', 'remaining task time calculator', 'batch processing ETA', 'download time remaining', 'build time estimator', 'ETA with progress', 'buffered ETA calculator'],
+    keywords: ['task completion time calculator', 'processing time calculator', 'remaining time calculator', 'time remaining calculator', 'remaining task time calculator', 'batch processing ETA', 'download time remaining', 'build time estimator', 'ETA with progress', 'buffered ETA calculator', 'ETA calculator working hours', 'weekday ETA calculator', 'working days completion time'],
     intent: 'compute',
     priority: 'P1',
     competition: 'medium',
