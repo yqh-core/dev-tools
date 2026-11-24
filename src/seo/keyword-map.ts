@@ -603,12 +603,13 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
   {
     path: '/ipv6-ula-generator',
     keyword: 'IPv6 ULA generator',
-    keywords: ['generate IPv6 unique local address', 'RFC 4193 ULA generator', 'IPv6 private address generator', 'IPv6 /48 prefix generator'],
+    keywords: ['generate IPv6 unique local address', 'RFC 4193 ULA generator', 'IPv6 private address generator', 'IPv6 /48 prefix generator', 'random IPv6 ULA prefix', 'IPv6 /64 subnet examples'],
     intent: 'generate',
     priority: 'P2',
     competition: 'medium',
-    landed: false,
-    note: 'Candidate mapping matches generation of an RFC 4193-style fd00::/48 ULA and first/last /64 blocks from a validated MAC address. Competition is provisional; validate implementation against the RFC before strengthening copy.',
+    landed: true,
+    lockedTitle: 'IPv6 ULA generator',
+    note: 'The canonical tool generates locally assigned fd00::/8 /48 prefixes using five Web Crypto random bytes, supports a reproducible 40-bit manual Global ID and batches up to 20 unique prefixes, and shows first/last /64 subnet examples. No MAC address is required or uploaded. RFC 4193 collision risk is reduced, not eliminated; no search-volume or ranking claim is made.',
   },
   {
     path: '/user-agent-parser',
