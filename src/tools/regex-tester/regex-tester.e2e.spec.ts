@@ -7,7 +7,8 @@ test.describe('Tool - Regex Tester isolated execution', () => {
 
   test('explains common JavaScript tokens and flags, and flags syntax it cannot explain', async ({ page }) => {
     const panel = page.getByTestId('pattern-explanation');
-    await page.getByLabel('Regex to test:').fill('^(?<id>[A-Z]{2}\\d+)
+    const slash = String.fromCharCode(92);
+    await page.getByLabel('Regex to test:').fill('^(?<id>[A-Z]{2}' + slash + 'd+)
     await page.getByLabel('Regex to test:').fill('(?<word>hello)');
     await page.getByLabel('Text to match:').fill('hello world');
     await page.getByLabel('Replacement:').fill('$<word>!');
@@ -104,11 +105,10 @@ test.describe('Tool - Regex Tester isolated execution', () => {
     await expect(panel).toContainText('Active flags');
     await expect(panel).toContainText('Finds all matches');
 
-    await page.getByLabel('Regex to test:').fill('(?P<name>foo)\\K');
+    await page.getByLabel('Regex to test:').fill('(?P<name>foo)' + slash + 'K');
     await expect(panel).toContainText('Python-style named groups are not JavaScript RegExp syntax');
     await expect(panel.getByText('Review syntax')).toHaveCount(2);
   });
-
   test('supports named groups and JavaScript replacement tokens', async ({ page }) => {
     await page.getByLabel('Regex to test:').fill('(?<word>hello)');
     await page.getByLabel('Text to match:').fill('hello world');
