@@ -51,7 +51,7 @@ describe('buildBasicAuthExamples', () => {
 
   it('safely quotes a URL containing a single quote for a POSIX shell', () => {
     const examples = buildBasicAuthExamples("https://api.example.com/a'b");
-    expect(examples.curl).toContain("'https://api.example.com/a'\\\\''b'");
+    expect(examples.curl).toContain(String.raw`'https://api.example.com/a'\''b'`);
   });
 
   it('rejects invalid URLs and non-HTTP schemes', () => {
