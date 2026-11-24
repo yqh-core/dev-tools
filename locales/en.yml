@@ -447,7 +447,7 @@ tools:
 
   numeronym-generator:
     title: Numeronym Generator — i18n, a11y & k8s
-    description: Generate numeronyms from one word or a batch of words, one per line, and look up established forms such as i18n, a11y and k8s. Free and instant in your browser.
+    description: Generate numeronyms from pasted words or phrases, including Unicode and hyphenated terms. Preserve letter case, copy batch results, and look up i18n, a11y, k8s and more in your browser.
 
   case-converter:
     title: Text Case Converter — camelCase, snake_case & More
