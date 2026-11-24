@@ -10,7 +10,7 @@ test.describe('Tool - JSON diff', () => {
     await expect(page).toHaveTitle('JSON Diff Checker — Compare JSON Online - DigDevBox');
     await expect(page.locator('meta[name="description"]')).toHaveAttribute(
       'content',
-      'Compare JSON files or pasted JSON online. Find nested changes by path, export a local report, and compare arrays by index, ignore-order or stable object ID. JSON5 supported; files stay in your browser.',
+      'Compare JSON files or pasted JSON online. Inspect nested changes by path, export a report, and match arrays by index, ignore-order or stable ID. Large comparisons run in a cancellable worker.',
     );
     await expect(page.locator('h1')).toHaveText('JSON Diff Checker');
   });
