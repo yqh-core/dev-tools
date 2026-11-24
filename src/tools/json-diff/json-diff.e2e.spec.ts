@@ -95,5 +95,4 @@ test.describe('Tool - JSON diff', () => {
     await expect(page.getByTestId('change-list')).toContainText('$["users"][1]["name"]');
     await expect(page.getByTestId('change-list')).toContainText('1 changed paths');
   });
-
 });
