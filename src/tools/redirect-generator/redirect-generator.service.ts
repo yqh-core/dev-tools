@@ -430,7 +430,7 @@ export function generateRedirectOutput(
   }
 
   if (format === 'netlify' && status !== '301' && status !== '302') {
-    throw new Error('Netlify _redirects supports 301 and 302 redirects only.');
+    throw new Error('This generator limits Netlify _redirects output to 301 and 302. Choose another format for 307 or 308.');
   }
 
   if (format === 'apache') {
