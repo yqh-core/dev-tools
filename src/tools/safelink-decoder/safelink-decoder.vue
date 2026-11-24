@@ -5,16 +5,6 @@ import TextareaCopyable from '@/components/TextareaCopyable.vue';
 
 const { t } = useI18n();
 
-const inputSafeLinkUrl = ref('');
-const outputDecodedUrl = computed(() => {
-  try {
-    return decodeSafeLinksURL(inputSafeLinkUrl.value);
-  }
-  catch (e: any) {
-    return e.toString();
-  }
-});
-
 const batchInput = ref('');
 const batchResults = ref<SafeLinksBatchResult[]>([]);
 const batchCopyStatus = ref('');
@@ -29,8 +19,18 @@ const batchSummary = computed(() => batchResults.value.length
   })
   : '');
 
+const inputSafeLinkUrl = ref('');
+const outputDecodedUrl = computed(() => {
+  try {
+    return decodeSafeLinksURL(inputSafeLinkUrl.value);
+  }
+  catch (e: any) {
+    return e.toString();
+  }
+});
+
 watch(batchInput, () => {
-  // A changed input invalidates prior results, so copied output can never look current.
+  // Changed input invalidates prior results so copied output cannot look current.
   batchResults.value = [];
   batchCopyStatus.value = '';
 });
@@ -60,35 +60,29 @@ async function copySuccessfulBatchResults(): Promise<void> {
 
 <template>
   <div>
-    <c-input-text
-      v-model:value="inputSafeLinkUrl"
-      raw-text
-      placeholder="Your input Outlook SafeLink Url..."
-      autofocus
-      label="Your input Outlook SafeLink Url:"
-    />
-
-    <n-divider />
-
-    <n-form-item label="Output decoded URL:">
-      <TextareaCopyable :value="outputDecodedUrl" :word-wrap="true" />
-    </n-form-item>
-
-    <section class="mx-auto mt-8 max-w-800px px-4" data-test-id="safelink-batch">
-      <h2 class="mb-3 text-xl font-semibold">
+    <section class="mx-auto mt-4 max-w-800px px-4" data-test-id="safelink-batch">
+      <h2 class="mb-2 text-xl font-semibold">
         {{ t('tools.safelink-decoder.batch.title') }}
       </h2>
       <p class="mb-3">
         {{ t('tools.safelink-decoder.batch.instructions') }}
       </p>
 
+      <label for="safelink-batch-input" class="mb-2 block text-sm font-medium">
+        {{ t('tools.safelink-decoder.batch.inputLabel') }}
+      </label>
       <n-input
+        id="safelink-batch-input"
         v-model:value="batchInput"
         type="textarea"
-        :autosize="{ minRows: 4, maxRows: 10 }"
+        :autosize="{ minRows: 5, maxRows: 12 }"
         :placeholder="t('tools.safelink-decoder.batch.placeholder')"
+        aria-describedby="safelink-batch-help"
         data-test-id="safelink-batch-input"
       />
+      <p id="safelink-batch-help" class="mt-1 text-xs opacity-70">
+        {{ t('tools.safelink-decoder.batch.help') }}
+      </p>
 
       <div class="mt-3 flex flex-wrap gap-2">
         <c-button
@@ -130,6 +124,20 @@ async function copySuccessfulBatchResults(): Promise<void> {
               {{ t('tools.safelink-decoder.batch.success') }}
             </p>
             <code class="mt-1 block break-all" data-test-id="safelink-batch-decoded-url">{{ result.decodedUrl }}</code>
+            <dl class="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs" data-test-id="safelink-batch-metadata">
+              <div class="flex gap-1">
+                <dt class="font-semibold">{{ t('tools.safelink-decoder.batch.scheme') }}:</dt>
+                <dd>{{ result.scheme }}</dd>
+              </div>
+              <div class="flex gap-1 min-w-0">
+                <dt class="font-semibold">{{ t('tools.safelink-decoder.batch.host') }}:</dt>
+                <dd class="break-all">{{ result.host }}</dd>
+              </div>
+              <div class="flex gap-1">
+                <dt class="font-semibold">{{ t('tools.safelink-decoder.batch.layers') }}:</dt>
+                <dd>{{ result.nestedLayers }}</dd>
+              </div>
+            </dl>
           </template>
           <p v-else class="mt-1 text-sm text-red-700 dark:text-red-400" role="alert">
             {{ result.error }}
@@ -138,29 +146,58 @@ async function copySuccessfulBatchResults(): Promise<void> {
       </div>
     </section>
 
+    <n-divider />
+
+    <section class="mx-auto max-w-800px px-4" data-test-id="safelink-single">
+      <h2 class="mb-2 text-lg font-semibold">
+        {{ t('tools.safelink-decoder.single.title') }}
+      </h2>
+      <p class="mb-3 text-sm opacity-75">
+        {{ t('tools.safelink-decoder.single.instructions') }}
+      </p>
+      <c-input-text
+        v-model:value="inputSafeLinkUrl"
+        raw-text
+        :placeholder="t('tools.safelink-decoder.single.placeholder')"
+        :label="t('tools.safelink-decoder.single.inputLabel')"
+      />
+      <n-divider />
+      <n-form-item :label="t('tools.safelink-decoder.single.outputLabel')">
+        <TextareaCopyable :value="outputDecodedUrl" :word-wrap="true" />
+      </n-form-item>
+    </section>
+
     <section class="mx-auto mt-8 max-w-800px px-4" data-test-id="safelink-guide">
-      <h2 class="mb-3 text-xl font-semibold">How to decode an Outlook Safe Links URL</h2>
+      <h2 class="mb-3 text-xl font-semibold">
+        {{ t('tools.safelink-decoder.guide.title') }}
+      </h2>
       <p class="mb-3">
-        Paste the complete Microsoft Safe Links URL above. This tool reads its url query parameter,
-        unwraps nested Outlook Safe Links URLs up to five layers, and displays the destination
-        address without opening it. Only HTTPS wrappers on the Outlook Safe Links domain are accepted.
+        {{ t('tools.safelink-decoder.guide.intro') }}
       </p>
 
-      <h3 class="mb-2 text-lg font-semibold">Example</h3>
-      <p class="mb-2">A Safe Links URL containing an encoded destination such as example.com/docs resolves to:</p>
-      <pre class="mb-3 overflow-x-auto rounded bg-gray-500:5 p-3"><code>https://example.com/docs</code></pre>
+      <h3 class="mb-2 text-lg font-semibold">
+        {{ t('tools.safelink-decoder.guide.exampleTitle') }}
+      </h3>
+      <pre class="mb-3 overflow-x-auto rounded bg-gray-500:5 p-3"><code>{{ t('tools.safelink-decoder.guide.example') }}</code></pre>
 
-      <h3 class="mb-2 text-lg font-semibold">Important security limits</h3>
+      <h3 class="mb-2 text-lg font-semibold">
+        {{ t('tools.safelink-decoder.guide.securityTitle') }}
+      </h3>
       <ul class="list-disc pl-6">
-        <li>Decoding reveals the destination URL; it does not scan the destination or verify that it is safe.</li>
-        <li>Microsoft Safe Links can check links when they are clicked. This decoder does not replace or bypass that protection.</li>
-        <li>Before visiting a decoded address, inspect the domain carefully and follow your organization's security process. Do not open a link just because it was successfully decoded.</li>
+        <li>{{ t('tools.safelink-decoder.guide.localParsing') }}</li>
+        <li>{{ t('tools.safelink-decoder.guide.noSafetyScan') }}</li>
+        <li>{{ t('tools.safelink-decoder.guide.microsoftProtection') }}</li>
       </ul>
 
-      <h3 class="mb-2 text-lg font-semibold">Related URL tools</h3>
+      <h3 class="mb-2 mt-4 text-lg font-semibold">
+        {{ t('tools.safelink-decoder.guide.relatedTitle') }}
+      </h3>
       <p>
-        Use the <a href="/url-parser/">URL Parser</a> to inspect the decoded address components, or the
-        <a href="/url-encoder/">URL Encoder</a> to encode or decode URL components.
+        <a href="/url-parser/">{{ t('tools.safelink-decoder.guide.urlParser') }}</a>
+        <span aria-hidden="true"> · </span>
+        <a href="/url-encoder/">{{ t('tools.safelink-decoder.guide.urlEncoder') }}</a>
+        <span aria-hidden="true"> · </span>
+        <a href="/guides/safelink-decoder/">{{ t('tools.safelink-decoder.guide.fullGuide') }}</a>
       </p>
     </section>
   </div>
