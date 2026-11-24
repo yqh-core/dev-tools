@@ -1032,19 +1032,45 @@ tools:
     description: 在线测试 JavaScript 正则表达式，实时查看匹配、捕获组和替换预览，并用命名正向/反向测试用例查看逐项通过或失败结果。
 
   safelink-decoder:
-    title: Outlook 安全链接解码器
-    description: 逐条或批量解码 Outlook Safe Links（含嵌套包装），在浏览器本地还原目标地址；解码不代表链接安全。
+    title: Outlook Safe Links 批量解码器 — 还原原始网址
+    description: 批量解码 Microsoft Outlook Safe Links，每行一个包装链接，最多解开五层嵌套，并显示目标协议与主机；仅在浏览器本地解析，不进行安全扫描。
     batch:
-      title: 批量解码多个 Safe Links
-      instructions: 每行粘贴一个 Outlook Safe Links 地址。空行会忽略；每一行都在浏览器本地解析，不会打开目标地址。
+      title: 批量解码 Outlook Safe Links
+      intro: 每行粘贴一个 Microsoft Outlook Safe Links 地址，一次处理多条邮件链接。
+      instructions: 空行会忽略；每条非空行独立解码并保留原始行号。复制时只包含成功提取的目标地址。
       placeholder: 每行粘贴一个 Outlook Safe Links 地址...
       decode: 开始批量解码
       copy: 复制成功结果
       summary: "已解码 {success}/{total} 条，失败 {failed} 条。"
       line: "第 {line} 行"
       success: 已提取目标地址（未进行安全检测）
+      resultDetails: "目标地址：{scheme} · {host} · 包装层数 {depth}"
       copied: 已复制成功解码的地址。
       copyFailed: 无法访问剪贴板，请手动选择并复制解码结果。
+    guide:
+      title: 如何批量解码 Outlook Safe Links
+      intro: 本工具只接受 Microsoft Outlook Safe Links 域名下的 HTTPS 包装链接，最多解开五层嵌套。所有操作只解析浏览器中的 URL 文本，不会请求或打开包装链接及目标网站。
+      exampleTitle: 示例：一次处理两条链接
+      example: |-
+        第 1 行：https://nam01.safelinks.protection.outlook.com/?url=https%3A%2F%2Fexample.com%2Fdocs
+        第 2 行：https://eur01.safelinks.protection.outlook.com/?url=https%3A%2F%2Fexample.org%2Faccount
+
+        提取出的目标地址：
+        https://example.com/docs
+        https://example.org/account
+      securityTitle: 重要的安全边界
+      security1: 解码成功只表示提取出了嵌入的地址。协议、主机和包装层数仅描述 URL 结构，不代表域名信誉检查或安全结论。
+      security2: 工具不会请求、打开、扫描或认证目标网站。决定访问前，请检查主机名、邮件上下文并遵循组织安全流程。
+      security3: Microsoft Safe Links 仍可在点击时执行安全检查。本工具不会替代、关闭或绕过这项保护。
+      relatedTitle: 继续检查目标地址
+      urlParser: 使用 URL Parser 查看协议、主机、端口、路径、查询参数和片段。
+      article: 阅读 Outlook Safe Links 指南
+    single:
+      title: 解码单条 Outlook Safe Links
+      instructions: 只有一条链接时，可展开下方的单条解码器；批量解码仍是页面的主要工作流。
+      placeholder: 粘贴一个 Outlook Safe Links 地址...
+      inputLabel: Outlook Safe Links 地址
+      outputLabel: 解码后的目标地址
 
   xml-to-json:
     title: XML 转 JSON
