@@ -358,7 +358,7 @@ const displayedObservedRate = computed(() => {
           gap-1
           data-test-id="eta-deadline-result"
         >
-          <strong tabular-nums>
+          <strong tabular-nums data-test-id="eta-required-pace">
             {{ $t('tools.eta-calculator.requiredPace') }}:
             {{ formatUnitsPerHour(deadlineAnalysis.requiredUnitsPerHour) }} {{ $t('tools.eta-calculator.unitsPerHour') }}
           </strong>
