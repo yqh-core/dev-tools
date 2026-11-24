@@ -9,14 +9,30 @@ export function countLetters(value: string): number {
   return (value.normalize('NFC').match(LETTER_CLUSTERS) ?? []).length;
 }
 
-export function generateNumeronym(word: string): string {
+export interface NumeronymBreakdown {
+  first: string
+  middleCount: number
+  last: string
+  output: string
+  unchanged: boolean
+}
+
+/** Explain the exact letter-count rule used to generate a numeronym. */
+export function describeNumeronym(word: string): NumeronymBreakdown {
   const letters = word.normalize('NFC').match(LETTER_CLUSTERS) ?? [];
+  const unchanged = letters.length <= 3;
 
-  if (letters.length <= 3) {
-    return word;
-  }
+  return {
+    first: letters[0] ?? '',
+    middleCount: Math.max(0, letters.length - 2),
+    last: letters.at(-1) ?? '',
+    output: unchanged ? word : `${letters[0]}${letters.length - 2}${letters.at(-1)}`,
+    unchanged,
+  };
+}
 
-  return `${letters[0]}${letters.length - 2}${letters.at(-1)}`;
+export function generateNumeronym(word: string): string {
+  return describeNumeronym(word).output;
 }
 
 /**
