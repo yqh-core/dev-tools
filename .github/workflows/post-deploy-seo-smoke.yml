@@ -353,7 +353,7 @@ jobs:
               '/otp-generator/': { title: 'TOTP Code Generator — 6-Digit Codes & QR - DigDevBox', description: 'Generate current, previous and next 6-digit TOTP codes from a Base32 secret, view the 30-second timer, and create an otpauth QR code. Uses Web Crypto.', h1: 'TOTP Code Generator' },
               '/htpasswd-generator/': { title: 'htpasswd Generator & Checker — bcrypt & apr1 - DigDevBox', description: 'Build multi-user Apache/Nginx .htpasswd files with bcrypt or apr1. Copy, download or verify a username:hash line locally. Passwords stay in your browser.', h1: 'htpasswd Generator & Checker' },
               '/json-to-toml/': { title: 'JSON to TOML Converter - DigDevBox', description: 'Convert JSON or JSON5 objects to TOML. Nested objects become tables or dotted keys; arrays become TOML arrays. Unsupported values may prevent conversion.', h1: 'JSON to TOML Converter' },
-              '/text-statistics/': { title: 'Text Statistics — Word & Character Counter - DigDevBox', description: 'Free online word and character counter with Unicode grapheme, code point, UTF-16 and UTF-8 byte counts. Count words, unique words, sentences, paragraphs and lines, estimate reading time, and keep text private in your browser.', h1: 'Text Statistics' },
+              '/text-statistics/': { title: 'Text Statistics — Word & Character Counter - DigDevBox', description: 'Count words, characters, Unicode units, lines and UTF-8 bytes. Analyze top-term frequency and estimate reading and speaking time in your browser, with no text upload.', h1: 'Text Statistics' },
               '/json-diff/': { title: 'JSON Diff Checker — Compare JSON Online - DigDevBox', description: 'Compare JSON files or pasted JSON online. Inspect nested changes by path, export a report, and match arrays by index, ignore-order or stable ID. Large comparisons run in a cancellable worker.', h1: 'JSON Diff Checker' },
               '/slugify-string/': { title: 'URL Slug Generator — Create SEO-Friendly Slugs in Bulk - DigDevBox', description: 'Generate URL slugs from titles in bulk. Choose hyphens, underscores or dots, remove English stop words, set a word-safe length cap and preview full URLs.', h1: 'URL Slug Generator' },
               '/redirect-generator/': { title: 'Bulk 301 Redirect Generator — Apache, Nginx & Cloudflare - DigDevBox', description: 'Generate bulk redirects for Apache, Nginx, Cloudflare, Netlify and Vercel. Import CSV, detect loops and chains, and export server-ready rules locally.', h1: 'Bulk 301 Redirect Generator' },
@@ -380,6 +380,7 @@ jobs:
             '/',
             '/ipv6-ula-generator/',
             '/text-statistics/',
+            '/eta-calculator/',
             '/guides/eta-calculator/',
             '/guides/redirect-generator/',
           ];
