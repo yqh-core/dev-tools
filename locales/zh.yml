@@ -380,10 +380,11 @@ tools:
       title: "批量 URL Slug 生成器"
       intro: "将一个或多个标题转换为适合 URL 的 slug。每个非空行生成一条结果。"
       inputLabel: "标题或短语"
-      inputPlaceholder: "每行输入一个标题，例如：
-How to Build a Better API
-The Complete Guide to URL Slugs
-Déjà Vu and Unicode"
+      inputPlaceholder: |-
+        每行输入一个标题，例如：
+        How to Build a Better API
+        The Complete Guide to URL Slugs
+        Déjà Vu and Unicode
       separator: "单词分隔符"
       hyphen: "连字符 (-)"
       underscore: "下划线 (_)"
