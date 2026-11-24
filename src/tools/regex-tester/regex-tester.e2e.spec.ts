@@ -20,7 +20,7 @@ test.describe('Tool - Regex Tester isolated execution', () => {
 
     await page.getByLabel('Regex to test:').fill('a+');
     await page.getByLabel('Text to match:').fill('aaaa');
-    await expect(page.locator('tbody tr').first().locator('td').nth(1)).toContainText('aaaa', { timeout: 5000 });
+    await expect(page.locator('tbody tr').first().locator('td').nth(2)).toContainText('aaaa', { timeout: 5000 });
     await expect(page.getByText(/Timed out after/)).toHaveCount(0);
   });
 
@@ -30,7 +30,7 @@ test.describe('Tool - Regex Tester isolated execution', () => {
     await expect(page.getByText(/Invalid regex:/)).toBeVisible();
 
     await page.getByLabel('Regex to test:').fill('hello');
-    await expect(page.locator('tbody tr').first().locator('td').nth(1)).toContainText('hello', { timeout: 5000 });
+    await expect(page.locator('tbody tr').first().locator('td').nth(2)).toContainText('hello', { timeout: 5000 });
   });
 
   test('supports keyboard input and remains within a 390px viewport', async ({ page }) => {
@@ -53,7 +53,28 @@ test.describe('Tool - Regex Tester isolated execution', () => {
     await presetField.locator('.c-select-input').click();
     await presetField.locator('.c-select-dropdown-option').filter({ hasText: 'IPv4 address' }).click();
     await page.getByLabel('Text to match:').fill('Server: 192.168.1.42');
-    await expect(page.locator('tbody tr').first().locator('td').nth(1)).toContainText('192.168.1.42', { timeout: 5000 });
+    await expect(page.locator('tbody tr').first().locator('td').nth(2)).toContainText('192.168.1.42', { timeout: 5000 });
+  });
+
+  test('reorders named test cases and shows full-match index and source range', async ({ page }) => {
+    await page.getByLabel('Regex to test:').fill('(?<word>foo)');
+
+    await page.getByRole('button', { name: 'Add test case' }).click();
+    await page.getByLabel('Test case name').first().locator('input').fill('First case');
+    await page.getByLabel('Test case input').first().locator('textarea').fill('no match');
+
+    await page.getByRole('button', { name: 'Add test case' }).click();
+    await page.getByLabel('Test case name').last().locator('input').fill('Second case');
+    await page.getByLabel('Test case input').last().locator('textarea').fill('xxxxfoo!');
+
+    await page.getByRole('button', { name: 'Move test case up' }).last().click();
+
+    const firstCase = page.locator('.regex-test-case').first();
+    await expect(firstCase.getByLabel('Test case name').locator('input')).toHaveValue('Second case');
+    await expect(firstCase.locator('[role="status"]')).toHaveText('PASS');
+    await expect(firstCase).toContainText('index 4');
+    await expect(firstCase).toContainText('range [4, 7)');
+    await expect(firstCase).toContainText('Named group word');
   });
 
   test('runs named positive and negative test cases with an aggregate summary', async ({ page }) => {
