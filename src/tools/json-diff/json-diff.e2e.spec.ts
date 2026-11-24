@@ -5,8 +5,13 @@ test.describe('Tool - JSON diff', () => {
     await page.goto('/json-diff');
   });
 
-  test('Has correct title', async ({ page }) => {
-    await expect(page).toHaveTitle('JSON diff - DigDevBox');
+  test('Has the intended JSON diff search title and description', async ({ page }) => {
+    await expect(page).toHaveTitle('JSON Diff Checker — Compare JSON Online - DigDevBox');
+    await expect(page.locator('meta[name="description"]')).toHaveAttribute(
+      'content',
+      'Compare two JSON objects online. Find added, removed and changed values in nested data; object key order is ignored, and arrays compare by position.',
+    );
+    await expect(page.locator('h1')).toHaveText('JSON Diff Checker — Compare JSON Online');
   });
 
   test('Identical JSONs have a custom result message', async ({ page }) => {
