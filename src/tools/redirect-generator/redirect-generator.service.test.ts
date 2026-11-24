@@ -60,6 +60,16 @@ describe('analyzeRedirects', () => {
     expect(result.rows[0].issues.some(issue => issue.code === 'self-redirect')).toBe(true);
   });
 
+  it('detects a self redirect from an absolute source to a relative target', () => {
+    const result = analyzeRedirects('https://example.com/same,/same');
+    expect(result.rows[0].issues.some(issue => issue.code === 'self-redirect')).toBe(true);
+  });
+
+  it('detects self redirects even when the target adds a query string', () => {
+    const result = analyzeRedirects('https://example.com/same,https://example.com/same?campaign=1');
+    expect(result.rows[0].issues.some(issue => issue.code === 'self-redirect')).toBe(true);
+  });
+
   it('rejects quoted paths that could break generated server configuration', () => {
     const result = analyzeRedirects('/old\"; return 200,/new');
     expect(result.rows[0].issues.some(issue => issue.code === 'invalid-source')).toBe(true);
