@@ -19,6 +19,13 @@ home:
     badgeNoSignup: "No signup"
     badgeTools: "{count} tools"
     cta: "Browse all tools"
+  preview:
+    eyebrow: "A real workflow, one click away"
+    label: "STRUCTURED DATA"
+    title: "Make JSON easier to read"
+    description: "Format a response, compare changes, or convert structured data in one focused workspace."
+    codeLabel: "Example JSON payload"
+    cta: "Open JSON Workspace"
   featured:
     title: "Start with a task"
     intro: "Choose the job you need to finish. Each entry opens a focused tool workflow; category browsing and the full directory remain available below."

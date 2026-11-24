@@ -341,6 +341,8 @@ function onUpdateFavoriteTools() {
         工具总数从 store 取真实值，不写死在文案里。
       -->
       <header class="home-hero">
+        <div class="home-hero-layout">
+          <div class="home-hero-main">
         <h1 class="home-hero-title">
           {{ $t('home.hero.title') }}
         </h1>
@@ -391,7 +393,35 @@ function onUpdateFavoriteTools() {
         <RouterLink class="hero-cta"  :to="normalizePath('/tools')">
           {{ t('home.hero.cta') }} ↓
         </RouterLink>
-      </header>
+
+          </div>
+          <aside class="home-hero-preview" aria-labelledby="home-hero-preview-title">
+            <div class="hero-preview-topline">
+              <span class="hero-preview-status" aria-hidden="true" />
+              <span>{{ t('home.preview.eyebrow') }}</span>
+            </div>
+            <div class="hero-preview-copy">
+              <p class="hero-preview-label">{{ t('home.preview.label') }}</p>
+              <h2 id="home-hero-preview-title">{{ t('home.preview.title') }}</h2>
+              <p class="hero-preview-description">{{ t('home.preview.description') }}</p>
+            </div>
+            <div class="hero-preview-code" :aria-label="t('home.preview.codeLabel')">
+              <div class="hero-preview-codebar">
+                <span>sample.json</span>
+                <span>JSON</span>
+              </div>
+              <pre><code>{
+  "status": "ready",
+  "items": [3, 8, 13]
+}</code></pre>
+            </div>
+            <RouterLink class="hero-preview-link" :to="normalizePath('/json-workspace')">
+              {{ t('home.preview.cta') }}
+              <span aria-hidden="true">→</span>
+            </RouterLink>
+          </aside>
+        </div>
+            </header>
 
       <div v-if="isSearching" class="search-result-head">
         <span v-if="matchedTools.length > 0">
@@ -751,6 +781,146 @@ function onUpdateFavoriteTools() {
     font-size: 15px;
     line-height: 1.7;
     color: var(--dd-text-soft);
+  }
+}
+
+/* Hero layout pairs the primary search action with one concrete, working tool path. */
+.home-hero-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.12fr) minmax(280px, 0.88fr);
+  align-items: center;
+  gap: 28px;
+
+  @media (max-width: 960px) {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 20px;
+  }
+}
+
+.home-hero-main {
+  min-width: 0;
+}
+
+.home-hero-preview {
+  position: relative;
+  min-width: 0;
+  overflow: hidden;
+  padding: 20px;
+  border: 1px solid color-mix(in srgb, var(--dd-primary) 24%, var(--dd-border));
+  border-radius: 14px;
+  background:
+    radial-gradient(95% 110% at 100% 0%, color-mix(in srgb, var(--dd-primary) 14%, transparent), transparent 66%),
+    var(--dd-surface);
+  box-shadow: var(--dd-shadow);
+}
+
+.hero-preview-topline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--dd-text-muted);
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.hero-preview-status {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 7px;
+  border-radius: 50%;
+  background: var(--dd-success);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--dd-success) 14%, transparent);
+}
+
+.hero-preview-copy {
+  margin-top: 18px;
+
+  .hero-preview-label {
+    margin: 0 0 6px;
+    color: var(--dd-primary);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  h2 {
+    margin: 0;
+    color: var(--dd-text);
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1.25;
+    letter-spacing: -0.02em;
+  }
+
+  .hero-preview-description {
+    max-width: 38ch;
+    margin: 8px 0 0;
+    color: var(--dd-text-soft);
+    font-size: 13px;
+    line-height: 1.55;
+  }
+}
+
+.hero-preview-code {
+  overflow: hidden;
+  margin-top: 16px;
+  border: 1px solid var(--dd-border);
+  border-radius: 9px;
+  background: var(--dd-surface-2);
+
+  .hero-preview-codebar {
+    display: flex;
+    justify-content: space-between;
+    padding: 7px 11px;
+    border-bottom: 1px solid var(--dd-border);
+    color: var(--dd-text-muted);
+    font-size: 10px;
+    font-weight: 650;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+  }
+
+  pre {
+    overflow: hidden;
+    margin: 0;
+    padding: 12px 14px;
+    color: var(--dd-text);
+    font-family: var(--dd-font-mono);
+    font-size: 12px;
+    line-height: 1.65;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+}
+
+.hero-preview-link {
+  display: flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+  padding: 10px 13px;
+  border: 1px solid var(--dd-primary);
+  border-radius: 8px;
+  background: var(--dd-primary);
+  color: var(--dd-on-primary);
+  font-size: 13px;
+  font-weight: 650;
+  text-decoration: none;
+  transition: background-color 0.18s ease, transform 0.18s ease;
+
+  &:hover {
+    background: var(--dd-primary-hover);
+    transform: translateY(-1px);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--dd-primary);
+    outline-offset: 3px;
   }
 }
 
