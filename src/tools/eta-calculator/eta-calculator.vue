@@ -28,6 +28,11 @@ const elapsedHours = ref(2);
 const elapsedMinutes = ref(0);
 const elapsedSeconds = ref(0);
 const bufferPercent = ref(0);
+const additionalPauseMinutes = ref(0);
+const additionalPauseMs = computed(() => additionalPauseMinutes.value * 60_000);
+const projectedDurationMs = computed(() => (
+  estimate.value ? estimate.value.durationMs + additionalPauseMs.value : 0
+));
 const startedAt = ref(Date.now());
 
 const elapsedMs = computed(() => (
@@ -77,7 +82,7 @@ const endAt = computed(() => {
   }
   const anchor = calculationMode.value === 'observed' ? Date.now() : startedAt.value;
   return formatRelative(
-    addMilliseconds(anchor, estimate.value.durationMs),
+    addMilliseconds(anchor, projectedDurationMs.value),
     Date.now(),
     { locale: enGB },
   );
@@ -88,14 +93,14 @@ const displayedDuration = computed(() => {
   }
   return estimate.value.remainingUnits === 0
     ? '0 seconds'
-    : formatMsDuration(estimate.value.durationMs);
+    : formatMsDuration(projectedDurationMs.value);
 });
 const formattedEndAt = computed(() => {
   if (!estimate.value) {
     return '';
   }
   const anchor = calculationMode.value === 'observed' ? Date.now() : startedAt.value;
-  const finish = addMilliseconds(anchor, estimate.value.durationMs);
+  const finish = addMilliseconds(anchor, projectedDurationMs.value);
   const formatted = new Intl.DateTimeFormat(undefined, {
     dateStyle: 'medium',
     timeStyle: 'short',
@@ -259,6 +264,22 @@ const displayedObservedRate = computed(() => {
       </div>
     </template>
 
+    <n-form-item
+      :label="$t('tools.eta-calculator.additionalPauseMinutes')"
+      :show-feedback="false"
+    >
+      <n-input-number
+        v-model:value="additionalPauseMinutes"
+        :min="0"
+        :max="10080"
+        :step="5"
+        data-test-id="eta-pause-minutes"
+      />
+      <p ml-2 text-xs opacity-65>
+        {{ $t('tools.eta-calculator.additionalPauseHelp') }}
+      </p>
+    </n-form-item>
+
     <div
       role="progressbar"
       aria-label="Work completed"
@@ -306,6 +327,13 @@ const displayedObservedRate = computed(() => {
           data-test-id="eta-buffer-time"
         >
           {{ formatMsDuration(estimate.bufferDurationMs) }}
+        </n-statistic>
+        <n-statistic
+          v-if="estimate && additionalPauseMinutes > 0 && estimate.remainingUnits > 0"
+          :label="$t('tools.eta-calculator.additionalPauseResult')"
+          data-test-id="eta-pause-time"
+        >
+          {{ formatMsDuration(additionalPauseMs) }}
         </n-statistic>
         <n-statistic v-if="estimate && estimate.remainingUnits > 0" label="Estimated finish time" data-test-id="eta-finish">
           {{ endAt }}
