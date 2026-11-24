@@ -98,7 +98,7 @@ describe('slugify batch conversion', () => {
   });
 
   it('reserves the numeric suffix within a strict maximum length', () => {
-    const rows = runSlugifyBatch('Guide\\nGuide', {
+    const rows = runSlugifyBatch('Guide\nGuide', {
       ...defaults,
       unique: true,
       maxLength: 2,
