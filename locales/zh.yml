@@ -1063,6 +1063,12 @@ tools:
       loadSample: "载入示例"
       clear: "清空"
       supportsFormats: "支持重复响应头、curl -v 响应行，以及 curl -L 输出的重定向链。"
+      harImportLabel: "导入 HAR 或响应头文件"
+      harPrivacyNote: "HAR 或响应头文件可能包含 Cookie 或令牌。文件仅在本地读取和解析，不会上传。"
+      harTooLarge: "文件超过 10 MB，请导出较小的网络记录后重试。"
+      harNoResponses: "此 HAR 文件中没有找到包含有效状态码的 HTTP 响应。"
+      harInvalid: "无法读取此文件，请选择包含 log.entries 的有效 HAR 1.2 文件。"
+      harDropNote: "也可将 .har 或 .txt 响应头文件拖到此处，全部处理均在当前标签页本地完成。"
       scoreLabel: "响应头覆盖评分"
       statusLineMissing: "未包含 HTTP 状态行"
       responseBlocks: "检测到 {count} 个响应块；按最后一个响应块评分"
@@ -1122,6 +1128,7 @@ tools:
           nginx: "Nginx"
           apache: "Apache"
           caddy: "Caddy"
+          vercel: "Vercel（vercel.json）"
           cloudflare: "Cloudflare Pages"
 
   ascii-table:
