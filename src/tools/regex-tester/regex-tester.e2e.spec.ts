@@ -56,6 +56,27 @@ test.describe('Tool - Regex Tester isolated execution', () => {
     await expect(page.locator('tbody tr').first().locator('td').nth(1)).toContainText('192.168.1.42', { timeout: 5000 });
   });
 
+  test('reorders named test cases and shows full-match index and source range', async ({ page }) => {
+    await page.getByLabel('Regex to test:').fill('(?<word>foo)');
+
+    await page.getByRole('button', { name: 'Add test case' }).click();
+    await page.getByLabel('Test case name').first().locator('input').fill('First case');
+    await page.getByLabel('Test case input').first().locator('textarea').fill('no match');
+
+    await page.getByRole('button', { name: 'Add test case' }).click();
+    await page.getByLabel('Test case name').last().locator('input').fill('Second case');
+    await page.getByLabel('Test case input').last().locator('textarea').fill('xxxxfoo!');
+
+    await page.getByRole('button', { name: 'Move test case up' }).last().click();
+
+    const firstCase = page.locator('.regex-test-case').first();
+    await expect(firstCase).toContainText('Second case');
+    await expect(firstCase.locator('[role="status"]')).toHaveText('PASS');
+    await expect(firstCase).toContainText('index 4');
+    await expect(firstCase).toContainText('range [4, 7)');
+    await expect(firstCase).toContainText('Named group word');
+  });
+
   test('runs named positive and negative test cases with an aggregate summary', async ({ page }) => {
     await page.getByLabel('Regex to test:').fill('^ORD-[0-9]{4}$');
     await page.getByRole('button', { name: 'Add test case' }).click();
