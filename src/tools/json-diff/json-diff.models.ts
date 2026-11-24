@@ -20,7 +20,7 @@ export interface FlatDifference {
 
 /** Flatten nested structural changes into stable JSONPath-like locations. */
 export function flattenDifferences(difference: Difference, path = '$'): FlatDifference[] {
-  if ('children' in difference && difference.children.length > 0) {
+  if ('children' in difference && (difference.children.length > 0 || difference.status === 'children-updated')) {
     return difference.children.flatMap((child) => {
       const childPath = typeof child.key === 'number'
         ? `${path}[${child.key}]`
