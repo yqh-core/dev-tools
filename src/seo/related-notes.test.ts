@@ -15,7 +15,7 @@ const expected = [
     path: '/eta-calculator',
     slug: 'eta-calculator-guide',
     title: 'How to Calculate Task Completion Time from Processing Rate',
-    description: 'Estimate when a download, build or batch job will finish using total workload, processing rate and start time — with a worked example, formula and practical limits.',
+    description: 'Estimate time remaining for a download, build or batch job from total and completed work, processing rate and an optional buffer — with a worked example and practical limits.',
     tag: 'ETA',
   },
   {
