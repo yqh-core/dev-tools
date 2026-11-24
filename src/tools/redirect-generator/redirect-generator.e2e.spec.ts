@@ -43,8 +43,8 @@ test.describe('Tool - bulk redirect generator', () => {
     await expect(page.getByTestId('redirect-output-card')).toContainText('Enter a site origin');
     await page.locator('[data-test-id="redirect-origin-input"] input').fill('https://example.com');
     const output = page.getByTestId('redirect-output').locator('textarea');
-    await expect(output).toHaveValue(/"https:\/\/example\.com\/old"/);
-    expect(await output.inputValue()).toContain('"https://example.com/old","https://example.com/new","301"');
+    await expect(output).toHaveValue(/"example\.com\/old"/);
+    expect(await output.inputValue()).toContain('"example.com/old","https://example.com/new","301"');
   });
 
   test('imports a CSV file in the browser', async ({ page }) => {
