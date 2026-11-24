@@ -442,7 +442,7 @@ tools:
 
   numeronym-generator:
     title: 数字缩略词生成器 — i18n、a11y、k8s
-    description: 每行输入一个单词即可批量生成数字缩略词，也可查询 i18n、a11y、k8s 等已确立的常见缩写。免费，浏览器本地即时处理。
+    description: 粘贴单词、短语或列表，按 Unicode 字母计数生成数字缩略词；支持复合词、保留大小写、批量复制，并查询 i18n、a11y、k8s 等常见形式。
 
   case-converter:
     title: 大小写转换
