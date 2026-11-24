@@ -16,7 +16,8 @@ import { loadGuides } from '@/tools/guides';
 import type { ToolGuide } from '@/tools/guides';
 import { clusterOf, resolveRelated, resolveWorkflow } from '@/seo/clusters';
 import { guideArticleHref } from '@/seo/guide-links';
-import { normalizePath } from '@/seo/site';
+import { canonicalUrl, normalizePath, socialImageUrl } from '@/seo/site';
+import { buildAlternateLinks, ogLocaleTags } from '@/i18n/languages';
 
 const route = useRoute();
 
@@ -135,8 +136,16 @@ const toolH1 = computed<string>(() => toolTitle.value.split(' — ')[0]);
  * 与 SSG 骨架（`ToolSeoPage`）读同一批 `tools.<key>.title/description` 词条，
  * 所以两边逐字一致，切中文时标题也跟着变中文。
  */
+const pageCanonical = computed(() => canonicalUrl(toolPath.value));
+const pageSocialImage = computed(() => socialImageUrl(toolPath.value));
+const pageHeadTitle = computed(() => `${toolTitle.value} - ${t('site.name')}`);
+
 const head = computed<HeadObject>(() => ({
-  title: `${toolTitle.value} - ${t('site.name')}`,
+  title: pageHeadTitle.value,
+  link: [
+    { rel: 'canonical', href: pageCanonical.value },
+    ...buildAlternateLinks(pageCanonical.value),
+  ],
   meta: [
     {
       name: 'description',
@@ -146,6 +155,21 @@ const head = computed<HeadObject>(() => ({
       name: 'keywords',
       content: ((route.meta.keywords ?? []) as string[]).join(','),
     },
+    { property: 'og:url', content: pageCanonical.value },
+    { property: 'og:type', content: 'website' },
+    { property: 'og:title', content: pageHeadTitle.value },
+    { property: 'og:description', content: toolDescription.value },
+    { property: 'og:image', content: pageSocialImage.value },
+    { property: 'og:image:type', content: 'image/png' },
+    { property: 'og:image:width', content: '1200' },
+    { property: 'og:image:height', content: '630' },
+    { property: 'og:image:alt', content: toolTitle.value },
+    ...ogLocaleTags(),
+    { name: 'twitter:card', content: 'summary_large_image' },
+    { name: 'twitter:title', content: pageHeadTitle.value },
+    { name: 'twitter:description', content: toolDescription.value },
+    { name: 'twitter:image', content: pageSocialImage.value },
+    { name: 'twitter:image:alt', content: toolTitle.value },
   ],
 }));
 useHead(head);
