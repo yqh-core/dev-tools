@@ -30,9 +30,6 @@ const elapsedSeconds = ref(0);
 const bufferPercent = ref(0);
 const additionalPauseMinutes = ref(0);
 const additionalPauseMs = computed(() => additionalPauseMinutes.value * 60_000);
-const projectedDurationMs = computed(() => (
-  estimate.value ? estimate.value.durationMs + additionalPauseMs.value : 0
-));
 const startedAt = ref(Date.now());
 
 const elapsedMs = computed(() => (
@@ -71,6 +68,10 @@ const estimate = computed(() => {
     bufferPercent: bufferPercent.value,
   });
 });
+
+const projectedDurationMs = computed(() => (
+  estimate.value ? estimate.value.durationMs + additionalPauseMs.value : 0
+));
 
 const progressPercent = computed(() => Math.round(
   estimate.value?.completionPercent
