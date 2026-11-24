@@ -240,6 +240,7 @@ export const TOOL_CLUSTERS: ToolCluster[] = [
       '/url-parser',
       '/safelink-decoder',
       '/slugify-string',
+      '/redirect-generator',
       '/html-entities',
     ],
   },

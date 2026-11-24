@@ -2281,4 +2281,45 @@ export const GUIDES: Record<string, ToolGuide> = {
       { q: 'Does the page need a network connection?', a: 'Yes — events are fetched live when the page opens. If the request fails, the page tells you rather than showing stale data.' },
     ],
   },
+  '/redirect-generator': {
+    intro: 'Map old URLs to their replacement destinations and generate bulk redirect rules for Apache, Nginx or Cloudflare. The validator checks the mapping list before you export it.',
+    steps: [
+      'Paste a two-column CSV or tab-separated list with the old URL first and the destination second. You can also enter one old URL -> new URL pair per line, or import a CSV/TSV file.',
+      'Choose the response status. Use 301 or 308 for a permanent move, and 302 or 307 for a temporary redirect.',
+      'Choose Apache .htaccess, an Nginx server block or Cloudflare Bulk Redirect CSV. Cloudflare requires a site origin when your mappings use relative paths.',
+      'Review duplicate sources, invalid paths, self-redirects, loops and redirect-chain warnings. Fix rows marked as errors before exporting.',
+      'Copy the generated rules or download the file, then test the configuration on a staging host before deploying it.',
+    ],
+    notes: [
+      'The analyzer only checks mappings you provide. It does not send requests, verify that destinations return HTTP 200, or inspect redirects already configured on your server.',
+      'Chain detection is limited to paths in the current input. A destination that is redirected by a rule outside this list cannot be detected here.',
+      'Cloudflare Bulk Redirect CSV has no header row. Source URLs omit the scheme so a mapping can match both HTTP and HTTPS; target URLs are absolute. This generator sets include-subdomains, subpath-matching and preserve-path-suffix to FALSE. When Preserve query string is enabled, Cloudflare uses the incoming query and discards any fixed query string on the target.',
+      'Cloudflare bulk redirects are static source-to-destination mappings; they do not support regex replacement patterns. Use Apache or Nginx configuration when you need pattern-based rewrites.',
+      'Changing a permanent redirect after search engines and visitors have seen it can take time to be reflected. Keep mappings stable and avoid redirect chains where possible.',
+    ],
+    example: {
+      label: 'Load a redirect mapping sample',
+      text: 'Source URL,Target URL\n/old-product,https://example.com/products/new-product\n/legacy-guide,/guides/current-guide\n/sale,/offers',
+    },
+    about: 'A redirect map connects an old URL to the page that replaces it. It is commonly used during site redesigns, URL restructuring, content consolidation and domain migrations. This tool turns a batch of source and destination pairs into exact-path rules for Apache mod_alias, Nginx or a Cloudflare Bulk Redirect CSV. Before export it checks the submitted mappings for malformed URLs, duplicate sources, self-redirects, loops and avoidable chains. All parsing and generation run in the browser; your mapping list is not uploaded.',
+    articleOnlySections: [
+      {
+        title: 'Choose a redirect status that matches the move',
+        text: 'Use 301 or 308 when the destination is intended to replace the source permanently. Use 302 or 307 for a temporary change. The 307 and 308 status codes preserve the request method, while 301 and 302 may be handled differently by clients for non-GET requests. For ordinary page migrations, make the permanent or temporary nature of the move explicit and test the behavior with the requests your application actually receives.',
+      },
+      {
+        title: 'Avoid redirect chains during a site migration',
+        text: 'Point each old URL directly to its final destination rather than sending visitors through several intermediate URLs. Update internal links, canonical references and XML sitemaps to use the destination URL instead of relying on redirects forever. A generated mapping list can reveal chains and loops inside the rows you submit, but it cannot discover rules that live in a CDN, application router or another server configuration.',
+      },
+    ],
+    faqs: [
+      { q: 'What input formats does the redirect generator accept?', a: 'Paste comma-separated CSV, tab-separated pairs or one “old URL -> new URL” mapping per line. You can also import a CSV or TSV file. CSV headers such as Source URL and Target URL are recognized.' },
+      { q: 'Which status code should I choose: 301, 302, 307 or 308?', a: 'Choose 301 or 308 for a permanent move and 302 or 307 for a temporary one. The 307 and 308 codes preserve the request method; use them when that distinction matters to your application.' },
+      { q: 'Does the tool check whether the new URL exists?', a: 'No. It validates URL syntax and relationships within the mapping list, but it does not make network requests or confirm that a destination responds successfully. Check target URLs separately before deployment.' },
+      { q: 'How are redirect loops and chains detected?', a: 'The analyzer follows path-to-path mappings included in the current batch. It marks loops as errors and warns when one submitted destination continues through another submitted redirect. Rules outside the pasted list are not visible to the analyzer.' },
+      { q: 'What does the Cloudflare CSV contain?', a: 'It generates the seven Cloudflare Bulk Redirect columns: source URL, target URL, status code, preserve query string, include subdomains, subpath matching and preserve path suffix. The export has no header row. Cloudflare source URLs omit the scheme to match both HTTP and HTTPS; relative paths are expanded using your site origin.' },
+      { q: 'Can Cloudflare Bulk Redirects use regular expressions?', a: 'No. Cloudflare Bulk Redirects are static mappings. Use Apache or Nginx output for exact-path server rules, or use a separate rewrite mechanism when you need pattern-based replacements.' },
+      { q: 'Does generating a 301 redirect guarantee better rankings?', a: 'No. A 301 is a technical migration signal, not a ranking guarantee. Use it when a page has permanently moved, point to the most relevant final destination and update internal links and sitemaps.' },
+    ],
+  },
 };

@@ -1,6 +1,6 @@
 # DigDevBox — Developer Tools
 
-**DigDevBox** is a collection of 120 free online tools for developers and DevOps — JSON, JWT, regex, UUID, network and more. Tools run locally in your browser by default; a few require a network query.
+**DigDevBox** is a collection of 121 free online tools for developers and DevOps — JSON, JWT, regex, UUID, network and more. Tools run locally in your browser by default; a few require a network query.
 
 | | |
 | --- | --- |
@@ -21,12 +21,12 @@
 
 ## Why DigDevBox
 
-- **120 utilities across 10 categories** — see the full list below
+- **121 utilities across 10 categories** — see the full list below
 - **No signup, no installation** — open a page and use the tool
 - **Local-first** — most tools process data entirely in your browser; nothing is uploaded (a few tools, e.g. WHOIS lookup and HTTP status checker, query a backend API and are labeled as such)
 - **Open source** — GPLv3, self-hostable as a static site
 
-## All tools (120)
+## All tools (121)
 
 <!-- generated-tools-list:start -->
 ### Crypto
@@ -90,6 +90,7 @@
 - [JWT Decoder & Parser — Inspect Header, Payload and Expiration](https://digdevbox.com/jwt-parser) - Decode JWTs online — inspect header, payload, claims and expiration (exp/iat) as readable dates. Your token never leaves your browser. Free, no signup.
 - [Keycode info](https://digdevbox.com/keycode-info) - Find the javascript keycode, code, location and modifiers of any pressed key.
 - [URL Slug Generator — Create SEO-Friendly Slugs in Bulk](https://digdevbox.com/slugify-string) - Generate URL slugs from titles in bulk. Choose hyphens, underscores or dots, remove English stop words, set a word-safe length cap and preview full URLs.
+- [Bulk 301 Redirect Generator — Apache, Nginx & Cloudflare](https://digdevbox.com/redirect-generator) - Create bulk 301, 302, 307 or 308 redirects for Apache, Nginx and Cloudflare. Import CSV, detect duplicates, loops and redirect chains. Runs locally.
 - [HTML WYSIWYG Editor — Format Text & Copy HTML](https://digdevbox.com/html-wysiwyg-editor) - Format text visually with headings, paragraphs, lists, quotes, inline formatting and code blocks, then copy the generated HTML. Tables, images, links and direct source editing are not supported.
 - [User Agent Parser — Browser, OS & Device Detection](https://digdevbox.com/user-agent-parser) - Parse a user-agent string to identify its browser, rendering engine, operating system, CPU and device type. Use the results for debugging and analytics, not authentication.
 - [HTTP status codes](https://digdevbox.com/http-status-codes) - The list of all HTTP status codes, their name, and their meaning.

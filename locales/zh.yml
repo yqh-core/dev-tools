@@ -414,6 +414,60 @@ tools:
       noCharacters: "转换后没有剩余可用于 URL 的字符。"
       copied: "已复制全部 Slug"
 
+  redirect-generator:
+    title: 批量 301 重定向生成器 — Apache、Nginx、Cloudflare
+    description: 批量生成 Apache、Nginx 与 Cloudflare 的 301/302/307/308 重定向规则。支持导入 CSV，并检查重复来源、自循环和重定向链，全程本地处理。
+    cardTitle: 批量 URL 重定向映射
+    intro: 粘贴或导入旧 URL 与新 URL 对照表，检查映射问题，然后导出服务器配置或 Cloudflare Bulk Redirects 文件。
+    inputPlaceholder: "Source URL,Target URL\n/old-page,https://example.com/new-page\n/legacy,/current"
+    loadSample: 加载示例
+    clear: 清空
+    importCsv: 导入 CSV / TSV
+    outputFormat: 输出格式
+    statusCode: 重定向状态码
+    siteOrigin: Cloudflare 相对 URL 的站点源地址
+    preserveQueryString: 保留请求中的查询参数
+    cloudflareNote: Cloudflare CSV 不包含表头。来源 URL 会省略协议以同时匹配 HTTP 和 HTTPS；相对路径会使用站点源地址补全。
+    summary:
+      total: 映射数量
+      ready: 可导出
+      errors: 错误
+      warnings: 警告
+    line: 第 {line} 行
+    invalid: 需要修正
+    review: 建议检查
+    outputTitle: 生成的重定向规则
+    copy: 复制规则
+    download: 下载文件
+    copied: 已复制重定向规则
+    emptyState: 粘贴两列 CSV、制表符分隔的清单，或每行一条「旧 URL -> 新 URL」映射即可开始。
+    safetyNote: 发布前请先在预发布环境检查生成的规则。尽量保持旧 URL 稳定，并更新站内链接，让它们直接指向最终目标地址。
+    formats:
+      apache: Apache .htaccess（mod_alias）
+      nginx: Nginx server block
+      cloudflare: Cloudflare Bulk Redirect CSV
+    status:
+      permanent: 永久
+      temporary: 临时
+      temporaryMethod: 临时（保留请求方法）
+      permanentMethod: 永久（保留请求方法）
+    errors:
+      invalidInput: 无法分析当前输入。
+      originRequired: 生成 Cloudflare CSV 前，请填写站点源地址。
+      outputFailed: 无法生成该格式的结果。
+      fileRead: 无法读取所选文件。
+      inputTooLarge: 输入超过 200,000 个字符的安全限制。
+      tooManyRows: 最多输入 1,000 条重定向映射。
+      parseRow: 无法解析此行。请使用包含来源和目标的两列映射。
+      invalidSource: 请输入有效的 HTTP/HTTPS 来源 URL，或不带查询参数的具体路径。
+      invalidTarget: 请输入有效的 HTTP/HTTPS 目标 URL 或路径。
+      duplicateSource: 此来源 URL 已被另一条映射使用。
+      selfRedirect: 来源和目标指向同一主机上的相同路径。
+      redirectChain: 此目标在当前批次中还会经过另一条重定向。请尽量直接指向最终地址。
+      redirectLoop: 此映射属于重定向循环，导出前请先解除循环。
+      cloudflareSourceLimits: Cloudflare 来源 URL 不支持端口或用户凭据，请在导出前移除。
+      cloudflareQueryConflict: 启用「保留查询参数」后，目标 URL 自带的查询参数会被丢弃。请移除目标查询参数或关闭此选项。
+
   encryption:
     title: 加密/解密文本
     description: 使用加密算法（如AES、TripleDES、Rabbit或RC4）加密和解密文本明文。

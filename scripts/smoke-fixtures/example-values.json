@@ -1,6 +1,6 @@
 {
   "generatedFrom": "src/tools/guides.en.ts",
-  "count": 90,
+  "count": 91,
   "values": {
     "/ascii-text-drawer": "DigDevBox",
     "/base-converter": "255",
@@ -91,6 +91,7 @@
     "/http-headers": "HTTP/2 200 OK\nstrict-transport-security: max-age=31536000\nx-content-type-options: nosniff\nset-cookie: session=abc; Secure; HttpOnly; SameSite=Lax",
     "/linux-commands": "grep",
     "/whois-lookup": "example.com",
-    "/http-status-checker": "example.com"
+    "/http-status-checker": "example.com",
+    "/redirect-generator": "Source URL,Target URL\n/old-product,https://example.com/products/new-product\n/legacy-guide,/guides/current-guide\n/sale,/offers"
   }
 }
