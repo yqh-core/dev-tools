@@ -46,6 +46,7 @@ function generate(): void {
 
 function setMode(nextMode: GenerationMode): void {
   mode.value = nextMode;
+  results.value = [];
   error.value = '';
 }
 
