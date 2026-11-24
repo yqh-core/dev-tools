@@ -11,7 +11,7 @@ test.describe('Tool - Numeronym generator', () => {
 
   test('a numeronym is generated when a word is entered', async ({ page }) => {
     await page.getByTestId('word-input').locator('textarea').fill('internationalization');
-    await expect(page.getByTestId('numeronym').inputValue()).resolves.toEqual('i18n');
+    expect(await page.getByTestId('numeronym').inputValue()).toEqual('i18n');
     await expect(page.getByTestId('single-letter-count')).toContainText('20 letters counted');
   });
 
@@ -38,7 +38,7 @@ test.describe('Tool - Numeronym generator', () => {
 
   test('when a word has 3 letters or less, the numeronym is the word itself', async ({ page }) => {
     await page.getByTestId('word-input').locator('textarea').fill('abc');
-    await expect(page.getByTestId('numeronym').inputValue()).resolves.toEqual('abc');
+    expect(await page.getByTestId('numeronym').inputValue()).toEqual('abc');
   });
 
   test('shows a useful reference table when empty', async ({ page }) => {
