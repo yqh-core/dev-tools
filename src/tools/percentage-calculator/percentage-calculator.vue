@@ -7,9 +7,9 @@ import type {
 } from './percentage-calculator.batch';
 import {
   MAX_SEQUENTIAL_PERCENTAGE_STEPS,
-  calculateSequentialPercentage,
   type SequentialPercentageError,
   type SequentialPercentageStepInput,
+  calculateSequentialPercentage,
 } from './percentage-calculator.sequential';
 import {
   percentageBatchToCsv,
