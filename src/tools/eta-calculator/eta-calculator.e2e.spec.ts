@@ -172,7 +172,7 @@ test('ETA Calculator compares the current pace with the rate needed for a deadli
   const requiredPace = page.getByTestId('eta-required-pace');
   const readRequiredPace = async () => {
     const text = (await requiredPace.textContent()) ?? '';
-    const value = Number(text.match(/([\\d,.]+)\\s+units\\/hour/)?.[1]?.replaceAll(',', ''));
+    const value = Number(text.match(/([\d,.]+)\s+units\/hour/)?.[1]?.replaceAll(',', ''));
     expect(Number.isFinite(value)).toBe(true);
     return value;
   };
