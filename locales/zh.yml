@@ -803,7 +803,7 @@ tools:
 
   regex-tester:
     title: 正则表达式测试器 — 在线测试正则匹配
-    description: 在线测试正则表达式 — JavaScript 语法，实时高亮匹配结果，可切换标志位与捕获组。
+    description: 在线测试 JavaScript 正则表达式，实时查看匹配、捕获组和替换预览，并用命名正向/反向测试用例查看逐项通过或失败结果。
 
   safelink-decoder:
     title: Outlook 安全链接解码器
