@@ -1,4 +1,4 @@
-import { evaluateRegex, evaluateRegexTestCases, type RegexTestCase } from './regex-tester.service';
+import { type RegexTestCase, evaluateRegex, evaluateRegexTestCases } from './regex-tester.service';
 
 interface RegexWorkerRequest {
   id: number
