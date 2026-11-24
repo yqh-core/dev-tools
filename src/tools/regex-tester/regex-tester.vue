@@ -3,12 +3,12 @@ import { render } from '@regexper/render';
 import type { ShadowRootExpose } from 'vue-shadow-dom';
 import {
   REGEX_PRESETS,
-  explainRegexFlags,
-  explainRegexPattern,
   type RegexEvaluation,
   type RegexMatch,
   type RegexTestCase,
   type RegexTestCaseResult,
+  explainRegexFlags,
+  explainRegexPattern,
 } from './regex-tester.service';
 import { useValidation } from '@/composable/validation';
 import { useQueryParamOrStorage } from '@/composable/queryParams';
