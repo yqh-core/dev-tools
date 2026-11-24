@@ -2,7 +2,7 @@ import JSON5 from 'json5';
 import { diff } from './json-diff.models';
 import type { JsonDiffWorkerRequest, JsonDiffWorkerResponse } from './json-diff.worker.types';
 
-const workerScope = self as unknown as {
+const workerScope = globalThis as unknown as {
   addEventListener: (type: 'message', listener: (event: MessageEvent<JsonDiffWorkerRequest>) => void) => void
   postMessage: (message: JsonDiffWorkerResponse) => void
 };
