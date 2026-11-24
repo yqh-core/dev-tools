@@ -465,6 +465,8 @@ tools:
       selfRedirect: 来源和目标指向同一主机上的相同路径。
       redirectChain: 此目标在当前批次中还会经过另一条重定向。请尽量直接指向最终地址。
       redirectLoop: 此映射属于重定向循环，导出前请先解除循环。
+      cloudflareSourceLimits: Cloudflare 来源 URL 不支持端口或用户凭据，请在导出前移除。
+      cloudflareQueryConflict: 启用「保留查询参数」后，目标 URL 自带的查询参数会被丢弃。请移除目标查询参数或关闭此选项。
 
   encryption:
     title: 加密/解密文本
