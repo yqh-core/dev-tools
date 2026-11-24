@@ -1499,15 +1499,37 @@ export const GUIDES: Record<string, ToolGuide> = {
   },
 
   '/safelink-decoder': {
-    intro: '还原 Outlook 邮件里被 SafeLink 包装过的真实链接。',
-    steps: ['复制邮件里那条超长的 SafeLink 地址', '粘贴到输入框', '点解码得到原始 URL'],
-    notes: ['解码只是还原地址，点开前仍要自己判断是否可信'],
-    example: { label: '填入示例 SafeLink 链接', text: 'https://nam.safelinks.protection.outlook.com/?url=https%3A%2F%2Fexample.com%2Fdocs' },
-    about: '本工具从 Outlook Safe Links URL 中提取嵌入的目标地址，但不会打开目标网站。它只接受 Outlook Safe Links 域名下的 HTTPS 包装链接，最多解开五层嵌套，并验证最终地址使用 HTTP 或 HTTPS。它不会扫描或评估目标网站，也不会替代或绕过 Microsoft 点击时的安全检查；请遵循组织批准的 Safe Links 流程。',
+    intro: '每行粘贴一个 Outlook Safe Links HTTPS 包装链接，即可一次批量解码多条邮件链接。工具忽略空行、逐行独立报告成功或失败，并支持统一复制成功结果。',
+    steps: [
+      '从邮件中复制完整的 HTTPS Safe Links 包装地址，每行粘贴一个；多封邮件中的链接可以放在同一批次。',
+      '点击“开始批量解码”。空行会跳过，每个非空行都会独立校验和解析；某一行格式错误不会影响其他行。',
+      '检查每条成功结果显示的目标协议、主机和 Safe Links 包装层数。失败结果保留原始行号，并单独显示错误原因。',
+      '点击“复制成功结果”，只复制已解码的目标地址，每行一个。结果仅以纯文本显示，不会自动打开。',
+    ],
+    notes: [
+      '只接受区域型 Outlook Safe Links 主机上的 HTTPS 包装链接，最多解开五层嵌套包装。',
+      '解码成功只代表提取出了 URL，不代表目标可信。不要仅因为解析成功就访问该地址。',
+    ],
+    example: {
+      label: '填入两条 Safe Links 示例进行批量解码',
+      text: 'https://nam01.safelinks.protection.outlook.com/?url=https%3A%2F%2Fexample.com%2Fdocs\nhttps://eur01.safelinks.protection.outlook.com/?url=https%3A%2F%2Fexample.org%2Fguide',
+    },
+    about: 'Microsoft Safe Links 会重写受保护邮件和协作消息中的 URL，以便在用户点击链接时应用 Microsoft 配置的安全检查。本工具只在浏览器本地读取包装链接文本，提取其中的目标地址，最多解开五层 Outlook Safe Links 嵌套，并显示最终 URL 的协议、主机和包装层数。批量处理时每行独立解析、忽略空行、保留原始行号，并可统一复制成功结果。本工具不会请求或打开包装链接及目标地址，不会扫描或评估目标网站，也不会替代或绕过 Microsoft 点击时的安全保护。访问任何解码后的地址前，仍应遵循所在组织的安全流程。',
+    articleOnlySections: [
+      {
+        title: '如何理解目标地址详情',
+        text: '协议字段说明提取出的地址使用 HTTP 还是 HTTPS。主机字段显示 URL 解析得到的目标主机；如果地址使用非默认端口，端口也会包含在内。包装层数表示移除了多少层 Outlook Safe Links 包装：1 层表示只有一个包装，数字更大则说明链接曾被多次包装。这些信息仅帮助检查 URL 结构，不是网站信誉、恶意软件或钓鱼检测。',
+      },
+      {
+        title: '为什么解码结果不等于安全结论',
+        text: '本工具刻意只做到 URL 解析，不会进行 DNS 查询、连接目标网站、跟随重定向、下载页面内容或查询信誉服务。这样可以让批量处理留在本地，也避免意外打开危险地址；但这同时意味着输出无法判断网站是否安全。请继续保留 Microsoft Safe Links 保护，并遵循所在组织批准的验证和报告流程。',
+      },
+    ],
     faqs: [
-      { q: 'SafeLink 是什么，为什么链接长那样？', a: '它是微软的重写器：邮件里的链接被替换成经过微软服务器扫描再转发的 URL。原始地址以查询参数的形式藏在包装层里。' },
-      { q: '为什么要先解码再决定如何处理？', a: '先检查真实目标域名和路径，再决定下一步。不要因为解码成功就直接打开链接；请遵循组织的 Safe Links 流程，并报告可疑邮件。' },
-      { q: '解码会绕过或替代 Microsoft Safe Links 保护吗？', a: '不会。本工具只解析 URL 文本，不会打开目标网站，也不会扫描目标网站，更不会替代或绕过 Microsoft 点击时的安全检查。请继续使用组织批准的 Safe Links 流程。' },
+      { q: '可以一次解码多条 Outlook Safe Links 链接吗？', a: '可以。每行粘贴一个 HTTPS 包装地址，然后点击开始批量解码。空行会忽略，每一行独立成功或失败，还可以一次复制所有成功提取的目标地址。' },
+      { q: '协议、主机和包装层数分别是什么意思？', a: '协议是 HTTP 或 HTTPS；主机是提取出的目标主机（含非默认端口）；包装层数表示移除了多少层 Outlook Safe Links 包装。这些是 URL 结构信息，不是安全评级。' },
+      { q: '最多支持多少层嵌套 Safe Links？', a: '最多解开五层 Outlook Safe Links 包装。超过层数限制会明确报错，不会静默截断结果。' },
+      { q: '解码会检查目标地址是否安全可靠吗？', a: '不会。本工具只在本地解析 URL 文本，不会打开或扫描目标地址，也不会替代或绕过 Microsoft Safe Links 点击时的安全保护及组织安全流程。' },
     ],
     relatedNotes: [
       {
