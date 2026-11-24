@@ -90,8 +90,8 @@ describe('safelink-decoder', () => {
 describe('inspectSafeLinksURL', () => {
   it('returns destination scheme, host and nested wrapper depth without changing the decoded URL', () => {
     const destination = 'https://example.org:8443/guide';
-    const inner = 'https://eur01.safelinks.protection.outlook.com/?url=' + encodeURIComponent(destination);
-    const outer = 'https://nam01.safelinks.protection.outlook.com/?url=' + encodeURIComponent(inner);
+    const inner = `https://eur01.safelinks.protection.outlook.com/?url=${encodeURIComponent(destination)}`;
+    const outer = `https://nam01.safelinks.protection.outlook.com/?url=${encodeURIComponent(inner)}`;
 
     expect(inspectSafeLinksURL(outer)).toEqual({
       url: destination,
