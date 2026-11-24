@@ -42,11 +42,11 @@ describe('email list normalization', () => {
 
     expect(rows.map(row => row.normalized)).toEqual([
       'User@example.com',
-      'Jane Doe <jane@example.com>',
+      'jane@example.com',
     ]);
     expect(rows[1]).toMatchObject({
-      status: 'invalid',
-      normalized: '',
+      address: 'jane@example.com',
+      status: 'normalized',
     });
   });
 
