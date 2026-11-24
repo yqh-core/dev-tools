@@ -395,7 +395,7 @@ tools:
 
   eta-calculator:
     title: ETA Calculator — Task Completion Time
-    description: Estimate when a download, build or batch job will finish from total work and current processing rate. Set the start time and rate to see duration and finish time.
+    description: Estimate time remaining for a download, build or batch job. Enter total and completed work, processing rate and a buffer to calculate duration and finish time.
 
   roman-numeral-converter:
     title: Roman numeral converter

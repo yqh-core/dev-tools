@@ -432,21 +432,22 @@ export const GUIDES: Record<string, ToolGuide> = {
   },
 
   '/eta-calculator': {
-    intro: 'Estimates when a download, build, batch job or other process will finish from its total workload, start time and observed processing rate.',
-    steps: ['Enter the total amount to process', 'Set the time processing started', 'Enter how many units are processed in a known interval', 'Read the estimated total duration and finish time'],
+    intro: 'Estimates how long a download, build, batch job or other process has left using total work, completed work, observed throughput and an optional time buffer.',
+    steps: ['Enter the total amount and how much has already completed', 'Set when the remaining work should be estimated from', 'Enter the measured number of units completed per interval', 'Add an optional buffer for expected pauses or rate variation', 'Read the remaining duration and projected finish time'],
     example: { label: 'Example total workload', text: '500' },
-    about: 'This is a throughput-based ETA calculator, not a route or travel-time planner. Enter the total amount of work, when processing started, and how many units are completed in a measured time interval. The calculator converts that rate into an estimated total duration and adds it to the start time to project the finish. For example, if a batch processes 5 records in 3 minutes and contains 500 records, the estimate is 5 hours from the start. Use a consistent unit such as files, records, pages or requests, and measure a representative interval. If the processing rate changes, update the observed rate; the estimate changes with it.',
+    about: 'This is a throughput-based ETA calculator for task completion, not a route or travel-time planner. Enter the total amount of work, the completed amount, a representative processing rate and the time from which the remaining work is expected to run. The calculator subtracts completed work from the total, divides the remainder by the rate and optionally adds a percentage buffer. For example, a 500-record batch with 200 complete has 300 remaining; at 5 records every 3 minutes, that is 3 hours before a buffer. Use the same unit for total, completed and rate values, such as files, records, pages or requests. The estimate assumes a steady rate and does not infer network conditions or changing workload complexity.',
     faqs: [
-      { q: 'What does ETA mean for a download or batch job?', a: 'ETA means estimated time of arrival or completion. For a process, it is the projected finish time calculated from the total workload, start time and observed processing rate.' },
-      { q: 'How do I estimate completion time from throughput?', a: 'Divide the total workload by the processing rate. This calculator uses the amount completed per selected time interval to calculate the duration, then adds that duration to the start time.' },
-      { q: 'Which units should I use?', a: 'Use the same unit for the total workload and the observed rate: for example, records and records per minute, files and files per hour, or pages and pages per second.' },
-      { q: 'What if the processing rate changes?', a: 'The result is an estimate based on the rate you enter. If the workload speeds up or slows down, measure a new representative interval and update the rate to refresh the projected finish time.' },
+      { q: 'What does ETA mean for a download or batch job?', a: 'ETA means estimated time of arrival or completion. For a process, it is the projected finish time for the remaining work, based on completed progress, a measured processing rate and the selected start time.' },
+      { q: 'How do I estimate time remaining from completed work?', a: 'Subtract completed units from the total, then divide the remaining units by the amount processed per interval. The calculator multiplies by the interval length and adds the result to the selected remaining-work start time.' },
+      { q: 'What does the time buffer do?', a: 'The buffer adds a percentage to the estimated remaining duration. Use it for expected pauses or uncertainty in the observed rate; it is a planning allowance, not a prediction that the workload will change by exactly that amount.' },
+      { q: 'Which units should I use?', a: 'Use the same unit for total work, completed work and observed rate: for example, records and records per minute, files and files per hour, or pages and pages per second.' },
+      { q: 'What if the processing rate changes?', a: 'The result is based on the rate you enter. Measure a new representative interval and update the rate when throughput changes; the projected finish time will recalculate.' },
     ],
     relatedNotes: [
       {
         slug: 'eta-calculator-guide',
         title: 'How to Calculate Task Completion Time from Processing Rate',
-        description: 'Estimate when a download, build or batch job will finish using total workload, processing rate and start time — with a worked example, formula and practical limits.',
+        description: 'Estimate time remaining for a download, build or batch job from total and completed work, processing rate and an optional buffer — with a worked example and practical limits.',
         url: 'https://notes.digdevbox.com/posts/eta-calculator-guide',
         tag: 'ETA',
       },
@@ -457,8 +458,12 @@ export const GUIDES: Record<string, ToolGuide> = {
         text: 'An ETA is only as useful as the rate sample behind it. Measure completed work over a representative interval after startup, rather than timing the first few seconds while caches, warm-up, or connection setup distort throughput. Keep numerator and denominator consistent: 240 records in 8 minutes is 30 records per minute, not 30 percent complete. For a queue, count completed items rather than items merely picked up by a worker; otherwise the estimate can appear faster while unfinished work is still waiting. For parallel workers, measure aggregate completed throughput across the whole job instead of multiplying a per-worker rate unless every worker is continuously busy.',
       },
       {
-        title: 'Know what a constant-rate ETA leaves out',
-        text: 'When some work has already finished, estimate the remaining workload and set the start time to the point from which that remaining work is expected to run; using the original total and original start time answers a different question. A rate-based calculation does not model pauses, retries, rate limits, changing file sizes, or dependencies that make later items slower. Recheck the observed rate after a meaningful interval and compare the new projection with the first one; a widening gap is evidence that the constant-rate assumption is failing.',
+        title: 'Use completed progress to estimate what is left',
+        text: 'Enter the full workload and the number of units already completed; the calculator subtracts the latter before applying the observed rate. If 200 of 500 records are finished, only 300 remain. This is different from re-running the original total-work estimate, which would count finished work a second time. The start-time field describes when the remaining work is expected to run from, so it can be set to now or to a planned future start.',
+      },
+      {
+        title: 'Add a buffer without hiding the constant-rate assumption',
+        text: 'A percentage buffer extends the remaining duration to allow for expected pauses or uncertainty. It does not model retries, rate limits, variable file sizes, dependencies or traffic conditions. Re-measure throughput after a meaningful interval and compare the new projection with the previous one; a widening gap indicates that the constant-rate assumption is no longer representative. Use a buffer as a transparent planning allowance, not as a replacement for updating the rate.',
       },
     ],
   },
