@@ -604,7 +604,7 @@ tools:
     batchCopyNote: Unsupported items and short words remain visible in the table but are omitted from Copy All.
     breakdownHeader: Rule breakdown
     middleLetters: middle letters
-    shortWordBreakdown: No middle letters to replace.
+    shortWordBreakdown: Short words stay unchanged because the abbreviation would not be shorter.
 
   case-converter:
     title: Text Case Converter — camelCase, snake_case & More
