@@ -184,9 +184,20 @@ const changeCounts = computed(() => differenceList.value.reduce((counts, item) =
 function focusDifference(path: string) {
   focusedPath.value = path;
   nextTick(() => {
-    const target = [...document.querySelectorAll<HTMLElement>('[data-json-path]')]
-      .find(element => element.dataset.jsonPath === path);
-    target?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const nodes = [...document.querySelectorAll<HTMLElement>('.diffs-viewer [data-json-path]')];
+    nodes.forEach((element) => {
+      element.classList.remove('is-focused');
+    });
+
+    const target = nodes.find(element => element.dataset.jsonPath === path);
+    if (!target) {
+      return;
+    }
+
+    // Apply the focus state after Vue has rendered the selected-path update.
+    // This also keeps the visible highlight in sync with the exact DOM node we scroll to.
+    target.classList.add('is-focused');
+    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
   });
 }
 
