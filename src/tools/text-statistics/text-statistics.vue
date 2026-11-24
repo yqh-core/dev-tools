@@ -1,10 +1,14 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import { getTextStatistics } from './text-statistics.service';
+import { useI18n } from 'vue-i18n';
+import { getTextStatistics, getTopTermFrequency } from './text-statistics.service';
 
+const { t } = useI18n();
 const text = ref('');
 const readingWpm = ref(200);
+const speakingWpm = ref(150);
 const analysisLocale = ref('en');
+const excludeEnglishStopWords = ref(false);
 const languageOptions = [
   { label: 'English', value: 'en' },
   { label: 'Chinese', value: 'zh' },
@@ -15,10 +19,18 @@ const languageOptions = [
   { label: 'Thai', value: 'th' },
 ];
 const stats = computed(() => getTextStatistics(text.value, analysisLocale.value));
+const termAnalysis = computed(() => getTopTermFrequency(text.value, analysisLocale.value, {
+  excludeEnglishStopWords: excludeEnglishStopWords.value,
+  limit: 10,
+}));
 const effectiveReadingWpm = computed(() => Math.min(1000, Math.max(1, readingWpm.value || 200)));
+const effectiveSpeakingWpm = computed(() => Math.min(1000, Math.max(1, speakingWpm.value || 150)));
 const readingMinutes = computed(() => stats.value.words === 0
   ? 0
   : Math.ceil(stats.value.words / effectiveReadingWpm.value));
+const speakingMinutes = computed(() => stats.value.words === 0
+  ? 0
+  : Math.ceil(stats.value.words / effectiveSpeakingWpm.value));
 const summary = computed(() => [
   `Words: ${stats.value.words}`,
   `Unique words: ${stats.value.uniqueWords}`,
@@ -32,6 +44,9 @@ const summary = computed(() => [
   `Sentences: ${stats.value.sentences}`,
   `Longest line: ${stats.value.longestLine} visible characters`,
   `Estimated reading time: ${readingMinutes.value} min at ${effectiveReadingWpm.value} words/min`,
+  `Estimated speaking time: ${speakingMinutes.value} min at ${effectiveSpeakingWpm.value} words/min`,
+  `Top terms: ${termAnalysis.value.terms.map(term => `${term.term} (${term.count}, ${(term.share * 100).toFixed(1)}%)`).join(', ') || 'None'}`,
+  `Analyzed term tokens: ${termAnalysis.value.totalTokens}`,
 ].join('\n'));
 </script>
 
@@ -65,19 +80,64 @@ const summary = computed(() => [
       </div>
     </c-card>
 
-    <c-card title="Reading time">
-      <div flex flex-wrap items-center gap-3>
+    <c-card title="Reading & speaking time" data-test-id="time-estimates">
+      <div grid grid-cols-1 gap-3 sm:grid-cols-2>
         <div data-test-id="reading-time">
           <n-statistic label="Estimated reading time" :value="readingMinutes === 0 ? '0 min' : `${readingMinutes} min`" />
+          <label mt-2 flex flex-wrap items-center gap-2 text-sm>
+            Reading speed
+            <input v-model.number="readingWpm" type="number" min="1" max="1000" step="10" aria-label="Reading speed in words per minute" w-24 border rounded px-2 py-1>
+            <span>words/min</span>
+          </label>
         </div>
-        <label flex items-center gap-2 text-sm>
-          Reading speed
-          <input v-model.number="readingWpm" type="number" min="1" max="1000" step="10" aria-label="Reading speed in words per minute" w-24 border rounded px-2 py-1>
-          <span>words/min</span>
-        </label>
+        <div data-test-id="speaking-time">
+          <n-statistic :label="t('tools.text-statistics.speakingTime')" :value="speakingMinutes === 0 ? '0 min' : `${speakingMinutes} min`" />
+          <label mt-2 flex flex-wrap items-center gap-2 text-sm>
+            {{ t('tools.text-statistics.speakingSpeed') }}
+            <input v-model.number="speakingWpm" type="number" min="1" max="1000" step="10" :aria-label="t('tools.text-statistics.speakingSpeedAria')" w-24 border rounded px-2 py-1>
+            <span>{{ t('tools.text-statistics.wordsPerMinute') }}</span>
+          </label>
+        </div>
       </div>
       <p mt-2 text-xs opacity-70>
-        Estimate = word count divided by your selected reading speed (default 200 words/min), rounded up to a whole minute. Actual reading speed varies.
+        Estimate = word count divided by the selected words-per-minute rate, rounded up to a whole minute. Actual reading and speaking speed varies.
+      </p>
+    </c-card>
+
+    <c-card :title="t('tools.text-statistics.topTerms')" data-test-id="top-terms">
+      <div v-if="analysisLocale === 'en'" mb-3>
+        <label flex items-start gap-2 text-sm>
+          <input v-model="excludeEnglishStopWords" type="checkbox" data-test-id="exclude-stop-words" mt-1>
+          <span>
+            {{ t('tools.text-statistics.excludeEnglishStopWords') }}
+            <span block text-xs opacity-70>{{ t('tools.text-statistics.stopWordsDescription') }}</span>
+          </span>
+        </label>
+      </div>
+      <p mb-2 text-xs opacity-70 data-test-id="term-denominator">
+        {{ t('tools.text-statistics.analyzedTokens', { count: termAnalysis.totalTokens }) }}
+      </p>
+      <table v-if="termAnalysis.terms.length" w-full border-collapse text-sm>
+        <thead>
+          <tr border-b text-left>
+            <th py-2 pr-2>{{ t('tools.text-statistics.termColumn') }}</th>
+            <th py-2 pr-2 text-right>{{ t('tools.text-statistics.countColumn') }}</th>
+            <th py-2 text-right>{{ t('tools.text-statistics.shareColumn') }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="term in termAnalysis.terms" :key="term.term" border-b border-gray-200 dark:border-gray-700>
+            <td py-2 pr-2 break-all>{{ term.term }}</td>
+            <td py-2 pr-2 text-right tabular-nums>{{ term.count }}</td>
+            <td py-2 text-right tabular-nums>{{ (term.share * 100).toFixed(1) }}%</td>
+          </tr>
+        </tbody>
+      </table>
+      <p v-else text-sm opacity-70 data-test-id="no-terms">
+        {{ t('tools.text-statistics.noTerms') }}
+      </p>
+      <p mt-3 text-xs opacity-70>
+        {{ t('tools.text-statistics.termFrequencyNote') }}
       </p>
     </c-card>
 
@@ -88,6 +148,8 @@ const summary = computed(() => [
         <li><strong>Words and sentences</strong> use browser locale-aware segmentation when available. Older browsers use an approximate Unicode-aware fallback, which may not split Chinese, Japanese or Thai into dictionary words.</li>
         <li><strong>Lines</strong> split on LF, CRLF or CR. Paragraphs are blocks separated by one or more blank lines. Longest line uses visible-character counts.</li>
         <li>Different platforms may apply their own character, byte or weighted-length rules. Use the receiving platform's documented limit when precision matters.</li>
+        <li>Term shares use only the tokens included in the table denominator; the English stop-word option changes that denominator without changing the headline word count.</li>
+        <li>Speaking time is an estimate based on the selected speaking rate, not a measurement of an individual speaker.</li>
       </ul>
     </c-card>
   </div>
