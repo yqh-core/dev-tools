@@ -143,7 +143,7 @@
 - [IP Range to CIDR Converter — Convert IPv4 Ranges Online](https://digdevbox.com/ipv4-range-expander) - Convert a start and end IPv4 address into the smallest set of CIDR blocks that covers the full range. Useful for firewall rules, cloud security groups and routing tables.
 - [MAC address lookup](https://digdevbox.com/mac-address-lookup) - Find the vendor and manufacturer of a device by its MAC address.
 - [MAC address generator](https://digdevbox.com/mac-address-generator) - Enter the quantity and prefix. MAC addresses will be generated in your chosen case (uppercase or lowercase)
-- [IPv6 ULA generator](https://digdevbox.com/ipv6-ula-generator) - Generate your own local, non-routable IP addresses for your network according to RFC4193.
+- [IPv6 ULA Generator — RFC 4193 Private Prefixes](https://digdevbox.com/ipv6-ula-generator) - Generate secure random fd00::/8 /48 prefixes in batches of up to 20, or enter a 40-bit Global ID for a reproducible prefix. View first/last /64 subnets; all generation stays in your browser.
 - [Domain WHOIS & RDAP Lookup — Check Registration Details](https://digdevbox.com/whois-lookup) - Look up domain registration data through RDAP, including registrar, registration and expiry dates, status and nameservers when supplied by the registry. Coverage and returned fields vary by domain extension.
 - [HTTP status checker](https://digdevbox.com/http-status-checker) - Check the live HTTP status code and response headers of a URL to troubleshoot reachability, redirects and caching.
 - [Today in history](https://digdevbox.com/today-in-history) - See what happened on this day in history. Events load automatically when the page opens.
