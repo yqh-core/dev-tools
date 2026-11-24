@@ -48,23 +48,23 @@ function selectHarEntry(id: string) {
   applyHarEntry(id);
 }
 
-async function handleHarFileChange(event: Event) {
-  const input = event.target as HTMLInputElement;
-  const file = input.files?.[0];
+async function importLocalFile(file: File) {
   harImportError.value = '';
-
-  if (!file) {
+  if (file.size > 10 * 1024 * 1024) {
+    harImportError.value = t('tools.http-headers.analyzer.harTooLarge');
     return;
   }
 
-  if (file.size > 10 * 1024 * 1024) {
-    harImportError.value = t('tools.http-headers.analyzer.harTooLarge');
-    input.value = '';
+  const content = await file.text();
+  if (file.name.toLowerCase().endsWith('.txt') || file.type === 'text/plain') {
+    harEntries.value = [];
+    selectedHarEntry.value = '';
+    rawHeaders.value = content;
     return;
   }
 
   try {
-    const entries = parseHarResponseEntries(await file.text());
+    const entries = parseHarResponseEntries(content);
     if (entries.length === 0) {
       harEntries.value = [];
       selectedHarEntry.value = '';
@@ -80,8 +80,21 @@ async function handleHarFileChange(event: Event) {
     selectedHarEntry.value = '';
     harImportError.value = t('tools.http-headers.analyzer.harInvalid');
   }
-  finally {
-    input.value = '';
+}
+
+async function handleHarFileChange(event: Event) {
+  const input = event.target as HTMLInputElement;
+  const file = input.files?.[0];
+  if (file) {
+    await importLocalFile(file);
+  }
+  input.value = '';
+}
+
+async function handleHarDrop(event: DragEvent) {
+  const file = event.dataTransfer?.files?.[0];
+  if (file) {
+    await importLocalFile(file);
   }
 }
 
@@ -101,6 +114,7 @@ const remediationOptions = computed(() => [
   { label: t('tools.http-headers.analyzer.remediation.platforms.nginx'), value: 'nginx' },
   { label: t('tools.http-headers.analyzer.remediation.platforms.apache'), value: 'apache' },
   { label: t('tools.http-headers.analyzer.remediation.platforms.caddy'), value: 'caddy' },
+  { label: t('tools.http-headers.analyzer.remediation.platforms.vercel'), value: 'vercel' },
   { label: t('tools.http-headers.analyzer.remediation.platforms.cloudflare'), value: 'cloudflare-pages' },
 ]);
 const remediationSnippet = computed(() => analysis.value
@@ -193,7 +207,7 @@ function directionLabel(direction: string): string {
           {{ t('tools.http-headers.analyzer.harImportLabel') }}
           <input
             type="file"
-            accept=".har,application/json"
+            accept=".har,.txt,application/json,text/plain"
             data-test-id="har-file-input"
             :aria-label="t('tools.http-headers.analyzer.harImportLabel')"
             @change="handleHarFileChange"
@@ -202,6 +216,14 @@ function directionLabel(direction: string): string {
         <span text-xs op-60>
           {{ t('tools.http-headers.analyzer.harPrivacyNote') }}
         </span>
+      </div>
+      <div
+        class="har-drop-zone"
+        data-test-id="har-drop-zone"
+        @dragover.prevent
+        @drop.prevent="handleHarDrop"
+      >
+        {{ t('tools.http-headers.analyzer.harDropNote') }}
       </div>
       <c-alert v-if="harImportError" mt-3 type="warning" data-test-id="har-import-error">
         {{ harImportError }}
@@ -480,6 +502,16 @@ function directionLabel(direction: string): string {
 
 .methods-desc {
   color: var(--dd-text-soft);
+}
+
+.har-drop-zone {
+  margin-top: 8px;
+  padding: 10px 12px;
+  border: 1px dashed var(--dd-border);
+  border-radius: var(--dd-radius);
+  color: var(--dd-text-soft);
+  font-size: 12px;
+  text-align: center;
 }
 
 .har-upload-label {
