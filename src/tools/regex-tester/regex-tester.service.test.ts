@@ -84,8 +84,94 @@ describe('regex-tester', () => {
 describe('regex-tester pattern explanation', () => {
   it('explains anchors, literals, named captures, classes and quantifiers', () => {
     const slash = String.fromCharCode(92);
-    const items = explainRegexPattern('^(?<id>[A-Z]{2}' + slash + 'd+)$', 'dgu');
-    expect(items.map(item => item.token)).toEqual(['^', '(?<id>', '[A-Z]', '{2}', slash + 'd', '+', ')', '$']);
+    const items = explainRegexPattern(`^(?<id>[A-Z]{2}${slash}d+)import { describe, expect, it } from 'vitest';
+import { evaluateRegexTestCases, explainRegexFlags, explainRegexPattern, matchRegex } from './regex-tester.service';
+
+const regexesData = [
+  {
+    regex: '',
+    text: '',
+    flags: '',
+    result: [],
+  },
+  {
+    regex: '.*',
+    text: '',
+    flags: '',
+    result: [
+      {
+        captures: [],
+        groups: [],
+        index: 0,
+        value: '',
+      },
+    ],
+  },
+  {
+    regex: '',
+    text: 'aaa',
+    flags: '',
+    result: [],
+  },
+  {
+    regex: 'a',
+    text: 'baaa',
+    flags: '',
+    result: [
+      {
+        captures: [],
+        groups: [],
+        index: 1,
+        value: 'a',
+      },
+    ],
+  },
+  {
+    regex: '(.)(?<g>r)',
+    text: 'azertyr',
+    flags: 'g',
+    result: [
+      {
+        captures: [
+          { end: 3, name: '1', start: 2, value: 'e' },
+          { end: 4, name: '2', start: 3, value: 'r' },
+        ],
+        groups: [
+          { end: 4, name: 'g', start: 3, value: 'r' },
+        ],
+        index: 2,
+        value: 'er',
+      },
+      {
+        captures: [
+          { end: 6, name: '1', start: 5, value: 'y' },
+          { end: 7, name: '2', start: 6, value: 'r' },
+        ],
+        groups: [
+          { end: 7, name: 'g', start: 6, value: 'r' },
+        ],
+        index: 5,
+        value: 'yr',
+      },
+    ],
+  },
+];
+
+describe('regex-tester', () => {
+  for (const reg of regexesData) {
+    const { regex, text, flags, result: expectedResult } = reg;
+    it(`Should matchRegex("${regex}","${text}","${flags}") return correct result`, () => {
+      const result = matchRegex(regex, text, `${flags}d`);
+      expect(result).to.deep.equal(expectedResult);
+    });
+  }
+});
+
+describe('regex-tester pattern explanation', () => {
+  it('explains anchors, literals, named captures, classes and quantifiers', () => {
+    const slash = String.fromCharCode(92);
+    const items = explainRegexPattern(, 'dgu');
+    expect(items.map(item => item.token)).toEqual(['^', '(?<id>', '[A-Z]', '{2}', `${slash}d`, '+', ')', '$']);
     expect(items.find(item => item.token === '(?<id>')?.explanation).toContain('named capture group called "id"');
     expect(items.find(item => item.token === '[A-Z]')?.explanation).toContain('character class');
     expect(items.every(item => item.recognized)).toBe(true);
@@ -100,9 +186,9 @@ describe('regex-tester pattern explanation', () => {
 
   it('marks unsupported syntax clearly instead of inventing an explanation', () => {
     const slash = String.fromCharCode(92);
-    const items = explainRegexPattern('(?P<name>foo)' + slash + 'K');
+    const items = explainRegexPattern(`(?P<name>foo)${slash}K`);
     expect(items.find(item => item.token === '(?P<name>')?.recognized).toBe(false);
-    expect(items.find(item => item.token === slash + 'K')?.recognized).toBe(false);
+    expect(items.find(item => item.token === `${slash}K`)?.recognized).toBe(false);
     expect(items.filter(item => !item.recognized)).toHaveLength(2);
   });
 
