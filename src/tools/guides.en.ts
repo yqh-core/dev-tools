@@ -2329,6 +2329,34 @@ export const GUIDES: Record<string, ToolGuide> = {
         title: 'Avoid redirect chains during a site migration',
         text: 'Point each old URL directly to its final destination rather than sending visitors through several intermediate URLs. Update internal links, canonical references and XML sitemaps to use the destination URL instead of relying on redirects forever. A generated mapping list can reveal chains and loops inside the rows you submit, but it cannot discover rules that live in a CDN, application router or another server configuration.',
       },
+      {
+        title: 'Build a complete source-to-destination inventory',
+        text: 'Export the URLs that are actually receiving traffic or links before changing the site structure. Group them by page purpose, locale, product or content category, then assign one relevant final destination to every source that should remain useful. Separate removed pages with no replacement from pages that have moved, because a redirect is not always the right response for permanently retired content. Resolve duplicate source paths and conflicting destinations before generating production rules.',
+      },
+      {
+        title: 'Choose a destination that preserves the original intent',
+        text: 'A redirect should take a visitor to the page that best replaces the old resource, not simply to the nearest category or the home page. Google Search Central warns that redirecting many unrelated URLs to one page can confuse users and may be treated as a soft 404. When several pages have genuinely been consolidated into one useful resource, a shared destination can be appropriate. Review the destination content and its status code before approving each mapping.',
+      },
+      {
+        title: 'Select status codes with HTTP method behavior in mind',
+        text: 'Use a permanent status such as 301 or 308 when the resource has moved for good, and a temporary status such as 302 or 307 when the original location may return. The 307 and 308 codes explicitly preserve the request method, while user agents may change a POST request to GET after a 301 or 302 response. For endpoints that accept form submissions or other non-GET requests, choose the method-preserving code deliberately and test the behavior with the actual client. Do not use a permanent redirect as a temporary experiment because browsers and intermediaries may cache it.',
+      },
+      {
+        title: 'Review host matching, path suffixes and query strings',
+        text: 'A rule that matches a whole host or a broad path can affect more URLs than the migration team intended. Start with exact source paths, then enable subdomain or subpath matching only when the source inventory requires it. Decide explicitly whether query parameters should be carried to the destination; campaign tags, search filters and application parameters can have different requirements. When preserving a path suffix, verify several nested examples so that the appended destination path is correct rather than duplicated.',
+      },
+      {
+        title: 'Test a representative migration matrix before rollout',
+        text: 'Test more than the single example shown in the generator. Include the canonical host, alternate hostnames, HTTP and HTTPS variants, trailing-slash variants, nested paths, query strings, and every status code used by the mapping. Check both the response status and the Location header, then follow the chain to confirm that the final page returns the expected content. Test method-preserving redirects with a non-GET request in a staging environment before switching production traffic.',
+      },
+      {
+        title: 'Update canonical URLs, internal links and sitemaps',
+        text: 'After the redirects are active, make the destination page self-canonical and update internal links so visitors do not need to pass through an old URL. Refresh hreflang references when localized pages move, and make the XML sitemap list the new canonical URLs rather than redirecting source URLs. Submit the updated sitemap in Search Console and inspect representative source and destination URLs for indexing or crawl errors. These steps help search engines discover the new locations instead of depending on redirects as the only discovery path.',
+      },
+      {
+        title: 'Monitor the migration and retain redirects',
+        text: 'Keep a dated copy of the source mapping and the deployed configuration so unexpected changes can be traced or rolled back. After launch, monitor server logs, analytics landing pages, Search Console coverage and destination errors for old URLs that still receive meaningful visits. Fix redirect loops, unexpected 404 responses and destinations that have become irrelevant as soon as they appear. Google Search Central recommends keeping redirects in place for as long as possible and generally for at least one year after a site move.',
+      },
     ],
     faqs: [
       { q: 'What input formats does the redirect generator accept?', a: 'Paste comma-separated CSV, tab-separated pairs or one “old URL -> new URL” mapping per line. You can also import a CSV or TSV file. CSV headers such as Source URL and Target URL are recognized.' },
