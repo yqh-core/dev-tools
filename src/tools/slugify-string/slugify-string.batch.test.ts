@@ -97,6 +97,18 @@ describe('slugify batch conversion', () => {
     expect(row.truncated).toBe(true);
   });
 
+  it('reserves the numeric suffix within a strict maximum length', () => {
+    const rows = runSlugifyBatch('Guide\\nGuide', {
+      ...defaults,
+      unique: true,
+      maxLength: 2,
+    });
+
+    expect(rows[0].slug).toBe('');
+    expect(rows[1].slug).toBe('');
+    expect(rows.every(row => row.error.length > 0)).toBe(true);
+  });
+
   it('returns a row-level error when no full word fits the maximum length', () => {
     const [row] = runSlugifyBatch('extraordinarilylongword', {
       ...defaults,
