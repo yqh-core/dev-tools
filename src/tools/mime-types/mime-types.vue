@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { types as extensionToMimeType, extensions as mimeTypeToExtension } from 'mime-types';
-import { useFuzzySearch } from '@/composable/fuzzySearch';
 import { createMimeServerSnippets } from './mime-types.models';
 import { useCopy } from '@/composable/copy';
+import { useFuzzySearch } from '@/composable/fuzzySearch';
 
 const mimeInfos = Object.entries(mimeTypeToExtension).map(([mimeType, extensions]) => ({ mimeType, extensions }));
 
@@ -39,6 +39,13 @@ const extensionToMimeTypeOptions = Object.keys(extensionToMimeType).map((label) 
 const selectedExtension = ref(undefined);
 
 const mimeTypeFound = computed(() => (selectedExtension.value ? extensionToMimeType[selectedExtension.value] : []));
+
+watch(selectedMimeType, (value) => {
+  if (value) selectedExtension.value = undefined;
+});
+watch(selectedExtension, (value) => {
+  if (value) selectedMimeType.value = undefined;
+});
 
 const selectedMapping = computed(() => {
   if (selectedMimeType.value) {
