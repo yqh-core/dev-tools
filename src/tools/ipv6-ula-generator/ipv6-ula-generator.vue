@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { createUlaPrefix, generateRandomUlaPrefixes } from './ipv6-ula-generator.models';
 import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { createUlaPrefix, generateRandomUlaPrefixes } from './ipv6-ula-generator.models';
 import InputCopyable from '@/components/InputCopyable.vue';
 import { useCopy } from '@/composable/copy';
 
