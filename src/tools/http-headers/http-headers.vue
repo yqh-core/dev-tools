@@ -55,15 +55,15 @@ async function importLocalFile(file: File) {
     return;
   }
 
-  const content = await file.text();
-  if (file.name.toLowerCase().endsWith('.txt') || file.type === 'text/plain') {
-    harEntries.value = [];
-    selectedHarEntry.value = '';
-    rawHeaders.value = content;
-    return;
-  }
-
   try {
+    const content = await file.text();
+    if (file.name.toLowerCase().endsWith('.txt') || file.type === 'text/plain') {
+      harEntries.value = [];
+      selectedHarEntry.value = '';
+      rawHeaders.value = content;
+      return;
+    }
+
     const entries = parseHarResponseEntries(content);
     if (entries.length === 0) {
       harEntries.value = [];
