@@ -130,6 +130,61 @@ export function calculateObservedPaceEta(input: ObservedPaceEtaInput): ObservedP
   return { ...estimate, unitsPerHour };
 }
 
+export interface RequiredPaceForDeadlineInput {
+  remainingUnits: number
+  availableMs: number
+  bufferPercent: number
+  additionalPauseMs: number
+}
+
+export interface RequiredPaceForDeadlineEstimate {
+  availableWorkMs: number
+  requiredUnitsPerHour: number
+}
+
+/**
+ * Calculate the base processing pace needed to finish before a deadline.
+ * The available window is reduced by planned pauses, then divided by the
+ * configured buffer factor so the same buffer policy is preserved.
+ */
+export function calculateRequiredPaceForDeadline(
+  input: RequiredPaceForDeadlineInput,
+): RequiredPaceForDeadlineEstimate {
+  const { remainingUnits, availableMs, bufferPercent, additionalPauseMs } = input;
+  const values = [remainingUnits, availableMs, bufferPercent, additionalPauseMs];
+
+  if (values.some(value => !Number.isFinite(value))) {
+    throw new RangeError('Deadline pace inputs must be finite numbers');
+  }
+  if (remainingUnits < 0) {
+    throw new RangeError('Remaining work cannot be negative');
+  }
+  if (availableMs <= 0) {
+    throw new RangeError('Deadline must be later than the estimate start time');
+  }
+  if (bufferPercent < 0 || bufferPercent > 100) {
+    throw new RangeError('Buffer must be between zero and 100 percent');
+  }
+  if (additionalPauseMs < 0) {
+    throw new RangeError('Additional pause time cannot be negative');
+  }
+  if (remainingUnits === 0) {
+    return { availableWorkMs: 0, requiredUnitsPerHour: 0 };
+  }
+
+  const availableAfterPausesMs = availableMs - additionalPauseMs;
+  if (availableAfterPausesMs <= 0) {
+    throw new RangeError('Planned pauses use all available time before the deadline');
+  }
+
+  const availableWorkMs = availableAfterPausesMs / (1 + bufferPercent / 100);
+  const requiredUnitsPerHour = remainingUnits / availableWorkMs * 60 * 60 * 1000;
+  if (![availableWorkMs, requiredUnitsPerHour].every(Number.isFinite) || availableWorkMs <= 0) {
+    throw new RangeError('Required pace exceeds the supported numeric range');
+  }
+
+  return { availableWorkMs, requiredUnitsPerHour };
+}
 export function formatMsDuration(duration: number) {
   const ms = Math.floor(duration % 1000);
   const secs = Math.floor(((duration - ms) / 1000) % 60);
