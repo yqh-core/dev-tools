@@ -160,4 +160,3 @@ describe('calculateObservedPaceEta', () => {
     })).toThrow(RangeError);
   });
 });
-
