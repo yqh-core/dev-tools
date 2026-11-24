@@ -157,18 +157,22 @@ test('ETA Calculator compares the current pace with the rate needed for a deadli
   const fill = async (id: string, value: string) => {
     await page.getByTestId(id).locator('input').fill(value);
   };
-  const localDateTime = (timestamp: number) => {
-    const date = new Date(timestamp);
+  const localDateTime = (offsetMs: number) => page.evaluate((offset) => {
+    // Build datetime-local in the browser's timezone, which is also where
+    // the component parses it. The Node runner may use a different TZ.
+    const date = new Date(Date.now() + offset);
     const pad = (value: number) => String(value).padStart(2, '0');
-    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
-  };
+    const datePart = [date.getFullYear(), pad(date.getMonth() + 1), pad(date.getDate())].join('-');
+    const timePart = [pad(date.getHours()), pad(date.getMinutes())].join(':');
+    return `${datePart}T${timePart}`;
+  }, offsetMs);
 
   await fill('eta-total', '180');
   await fill('eta-completed', '60');
   await fill('eta-rate', '3');
   await fill('eta-interval', '5');
   const deadline = page.getByTestId('eta-deadline-input');
-  await deadline.fill(localDateTime(Date.now() + 4 * 60 * 60 * 1000));
+  await deadline.fill(await localDateTime(4 * 60 * 60 * 1000));
   const requiredPace = page.getByTestId('eta-required-pace');
   const readRequiredPace = async () => {
     const text = (await requiredPace.textContent()) ?? '';
@@ -180,7 +184,7 @@ test('ETA Calculator compares the current pace with the rate needed for a deadli
   expect(await readRequiredPace()).toBeLessThan(31);
   await expect(page.getByTestId('eta-deadline-result')).toContainText('sufficient to meet this deadline');
 
-  await deadline.fill(localDateTime(Date.now() + 3 * 60 * 60 * 1000));
+  await deadline.fill(await localDateTime(3 * 60 * 60 * 1000));
   expect(await readRequiredPace()).toBeGreaterThan(39);
   expect(await readRequiredPace()).toBeLessThan(41);
   await expect(page.getByTestId('eta-deadline-result')).toContainText('Increase your pace');
@@ -190,6 +194,6 @@ test('ETA Calculator compares the current pace with the rate needed for a deadli
   expect(await readRequiredPace()).toBeGreaterThan(55);
   expect(await readRequiredPace()).toBeLessThan(60);
 
-  await deadline.fill(localDateTime(Date.now() - 60 * 60 * 1000));
+  await deadline.fill(await localDateTime(-60 * 60 * 1000));
   await expect(page.getByTestId('eta-deadline-error')).toContainText('must be later than the estimate start time');
 });
