@@ -54,9 +54,19 @@ const outputError = computed(() => {
     return '';
   }
   catch (error) {
-    return error instanceof Error && error.message.includes('site origin')
-      ? t('tools.redirect-generator.errors.originRequired')
-      : t('tools.redirect-generator.errors.outputFailed');
+    if (!(error instanceof Error)) {
+      return t('tools.redirect-generator.errors.outputFailed');
+    }
+    if (error.message.includes('site origin')) {
+      return t('tools.redirect-generator.errors.originRequired');
+    }
+    if (error.message.includes('user information or ports')) {
+      return t('tools.redirect-generator.errors.cloudflareSourceLimits');
+    }
+    if (error.message.includes('target query string is ignored')) {
+      return t('tools.redirect-generator.errors.cloudflareQueryConflict');
+    }
+    return t('tools.redirect-generator.errors.outputFailed');
   }
 });
 
