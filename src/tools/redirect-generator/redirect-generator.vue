@@ -83,7 +83,7 @@ const outputError = computed(() => {
     if (error.message.includes('Preserve path suffix requires subpath matching')) {
       return t('tools.redirect-generator.errors.pathSuffixRequiresSubpath');
     }
-    if (error.message.includes('Netlify _redirects supports 301 and 302')) {
+    if (error.message.includes('This generator limits Netlify _redirects output to 301 and 302.')) {
       return t('tools.redirect-generator.errors.netlifyStatusUnsupported');
     }
     return t('tools.redirect-generator.errors.outputFailed');
