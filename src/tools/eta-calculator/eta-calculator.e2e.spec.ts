@@ -88,3 +88,23 @@ test('ETA Calculator validates observed pace and handles a completed workload', 
   await expect(page.getByTestId('eta-finish')).toHaveCount(0);
 });
 
+test.describe('ETA Calculator observed pace Chinese localization', () => {
+  test.use({ locale: 'zh-CN' });
+
+  test('renders the observed-pace controls and derived rate in Chinese', async ({ page }) => {
+    await page.goto('/eta-calculator');
+    await expect(page.getByTestId('eta-mode-observed')).toContainText('\u6839\u636E\u5DF2\u8017\u65F6\u95F4\u8BA1\u7B97');
+    await page.getByTestId('eta-mode-observed').click();
+
+    const fill = async (id: string, value: string) => {
+      await page.getByTestId(id).locator('input').fill(value);
+    };
+    await fill('eta-total', '500');
+    await fill('eta-completed', '200');
+    await fill('eta-elapsed-hours', '2');
+
+    await expect(page.getByTestId('eta-observed-rate')).toContainText('100');
+    await expect(page.getByTestId('eta-observed-rate')).toContainText('\u5355\u4F4D/\u5C0F\u65F6');
+  });
+});
+
