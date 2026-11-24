@@ -2294,7 +2294,7 @@ export const GUIDES: Record<string, ToolGuide> = {
     ],
     example: {
       label: '加载重定向映射示例',
-      text: 'Source URL,Target URL\\n/old-product,https://example.com/products/new-product\\n/legacy-guide,/guides/current-guide\\n/sale,/offers',
+      text: 'Source URL,Target URL\n/old-product,https://example.com/products/new-product\\n/legacy-guide,/guides/current-guide\\n/sale,/offers',
     },
     about: '重定向映射将旧 URL 连接到替代它的新页面，常用于网站改版、URL 结构调整、内容合并和域名迁移。本工具把一批来源与目标地址转换为 Apache mod_alias、Nginx、Cloudflare Bulk Redirect CSV、Netlify _redirects 或 Vercel vercel.json 的精确路径规则。导出前会检查 URL 格式、重复来源、自重定向、循环以及可避免的重定向链。解析和生成全部在浏览器本地完成，映射清单不会上传。',
     articleOnlySections: [
