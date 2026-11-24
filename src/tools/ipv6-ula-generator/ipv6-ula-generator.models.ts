@@ -23,33 +23,7 @@ function secureRandomBytes(): Uint8Array {
 
 export function normalizeUlaGlobalId(value: string): string {
   const normalized = value.trim().replace(/^0x/i, '');
-  const globalIdPattern = new RegExp(`^[0-9a-fA-F]{${ULA_GLOBAL_ID_HEX_LENGTH}}export const MIN_ULA_BATCH_COUNT = 1;
-export const MAX_ULA_BATCH_COUNT = 20;
-export const ULA_GLOBAL_ID_HEX_LENGTH = 10;
-export const ULA_SUBNETS_PER_PREFIX = 65_536;
-
-export interface UlaPrefix {
-  globalId: string
-  prefix: string
-  firstSubnet: string
-  lastSubnet: string
-  subnetCount: number
-}
-
-export type RandomBytesSource = () => Uint8Array;
-
-function secureRandomBytes(): Uint8Array {
-  if (!globalThis.crypto?.getRandomValues) {
-    throw new Error('Secure browser randomness is unavailable.');
-  }
-
-  return globalThis.crypto.getRandomValues(new Uint8Array(5));
-}
-
-export function normalizeUlaGlobalId(value: string): string {
-  const normalized = value.trim().replace(/^0x/i, '');
-  );
-  if (!globalIdPattern.test(normalized)) {
+  if (!/^[0-9a-fA-F]{10}$/.test(normalized)) {
     throw new Error('Enter exactly 10 hexadecimal characters (40 bits).');
   }
 
