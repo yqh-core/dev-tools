@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { analyzeInternalLinkGraph } from './internal-link-graph.mjs';
 
@@ -61,5 +63,24 @@ describe('analyzeInternalLinkGraph', () => {
     expect(result.distribution).toEqual({ zero: 1, oneToTwo: 0, threeToSix: 0, sevenPlus: 1 });
     expect(result.belowSeven.map(item => item.route)).toEqual(['/']);
     expect(result.orphans).toEqual(['/']);
+  });
+});
+
+
+describe('legacy HTTP method navigation', () => {
+  it('links archive navigation directly to the canonical HTTP methods section', () => {
+    const archivePages = [
+      readFileSync(resolve('public/legacy/index.html'), 'utf8'),
+      readFileSync(resolve('public/legacy/index/index.html'), 'utf8'),
+    ];
+    const canonicalTarget = 'href="/http-headers/#request-methods-reference"';
+
+    for (const html of archivePages) {
+      expect(html).toContain(canonicalTarget);
+      expect(html).not.toContain('href="/legacy/requestmethod/"');
+    }
+
+    const httpHeadersPage = readFileSync(resolve('src/tools/http-headers/http-headers.vue'), 'utf8');
+    expect(httpHeadersPage).toContain('id="request-methods-reference"');
   });
 });
