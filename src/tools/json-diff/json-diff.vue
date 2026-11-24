@@ -183,7 +183,7 @@ const changeCounts = computed(() => differenceList.value.reduce((counts, item) =
 
 function focusDifference(path: string) {
   focusedPath.value = path;
-  void nextTick(() => {
+  nextTick(() => {
     const target = [...document.querySelectorAll<HTMLElement>('[data-json-path]')]
       .find(element => element.dataset.jsonPath === path);
     target?.scrollIntoView({ behavior: 'smooth', block: 'center' });
