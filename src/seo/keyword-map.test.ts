@@ -2,6 +2,19 @@ import { describe, expect, it } from 'vitest';
 import { CLUSTER_KEYWORD_ENTRIES } from '@/seo/keyword-map';
 
 describe('evidence-backed SEO keyword targets', () => {
+  it('locks the landed Bulk Redirect Generator page to its primary intent and live title', () => {
+    const entry = CLUSTER_KEYWORD_ENTRIES.find(item => item.path === '/redirect-generator');
+
+    expect(entry).toBeDefined();
+    expect(entry?.keyword).toBe('301 redirect generator');
+    expect(entry?.intent).toBe('generate');
+    expect(entry?.priority).toBe('P1');
+    expect(entry?.landed).toBe(true);
+    expect(entry?.lockedTitle).toBe('Bulk 301 Redirect Generator — Apache, Nginx & Cloudflare');
+    expect((entry?.keywords ?? []).length).toBeGreaterThanOrEqual(5);
+    expect(entry?.note).toContain('SERP composition');
+  });
+
   it.each([
     [
       '/basic-auth-generator',
