@@ -478,8 +478,8 @@ tools:
     description: Find the vendor and manufacturer of a device by its MAC address.
 
   mime-types:
-    title: MIME types
-    description: Convert MIME types to file extensions and vice-versa.
+    title: "MIME Type Lookup — Content-Type, Extensions & Server Config"
+    description: "Look up MIME types by extension or find extensions by Content-Type. Generate copy-ready Nginx types, Apache AddType and static _headers rules from the selected mapping."
 
   toml-to-json:
     title: "TOML to JSON Converter — Convert TOML Config to JSON"
