@@ -133,8 +133,11 @@ const deadlineAnalysis = computed(() => {
   }
 
   const anchor = calculationMode.value === 'observed' ? Date.now() : startedAt.value;
-  const currentUnitsPerHour = calculationMode.value === 'observed'
-    ? ('unitsPerHour' in estimate.value ? estimate.value.unitsPerHour : 0)
+  const observedUnitsPerHour: unknown = (
+    estimate.value as { unitsPerHour?: unknown }
+  ).unitsPerHour;
+  const currentUnitsPerHour: number = calculationMode.value === 'observed'
+    ? (typeof observedUnitsPerHour === 'number' ? observedUnitsPerHour : 0)
     : unitPerTimeSpan.value / (timeSpan.value * timeSpanUnitMultiplier.value) * 60 * 60 * 1000;
 
   try {
