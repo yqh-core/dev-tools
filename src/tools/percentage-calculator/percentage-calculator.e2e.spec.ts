@@ -244,10 +244,10 @@ test.describe('Percentage calculator batch Chinese localization', () => {
     await page.goto('/percentage-calculator');
     const panel = page.getByTestId('percentage-sequential-panel');
     await panel.locator('summary').click();
-    await expect(panel).toContainText('连续百分比调整');
-    await expect(panel).toContainText('逐步计算结果');
+    await expect(panel).toContainText('\u8FDE\u7EED\u767E\u5206\u6BD4\u8C03\u6574');
+    await expect(panel).toContainText('\u9010\u6B65\u8BA1\u7B97\u7ED3\u679C');
     await expect(page.getByTestId('percentage-sequential-final')).toHaveText('72');
     await expect(page.getByTestId('percentage-sequential-effective-change')).toContainText('-28%');
-    await expect(panel).toContainText('总折扣是 28%');
+    await expect(panel).toContainText('\u603B\u6298\u6263\u662F 28%');
   });
 });
