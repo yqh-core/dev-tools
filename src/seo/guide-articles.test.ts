@@ -31,8 +31,9 @@ describe('article-only guide content', () => {
     const page = GUIDE_ARTICLE_PAGES.find(item => item.toolPath === '/numeronym-generator');
     expect(page).toBeDefined();
     expect(page?.indexable).toBe(true);
-    expect(page?.sections.filter(section => section.id.startsWith('article-only-'))).toHaveLength(2);
-    expect(page?.sections.map(section => section.title)).toContain('Batch mode is line-based, not phrase-based');
+    expect(page?.sections.filter(section => section.id.startsWith('article-only-'))).toHaveLength(3);
+    expect(page?.sections.map(section => section.title)).toContain('Paste a list or phrase — separators are flexible');
+    expect(page?.sections.map(section => section.title)).toContain('Unicode letters and compounds are counted literally');
   });
 
   it('keeps article-only sections paired across English and Chinese', async () => {
@@ -53,10 +54,12 @@ describe('article-only guide content', () => {
 
     const englishNumeronym = en['/numeronym-generator'].articleOnlySections ?? [];
     const chineseNumeronym = zh['/numeronym-generator'].articleOnlySections ?? [];
-    expect(englishNumeronym).toHaveLength(2);
+    expect(englishNumeronym).toHaveLength(3);
     expect(chineseNumeronym).toHaveLength(englishNumeronym.length);
-    expect(englishNumeronym[0].title).toBe('Batch mode is line-based, not phrase-based');
-    expect(chineseNumeronym[0].title).toBe('批量模式按行处理，不按短语处理');
+    expect(englishNumeronym[0].title).toBe('Paste a list or phrase — separators are flexible');
+    expect(chineseNumeronym[0].title).toBe('可以粘贴短语或列表，分隔符不限于换行');
+    expect(englishNumeronym[1].title).toBe('Unicode letters and compounds are counted literally');
+    expect(chineseNumeronym[1].title).toBe('按 Unicode 字母计数，也支持连字符和撇号复合词');
   });
 
   it('adds distinct JSON Diff guidance in both locales without claiming unsupported competitor features', async () => {
