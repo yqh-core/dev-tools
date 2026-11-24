@@ -11,32 +11,43 @@ test.describe('Tool - Numeronym generator', () => {
 
   test('a numeronym is generated when a word is entered', async ({ page }) => {
     await page.getByTestId('word-input').locator('textarea').fill('internationalization');
-    const numeronym = await page.getByTestId('numeronym').inputValue();
-
-    expect(numeronym).toEqual('i18n');
+    await expect(page.getByTestId('numeronym').inputValue()).resolves.toEqual('i18n');
+    await expect(page.getByTestId('single-letter-count')).toContainText('20 letters counted');
   });
 
-  test('converts multiple words one per line and provides copyable results', async ({ page }) => {
-    await page.getByTestId('word-input').locator('textarea').fill('internationalization\naccessibility\nkubernetes');
-    await expect(page.getByTestId('batch-numeronyms').locator('textarea')).toHaveValue('i18n\na11y\nk8s');
+  test('converts multiple words with free-text separators and provides copyable results', async ({ page }) => {
+    await page.getByTestId('word-input').locator('textarea').fill('internationalization, accessibility; Kubernetes\nmultilingualization');
+    await expect(page.getByTestId('batch-numeronyms').locator('textarea')).toHaveValue('i18n\na11y\nk8s\nm17n');
+    await expect(page.getByTestId('numeronym-batch-table')).toContainText('Internationalization');
+    await expect(page.getByTestId('numeronym-batch-table')).toContainText('20');
+  });
+
+  test('handles Unicode words and compound words in one batch', async ({ page }) => {
+    await page.getByTestId('word-input').locator('textarea').fill('JavaScript, Über; café\ncross-platform\ndon\'t');
+    await expect(page.getByTestId('batch-numeronyms').locator('textarea')).toHaveValue('J8t\nÜ2r\nc2é\nc11m\nd2t');
+  });
+
+  test('looks up established terms and leaves unsupported forms visible', async ({ page }) => {
+    await page.getByTestId('word-input').locator('textarea').fill('o11y p13n e2e');
+    const table = page.getByTestId('numeronym-batch-table');
+    await expect(table).toContainText('observability');
+    await expect(table).toContainText('personalization');
+    await expect(table).toContainText('Not in the reference list');
+    await expect(page.getByTestId('batch-numeronyms').locator('textarea')).toHaveValue('observability\npersonalization');
   });
 
   test('when a word has 3 letters or less, the numeronym is the word itself', async ({ page }) => {
     await page.getByTestId('word-input').locator('textarea').fill('abc');
-    const numeronym = await page.getByTestId('numeronym').inputValue();
-
-    expect(numeronym).toEqual('abc');
+    await expect(page.getByTestId('numeronym').inputValue()).resolves.toEqual('abc');
   });
 
-  test('shows accurate examples for generation and established lookups when empty', async ({ page }) => {
+  test('shows a useful reference table when empty', async ({ page }) => {
     const examples = page.getByTestId('numeronym-examples');
     await expect(examples).toContainText('internationalization');
-    await expect(examples).toContainText('i18n');
     await expect(examples).toContainText('accessibility');
-    await expect(examples).toContainText('a11y');
     await expect(examples).toContainText('Kubernetes');
-    await expect(examples).toContainText('k8s');
-    await expect(examples).toContainText('localization');
-    await expect(examples).toContainText('l10n');
+    await expect(examples).toContainText('personalization');
+    await expect(examples).toContainText('observability');
+    await expect(page.getByTestId('numeronym-reference').locator('tbody tr')).toHaveCount(11);
   });
 });
