@@ -131,8 +131,10 @@ jobs:
             const percentageMarkerReady = percentageResponse.ok &&
               percentageResponse.url === origin + '/percentage-calculator/' &&
               percentageHtml.includes('<title>Percentage Calculator — Percent & Change - DigDevBox</title>') &&
-              percentageHtml.includes('content="Free percentage calculator for percent of a number, percentage change, discounts and reverse rates. Batch formulas and CSV export run in your browser."') &&
+              percentageHtml.includes('content="Free percentage calculator for percent of a number, percentage change, stacked discounts and reverse rates. Batch formulas and CSV/TSV export run in your browser."') &&
               percentageHtml.includes('Can I calculate a list of percentage problems at once?') &&
+              percentageHtml.includes('Sequential percentage adjustments') &&
+              percentageHtml.includes('28% off overall, not 30%') &&
               percentageHtml.includes('Batch mode uses two numeric columns per row') &&
               percentageHtml.includes('href="' + origin + '/percentage-calculator/"');
             const htpasswdMarkerReady = htpasswdResponse.ok &&
