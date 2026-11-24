@@ -107,4 +107,3 @@ test.describe('ETA Calculator observed pace Chinese localization', () => {
     await expect(page.getByTestId('eta-observed-rate')).toContainText('\u5355\u4F4D/\u5C0F\u65F6');
   });
 });
-
