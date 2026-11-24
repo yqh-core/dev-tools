@@ -243,7 +243,7 @@ export function createSocialCardPng({ title, description, path, kind = 'tool' })
   const labelWidth = Math.min(420, kindLabel.length * 27 + 36);
   drawRect(pixels, 770, 82, labelWidth, 42, [20, 48, 65]);
   drawRect(pixels, 770, 82, 5, 42, teal);
-  drawText(pixels, kindLabel, 790, 94, 4, cyan, labelWidth - 26);
+  drawText(pixels, kindLabel, 790, 95, 3, cyan, labelWidth - 26);
   drawRect(pixels, 104, 156, 1000, 2, subtle);
 
   const titleLines = wrapText(title || 'DIGDEVBOX ONLINE TOOLS', 23, 3);
