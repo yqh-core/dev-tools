@@ -2,7 +2,7 @@
 import JSON5 from 'json5';
 
 import DiffsViewer from './diff-viewer/diff-viewer.vue';
-import { diff, flattenDifferences, type ArrayComparisonMode } from './json-diff.models';
+import { type ArrayComparisonMode, diff, flattenDifferences } from './json-diff.models';
 import { withDefaultOnError } from '@/utils/defaults';
 import { isNotThrowing } from '@/utils/boolean';
 
@@ -37,9 +37,15 @@ const differenceList = computed(() => differenceTree.value
   ? flattenDifferences(differenceTree.value)
   : []);
 const changeCounts = computed(() => differenceList.value.reduce((counts, item) => {
-  if (item.status === 'added') counts.added++;
-  else if (item.status === 'removed') counts.removed++;
-  else counts.changed++;
+  if (item.status === 'added') {
+    counts.added++;
+  }
+  else if (item.status === 'removed') {
+    counts.removed++;
+  }
+  else {
+    counts.changed++;
+  }
   return counts;
 }, { added: 0, removed: 0, changed: 0 }));
 
