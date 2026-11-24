@@ -141,6 +141,70 @@ function extractSocialTitle(headTags) {
   return title.replace(/\s+-\s+DigDevBox$/i, '').trim();
 }
 
+function escapeHtmlAttribute(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+function setMetaContent(headTags, attribute, name, content) {
+  const keyDouble = `${attribute}="${name}"`;
+  const keySingle = `${attribute}='${name}'`;
+  const withoutExisting = headTags.replace(/<meta\b[^>]*>/gi, (tag) =>
+    tag.includes(keyDouble) || tag.includes(keySingle) ? '' : tag);
+  return `${withoutExisting}\n<meta ${attribute}="${name}" content="${escapeHtmlAttribute(content)}">`;
+}
+
+function setPageTitle(headTags, title) {
+  const withoutExisting = headTags.replace(/<title\b[^>]*>[\s\S]*?<\/title>/gi, '');
+  return `<title>${escapeHtmlAttribute(title)}</title>\n${withoutExisting}`;
+}
+
+/** GuideArticle.vue uses the same default-locale messages and guide summary builder. */
+function setGuidePageHead(headTags, guidePage, canonical, imageUrl, buildGuideMetaDescription, messages) {
+  const toolKey = guidePage.toolPath.split('/').join('');
+  const toolMessages = messages.tools?.[toolKey] ?? {};
+  const toolTitle = typeof toolMessages.title === 'string' && toolMessages.title.trim()
+    ? toolMessages.title
+    : guidePage.entry.h1;
+  const toolDescription = typeof toolMessages.description === 'string'
+    ? toolMessages.description
+    : guidePage.entry.description;
+  const toolH1 = String(toolTitle ?? guidePage.entry.h1).split(' — ')[0];
+  const suffix = messages.guideArticle?.suffix;
+  const siteName = messages.legal?.siteName;
+  if (!toolH1 || typeof suffix !== 'string' || typeof siteName !== 'string' ||
+      !toolDescription || !guidePage.entry.guide) {
+    throw new Error(`[build-seo] ${guidePage.path} cannot resolve the same title/description data as GuideArticle.vue`);
+  }
+
+  const title = `${toolH1} — ${suffix} - ${siteName}`;
+  const description = buildGuideMetaDescription(guidePage.entry.guide, toolDescription);
+  if (!description) {
+    throw new Error(`[build-seo] ${guidePage.path} has no guide description for its social card`);
+  }
+
+  let output = setPageTitle(headTags, title);
+  output = setMetaContent(output, 'name', 'description', description);
+  output = setMetaContent(output, 'property', 'og:url', canonical);
+  output = setMetaContent(output, 'property', 'og:type', 'article');
+  output = setMetaContent(output, 'property', 'og:title', title);
+  output = setMetaContent(output, 'property', 'og:description', description);
+  output = setMetaContent(output, 'property', 'og:image', imageUrl);
+  output = setMetaContent(output, 'property', 'og:image:type', 'image/png');
+  output = setMetaContent(output, 'property', 'og:image:width', '1200');
+  output = setMetaContent(output, 'property', 'og:image:height', '630');
+  output = setMetaContent(output, 'property', 'og:image:alt', title);
+  output = setMetaContent(output, 'name', 'twitter:card', 'summary_large_image');
+  output = setMetaContent(output, 'name', 'twitter:title', title);
+  output = setMetaContent(output, 'name', 'twitter:description', description);
+  output = setMetaContent(output, 'name', 'twitter:image', imageUrl);
+  output = setMetaContent(output, 'name', 'twitter:image:alt', title);
+  return output;
+}
+
 function buildSitemap(entries) {
   const lines = [
     '<?xml version="1.0" encoding="UTF-8"?>',
@@ -790,6 +854,14 @@ try {
       : headTags;
     const guidePage = kind === 'guide' ? GUIDE_ARTICLE_PAGES.find(item => item.path === path) : undefined;
     if (guidePage) {
+      pageTags = setGuidePageHead(
+        pageTags,
+        guidePage,
+        canonical,
+        socialImageUrl(path),
+        buildGuideMetaDescription,
+        messages,
+      );
       pageTags += `\n      <script type="application/ld+json">${buildGuideArticleLd(guidePage, canonical, SITE_ORIGIN)}</script>`;
       pageTags += `\n      <script type="application/ld+json">${buildGuideBreadcrumbLd(guidePage, canonical, SITE_ORIGIN)}</script>`;
       if (guidePage.sections.some(s => s.kind === 'faqs')) {
