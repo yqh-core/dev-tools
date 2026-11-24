@@ -4,7 +4,17 @@ import { getTextStatistics } from './text-statistics.service';
 
 const text = ref('');
 const readingWpm = ref(200);
-const stats = computed(() => getTextStatistics(text.value));
+const analysisLocale = ref('en');
+const languageOptions = [
+  { label: 'English', value: 'en' },
+  { label: 'Chinese', value: 'zh' },
+  { label: 'Japanese', value: 'ja' },
+  { label: 'Spanish', value: 'es' },
+  { label: 'French', value: 'fr' },
+  { label: 'German', value: 'de' },
+  { label: 'Thai', value: 'th' },
+];
+const stats = computed(() => getTextStatistics(text.value, analysisLocale.value));
 const effectiveReadingWpm = computed(() => Math.min(1000, Math.max(1, readingWpm.value || 200)));
 const readingMinutes = computed(() => stats.value.words === 0
   ? 0
@@ -30,6 +40,7 @@ const summary = computed(() => [
     <c-card title="Text to analyze">
       <c-input-text v-model:value="text" multiline placeholder="Paste or type your text here..." rows="7" data-test-id="text-input" />
       <div mt-3 flex flex-wrap items-center justify-between gap-2>
+        <c-select v-model:value="analysisLocale" :options="languageOptions" label="Text language for word segmentation" />
         <p text-xs opacity-70>
           All analysis runs locally in your browser. Your text is not uploaded.
         </p>
