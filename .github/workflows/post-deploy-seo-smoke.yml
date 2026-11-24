@@ -302,7 +302,7 @@ jobs:
           // priority English pages. This catches UA-dependent HTML/cache variants
           // and guarantees the crawler sees the same title, description, H1 and canonical.
           const browserUa = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/130.0.0.0 Safari/537.36';
-          const priorityPages = ['/', '/percentage-calculator/', '/eta-calculator/', '/numeronym-generator/', '/api-debugger/', '/regex-tester/', '/json-prettify/', '/json-workspace/', '/json-diff/', '/base-converter/', '/html-entities/', '/json-to-get-params/', '/docker-run-to-docker-compose-converter/', '/otp-generator/', '/htpasswd-generator/', '/json-to-toml/', '/text-statistics/', '/slugify-string/', '/redirect-generator/'];
+          const priorityPages = ['/', '/percentage-calculator/', '/eta-calculator/', '/ipv6-ula-generator/', '/numeronym-generator/', '/api-debugger/', '/regex-tester/', '/json-prettify/', '/json-workspace/', '/json-diff/', '/base-converter/', '/html-entities/', '/json-to-get-params/', '/docker-run-to-docker-compose-converter/', '/otp-generator/', '/htpasswd-generator/', '/json-to-toml/', '/text-statistics/', '/slugify-string/', '/redirect-generator/'];
           for (const path of priorityPages) {
             const [bot, browser] = await Promise.all([get(path), get(path, browserUa)]);
             for (const [label, result] of [['Googlebot', bot], ['browser', browser]]) {
@@ -341,6 +341,7 @@ jobs:
             const expectedMetadata = {
               '/percentage-calculator/': { title: 'Percentage Calculator — Percent & Change - DigDevBox', description: 'Free percentage calculator for percent of a number, percentage change, stacked discounts and reverse rates. Batch formulas and CSV/TSV export run in your browser.', h1: 'Percentage Calculator' },
               '/eta-calculator/': { title: 'ETA Calculator — Task Completion Time - DigDevBox', description: 'Estimate time remaining for a download, build or batch job. Enter a known processing rate or derive throughput from completed work and elapsed time.', h1: 'ETA Calculator' },
+              '/ipv6-ula-generator/': { title: 'IPv6 ULA generator - DigDevBox', description: 'Generate RFC 4193 fd00::/8 IPv6 Unique Local Address (ULA) /48 prefixes with secure random 40-bit Global IDs or a manual Global ID. Create up to 20 prefixes and inspect first/last /64 subnets in your browser.', h1: 'IPv6 ULA generator' },
               '/api-debugger/': { title: 'REST API Tester — cURL, Tests & Collections - DigDevBox', description: 'Send REST API requests, import cURL, inspect status, headers and JSON, add assertions, and run saved collections. Requests pass through a temporary relay.', h1: 'REST API Tester' },
               '/regex-tester/': { title: 'Regular Expression Tester — JavaScript Regex - DigDevBox', description: 'Test JavaScript regular expressions online with live matches, capture groups, replacement preview and named positive/negative test cases with pass/fail results. A 300ms worker timeout stops runaway patterns.', h1: 'Regular Expression Tester' },
               '/json-prettify/': { title: 'JSON Formatter — Format, Validate & Diff - DigDevBox', description: 'Format and validate JSON online — pretty-print at your indent size, sort keys and spot syntax errors instantly, right in your browser.', h1: 'JSON Formatter' },
