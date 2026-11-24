@@ -212,14 +212,14 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
   {
     path: '/numeronym-generator',
     keyword: 'numeronym',
-    keywords: ['numeronym generator', 'numeronym meaning', 'i18n meaning', 'a11y meaning', 'k8s meaning'],
+    keywords: ['numeronym generator', 'bulk numeronym generator', 'numeronym meaning', 'unicode numeronym', 'numeronym lookup', 'i18n meaning', 'a11y meaning', 'k8s meaning', 'm17n meaning', 'p13n meaning', 'o11y meaning', 'numeronym for compound words'],
     intent: 'generate',
     priority: 'P0',
     competition: 'medium',
     article: 'what-is-a-numeronym',
     landed: true,
     lockedTitle: 'Numeronym Generator — i18n, a11y & k8s',
-    note: 'GSC observed 9 impressions at average position 6.56 plus 1 impression for numeronym generator at position 5. The tool also looks up a fixed dictionary of established forms; it does not invent meanings for arbitrary abbreviations.',
+    note: 'One canonical tool route supports free-text batch input, Unicode letter clusters, case-preserving output, hyphen/apostrophe compounds, per-item counts and curated lookups. Search-volume metrics remain unclaimed; do not create separate pages for delimiter or language variants.',
   },
   {
     path: '/eta-calculator',
