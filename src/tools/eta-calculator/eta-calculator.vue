@@ -3,14 +3,20 @@
 
 import { addMilliseconds, formatRelative } from 'date-fns';
 import { enGB } from 'date-fns/locale';
+import { useI18n } from 'vue-i18n';
 
 import {
   calculateObservedPaceEta,
   calculateRemainingEta,
   formatMsDuration,
 } from './eta-calculator.service';
+import { useCopy } from '@/composable/copy';
 
 type EtaMode = 'rate' | 'observed';
+
+const { t } = useI18n();
+const { copy } = useCopy({ text: t('tools.eta-calculator.copySuccess') });
+const localTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'local time';
 
 const calculationMode = ref<EtaMode>('rate');
 const unitCount = ref(3 * 62);
@@ -22,6 +28,8 @@ const elapsedHours = ref(2);
 const elapsedMinutes = ref(0);
 const elapsedSeconds = ref(0);
 const bufferPercent = ref(0);
+const additionalPauseMinutes = ref(0);
+const additionalPauseMs = computed(() => additionalPauseMinutes.value * 60_000);
 const startedAt = ref(Date.now());
 
 const elapsedMs = computed(() => (
@@ -61,6 +69,10 @@ const estimate = computed(() => {
   });
 });
 
+const projectedDurationMs = computed(() => (
+  estimate.value ? estimate.value.durationMs + additionalPauseMs.value : 0
+));
+
 const progressPercent = computed(() => Math.round(
   estimate.value?.completionPercent
     ?? (unitCount.value > 0 ? (completedUnitCount.value / unitCount.value) * 100 : 0),
@@ -71,7 +83,7 @@ const endAt = computed(() => {
   }
   const anchor = calculationMode.value === 'observed' ? Date.now() : startedAt.value;
   return formatRelative(
-    addMilliseconds(anchor, estimate.value.durationMs),
+    addMilliseconds(anchor, projectedDurationMs.value),
     Date.now(),
     { locale: enGB },
   );
@@ -82,8 +94,30 @@ const displayedDuration = computed(() => {
   }
   return estimate.value.remainingUnits === 0
     ? '0 seconds'
-    : formatMsDuration(estimate.value.durationMs);
+    : formatMsDuration(projectedDurationMs.value);
 });
+const formattedEndAt = computed(() => {
+  if (!estimate.value) {
+    return '';
+  }
+  const anchor = calculationMode.value === 'observed' ? Date.now() : startedAt.value;
+  const finish = addMilliseconds(anchor, projectedDurationMs.value);
+  const formatted = new Intl.DateTimeFormat(undefined, {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  }).format(finish);
+  return `${formatted} (${localTimeZone})`;
+});
+function copyFinishTime() {
+  if (formattedEndAt.value) {
+    copy(formattedEndAt.value);
+  }
+}
+function copyRemainingDuration() {
+  if (estimate.value) {
+    copy(displayedDuration.value);
+  }
+}
 const displayedObservedRate = computed(() => {
   if (
     calculationMode.value !== 'observed'
@@ -231,6 +265,22 @@ const displayedObservedRate = computed(() => {
       </div>
     </template>
 
+    <n-form-item
+      :label="$t('tools.eta-calculator.additionalPauseMinutes')"
+      :show-feedback="false"
+    >
+      <n-input-number
+        v-model:value="additionalPauseMinutes"
+        :min="0"
+        :max="10080"
+        :step="5"
+        data-test-id="eta-pause-minutes"
+      />
+      <p ml-2 text-xs opacity-65>
+        {{ $t('tools.eta-calculator.additionalPauseHelp') }}
+      </p>
+    </n-form-item>
+
     <div
       role="progressbar"
       aria-label="Work completed"
@@ -279,9 +329,40 @@ const displayedObservedRate = computed(() => {
         >
           {{ formatMsDuration(estimate.bufferDurationMs) }}
         </n-statistic>
+        <n-statistic
+          v-if="estimate && additionalPauseMinutes > 0 && estimate.remainingUnits > 0"
+          :label="$t('tools.eta-calculator.additionalPauseResult')"
+          data-test-id="eta-pause-time"
+        >
+          {{ formatMsDuration(additionalPauseMs) }}
+        </n-statistic>
         <n-statistic v-if="estimate && estimate.remainingUnits > 0" label="Estimated finish time" data-test-id="eta-finish">
           {{ endAt }}
         </n-statistic>
+        <p
+          v-if="estimate && estimate.remainingUnits > 0"
+          text-xs
+          opacity-70
+          data-test-id="eta-finish-local"
+        >
+          {{ $t('tools.eta-calculator.localFinishTime') }}: {{ formattedEndAt }}
+        </p>
+        <div v-if="estimate && estimate.remainingUnits > 0" flex flex-wrap gap-2>
+          <n-button
+            secondary
+            data-test-id="eta-copy-finish"
+            @click="copyFinishTime"
+          >
+            {{ $t('tools.eta-calculator.copyFinishTime') }}
+          </n-button>
+          <n-button
+            secondary
+            data-test-id="eta-copy-remaining"
+            @click="copyRemainingDuration"
+          >
+            {{ $t('tools.eta-calculator.copyRemainingDuration') }}
+          </n-button>
+        </div>
         <p v-if="estimate && estimate.remainingUnits === 0" text-sm font-semibold data-test-id="eta-complete">
           All work items are complete.
         </p>

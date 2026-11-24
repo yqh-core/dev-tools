@@ -27,6 +27,38 @@ test('ETA Calculator projects remaining work and adds an optional buffer', async
   await expect(page.getByTestId('eta-progress-label')).toContainText('40%');
 });
 
+test('ETA Calculator offers copyable remaining duration and an exact local finish timestamp', async ({ page }) => {
+  await page.goto('/eta-calculator');
+  await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
+
+  const fill = async (id: string, value: string) => {
+    await page.getByTestId(id).locator('input').fill(value);
+  };
+  await fill('eta-total', '500');
+  await fill('eta-completed', '200');
+  await fill('eta-rate', '5');
+  await fill('eta-interval', '3');
+  await fill('eta-buffer', '10');
+  await fill('eta-pause-minutes', '15');
+
+  await expect(page.getByTestId('eta-pause-time')).toContainText('15 minutes');
+  await expect(page.getByTestId('eta-duration')).toContainText('3 hours 33 minutes');
+  await expect(page.getByTestId('eta-finish-local')).toContainText(
+    await page.evaluate(() => Intl.DateTimeFormat().resolvedOptions().timeZone),
+  );
+
+  await page.getByTestId('eta-copy-remaining').click();
+  await expect.poll(() => page.evaluate(() => navigator.clipboard.readText()))
+    .toContain('3 hours 33 minutes');
+
+  await page.getByTestId('eta-copy-finish').click();
+  const copiedFinish = await page.evaluate(() => navigator.clipboard.readText());
+  expect(copiedFinish).toContain('(');
+  expect(copiedFinish).toContain(
+    await page.evaluate(() => Intl.DateTimeFormat().resolvedOptions().timeZone),
+  );
+});
+
 test('ETA Calculator clearly reports a completed workload', async ({ page }) => {
   await page.goto('/eta-calculator');
   const fill = async (id: string, value: string) => {
