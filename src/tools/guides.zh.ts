@@ -2164,7 +2164,7 @@ export const GUIDES: Record<string, ToolGuide> = {
     ],
     example: {
       label: '填入响应头示例',
-      text: 'HTTP/2 200 OK\ncontent-security-policy: default-src 'self'\nx-content-type-options: nosniff\nreferrer-policy: strict-origin-when-cross-origin\nset-cookie: session=abc; Secure; HttpOnly; SameSite=Lax',
+      text: 'HTTP/2 200 OK\nstrict-transport-security: max-age=31536000\nx-content-type-options: nosniff\nset-cookie: session=abc; Secure; HttpOnly; SameSite=Lax',
     },
     about: 'HTTP 响应头是服务器随响应发送的元数据，会影响浏览器安全控制、内容处理、缓存、跨源访问，有时也影响搜索索引。响应头速查表回答每个字段是什么意思；分析器进一步回答实际问题：这次捕获的响应里有哪些控制、哪些缺失或配置较弱、接下来应该检查什么？本工具在浏览器本地解析，并公开评分规则，不会把一个分数包装成网站安全证明。',
     articleOnlySections: [
