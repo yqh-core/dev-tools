@@ -1036,20 +1036,43 @@ tools:
     description: Test JavaScript regular expressions online with live matches, capture groups, replacement preview and named positive/negative test cases with pass/fail results. A 300ms worker timeout stops runaway patterns.
 
   safelink-decoder:
-    title: "Outlook Safe Links Decoder — Reveal the Original URL"
-    description: "Decode Outlook Safe Links one URL or a batch at a time, including nested wrappers. Reveal destinations locally; decoding does not verify safety."
+    title: "Outlook Safe Links Batch Decoder — Local URL Unwrapper"
+    description: "Decode Outlook Safe Links in bulk: paste one HTTPS wrapper per line, unwrap up to five layers, inspect destination hosts and copy successful URLs. Local parsing; no safety scan."
     batch:
-      title: Decode multiple Safe Links
-      instructions: Paste one Outlook Safe Links URL per line. Blank lines are ignored; each line is parsed locally and the destination is never opened.
+      title: Batch decode Outlook Safe Links
+      instructions: Paste one Outlook Safe Links URL per line. Blank lines are ignored and each result is handled independently in your browser.
+      inputLabel: Outlook Safe Links URLs (one per line)
+      help: The destination is displayed as text only. The tool does not open the wrapper or destination.
       placeholder: Paste one Outlook Safe Links URL per line...
       decode: Decode links
       copy: Copy successful URLs
       summary: "{success} of {total} links decoded; {failed} failed."
       line: "Line {line}"
-      success: Destination decoded (not safety-checked)
+      success: Destination extracted (not safety-checked)
+      scheme: Scheme
+      host: Destination host
+      layers: Safe Links wrapper layers
       copied: Successful URLs copied.
       copyFailed: Clipboard access failed. Select and copy the decoded URLs manually.
-
+    single:
+      title: Decode a single Safe Links URL
+      instructions: Need to check only one message link? Use this single-URL field; the batch decoder above is recommended for multiple messages.
+      inputLabel: Outlook Safe Links URL
+      placeholder: Paste one Outlook Safe Links URL...
+      outputLabel: Decoded destination (text only)
+    guide:
+      title: How to decode Outlook Safe Links in bulk
+      intro: Paste one HTTPS Outlook Safe Links wrapper per line. The tool ignores blank lines, unwraps up to five nested wrappers, reports each row independently and lets you copy successful destinations together.
+      exampleTitle: Example: two links in one batch
+      example: "https://nam01.safelinks.protection.outlook.com/?url=https%3A%2F%2Fexample.com%2Fdocs\nhttps://eur01.safelinks.protection.outlook.com/?url=https%3A%2F%2Fexample.org%2Fguide"
+      securityTitle: What this decoder does — and does not do
+      localParsing: Parsing runs in your browser. This tool does not fetch or open the Safe Links wrappers or decoded destinations.
+      noSafetyScan: A decoded host is context, not a safety verdict. The tool does not scan, rate or certify destination websites.
+      microsoftProtection: This decoder does not replace or bypass Microsoft's Safe Links time-of-click protection. Keep following your organization's security process before visiting a destination.
+      relatedTitle: Related URL resources
+      urlParser: Inspect URL components with URL Parser
+      urlEncoder: Encode or decode URL components
+      fullGuide: Read the Outlook Safe Links guide
   xml-to-json:
     title: XML to JSON Converter — Convert XML Online
     description: Convert XML into JSON in your browser. Elements become objects, repeated elements become arrays, and attributes and text are represented with separate keys.
