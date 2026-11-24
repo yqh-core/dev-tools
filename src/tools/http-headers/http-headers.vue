@@ -67,7 +67,7 @@ const rows = computed(() => (search.value ? searchResult.value : httpHeaderEntri
         <c-button size="small" @click="loadSampleHeaders">
           Load secure example
         </c-button>
-        <c-button size="small" secondary @click="clearResponseHeaders">
+        <c-button size="small" @click="clearResponseHeaders">
           Clear
         </c-button>
       </div>
