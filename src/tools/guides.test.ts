@@ -54,6 +54,23 @@ describe('G4: loadGuides 按语言返回正确数据', () => {
   });
 });
 
+describe('G4: JSON Diff large-input guide accuracy', () => {
+  it('describes main-thread and Web Worker thresholds consistently in English and Chinese', async () => {
+    const english = await loadGuides('en');
+    const chinese = await loadGuides('zh');
+    const enFaq = english?.['/json-diff']?.faqs?.find(item => item.q === 'Can I compare very large files?');
+    const zhFaq = chinese?.['/json-diff']?.faqs?.find(item => item.q === '可以比较超大文件吗？');
+
+    expect(enFaq?.a).toContain('Small documents are compared on the browser main thread');
+    expect(enFaq?.a).toContain('combined input exceeds 150,000 characters');
+    expect(enFaq?.a).toContain('dedicated Web Worker');
+    expect(enFaq?.a).not.toContain('Comparison currently runs on the browser main thread');
+    expect(zhFaq?.a).toContain('较小文档在浏览器主线程比较');
+    expect(zhFaq?.a).toContain('合计超过 150,000 个字符');
+    expect(zhFaq?.a).toContain('专用 Web Worker');
+  });
+});
+
 describe('G4: assertGuideCoverage 自检', () => {
   it('当前所有已启用语言都有 importer → 返回空数组', () => {
     expect(assertGuideCoverage()).toEqual([]);
