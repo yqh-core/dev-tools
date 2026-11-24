@@ -224,7 +224,9 @@ jobs:
             '/htpasswd-generator',
             '/json-to-toml',
             '/text-statistics',
-            '/json-diff',]) {
+            '/json-diff',
+            '/slugify-string',
+            '/redirect-generator',]) {
             const expected = origin + route + '/';
             for (const variant of [route, route + '/']) {
               const result = await get(variant);
@@ -277,7 +279,7 @@ jobs:
           // priority English pages. This catches UA-dependent HTML/cache variants
           // and guarantees the crawler sees the same title, description, H1 and canonical.
           const browserUa = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/130.0.0.0 Safari/537.36';
-          const priorityPages = ['/', '/percentage-calculator/', '/numeronym-generator/', '/api-debugger/', '/regex-tester/', '/json-prettify/', '/json-workspace/', '/json-diff/', '/base-converter/', '/html-entities/', '/json-to-get-params/', '/docker-run-to-docker-compose-converter/', '/otp-generator/', '/htpasswd-generator/', '/json-to-toml/', '/text-statistics/'];
+          const priorityPages = ['/', '/percentage-calculator/', '/numeronym-generator/', '/api-debugger/', '/regex-tester/', '/json-prettify/', '/json-workspace/', '/json-diff/', '/base-converter/', '/html-entities/', '/json-to-get-params/', '/docker-run-to-docker-compose-converter/', '/otp-generator/', '/htpasswd-generator/', '/json-to-toml/', '/text-statistics/', '/slugify-string/', '/redirect-generator/'];
           for (const path of priorityPages) {
             const [bot, browser] = await Promise.all([get(path), get(path, browserUa)]);
             for (const [label, result] of [['Googlebot', bot], ['browser', browser]]) {
@@ -328,6 +330,7 @@ jobs:
               '/json-to-toml/': { title: 'JSON to TOML Converter - DigDevBox', description: 'Convert JSON or JSON5 objects to TOML. Nested objects become tables or dotted keys; arrays become TOML arrays. Unsupported values may prevent conversion.', h1: 'JSON to TOML Converter' },
               '/text-statistics/': { title: 'Text Statistics — Word & Character Counter - DigDevBox', description: 'Free online word and character counter with Unicode grapheme, code point, UTF-16 and UTF-8 byte counts. Count words, unique words, sentences, paragraphs and lines, estimate reading time, and keep text private in your browser.', h1: 'Text Statistics' },
               '/json-diff/': { title: 'JSON Diff Checker — Compare JSON Online - DigDevBox', description: 'Compare JSON files or pasted JSON online. Inspect nested changes by path, export a report, and match arrays by index, ignore-order or stable ID. Large comparisons run in a cancellable worker.', h1: 'JSON Diff Checker' },
+              '/redirect-generator/': { title: 'Bulk 301 Redirect Generator — Apache, Nginx & Cloudflare - DigDevBox', description: 'Create bulk 301, 302, 307 or 308 redirects for Apache, Nginx and Cloudflare. Import CSV, detect duplicates, loops and redirect chains. Runs locally.', h1: 'Bulk 301 Redirect Generator' },
             };
             const expected = expectedMetadata[path];
             if (expected &&
@@ -425,6 +428,22 @@ jobs:
             throw new Error('Text Statistics guide must be live, indexable, self-canonical and have a distinct meta description');
           }
 
+          // Bulk Redirect Generator guide: keep the editorial landing page distinct from its tool route.
+          const redirectGuidePath = '/guides/redirect-generator/';
+          const redirectGuideResult = await get(redirectGuidePath);
+          const redirectToolResult = await get('/redirect-generator/');
+          const redirectGuideDescription = extractDescription(redirectGuideResult.body);
+          const redirectToolDescription = extractDescription(redirectToolResult.body);
+          const redirectGuideCanonical = redirectGuideResult.body.match(/<link[^>]+rel=["']canonical["'][^>]+href=["']([^"']+)["']/i)?.[1] || '';
+          if (!redirectGuideResult.response.ok ||
+              redirectGuideResult.finalUrl !== origin + redirectGuidePath ||
+              !redirectGuideDescription || !redirectToolDescription ||
+              redirectGuideDescription === redirectToolDescription ||
+              redirectGuideCanonical !== origin + redirectGuidePath ||
+              /<meta[^>]+name=["']robots["'][^>]+content=["'][^"']*noindex/i.test(redirectGuideResult.body)) {
+            throw new Error('Bulk Redirect Generator guide must be live, indexable, self-canonical and have a distinct meta description');
+          }
+
           const robots = await get('/robots.txt');
           if (!robots.response.ok || !/Sitemap:\s*https:\/\//i.test(robots.body) || !robots.body.includes(origin + '/sitemap.xml')) {
             throw new Error('robots.txt does not reference the canonical production sitemap');
@@ -462,6 +481,9 @@ jobs:
             "/device-information/",
             "/ipv4-range-expander/",
             "/pdf-signature-checker/",
+            "/slugify-string/",
+            "/redirect-generator/",
+            "/guides/redirect-generator/",
           ]) {
             const url = origin + route;
             if (!sitemap.body.includes(url)) throw new Error('sitemap missing priority search page ' + url);
@@ -496,5 +518,5 @@ jobs:
             throw new Error('Legacy archive URLs must not appear in the canonical sitemap');
           }
 
-          console.log('PASS: production homepage, canonical host, robots.txt, sitemap.xml, legacy noindex header and selected search landing pages');
+          console.log('PASS: production homepage, canonical host, robots.txt, sitemap.xml, legacy noindex header and selected search landing pages, including Bulk Slug and Redirect generators');
           NODE
