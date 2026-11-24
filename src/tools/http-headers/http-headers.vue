@@ -2,6 +2,11 @@
 import { useI18n } from 'vue-i18n';
 import { type HeaderAnalysis, analyzeResponseHeaders } from './http-headers.models';
 import { httpHeaderEntries, httpMethodEntries } from './http-headers.constants';
+import {
+  type HarResponseEntry,
+  formatHarResponseHeaders,
+  parseHarResponseEntries,
+} from './http-headers.har';
 import { type HeaderRemediationPlatform, buildHeaderRemediation } from './http-headers.remediation';
 import { useCopy } from '@/composable/copy';
 import { useFuzzySearch } from '@/composable/fuzzySearch';
@@ -24,6 +29,76 @@ const SAMPLE_HEADERS = [
 ].join('\n');
 
 const rawHeaders = ref('');
+const harEntries = ref<HarResponseEntry[]>([]);
+const selectedHarEntry = ref('');
+const harImportError = ref('');
+const harEntryOptions = computed(() => harEntries.value.map(entry => ({
+  label: `${entry.method} ${entry.url} — ${entry.status} ${entry.statusText}`.trim(),
+  value: entry.id,
+})));
+
+function applyHarEntry(id: string) {
+  const entry = harEntries.value.find(item => item.id === id);
+  if (entry) {
+    selectedHarEntry.value = id;
+    rawHeaders.value = formatHarResponseHeaders(entry);
+  }
+}
+
+function selectHarEntry(id: string) {
+  applyHarEntry(id);
+}
+
+async function importLocalFile(file: File) {
+  harImportError.value = '';
+  if (file.size > 10 * 1024 * 1024) {
+    harImportError.value = t('tools.http-headers.analyzer.harTooLarge');
+    return;
+  }
+
+  try {
+    const content = await file.text();
+    if (file.name.toLowerCase().endsWith('.txt') || file.type === 'text/plain') {
+      harEntries.value = [];
+      selectedHarEntry.value = '';
+      rawHeaders.value = content;
+      return;
+    }
+
+    const entries = parseHarResponseEntries(content);
+    if (entries.length === 0) {
+      harEntries.value = [];
+      selectedHarEntry.value = '';
+      harImportError.value = t('tools.http-headers.analyzer.harNoResponses');
+      return;
+    }
+
+    harEntries.value = entries;
+    applyHarEntry(entries[0].id);
+  }
+  catch {
+    harEntries.value = [];
+    selectedHarEntry.value = '';
+    harImportError.value = t('tools.http-headers.analyzer.harInvalid');
+  }
+}
+
+async function handleHarFileChange(event: Event) {
+  const input = event.target as HTMLInputElement;
+  const file = input.files?.[0];
+  if (file) {
+    await importLocalFile(file);
+  }
+  input.value = '';
+}
+
+async function handleHarDrop(event: DragEvent) {
+  const file = event.dataTransfer?.files?.[0];
+  if (file) {
+    await importLocalFile(file);
+  }
+}
+
 const analysis = computed<HeaderAnalysis | undefined>(() => (
   rawHeaders.value.trim() ? analyzeResponseHeaders(rawHeaders.value) : undefined
 ));
@@ -39,6 +114,7 @@ const remediationOptions = computed(() => [
   { label: t('tools.http-headers.analyzer.remediation.platforms.nginx'), value: 'nginx' },
   { label: t('tools.http-headers.analyzer.remediation.platforms.apache'), value: 'apache' },
   { label: t('tools.http-headers.analyzer.remediation.platforms.caddy'), value: 'caddy' },
+  { label: t('tools.http-headers.analyzer.remediation.platforms.vercel'), value: 'vercel' },
   { label: t('tools.http-headers.analyzer.remediation.platforms.cloudflare'), value: 'cloudflare-pages' },
 ]);
 const remediationSnippet = computed(() => analysis.value
@@ -125,6 +201,41 @@ function directionLabel(direction: string): string {
       <p mb-3 op-70>
         {{ t('tools.http-headers.analyzer.intro') }}
       </p>
+
+      <div mt-3 flex flex-wrap items-center gap-2>
+        <label class="har-upload-label">
+          {{ t('tools.http-headers.analyzer.harImportLabel') }}
+          <input
+            type="file"
+            accept=".har,.txt,application/json,text/plain"
+            data-test-id="har-file-input"
+            :aria-label="t('tools.http-headers.analyzer.harImportLabel')"
+            @change="handleHarFileChange"
+          >
+        </label>
+        <span text-xs op-60>
+          {{ t('tools.http-headers.analyzer.harPrivacyNote') }}
+        </span>
+      </div>
+      <div
+        class="har-drop-zone"
+        data-test-id="har-drop-zone"
+        @dragover.prevent
+        @drop.prevent="handleHarDrop"
+      >
+        {{ t('tools.http-headers.analyzer.harDropNote') }}
+      </div>
+      <c-alert v-if="harImportError" mt-3 type="warning" data-test-id="har-import-error">
+        {{ harImportError }}
+      </c-alert>
+      <n-select
+        v-if="harEntries.length > 1"
+        :value="selectedHarEntry"
+        :options="harEntryOptions"
+        data-test-id="har-entry-select"
+        mt-3
+        @update:value="selectHarEntry"
+      />
 
       <n-input
         v-model:value="rawHeaders"
@@ -391,6 +502,31 @@ function directionLabel(direction: string): string {
 
 .methods-desc {
   color: var(--dd-text-soft);
+}
+
+.har-drop-zone {
+  margin-top: 8px;
+  padding: 10px 12px;
+  border: 1px dashed var(--dd-border);
+  border-radius: var(--dd-radius);
+  color: var(--dd-text-soft);
+  font-size: 12px;
+  text-align: center;
+}
+
+.har-upload-label {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.har-upload-label input {
+  max-width: 100%;
+  font-size: 12px;
+  font-weight: 400;
 }
 
 .remediation-code {
