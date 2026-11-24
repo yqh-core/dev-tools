@@ -703,7 +703,27 @@ tools:
 
   ipv6-ula-generator:
     title: IPv6 ULA generator
-    description: Generate your own local, non-routable IP addresses for your network according to RFC4193.
+    description: Generate RFC 4193 fd00::/8 IPv6 Unique Local Address (ULA) /48 prefixes with secure random 40-bit Global IDs or a manual Global ID. Create up to 20 prefixes and inspect first/last /64 subnets in your browser.
+    randomMode: Secure random
+    manualMode: Manual Global ID
+    quantity: Number of prefixes
+    randomHelp: Uses the browser cryptographic random generator. No MAC address is needed; generate up to 20 unique prefixes at once.
+    globalId: 40-bit Global ID
+    manualHelp: Enter exactly 10 hexadecimal characters (or prefix 0x) to reproduce a specific /48 prefix.
+    generate: Generate
+    copyAll: Copy all prefixes
+    resultNumber: Prefix {number}
+    ulaPrefix: ULA prefix (/48)
+    firstSubnet: First /64 subnet
+    lastSubnet: Last /64 subnet
+    subnetCount: A /48 contains {count} /64 subnets.
+    copied: ULA prefixes copied to the clipboard.
+    privacyNote: Random generation uses Web Crypto in your browser. No MAC address, Global ID or generated prefix is sent to a server or analytics.
+    routingWarning: ULAs are for private network use and are not expected to be routed on the public internet. Random IDs reduce collision risk but do not guarantee uniqueness; check existing prefixes before connecting sites or VPNs. A ULA is not a security boundary.
+    errors:
+      invalidQuantity: Choose between 1 and 20 prefixes.
+      invalidGlobalId: Enter exactly 10 hexadecimal characters for a 40-bit Global ID.
+      randomUnavailable: Secure browser randomness is unavailable. Use a modern browser with Web Crypto enabled.
 
   hash-text:
     title: Hash Generator — MD5, SHA-1, SHA-256 Online
