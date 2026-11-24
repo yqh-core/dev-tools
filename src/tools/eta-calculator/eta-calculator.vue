@@ -260,7 +260,7 @@ const displayedObservedRate = computed(() => {
     <c-card data-test-id="eta-result">
       <div flex flex-col gap-3>
         <n-statistic
-          v-if="calculationMode === 'observed' && estimate"
+          v-if="calculationMode === 'observed' && estimate && estimate.remainingUnits > 0"
           label="Observed processing rate"
           data-test-id="eta-observed-rate"
         >
