@@ -258,6 +258,7 @@ watchEffect(
         placeholder="Put the regex to test"
         multiline
         rows="3"
+        data-test-id="regex-input"
         :validation="regexValidation"
       />
       <c-select v-model:value="selectedPreset" :options="presetOptions" label="Verified presets:" clearable />
