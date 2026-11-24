@@ -11,8 +11,9 @@ test.describe('Tool - bulk redirect generator', () => {
     await page.getByRole('button', { name: 'Load sample' }).click();
 
     await expect(page.getByTestId('redirect-analysis')).toContainText('3');
-    await expect(page.getByTestId('redirect-output').locator('textarea')).toHaveValue(/RedirectMatch 301/);
-    await expect(page.getByTestId('redirect-output').locator('textarea')).toHaveValue(/\\^\\/old-product\\\$/);
+    const output = page.getByTestId('redirect-output').locator('textarea');
+    await expect(output).toHaveValue(/RedirectMatch 301/);
+    expect(await output.inputValue()).toContain('^/old-product$');
   });
 
   test('shows duplicate, self-redirect and loop errors before export', async ({ page }) => {
@@ -28,9 +29,9 @@ test.describe('Tool - bulk redirect generator', () => {
     await expect(report).toContainText('duplicates line');
     await expect(report).toContainText('same path');
     await expect(report).toContainText('part of a loop');
-    const generated = await page.getByTestId('redirect-output').locator('textarea').inputValue();
-    expect(generated).not.toContain('/same');
-    expect(generated).not.toContain('/a');
+    const output = await page.getByTestId('redirect-output').locator('textarea').inputValue();
+    expect(output).not.toContain('/same');
+    expect(output).not.toContain('/a');
   });
 
   test('generates Cloudflare CSV after a site origin is supplied', async ({ page }) => {
@@ -40,7 +41,9 @@ test.describe('Tool - bulk redirect generator', () => {
 
     await expect(page.getByTestId('redirect-output-card')).toContainText('Enter a site origin');
     await page.locator('[data-test-id="redirect-origin-input"] input').fill('https://example.com');
-    await expect(page.getByTestId('redirect-output').locator('textarea')).toHaveValue(/https:\/\/example\\.com\\\/old/);
+    const output = page.getByTestId('redirect-output').locator('textarea');
+    await expect(output).toHaveValue(/"https:\/\/example\.com\/old"/);
+    expect(await output.inputValue()).toContain('"https://example.com/old","https://example.com/new","301"');
   });
 
   test('imports a CSV file in the browser', async ({ page }) => {
