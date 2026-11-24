@@ -10,7 +10,14 @@ describe('route-specific Open Graph cards', () => {
     expect(socialImageSlug('/')).toBe('home');
     expect(socialImagePath('/')).toBe('/og/home.png');
     expect(socialImagePath('/ipv6-ula-generator/')).toBe('/og/ipv6-ula-generator.png');
+    expect(socialImagePath('/eta-calculator/')).toBe('/og/eta-calculator.png');
     expect(socialImagePath('/guides/eta-calculator/')).toBe('/og/guides--eta-calculator.png');
+    expect(socialImagePath('/eta-calculator/')).not.toBe(socialImagePath('/guides/eta-calculator/'));
+    expect(new Set([
+      socialImagePath('/'),
+      socialImagePath('/eta-calculator/'),
+      socialImagePath('/guides/eta-calculator/'),
+    ]).size).toBe(3);
   });
 
   it('creates valid 1200x630 PNG data', () => {
