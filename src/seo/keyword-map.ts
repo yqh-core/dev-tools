@@ -516,8 +516,8 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     priority: 'P0',
     competition: 'medium',
     landed: true,
-    lockedTitle: 'Percentage Calculator — Percent & Change',
-    note: 'GSC 90d snapshot: 224 impressions and 0 clicks across slash/no-slash URL variants (visible detail substantially anonymized; examples include arithmetic queries such as 0.05*250 and 26000*0.02). Competitor review found six- and seven-mode calculators commonly include reverse percentage and symmetric percentage difference; percentage-point change is also a distinct rate-intent task. The page now also supports optional labelled batch rows across all seven calculations, substituted formula/result rows, single-row and CSV copy, and browser-local recent history; batch values and history are not sent to analytics. The update preserves one canonical URL. Re-measure after recrawl; no CTR or ranking lift claimed.',
+    lockedTitle: 'Percentage Calculator — Percent of, Change & Difference',
+    note: 'GSC 90d snapshot: 224 impressions and 0 clicks across slash/no-slash URL variants (visible detail substantially anonymized; examples include arithmetic queries such as 0.05*250 and 26000*0.02). Competitor review found six- and seven-mode calculators commonly include reverse percentage and symmetric percentage difference; percentage-point change is also a distinct rate-intent task. The page now supports seven calculations, labelled batch rows, substituted formula/result rows, single-row and CSV/TSV copy, and browser-local history. On 2026-11-24 the SERP title and description were refined to state the supported calculation tasks more explicitly; this is a CTR hypothesis to re-measure after recrawl, not a claim of ranking or traffic lift.',
   },
 
   // 2026-11-22 additions: extend existing developer-task clusters using the current tool registry.
