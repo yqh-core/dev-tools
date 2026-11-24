@@ -42,9 +42,6 @@ const outputError = computed(() => {
   if (!analysis.value || !analysis.value.valid) {
     return '';
   }
-  if (format.value === 'cloudflare' && !origin.value.trim()) {
-    return t('tools.redirect-generator.errors.originRequired');
-  }
   try {
     generateRedirectOutput(analysis.value, format.value, status.value, {
       origin: origin.value,
