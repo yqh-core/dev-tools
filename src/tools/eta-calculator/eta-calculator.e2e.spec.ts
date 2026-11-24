@@ -70,22 +70,33 @@ test('ETA Calculator derives a remaining estimate from observed pace and preserv
   await expect(page.getByTestId('eta-start-time')).toBeVisible();
 });
 
-test('ETA Calculator validates observed pace and handles a completed workload', async ({ page }) => {
+test('ETA Calculator reports missing progress and invalid elapsed pace, then handles completion', async ({ page }) => {
   await page.goto('/eta-calculator');
   await page.getByTestId('eta-mode-observed').click();
 
+  const field = (id: string) => page.getByTestId(id).locator('input');
   const fill = async (id: string, value: string) => {
-    await page.getByTestId(id).locator('input').fill(value);
+    await field(id).fill(value);
+    await field(id).press('Tab');
   };
+
+  // The observed mode should explain why a rate cannot be derived before any work is complete.
+  await expect(page.getByTestId('eta-observed-error')).toBeVisible();
+
   await fill('eta-total', '500');
   await fill('eta-completed', '200');
+  await expect(page.getByTestId('eta-duration')).toBeVisible();
+
   await fill('eta-elapsed-hours', '0');
+  await expect(field('eta-elapsed-hours')).toHaveValue('0');
+  await expect(page.getByTestId('eta-duration')).toHaveCount(0);
   await expect(page.getByTestId('eta-observed-error')).toBeVisible();
 
   await fill('eta-completed', '500');
   await expect(page.getByTestId('eta-remaining')).toContainText('0');
   await expect(page.getByTestId('eta-duration')).toContainText('0 seconds');
   await expect(page.getByTestId('eta-complete')).toContainText('All work items are complete');
+  await expect(page.getByTestId('eta-observed-error')).toHaveCount(0);
   await expect(page.getByTestId('eta-finish')).toHaveCount(0);
 });
 
