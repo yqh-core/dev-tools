@@ -106,6 +106,7 @@ function downloadReport() {
           accept=".json,.json5,application/json,text/plain"
           aria-label="Open first JSON file"
           data-test-id="left-file"
+          @change="loadJsonFile($event, 'left')"
           block
           mt-1
           w-full
@@ -131,6 +132,7 @@ function downloadReport() {
           accept=".json,.json5,application/json,text/plain"
           aria-label="Open second JSON file"
           data-test-id="right-file"
+          @change="loadJsonFile($event, 'right')"
           block
           mt-1
           w-full
