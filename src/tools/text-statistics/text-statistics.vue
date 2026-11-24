@@ -1,13 +1,14 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import { getTextStatistics } from './text-statistics.service'
+import { computed, ref } from 'vue';
+import { getTextStatistics } from './text-statistics.service';
 
-const text = ref('')
-const readingWpm = ref(200)
-const stats = computed(() => getTextStatistics(text.value))
+const text = ref('');
+const readingWpm = ref(200);
+const stats = computed(() => getTextStatistics(text.value));
+const effectiveReadingWpm = computed(() => Math.min(1000, Math.max(50, readingWpm.value || 200)));
 const readingMinutes = computed(() => stats.value.words === 0
   ? 0
-  : Math.ceil(stats.value.words / Math.max(1, readingWpm.value || 200)))
+  : Math.ceil(stats.value.words / effectiveReadingWpm.value));
 const summary = computed(() => [
   `Words: ${stats.value.words}`,
   `Unique words: ${stats.value.uniqueWords}`,
@@ -20,8 +21,8 @@ const summary = computed(() => [
   `Paragraphs: ${stats.value.paragraphs}`,
   `Sentences: ${stats.value.sentences}`,
   `Longest line: ${stats.value.longestLine} visible characters`,
-  `Estimated reading time: ${readingMinutes.value} min at ${readingWpm.value || 200} words/min`,
-].join('\n'))
+  `Estimated reading time: ${readingMinutes.value} min at ${effectiveReadingWpm.value} words/min`,
+].join('\n'));
 </script>
 
 <template>
@@ -29,7 +30,9 @@ const summary = computed(() => [
     <c-card title="Text to analyze">
       <c-input-text v-model:value="text" multiline placeholder="Paste or type your text here..." rows="7" data-test-id="text-input" />
       <div mt-3 flex flex-wrap items-center justify-between gap-2>
-        <p text-xs opacity-70>All analysis runs locally in your browser. Your text is not uploaded.</p>
+        <p text-xs opacity-70>
+          All analysis runs locally in your browser. Your text is not uploaded.
+        </p>
         <input-copyable :value="summary" readonly placeholder="Copy statistics" test-id="copy-statistics" />
       </div>
     </c-card>
@@ -62,7 +65,9 @@ const summary = computed(() => [
           <span>words/min</span>
         </label>
       </div>
-      <p mt-2 text-xs opacity-70>Estimate = word count divided by your selected reading speed (default 200 words/min), rounded up to a whole minute. Actual reading speed varies.</p>
+      <p mt-2 text-xs opacity-70>
+        Estimate = word count divided by your selected reading speed (default 200 words/min), rounded up to a whole minute. Actual reading speed varies.
+      </p>
     </c-card>
 
     <c-card title="How counts are calculated" data-test-id="counting-methodology">
