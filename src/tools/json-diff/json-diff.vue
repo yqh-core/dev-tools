@@ -2,8 +2,7 @@
 import JSON5 from 'json5';
 
 import DiffsViewer from './diff-viewer/diff-viewer.vue';
-import { diff, flattenDifferences } from './json-diff.models';
-import type { ArrayComparisonMode } from './json-diff.models';
+import { diff, flattenDifferences, type ArrayComparisonMode } from './json-diff.models';
 import { withDefaultOnError } from '@/utils/defaults';
 import { isNotThrowing } from '@/utils/boolean';
 
