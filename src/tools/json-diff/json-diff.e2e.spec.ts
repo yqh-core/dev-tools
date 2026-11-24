@@ -79,4 +79,21 @@ test.describe('Tool - JSON diff', () => {
     const download = await downloadPromise;
     expect(download.suggestedFilename()).toBe('json-diff-report.json');
   });
+  test('ignores array order while preserving duplicate counts', async ({ page }) => {
+    await page.getByTestId('array-mode-ignore-order').check();
+    await page.getByTestId('leftJson').fill('{"items":[1,2,1]}');
+    await page.getByTestId('rightJson').fill('{"items":[1,1,2]}');
+    await expect(page.getByTestId('change-list')).toContainText('0 changed paths');
+    await expect(page.getByTestId('change-list')).toContainText('No changed paths');
+  });
+
+  test('matches array objects by a selected stable ID', async ({ page }) => {
+    await page.getByTestId('array-mode-id').check();
+    await page.getByLabel('Array object ID key').fill('id');
+    await page.getByTestId('leftJson').fill('{"users":[{"id":1,"name":"Ada"},{"id":2,"name":"Grace"}]}');
+    await page.getByTestId('rightJson').fill('{"users":[{"id":2,"name":"Grace Hopper"},{"id":1,"name":"Ada"}]}');
+    await expect(page.getByTestId('change-list')).toContainText('$["users"][1]["name"]');
+    await expect(page.getByTestId('change-list')).toContainText('1 changed paths');
+  });
+
 });
