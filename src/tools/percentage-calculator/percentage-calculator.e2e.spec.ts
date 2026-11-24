@@ -9,7 +9,7 @@ test.describe('Tool - Percentage calculator', () => {
     await expect(page).toHaveTitle('Percentage Calculator — Percent of, Change & Difference - DigDevBox');
     await expect(page.locator('meta[name="description"]')).toHaveAttribute(
       'content',
-      'Find X% of Y, what percent one value is of another, percent change, difference and reverse rates. Seven modes with batch formulas and CSV/TSV export.',
+      'Calculate percentages, discounts, percentage change, reverse percentages and percentage points. Seven modes plus batch CSV/TSV export and worked formulas.',
     );
     await expect(page.locator('h1')).toHaveText('Percentage Calculator');
   });
@@ -63,10 +63,17 @@ test.describe('Tool - Percentage calculator', () => {
   });
 
   test.describe('Chinese result explanations', () => {
-    test.use({ locale: 'zh-CN' });
-
     test('shows localized explanation labels and formula for a percentage result', async ({ page }) => {
-      await page.goto('/percentage-calculator');
+      // Simulate a first visit from a Chinese-language browser deterministically.
+      // Reset the persisted choice before the app bootstraps on the next navigation.
+      await page.addInitScript(() => {
+        localStorage.removeItem('locale');
+        Object.defineProperty(navigator, 'languages', {
+          configurable: true,
+          get: () => ['zh-CN', 'zh'],
+        });
+      });
+      await page.reload();
       await page.getByTestId('percentageX').locator('input').fill('15');
       await page.getByTestId('percentageY').locator('input').fill('80');
       const details = page.getByTestId('percentage-details-percent-of');
