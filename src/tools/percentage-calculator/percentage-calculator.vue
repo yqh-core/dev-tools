@@ -114,65 +114,164 @@ const percentagePointChange = computed(() => {
   return resultText(rateTo.value - rateFrom.value);
 });
 const percentageResultDetails = computed(() => {
-  if (!isFiniteNumber(percentageX.value) || !isFiniteNumber(percentageY.value) || percentageResult.value === '') return null;
+  if (
+    !isFiniteNumber(percentageX.value)
+    || !isFiniteNumber(percentageY.value)
+    || percentageResult.value === ''
+  ) {
+    return null;
+  }
   return {
-    words: t('tools.percentage-calculator.resultDetails.percentOf', { percent: percentageX.value, whole: percentageY.value, result: percentageResult.value }),
+    words: t('tools.percentage-calculator.resultDetails.percentOf', {
+      percent: percentageX.value,
+      whole: percentageY.value,
+      result: percentageResult.value,
+    }),
     formula: `(${percentageX.value} ÷ 100) × ${percentageY.value} = ${percentageResult.value}`,
   };
 });
 
 const partToWholeDetails = computed(() => {
-  if (!isFiniteNumber(numberX.value) || !isFiniteNumber(numberY.value) || numberY.value === 0 || numberResult.value === '') return null;
+  if (
+    !isFiniteNumber(numberX.value)
+    || !isFiniteNumber(numberY.value)
+    || numberY.value === 0
+    || numberResult.value === ''
+  ) {
+    return null;
+  }
   return {
-    words: t('tools.percentage-calculator.resultDetails.partToWhole', { part: numberX.value, whole: numberY.value, result: numberResult.value }),
+    words: t('tools.percentage-calculator.resultDetails.partToWhole', {
+      part: numberX.value,
+      whole: numberY.value,
+      result: numberResult.value,
+    }),
     formula: `(${numberX.value} ÷ ${numberY.value}) × 100 = ${numberResult.value}%`,
   };
 });
 
 const percentageChangeDetails = computed(() => {
-  if (!isFiniteNumber(numberFrom.value) || !isFiniteNumber(numberTo.value) || numberFrom.value === 0 || percentageIncreaseDecrease.value === '') return null;
+  if (
+    !isFiniteNumber(numberFrom.value)
+    || !isFiniteNumber(numberTo.value)
+    || numberFrom.value === 0
+    || percentageIncreaseDecrease.value === ''
+  ) {
+    return null;
+  }
   return {
-    words: t('tools.percentage-calculator.resultDetails.percentageChange', { oldValue: numberFrom.value, newValue: numberTo.value, result: percentageIncreaseDecrease.value }),
+    words: t('tools.percentage-calculator.resultDetails.percentageChange', {
+      oldValue: numberFrom.value,
+      newValue: numberTo.value,
+      result: percentageIncreaseDecrease.value,
+    }),
     formula: `(${numberTo.value} − ${numberFrom.value}) ÷ ${numberFrom.value} × 100 = ${percentageIncreaseDecrease.value}%`,
   };
 });
 
 const adjustmentDetails = computed(() => {
-  if (!isFiniteNumber(adjustmentValue.value) || !isFiniteNumber(adjustmentPercent.value) || increasedValue.value === '' || decreasedValue.value === '') return null;
+  if (
+    !isFiniteNumber(adjustmentValue.value)
+    || !isFiniteNumber(adjustmentPercent.value)
+    || increasedValue.value === ''
+    || decreasedValue.value === ''
+  ) {
+    return null;
+  }
   return {
-    increaseWords: t('tools.percentage-calculator.resultDetails.increase', { value: adjustmentValue.value, percent: adjustmentPercent.value, result: increasedValue.value }),
-    decreaseWords: t('tools.percentage-calculator.resultDetails.decrease', { value: adjustmentValue.value, percent: adjustmentPercent.value, result: decreasedValue.value }),
+    increaseWords: t('tools.percentage-calculator.resultDetails.increase', {
+      value: adjustmentValue.value,
+      percent: adjustmentPercent.value,
+      result: increasedValue.value,
+    }),
+    decreaseWords: t('tools.percentage-calculator.resultDetails.decrease', {
+      value: adjustmentValue.value,
+      percent: adjustmentPercent.value,
+      result: decreasedValue.value,
+    }),
     increaseFormula: `${adjustmentValue.value} × (1 + ${adjustmentPercent.value} ÷ 100) = ${increasedValue.value}`,
     decreaseFormula: `${adjustmentValue.value} × (1 − ${adjustmentPercent.value} ÷ 100) = ${decreasedValue.value}`,
   };
 });
 
-const reverseDetails = computed(() => {
-  if (!isFiniteNumber(reverseFinalValue.value) || !isFiniteNumber(reversePercent.value)) return null;
+const reverseIncreaseDetails = computed(() => {
+  if (
+    !isFiniteNumber(reverseFinalValue.value)
+    || !isFiniteNumber(reversePercent.value)
+    || originalBeforeIncrease.value === ''
+  ) {
+    return null;
+  }
   return {
-    increase: originalBeforeIncrease.value === '' ? null : {
-      words: t('tools.percentage-calculator.resultDetails.reverseIncrease', { percent: reversePercent.value, finalValue: reverseFinalValue.value, originalValue: originalBeforeIncrease.value }),
-      formula: `${reverseFinalValue.value} ÷ (1 + ${reversePercent.value} ÷ 100) = ${originalBeforeIncrease.value}`,
-    },
-    decrease: originalBeforeDecrease.value === '' ? null : {
-      words: t('tools.percentage-calculator.resultDetails.reverseDecrease', { percent: reversePercent.value, finalValue: reverseFinalValue.value, originalValue: originalBeforeDecrease.value }),
-      formula: `${reverseFinalValue.value} ÷ (1 − ${reversePercent.value} ÷ 100) = ${originalBeforeDecrease.value}`,
-    },
+    words: t('tools.percentage-calculator.resultDetails.reverseIncrease', {
+      percent: reversePercent.value,
+      finalValue: reverseFinalValue.value,
+      originalValue: originalBeforeIncrease.value,
+    }),
+    formula: `${reverseFinalValue.value} ÷ (1 + ${reversePercent.value} ÷ 100) = ${originalBeforeIncrease.value}`,
+  };
+});
+
+const reverseDecreaseDetails = computed(() => {
+  if (
+    !isFiniteNumber(reverseFinalValue.value)
+    || !isFiniteNumber(reversePercent.value)
+    || originalBeforeDecrease.value === ''
+  ) {
+    return null;
+  }
+  return {
+    words: t('tools.percentage-calculator.resultDetails.reverseDecrease', {
+      percent: reversePercent.value,
+      finalValue: reverseFinalValue.value,
+      originalValue: originalBeforeDecrease.value,
+    }),
+    formula: `${reverseFinalValue.value} ÷ (1 − ${reversePercent.value} ÷ 100) = ${originalBeforeDecrease.value}`,
+  };
+});
+
+const reverseDetails = computed(() => {
+  if (!isFiniteNumber(reverseFinalValue.value) || !isFiniteNumber(reversePercent.value)) {
+    return null;
+  }
+  return {
+    increase: reverseIncreaseDetails.value,
+    decrease: reverseDecreaseDetails.value,
   };
 });
 
 const percentageDifferenceDetails = computed(() => {
-  if (!isFiniteNumber(differenceA.value) || !isFiniteNumber(differenceB.value) || percentageDifference.value === '') return null;
+  if (
+    !isFiniteNumber(differenceA.value)
+    || !isFiniteNumber(differenceB.value)
+    || percentageDifference.value === ''
+  ) {
+    return null;
+  }
   return {
-    words: t('tools.percentage-calculator.resultDetails.percentageDifference', { first: differenceA.value, second: differenceB.value, result: percentageDifference.value }),
+    words: t('tools.percentage-calculator.resultDetails.percentageDifference', {
+      first: differenceA.value,
+      second: differenceB.value,
+      result: percentageDifference.value,
+    }),
     formula: `|${differenceA.value} − ${differenceB.value}| ÷ ((|${differenceA.value}| + |${differenceB.value}|) ÷ 2) × 100 = ${percentageDifference.value}%`,
   };
 });
 
 const percentagePointsDetails = computed(() => {
-  if (!isFiniteNumber(rateFrom.value) || !isFiniteNumber(rateTo.value) || percentagePointChange.value === '') return null;
+  if (
+    !isFiniteNumber(rateFrom.value)
+    || !isFiniteNumber(rateTo.value)
+    || percentagePointChange.value === ''
+  ) {
+    return null;
+  }
   return {
-    words: t('tools.percentage-calculator.resultDetails.percentagePoints', { oldRate: rateFrom.value, newRate: rateTo.value, result: percentagePointChange.value }),
+    words: t('tools.percentage-calculator.resultDetails.percentagePoints', {
+      oldRate: rateFrom.value,
+      newRate: rateTo.value,
+      result: percentagePointChange.value,
+    }),
     formula: `${rateTo.value} − ${rateFrom.value} = ${percentagePointChange.value} percentage points`,
   };
 });
