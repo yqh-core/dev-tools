@@ -561,8 +561,16 @@ tools:
     currentPace: 当前处理速度
     deadlineOnTrack: 当前处理速度足以在截止时间前完成。
     deadlineBehind: '需要将处理速度提高 {percent}% 才能按时完成。'
-    deadlineTooSoon: 截止时间必须晚于预计开始时间，并为计划暂停和缓冲留出空间。
+    deadlineTooSoon: 截止时间必须晚于预计开始时间，并在扣除计划暂停和缓冲后仍有可用工作时间。
     deadlineComplete: 当前任务已经完成。
+    scheduleTitle: 完成时间排程
+    calendarSchedule: 全天候连续计算（24/7）
+    weekdaySchedule: 周一至周五工作时段
+    workingDayStart: 每日上班时间
+    workingDayEnd: 每日下班时间
+    weekdayScheduleHelp: 只统计你本地时区（{timezone}）中周一至周五、上述起止时间之间的时段。开始时间若不在工作窗口内，任务会从下一个工作日的开工时间继续。
+    workingWindowCounted: 工作时段内计入的时间（包含缓冲和计划暂停）
+    workingScheduleError: 请输入有效的 24 小时制时间；同一天的下班时间必须晚于上班时间。
 
   roman-numeral-converter:
     title: 罗马数字转换器
