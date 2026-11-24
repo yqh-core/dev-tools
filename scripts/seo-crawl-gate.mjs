@@ -138,6 +138,10 @@ function isHttpError(row) {
   return Boolean(match && Number(match[1]) >= 400);
 }
 
+function httpStatusCode(row) {
+  return Number.parseInt(String(row?.status ?? '').slice(0, 3), 10) || 0;
+}
+
 function isCrawlerTransportError(row) {
   const status = String(row?.status ?? '');
   return /^-\d+:/.test(status) && !/^-\d+:SKIPPED$/.test(status);
@@ -213,7 +217,7 @@ async function evaluateSite(site) {
   if (httpErrors.length > 0) {
     for (const row of httpErrors) {
       const message = 'HTTP ' + row.status + ': ' + row.url;
-      const statusCode = Number(String(row.status).match(/^(\\d{3})/)?.[1] || 0);
+      const statusCode = httpStatusCode(row);
 
       if (site.priority && statusCode === 500) {
         const recheck = await recheckSiteOne500(row);
@@ -269,6 +273,11 @@ async function main() {
     const wrongSource = { ...good, sourceUqId: 'https://draw.digdevbox.com/app.js' };
     if (!isHttpError({ status: '404' }) || !isHttpError({ status: '500' }) || !isHttpError({ status: '429' })) {
       throw new Error('self-test failed: expected 4xx/5xx HTTP responses to fail');
+    }
+    if (httpStatusCode({ status: '500' }) !== 500
+        || httpStatusCode({ status: '429' }) !== 429
+        || httpStatusCode({ status: '-4:SEND-ERROR' }) !== 0) {
+      throw new Error('self-test failed: HTTP status code parsing is incorrect');
     }
     if (isHttpError({ status: '200' }) || isHttpError({ status: '301' }) || isHttpError({ status: '-6:SKIPPED' })) {
       throw new Error('self-test failed: accepted status was treated as an HTTP error');
