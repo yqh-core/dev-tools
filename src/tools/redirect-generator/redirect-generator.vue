@@ -76,10 +76,10 @@ const formatOptions = computed(() => [
 ]);
 
 const statusOptions = computed(() => [
-  { label: '301 — ' + t('tools.redirect-generator.status.permanent'), value: '301' },
-  { label: '302 — ' + t('tools.redirect-generator.status.temporary'), value: '302' },
-  { label: '307 — ' + t('tools.redirect-generator.status.temporaryMethod'), value: '307' },
-  { label: '308 — ' + t('tools.redirect-generator.status.permanentMethod'), value: '308' },
+  { label: `301 — ${t('tools.redirect-generator.status.permanent')}`, value: '301' },
+  { label: `302 — ${t('tools.redirect-generator.status.temporary')}`, value: '302' },
+  { label: `307 — ${t('tools.redirect-generator.status.temporaryMethod')}`, value: '307' },
+  { label: `308 — ${t('tools.redirect-generator.status.permanentMethod')}`, value: '308' },
 ]);
 
 const outputLanguage = computed(() => format.value === 'cloudflare' ? 'csv' : 'txt');
