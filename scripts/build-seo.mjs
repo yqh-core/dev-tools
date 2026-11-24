@@ -825,7 +825,8 @@ try {
       throw new Error(`[build-seo] ${path} social card is not 1200×630`);
     }
     if (!DRY_RUN) {
-      const socialFile = join(root, 'dist', imagePath.replace(/^\\/+/, ''));
+      const relativeImagePath = imagePath.startsWith('/') ? imagePath.slice(1) : imagePath;
+      const socialFile = join(root, 'dist', relativeImagePath);
       await mkdir(dirname(socialFile), { recursive: true });
       await writeFile(socialFile, socialImage);
     }
