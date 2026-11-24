@@ -146,9 +146,17 @@ describe('evidence-backed SEO keyword targets', () => {
     expect(entry).toBeDefined();
     expect(entry?.keyword).toBe(keyword);
     expect(entry?.intent).toBe(intent);
-    expect(entry?.landed).toBe(false);
-    expect((entry?.keywords ?? []).length).toBeGreaterThanOrEqual(4);
-    expect(entry?.note).toContain('provisional');
+    if (path === '/phone-parser-and-formatter') {
+      expect(entry?.landed).toBe(true);
+      expect(entry?.lockedTitle).toBe('International Phone Number Parser & Formatter — E.164');
+      expect((entry?.keywords ?? []).length).toBeGreaterThanOrEqual(7);
+      expect(entry?.note).toContain('batch processing');
+    }
+    else {
+      expect(entry?.landed).toBe(false);
+      expect((entry?.keywords ?? []).length).toBeGreaterThanOrEqual(4);
+      expect(entry?.note).toContain('provisional');
+    }
   });
 
   it.each([

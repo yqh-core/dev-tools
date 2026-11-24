@@ -1325,15 +1325,17 @@ export const GUIDES: Record<string, ToolGuide> = {
   },
 
   '/phone-parser-and-formatter': {
-    intro: 'Parses a phone number, identifying the country code, area code and number type, and formats it to a standard form.',
-    steps: ['Enter the phone number (including the country code improves accuracy)', 'Read the parsed details', 'Copy the formatted number'],
-    notes: ['A number without a country code can only be parsed against a default region and is easily misidentified'],
-    example: { label: 'Fill in a sample number', text: '+86 138 0013 8000' },
-    about: 'Parse a phone number into its structured form and reformat it between national, international and E.164 notation. The engine is libphonenumber (the same library behind Android\'s number handling), so you get country code, number type and validity based on real numbering plans rather than a regex guess.',
+    intro: 'Parse, validate and format international phone numbers. Inspect country, number type and E.164 details for one number, or process a list of up to 200 numbers and export a CSV locally.',
+    steps: ['Choose the default country for numbers written without a calling code', 'Enter one phone number for detailed inspection, or paste up to 200 numbers on separate lines in the batch formatter', 'Review valid and possible status, country and number type, then copy a single format or download the batch as CSV'],
+    notes: ['A number without a country code depends on the selected default region', 'Valid means the number matches numbering-plan metadata; it does not prove assignment, reachability or SMS capability'],
+    example: { label: 'Fill in a sample number', text: '+1 650-253-0000' },
+    about: 'The parser uses libphonenumber-js metadata to identify country calling codes, possible and valid number patterns, and number types. The single-number view provides national, international, E.164 and RFC 3966 formats. The batch view applies the same local parsing to up to 200 non-empty lines and exports a CSV for QA, CRM cleanup or migration checks. Phone numbers stay in the browser; validity is a numbering-plan check, not a live carrier or reachability lookup.',
     faqs: [
-      { q: 'What is E.164 and why does everyone ask for it?', a: 'It is the unambiguous international format — plus sign, country code, subscriber number, no spaces (e.g. +442071838750). APIs and databases prefer it because the same number has many human spellings but exactly one E.164 form.' },
-      { q: 'Why does the result change when I add a country code?', a: 'Without one, the parser must assume a default country for local notation; with one, the number is interpreted globally. Ambiguous short numbers can legitimately parse differently — always pass the country you mean.' },
-      { q: 'What does the "type" field mean?', a: 'It classifies the number as mobile, fixed line, toll-free, premium rate and so on, based on the country\'s numbering plan. Useful for filtering out fax lines or blocking premium numbers before dialling.' },
+      { q: 'What is E.164 and why do APIs ask for it?', a: 'E.164 is the international storage and interchange format: a plus sign, country calling code and national number with no formatting spaces, such as +16502530000.' },
+      { q: 'Can I format multiple phone numbers at once?', a: 'Yes. Paste one number per line into the batch formatter. It processes up to 200 non-empty lines in your browser and lets you download the results as CSV.' },
+      { q: 'Does a valid number mean it is active?', a: 'No. The library checks whether the number fits known numbering-plan metadata. It cannot confirm ownership, current service, call reachability or SMS delivery.' },
+      { q: 'Why does the result change when I add a country code?', a: 'Without one, the parser must assume the selected default country for local notation; with one, the number is interpreted using its international calling code.' },
+      { q: 'What does the number type mean?', a: 'It classifies a number using metadata, for example mobile, fixed line, toll-free or premium rate. Not every region exposes every number type.' },
     ],
   },
 

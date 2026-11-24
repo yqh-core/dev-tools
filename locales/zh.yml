@@ -536,8 +536,8 @@ tools:
     description: 将 Unix 时间戳（秒或毫秒）转换为可读日期，或把日期转成时间戳。
 
   phone-parser-and-formatter:
-    title: 电话分析器和格式化程序
-    description: 解析、验证和格式化电话号码。获取有关电话号码的信息，如国家/地区代码、类型等。
+    title: "国际电话号码解析与格式化 — E.164 批量转换"
+    description: "解析国际电话号码，检查编号计划中的可能性与有效性，并转换为 E.164、国内、国际或 RFC 3966 格式。支持本地批量处理最多 200 个号码并导出 CSV。"
 
   prepare-deployment:
     title: 部署准备评估

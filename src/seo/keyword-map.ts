@@ -624,12 +624,13 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
   {
     path: '/phone-parser-and-formatter',
     keyword: 'international phone number parser',
-    keywords: ['phone number formatter', 'phone number validator', 'E.164 phone number format', 'parse international phone number'],
+    keywords: ['phone number formatter', 'phone number validator', 'E.164 phone number format', 'parse international phone number', 'bulk phone number formatter', 'batch phone number validator', 'phone number CSV export'],
     intent: 'parse',
     priority: 'P2',
     competition: 'medium',
-    landed: false,
-    note: 'Candidate mapping matches international phone number parsing, validation and national/international formatting. Confirm supported region/extension behavior before claiming universal validation. Competition is provisional.',
+    landed: true,
+    lockedTitle: 'International Phone Number Parser & Formatter — E.164',
+    note: 'Now supports detailed single-number parsing plus local batch processing of up to 200 non-empty lines with CSV export. Uses libphonenumber metadata; validity does not establish assignment or reachability. Competitor benchmark: GetPhoneNum and Base64.sh show single-number parsing; Spaw/Ucode and MobileValidate demonstrate bulk formatting workflows.',
   },
 
   {
