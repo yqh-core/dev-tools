@@ -32,38 +32,35 @@ function getSafeLinksDestination(value: string): string | null {
   return destination;
 }
 
-export function decodeSafeLinksURL(safeLinksUrl: string): string {
+export interface SafeLinksTargetDetails {
+  url: string
+  scheme: 'http' | 'https'
+  host: string
+  depth: number
+}
+
+export function inspectSafeLinksURL(safeLinksUrl: string): SafeLinksTargetDetails {
   let destination = getSafeLinksDestination(safeLinksUrl);
 
   if (!destination) {
     throw new Error('Invalid SafeLinks URL provided');
   }
 
-  for (let depth = 1; depth < MAX_NESTED_SAFE_LINKS; depth++) {
+  let depth = 1;
+
+  while (depth < MAX_NESTED_SAFE_LINKS) {
     const nestedDestination = getSafeLinksDestination(destination);
 
     if (!nestedDestination) {
-      let parsedDestination: URL;
-
-      try {
-        parsedDestination = new URL(destination);
-      }
-      catch {
-        throw new Error('SafeLinks destination is not a valid absolute URL');
-      }
-
-      if (!['http:', 'https:'].includes(parsedDestination.protocol)) {
-        throw new Error('SafeLinks destination must use HTTP or HTTPS');
-      }
-
-      return destination;
+      break;
     }
 
     destination = nestedDestination;
+    depth += 1;
   }
 
   if (getSafeLinksDestination(destination)) {
-    throw new Error(`SafeLinks nesting exceeds the maximum of ${MAX_NESTED_SAFE_LINKS} layers`);
+    throw new Error(\`SafeLinks nesting exceeds the maximum of \${MAX_NESTED_SAFE_LINKS} layers\`);
   }
 
   let parsedDestination: URL;
@@ -79,7 +76,16 @@ export function decodeSafeLinksURL(safeLinksUrl: string): string {
     throw new Error('SafeLinks destination must use HTTP or HTTPS');
   }
 
-  return destination;
+  return {
+    url: destination,
+    scheme: parsedDestination.protocol.slice(0, -1) as 'http' | 'https',
+    host: parsedDestination.host,
+    depth,
+  };
+}
+
+export function decodeSafeLinksURL(safeLinksUrl: string): string {
+  return inspectSafeLinksURL(safeLinksUrl).url;
 }
 
 export interface SafeLinksBatchResult {
@@ -87,12 +93,16 @@ export interface SafeLinksBatchResult {
   input: string
   decodedUrl: string | null
   error: string | null
+  scheme: 'http' | 'https' | null
+  host: string | null
+  depth: number | null
 }
 
 /**
  * Decode one Safe Links wrapper per non-empty line.
  * Blank lines are ignored, source line numbers are preserved, and one invalid
- * wrapper never prevents other rows from being decoded.
+ * wrapper never prevents other rows from being decoded. Result metadata describes
+ * the decoded URL only; it is not a destination reputation or safety assessment.
  */
 export function decodeSafeLinksBatch(input: string): SafeLinksBatchResult[] {
   return input
@@ -101,11 +111,16 @@ export function decodeSafeLinksBatch(input: string): SafeLinksBatchResult[] {
     .filter(row => row.input.length > 0)
     .map(({ line, input: value }) => {
       try {
+        const result = inspectSafeLinksURL(value);
+
         return {
           line,
           input: value,
-          decodedUrl: decodeSafeLinksURL(value),
+          decodedUrl: result.url,
           error: null,
+          scheme: result.scheme,
+          host: result.host,
+          depth: result.depth,
         };
       }
       catch (error) {
@@ -114,6 +129,9 @@ export function decodeSafeLinksBatch(input: string): SafeLinksBatchResult[] {
           input: value,
           decodedUrl: null,
           error: error instanceof Error ? error.message : String(error),
+          scheme: null,
+          host: null,
+          depth: null,
         };
       }
     });
