@@ -139,15 +139,35 @@ function blendPixel(pixels, x, y, color, alpha) {
 
 function drawRing(pixels, centerX, centerY, radius, thickness, color, alpha) {
   const outer = radius + thickness / 2;
-  const inner = radius - thickness / 2;
+  const inner = Math.max(0, radius - thickness / 2);
   const outer2 = outer * outer;
   const inner2 = inner * inner;
-  for (let y = Math.max(0, centerY - outer); y <= Math.min(SOCIAL_IMAGE_HEIGHT - 1, centerY + outer); y++) {
-    for (let x = Math.max(0, centerX - outer); x <= Math.min(SOCIAL_IMAGE_WIDTH - 1, centerX + outer); x++) {
-      const dx = x - centerX;
-      const dy = y - centerY;
-      const distance2 = dx * dx + dy * dy;
-      if (distance2 <= outer2 && distance2 >= inner2) blendPixel(pixels, x, y, color, alpha);
+  const top = Math.max(0, Math.ceil(centerY - outer));
+  const bottom = Math.min(SOCIAL_IMAGE_HEIGHT - 1, Math.floor(centerY + outer));
+
+  for (let y = top; y <= bottom; y++) {
+    const dy = y - centerY;
+    const dy2 = dy * dy;
+    if (dy2 > outer2) continue;
+
+    const outerDx = Math.sqrt(outer2 - dy2);
+    const leftOuter = Math.max(0, Math.ceil(centerX - outerDx));
+    const rightOuter = Math.min(SOCIAL_IMAGE_WIDTH - 1, Math.floor(centerX + outerDx));
+    if (dy2 >= inner2) {
+      for (let x = leftOuter; x <= rightOuter; x++) {
+        blendPixel(pixels, x, y, color, alpha);
+      }
+      continue;
+    }
+
+    const innerDx = Math.sqrt(inner2 - dy2);
+    const leftInner = Math.floor(centerX - innerDx);
+    const rightInner = Math.ceil(centerX + innerDx);
+    for (let x = leftOuter; x <= leftInner; x++) {
+      blendPixel(pixels, x, y, color, alpha);
+    }
+    for (let x = rightInner; x <= rightOuter; x++) {
+      blendPixel(pixels, x, y, color, alpha);
     }
   }
 }
