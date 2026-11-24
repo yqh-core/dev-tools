@@ -73,8 +73,12 @@ function uniqueSlug(
 
   while (true) {
     const suffix = occurrence > 0 ? `${options.separator}${occurrence + 1}` : '';
+    if (options.maxLength > 0 && suffix.length >= options.maxLength) {
+      return { value: '', truncated: true };
+    }
+
     const baseLimit = options.maxLength > 0
-      ? Math.max(0, options.maxLength - suffix.length)
+      ? options.maxLength - suffix.length
       : 0;
     const trimmed = trimAtWordBoundary(value, baseLimit, options.separator);
     const candidate = `${trimmed.value}${suffix}`;
@@ -146,10 +150,6 @@ export function runSlugifyBatch(
       const result = uniqueSlug(withoutStopWords, used, usedSlugs, options);
       slug = result.value;
       truncated = result.truncated;
-      if (slug) {
-        const key = withoutStopWords.toLowerCase();
-        used.set(key, (used.get(key) ?? 0) + 1);
-      }
     }
     else {
       const result = trimAtWordBoundary(withoutStopWords, options.maxLength, options.separator);
@@ -180,7 +180,14 @@ export function runSlugifyBatch(
 }
 
 function protectSpreadsheetFormula(value: string): string {
-  return /^[\s\u0000-\u001f]*[=+@-]/.test(value) ? `'${value}` : value;
+  const firstMeaningfulCharacter = Array.from(value).find((character) => {
+    const code = character.codePointAt(0) ?? 0;
+    return code > 0x20;
+  });
+
+  return firstMeaningfulCharacter && '=+-@'.includes(firstMeaningfulCharacter)
+    ? `'${value}`
+    : value;
 }
 
 function csvCell(value: string): string {
