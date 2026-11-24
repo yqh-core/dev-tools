@@ -30,19 +30,19 @@ export const OG_IMAGE = `${SITE_ORIGIN}/og-image.jpg?v=3`;
 export const SOCIAL_IMAGE_VERSION = '1';
 
 export function socialImageSlug(path: string): string {
-  const normalized = !path || path === '/' ? '/' : (path.startsWith('/') ? path : `/${path}`);
+  const normalized = !path || path === '/' ? '/' : (path.startsWith('/') ? path : '/' + path);
   if (normalized === '/') {
     return 'home';
   }
-  return normalized
-    .replace(/^\\/+|\\/+$/g, '')
-    .replace(/\\//g, '--')
-    .replace(/[^a-zA-Z0-9_-]/g, '-')
-    .toLowerCase();
+  const withoutLeadingSlash = normalized.startsWith('/') ? normalized.slice(1) : normalized;
+  const withoutTrailingSlash = withoutLeadingSlash.endsWith('/')
+    ? withoutLeadingSlash.slice(0, -1)
+    : withoutLeadingSlash;
+  return withoutTrailingSlash.split('/').join('--').replace(/[^a-zA-Z0-9_-]/g, '-').toLowerCase();
 }
 
 export function socialImagePath(path: string): string {
-  return `/og/${socialImageSlug(path)}.png`;
+  return '/og/' + socialImageSlug(path) + '.png';
 }
 
 export function socialImageUrl(path: string): string {
