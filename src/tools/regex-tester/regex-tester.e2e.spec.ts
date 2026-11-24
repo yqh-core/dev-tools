@@ -63,8 +63,8 @@ test.describe('Tool - Regex Tester isolated execution', () => {
     await page.getByLabel('Test case input').last().locator('textarea').fill('ORD-0042');
 
     await page.getByRole('button', { name: 'Add test case' }).click();
-    await page.getByLabel('Test case name').last().fill('Too short');
-    await page.getByLabel('Test case input').last().fill('ORD-42');
+    await page.getByLabel('Test case name').last().locator('input').fill('Too short');
+    await page.getByLabel('Test case input').last().locator('textarea').fill('ORD-42');
     await page.getByLabel('Expected to match').last().uncheck();
 
     await expect(page.getByText('2 / 2 test cases passed')).toBeVisible({ timeout: 5000 });
