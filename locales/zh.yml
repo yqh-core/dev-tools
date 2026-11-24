@@ -538,7 +538,7 @@ tools:
 
   eta-calculator:
     title: ETA 计算器 — 任务剩余时间估算
-    description: 为下载、构建或批处理估算剩余时间。可输入已知处理速率，也可根据已完成数量和已耗时自动推导吞吐速率。
+    description: 为下载、构建或批处理估算剩余时间；可选择周一至周五本地工作时段，也可输入已知处理速率或根据已完成数量和已耗时推导吞吐速率。
     rateMode: 输入已知处理速率
     observedMode: 根据已耗时间计算
     elapsedTitle: 已运行时间
@@ -556,13 +556,21 @@ tools:
     additionalPauseHelp: 在处理速率和缓冲时间之外，加入预计的暂停或休息时间。
     additionalPauseResult: 额外计划暂停时间
     deadlineLabel: 目标截止时间（本地时间）
-    deadlineHelp: 可选。比较当前处理速度与按时完成所需的速度；计算已包含计划暂停时间和缓冲比例。
+    deadlineHelp: 可选。比较当前处理速度与按时完成所需的速度；计算已包含计划暂停和缓冲比例。工作日模式只统计配置的周一至周五本地工作时段。
     requiredPace: 按时完成所需速度
     currentPace: 当前处理速度
     deadlineOnTrack: 当前处理速度足以在截止时间前完成。
     deadlineBehind: '需要将处理速度提高 {percent}% 才能按时完成。'
-    deadlineTooSoon: 截止时间必须晚于预计开始时间，并为计划暂停和缓冲留出空间。
+    deadlineTooSoon: 截止时间必须晚于预计开始时间，并在扣除计划暂停和缓冲后仍有可用工作时间。
     deadlineComplete: 当前任务已经完成。
+    scheduleTitle: 完成时间排程
+    calendarSchedule: 全天候连续计算（24/7）
+    weekdaySchedule: 周一至周五工作时段
+    workingDayStart: 每日上班时间
+    workingDayEnd: 每日下班时间
+    weekdayScheduleHelp: 只统计你本地时区（{timezone}）中周一至周五、上述起止时间之间的时段。开始时间若不在工作窗口内，任务会从下一个工作日的开工时间继续。
+    workingWindowCounted: 工作时段内计入的时间（包含缓冲和计划暂停）
+    workingScheduleError: 请输入有效的 24 小时制时间；同一天的下班时间必须晚于上班时间。
 
   roman-numeral-converter:
     title: 罗马数字转换器
