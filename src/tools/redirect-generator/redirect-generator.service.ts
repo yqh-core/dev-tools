@@ -1,4 +1,4 @@
-export type RedirectFormat = 'apache' | 'nginx' | 'cloudflare';
+export type RedirectFormat = 'apache' | 'nginx' | 'cloudflare' | 'netlify' | 'vercel';
 export type RedirectStatus = '301' | '302' | '307' | '308';
 
 export interface ParsedRedirectRow {
@@ -396,7 +396,13 @@ export function generateRedirectOutput(
   analysis: RedirectAnalysis,
   format: RedirectFormat,
   status: RedirectStatus,
-  options: { origin?: string; preserveQueryString?: boolean } = {},
+  options: {
+    origin?: string
+    preserveQueryString?: boolean
+    includeSubdomains?: boolean
+    subpathMatching?: boolean
+    preservePathSuffix?: boolean
+  } = {},
 ): string {
   if (!ALLOWED_STATUS.has(status)) {
     throw new Error('Choose a supported redirect status: 301, 302, 307 or 308.');
@@ -419,6 +425,14 @@ export function generateRedirectOutput(
     }
   }
 
+  if (format === 'cloudflare' && options.preservePathSuffix && !options.subpathMatching) {
+    throw new Error('Preserve path suffix requires subpath matching.');
+  }
+
+  if (format === 'netlify' && status !== '301' && status !== '302') {
+    throw new Error('Netlify _redirects supports 301 and 302 redirects only.');
+  }
+
   if (format === 'apache') {
     return [
       '# Apache mod_alias — exact-path rules. Enable mod_alias before using these directives.',
@@ -431,6 +445,25 @@ export function generateRedirectOutput(
       '# Place these exact-match locations inside the appropriate server block.',
       ...rows.map(row => `location = ${row.sourcePath} { return ${status} "${row.targetUrl}"; }`),
     ].join('\n\n');
+  }
+
+  if (format === 'netlify') {
+    return [
+      '# Netlify _redirects — save as a file named _redirects in the publish directory.',
+      ...rows.map(row => `${row.sourcePath} ${row.targetUrl} ${status}`),
+    ].join('\\n');
+  }
+
+  if (format === 'vercel') {
+    return JSON.stringify({
+      $schema: 'https://openapi.vercel.sh/vercel.json',
+      redirects: rows.map(row => ({
+        source: row.sourcePath,
+        destination: row.targetUrl,
+        statusCode: Number(status),
+        ...(options.preserveQueryString ? { preserveQueryParams: true } : {}),
+      })),
+    }, null, 2);
   }
 
   const suppliedOrigin = options.origin?.trim()
@@ -454,9 +487,9 @@ export function generateRedirectOutput(
       target,
       status,
       options.preserveQueryString ? 'TRUE' : 'FALSE',
-      'FALSE',
-      'FALSE',
-      'FALSE',
+      options.includeSubdomains ? 'TRUE' : 'FALSE',
+      options.subpathMatching ? 'TRUE' : 'FALSE',
+      options.preservePathSuffix ? 'TRUE' : 'FALSE',
     ];
     return fields.map(csvCell).join(',');
   }).join('\n');
