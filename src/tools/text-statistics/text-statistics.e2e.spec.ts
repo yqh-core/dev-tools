@@ -66,5 +66,4 @@ test.describe('Tool - text statistics', () => {
     await page.getByLabel('Speaking speed in words per minute').fill('2');
     await expect(page.getByTestId('speaking-time')).toContainText('2 min');
   });
-
 });
