@@ -2,6 +2,36 @@ import { isArray, isEqual, isObject } from 'lodash';
 import type { Difference, DifferenceStatus } from './json-diff.types';
 
 export { diff };
+
+export interface FlatDifference {
+  path: string;
+  status: DifferenceStatus;
+  oldValue: unknown;
+  value: unknown;
+}
+
+/** Flatten nested structural changes into stable JSONPath-like locations. */
+export function flattenDifferences(difference: Difference, path = '$'): FlatDifference[] {
+  if ('children' in difference && difference.children.length > 0) {
+    return difference.children.flatMap((child) => {
+      const childPath = typeof child.key === 'number'
+        ? `${path}[${child.key}]`
+        : `${path}[${JSON.stringify(child.key)}]`;
+      return flattenDifferences(child, childPath);
+    });
+  }
+
+  if (difference.status === 'unchanged') {
+    return [];
+  }
+
+  return [{
+    path,
+    status: difference.status,
+    oldValue: difference.oldValue,
+    value: difference.value,
+  }];
+}
 export interface FlatDifference {
   path: string;
   status: DifferenceStatus;
