@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { calculateObservedPaceEta, calculateRemainingEta } from './eta-calculator.service';
+import { calculateObservedPaceEta, calculateRemainingEta, calculateRequiredPaceForDeadline } from './eta-calculator.service';
 
 describe('calculateRemainingEta', () => {
   it('calculates remaining work rather than estimating the original total again', () => {
@@ -158,5 +158,43 @@ describe('calculateObservedPaceEta', () => {
       elapsedMs: 1,
       bufferPercent: 100,
     })).toThrow(RangeError);
+  });
+});
+
+describe('calculateRequiredPaceForDeadline', () => {
+  it('calculates the pace needed after planned pauses and the configured buffer', () => {
+    const estimate = calculateRequiredPaceForDeadline({
+      remainingUnits: 100,
+      availableMs: 3.5 * 60 * 60 * 1000,
+      additionalPauseMs: 30 * 60 * 1000,
+      bufferPercent: 20,
+    });
+    expect(estimate.availableWorkMs).toBe(2.5 * 60 * 60 * 1000);
+    expect(estimate.requiredUnitsPerHour).toBeCloseTo(40, 10);
+  });
+
+  it('returns zero required pace for completed work', () => {
+    expect(calculateRequiredPaceForDeadline({
+      remainingUnits: 0,
+      availableMs: 60 * 60 * 1000,
+      additionalPauseMs: 0,
+      bufferPercent: 0,
+    })).toEqual({ availableWorkMs: 0, requiredUnitsPerHour: 0 });
+  });
+
+  it('rejects expired deadlines, consumed time windows and invalid inputs', () => {
+    const base = {
+      remainingUnits: 100,
+      availableMs: 60 * 60 * 1000,
+      additionalPauseMs: 0,
+      bufferPercent: 0,
+    };
+    expect(() => calculateRequiredPaceForDeadline({ ...base, availableMs: 0 })).toThrow(RangeError);
+    expect(() => calculateRequiredPaceForDeadline({ ...base, availableMs: -1 })).toThrow(RangeError);
+    expect(() => calculateRequiredPaceForDeadline({ ...base, additionalPauseMs: 60 * 60 * 1000 })).toThrow(RangeError);
+    expect(() => calculateRequiredPaceForDeadline({ ...base, additionalPauseMs: -1 })).toThrow(RangeError);
+    expect(() => calculateRequiredPaceForDeadline({ ...base, bufferPercent: 101 })).toThrow(RangeError);
+    expect(() => calculateRequiredPaceForDeadline({ ...base, remainingUnits: -1 })).toThrow(RangeError);
+    expect(() => calculateRequiredPaceForDeadline({ ...base, availableMs: Number.POSITIVE_INFINITY })).toThrow(RangeError);
   });
 });

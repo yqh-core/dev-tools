@@ -8,6 +8,7 @@ import { useI18n } from 'vue-i18n';
 import {
   calculateObservedPaceEta,
   calculateRemainingEta,
+  calculateRequiredPaceForDeadline,
   formatMsDuration,
 } from './eta-calculator.service';
 import { useCopy } from '@/composable/copy';
@@ -31,6 +32,14 @@ const bufferPercent = ref(0);
 const additionalPauseMinutes = ref(0);
 const additionalPauseMs = computed(() => additionalPauseMinutes.value * 60_000);
 const startedAt = ref(Date.now());
+const deadlineLocalInput = ref('');
+const deadlineAt = computed(() => {
+  if (!deadlineLocalInput.value) {
+    return null;
+  }
+  const timestamp = new Date(deadlineLocalInput.value).getTime();
+  return Number.isFinite(timestamp) ? timestamp : null;
+});
 
 const elapsedMs = computed(() => (
   (elapsedHours.value * 60 * 60 + elapsedMinutes.value * 60 + elapsedSeconds.value) * 1000
@@ -117,6 +126,49 @@ function copyRemainingDuration() {
   if (estimate.value) {
     copy(displayedDuration.value);
   }
+}
+const deadlineAnalysis = computed(() => {
+  if (deadlineAt.value === null || !estimate.value) {
+    return null;
+  }
+
+  const anchor = calculationMode.value === 'observed' ? Date.now() : startedAt.value;
+  const observedUnitsPerHour: unknown = (
+    estimate.value as { unitsPerHour?: unknown }
+  ).unitsPerHour;
+  const currentUnitsPerHour: number = calculationMode.value === 'observed'
+    ? (typeof observedUnitsPerHour === 'number' ? observedUnitsPerHour : 0)
+    : unitPerTimeSpan.value / (timeSpan.value * timeSpanUnitMultiplier.value) * 60 * 60 * 1000;
+
+  try {
+    const required = calculateRequiredPaceForDeadline({
+      remainingUnits: estimate.value.remainingUnits,
+      availableMs: deadlineAt.value - anchor,
+      bufferPercent: bufferPercent.value,
+      additionalPauseMs: additionalPauseMs.value,
+    });
+    const onTrack = estimate.value.remainingUnits === 0 || currentUnitsPerHour >= required.requiredUnitsPerHour;
+    const neededFasterPercent = required.requiredUnitsPerHour > 0 && currentUnitsPerHour > 0
+      ? Math.max(0, (required.requiredUnitsPerHour / currentUnitsPerHour - 1) * 100)
+      : required.requiredUnitsPerHour > 0 ? 100 : 0;
+    return {
+      valid: true as const,
+      requiredUnitsPerHour: required.requiredUnitsPerHour,
+      currentUnitsPerHour,
+      onTrack,
+      neededFasterPercent,
+      complete: estimate.value.remainingUnits === 0,
+    };
+  }
+  catch (error) {
+    if (error instanceof RangeError) {
+      return { valid: false as const };
+    }
+    throw error;
+  }
+});
+function formatUnitsPerHour(value: number) {
+  return new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 }).format(value);
 }
 const displayedObservedRate = computed(() => {
   if (
@@ -281,6 +333,59 @@ const displayedObservedRate = computed(() => {
       </p>
     </n-form-item>
 
+    <c-card data-test-id="eta-deadline-card">
+      <div flex flex-col gap-2>
+        <label flex flex-col gap-1 text-sm>
+          {{ $t('tools.eta-calculator.deadlineLabel') }}
+          <input
+            v-model="deadlineLocalInput"
+            type="datetime-local"
+            data-test-id="eta-deadline-input"
+            class="w-full rounded border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
+          >
+        </label>
+        <p text-xs opacity-70>
+          {{ $t('tools.eta-calculator.deadlineHelp') }}
+        </p>
+        <div
+          v-if="deadlineAnalysis?.valid && deadlineAnalysis.complete"
+          text-sm
+          data-test-id="eta-deadline-result"
+        >
+          {{ $t('tools.eta-calculator.deadlineComplete') }}
+        </div>
+        <div
+          v-else-if="deadlineAnalysis?.valid"
+          flex
+          flex-col
+          gap-1
+          data-test-id="eta-deadline-result"
+        >
+          <strong tabular-nums data-test-id="eta-required-pace">
+            {{ $t('tools.eta-calculator.requiredPace') }}:
+            {{ formatUnitsPerHour(deadlineAnalysis.requiredUnitsPerHour) }} {{ $t('tools.eta-calculator.unitsPerHour') }}
+          </strong>
+          <span tabular-nums>
+            {{ $t('tools.eta-calculator.currentPace') }}:
+            {{ formatUnitsPerHour(deadlineAnalysis.currentUnitsPerHour) }} {{ $t('tools.eta-calculator.unitsPerHour') }}
+          </span>
+          <p v-if="deadlineAnalysis.onTrack" text-sm>
+            {{ $t('tools.eta-calculator.deadlineOnTrack') }}
+          </p>
+          <p v-else text-sm>
+            {{ $t('tools.eta-calculator.deadlineBehind', { percent: formatUnitsPerHour(deadlineAnalysis.neededFasterPercent) }) }}
+          </p>
+        </div>
+        <p
+          v-else-if="deadlineAnalysis && !deadlineAnalysis.valid"
+          role="alert"
+          text-sm
+          data-test-id="eta-deadline-error"
+        >
+          {{ $t('tools.eta-calculator.deadlineTooSoon') }}
+        </p>
+      </div>
+    </c-card>
     <div
       role="progressbar"
       aria-label="Work completed"

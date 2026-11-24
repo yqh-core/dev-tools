@@ -543,6 +543,14 @@ tools:
     additionalPauseMinutes: 预计额外暂停时间（分钟）
     additionalPauseHelp: 在处理速率和缓冲时间之外，加入预计的暂停或休息时间。
     additionalPauseResult: 额外计划暂停时间
+    deadlineLabel: 目标截止时间（本地时间）
+    deadlineHelp: 可选。比较当前处理速度与按时完成所需的速度；计算已包含计划暂停时间和缓冲比例。
+    requiredPace: 按时完成所需速度
+    currentPace: 当前处理速度
+    deadlineOnTrack: 当前处理速度足以在截止时间前完成。
+    deadlineBehind: '需要将处理速度提高 {percent}% 才能按时完成。'
+    deadlineTooSoon: 截止时间必须晚于预计开始时间，并为计划暂停和缓冲留出空间。
+    deadlineComplete: 当前任务已经完成。
 
   roman-numeral-converter:
     title: 罗马数字转换器
