@@ -11,7 +11,7 @@ test.describe('Tool - Outlook Safe Links batch decoder', () => {
     const guide = page.getByTestId('safelink-guide');
     await expect(guide).toContainText('one HTTPS Outlook Safe Links wrapper per line');
     await expect(guide).toContainText('ignores blank lines');
-    await expect(guide).toContainText('does not request or open');
+    await expect(guide).toContainText('does not fetch or open');
     await expect(guide).toContainText('does not scan, rate or certify');
     await expect(guide).toContainText('does not replace or bypass');
     await expect(guide.getByRole('link', { name: 'Inspect URL components with URL Parser' })).toHaveAttribute('href', '/url-parser/');
@@ -115,6 +115,6 @@ test.describe('Tool - Outlook Safe Links batch decoder', () => {
     await textarea.focus();
     await expect(textarea).toBeFocused();
     await page.keyboard.press('Tab');
-    await expect(page.getByTestId('safelink-batch-decode').locator('button')).toBeFocused();
+    await expect(page.getByTestId('safelink-batch-decode')).toBeFocused();
   });
 });
