@@ -547,6 +547,14 @@ tools:
     additionalPauseMinutes: Additional pause or break time (minutes)
     additionalPauseHelp: Add expected pauses to the finish-time estimate after applying the rate and buffer.
     additionalPauseResult: Additional planned pause time
+    deadlineLabel: Target deadline (local time)
+    deadlineHelp: Optional. Compare your current pace with the pace needed to finish by this date and time. Planned pauses and your buffer are included.
+    requiredPace: Required pace
+    currentPace: Current pace
+    deadlineOnTrack: Your current pace is sufficient to meet this deadline.
+    deadlineBehind: 'Increase your pace by {percent}% to meet this deadline.'
+    deadlineTooSoon: The deadline must be later than the estimate start time, with room for planned pauses and buffer.
+    deadlineComplete: This workload is already complete.
 
   roman-numeral-converter:
     title: Roman numeral converter
