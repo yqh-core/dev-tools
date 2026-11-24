@@ -167,9 +167,10 @@ describe('evidence-backed SEO keyword targets', () => {
     expect(entry).toBeDefined();
     expect(entry?.keyword).toBe(keyword);
     expect(entry?.intent).toBe(intent);
-    expect(entry?.landed).toBe(false);
-    expect((entry?.keywords ?? []).length).toBeGreaterThanOrEqual(4);
-    expect(entry?.note).toContain('provisional');
+    expect(entry?.landed).toBe(true);
+    expect(entry?.lockedTitle).toBe('URL Slug Generator — Create SEO-Friendly Slugs in Bulk');
+    expect((entry?.keywords ?? []).length).toBeGreaterThanOrEqual(7);
+    expect(entry?.note).toContain('@sindresorhus/slugify 2.2.1');
   });
 
   it.each([
