@@ -34,8 +34,11 @@ test.describe('Tool - text statistics', () => {
     await expect(page.getByTestId('character-limit-result')).toContainText('1 / 1');
     await expect(page.getByTestId('character-limit-result')).toContainText('At your custom limit');
 
-    await page.getByTestId('character-limit-unit').click();
-    await page.getByText('UTF-8 bytes', { exact: true }).click();
+    await page.getByTestId('character-limit-unit').locator('.c-select-input').click();
+    const bytesOption = page.getByTestId('character-limit-unit').locator('.c-select-dropdown-option', { hasText: 'UTF-8 bytes' });
+    await expect(bytesOption).toBeVisible();
+    await bytesOption.click();
+    await expect(page.getByTestId('character-limit-result')).toContainText('1 / 1');
     await page.getByTestId('character-limit-input').fill('18');
     await expect(page.getByTestId('character-limit-result')).toContainText('18 / 18');
 
