@@ -1565,15 +1565,31 @@ export const GUIDES: Record<string, ToolGuide> = {
   },
 
   '/text-statistics': {
-    intro: 'Counts characters, words and byte size — useful when writing copy or checking an API limit.',
-    steps: ['Paste the text', 'Read the statistics', 'Cross-check the byte count against the limit where relevant'],
-    notes: ['In UTF-8 a CJK character is about 3 bytes, so the byte count differs from the character count'],
-    example: { label: 'Fill in sample text', text: 'The quick brown fox jumps over the lazy dog.' },
-    about: 'Live statistics for the text you paste: character count, word count, line count and byte size, updating as you type. The byte size accounts for multi-byte characters, which is what actually matters when filling forms with length limits, sizing payloads or estimating storage.',
+    intro: 'Counts visible characters, Unicode code points, words, sentences, paragraphs and UTF-8 bytes — with clear rules for each metric.',
+    steps: ['Paste or type text into the analyzer', 'Choose the language used for word and sentence segmentation', 'Review visible characters, code units, bytes, lines and reading time; copy the complete summary'],
+    notes: [
+      'Grapheme counts follow browser Intl.Segmenter when available; older browsers fall back to code-point counts, which can differ for joined emoji and combining marks.',
+      'Word segmentation in older browsers is approximate and does not provide dictionary-based CJK segmentation.',
+      'Reading time is an estimate using the selected words-per-minute rate, not a promise of actual reading duration.',
+    ],
+    example: { label: 'Fill in sample text', text: 'The quick brown fox jumps over the lazy dog. 👋' },
+    about: 'A browser-based text analyzer with explicit Unicode metrics. It reports visible grapheme clusters, Unicode code points, JavaScript UTF-16 code units, UTF-8 bytes, words, unique words, sentences, paragraphs, lines, non-empty lines and the longest line. Choose a segmentation language for word and sentence counts, set your reading speed, and copy a complete summary. The input is processed locally in your browser.',
+    articleOnlySections: [
+      {
+        title: 'Visible characters, code points and code units',
+        text: 'These counters answer different questions. A grapheme cluster is what a reader usually perceives as one character: an accented letter may combine a base letter and a mark, and a family emoji can contain several Unicode code points joined together. Code points count Unicode values. UTF-16 code units count the 16-bit units used by JavaScript strings. UTF-8 bytes measure encoded storage size. A single emoji can therefore count as one visible grapheme, multiple code points, multiple UTF-16 units and several UTF-8 bytes.',
+      },
+      {
+        title: 'Word counts and reading-time estimates',
+        text: 'Word and sentence counts use the browser Intl.Segmenter API with the selected language when available. Older browsers use an approximate Unicode-aware fallback; it does not promise dictionary-based word boundaries for Chinese, Japanese or Thai. Reading time is calculated from the current word count and your selected words-per-minute rate, rounded up to a whole minute. Treat it as a planning estimate, not a universal reading-speed benchmark.',
+      },
+    ],
     faqs: [
-      { q: 'Why do character count and byte size differ?', a: 'Characters outside ASCII take multiple bytes in UTF-8 — an emoji is one character but four bytes. Forms and APIs usually enforce byte or UTF-16 limits, so watch the byte counter for anything multilingual.' },
-      { q: 'How are words counted?', a: 'By whitespace separation. "well-known" is one word and punctuation sticks to its word; if you need linguistic word counts (hyphens, contractions) treat this as the fast estimate it is.' },
-      { q: 'What counts as a line?', a: 'Every newline-terminated row, so a trailing newline adds one to the count. Empty lines count too — they are real lines in the text.' },
+      { q: 'Why do visible characters, code points and UTF-16 units differ?', a: 'They count different layers of Unicode text. A joined emoji sequence can be one grapheme cluster but several code points and UTF-16 units. The browser grapheme counter is the closest of these metrics to what a person sees as one character.' },
+      { q: 'Why is UTF-8 byte size larger than the character count?', a: 'UTF-8 uses one to four bytes per Unicode code point. ASCII letters use one byte, many CJK characters use three, and many emoji use four bytes per code point. Joined emoji sequences contain several code points.' },
+      { q: 'How are words counted?', a: 'When supported, Intl.Segmenter uses the selected language for word boundaries. The fallback is an approximation based on Unicode letters and numbers; it may not split languages that do not use spaces between words.' },
+      { q: 'Why can another website show a different character limit?', a: 'Platforms may count graphemes, code points, UTF-16 units, UTF-8 bytes or weighted units. Use the receiving platform’s documented rule when a limit is important.' },
+      { q: 'Is my text uploaded?', a: 'No. The analyzer runs in your browser and does not send the text to a server.' },
     ],
   },
 
