@@ -183,7 +183,7 @@ onMounted(generate);
     <n-alert type="info">
       {{ t('tools.ipv6-ula-generator.privacyNote') }}
     </n-alert>
-    <n-alert type="warning">
+    <n-alert type="warning" data-test-id="ula-routing-warning">
       {{ t('tools.ipv6-ula-generator.routingWarning') }}
     </n-alert>
   </div>
