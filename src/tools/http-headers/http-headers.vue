@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { analyzeResponseHeaders, type HeaderAnalysis } from './http-headers.models';
+import { type HeaderAnalysis, analyzeResponseHeaders } from './http-headers.models';
 import { httpHeaderEntries, httpMethodEntries } from './http-headers.constants';
 import { useFuzzySearch } from '@/composable/fuzzySearch';
 
