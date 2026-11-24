@@ -176,7 +176,7 @@
 
 ### Data
 
-- [Phone parser and formatter](https://digdevbox.com/phone-parser-and-formatter) - Parse, validate and format phone numbers. Get information about the phone number, like the country code, type, etc.
+- [International Phone Number Parser & Formatter — E.164](https://digdevbox.com/phone-parser-and-formatter) - Parse and validate an international phone number, then copy E.164, national, international or RFC 3966 formats. Batch-check up to 200 numbers locally and export CSV.
 - [IBAN Validator & Parser — Check Format, Country & BBAN](https://digdevbox.com/iban-validator-and-parser) - Validate an IBAN's country-specific structure and checksum, inspect errors, identify QR-IBAN status and extract the country code and BBAN. A valid checksum does not confirm account ownership or payment availability.
 <!-- generated-tools-list:end -->
 
