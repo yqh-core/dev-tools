@@ -87,7 +87,6 @@ describe('safelink-decoder', () => {
   });
 });
 
-
 describe('decodeSafeLinksBatch', () => {
   it('ignores blank lines, preserves source line numbers, and isolates invalid rows', () => {
     const valid = 'https://nam01.safelinks.protection.outlook.com/?url=https%3A%2F%2Fexample.com%2Fdocs';
