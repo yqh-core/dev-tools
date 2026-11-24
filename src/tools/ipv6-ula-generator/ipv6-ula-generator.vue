@@ -144,7 +144,7 @@ onMounted(generate);
         label-align="left"
         readonly
         mb-2
-        data-test-id="`ula-global-id-${index + 1}`"
+        :data-test-id="`ula-global-id-${index + 1}`"
       />
       <InputCopyable
         :value="result.prefix"
@@ -154,7 +154,7 @@ onMounted(generate);
         label-align="left"
         readonly
         mb-2
-        data-test-id="`ula-prefix-${index + 1}`"
+        :data-test-id="`ula-prefix-${index + 1}`"
       />
       <InputCopyable
         :value="result.firstSubnet"
@@ -164,7 +164,7 @@ onMounted(generate);
         label-align="left"
         readonly
         mb-2
-        data-test-id="`ula-first-subnet-${index + 1}`"
+        :data-test-id="`ula-first-subnet-${index + 1}`"
       />
       <InputCopyable
         :value="result.lastSubnet"
@@ -173,7 +173,7 @@ onMounted(generate);
         label-position="left"
         label-align="left"
         readonly
-        data-test-id="`ula-last-subnet-${index + 1}`"
+        :data-test-id="`ula-last-subnet-${index + 1}`"
       />
       <p mt-3 text-sm op-70>
         {{ t('tools.ipv6-ula-generator.subnetCount', { count: result.subnetCount.toLocaleString() }) }}
