@@ -143,7 +143,7 @@ jobs:
             const percentageMarkerReady = percentageResponse.ok &&
               percentageResponse.url === origin + '/percentage-calculator/' &&
               percentageHtml.includes('<title>Percentage Calculator — Percent of, Change & Difference - DigDevBox</title>') &&
-              percentageHtml.includes('content="Find X% of Y, what percent one value is of another, percent change, difference and reverse rates. Seven modes with batch formulas and CSV/TSV export."') &&
+              percentageHtml.includes('content="Calculate percentages, discounts, percentage change, reverse percentages and percentage points. Seven modes plus batch CSV/TSV export and worked formulas."') &&
               percentageHtml.includes('Can I calculate a list of percentage problems at once?') &&
               percentageHtml.includes('Sequential percentage adjustments') &&
               percentageHtml.includes('28% off overall, not 30%') &&
