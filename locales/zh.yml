@@ -416,10 +416,10 @@ tools:
 
   redirect-generator:
     title: 批量 301 重定向生成器 — Apache、Nginx、Cloudflare
-    description: 批量生成 Apache、Nginx 与 Cloudflare 的 301/302/307/308 重定向规则。支持导入 CSV，并检查重复来源、自循环和重定向链，全程本地处理。
+    description: 为 Apache、Nginx、Cloudflare、Netlify 和 Vercel 批量生成重定向规则。导入 CSV，检查循环与重定向链，并在浏览器本地导出配置。
     cardTitle: 批量 URL 重定向映射
-    intro: 粘贴或导入旧 URL 与新 URL 对照表，检查映射问题，然后导出服务器配置或 Cloudflare Bulk Redirects 文件。
-    inputPlaceholder: "Source URL,Target URL\n/old-page,https://example.com/new-page\n/legacy,/current"
+    intro: 粘贴或导入旧 URL 与目标地址清单，验证映射后导出五种平台可用的重定向配置。
+    inputPlaceholder: "Source URL,Target URL\\n/old-page,https://example.com/new-page\\n/legacy,/current"
     loadSample: 加载示例
     clear: 清空
     importCsv: 导入 CSV / TSV
@@ -427,7 +427,12 @@ tools:
     statusCode: 重定向状态码
     siteOrigin: Cloudflare 相对 URL 的站点源地址
     preserveQueryString: 保留请求中的查询参数
-    cloudflareNote: Cloudflare CSV 不包含表头。来源 URL 会省略协议以同时匹配 HTTP 和 HTTPS；相对路径会使用站点源地址补全。
+    includeSubdomains: 匹配子域名
+    subpathMatching: 匹配来源路径下的子路径
+    preservePathSuffix: 保留匹配后的剩余路径
+    cloudflareNote: Cloudflare CSV 包含七列且不带表头。来源 URL 省略协议；子域名和子路径匹配可单独选择。保留剩余路径必须同时启用子路径匹配。
+    netlifyNote: Netlify 使用纯文本 _redirects 文件。下载生成的 .txt 文件后，请将文件名准确改为发布目录中的 _redirects。本工具的 Netlify 输出支持 301 和 302。
+    vercelNote: Vercel 输出为 vercel.json 的 redirects 数组。来源和目标使用映射中的精确路径，请结合部署自身的路由规则核对。
     summary:
       total: 映射数量
       ready: 可导出
@@ -446,6 +451,8 @@ tools:
       apache: Apache .htaccess（mod_alias）
       nginx: Nginx server block
       cloudflare: Cloudflare Bulk Redirect CSV
+      netlify: Netlify _redirects 文件
+      vercel: Vercel vercel.json
     status:
       permanent: 永久
       temporary: 临时
@@ -467,6 +474,8 @@ tools:
       redirectLoop: 此映射属于重定向循环，导出前请先解除循环。
       cloudflareSourceLimits: Cloudflare 来源 URL 不支持端口或用户凭据，请在导出前移除。
       cloudflareQueryConflict: 启用「保留查询参数」后，目标 URL 自带的查询参数会被丢弃。请移除目标查询参数或关闭此选项。
+      pathSuffixRequiresSubpath: 请先启用子路径匹配，再选择保留匹配后的剩余路径。
+      netlifyStatusUnsupported: Netlify _redirects 仅支持 301 和 302。请选择这两种状态码之一，或改用其他输出格式。
 
   encryption:
     title: 加密/解密文本
