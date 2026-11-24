@@ -1,7 +1,7 @@
 <script setup lang="ts">
 // Duplicate issue with sub directory
 
-import { addMilliseconds, formatRelative } from 'date-fns';
+import { formatRelative } from 'date-fns';
 import { enGB } from 'date-fns/locale';
 import { useI18n } from 'vue-i18n';
 
