@@ -526,8 +526,8 @@ tools:
     description: Enter the quantity and prefix. MAC addresses will be generated in your chosen case (uppercase or lowercase)
 
   json-diff:
-    title: JSON diff
-    description: Compare two JSON objects and get the differences between them.
+    title: "JSON Diff Checker — Compare JSON Online"
+    description: "Compare two JSON objects online. Find added, removed and changed values in nested data; object key order is ignored, and arrays compare by position."
 
   jwt-parser:
     title: JWT Decoder & Parser — Inspect Header, Payload and Expiration
