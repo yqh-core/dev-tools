@@ -542,7 +542,7 @@ tools:
 
   eta-calculator:
     title: ETA Calculator — Task Completion Time
-    description: Estimate time remaining for a download, build or batch job. Enter a known processing rate or derive throughput from completed work and elapsed time.
+    description: Estimate time remaining for a download, build or batch job with an optional weekday work schedule, or derive throughput from completed work and elapsed time.
     rateMode: Enter a known processing rate
     observedMode: Calculate from elapsed time
     elapsedTitle: Elapsed time so far
@@ -560,13 +560,21 @@ tools:
     additionalPauseHelp: Add expected pauses to the finish-time estimate after applying the rate and buffer.
     additionalPauseResult: Additional planned pause time
     deadlineLabel: Target deadline (local time)
-    deadlineHelp: Optional. Compare your current pace with the pace needed to finish by this date and time. Planned pauses and your buffer are included.
+    deadlineHelp: Optional. Compare your current pace with the pace needed to finish by this date and time. Planned pauses and your buffer are included; weekday mode counts only configured Monday-Friday working hours.
     requiredPace: Required pace
     currentPace: Current pace
     deadlineOnTrack: Your current pace is sufficient to meet this deadline.
     deadlineBehind: 'Increase your pace by {percent}% to meet this deadline.'
-    deadlineTooSoon: The deadline must be later than the estimate start time, with room for planned pauses and buffer.
+    deadlineTooSoon: The deadline must be later than the estimate start time and include working time after planned pauses and buffer.
     deadlineComplete: This workload is already complete.
+    scheduleTitle: Completion schedule
+    calendarSchedule: 24/7 calendar time
+    weekdaySchedule: Monday-Friday working hours
+    workingDayStart: Workday starts
+    workingDayEnd: Workday ends
+    weekdayScheduleHelp: Only Monday-Friday time between these hours is counted in your local timezone ({timezone}). Work starts at the next opening when the start time is outside the window.
+    workingWindowCounted: Time counted inside working windows (includes buffer and planned pauses)
+    workingScheduleError: Choose valid 24-hour times. The closing time must be later than the opening time on the same day.
 
   roman-numeral-converter:
     title: Roman numeral converter
