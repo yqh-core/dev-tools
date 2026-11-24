@@ -13,6 +13,7 @@ test.describe('Tool - Numeronym generator', () => {
     await page.getByTestId('word-input').locator('textarea').fill('internationalization');
     expect(await page.getByTestId('numeronym').inputValue()).toEqual('i18n');
     await expect(page.getByTestId('single-letter-count')).toContainText('20 letters counted');
+    await expect(page.getByTestId('numeronym-breakdown')).toContainText('i + 18 middle letters + n = i18n');
   });
 
   test('converts multiple words with free-text separators and provides copyable results', async ({ page }) => {
@@ -20,6 +21,7 @@ test.describe('Tool - Numeronym generator', () => {
     await expect(page.getByTestId('batch-numeronyms').locator('textarea')).toHaveValue('i18n\na11y\nK8s\nm17n');
     await expect(page.getByTestId('numeronym-batch-table')).toContainText('internationalization');
     await expect(page.getByTestId('numeronym-batch-table')).toContainText('20');
+    await expect(page.getByTestId('numeronym-batch-table')).toContainText('i + 18 middle letters + n = i18n');
   });
 
   test('handles Unicode words and compound words in one batch', async ({ page }) => {

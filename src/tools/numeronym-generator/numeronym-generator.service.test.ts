@@ -2,12 +2,49 @@ import { describe, expect, it } from 'vitest';
 import {
   ESTABLISHED_NUMERONYMS,
   countLetters,
+  describeNumeronym,
   evaluate,
   generateNumeronym,
   tokenizeNumeronymInput,
 } from './numeronym-generator.service';
 
 describe('numeronym-generator service', () => {
+  describe('describeNumeronym', () => {
+    it('shows the first letter, middle-letter count and last letter used in the result', () => {
+      expect(describeNumeronym('internationalization')).toEqual({
+        first: 'i',
+        middleCount: 18,
+        last: 'n',
+        output: 'i18n',
+        unchanged: false,
+      });
+      expect(describeNumeronym('cross-platform')).toEqual({
+        first: 'c',
+        middleCount: 11,
+        last: 'm',
+        output: 'c11m',
+        unchanged: false,
+      });
+      expect(describeNumeronym('Über')).toEqual({
+        first: 'Ü',
+        middleCount: 2,
+        last: 'r',
+        output: 'Ü2r',
+        unchanged: false,
+      });
+    });
+
+    it('explains unchanged short words without inventing a middle count', () => {
+      expect(describeNumeronym('fox')).toEqual({
+        first: 'f',
+        middleCount: 1,
+        last: 'x',
+        output: 'fox',
+        unchanged: true,
+      });
+    });
+  });
+
   describe('generateNumeronym', () => {
     it('uses the first letter, middle-letter count and last letter', () => {
       expect(generateNumeronym('internationalization')).toBe('i18n');
