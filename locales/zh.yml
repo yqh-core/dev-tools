@@ -391,7 +391,7 @@ tools:
 
   eta-calculator:
     title: ETA 计算器
-    description: 根据任务总量、开始时间和单位时间处理量，估算下载、构建或批处理的总耗时与预计完成时刻。免费，浏览器本地计算。
+    description: 输入任务总量、已完成数量、处理速率和可选缓冲比例，估算下载、构建或批处理任务的剩余耗时与预计完成时刻。
 
   roman-numeral-converter:
     title: 罗马数字转换器
