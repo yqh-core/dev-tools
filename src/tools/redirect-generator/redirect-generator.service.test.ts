@@ -129,7 +129,7 @@ describe('generateRedirectOutput', () => {
   it('infers a Cloudflare origin from an absolute source URL', () => {
     const absolute = analyzeRedirects('https://example.com/old,/new');
     const output = generateRedirectOutput(absolute, 'cloudflare', '301');
-    expect(output).toContain('"https://example.com/old","https://example.com/new"');
+    expect(output).toContain('"example.com/old","https://example.com/new"');
   });
 
   it('rejects an invalid Cloudflare site origin', () => {
