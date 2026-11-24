@@ -1124,7 +1124,9 @@ tools:
           nginx: "Nginx"
           apache: "Apache"
           caddy: "Caddy"
+          vercel: "Vercel（vercel.json）"
           cloudflare: "Cloudflare Pages"
+      harDropNote: "也可将 .har 或 .txt 响应头文件拖到此处，全部处理均在当前标签页本地完成。"
 
   ascii-table:
     title: "ASCII 码表"
