@@ -19,6 +19,7 @@ test.describe('Tool - Regex Tester isolated execution', () => {
     await expect(panel).toContainText('Python-style named groups are not JavaScript RegExp syntax');
     await expect(panel.getByText('Review syntax')).toHaveCount(2);
   });
+
   test('supports named groups and JavaScript replacement tokens', async ({ page }) => {
     await page.getByLabel('Regex to test:').fill('(?<word>hello)');
     await page.getByLabel('Text to match:').fill('hello world');
