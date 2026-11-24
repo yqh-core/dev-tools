@@ -1032,20 +1032,43 @@ tools:
     description: 在线测试 JavaScript 正则表达式，实时查看匹配、捕获组和替换预览，并用命名正向/反向测试用例查看逐项通过或失败结果。
 
   safelink-decoder:
-    title: Outlook 安全链接解码器
-    description: 逐条或批量解码 Outlook Safe Links（含嵌套包装），在浏览器本地还原目标地址；解码不代表链接安全。
+    title: Outlook Safe Links 批量解码器 — 浏览器本地还原 URL
+    description: 按行批量解码 Outlook Safe Links：每行一个 HTTPS 包装链接，最多解开五层，显示目标主机并复制成功结果。浏览器本地解析，不进行安全扫描。
     batch:
-      title: 批量解码多个 Safe Links
-      instructions: 每行粘贴一个 Outlook Safe Links 地址。空行会忽略；每一行都在浏览器本地解析，不会打开目标地址。
+      title: 批量解码 Outlook Safe Links
+      instructions: 每行粘贴一个 Outlook Safe Links 地址。空行会忽略，每条结果都在浏览器本地独立处理。
+      inputLabel: Outlook Safe Links 地址（每行一个）
+      help: 目标地址只以文本显示。本工具不会打开包装链接或目标地址。
       placeholder: 每行粘贴一个 Outlook Safe Links 地址...
       decode: 开始批量解码
       copy: 复制成功结果
       summary: "已解码 {success}/{total} 条，失败 {failed} 条。"
       line: "第 {line} 行"
       success: 已提取目标地址（未进行安全检测）
+      scheme: 协议
+      host: 目标主机
+      layers: Safe Links 包装层数
       copied: 已复制成功解码的地址。
       copyFailed: 无法访问剪贴板，请手动选择并复制解码结果。
-
+    single:
+      title: 单条 Safe Links 解码
+      instructions: 只需检查一封邮件中的一个链接？可使用此单条输入框；多个链接建议使用上方批量解码。
+      inputLabel: Outlook Safe Links 地址
+      placeholder: 粘贴一个 Outlook Safe Links 地址...
+      outputLabel: 解码后的目标地址（纯文本）
+    guide:
+      title: 如何批量解码 Outlook Safe Links
+      intro: 每行粘贴一个 HTTPS Outlook Safe Links 包装链接。工具会忽略空行、最多解开五层嵌套、逐行报告结果，并支持一次复制所有成功还原的目标地址。
+      exampleTitle: 示例：一次输入两个链接
+      example: "https://nam01.safelinks.protection.outlook.com/?url=https%3A%2F%2Fexample.com%2Fdocs\nhttps://eur01.safelinks.protection.outlook.com/?url=https%3A%2F%2Fexample.org%2Fguide"
+      securityTitle: 本工具能做什么，不能做什么
+      localParsing: 所有解析都在浏览器本地完成。本工具不会请求或打开 Safe Links 包装链接，也不会请求或打开解码后的目标地址。
+      noSafetyScan: 显示目标主机只是提供核对信息，不代表安全结论。本工具不会扫描、评级或认证目标网站。
+      microsoftProtection: 本工具不会替代或绕过 Microsoft Safe Links 点击时的安全保护。访问目标地址前仍应遵循所在组织的安全流程。
+      relatedTitle: 相关 URL 资源
+      urlParser: 使用 URL Parser 检查 URL 组成部分
+      urlEncoder: 编码或解码 URL 组件
+      fullGuide: 阅读 Outlook Safe Links 指南
   xml-to-json:
     title: XML 转 JSON
     description: 将 XML 数据转换为 JSON 格式。
