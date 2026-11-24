@@ -151,21 +151,27 @@ const { copy: copyHeaders } = useCopy({
     <div mb-4>
       <div flex items-center justify-between gap-2 mb-2>
         <strong>Nginx</strong>
-        <c-button size="small" @click="copyNginx()">Copy</c-button>
+        <c-button size="small" @click="copyNginx()">
+          Copy
+        </c-button>
       </div>
       <pre data-test-id="nginx-snippet" class="overflow-x-auto rounded p-3 text-sm"><code>{{ serverSnippets.nginx }}</code></pre>
     </div>
     <div mb-4>
       <div flex items-center justify-between gap-2 mb-2>
         <strong>Apache (.htaccess)</strong>
-        <c-button size="small" @click="copyApache()">Copy</c-button>
+        <c-button size="small" @click="copyApache()">
+          Copy
+        </c-button>
       </div>
       <pre data-test-id="apache-snippet" class="overflow-x-auto rounded p-3 text-sm"><code>{{ serverSnippets.apache }}</code></pre>
     </div>
     <div>
       <div flex items-center justify-between gap-2 mb-2>
         <strong>Static hosting (_headers)</strong>
-        <c-button size="small" @click="copyHeaders()">Copy</c-button>
+        <c-button size="small" @click="copyHeaders()">
+          Copy
+        </c-button>
       </div>
       <pre data-test-id="headers-snippet" class="overflow-x-auto rounded p-3 text-sm"><code>{{ serverSnippets.headers }}</code></pre>
     </div>
