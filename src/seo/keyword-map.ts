@@ -669,12 +669,13 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
   {
     path: '/slugify-string',
     keyword: 'URL slug generator',
-    keywords: ['slugify text online', 'convert text to URL slug', 'SEO slug generator', 'URL friendly string converter'],
+    keywords: ['slugify text online', 'bulk URL slug generator', 'convert text to URL slug', 'SEO slug generator', 'slug generator with separator', 'URL friendly string converter', 'duplicate slug generator'],
     intent: 'generate',
     priority: 'P2',
     competition: 'medium',
-    landed: false,
-    note: 'Matches string-to-slug generation with a 100,000-character input guard. Competition is provisional; no volume/KD/SERP claim.',
+    landed: true,
+    lockedTitle: 'URL Slug Generator — Create SEO-Friendly Slugs in Bulk',
+    note: 'Existing canonical route upgraded to batch title-to-slug conversion with configurable hyphen/underscore/dot separators, case and camelCase handling, optional small English stop-word list, within-batch duplicate suffixes, whole-word maximum length, full URL preview and TXT/CSV export. Maximum length is a usability setting, not a Google ranking rule. Pinned @sindresorhus/slugify 2.2.1 remains unchanged; no volume/KD/CPC uplift is claimed.',
   },
   {
     path: '/case-converter',

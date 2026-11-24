@@ -6,7 +6,7 @@ export const tool = defineTool({
   name: translate('tools.slugify-string.title'),
   path: '/slugify-string',
   description: translate('tools.slugify-string.description'),
-  keywords: ['slugify', 'string', 'escape', 'emoji', 'special', 'character', 'space', 'trim'],
+  keywords: ['URL slug generator', 'slug generator online', 'bulk slug generator', 'SEO slug generator', 'text to URL slug', 'filename slug generator', 'kebab case', 'underscore separator', 'stop words', 'transliteration', 'unicode'],
   component: () => import('./slugify-string.vue'),
   icon: AbcRound,
 });

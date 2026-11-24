@@ -374,8 +374,45 @@ tools:
     description: Git是一种去中心化的版本管理软件。使用此备忘单，您可以快速访问最常见的git命令.
 
   slugify-string:
-    title: 字符串转 Slug
-    description: 确保字符串 url、文件名和 id 安全。
+    title: "URL Slug 生成器 — 批量生成 SEO 友好网址"
+    description: "批量将标题转换为 URL slug。可选连字符、下划线或点号，删除英文停用词，按完整单词限制长度，并预览完整网址。"
+    batch:
+      title: "批量 URL Slug 生成器"
+      intro: "将一个或多个标题转换为适合 URL 的 slug。每个非空行生成一条结果。"
+      inputLabel: "标题或短语"
+      inputPlaceholder: |-
+        每行输入一个标题，例如：
+        How to Build a Better API
+        The Complete Guide to URL Slugs
+        Déjà Vu and Unicode
+      separator: "单词分隔符"
+      hyphen: "连字符 (-)"
+      underscore: "下划线 (_)"
+      dot: "点号 (.)"
+      maximumLength: "最大长度"
+      noLimit: "不限制"
+      characters: "{count} 个字符"
+      lowercase: "转换为小写"
+      decamelize: "拆分 camelCase 单词"
+      stopWords: "删除常见英文停用词"
+      unique: "为重复 slug 添加唯一后缀"
+      baseUrl: "可选完整网址预览"
+      invalidBaseUrl: "请输入有效的 http:// 或 https:// 基础网址。"
+      copyAll: "复制全部 Slug"
+      downloadTxt: "下载 TXT"
+      downloadCsv: "下载 CSV"
+      generated: "已生成 {count} 条 Slug"
+      shortened: "{count} 条已缩短"
+      warnings: "{count} 条警告"
+      line: "第 {number} 行"
+      chars: "{count} 个字符"
+      truncated: "已按完整单词边界缩短，以符合所选长度。"
+      emptyState: "每行输入一个标题。空行会忽略；所有结果都在当前浏览器中处理。"
+      inputTooLarge: "输入内容过长，请控制在 {count} 个字符以内。"
+      tooManyRows: "本批次有 {actual} 行，最多允许 {limit} 行。"
+      rowTooLong: "最大长度太短，无法保留一个完整单词。"
+      noCharacters: "转换后没有剩余可用于 URL 的字符。"
+      copied: "已复制全部 Slug"
 
   encryption:
     title: 加密/解密文本
