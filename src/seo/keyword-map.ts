@@ -922,12 +922,13 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
   {
     path: '/mime-types',
     keyword: 'MIME type lookup',
-    keywords: ['MIME type by file extension', 'file extension to content type', 'MIME type to extension lookup', 'application MIME types list'],
+    keywords: ['MIME type by file extension', 'file extension to content type', 'MIME type to extension lookup', 'application MIME types list', 'nginx MIME type configuration', 'Apache AddType generator', 'Content-Type header lookup'],
     intent: 'lookup',
     priority: 'P2',
     competition: 'medium',
-    landed: false,
-    note: 'Source uses the mime-types registry to look up MIME types and extensions with fuzzy search. Candidate mapping only; no volume/KD/SERP evidence.',
+    landed: true,
+    lockedTitle: 'MIME Type Lookup — Content-Type, Extensions & Server Config',
+    note: 'Adds capability-matched Nginx types, Apache AddType and static _headers snippet generation from the selected mime-types dataset entry. Source dataset is curated and is not a complete IANA registry. Competitor gap verified against Lee Johnson MIME Type Lookup and CapyToolkit MIME Reference.',
   },
   {
     path: '/random-port-generator',
