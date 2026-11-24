@@ -3,8 +3,6 @@ import { deflateSync } from 'node:zlib';
 
 export const SOCIAL_IMAGE_WIDTH = 1200;
 export const SOCIAL_IMAGE_HEIGHT = 630;
-export const SOCIAL_IMAGE_VERSION = '1';
-
 const FONT = {
   A: ['01110','10001','10001','11111','10001','10001','10001'],
   B: ['11110','10001','10001','11110','10001','10001','11110'],
@@ -69,16 +67,6 @@ function asAscii(value) {
     .replace(/\s+/g, ' ')
     .trim()
     .toUpperCase();
-}
-
-export function socialImageSlug(path) {
-  const normalized = !path || path === '/' ? '/' : (path.startsWith('/') ? path : '/' + path);
-  if (normalized === '/') return 'home';
-  return normalized.replace(/^\/+|\/+$/g, '').replace(/\//g, '--').replace(/[^a-zA-Z0-9_-]/g, '-').toLowerCase();
-}
-
-export function socialImagePath(path) {
-  return '/og/' + socialImageSlug(path) + '.png';
 }
 
 function wrapText(text, maxChars, maxLines) {
