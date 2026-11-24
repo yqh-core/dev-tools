@@ -32,16 +32,6 @@ export function flattenDifferences(difference: Difference, path = '$'): FlatDiff
     value: difference.value,
   }];
 }
-export interface FlatDifference {
-  path: string;
-  status: DifferenceStatus;
-  oldValue: unknown;
-  value: unknown;
-}
-
-/** Flatten nested structural changes into stable JSONPath-like locations. */
-export function flattenDifferences(difference: Difference, path = '
-
 function diff(
   obj: unknown,
   newObj: unknown,
