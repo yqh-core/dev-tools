@@ -151,7 +151,7 @@ jobs:
               percentageHtml.includes('href="' + origin + '/percentage-calculator/"');
             const htpasswdMarkerReady = htpasswdResponse.ok &&
               htpasswdResponse.url === origin + '/htpasswd-generator/' &&
-              htpasswdHtml.includes('content="Build a multi-user Apache/Nginx .htpasswd file with bcrypt or apr1 hashes. Copy or download it, then verify an existing username:hash line locally. Passwords stay in your browser."') &&
+              htpasswdHtml.includes('content="Build multi-user Apache/Nginx .htpasswd files with bcrypt or apr1. Copy, download or verify a username:hash line locally. Passwords stay in your browser."') &&
               htpasswdHtml.includes('Build a complete .htpasswd file with one line per user for Apache or Nginx Basic Auth') &&
               htpasswdHtml.includes('href="' + origin + '/htpasswd-generator/"');
             const etaMarkerReady = process.env.CHECK_ETA_RELEASE !== 'true' || (
