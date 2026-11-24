@@ -177,6 +177,7 @@ describe('evidence-backed SEO keyword targets', () => {
     ['/ipv4-address-converter', 'IPv4 address converter', 'convert'],
     ['/keycode-info', 'JavaScript keycode checker', 'inspect'],
     ['/math-evaluator', 'math expression evaluator', 'compute'],
+    ['/http-headers', 'HTTP response header checker', 'check'],
     ['/mime-types', 'MIME type lookup', 'lookup'],
     ['/random-port-generator', 'random port generator', 'generate'],
   ])('keeps source-audited candidate %s capability-matched', (path, keyword, intent) => {
@@ -185,7 +186,13 @@ describe('evidence-backed SEO keyword targets', () => {
     expect(entry).toBeDefined();
     expect(entry?.keyword).toBe(keyword);
     expect(entry?.intent).toBe(intent);
-    if (path === '/mime-types') {
+    if (path === '/http-headers') {
+      expect(entry?.landed).toBe(true);
+      expect(entry?.lockedTitle).toBe('HTTP Response Header Checker — Security Headers Analyzer');
+      expect((entry?.keywords ?? []).length).toBeGreaterThanOrEqual(7);
+      expect(entry?.note).toContain('local-only analysis');
+    }
+    else if (path === '/mime-types') {
       expect(entry?.landed).toBe(true);
       expect(entry?.lockedTitle).toBe('MIME Type Lookup — Content-Type, Extensions & Server Config');
       expect((entry?.keywords ?? []).length).toBeGreaterThanOrEqual(7);
