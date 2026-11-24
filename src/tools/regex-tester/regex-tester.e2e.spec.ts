@@ -68,9 +68,9 @@ test.describe('Tool - Regex Tester isolated execution', () => {
     await page.getByLabel('Expected to match').last().uncheck();
 
     await expect(page.getByText('2 / 2 test cases passed')).toBeVisible({ timeout: 5000 });
-    await expect(page.getByText('PASS')).toHaveCount(2);
+    await expect(page.getByText('PASS', { exact: true })).toHaveCount(2);
     await page.getByLabel('Test case input').first().locator('textarea').fill('ORD-42');
     await expect(page.getByText('1 / 2 test cases passed')).toBeVisible({ timeout: 5000 });
-    await expect(page.getByText('FAIL')).toHaveCount(1);
+    await expect(page.getByText('FAIL', { exact: true })).toHaveCount(1);
   });
 });
