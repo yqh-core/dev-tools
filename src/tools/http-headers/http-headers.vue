@@ -397,7 +397,7 @@ function directionLabel(direction: string): string {
       {{ t('tools.http-headers.analyzer.noMatches') }}
     </c-alert>
 
-    <n-h3 mb-2 mt-8>
+    <n-h3 id="request-methods-reference" mb-2 mt-8>
       {{ t('tools.http-headers.analyzer.methodsTitle') }}
     </n-h3>
     <div mb-2 text-13px op-60>
