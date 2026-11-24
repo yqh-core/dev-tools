@@ -1,30 +1,30 @@
 export interface TextStatistics {
-  utf16CodeUnits: number;
-  codePoints: number;
-  graphemes: number;
-  charactersWithoutWhitespace: number;
-  words: number;
-  uniqueWords: number;
-  lines: number;
-  nonEmptyLines: number;
-  paragraphs: number;
-  sentences: number;
-  longestLine: number;
-  bytes: number;
+  utf16CodeUnits: number
+  codePoints: number
+  graphemes: number
+  charactersWithoutWhitespace: number
+  words: number
+  uniqueWords: number
+  lines: number
+  nonEmptyLines: number
+  paragraphs: number
+  sentences: number
+  longestLine: number
+  bytes: number
 }
 
 type SegmentGranularity = 'grapheme' | 'word' | 'sentence';
 
 interface Segment {
-  segment: string;
-  isWordLike?: boolean;
+  segment: string
+  isWordLike?: boolean
 }
 
 function getSegments(text: string, granularity: SegmentGranularity, locale = 'en'): Segment[] | null {
   const Segmenter = (Intl as unknown as {
     Segmenter?: new (locale?: string, options?: { granularity: SegmentGranularity }) => {
-      segment: (input: string) => Iterable<Segment>;
-    };
+      segment: (input: string) => Iterable<Segment>
+    }
   }).Segmenter;
 
   if (!Segmenter) {
