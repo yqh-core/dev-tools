@@ -1,4 +1,4 @@
-import { evaluateRegex } from './regex-tester.service';
+import { type RegexTestCase, evaluateRegex, evaluateRegexTestCases } from './regex-tester.service';
 
 interface RegexWorkerRequest {
   id: number
@@ -6,12 +6,14 @@ interface RegexWorkerRequest {
   text: string
   flags: string
   replacement: string
+  testCases?: RegexTestCase[]
 }
 
 interface RegexWorkerResponse {
   id: number
   result?: ReturnType<typeof evaluateRegex>
   error?: string
+  testCaseResults?: ReturnType<typeof evaluateRegexTestCases>
 }
 
 const workerScope = globalThis as unknown as {
@@ -25,6 +27,7 @@ workerScope.onmessage = (event) => {
     workerScope.postMessage({
       id,
       result: evaluateRegex(regex, text, flags, replacement),
+      testCaseResults: evaluateRegexTestCases(regex, flags, event.data.testCases ?? []),
     });
   }
   catch (error) {
