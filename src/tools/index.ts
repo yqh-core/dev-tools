@@ -59,6 +59,7 @@ import { tool as htmlWysiwygEditor } from './html-wysiwyg-editor';
 import { tool as rsaKeyPairGenerator } from './rsa-key-pair-generator';
 import { tool as textToNatoAlphabet } from './text-to-nato-alphabet';
 import { tool as slugifyString } from './slugify-string';
+import { tool as redirectGenerator } from './redirect-generator';
 import { tool as keycodeInfo } from './keycode-info';
 import { tool as jsonMinify } from './json-minify';
 import { tool as bcrypt } from './bcrypt';
@@ -174,6 +175,7 @@ export const toolsByCategory: ToolCategory[] = [
       jwtParser,
       keycodeInfo,
       slugifyString,
+      redirectGenerator,
       htmlWysiwygEditor,
       userAgentParser,
       httpStatusCodes,
