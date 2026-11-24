@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import JSON5 from 'json5';
-import { onBeforeUnmount, ref, shallowRef, watch } from 'vue';
+import { nextTick, onBeforeUnmount, ref, shallowRef, watch } from 'vue';
 
 import DiffsViewer from './diff-viewer/diff-viewer.vue';
 import { type ArrayComparisonMode, diff, flattenDifferences } from './json-diff.models';
@@ -19,6 +19,7 @@ const fileError = ref('');
 const comparisonError = ref('');
 const isComparing = ref(false);
 const showAllChanges = ref(false);
+const focusedPath = ref('');
 const arrayMode = ref<ArrayComparisonMode>('index');
 const arrayIdKey = ref('id');
 const leftJson = shallowRef<unknown>();
@@ -179,6 +180,26 @@ const changeCounts = computed(() => differenceList.value.reduce((counts, item) =
   }
   return counts;
 }, { added: 0, removed: 0, changed: 0 }));
+
+function focusDifference(path: string) {
+  focusedPath.value = path;
+  nextTick(() => {
+    const nodes = [...document.querySelectorAll<HTMLElement>('.diffs-viewer [data-json-path]')];
+    nodes.forEach((element) => {
+      element.classList.remove('is-focused');
+    });
+
+    const target = nodes.find(element => element.dataset.jsonPath === path);
+    if (!target) {
+      return;
+    }
+
+    // Apply the focus state after Vue has rendered the selected-path update.
+    // This also keeps the visible highlight in sync with the exact DOM node we scroll to.
+    target.classList.add('is-focused');
+    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
+}
 
 function formatValue(value: unknown): string {
   if (value === undefined) {
@@ -345,7 +366,8 @@ function downloadReport() {
     :left-json="leftJson"
     :right-json="rightJson"
     :precomputed-result="differenceTree"
-    :large-input="rawLeftJson.length + rawRightJson.length >= WORKER_THRESHOLD"
+     :large-input="rawLeftJson.length + rawRightJson.length >= WORKER_THRESHOLD"
+    :focused-path="focusedPath"
   />
 
   <c-card v-if="differenceTree" title="Change list" mt-3 data-test-id="change-list">
@@ -378,7 +400,16 @@ function downloadReport() {
         </thead>
         <tbody>
           <tr v-for="item in visibleDifferences" :key="item.path" border-t>
-            <td p-2 font-mono data-test-id="change-path">{{ item.path }}</td>
+            <td p-2 font-mono data-test-id="change-path">
+              <button
+                type="button"
+                class="font-mono underline underline-offset-2"
+                :aria-label="`Focus ${item.path} in comparison`"
+                @click="focusDifference(item.path)"
+              >
+                {{ item.path }}
+              </button>
+            </td>
             <td p-2>{{ item.status }}</td>
             <td p-2 font-mono>{{ formatValue(item.oldValue) }}</td>
             <td p-2 font-mono>{{ formatValue(item.value) }}</td>

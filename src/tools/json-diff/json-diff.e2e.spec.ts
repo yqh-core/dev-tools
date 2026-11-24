@@ -51,6 +51,15 @@ test.describe('Tool - JSON diff', () => {
     await expect(changes).toContainText('2 changed paths');
   });
 
+  test('jumps from a changed JSON path to its nested comparison location', async ({ page }) => {
+    await page.getByTestId('leftJson').fill('{"user":{"name":"Ada","role":"admin"}}');
+    await page.getByTestId('rightJson').fill('{"user":{"name":"Grace","role":"admin","active":true}}');
+
+    await page.getByRole('button', { name: 'Focus $["user"]["name"] in comparison' }).click();
+
+    await expect(page.locator('li[data-json-path]').filter({ hasText: 'Grace' }).last()).toHaveClass(/is-focused/);
+  });
+
   test('loads a local JSON file without uploading it', async ({ page }) => {
     await page.getByTestId('left-file').setInputFiles({
       name: 'before.json',

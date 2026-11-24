@@ -10,6 +10,7 @@ const props = defineProps<{
   rightJson: unknown
   precomputedResult: Difference
   largeInput: boolean
+  focusedPath: string
 }>();
 const onlyShowDifferences = ref(props.largeInput);
 const { leftJson, rightJson } = toRefs(props);
@@ -53,13 +54,19 @@ const showResults = computed(() => !isUndefined(leftJson.value) && !isUndefined(
       <div v-if="jsonAreTheSame" text-center op-70>
         The provided JSONs are the same
       </div>
-      <DiffRootViewer v-else :diff="result" />
+      <DiffRootViewer v-else :diff="result" :focused-path="focusedPath" />
     </c-card>
   </div>
 </template>
 
 <style lang="less" scoped>
 ::v-deep(.diffs-viewer) {
+  li.is-focused {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
   color: v-bind('appTheme.text.mutedColor');
 
   & > ul {
