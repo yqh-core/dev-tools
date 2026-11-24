@@ -139,3 +139,34 @@ export function evaluateRegex(
 
   return { results, replacementPreview, sample };
 }
+
+export interface RegexTestCase {
+  id: string
+  name: string
+  text: string
+  shouldMatch: boolean
+}
+
+export interface RegexTestCaseResult extends RegexTestCase {
+  passed: boolean
+  actualMatch: boolean
+  firstMatch: RegexMatch | null
+}
+
+/** Run a named positive/negative suite inside the same isolated Worker as matching. */
+export function evaluateRegexTestCases(
+  regex: string,
+  flags: string,
+  cases: RegexTestCase[],
+): RegexTestCaseResult[] {
+  return cases.map((testCase) => {
+    const matches = matchRegex(regex, testCase.text, flags);
+    const actualMatch = matches.length > 0;
+    return {
+      ...testCase,
+      actualMatch,
+      passed: actualMatch === testCase.shouldMatch,
+      firstMatch: matches[0] ?? null,
+    };
+  });
+}
