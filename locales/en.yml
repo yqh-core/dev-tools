@@ -460,6 +460,15 @@ tools:
       originRequired: Enter a site origin before generating a Cloudflare CSV.
       outputFailed: Could not generate this output format.
       fileRead: The selected file could not be read.
+            inputTooLarge: Input exceeds the 200,000-character safety limit.
+            tooManyRows: Enter 1,000 redirects or fewer.
+            parseRow: This row could not be parsed. Use a two-column mapping with a source and destination.
+            invalidSource: Enter a valid HTTP/HTTPS source URL or a specific path without a query string.
+            invalidTarget: Enter a valid HTTP/HTTPS destination URL or a path.
+            duplicateSource: This source URL is already used by another mapping.
+            selfRedirect: The source and destination point to the same path on the same host.
+            redirectChain: This destination continues through another redirect in the current batch. Point it directly to the final destination.
+            redirectLoop: This mapping is part of a redirect loop. Break the loop before exporting.
 
   encryption:
     title: Encrypt / decrypt text
