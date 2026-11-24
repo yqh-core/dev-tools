@@ -744,8 +744,8 @@ tools:
     description: 在ipv6中，将ip地址转换为十进制、二进制、十六进制或事件
 
   text-statistics:
-    title: 文本统计
-    description: 获取有关文本、字符数、字数、大小等的信息
+    title: 文本统计 — 在线字数与字符数统计工具
+    description: 在线统计字数、可见字符、Unicode 码点、UTF-16 单元和 UTF-8 字节，并计算句子、段落、行数与阅读时间。浏览器本地处理，不上传文本。
 
   text-to-nato-alphabet:
     title: 文本转北约字母表

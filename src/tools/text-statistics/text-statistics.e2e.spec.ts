@@ -5,26 +5,50 @@ test.describe('Tool - text statistics', () => {
     await page.goto('/text-statistics');
   });
 
-  test('shows a worked example with transparent counting rules', async ({ page }) => {
-    const example = page.getByTestId('text-statistics-example');
-    await expect(example).toContainText('Hello, world!');
-    await expect(example).toContainText('29');
-    await expect(example).toContainText('6');
-    await expect(example).toContainText('UTF-8 bytes');
-    await expect(example).toContainText('JavaScript string length');
+  test('explains the difference between visible characters and storage units', async ({ page }) => {
+    await expect(page.getByTestId('counting-methodology')).toContainText('Unicode grapheme clusters');
+    await expect(page.getByTestId('counting-methodology')).toContainText('UTF-16 code units');
+    await expect(page.getByTestId('counting-methodology')).toContainText('UTF-8 bytes');
   });
 
-  test('updates character, word, line and UTF-8 byte counts', async ({ page }) => {
-    await page.getByPlaceholder('Your text...').fill('Hello, world!\nThis is a test.');
-    await expect(page.getByTestId('character-count')).toContainText('29');
-    await expect(page.getByTestId('word-count')).toContainText('6');
-    await expect(page.getByTestId('line-count')).toContainText('2');
-    await expect(page.getByTestId('byte-size')).toContainText('29 B');
+  test('updates Unicode, word, line and paragraph metrics as text changes', async ({ page }) => {
+    await page.getByTestId('text-input').locator('textarea').fill('Hello hello world.\n\nHello again!');
+    await expect(page.getByTestId('words')).toContainText('5');
+    await expect(page.getByTestId('unique-words')).toContainText('3');
+    await expect(page.getByTestId('sentences')).toContainText('2');
+    await expect(page.getByTestId('paragraphs')).toContainText('2');
+    await expect(page.getByTestId('non-empty-lines')).toContainText('2');
   });
 
-  test('counts non-ASCII text by UTF-8 bytes', async ({ page }) => {
-    await page.getByPlaceholder('Your text...').fill('\u4F60\u597D');
-    await expect(page.getByTestId('character-count')).toContainText('2');
-    await expect(page.getByTestId('byte-size')).toContainText('6 B');
+  test('distinguishes a joined emoji grapheme from code points and UTF-8 bytes', async ({ page }) => {
+    await page.getByTestId('text-input').locator('textarea').fill('👨‍👩‍👧');
+    await expect(page.getByTestId('graphemes')).toContainText('1');
+    await expect(page.getByTestId('code-points')).toContainText('5');
+    await expect(page.getByTestId('utf16')).toContainText('8');
+    await expect(page.getByTestId('bytes')).toContainText('18');
+  });
+
+  test('supports a custom reading speed and exposes a complete statistics summary', async ({ page }) => {
+    await page.getByTestId('text-input').locator('textarea').fill('one two three four');
+    await page.getByLabel('Reading speed in words per minute').fill('2');
+    await expect(page.getByTestId('reading-time')).toContainText('2 min');
+    await expect(page.getByTestId('copy-statistics')).toBeVisible();
+  });
+
+  test('keeps the tool usable on a narrow mobile viewport', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.getByTestId('text-input').locator('textarea').fill('Hello 👋');
+    const dimensions = await page.evaluate(() => ({
+      documentWidth: document.documentElement.scrollWidth,
+      viewportWidth: document.documentElement.clientWidth,
+    }));
+    expect(dimensions.documentWidth).toBeLessThanOrEqual(dimensions.viewportWidth);
+  });
+
+  test('shows zero metrics for empty input', async ({ page }) => {
+    await expect(page.getByTestId('words')).toContainText('0');
+    await expect(page.getByTestId('graphemes')).toContainText('0');
+    await expect(page.getByTestId('bytes')).toContainText('0');
+    await expect(page.getByTestId('paragraphs')).toContainText('0');
   });
 });
