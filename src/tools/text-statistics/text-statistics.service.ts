@@ -133,7 +133,7 @@ export function getTopTermFrequency(
 ): TopTermFrequencyResult {
   const shouldExcludeStopWords = options.excludeEnglishStopWords === true
     && locale.toLowerCase().startsWith('en');
-  const limit = Number.isInteger(options.limit) ? Math.min(50, Math.max(1, options.limit!)) : 10;
+  const limit = Number.isInteger(options.limit) ? Math.min(50, Math.max(1, options.limit ?? 10)) : 10;
   const tokens = splitWords(text, locale)
     .map(token => token.toLocaleLowerCase(locale))
     .filter(token => !shouldExcludeStopWords || !ENGLISH_STOP_WORDS.has(token));
