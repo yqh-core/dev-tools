@@ -419,7 +419,7 @@ tools:
     description: 为 Apache、Nginx、Cloudflare、Netlify 和 Vercel 批量生成重定向规则。导入 CSV，检查循环与重定向链，并在浏览器本地导出配置。
     cardTitle: 批量 URL 重定向映射
     intro: 粘贴或导入旧 URL 与目标地址清单，验证映射后导出五种平台可用的重定向配置。
-    inputPlaceholder: "Source URL,Target URL\\n/old-page,https://example.com/new-page\\n/legacy,/current"
+    inputPlaceholder: "Source URL,Target URL\n/old-page,https://example.com/new-page\n/legacy,/current"
     loadSample: 加载示例
     clear: 清空
     importCsv: 导入 CSV / TSV
