@@ -107,7 +107,7 @@ function displayRowError(error: string): string {
 
 <template>
   <div>
-    <c-card :title="t('tools.slugify-string.batch.title')" mb-5>
+    <c-card data-test-id="slugify-batch" :title="t('tools.slugify-string.batch.title')" mb-5>
       <p mb-3 op-70>
         {{ t('tools.slugify-string.batch.intro') }}
       </p>
