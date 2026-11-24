@@ -474,7 +474,7 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
       '/json-to-code',
     ],
     keyword: 'json diff checker',
-    keywords: ['json diff', 'compare JSON online', 'compare two JSON objects', 'JSON difference checker', 'nested JSON diff', 'compare JSON files online', 'JSON array diff', 'JSON diff ignore order', 'JSON compare by ID'],
+    keywords: ['json diff', 'compare JSON online', 'compare two JSON objects', 'JSON difference checker', 'nested JSON diff', 'compare JSON files online', 'compare large JSON files', 'large JSON diff', 'JSON array diff', 'JSON diff ignore order', 'JSON compare by ID'],
     intent: 'debug',
     priority: 'P1',
     competition: 'high',
