@@ -11,7 +11,7 @@ test.describe('Tool - IPv6 ULA generator', () => {
     await expect(page.getByTestId('ula-global-id-1').locator('input')).toHaveValue(/^[0-9a-f]{10}$/);
     await expect(page.getByTestId('ula-first-subnet-1').locator('input')).toHaveValue(/:0::\/64$/);
     await expect(page.getByTestId('ula-last-subnet-1').locator('input')).toHaveValue(/:ffff::\/64$/);
-    await expect(page.getByText(/65,536/)).toBeVisible();
+    await expect(page.getByTestId('ula-subnet-count')).toContainText('65,536');
   });
 
   test('generates a unique batch and respects the requested quantity', async ({ page }) => {
