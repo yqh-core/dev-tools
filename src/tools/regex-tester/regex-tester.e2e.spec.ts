@@ -8,20 +8,20 @@ test.describe('Tool - Regex Tester isolated execution', () => {
   test('explains common JavaScript tokens and flags, and flags syntax it cannot explain', async ({ page }) => {
     const panel = page.getByTestId('pattern-explanation');
     const slash = String.fromCharCode(92);
-    await page.getByLabel('Regex to test:').fill(`^(?<id>[A-Z]{2}${slash}d+)$`);
+    await page.getByTestId('regex-input').locator('textarea').fill(`^(?<id>[A-Z]{2}${slash}d+)$`);
     await expect(panel).toContainText('Pattern explanation');
     await expect(panel).toContainText('named capture group called "id"');
     await expect(panel).toContainText('Matches one ASCII digit');
     await expect(panel).toContainText('Active flags');
     await expect(panel).toContainText('Finds all matches');
 
-    await page.getByLabel('Regex to test:').fill(`(?P<name>foo)${slash}K`);
+    await page.getByTestId('regex-input').locator('textarea').fill(`(?P<name>foo)${slash}K`);
     await expect(panel).toContainText('Python-style named groups are not JavaScript RegExp syntax');
     await expect(panel.getByText('Review syntax')).toHaveCount(2);
   });
 
   test('supports named groups and JavaScript replacement tokens', async ({ page }) => {
-    await page.getByLabel('Regex to test:').fill('(?<word>hello)');
+    await page.getByTestId('regex-input').locator('textarea').fill('(?<word>hello)');
     await page.getByLabel('Text to match:').fill('hello world');
     await page.getByLabel('Replacement:').fill('$<word>!');
     await expect(page.locator('pre').first()).toContainText('hello! world');
@@ -29,22 +29,22 @@ test.describe('Tool - Regex Tester isolated execution', () => {
   });
 
   test('terminates catastrophic backtracking and recovers for the next request', async ({ page }) => {
-    await page.getByLabel('Regex to test:').fill('^(a+)+$');
+    await page.getByTestId('regex-input').locator('textarea').fill('^(a+)+$');
     await page.getByLabel('Text to match:').fill(`${'a'.repeat(36)}!`);
     await expect(page.getByText(/Timed out after 300ms/)).toBeVisible({ timeout: 5000 });
 
-    await page.getByLabel('Regex to test:').fill('a+');
+    await page.getByTestId('regex-input').locator('textarea').fill('a+');
     await page.getByLabel('Text to match:').fill('aaaa');
     await expect(page.locator('tbody tr').first().locator('td').nth(2)).toContainText('aaaa', { timeout: 5000 });
     await expect(page.getByText(/Timed out after/)).toHaveCount(0);
   });
 
   test('shows invalid-pattern errors and recovers after correction', async ({ page }) => {
-    await page.getByLabel('Regex to test:').fill('(');
+    await page.getByTestId('regex-input').locator('textarea').fill('(');
     await page.getByLabel('Text to match:').fill('hello');
     await expect(page.getByText(/Invalid regex:/)).toBeVisible();
 
-    await page.getByLabel('Regex to test:').fill('hello');
+    await page.getByTestId('regex-input').locator('textarea').fill('hello');
     await expect(page.locator('tbody tr').first().locator('td').nth(2)).toContainText('hello', { timeout: 5000 });
   });
 
@@ -72,7 +72,7 @@ test.describe('Tool - Regex Tester isolated execution', () => {
   });
 
   test('reorders named test cases and shows full-match index and source range', async ({ page }) => {
-    await page.getByLabel('Regex to test:').fill('(?<word>foo)');
+    await page.getByTestId('regex-input').locator('textarea').fill('(?<word>foo)');
 
     await page.getByRole('button', { name: 'Add test case' }).click();
     await page.getByLabel('Test case name').first().locator('input').fill('First case');
@@ -93,7 +93,7 @@ test.describe('Tool - Regex Tester isolated execution', () => {
   });
 
   test('runs named positive and negative test cases with an aggregate summary', async ({ page }) => {
-    await page.getByLabel('Regex to test:').fill('^ORD-[0-9]{4}$');
+    await page.getByTestId('regex-input').locator('textarea').fill('^ORD-[0-9]{4}$');
     await page.getByRole('button', { name: 'Add test case' }).click();
     await page.getByLabel('Test case name').last().locator('input').fill('Valid order');
     await page.getByLabel('Test case input').last().locator('textarea').fill('ORD-0042');
