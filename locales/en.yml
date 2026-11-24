@@ -599,6 +599,9 @@ tools:
   numeronym-generator:
     title: Numeronym Generator — i18n, a11y & k8s
     description: Generate numeronyms from pasted words and phrases. Supports Unicode letters, hyphenated terms, case-preserving batch output and lookups for i18n, a11y and k8s.
+    shortWordResult: Too short — unchanged
+    shortWordNote: Words with three letters or fewer stay unchanged because a shorter numeronym would not be useful.
+    batchCopyNote: Unsupported items and short words remain visible in the table but are omitted from Copy All.
 
   case-converter:
     title: Text Case Converter — camelCase, snake_case & More
