@@ -1020,15 +1020,18 @@ export const GUIDES: Record<string, ToolGuide> = {
   },
 
   '/mime-types': {
-    intro: 'Looks up MIME types and file extensions from one another — useful when configuring a server or writing upload validation.',
-    steps: ['Enter a MIME type or an extension', 'Read the corresponding form', 'Copy and use it'],
+    intro: 'Look up MIME types by extension or extension lists by MIME type, then copy ready-to-paste Nginx, Apache or static-hosting header rules.',
+    steps: ['Search for a MIME type such as application/json or choose a file extension such as .woff2', 'Review the matching extensions or MIME type', 'Copy the generated server configuration for Nginx, Apache .htaccess or a static _headers file'],
     notes: [
       'The mapping is the curated mime-types dataset, not the full IANA registry — brand-new or proprietary types may be missing, so confirm official types against the IANA Media Types registry',
+      'Generated snippets use the selected mapping only. Review placement and existing MIME rules in your server configuration before deploying',
       'Rows stay hidden until you type a query or turn on "show all": the full table is hundreds of entries, so the default view is empty by design',
     ],
-    about: 'Look up which MIME type matches a file extension and vice versa. Searchable in both directions, so you can resolve "what Content-Type do I send for .woff2" as easily as "which files does audio/mpeg cover". The mapping matters every time you configure a web server, write an upload handler or debug a file that downloads instead of rendering.',
+    about: 'Look up which MIME type matches a file extension and vice versa, then turn the mapping into server configuration without retyping it. The tool generates Nginx types blocks, Apache AddType directives and static-hosting _headers rules for each mapped extension. It is useful when configuring Content-Type responses, upload handlers or debugging files that download instead of rendering.',
     faqs: [
-      { q: 'Why does one extension map to several MIME types?', a: 'Formats accumulate aliases over time (.mp3 maps to audio/mpeg while older stacks expect audio/mp3). Servers expect the canonical one; this tool shows the common mappings so you can pick what your stack accepts.' },
+      { q: 'Which server formats are generated?', a: 'Nginx types blocks, Apache AddType directives for .htaccess, and static-hosting _headers rules. The snippet reflects the selected mapping; you still need to place it in the correct server context.' },
+      { q: 'Is the result the complete IANA registry?', a: 'No. The tool uses the curated mime-types package dataset. Confirm new, private or security-sensitive media types against the IANA Media Types registry.' },
+      { q: 'Why does one extension map to several MIME types?', a: 'Formats accumulate aliases over time (.mp3 maps to audio/mpeg while older stacks expect audio/mp3). Use the canonical mapping required by your server and application.' },
       { q: 'What happens if I send the wrong Content-Type?', a: 'Browsers may refuse to execute scripts (strict MIME checking), render text as plain text, or trigger a download. API clients also pick their parser from the Content-Type, so wrong types cause silent parse failures.' },
       { q: 'What is the difference between text/plain and application/octet-stream?', a: 'text/plain tells the client the bytes are human-readable text; octet-stream means "opaque binary, save it". Sending octet-stream for something renderable is the classic cause of forced downloads.' },
     ],
