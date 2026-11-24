@@ -248,7 +248,7 @@ test.describe('ETA Calculator weekday schedule in the device timezone', () => {
     await page.getByTestId('eta-schedule-weekdays').click();
 
     await expect(page.getByTestId('eta-working-window-counted')).toContainText('2 hours');
-    await expect(page.getByTestId('eta-finish-local')).toContainText('09 Mar 2026');
+    await expect(page.getByTestId('eta-finish-local')).toContainText('9 Mar 2026');
     await expect(page.getByTestId('eta-finish-local')).toContainText('10:00');
     await expect(page.getByTestId('eta-finish-local')).toContainText('America/New_York');
   });
