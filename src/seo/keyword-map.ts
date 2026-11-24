@@ -421,13 +421,14 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
   {
     path: '/http-headers',
     keyword: 'http headers checker online',
-    keywords: ['OWASP secure headers', 'curl -I analyzer', 'HSTS / CSP score'],
+    keywords: ['HTTP response header checker', 'security headers analyzer', 'security headers check', 'CSP header checker', 'HSTS header checker', 'CORS header checker', 'HTTP header security audit'],
     intent: 'inspect',
     priority: 'P2',
     competition: 'medium',
-    landed: false,
+    landed: true,
     proposedTitle: 'HTTP Header Analyzer — Paste Headers, Get a Security Score',
-    note: '簇 10。需改形态：走「用户粘贴 curl -I 输出 → 纯前端解析 + OWASP 打分」，成本与风险都为零（对比 server-side fetch 路线）。',
+    lockedTitle: 'HTTP Response Header Checker — Security Headers Analyzer',
+    note: 'Adds local-only analysis of pasted HTTP response headers across six security baselines plus CORS and cookie findings. Heuristic checker only; it does not fetch URLs, grade a site or replace a full security audit. Competitor benchmark: SecurityHeaders.com and OWASP Secure Headers Project.',
   },
   {
     path: '/linux-commands',
