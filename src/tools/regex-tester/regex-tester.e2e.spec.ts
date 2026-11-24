@@ -18,7 +18,6 @@ test.describe('Tool - Regex Tester isolated execution', () => {
     await page.getByLabel('Text to match:').fill(`${'a'.repeat(36)}!`);
     await expect(page.getByText(/Timed out after 300ms/)).toBeVisible({ timeout: 5000 });
 
-    // The main thread remains responsive and a fresh worker handles the next request.
     await page.getByLabel('Regex to test:').fill('a+');
     await page.getByLabel('Text to match:').fill('aaaa');
     await expect(page.locator('tbody tr').first().locator('td').nth(1)).toContainText('aaaa', { timeout: 5000 });
@@ -56,6 +55,7 @@ test.describe('Tool - Regex Tester isolated execution', () => {
     await page.getByLabel('Text to match:').fill('Server: 192.168.1.42');
     await expect(page.locator('tbody tr').first().locator('td').nth(1)).toContainText('192.168.1.42', { timeout: 5000 });
   });
+
   test('runs named positive and negative test cases with an aggregate summary', async ({ page }) => {
     await page.getByLabel('Regex to test:').fill('^ORD-[0-9]{4}$');
     await page.getByRole('button', { name: 'Add test case' }).click();
@@ -73,23 +73,4 @@ test.describe('Tool - Regex Tester isolated execution', () => {
     await expect(page.getByText('1 / 2 test cases passed')).toBeVisible({ timeout: 5000 });
     await expect(page.getByText('FAIL')).toHaveCount(1);
   });
-
-});
-);
-    await page.getByRole('button', { name: 'Add test case' }).click();
-    await page.getByLabel('Test case name').last().fill('Valid order');
-    await page.getByLabel('Test case input').last().fill('ORD-0042');
-
-    await page.getByRole('button', { name: 'Add test case' }).click();
-    await page.getByLabel('Test case name').last().fill('Too short');
-    await page.getByLabel('Test case input').last().fill('ORD-42');
-    await page.getByLabel('Expected to match').last().uncheck();
-
-    await expect(page.getByText('2 / 2 test cases passed')).toBeVisible({ timeout: 5000 });
-    await expect(page.getByText('PASS')).toHaveCount(2);
-    await page.getByLabel('Test case input').first().fill('ORD-42');
-    await expect(page.getByText('1 / 2 test cases passed')).toBeVisible({ timeout: 5000 });
-    await expect(page.getByText('FAIL')).toHaveCount(1);
-  });
-
 });
