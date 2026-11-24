@@ -46,7 +46,8 @@ const rows = computed(() => {
   return runSlugifyBatch(input.value, settings);
 });
 
-const output = computed(() => slugifyBatchToText(rows.value));
+const allSlugs = computed(() => rows.value.filter(row => !row.error).map(row => row.slug).join('\n'));
+const textOutput = computed(() => slugifyBatchToText(rows.value));
 const csvOutput = computed(() => slugifyBatchToCsv(rows.value));
 const truncatedCount = computed(() => rows.value.filter(row => row.truncated).length);
 const errorCount = computed(() => rows.value.filter(row => row.error.length > 0).length);
@@ -71,14 +72,14 @@ const previewUrl = (slug: string) => (
   validBaseUrl.value && slug ? `${validBaseUrl.value}/${slug}` : ''
 );
 
-const { copy } = useCopy({ source: output, text: t('tools.slugify-string.batch.copied') });
+const { copy } = useCopy({ source: allSlugs, text: t('tools.slugify-string.batch.copied') });
 const { download: downloadCsv } = useDownloadTextFile({
   source: csvOutput,
   filename: 'slug-results',
   language: 'csv',
 });
 const { download: downloadTxt } = useDownloadTextFile({
-  source: output,
+  source: textOutput,
   filename: 'slug-results',
   language: 'txt',
 });
@@ -112,6 +113,7 @@ function displayRowError(error: string): string {
       </p>
 
       <c-input-text
+        data-test-id="slug-titles-input"
         v-model:value="input"
         multiline
         rows="8"
@@ -172,10 +174,10 @@ function displayRowError(error: string): string {
       </div>
 
       <div flex flex-wrap items-center gap-2>
-        <c-button :disabled="rows.length === 0" @click="copy()">
+        <c-button :disabled="allSlugs.length === 0" @click="copy()">
           {{ t('tools.slugify-string.batch.copyAll') }}
         </c-button>
-        <c-button :disabled="rows.length === 0" @click="downloadTxt()">
+        <c-button :disabled="textOutput.length === 0" @click="downloadTxt()">
           {{ t('tools.slugify-string.batch.downloadTxt') }}
         </c-button>
         <c-button :disabled="rows.length === 0" @click="downloadCsv()">
