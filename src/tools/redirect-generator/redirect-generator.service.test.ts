@@ -55,6 +55,16 @@ describe('analyzeRedirects', () => {
     expect(result.rows[2].issues.some(issue => issue.code === 'invalid-target')).toBe(true);
   });
 
+  it('detects same-host absolute self redirects', () => {
+    const result = analyzeRedirects('https://example.com/same,https://example.com/same');
+    expect(result.rows[0].issues.some(issue => issue.code === 'self-redirect')).toBe(true);
+  });
+
+  it('rejects quoted paths that could break generated server configuration', () => {
+    const result = analyzeRedirects('/old\"; return 200,/new');
+    expect(result.rows[0].issues.some(issue => issue.code === 'invalid-source')).toBe(true);
+  });
+
   it('flags duplicate sources and self redirects', () => {
     const result = analyzeRedirects('/old,/new\n/old,/other\n/same,/same');
     expect(result.rows[1].issues.some(issue => issue.code === 'duplicate-source')).toBe(true);
