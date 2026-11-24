@@ -224,13 +224,13 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
   {
     path: '/eta-calculator',
     keyword: 'eta calculator',
-    keywords: ['task completion time calculator', 'processing time calculator', 'batch processing time calculator', 'download time estimator', 'build time estimator'],
+    keywords: ['task completion time calculator', 'processing time calculator', 'remaining time calculator', 'time remaining calculator', 'remaining task time calculator', 'batch processing ETA', 'download time remaining', 'build time estimator', 'ETA with progress', 'buffered ETA calculator'],
     intent: 'compute',
     priority: 'P1',
     competition: 'medium',
     landed: true,
     lockedTitle: 'ETA Calculator — Task Completion Time',
-    note: 'The calculator estimates duration and finish time from total units, a processing rate and a start time. Do not target travel ETA or full software-project scheduling; those exceed the current feature.',
+    note: 'The canonical tool estimates remaining duration from total and completed units, measured throughput, a start time and an optional 0–100% buffer. It does not target travel ETA, route traffic or full project scheduling.',
   },
   {
     path: '/text-statistics',
