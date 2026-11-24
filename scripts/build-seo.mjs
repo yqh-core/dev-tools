@@ -837,6 +837,9 @@ try {
       const socialFile = join(root, 'dist', relativeImagePath);
       await mkdir(dirname(socialFile), { recursive: true });
       await writeFile(socialFile, socialImage);
+      if (!existsSync(socialFile)) {
+        throw new Error(`[build-seo] ${path} generated image is missing from dist: ${socialFile}`);
+      }
     }
     socialImagesCreated += 1;
 
