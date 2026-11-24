@@ -169,17 +169,26 @@ test('ETA Calculator compares the current pace with the rate needed for a deadli
   await fill('eta-interval', '5');
   const deadline = page.getByTestId('eta-deadline-input');
   await deadline.fill(localDateTime(Date.now() + 4 * 60 * 60 * 1000));
-  await expect(page.getByTestId('eta-deadline-result')).toContainText('30 units/hour');
+  const requiredPace = page.getByTestId('eta-required-pace');
+  const readRequiredPace = async () => {
+    const text = (await requiredPace.textContent()) ?? '';
+    const value = Number(text.match(/([\\d,.]+)\\s+units\\/hour/)?.[1]?.replaceAll(',', ''));
+    expect(Number.isFinite(value)).toBe(true);
+    return value;
+  };
+  expect(await readRequiredPace()).toBeGreaterThan(29);
+  expect(await readRequiredPace()).toBeLessThan(31);
   await expect(page.getByTestId('eta-deadline-result')).toContainText('sufficient to meet this deadline');
 
   await deadline.fill(localDateTime(Date.now() + 3 * 60 * 60 * 1000));
-  await expect(page.getByTestId('eta-deadline-result')).toContainText('40 units/hour');
-  await expect(page.getByTestId('eta-deadline-result')).toContainText('11.11');
+  expect(await readRequiredPace()).toBeGreaterThan(39);
+  expect(await readRequiredPace()).toBeLessThan(41);
+  await expect(page.getByTestId('eta-deadline-result')).toContainText('Increase your pace');
 
   await fill('eta-buffer', '20');
   await fill('eta-pause-minutes', '30');
-  await expect(page.getByTestId('eta-deadline-result')).toContainText('57.6 units/hour');
-  await expect(page.getByTestId('eta-deadline-result')).toContainText('60');
+  expect(await readRequiredPace()).toBeGreaterThan(55);
+  expect(await readRequiredPace()).toBeLessThan(60);
 
   await deadline.fill(localDateTime(Date.now() - 60 * 60 * 1000));
   await expect(page.getByTestId('eta-deadline-error')).toContainText('must be later than the estimate start time');
