@@ -136,7 +136,7 @@ describe('generateRedirectOutput', () => {
     expect(lines[1]).toContain('"FALSE","FALSE","FALSE"');
   });
 
-  it('generates Netlify _redirects lines and enforces the tool's conservative 301/302 range', () => {
+  it('generates Netlify _redirects lines and enforces the conservative 301/302 range', () => {
     const netlify = generateRedirectOutput(analysis, 'netlify', '301');
     expect(netlify).toContain('/old+page /new-page 301');
     expect(netlify).toContain('/legacy /final 301');
