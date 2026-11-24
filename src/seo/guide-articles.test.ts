@@ -40,6 +40,8 @@ describe('article-only guide content', () => {
     const english = en['/percentage-calculator'].articleOnlySections ?? [];
     const chinese = zh['/percentage-calculator'].articleOnlySections ?? [];
 
+    expect(en['/json-diff'].intro).toContain('structural JSON diff');
+    expect(zh['/json-diff'].intro).toContain('结构化 JSON diff');
     expect(english).toHaveLength(3);
     expect(chinese).toHaveLength(english.length);
     expect(english.map(section => section.title)).toContain('Reverse a change and choose the right comparison');
