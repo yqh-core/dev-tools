@@ -78,6 +78,16 @@ test.describe('Tool - local HTTP response header analyzer', () => {
     await expect(page.getByTestId('header-checks')).toContainText('MIME sniffing protection');
   });
 
+  test('imports a plain-text response header file locally', async ({ page }) => {
+    await page.getByTestId('har-file-input').setInputFiles({
+      name: 'response.txt',
+      mimeType: 'text/plain',
+      buffer: Buffer.from('HTTP/2 200 OK\\nX-Content-Type-Options: nosniff'),
+    });
+    await expect(page.getByTestId('analysis-results')).toContainText('HTTP/2 200 OK');
+    await expect(page.getByTestId('header-checks')).toContainText('MIME sniffing protection');
+  });
+
   test('rejects invalid HAR files without replacing the current analysis', async ({ page }) => {
     await page.getByTestId('raw-response-headers').locator('textarea').fill('HTTP/2 200 OK');
     await page.getByTestId('har-file-input').setInputFiles({
@@ -106,6 +116,14 @@ test.describe('Tool - local HTTP response header analyzer', () => {
     await page.getByTestId('remediation-platform').click();
     await page.getByText('Caddy', { exact: true }).click();
     await expect(snippet).toContainText('header {');
+
+    await page.getByTestId('remediation-platform').click();
+    await page.getByText('Vercel', { exact: true }).click();
+    const vercelConfig = JSON.parse(await snippet.textContent() || '{}');
+    expect(vercelConfig.headers[0].headers).toContainEqual({
+      key: 'X-Content-Type-Options',
+      value: 'nosniff',
+    });
 
     await page.getByTestId('remediation-platform').click();
     await page.getByText('Cloudflare Pages', { exact: true }).click();
