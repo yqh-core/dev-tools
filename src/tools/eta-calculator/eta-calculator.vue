@@ -104,12 +104,12 @@ const formattedEndAt = computed(() => {
 });
 function copyFinishTime() {
   if (formattedEndAt.value) {
-    void copy(formattedEndAt.value);
+    copy(formattedEndAt.value);
   }
 }
 function copyRemainingDuration() {
   if (estimate.value) {
-    void copy(displayedDuration.value);
+    copy(displayedDuration.value);
   }
 }
 const displayedObservedRate = computed(() => {
