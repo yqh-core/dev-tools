@@ -1036,8 +1036,8 @@ tools:
     description: Test JavaScript regular expressions online with live matches, capture groups, replacement preview and named positive/negative test cases with pass/fail results. A 300ms worker timeout stops runaway patterns.
 
   safelink-decoder:
-    title: "Outlook Safe Links Batch Decoder — Local URL Unwrapper"
-    description: "Decode Outlook Safe Links in bulk: paste one HTTPS wrapper per line, unwrap up to five layers, inspect destination hosts and copy successful URLs. Local parsing; no safety scan."
+    title: "Outlook Safe Links Batch Decoder"
+    description: "Batch decode Outlook Safe Links: paste one HTTPS wrapper per line, unwrap five layers, inspect hosts and copy results. Local parsing; no safety scan."
     batch:
       title: Batch decode Outlook Safe Links
       instructions: Paste one Outlook Safe Links URL per line. Blank lines are ignored and each result is handled independently in your browser.
