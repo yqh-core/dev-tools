@@ -29,7 +29,7 @@ export interface HttpHeaderAnalysis {
 
 export const MAX_RESPONSE_HEADER_INPUT_LENGTH = 65536
 
-const TOKEN_PATTERN = /^[!#$%&'*+.^_`|~0-9A-Za-z-]+$/
+const TOKEN_PATTERN = /^[!#$%&'*+.^_\`|~0-9A-Za-z-]+$/
 const SAFE_REFERRER_POLICIES = new Set([
   'no-referrer',
   'same-origin',
@@ -40,14 +40,16 @@ const SAFE_REFERRER_POLICIES = new Set([
   'origin-when-cross-origin',
 ])
 
+function getDirective(policy: string, name: string): string {
+  const directive = policy.split(';').map(part => part.trim()).find(part => {
+    return part.toLowerCase().startsWith(name.toLowerCase() + ' ')
+  })
+  return directive?.slice(name.length).trim() ?? ''
+}
+
 export function parseResponseHeaders(raw: string): ParsedResponseHeaders {
   if (raw.length > MAX_RESPONSE_HEADER_INPUT_LENGTH) {
-    return {
-      headers: {},
-      headerCount: 0,
-      malformedLines: 0,
-      error: 'Paste no more than 64 KB of response headers.',
-    }
+    return { headers: {}, headerCount: 0, malformedLines: 0, error: 'Paste no more than 64 KB of response headers.' }
   }
 
   const headers: Record<string, string[]> = {}
@@ -55,11 +57,11 @@ export function parseResponseHeaders(raw: string): ParsedResponseHeaders {
   let malformedLines = 0
   let headerCount = 0
 
-  for (const line of raw.replace(/^\\uFEFF/, '').split(/\\r?\\n/)) {
+  for (const line of raw.replace(/^\uFEFF/, '').split(/\r?\n/)) {
     const trimmed = line.trim()
     if (!trimmed) continue
 
-    if (/^HTTP\\/\\d(?:\\.\\d)?\\s+\\d{3}(?:\\s|$)/i.test(trimmed)) {
+    if (/^HTTP\/\d(?:\.\d)?\s+\d{3}(?:\s|$)/i.test(trimmed)) {
       statusLine = trimmed
       continue
     }
@@ -99,9 +101,9 @@ export function analyzeResponseHeaders(raw: string): HttpHeaderAnalysis | { erro
   const parsed = parseResponseHeaders(raw)
   if (parsed.error) return { error: parsed.error }
 
-  const get = (name: string) => (parsed.headers[name.toLowerCase()] ?? []).join(', ')
-  const has = (name: string) => (parsed.headers[name.toLowerCase()]?.length ?? 0) > 0
-
+  const getValues = (name: string) => parsed.headers[name.toLowerCase()] ?? []
+  const get = (name: string) => getValues(name).join(', ')
+  const has = (name: string) => getValues(name).length > 0
   const baselineChecks: HeaderCheck[] = []
 
   const hsts = get('strict-transport-security')
@@ -115,23 +117,23 @@ export function analyzeResponseHeaders(raw: string): HttpHeaderAnalysis | { erro
     })
   }
   else {
-    const maxAge = /(?:^|;)\\s*max-age\\s*=\\s*(\\d+)/i.exec(hsts)
+    const maxAge = /(?:^|;)\s*max-age\s*=\s*(\d+)/i.exec(hsts)
     const seconds = maxAge ? Number(maxAge[1]) : 0
     baselineChecks.push({
       id: 'hsts',
       label: 'Strict-Transport-Security',
-      status: seconds >= 31536000 ? 'present' : 'review',
+      status: maxAge && seconds >= 31536000 ? 'present' : 'review',
       value: hsts,
       detail: maxAge
-        ? `HSTS max-age is ${seconds.toLocaleString('en-US')} seconds.`
+        ? 'HSTS max-age is ' + seconds.toLocaleString('en-US') + ' seconds.'
         : 'The HSTS value does not contain a valid max-age directive.',
       recommendation: 'Use HSTS only on HTTPS responses. Review max-age and subdomain coverage before increasing enforcement.',
     })
   }
 
   const csp = get('content-security-policy')
-  const scriptPolicy = /(?:^|;)\\s*(?:script-src|default-src)\\s+([^;]*)/i.exec(csp)?.[1] ?? ''
-  const hasUnsafeScriptSource = /(?:'unsafe-inline'|'unsafe-eval'|\\*)/i.test(scriptPolicy)
+  const scriptPolicy = getDirective(csp, 'script-src') || getDirective(csp, 'default-src')
+  const hasUnsafeScriptSource = /(?:'unsafe-inline'|'unsafe-eval'|\*)/i.test(scriptPolicy)
   baselineChecks.push({
     id: 'csp',
     label: 'Content-Security-Policy',
@@ -140,16 +142,18 @@ export function analyzeResponseHeaders(raw: string): HttpHeaderAnalysis | { erro
     detail: !has('content-security-policy')
       ? 'No enforcing Content-Security-Policy header was found.'
       : hasUnsafeScriptSource
-        ? 'The script source directive contains a broad or unsafe source expression.'
+        ? 'The effective script source directive contains a broad or unsafe source expression.'
         : 'An enforcing Content-Security-Policy header is present; this parser does not validate the full policy grammar.',
     recommendation: 'Build a policy around the resources your app needs. Avoid broad sources and unsafe script directives; test changes with Content-Security-Policy-Report-Only first.',
   })
 
-  const framePolicy = /(?:^|;)\\s*frame-ancestors\\s+([^;]*)/i.exec(csp)?.[1] ?? ''
+  const framePolicy = getDirective(csp, 'frame-ancestors')
+  const frameSources = framePolicy.split(/\s+/).filter(Boolean)
   const xFrameOptions = get('x-frame-options')
-  const frameProtected = /\\b(?:'none'|'self')\\b/i.test(framePolicy)
-    || (Boolean(framePolicy) && !/(?:^|\\s)\\*(?:$|\\s)/.test(framePolicy))
-    || /^(?:DENY|SAMEORIGIN)$/i.test(xFrameOptions.trim())
+  const frameProtected = frameSources.some(source => {
+    return source === "'none'" || source === "'self'" || /^https?:\/\//i.test(source)
+  }) || /^(?:DENY|SAMEORIGIN)$/i.test(xFrameOptions.trim())
+
   baselineChecks.push({
     id: 'frame',
     label: 'Frame protection',
@@ -196,11 +200,11 @@ export function analyzeResponseHeaders(raw: string): HttpHeaderAnalysis | { erro
   baselineChecks.push({
     id: 'permissions',
     label: 'Permissions-Policy',
-    status: !has('permissions-policy') ? 'missing' : /=\\s*\\*/.test(permissionsPolicy) ? 'review' : 'present',
+    status: !has('permissions-policy') ? 'missing' : /=\s*\*/.test(permissionsPolicy) ? 'review' : 'present',
     value: permissionsPolicy || undefined,
     detail: !has('permissions-policy')
       ? 'No Permissions-Policy header was found.'
-      : /=\\s*\\*/.test(permissionsPolicy)
+      : /=\s*\*/.test(permissionsPolicy)
         ? 'The policy contains a wildcard feature allow-list.'
         : 'A Permissions-Policy header is present; review each feature allow-list for your app.',
     recommendation: 'Explicitly disable browser features the application does not use, and allow only the origins that need them.',
@@ -220,7 +224,9 @@ export function analyzeResponseHeaders(raw: string): HttpHeaderAnalysis | { erro
     })
   }
 
-  if (parsed.headers['set-cookie']?.some(cookie => /(?:^|;)\\s*samesite\\s*=\\s*none/i.test(cookie) && !/(?:^|;)\\s*secure(?:;|$)/i.test(cookie))) {
+  if (getValues('set-cookie').some(cookie => {
+    return /(?:^|;)\s*samesite\s*=\s*none/i.test(cookie) && !/(?:^|;)\s*secure(?:;|$)/i.test(cookie)
+  })) {
     additionalFindings.push({
       id: 'cookie-samesite-none-without-secure',
       label: 'SameSite=None cookie without Secure',
@@ -242,11 +248,15 @@ export function analyzeResponseHeaders(raw: string): HttpHeaderAnalysis | { erro
   }
 
   if (has('server') || has('x-powered-by')) {
+    const fingerprint = [
+      get('server') ? 'Server: ' + get('server') : '',
+      get('x-powered-by') ? 'X-Powered-By: ' + get('x-powered-by') : '',
+    ].filter(Boolean).join(' · ')
     additionalFindings.push({
       id: 'server-fingerprint',
       label: 'Server technology disclosure',
       status: 'info',
-      value: [get('server') && `Server: ${get('server')}`, get('x-powered-by') && `X-Powered-By: ${get('x-powered-by')}`].filter(Boolean).join(' · '),
+      value: fingerprint,
       detail: 'The response exposes server or framework identification headers.',
       recommendation: 'Consider minimizing unnecessary technology disclosure. This is informational and does not establish a vulnerability by itself.',
     })
@@ -257,7 +267,7 @@ export function analyzeResponseHeaders(raw: string): HttpHeaderAnalysis | { erro
       id: 'malformed-lines',
       label: 'Unparsed header lines',
       status: 'warning',
-      detail: `${parsed.malformedLines} line(s) could not be parsed as HTTP headers.`,
+      detail: parsed.malformedLines + ' line(s) could not be parsed as HTTP headers.',
       recommendation: 'Paste the raw response header block without terminal progress output or unrelated command text.',
     })
   }
