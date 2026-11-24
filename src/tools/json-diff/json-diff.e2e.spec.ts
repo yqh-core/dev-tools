@@ -10,7 +10,7 @@ test.describe('Tool - JSON diff', () => {
     await expect(page).toHaveTitle('JSON Diff Checker — Compare JSON Online - DigDevBox');
     await expect(page.locator('meta[name="description"]')).toHaveAttribute(
       'content',
-      'Compare JSON files or pasted JSON online. Find nested changes by path, export a local report, and compare arrays by index, ignore-order or stable object ID. JSON5 supported; files stay in your browser.',
+      'Compare JSON files or pasted JSON online. Inspect nested changes by path, export a report, and match arrays by index, ignore-order or stable ID. Large comparisons run in a cancellable worker.',
     );
     await expect(page.locator('h1')).toHaveText('JSON Diff Checker');
   });
@@ -94,5 +94,19 @@ test.describe('Tool - JSON diff', () => {
     await page.getByTestId('rightJson').fill('{"users":[{"id":2,"name":"Grace Hopper"},{"id":1,"name":"Ada"}]}');
     await expect(page.getByTestId('change-list')).toContainText('$["users"][1]["name"]');
     await expect(page.getByTestId('change-list')).toContainText('1 changed paths');
+  });
+
+  test('runs large comparisons in a cancellable background worker', async ({ page }) => {
+    await page.getByTestId('array-mode-ignore-order').check();
+    const values = Array.from({ length: 25000 }, (_, index) => index);
+    const left = JSON.stringify(values);
+    const right = JSON.stringify([...values].reverse());
+    await page.getByTestId('leftJson').fill(left);
+    await page.getByTestId('rightJson').fill(right);
+
+    await expect(page.getByTestId('comparison-status')).toBeVisible({ timeout: 10000 });
+    await page.getByTestId('cancel-comparison').click();
+    await expect(page.getByTestId('comparison-error')).toContainText('Comparison cancelled');
+    await expect(page.getByTestId('comparison-status')).toHaveCount(0);
   });
 });

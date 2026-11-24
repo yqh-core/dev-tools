@@ -474,13 +474,13 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
       '/json-to-code',
     ],
     keyword: 'json diff checker',
-    keywords: ['json diff', 'compare JSON online', 'compare two JSON objects', 'JSON difference checker', 'nested JSON diff', 'compare JSON files online', 'JSON array diff', 'JSON diff ignore order', 'JSON compare by ID'],
+    keywords: ['json diff', 'compare JSON online', 'compare two JSON objects', 'JSON difference checker', 'nested JSON diff', 'compare JSON files online', 'compare large JSON files', 'large JSON diff', 'JSON array diff', 'JSON diff ignore order', 'JSON compare by ID'],
     intent: 'debug',
     priority: 'P1',
     competition: 'high',
     lockedTitle: 'JSON Diff Checker — Compare JSON Online',
     landed: true,
-    note: '2026-11-24 SERP spot-check confirms a distinct structural JSON comparison intent. The tool now supports local JSON/JSON5 files, nested path reports, export, index/ignore-order/ID array matching, duplicate-safe multiset semantics and explicit fallback for invalid IDs. Worker-backed large-input processing and JSON Patch export remain unsupported.',
+    note: '2026-11-24 SERP spot-check confirms a distinct structural JSON comparison intent. The tool now supports local JSON/JSON5 files, nested path reports, export, index/ignore-order/ID array matching, duplicate-safe multiset semantics and explicit fallback for invalid IDs. Large inputs now use a cancellable Web Worker with a 15-second timeout. RFC 6902 JSON Patch export remains unsupported.',
   },
   // 2026-11-20 additions: keyword targets selected from authenticated GSC/Bing data.
   // Evidence snapshots and query caveats: docs/seo/gsc-live-snapshot-2026-11-20.md and docs/seo/bing-serp-research-2026-11-20.md.

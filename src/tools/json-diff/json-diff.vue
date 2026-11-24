@@ -1,41 +1,172 @@
 <script setup lang="ts">
 import JSON5 from 'json5';
+import { onBeforeUnmount, ref, shallowRef, watch } from 'vue';
 
 import DiffsViewer from './diff-viewer/diff-viewer.vue';
 import { type ArrayComparisonMode, diff, flattenDifferences } from './json-diff.models';
-import { withDefaultOnError } from '@/utils/defaults';
+import type { Difference } from './json-diff.types';
+import type { JsonDiffWorkerResponse } from './json-diff.worker.types';
 import { isNotThrowing } from '@/utils/boolean';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
+const WORKER_THRESHOLD = 150_000;
+const WORKER_TIMEOUT_MS = 15_000;
+const INPUT_DEBOUNCE_MS = 120;
+
 const rawLeftJson = ref('');
 const rawRightJson = ref('');
 const fileError = ref('');
+const comparisonError = ref('');
+const isComparing = ref(false);
+const showAllChanges = ref(false);
 const arrayMode = ref<ArrayComparisonMode>('index');
 const arrayIdKey = ref('id');
+const leftJson = shallowRef<unknown>();
+const rightJson = shallowRef<unknown>();
+const differenceTree = shallowRef<Difference | null>(null);
 
-const leftJson = computed(() => withDefaultOnError(() => JSON5.parse(rawLeftJson.value), undefined));
-const rightJson = computed(() => withDefaultOnError(() => JSON5.parse(rawRightJson.value), undefined));
+let activeWorker: Worker | undefined;
+let timeoutHandle: ReturnType<typeof setTimeout> | undefined;
+let debounceHandle: ReturnType<typeof setTimeout> | undefined;
 
 const jsonValidationRules = [
   {
-    validator: (value: string) => value === '' || isNotThrowing(() => JSON5.parse(value)),
+    validator: (value: string) => value === ''
+      || value.length >= WORKER_THRESHOLD / 2
+      || isNotThrowing(() => JSON5.parse(value)),
     message: 'Invalid JSON format',
   },
 ];
 
-const differenceTree = computed(() => {
-  if (leftJson.value === undefined || rightJson.value === undefined) {
-    return null;
+function stopActiveWorker() {
+  if (timeoutHandle) {
+    clearTimeout(timeoutHandle);
+    timeoutHandle = undefined;
   }
-  return diff(leftJson.value, rightJson.value, {
-    onlyShowDifferences: true,
+  if (activeWorker) {
+    activeWorker.terminate();
+    activeWorker = undefined;
+  }
+  isComparing.value = false;
+}
+
+function compareInputs() {
+  stopActiveWorker();
+  comparisonError.value = '';
+  leftJson.value = undefined;
+  rightJson.value = undefined;
+  differenceTree.value = null;
+
+  const leftText = rawLeftJson.value;
+  const rightText = rawRightJson.value;
+  if (!leftText.trim() || !rightText.trim()) {
+    return;
+  }
+
+  const options = {
+    onlyShowDifferences: false,
     arrayMode: arrayMode.value,
     arrayIdKey: arrayIdKey.value,
-  });
+  };
+  const totalCharacters = leftText.length + rightText.length;
+
+  if (totalCharacters < WORKER_THRESHOLD) {
+    try {
+      const parsedLeft = JSON5.parse(leftText);
+      const parsedRight = JSON5.parse(rightText);
+      leftJson.value = parsedLeft;
+      rightJson.value = parsedRight;
+      differenceTree.value = diff(parsedLeft, parsedRight, options);
+    }
+    catch {
+      comparisonError.value = 'Invalid JSON format. Check both inputs.';
+    }
+    return;
+  }
+
+  if (typeof Worker === 'undefined') {
+    comparisonError.value = 'This browser does not support background comparison for large inputs. Use a smaller document.';
+    return;
+  }
+
+  isComparing.value = true;
+  try {
+    const worker = new Worker(new URL('./json-diff.worker.ts', import.meta.url), { type: 'module' });
+    activeWorker = worker;
+
+    worker.onmessage = (event: MessageEvent<JsonDiffWorkerResponse>) => {
+      if (activeWorker !== worker) {
+        return;
+      }
+      stopActiveWorker();
+      if (event.data.type === 'success') {
+        leftJson.value = event.data.leftJson;
+        rightJson.value = event.data.rightJson;
+        differenceTree.value = event.data.difference;
+      }
+      else {
+        comparisonError.value = event.data.message;
+      }
+    };
+
+    worker.onerror = () => {
+      if (activeWorker !== worker) {
+        return;
+      }
+      stopActiveWorker();
+      comparisonError.value = 'Background comparison failed. Try a smaller input or simplify the arrays.';
+    };
+
+    timeoutHandle = setTimeout(() => {
+      if (activeWorker !== worker) {
+        return;
+      }
+      stopActiveWorker();
+      comparisonError.value = 'Background comparison timed out after 15 seconds. Reduce the input size or simplify the comparison.';
+    }, WORKER_TIMEOUT_MS);
+
+    worker.postMessage({ leftText, rightText, options });
+  }
+  catch {
+    stopActiveWorker();
+    comparisonError.value = 'Could not start background comparison. Try a smaller input or use a browser with Web Worker support.';
+  }
+}
+
+watch([rawLeftJson, rawRightJson, arrayMode, arrayIdKey], () => {
+  if (debounceHandle) {
+    clearTimeout(debounceHandle);
+  }
+  stopActiveWorker();
+  leftJson.value = undefined;
+  rightJson.value = undefined;
+  differenceTree.value = null;
+  comparisonError.value = '';
+  showAllChanges.value = false;
+  debounceHandle = setTimeout(compareInputs, INPUT_DEBOUNCE_MS);
+}, { flush: 'post' });
+
+function cancelComparison() {
+  if (!activeWorker) {
+    return;
+  }
+  stopActiveWorker();
+  comparisonError.value = 'Comparison cancelled. Your input is unchanged; edit the text or run the comparison again.';
+}
+
+onBeforeUnmount(() => {
+  if (debounceHandle) {
+    clearTimeout(debounceHandle);
+  }
+  stopActiveWorker();
 });
+
 const differenceList = computed(() => differenceTree.value
   ? flattenDifferences(differenceTree.value)
   : []);
+const visibleDifferences = computed(() => showAllChanges.value
+  ? differenceList.value
+  : differenceList.value.slice(0, 500));
 const changeCounts = computed(() => differenceList.value.reduce((counts, item) => {
   if (item.status === 'added') {
     counts.added++;
@@ -162,6 +293,23 @@ function downloadReport() {
   <c-alert v-if="fileError" type="warning" mt-2 data-test-id="file-error">
     {{ fileError }}
   </c-alert>
+  <c-alert v-if="comparisonError" type="warning" mt-2 data-test-id="comparison-error">
+    {{ comparisonError }}
+  </c-alert>
+
+  <div
+    v-if="isComparing"
+    flex flex-wrap items-center justify-between gap-3
+    mt-3 p-3 rounded
+    bg-gray-500:5
+    data-test-id="comparison-status"
+    aria-live="polite"
+  >
+    <span>Comparing large JSON in a background worker…</span>
+    <c-button data-test-id="cancel-comparison" @click="cancelComparison">
+      Cancel comparison
+    </c-button>
+  </div>
 
   <c-card title="Array comparison" mt-3 data-test-id="array-comparison-controls">
     <div flex flex-wrap gap-4>
@@ -192,7 +340,13 @@ function downloadReport() {
     </p>
   </c-card>
 
-  <DiffsViewer :left-json="leftJson" :right-json="rightJson" :array-mode="arrayMode" :array-id-key="arrayIdKey" />
+  <DiffsViewer
+    v-if="differenceTree && leftJson !== undefined && rightJson !== undefined"
+    :left-json="leftJson"
+    :right-json="rightJson"
+    :precomputed-result="differenceTree"
+    :large-input="rawLeftJson.length + rawRightJson.length >= WORKER_THRESHOLD"
+  />
 
   <c-card v-if="differenceTree" title="Change list" mt-3 data-test-id="change-list">
     <div flex flex-wrap items-center justify-between gap-2 mb-3>
@@ -206,6 +360,12 @@ function downloadReport() {
         Download change report
       </c-button>
     </div>
+    <div v-if="differenceList.length > 500" flex items-center justify-between gap-2 mb-2 text-sm>
+      <span>Showing {{ visibleDifferences.length }} of {{ differenceList.length }} changed paths</span>
+      <c-button size="small" @click="showAllChanges = !showAllChanges">
+        {{ showAllChanges ? 'Show first 500' : 'Show all changes' }}
+      </c-button>
+    </div>
     <div v-if="differenceList.length > 0" class="max-w-full overflow-x-auto">
       <table w-full text-sm>
         <thead>
@@ -217,7 +377,7 @@ function downloadReport() {
           </tr>
         </thead>
         <tbody>
-          <tr v-for="item in differenceList" :key="item.path" border-t>
+          <tr v-for="item in visibleDifferences" :key="item.path" border-t>
             <td p-2 font-mono data-test-id="change-path">{{ item.path }}</td>
             <td p-2>{{ item.status }}</td>
             <td p-2 font-mono>{{ formatValue(item.oldValue) }}</td>
@@ -230,7 +390,7 @@ function downloadReport() {
       No changed paths. The two parsed JSON values are equivalent.
     </p>
     <p mt-3 text-xs opacity-70>
-      File contents are read locally in this tab and are not uploaded. File size limit: 5 MB per input.
+      File contents are read locally in this tab and are not uploaded. File size limit: 5 MB per input. Large comparisons run in a cancellable background worker with a 15-second timeout.
     </p>
   </c-card>
 </template>
