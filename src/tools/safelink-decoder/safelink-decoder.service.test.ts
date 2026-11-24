@@ -102,16 +102,25 @@ describe('decodeSafeLinksBatch', () => {
       input: valid,
       decodedUrl: 'https://example.com/docs',
       error: null,
+      scheme: 'https',
+      host: 'example.com',
+      nestedLayers: 1,
     });
     expect(results[1]).toMatchObject({
       input: invalid,
       decodedUrl: null,
       error: 'Invalid SafeLinks URL provided',
+      scheme: null,
+      host: null,
+      nestedLayers: null,
     });
     expect(results[2]).toMatchObject({
       input: nested,
       decodedUrl: 'https://example.org/guide',
       error: null,
+      scheme: 'https',
+      host: 'example.org',
+      nestedLayers: 2,
     });
   });
 
