@@ -9,7 +9,6 @@ import {
   calculateSequentialPercentage,
   MAX_SEQUENTIAL_PERCENTAGE_STEPS,
   type SequentialPercentageError,
-  type SequentialPercentageOperation,
   type SequentialPercentageStepInput,
 } from './percentage-calculator.sequential';
 import {
