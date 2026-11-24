@@ -49,7 +49,7 @@ export function buildBasicAuthExamples(requestUrl: string): BasicAuthExamples {
     '});',
     '',
     'console.log(response.status);',
-  ].join('\\n');
+  ].join('\n');
 
   const pythonRequests = [
     'import os',
@@ -64,7 +64,7 @@ export function buildBasicAuthExamples(requestUrl: string): BasicAuthExamples {
     '    timeout=30,',
     ')',
     'print(response.status_code)',
-  ].join('\\n');
+  ].join('\n');
 
   return { url, curl, nodeFetch, pythonRequests };
 }
