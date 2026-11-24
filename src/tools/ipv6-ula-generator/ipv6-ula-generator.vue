@@ -176,7 +176,7 @@ onMounted(generate);
         readonly
         :data-test-id="`ula-last-subnet-${index + 1}`"
       />
-      <p mt-3 text-sm op-70>
+      <p mt-3 text-sm op-70 data-test-id="ula-subnet-count">
         {{ t('tools.ipv6-ula-generator.subnetCount', { count: result.subnetCount.toLocaleString() }) }}
       </p>
     </section>
