@@ -447,7 +447,7 @@ export const GUIDES: Record<string, ToolGuide> = {
       {
         slug: 'eta-calculator-guide',
         title: 'How to Calculate Task Completion Time from Processing Rate',
-        description: 'Estimate when a download, build or batch job will finish from total and completed workload, processing rate and an optional buffer — with a worked example and practical limits.',
+        description: 'Estimate time remaining for a download, build or batch job from total and completed work, processing rate and an optional buffer — with a worked example and practical limits.',
         url: 'https://notes.digdevbox.com/posts/eta-calculator-guide',
         tag: 'ETA',
       },
