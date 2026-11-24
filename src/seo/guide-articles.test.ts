@@ -72,6 +72,9 @@ describe('article-only guide content', () => {
     expect(chinese[0].text).toContain('唯一、非空的字符串或有限数字 ID');
     expect(english[2].text).toContain('2^53 - 1');
     expect(chinese[2].text).toContain('2^53 - 1');
+    expect(english[1].text).toContain('dedicated Web Worker');
+    expect(english[1].text).toContain('15-second timeout');
+    expect(chinese[1].text).toContain('Web Worker');
 
     const sections = buildGuideSections(en['/json-diff']);
     expect(sections.some(section => section.id === 'article-only-1')).toBe(true);
