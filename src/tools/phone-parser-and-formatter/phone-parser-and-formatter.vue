@@ -150,7 +150,7 @@ function downloadBatchCsv() {
     result.error,
   ]);
   const csvCell = (value: string | number) => `"${String(value).replace(/"/g, '""')}"`;
-  const csv = [columns, ...rows].map(row => row.map(value => csvCell(value)).join(',')).join('\\r\\n');
+  const csv = [columns, ...rows].map(row => row.map(value => csvCell(value)).join(',')).join('\r\n');
   const url = URL.createObjectURL(new Blob([`\\uFEFF${csv}`], { type: 'text/csv;charset=utf-8' }));
   const anchor = document.createElement('a');
   anchor.href = url;
