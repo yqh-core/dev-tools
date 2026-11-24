@@ -163,15 +163,14 @@ describe('calculateObservedPaceEta', () => {
 
 describe('calculateRequiredPaceForDeadline', () => {
   it('calculates the pace needed after planned pauses and the configured buffer', () => {
-    expect(calculateRequiredPaceForDeadline({
+    const estimate = calculateRequiredPaceForDeadline({
       remainingUnits: 100,
       availableMs: 3.5 * 60 * 60 * 1000,
       additionalPauseMs: 30 * 60 * 1000,
       bufferPercent: 20,
-    })).toEqual({
-      availableWorkMs: 2.5 * 60 * 60 * 1000,
-      requiredUnitsPerHour: 40,
     });
+    expect(estimate.availableWorkMs).toBe(2.5 * 60 * 60 * 1000);
+    expect(estimate.requiredUnitsPerHour).toBeCloseTo(40, 10);
   });
 
   it('returns zero required pace for completed work', () => {
