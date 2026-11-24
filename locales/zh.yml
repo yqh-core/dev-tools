@@ -936,6 +936,19 @@ tools:
     shareColumn: 占比
     noTerms: 暂无可展示的词语。
     termFrequencyNote: 占比以本表上方显示的词元总数为分母。词频仅描述输入文本，不代表搜索量、关键词需求或排名数据。
+    customLimitTitle: 自定义字符预算
+    customLimitLabel: 自定义上限
+    customLimitAria: 自定义字符上限
+    customLimitUnit: 统计单位
+    customLimitHelp: 请按目标平台公开的计数规则设置上限。本工具不会假设或预设任何平台限制。
+    limitUnits:
+      graphemes: 可见字符（字素簇）
+      codePoints: Unicode 码点
+      utf16CodeUnits: UTF-16 代码单元
+      bytes: UTF-8 字节
+    limitRemaining: '还可输入 {count} {unit}。'
+    limitReached: '已达到自定义上限（{unit}）。'
+    limitOver: '超出自定义上限 {count}（{unit}）。'
 
   text-to-nato-alphabet:
     title: 文本转北约字母表
