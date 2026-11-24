@@ -92,3 +92,71 @@ export function getTextStatistics(text: string, locale = 'en'): TextStatistics {
     bytes: getStringSizeInBytes(text),
   };
 }
+
+
+export interface TopTermFrequency {
+  term: string
+  count: number
+  share: number
+}
+
+export interface TopTermFrequencyResult {
+  totalTokens: number
+  terms: TopTermFrequency[]
+}
+
+export interface TopTermFrequencyOptions {
+  excludeEnglishStopWords?: boolean
+  limit?: number
+}
+
+const ENGLISH_STOP_WORDS = new Set([
+  'a', 'about', 'above', 'after', 'again', 'against', 'all', 'am', 'an', 'and',
+  'any', 'are', 'as', 'at', 'be', 'because', 'been', 'before', 'being', 'below',
+  'between', 'both', 'but', 'by', 'can', 'could', 'did', 'do', 'does', 'doing',
+  'down', 'during', 'each', 'few', 'for', 'from', 'further', 'had', 'has', 'have',
+  'having', 'he', 'her', 'here', 'hers', 'herself', 'him', 'himself', 'his',
+  'how', 'i', 'if', 'in', 'into', 'is', 'it', 'its', 'itself', 'just', 'me',
+  'more', 'most', 'my', 'myself', 'no', 'nor', 'not', 'of', 'off', 'on', 'once',
+  'only', 'or', 'other', 'our', 'ours', 'ourselves', 'out', 'over', 'own',
+  'same', 'she', 'should', 'so', 'some', 'such', 'than', 'that', 'the', 'their',
+  'theirs', 'them', 'themselves', 'then', 'there', 'these', 'they', 'this',
+  'those', 'through', 'to', 'too', 'under', 'until', 'up', 'very', 'was', 'we',
+  'were', 'what', 'when', 'where', 'which', 'while', 'who', 'whom', 'why',
+  'will', 'with', 'would', 'you', 'your', 'yours', 'yourself', 'yourselves',
+]);
+
+export function getTopTermFrequency(
+  text: string,
+  locale = 'en',
+  options: TopTermFrequencyOptions = {},
+): TopTermFrequencyResult {
+  const shouldExcludeStopWords = options.excludeEnglishStopWords === true
+    && locale.toLowerCase().startsWith('en');
+  const limit = Number.isInteger(options.limit) ? Math.min(50, Math.max(1, options.limit!)) : 10;
+  const tokens = splitWords(text, locale)
+    .map(token => token.toLocaleLowerCase(locale))
+    .filter(token => !shouldExcludeStopWords || !ENGLISH_STOP_WORDS.has(token));
+  const counts = new Map<string, number>();
+
+  for (const token of tokens) {
+    counts.set(token, (counts.get(token) ?? 0) + 1);
+  }
+
+  const totalTokens = tokens.length;
+  const terms = [...counts.entries()]
+    .sort(([leftTerm, leftCount], [rightTerm, rightCount]) => {
+      if (leftCount !== rightCount) {
+        return rightCount - leftCount;
+      }
+      return leftTerm.localeCompare(rightTerm, locale);
+    })
+    .slice(0, limit)
+    .map(([term, count]) => ({
+      term,
+      count,
+      share: totalTokens === 0 ? 0 : count / totalTokens,
+    }));
+
+  return { totalTokens, terms };
+}
