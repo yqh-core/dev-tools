@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, reactive, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useCopy } from '@/composable/copy';
 import { useDownloadTextFile } from '@/composable/downloadText';
 import {
@@ -10,6 +11,8 @@ import {
   slugifyBatchToText,
   type SlugSeparator,
 } from './slugify-string.batch';
+
+const { t } = useI18n();
 
 const input = ref('');
 const baseUrl = ref('');
@@ -24,12 +27,12 @@ const settings = reactive({
 
 const inputError = computed(() => {
   if (input.value.length > MAX_SLUG_INPUT_LENGTH) {
-    return `Input is too large. Please use ${MAX_SLUG_INPUT_LENGTH.toLocaleString()} characters or fewer.`;
+    return t('tools.slugify-string.batch.inputTooLarge', { count: MAX_SLUG_INPUT_LENGTH.toLocaleString() });
   }
 
   const rows = input.value.split(/\r?\n/).filter(line => line.trim().length > 0);
   if (rows.length > MAX_SLUG_BATCH_ROWS) {
-    return `This batch has ${rows.length.toLocaleString()} lines. The limit is ${MAX_SLUG_BATCH_ROWS.toLocaleString()}.`;
+    return t('tools.slugify-string.batch.tooManyRows', { actual: rows.length.toLocaleString(), limit: MAX_SLUG_BATCH_ROWS.toLocaleString() });
   }
 
   return '';
@@ -68,7 +71,7 @@ const previewUrl = (slug: string) => (
   validBaseUrl.value && slug ? `${validBaseUrl.value}/${slug}` : ''
 );
 
-const { copy } = useCopy({ source: output, text: 'All slugs copied to clipboard' });
+const { copy } = useCopy({ source: output, text: t('tools.slugify-string.batch.copied') });
 const { download: downloadCsv } = useDownloadTextFile({
   source: csvOutput,
   filename: 'slug-results',
@@ -80,39 +83,40 @@ const { download: downloadTxt } = useDownloadTextFile({
   language: 'txt',
 });
 
-const separatorOptions = [
-  { label: 'Hyphen (-)', value: '-' },
-  { label: 'Underscore (_)', value: '_' },
-  { label: 'Dot (.)', value: '.' },
-];
+const separatorOptions = computed(() => [
+  { label: t('tools.slugify-string.batch.hyphen'), value: '-' },
+  { label: t('tools.slugify-string.batch.underscore'), value: '_' },
+  { label: t('tools.slugify-string.batch.dot'), value: '.' },
+]);
 
-const maxLengthOptions = [
-  { label: 'No limit', value: 0 },
-  { label: '30 characters', value: 30 },
-  { label: '50 characters', value: 50 },
-  { label: '60 characters', value: 60 },
-  { label: '80 characters', value: 80 },
-  { label: '100 characters', value: 100 },
-  { label: '120 characters', value: 120 },
-];
+const maxLengthOptions = computed(() => [
+  { label: t('tools.slugify-string.batch.noLimit'), value: 0 },
+  ...[30, 50, 60, 80, 100, 120].map(count => ({
+    label: t('tools.slugify-string.batch.characters', { count }),
+    value: count,
+  })),
+]);
+
+function displayRowError(error: string): string {
+  return error.startsWith('No URL-safe characters')
+    ? t('tools.slugify-string.batch.noCharacters')
+    : t('tools.slugify-string.batch.rowTooLong');
+}
 </script>
 
 <template>
   <div>
-    <c-card title="URL slug generator" mb-5>
+    <c-card :title="t('tools.slugify-string.batch.title')" mb-5>
       <p mb-3 op-70>
-        Convert one title or a batch of titles into URL-friendly slugs. Options update the results immediately.
+        {{ t('tools.slugify-string.batch.intro') }}
       </p>
 
       <c-input-text
         v-model:value="input"
         multiline
         rows="8"
-        placeholder="One title per line, e.g.:
-How to Build a Better API
-The Complete Guide to URL Slugs
-Déjà Vu and Unicode"
-        label="Titles or phrases"
+        :placeholder="t('tools.slugify-string.batch.inputPlaceholder')"
+        :label="t('tools.slugify-string.batch.inputLabel')"
         autofocus
         raw-text
         mb-4
@@ -125,13 +129,13 @@ Déjà Vu and Unicode"
       <div class="settings-grid" mb-4>
         <div>
           <div mb-1 text-sm font-medium>
-            Word separator
+            {{ t('tools.slugify-string.batch.separator') }}
           </div>
           <n-select v-model:value="settings.separator" :options="separatorOptions" />
         </div>
         <div>
           <div mb-1 text-sm font-medium>
-            Maximum length
+            {{ t('tools.slugify-string.batch.maximumLength') }}
           </div>
           <n-select v-model:value="settings.maxLength" :options="maxLengthOptions" />
         </div>
@@ -139,70 +143,70 @@ Déjà Vu and Unicode"
 
       <div flex flex-wrap gap-x-5 gap-y-2 mb-4>
         <n-checkbox v-model:checked="settings.lowercase">
-          Lowercase
+          {{ t('tools.slugify-string.batch.lowercase') }}
         </n-checkbox>
         <n-checkbox v-model:checked="settings.decamelize">
-          Split camelCase words
+          {{ t('tools.slugify-string.batch.decamelize') }}
         </n-checkbox>
         <n-checkbox v-model:checked="settings.removeEnglishStopWords">
-          Remove common English stop words
+          {{ t('tools.slugify-string.batch.stopWords') }}
         </n-checkbox>
         <n-checkbox v-model:checked="settings.unique">
-          Make duplicate slugs unique
+          {{ t('tools.slugify-string.batch.unique') }}
         </n-checkbox>
       </div>
 
       <div mb-4>
         <label block text-sm font-medium mb-1 for="slug-base-url">
-          Optional base URL preview
+          {{ t('tools.slugify-string.batch.baseUrl') }}
         </label>
         <n-input
           id="slug-base-url"
           v-model:value="baseUrl"
-          placeholder="https://example.com/blog"
+          :placeholder="'https://example.com/blog'"
           clearable
         />
         <p v-if="baseUrl.trim() && !validBaseUrl" mt-1 text-xs text-red-600>
-          Enter a valid http:// or https:// base URL.
+          {{ t('tools.slugify-string.batch.invalidBaseUrl') }}
         </p>
       </div>
 
       <div flex flex-wrap items-center gap-2>
         <c-button :disabled="rows.length === 0" @click="copy()">
-          Copy all slugs
+          {{ t('tools.slugify-string.batch.copyAll') }}
         </c-button>
         <c-button :disabled="rows.length === 0" @click="downloadTxt()">
-          Download TXT
+          {{ t('tools.slugify-string.batch.downloadTxt') }}
         </c-button>
         <c-button :disabled="rows.length === 0" @click="downloadCsv()">
-          Download CSV
+          {{ t('tools.slugify-string.batch.downloadCsv') }}
         </c-button>
       </div>
     </c-card>
 
     <div v-if="rows.length" data-test-id="slug-results">
       <div flex flex-wrap items-center justify-between gap-2 mb-3>
-        <strong>{{ rows.length }} slugs generated</strong>
+        <strong>{{ t('tools.slugify-string.batch.generated', { count: rows.length }) }}</strong>
         <span text-sm op-65>
-          {{ truncatedCount }} shortened · {{ errorCount }} warnings
+          {{ t('tools.slugify-string.batch.shortened', { count: truncatedCount }) }} · {{ t('tools.slugify-string.batch.warnings', { count: errorCount }) }}
         </span>
       </div>
 
       <div class="results-list">
         <div v-for="row of rows" :key="row.lineNumber" class="result-row">
           <div class="result-source">
-            <span text-xs op-55>Line {{ row.lineNumber }}</span>
+            <span text-xs op-55>{{ t('tools.slugify-string.batch.line', { number: row.lineNumber }) }}</span>
             <span>{{ row.source }}</span>
           </div>
           <div class="result-slug">
             <code>{{ row.slug || '—' }}</code>
-            <span text-xs op-55>{{ row.outputLength }} chars</span>
+            <span text-xs op-55>{{ t('tools.slugify-string.batch.chars', { count: row.outputLength }) }}</span>
           </div>
           <div v-if="row.error" class="result-error">
-            {{ row.error }}
+            {{ displayRowError(row.error) }}
           </div>
           <div v-else-if="row.truncated" class="result-hint">
-            Shortened at a word boundary to fit the selected limit.
+            {{ t('tools.slugify-string.batch.truncated') }}
           </div>
           <div v-if="previewUrl(row.slug)" class="result-preview">
             {{ previewUrl(row.slug) }}
@@ -212,7 +216,7 @@ Déjà Vu and Unicode"
     </div>
 
     <c-alert v-else type="info">
-      Enter one title per line. Blank lines are ignored; results stay in this browser.
+      {{ t('tools.slugify-string.batch.emptyState') }}
     </c-alert>
   </div>
 </template>
