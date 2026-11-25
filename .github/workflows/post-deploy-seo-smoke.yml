@@ -209,6 +209,28 @@ jobs:
             return { response, body: await response.text(), finalUrl: response.url, redirected: response.redirected };
           }
 
+          // The legacy archive is retained for visitors but excluded from the current
+          // English-first index. Verify the final deployed HTML directly: _headers
+          // alone is insufficient when a Pages Function handles the response.
+          const legacyNoindexPaths = [
+            '/legacy/',
+            '/legacy/html2cj/',
+            '/legacy/jianfan/',
+            '/legacy/textflip/',
+          ];
+          for (const path of legacyNoindexPaths) {
+            const result = await get(path);
+            const robotsTags = [...result.body.matchAll(/<meta\b[^>]*\bname\s*=\s*(['"])robots\1[^>]*>/gi)];
+            const robotsContent = robotsTags[0]?.[0]?.match(/\bcontent\s*=\s*(['"])(.*?)\1/i)?.[2] ?? '';
+            const directives = new Set(robotsContent.toLowerCase().split(',').map(value => value.trim()));
+            if (!result.response.ok || result.finalUrl !== origin + path
+                || robotsTags.length !== 1 || !directives.has('noindex') || !directives.has('follow')) {
+              throw new Error('Legacy route is not served with exactly one noindex,follow meta directive: '
+                + path + ' (HTTP ' + result.response.status + ', final ' + result.finalUrl + ')');
+            }
+          }
+          console.log('Production legacy noindex smoke PASS: archive index + three previously exposed legacy tools');
+
           let home = null;
           for (let attempt = 1; attempt <= 20; attempt++) {
             try {
