@@ -413,7 +413,7 @@ tools:
 
   crontab-generator:
     title: "Crontab Generator — Plain-English Cron"
-    description: Build cron expressions with a plain-English preview — every 5 minutes, weekdays, {'@'}reboot. Validate crontab and GitHub Actions schedules free in your browser.
+    description: "Build cron expressions with a plain-English preview: every 5 minutes, weekdays and @reboot. Validate crontab and GitHub Actions schedules in your browser."
 
   http-status-codes:
     title: HTTP status codes
@@ -679,7 +679,7 @@ tools:
 
   lorem-ipsum-generator:
     title: Lorem Ipsum Generator
-    description: "Generate placeholder text for layouts and mockups by paragraph, sentence or word count. Uses the classic printing-industry Lorem Ipsum text; free and instant in your browser."
+    description: "Generate placeholder text for layouts and mockups by paragraph, sentence or word count. Classic printing-industry Lorem Ipsum, free and instant in your browser."
 
   qrcode-generator:
     title: "QR Code Generator — Create & Download Custom QR Codes"
@@ -1014,7 +1014,7 @@ tools:
 
   ipv4-range-expander:
     title: "IP Range to CIDR Converter"
-    description: "Convert a start and end IPv4 address into the smallest set of CIDR blocks covering the range. Copy the result for firewall rules, cloud security groups and routing."
+    description: "Convert a start and end IPv4 address into the smallest set of CIDR blocks covering the range. Copy results for firewall rules, cloud security groups and routing."
 
   text-diff:
     title: Text Diff Checker — Compare Two Texts Side by Side
