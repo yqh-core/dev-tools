@@ -1,63 +1,74 @@
 /**
- * 给 legacy 中「新版已有对应工具」的页面加 noindex,follow。
+ * Apply archive-wide noindex,follow to every retained legacy HTML page.
  *
- * 判据：页面 body 里带 dd-toolnotice 横幅（静态化迁移时注入的
- * 「该工具对应的新版功能已上线」提示）。带横幅 = 新版已有对应 + 经典版脚本
- * 未迁移（功能已坏）→ 对搜索引擎 noindex，但 follow 保留页内 122+ 内链的
- * 权重传导。不带横幅的 134 页是独立工具（title/description 唯一），保持索引。
+ * Current strategy: the archive remains available to existing visitors and
+ * its links remain crawlable, but the Chinese-only historical pages are outside
+ * the English-first US/EU search index. Response-header rules in _headers are
+ * retained as defense in depth; the HTML directive makes the policy explicit
+ * to crawlers even when an intermediary/function response omits that header.
  *
- * 两阶段方案第一步：观察 4 周 GSC 数据后，再决定这些页面是定向 301 到
- * 对应新版工具页还是维持 noindex。第二步之前不要 301、不要删除。
- *
- * 幂等：已有 name="robots" 的文件跳过。用法：node scripts/legacy-noindex.mjs
+ * This is a deterministic, idempotent build preparation step. It traverses
+ * every HTML file under public/legacy (including the archive index), normalizes
+ * any existing robots meta tag to exactly "noindex, follow", and fails closed
+ * when a file has no usable <head>.
  */
+import assert from 'node:assert/strict';
 import { readFile, writeFile, readdir } from 'node:fs/promises';
-import { join, dirname, resolve } from 'node:path';
+import { join, relative, resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const legacyDir = resolve(dirname(fileURLToPath(import.meta.url)), '..', 'public', 'legacy');
-const MARK = '<meta name="robots" content="noindex,follow" />';
+const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+const legacyDir = join(root, 'public', 'legacy');
+const ROBOTS_META_RE = /<meta\b[^>]*\bname\s*=\s*(['"])robots\1[^>]*>/gi;
+const MARK = '<meta name="robots" content="noindex, follow">';
 
-const entries = await readdir(legacyDir, { withFileTypes: true });
+function applyNoindexMeta(html, fileLabel = 'legacy HTML') {
+  if (!/<head\b[^>]*>/i.test(html) || !/<\/head\s*>/i.test(html)) {
+    throw new Error(`[legacy noindex] ${fileLabel}: missing a complete <head> element`);
+  }
+  const withoutRobotsMeta = html.replace(ROBOTS_META_RE, '');
+  return withoutRobotsMeta.replace(/<\/head\s*>/i, `  ${MARK}\n</head>`);
+}
+
+// Small independent fixtures protect replacement, normalization and idempotency.
+const fixtures = [
+  '<!doctype html><html><head><meta charset="utf-8"><title>One</title></head></html>',
+  '<html><head><title>Two</title><meta name="robots" content="index,follow"></head></html>',
+  "<html><head><meta name='robots' content='noindex'><title>Three</title></head></html>",
+];
+for (const [index, fixture] of fixtures.entries()) {
+  const once = applyNoindexMeta(fixture, `fixture-${index + 1}`);
+  const twice = applyNoindexMeta(once, `fixture-${index + 1}`);
+  const tags = [...once.matchAll(/<meta\b[^>]*\bname\s*=\s*(['"])robots\1[^>]*>/gi)];
+  assert.equal(tags.length, 1, `fixture-${index + 1} must contain exactly one robots meta tag`);
+  assert.match(tags[0][0], /content=["']noindex,\s*follow["']/i);
+  assert.equal(twice, once, `fixture-${index + 1} must be idempotent`);
+}
+
+async function collectHtml(directory) {
+  const found = [];
+  for (const entry of await readdir(directory, { withFileTypes: true })) {
+    const fullPath = join(directory, entry.name);
+    if (entry.isDirectory()) found.push(...await collectHtml(fullPath));
+    else if (entry.isFile() && entry.name.toLowerCase().endsWith('.html')) found.push(fullPath);
+  }
+  return found.sort();
+}
+
+const files = await collectHtml(legacyDir);
+if (files.length === 0) throw new Error('[legacy noindex] no legacy HTML files found; refusing an empty pass');
+
 let patched = 0;
-let skipped = 0;
-let noBanner = 0;
-
-for (const e of entries) {
-  if (!e.isDirectory()) continue;
-  const file = join(legacyDir, e.name, 'index.html');
-  let html;
-  try {
-    html = await readFile(file, 'utf8');
-  } catch {
-    continue; // 无 index.html 的目录不管
+let alreadyCorrect = 0;
+for (const file of files) {
+  const html = await readFile(file, 'utf8');
+  const next = applyNoindexMeta(html, relative(root, file));
+  if (next === html) alreadyCorrect++;
+  else {
+    await writeFile(file, next, 'utf8');
+    patched++;
   }
-
-  const hasBanner = html.includes('dd-toolnotice');
-  if (!hasBanner) {
-    noBanner++;
-    continue;
-  }
-  if (html.includes('name="robots"')) {
-    skipped++;
-    continue;
-  }
-  if (!html.includes('</title>')) {
-    console.error(`[skip] ${e.name}: 找不到 </title>`);
-    continue;
-  }
-  const next = html.replace('</title>', '</title>' + MARK);
-  if (next === html) {
-    skipped++;
-    continue;
-  }
-  await writeFile(file, next, 'utf8');
-  patched++;
 }
 
-console.log(`noindex,follow 注入: ${patched} 页`);
-console.log(`已有 robots 跳过   : ${skipped} 页`);
-console.log(`独立工具页（不动） : ${noBanner} 页`);
-if (patched > 0) {
-  console.log('—— 两阶段方案第一步完成；第二步（定向 301）等 4 周 GSC 数据后再做 ——');
-}
+console.log(`[legacy noindex] PASS: ${files.length} HTML files covered; ${patched} updated, ${alreadyCorrect} already correct`);
+console.log('[legacy noindex] All pages remain available; meta robots is noindex, follow; sitemap exclusion and X-Robots-Tag remain separately checked.');
