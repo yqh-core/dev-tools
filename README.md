@@ -140,7 +140,7 @@
 
 - [IPv4 Subnet Calculator — CIDR & Hosts](https://digdevbox.com/ipv4-subnet-calculator) - Calculate a subnet from an IPv4 address and CIDR prefix. View network and broadcast addresses, netmask, wildcard mask, subnet size and usable host range.
 - [IPv4 address converter](https://digdevbox.com/ipv4-address-converter) - Convert an IP address into decimal, binary, hexadecimal, or even an IPv6 representation of it.
-- [IP Range to CIDR Converter](https://digdevbox.com/ipv4-range-expander) - Convert a start and end IPv4 address into the smallest set of CIDR blocks covering the range. Copy results for firewall rules, cloud security groups and routing.
+- [IP Range to CIDR Converter](https://digdevbox.com/ipv4-range-expander) - Convert an IPv4 start and end address into the smallest CIDR block set covering the range. Use the blocks in firewall rules, cloud security groups and routing.
 - [MAC address lookup](https://digdevbox.com/mac-address-lookup) - Find the vendor and manufacturer of a device by its MAC address.
 - [MAC address generator](https://digdevbox.com/mac-address-generator) - Enter the quantity and prefix. MAC addresses will be generated in your chosen case (uppercase or lowercase)
 - [IPv6 ULA generator](https://digdevbox.com/ipv6-ula-generator) - Generate RFC 4193 fd00::/8 IPv6 Unique Local Address (ULA) /48 prefixes with secure random 40-bit Global IDs or a manual Global ID. Create up to 20 prefixes and inspect first/last /64 subnets in your browser.
