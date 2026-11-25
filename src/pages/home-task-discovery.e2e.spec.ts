@@ -76,9 +76,9 @@ test.describe('Homepage task discovery', () => {
     await expect(page.getByRole('searchbox')).toBeVisible();
 
     for (const [testId, query, expectedPath] of [
-      ['home-quick-search-json', 'json formatter', /\\/json-prettify\\/?$/],
-      ['home-quick-search-jwt', 'jwt decoder', /\\/jwt-parser\\/?$/],
-      ['home-quick-search-regex', 'regex tester', /\\/regex-tester\\/?$/],
+      ['home-quick-search-json', 'json formatter', '/json-prettify/'],
+      ['home-quick-search-jwt', 'jwt decoder', '/jwt-parser/'],
+      ['home-quick-search-regex', 'regex tester', '/regex-tester/'],
     ] as const) {
       await page.getByTestId(testId).click();
       await expect(page.getByRole('searchbox')).toHaveValue(query);
