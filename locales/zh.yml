@@ -638,10 +638,10 @@ tools:
   numeronym-generator:
     title: 数字缩略词生成器 — i18n、a11y、k8s
     description: 粘贴单词、短语或列表，按 Unicode 字母计数生成数字缩略词；支持复合词、保留大小写、批量复制，并查询 i18n、a11y、k8s 等常见形式。
-    tryExample: '试试示例：',
-    exampleInternationalization: 'internationalization → i18n',
-    exampleAccessibility: 'accessibility → a11y',
-    exampleKubernetes: 'Kubernetes → K8s',
+    tryExample: '试试示例：'
+    exampleInternationalization: 'internationalization → i18n'
+    exampleAccessibility: 'accessibility → a11y'
+    exampleKubernetes: 'Kubernetes → K8s'
     shortWordResult: 单词太短，保持原样
     shortWordNote: 三个字母及以下的单词保持原样，因为生成更短的缩写没有实际意义。
     batchCopyNote: 不支持的项目及三个字母或更短的单词会保留在表格中，但不会包含在“全部复制”的结果中。
