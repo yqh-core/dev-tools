@@ -138,7 +138,7 @@ function normalizeSeoText(value) {
     if (decoded === text) break;
     text = decoded;
   }
-  return text.normalize('NFC').replace(/[\\s\\u00a0\\u200b]+/g, ' ').trim();
+  return text.normalize('NFC').replace(/[\s\u00a0\u200b]+/g, ' ').trim();
 }
 
 function extractMetaContent(headTags, attribute, value) {
