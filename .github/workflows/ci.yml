@@ -72,4 +72,14 @@ jobs:
           src/tools/regex-tester/regex-tester.e2e.spec.ts
           src/tools/safelink-decoder/safelink-decoder.e2e.spec.ts
           src/pages/home-task-discovery.e2e.spec.ts
+          src/pages/homepage-visual-baseline.e2e.spec.ts
           --project=chromium
+
+      - name: Upload homepage visual baseline artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: homepage-first-fold-${{ github.sha }}
+          path: artifacts/homepage-visual/
+          if-no-files-found: warn
+          retention-days: 3
