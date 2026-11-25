@@ -58,8 +58,8 @@ function assertLegacyNoindexPolicy() {
   const legacyMetaFailures = [];
   for (const file of legacyHtmlFiles) {
     const html = fs.readFileSync(file, 'utf8');
-    const robotsTags = [...html.matchAll(/<meta\b[^>]*\bname\s*=\s*(['"])robots\\1[^>]*>/gi)];
-    const robotsContent = robotsTags[0]?.[0]?.match(/\bcontent\s*=\s*(['"])(.*?)\\1/i)?.[2] ?? '';
+    const robotsTags = [...html.matchAll(/<meta\b[^>]*\bname\s*=\s*(['"])robots\1[^>]*>/gi)];
+    const robotsContent = robotsTags[0]?.[0]?.match(/\bcontent\s*=\s*(['"])(.*?)\1/i)?.[2] ?? '';
     const directives = new Set(robotsContent.toLowerCase().split(',').map(value => value.trim()));
     if (robotsTags.length !== 1 || !directives.has('noindex') || !directives.has('follow')) {
       legacyMetaFailures.push(path.relative(root, file).split(path.sep).join('/'));
