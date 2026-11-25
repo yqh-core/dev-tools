@@ -3,7 +3,7 @@ name: Verify compact mobile navigation previews
 on:
   push:
     branches:
-      - ops/verify-mobile-nav-previews-20261125
+      - ops/verify-mobile-nav-previews-run2-20261125
 
 permissions:
   contents: read
@@ -191,6 +191,13 @@ jobs:
             assert.ok(mobile.buttons.every(button => button.visible && button.height >= 36), site.id + ': both consent buttons are visible and at least 36px high');
             assert.ok(Math.abs(mobile.buttons[0].top - mobile.buttons[1].top) <= 1, site.id + ': consent buttons are side by side');
             assert.equal(gaRequests, 0, site.id + ': no Google Analytics request before consent');
+            if (site.id === 'digttsreader') {
+              const actionRects = await page.evaluate(() => ['welcome-paste', 'welcome-file', 'welcome-url'].map(id => {
+                const r = document.querySelector('[data-testid="' + id + '"]').getBoundingClientRect();
+                return { id, top: Math.round(r.top), bottom: Math.round(r.bottom) };
+              }));
+              assert.ok(actionRects.every(rect => rect.bottom <= mobile.top - 4), 'DigTTSReader first-screen actions must remain above the consent overlay: ' + JSON.stringify(actionRects) + ' overlayTop=' + mobile.top);
+            }
             await page.screenshot({ path: 'mobile-nav-audit/' + site.id + '-390-consent-compact.jpeg', type: 'jpeg', quality: 85, fullPage: false });
             await page.getByRole('button', { name: 'Reject Google Analytics' }).click();
             await page.waitForFunction(key => localStorage.getItem(key) === 'rejected', site.key);
