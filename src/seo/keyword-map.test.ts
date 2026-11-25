@@ -86,7 +86,7 @@ describe('evidence-backed SEO keyword targets', () => {
     ['/case-converter', 'text case converter', 'Text Case Converter — camelCase, snake_case & More'],
     ['/list-converter', 'list converter', 'List Converter — Sort & Deduplicate'],
     ['/image-color-picker', 'image color picker', 'Image Color Picker — HEX, RGB & HSL'],
-    ['/http-headers', 'http headers checker online', 'HTTP Header Analyzer — HAR & Security'],
+    ['/http-headers', 'http headers checker online', 'HTTP Header Analyzer — HAR Import & Security Score'],
   ])('locks the landed metadata for %s', (path, keyword, lockedTitle) => {
     const entry = CLUSTER_KEYWORD_ENTRIES.find(item => item.path === path);
 
