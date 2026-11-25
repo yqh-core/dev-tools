@@ -548,8 +548,17 @@ tools:
     description: Format and validate YAML online — fix indentation, catch tabs and syntax errors before kubectl or CI rejects your config. Free, runs in your browser.
 
   eta-calculator:
-    title: ETA Calculator — Task Completion Time
-    description: Estimate time remaining for a download, build or batch job with an optional weekday work schedule, or derive throughput from completed work and elapsed time.
+    title: ETA Calculator — Software Build & Task Completion
+    description: Estimate when a software build, CI job, data migration or batch process will finish. Use measured progress or a known rate, compare pace with a deadline, and include buffers and weekday work hours.
+    firstScreenTitle: Estimate when your work will finish
+    firstScreenIntro: Forecast software builds, CI runs, data migrations and batch jobs from current progress or a known processing rate.
+    scenariosTitle: Start with a common workflow
+    scenariosHint: Load editable sample values, then replace them with your own.
+    scenario:
+      build: Software build / CI run
+      migration: Data migration
+      batch: Batch processing
+      conversion: File conversion
     rateMode: Enter a known processing rate
     observedMode: Calculate from elapsed time
     elapsedTitle: Elapsed time so far

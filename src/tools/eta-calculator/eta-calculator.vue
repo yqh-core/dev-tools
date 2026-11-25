@@ -196,6 +196,104 @@ const deadlineAnalysis = computed(() => {
     throw error;
   }
 });
+type EtaScenarioId = 'build' | 'migration' | 'batch' | 'conversion';
+
+const scenarioIds: EtaScenarioId[] = ['build', 'migration', 'batch', 'conversion'];
+const activeScenario = ref<EtaScenarioId | null>(null);
+
+const etaScenarios: Record<EtaScenarioId, {
+  mode: EtaMode
+  schedule: EtaScheduleMode
+  total: number
+  completed: number
+  rate: number
+  interval: number
+  intervalMs: number
+  elapsedHours: number
+  elapsedMinutes: number
+  elapsedSeconds: number
+  buffer: number
+  pause: number
+}> = {
+  build: {
+    mode: 'observed',
+    schedule: 'calendar',
+    total: 240,
+    completed: 90,
+    rate: 8,
+    interval: 10,
+    intervalMs: 60_000,
+    elapsedHours: 1,
+    elapsedMinutes: 15,
+    elapsedSeconds: 0,
+    buffer: 10,
+    pause: 15,
+  },
+  migration: {
+    mode: 'observed',
+    schedule: 'weekdays',
+    total: 12_000,
+    completed: 4_200,
+    rate: 100,
+    interval: 10,
+    intervalMs: 60_000,
+    elapsedHours: 2,
+    elapsedMinutes: 30,
+    elapsedSeconds: 0,
+    buffer: 15,
+    pause: 30,
+  },
+  batch: {
+    mode: 'rate',
+    schedule: 'calendar',
+    total: 10_000,
+    completed: 3_600,
+    rate: 500,
+    interval: 10,
+    intervalMs: 60_000,
+    elapsedHours: 0,
+    elapsedMinutes: 0,
+    elapsedSeconds: 0,
+    buffer: 10,
+    pause: 10,
+  },
+  conversion: {
+    mode: 'rate',
+    schedule: 'calendar',
+    total: 2_400,
+    completed: 900,
+    rate: 300,
+    interval: 5,
+    intervalMs: 60_000,
+    elapsedHours: 0,
+    elapsedMinutes: 0,
+    elapsedSeconds: 0,
+    buffer: 5,
+    pause: 0,
+  },
+};
+
+function loadScenario(scenario: EtaScenarioId) {
+  const sample = etaScenarios[scenario];
+  activeScenario.value = scenario;
+  calculationMode.value = sample.mode;
+  scheduleMode.value = sample.schedule;
+  unitCount.value = sample.total;
+  completedUnitCount.value = sample.completed;
+  unitPerTimeSpan.value = sample.rate;
+  timeSpan.value = sample.interval;
+  timeSpanUnitMultiplier.value = sample.intervalMs;
+  elapsedHours.value = sample.elapsedHours;
+  elapsedMinutes.value = sample.elapsedMinutes;
+  elapsedSeconds.value = sample.elapsedSeconds;
+  bufferPercent.value = sample.buffer;
+  additionalPauseMinutes.value = sample.pause;
+  workingDayStart.value = '09:00';
+  workingDayEnd.value = '17:00';
+  startedAt.value = Date.now();
+  deadlineLocalInput.value = '';
+}
+
 function formatUnitsPerHour(value: number) {
   return new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 }).format(value);
 }
@@ -215,17 +313,27 @@ const displayedObservedRate = computed(() => {
 
 <template>
   <div flex flex-col gap-3>
-    <c-card title="How the estimate works" data-test-id="eta-calculator-example">
-      <p>
-        Remaining duration = (total amount − completed amount) ÷ processing rate × interval length × (1 + buffer).
-      </p>
-      <p mt-2>
-        Example: 500 records − 200 completed = 300 remaining. At 5 records per 3 minutes, that is 180 minutes (3 hours) before any buffer.
-      </p>
-      <p mt-2 text-xs opacity-60>
-        The estimate assumes a steady processing rate. A buffer can account for expected pauses or rate variation; it is not a prediction of network traffic or changing workloads.
-      </p>
-    </c-card>
+    <section flex flex-col gap-3 data-test-id="eta-first-screen-intro">
+      <div flex flex-col gap-1>
+        <h2 text-xl font-semibold>{{ $t('tools.eta-calculator.firstScreenTitle') }}</h2>
+        <p text-sm opacity-70>{{ $t('tools.eta-calculator.firstScreenIntro') }}</p>
+      </div>
+      <div flex flex-col gap-2>
+        <strong text-sm>{{ $t('tools.eta-calculator.scenariosTitle') }}</strong>
+        <div role="group" :aria-label="$t('tools.eta-calculator.scenariosTitle')" flex flex-wrap gap-2>
+          <n-button
+            v-for="scenario in scenarioIds"
+            :key="scenario"
+            :data-test-id="`eta-scenario-${scenario}`"
+            :type="activeScenario === scenario ? 'primary' : 'default'"
+            @click="loadScenario(scenario)"
+          >
+            {{ $t(`tools.eta-calculator.scenario.${scenario}`) }}
+          </n-button>
+        </div>
+        <p text-xs opacity-60>{{ $t('tools.eta-calculator.scenariosHint') }}</p>
+      </div>
+    </section>
 
     <div role="group" aria-label="ETA estimation method" flex flex-wrap gap-2>
       <n-button
@@ -568,6 +676,18 @@ const displayedObservedRate = computed(() => {
           {{ $t('tools.eta-calculator.observedModeHint') }}
         </p>
       </div>
+    </c-card>
+
+    <c-card title="How the estimate works" data-test-id="eta-calculator-example">
+      <p>
+        Remaining duration = (total amount − completed amount) ÷ processing rate × interval length × (1 + buffer).
+      </p>
+      <p mt-2>
+        Example: 500 records − 200 completed = 300 remaining. At 5 records per 3 minutes, that is 180 minutes (3 hours) before any buffer.
+      </p>
+      <p mt-2 text-xs opacity-60>
+        The estimate assumes a steady processing rate. A buffer can account for expected pauses or rate variation; it is not a prediction of network traffic or changing workloads.
+      </p>
     </c-card>
   </div>
 </template>

@@ -544,8 +544,17 @@ tools:
     description: 将YAML字符串修饰为友好的可读格式。
 
   eta-calculator:
-    title: ETA 计算器 — 任务剩余时间估算
-    description: 为下载、构建或批处理估算剩余时间；可选择周一至周五本地工作时段，也可输入已知处理速率或根据已完成数量和已耗时推导吞吐速率。
+    title: ETA 计算器 — 软件构建与任务完成时间
+    description: 估算软件构建、CI 任务、数据迁移或批处理何时完成。可按已知速率或实际进度计算，并比较截止时间、缓冲和工作日时段。
+    firstScreenTitle: 估算任务何时完成
+    firstScreenIntro: 根据当前进度或已知处理速率，预测软件构建、CI 任务、数据迁移和批处理的完成时间。
+    scenariosTitle: 从常见任务开始
+    scenariosHint: 加载可编辑的示例数值，再替换成你的实际数据。
+    scenario:
+      build: 软件构建 / CI 任务
+      migration: 数据迁移
+      batch: 批量处理
+      conversion: 文件转换
     rateMode: 输入已知处理速率
     observedMode: 根据已耗时间计算
     elapsedTitle: 已运行时间

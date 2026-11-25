@@ -49,7 +49,7 @@ describe('evidence-backed SEO keyword targets', () => {
 
   it.each([
     ['/numeronym-generator', 'numeronym', 'P0', 'Numeronym Generator — i18n, a11y & k8s'],
-    ['/eta-calculator', 'eta calculator', 'P1', 'ETA Calculator — Task Completion Time'],
+    ['/eta-calculator', 'eta calculator', 'P1', 'ETA Calculator — Software Build & Task Completion'],
     ['/text-statistics', 'text statistics', 'P1', 'Text Statistics — Word & Character Counter'],
   ])('keeps %s mapped to a capability-matched intent', (path, keyword, priority, lockedTitle) => {
     const entry = CLUSTER_KEYWORD_ENTRIES.find(item => item.path === path);
