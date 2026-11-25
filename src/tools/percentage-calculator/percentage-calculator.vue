@@ -16,6 +16,7 @@ import {
   percentageBatchToTsv,
   runPercentageBatch,
 } from './percentage-calculator.batch';
+import { PERCENTAGE_CALCULATION_MODES } from './percentage-calculator.modes';
 
 const { t } = useI18n();
 
@@ -301,6 +302,7 @@ const percentageBatchModeHints = computed<Record<PercentageBatchMode, string>>((
   'percentage-difference': t('tools.percentage-calculator.batch.hints.percentage-difference'),
   'percentage-points': t('tools.percentage-calculator.batch.hints.percentage-points'),
 }));
+const activeCalculationMode = ref<PercentageBatchMode>('percent-of');
 const percentageBatchMode = ref<PercentageBatchMode>('percent-of');
 const percentageBatchInput = ref('');
 const percentageBatchRows = ref<PercentageBatchRow[]>([]);
@@ -580,7 +582,22 @@ async function copySequentialSummary(): Promise<void> {
 <template>
   <div style="flex: 0 0 100%">
     <div style="margin: 0 auto; max-width: 600px">
-      <c-card mb-3>
+      <p class="percentage-mode-intro">
+        Choose the calculation that matches your question. Enter your values to see the answer and formula update as you type.
+      </p>
+      <div class="percentage-mode-switcher" role="group" aria-label="Choose a percentage calculation">
+        <button
+          v-for="mode in PERCENTAGE_CALCULATION_MODES"
+          :key="mode"
+          type="button"
+          class="percentage-mode-button"
+          :aria-pressed="activeCalculationMode === mode"
+          @click="activeCalculationMode = mode"
+        >
+          {{ percentageBatchModeNames[mode] }}
+        </button>
+      </div>
+      <c-card mb-3 v-show="activeCalculationMode === 'percent-of'">
         <div mb-3 sm:hidden>
           What is
         </div>
@@ -601,7 +618,7 @@ async function copySequentialSummary(): Promise<void> {
         </div>
       </c-card>
 
-      <c-card mb-3>
+      <c-card mb-3 v-show="activeCalculationMode === 'part-to-whole'">
         <div mb-3 sm:hidden>
           X is what percent of Y
         </div>
@@ -619,7 +636,7 @@ async function copySequentialSummary(): Promise<void> {
         </div>
       </c-card>
 
-      <c-card mb-3>
+      <c-card mb-3 v-show="activeCalculationMode === 'percentage-change'">
         <div mb-3>
           What is the percentage increase/decrease
         </div>
@@ -634,7 +651,7 @@ async function copySequentialSummary(): Promise<void> {
         </div>
       </c-card>
 
-      <c-card mb-3>
+      <c-card mb-3 v-show="activeCalculationMode === 'adjustment'">
         <div mb-3>
           Increase or decrease a value by a percentage
         </div>
@@ -663,7 +680,7 @@ async function copySequentialSummary(): Promise<void> {
         </div>
       </c-card>
 
-      <c-card mb-3 data-test-id="reverse-percentage-card">
+      <c-card mb-3 data-test-id="reverse-percentage-card" v-show="activeCalculationMode === 'reverse'">
         <div mb-3>
           Find the original value before a percentage increase or decrease
         </div>
@@ -699,7 +716,7 @@ async function copySequentialSummary(): Promise<void> {
         </div>
       </c-card>
 
-      <c-card mb-3 data-test-id="percentage-difference-card">
+      <c-card mb-3 data-test-id="percentage-difference-card" v-show="activeCalculationMode === 'percentage-difference'">
         <div mb-3>
           Percentage difference between two values
         </div>
@@ -717,7 +734,7 @@ async function copySequentialSummary(): Promise<void> {
         </div>
       </c-card>
 
-      <c-card mb-3 data-test-id="percentage-points-card">
+      <c-card mb-3 data-test-id="percentage-points-card" v-show="activeCalculationMode === 'percentage-points'">
         <div mb-3>
           Percentage-point change between two rates
         </div>
@@ -1209,3 +1226,77 @@ async function copySequentialSummary(): Promise<void> {
     </section>
   </div>
 </template>
+
+<style scoped>
+.percentage-mode-intro {
+  margin: 0 0 0.8rem;
+  color: #64748b;
+  font-size: 0.84rem;
+  line-height: 1.55;
+}
+.percentage-mode-switcher {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.55rem;
+  margin: 0 0 1rem;
+}
+.percentage-mode-button {
+  display: flex;
+  min-height: 48px;
+  align-items: center;
+  justify-content: center;
+  padding: 0.6rem 0.7rem;
+  border: 1px solid #dbe3ea;
+  border-radius: 0.65rem;
+  background: #f8fafc;
+  color: #334155;
+  font-size: 0.76rem;
+  font-weight: 650;
+  line-height: 1.35;
+  text-align: center;
+  white-space: normal;
+  cursor: pointer;
+  transition: border-color 150ms ease, background-color 150ms ease, color 150ms ease, transform 150ms ease;
+}
+.percentage-mode-button:hover {
+  border-color: #0f766e;
+  color: #0f766e;
+}
+.percentage-mode-button[aria-pressed="true"] {
+  border-color: var(--dd-primary, #0f766e);
+  background: var(--dd-primary, #0f766e);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(15, 118, 110, 0.18);
+}
+.percentage-mode-button:focus-visible {
+  outline: 3px solid rgba(13, 148, 136, 0.35);
+  outline-offset: 2px;
+}
+:global(html[data-theme="dark"]) .percentage-mode-intro {
+  color: #aeb9c7;
+}
+:global(html[data-theme="dark"]) .percentage-mode-button {
+  border-color: #475569;
+  background: #1f2937;
+  color: #e2e8f0;
+}
+:global(html[data-theme="dark"]) .percentage-mode-button:hover {
+  border-color: #2dd4bf;
+  color: #5eead4;
+}
+:global(html[data-theme="dark"]) .percentage-mode-button[aria-pressed="true"] {
+  border-color: var(--dd-primary, #0f766e);
+  background: var(--dd-primary, #0f766e);
+  color: #fff;
+}
+@media (min-width: 480px) {
+  .percentage-mode-switcher {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .percentage-mode-button {
+    transition: none;
+  }
+}
+</style>
