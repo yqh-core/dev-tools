@@ -1005,8 +1005,8 @@ try {
     }
     if (kind === 'tool') {
       const entry = TOOL_SEO_ENTRIES_BY_PATH.get(path);
-      const expectedTitle = `${entry.name} - ${messages.site.name}`;
-      const actualTitle = decodeHtmlEntities(out.match(/<title[^>]*>([\\s\\S]*?)<\\/title>/i)?.[1] ?? '');
+      const expectedTitle = entry.name;
+      const actualTitle = extractSocialTitle(out);
       const ogTitle = extractMetaContent(out, 'property', 'og:title');
       const itempropName = extractMetaContent(out, 'itemprop', 'name');
       const description = extractMetaContent(out, 'name', 'description');
