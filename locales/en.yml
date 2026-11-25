@@ -412,7 +412,7 @@ tools:
     description: "Generate bcrypt hashes with configurable salt rounds and compare plaintext against an existing hash. Runs in your browser; bcrypt hashes cannot be decrypted."
 
   crontab-generator:
-    title: "Crontab Generator — Cron Builder"
+    title: "Crontab Generator — Plain-English Cron"
     description: Build cron expressions with a plain-English preview — every 5 minutes, weekdays, {'@'}reboot. Validate crontab and GitHub Actions schedules free in your browser.
 
   http-status-codes:
