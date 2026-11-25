@@ -142,6 +142,7 @@ test.describe('Tool - Percentage calculator', () => {
     await page.getByTestId('numberY').locator('input').fill('456');
     await expect(page.getByTestId('numberResult').locator('input')).toHaveValue('26.973684210526315');
 
+    await page.getByRole('button', { name: 'Percentage increase or decrease' }).click();
     await page.getByTestId('numberFrom').locator('input').fill('123');
     await page.getByTestId('numberTo').locator('input').fill('456');
     await expect(page.getByTestId('percentageIncreaseDecrease').locator('input')).toHaveValue('270.7317073170732');
@@ -188,6 +189,7 @@ test.describe('Tool - Percentage calculator', () => {
     await page.getByTestId('numberY').locator('input').fill('0');
     await expect(page.getByTestId('numberResult').locator('input')).toHaveValue('');
 
+    await page.getByRole('button', { name: 'Percentage increase or decrease' }).click();
     await page.getByTestId('numberFrom').locator('input').fill('0');
     await page.getByTestId('numberTo').locator('input').fill('100');
     await expect(page.getByTestId('percentageIncreaseDecrease').locator('input')).toHaveValue('');
@@ -201,6 +203,7 @@ test.describe('Tool - Percentage calculator', () => {
     await page.getByTestId('reversePercent').locator('input').fill('100');
     await expect(page.getByTestId('originalBeforeDecrease').locator('input')).toHaveValue('');
 
+    await page.getByRole('button', { name: 'Percentage difference between two values' }).click();
     await page.getByTestId('differenceA').locator('input').fill('0');
     await page.getByTestId('differenceB').locator('input').fill('0');
     await expect(page.getByTestId('percentageDifference').locator('input')).toHaveValue('');
