@@ -18,6 +18,7 @@ jobs:
       wait_for_deploy: ${{ steps.detect.outputs.wait_for_deploy }}
       deploy_sha: ${{ steps.detect.outputs.deploy_sha }}
       check_eta_release: ${{ steps.detect.outputs.check_eta_release }}
+      check_homepage_visual: ${{ steps.detect.outputs.check_homepage_visual }}
     steps:
       - name: Detect whether this exact commit changes deployable site files
         id: detect
@@ -31,7 +32,8 @@ jobs:
               core.setOutput('deploy_sha', context.sha);
               core.setOutput('wait_for_deploy', 'false');
               core.setOutput('check_eta_release', 'true');
-              core.info('Manual production smoke: validate the currently served release markers.');
+              core.setOutput('check_homepage_visual', 'true');
+              core.info('Manual production smoke: validate the currently served release markers and capture the live homepage.');
               return;
             }
             if (context.payload.workflow_run.conclusion !== 'success') {
@@ -39,12 +41,14 @@ jobs:
               core.setOutput('deploy_sha', context.payload.workflow_run.head_sha);
               core.setOutput('wait_for_deploy', 'false');
               core.setOutput('check_eta_release', 'false');
+              core.setOutput('check_homepage_visual', 'false');
               return;
             }
             let cursor = context.payload.workflow_run.head_sha;
             let deploySha = cursor;
             let waitForDeploy = false;
             let checkEtaRelease = false;
+            let checkHomepageVisual = false;
             // A workflow-only follow-up commit must still wait for the latest
             // ancestor that actually changed the deployed site (e.g. locale files).
             for (let depth = 0; depth < 20 && cursor; depth++) {
@@ -59,6 +63,7 @@ jobs:
                 deploySha = cursor;
                 waitForDeploy = true;
                 checkEtaRelease = deployable.some(({ filename }) => filename.startsWith('src/tools/eta-calculator/'));
+                checkHomepageVisual = true;
                 core.info('Latest deployable site commit: ' + deploySha);
                 break;
               }
@@ -67,6 +72,7 @@ jobs:
             core.setOutput('deploy_sha', deploySha);
             core.setOutput('wait_for_deploy', waitForDeploy ? 'true' : 'false');
             core.setOutput('check_eta_release', checkEtaRelease ? 'true' : 'false');
+            core.setOutput('check_homepage_visual', checkHomepageVisual ? 'true' : 'false');
 
   production-smoke:
     needs: detect-site-changes
@@ -707,3 +713,49 @@ jobs:
 
           console.log('PASS: production homepage, canonical host, robots.txt, sitemap.xml, legacy noindex header and selected search landing pages, including Bulk Slug and Redirect tool/guide routes');
           NODE
+
+
+  # Use the same Playwright first-fold spec on the deployed production origin,
+  # not only against a local Vite preview. This makes consent geometry and
+  # primary task visibility a permanent post-deploy regression gate.
+  production-homepage-visual:
+    needs: [detect-site-changes, production-smoke]
+    if: needs.detect-site-changes.outputs.check_homepage_visual == 'true' && needs.production-smoke.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      BASE_URL: https://www.digdevbox.com
+      NO_WEB_SERVER: 'true'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.detect-site-changes.outputs.deploy_sha }}
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.11.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Chromium for the production screenshot
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Capture the live production homepage at 390px and 1440px
+        run: pnpm exec playwright test src/pages/homepage-visual-baseline.e2e.spec.ts --project=chromium --reporter=line
+
+      - name: Upload production homepage screenshots and geometry
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-homepage-visual-${{ github.run_id }}
+          path: |
+            artifacts/homepage-visual/
+            playwright-report/
+            test-results/
+          if-no-files-found: warn
