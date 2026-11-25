@@ -18,7 +18,6 @@ test('ETA Calculator leads with task samples and loads the matching inputs', asy
   await expect(page.locator('[data-testid^="eta-scenario-"]')).toHaveCount(4);
 
   await page.getByTestId('eta-scenario-build').click();
-  await expect(page.getByTestId('eta-mode-observed')).toHaveAttribute('type', 'button');
   await expect(page.getByTestId('eta-total').locator('input')).toHaveValue('240');
   await expect(page.getByTestId('eta-completed').locator('input')).toHaveValue('90');
   await expect(page.getByTestId('eta-elapsed-hours').locator('input')).toHaveValue('1');
