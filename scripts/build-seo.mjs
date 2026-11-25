@@ -471,6 +471,29 @@ try {
   );
   console.log(`[keyword-map] 优先级分布 ${kwAudit.byPriority.join(' ')}｜搜索量 ${kwAudit.searchVolume}`);
 
+  // Normalize all SSG tool labels from the exact locale file used by the title-lock audit.
+  // The static registry may have been initialized with an older name; SEO HTML, breadcrumbs,
+  // internal workflow labels and SoftwareApplication JSON-LD must all use one title source.
+  const TOOL_TITLES_BY_PATH = Object.fromEntries(TOOL_SEO_PAGES.map((entry) => {
+    const key = entry.path.split('/').join('');
+    const title = messages.tools?.[key]?.title;
+    if (typeof title !== 'string' || !title.trim()) {
+      throw new Error(`[build-seo] locales/${DEFAULT_LOCALE}.yml 缺少工具标题: ${key}`);
+    }
+    return [entry.path, title.trim()];
+  }));
+  const TOOL_SEO_ENTRIES_BY_PATH = new Map(TOOL_SEO_PAGES.map((entry) => {
+    const titleFor = (path, fallback) => TOOL_TITLES_BY_PATH[path] ?? fallback;
+    const name = titleFor(entry.path, entry.name);
+    return [entry.path, {
+      ...entry,
+      name,
+      h1: name.split(' — ')[0],
+      related: entry.related.map(item => ({ ...item, name: titleFor(item.path, item.name) })),
+      workflow: entry.workflow.map(item => ({ ...item, name: titleFor(item.path, item.name) })),
+    }];
+  }));
+
   const staticPaths = new Set(STATIC_ROUTES.map(({ path }) => path));
   const collide = TOOL_SEO_PAGES.filter(({ path }) => staticPaths.has(path));
   if (collide.length > 0) {
@@ -505,7 +528,7 @@ try {
   const results = [];
   for (const job of jobs) {
     const r = job.kind === 'tool'
-      ? await mod.renderTool(job.path)
+      ? await mod.renderTool(job.path, TOOL_TITLES_BY_PATH)
       : job.kind === 'guide'
         ? await mod.renderGuideArticle(job.path)
         : await mod.render(job.path);
@@ -846,7 +869,7 @@ try {
     const html = stripComments(rawHtml);
     // 工具页在 page-seo 区块尾部追加 SoftwareApplication / BreadcrumbList JSON-LD（见函数注释）
     // 注意 faqs 挂在 entry.guide.faqs（ToolGuide 的字段），不是 entry.faqs
-    const entry = kind === 'tool' ? TOOL_SEO_PAGES.find(item => item.path === path) : undefined;
+    const entry = kind === 'tool' ? TOOL_SEO_ENTRIES_BY_PATH.get(path) : undefined;
     let pageTags = kind === 'tool'
       ? `${headTags}`
         + `\n      <script type="application/ld+json">${buildSoftwareApplicationLd(entry, canonical)}</script>`
