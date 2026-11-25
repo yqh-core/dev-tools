@@ -70,6 +70,8 @@ export function buildBasicAuthExamples(requestUrl: string): BasicAuthExamples {
 }
 
 export function hasBasicAuthControlCharacters(value: string): boolean {
+  // RFC 7617 credentials must not contain ASCII control characters.
+  // eslint-disable-next-line no-control-regex
   return /[\u0000-\u001F\u007F]/.test(value);
 }
 
