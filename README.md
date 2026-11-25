@@ -97,7 +97,7 @@
 - [JSON Diff Checker — Compare JSON Online](https://digdevbox.com/json-diff) - Compare JSON files or pasted JSON online. Inspect nested changes by path, export a report, and match arrays by index, ignore-order or stable ID. Large comparisons run in a cancellable worker.
 - [Outlook Safe Links Batch Decoder — Reveal Original URLs](https://digdevbox.com/safelink-decoder) - Batch-decode Microsoft Outlook Safe Links one wrapper per line. Unwrap up to five layers, inspect destination scheme and host, and copy valid URLs; local parsing only, no safety scan.
 - [JSON to Query String Converter](https://digdevbox.com/json-to-get-params) - Percent-encode nested JSON as URL query parameters, or rebuild JSON from a query string or full URL. Supports bracketed object keys and indexed arrays.
-- [HTTP Header Analyzer — HAR & Security](https://digdevbox.com/http-headers) - Import HAR or paste curl/DevTools headers. Check CSP, HSTS, cookies, CORS and indexing; get a score plus copy-ready Nginx, Vercel and Cloudflare fixes locally.
+- [HTTP Header Analyzer — HAR Import & Security Score](https://digdevbox.com/http-headers) - Import HAR or paste curl/DevTools headers. Check CSP, HSTS, cookies, CORS and indexing; get a score plus copy-ready Nginx, Vercel and Cloudflare fixes locally.
 
 ### Images and videos
 
