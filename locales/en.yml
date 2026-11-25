@@ -413,7 +413,7 @@ tools:
 
   crontab-generator:
     title: "Crontab Generator — Plain-English Cron"
-    description: "Build cron expressions with a plain-English preview: every 5 minutes, weekdays and @reboot. Validate crontab and GitHub Actions schedules in your browser."
+    description: "Build cron expressions with a plain-English preview: every 5 minutes, weekdays and {'@'}reboot. Validate crontab and GitHub Actions schedules in your browser."
 
   http-status-codes:
     title: HTTP status codes
