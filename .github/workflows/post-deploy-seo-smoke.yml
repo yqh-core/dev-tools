@@ -721,7 +721,9 @@ jobs:
   production-homepage-visual:
     needs: [detect-site-changes, production-smoke]
     if: needs.detect-site-changes.outputs.check_homepage_visual == 'true' && needs.production-smoke.result == 'success'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    # Playwright 1.32 install-deps expects the pre-t64 libasound2 package; pin
+    # this screenshot job to 24.04 until the browser toolchain is upgraded.
     timeout-minutes: 20
     env:
       BASE_URL: https://www.digdevbox.com
@@ -758,4 +760,4 @@ jobs:
             artifacts/homepage-visual/
             playwright-report/
             test-results/
-          if-no-files-found: warn
+          if-no-files-found: error
