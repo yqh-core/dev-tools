@@ -227,9 +227,10 @@ jobs:
             const desktop = await desktopPrompt.evaluate(el => {
               const r = el.getBoundingClientRect();
               const cs = getComputedStyle(el);
-              return { width: Math.round(r.width), height: Math.round(r.height), padding: cs.padding, fontSize: cs.fontSize };
+              return { width: Math.round(r.width), height: Math.round(r.height), maxWidth: cs.maxWidth, padding: cs.padding, fontSize: cs.fontSize };
             });
-            assert.ok(desktop.width <= 720, site.id + ': desktop consent prompt keeps 720px max width');
+            assert.equal(desktop.maxWidth, '720px', site.id + ': desktop consent prompt keeps 720px max-width');
+            assert.ok(desktop.width <= 760, site.id + ': desktop consent prompt respects 720px content width plus padding');
             assert.equal(desktop.padding, '16px 18px', site.id + ': desktop consent padding remains unchanged');
             assert.equal(desktop.fontSize, '14px', site.id + ': desktop consent typography remains unchanged');
             await desktopPage.screenshot({ path: 'mobile-nav-audit/' + site.id + '-1440-consent-desktop.jpeg', type: 'jpeg', quality: 85, fullPage: false });
