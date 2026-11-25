@@ -1,0 +1,116 @@
+name: Nine-site homepage visual audit
+
+on:
+  push:
+    branches:
+      - ops/homepage-visual-audit-20261125
+
+permissions:
+  contents: read
+
+jobs:
+  capture-homepages:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Playwright
+        run: |
+          npm install --no-save playwright
+          npx playwright install --with-deps chromium
+      - name: Capture desktop and mobile homepages
+        run: |
+          mkdir -p homepage-audit/screenshots
+          node --input-type=module <<'NODE'
+          import { chromium } from 'playwright';
+          import fs from 'node:fs';
+          const sites = [
+            { id: 'main', url: 'https://www.digdevbox.com/' },
+            { id: 'imageforge', url: 'https://draw.digdevbox.com/' },
+            { id: 'forge-notes', url: 'https://notes.digdevbox.com/' },
+            { id: 'geek-typing', url: 'https://geek-typing.digdevbox.com/' },
+            { id: 'fangdai', url: 'https://fangdai.digdevbox.com/' },
+            { id: 'tts-reader', url: 'https://ttsreader.digdevbox.com/' },
+            { id: 'streamplay', url: 'https://play.digdevbox.com/' },
+            { id: 'ip-locator', url: 'https://ip.digdevbox.com/' },
+            { id: 'digimg', url: 'https://img.digdevbox.com/' },
+          ];
+          const viewports = [
+            { id: 'desktop', width: 1440, height: 1000, isMobile: false },
+            { id: 'mobile', width: 390, height: 844, isMobile: true },
+          ];
+          const browser = await chromium.launch({ headless: true });
+          const results = [];
+          for (const site of sites) {
+            for (const viewport of viewports) {
+              const context = await browser.newContext({
+                viewport: { width: viewport.width, height: viewport.height },
+                isMobile: viewport.isMobile,
+                deviceScaleFactor: viewport.isMobile ? 2 : 1,
+                locale: 'en-US',
+                reducedMotion: 'reduce',
+              });
+              const page = await context.newPage();
+              const consoleErrors = [];
+              page.on('pageerror', error => consoleErrors.push(String(error.message).slice(0, 300)));
+              let responseStatus = null;
+              let navigationError = null;
+              try {
+                const response = await page.goto(site.url, { waitUntil: 'domcontentloaded', timeout: 45000 });
+                responseStatus = response?.status() ?? null;
+                await page.waitForTimeout(1800);
+                const metrics = await page.evaluate(() => {
+                  const rect = el => {
+                    if (!el) return null;
+                    const r = el.getBoundingClientRect();
+                    return { x: Math.round(r.x), y: Math.round(r.y), width: Math.round(r.width), height: Math.round(r.height), bottom: Math.round(r.bottom) };
+                  };
+                  const text = el => (el?.innerText || el?.getAttribute('aria-label') || '').trim().replace(/\\s+/g, ' ').slice(0, 180);
+                  const first = selector => document.querySelector(selector);
+                  const links = [...document.querySelectorAll('a[href]')].filter(el => { const r=el.getBoundingClientRect(); return r.width>0 && r.height>0; }).slice(0,10).map(el => ({ text: text(el), href: el.href, rect: rect(el) }));
+                  const actions = [...document.querySelectorAll('button, input, textarea, select, [role=button]')].filter(el => { const r=el.getBoundingClientRect(); return r.width>0 && r.height>0; }).slice(0,12).map(el => ({ tag:el.tagName.toLowerCase(), type:el.getAttribute('type'), text:text(el), placeholder:el.getAttribute('placeholder'), aria:el.getAttribute('aria-label'), rect:rect(el) }));
+                  const headings = [...document.querySelectorAll('h1,h2,h3')].slice(0,20).map(el => ({ level:el.tagName, text:text(el), rect:rect(el) }));
+                  const hero = first('header, .home-hero, .hero-panel, .hero, main > section');
+                  return {
+                    title:document.title,
+                    description:first('meta[name=description]')?.content || '',
+                    canonical:first('link[rel=canonical]')?.href || '',
+                    h1:text(first('h1')),
+                    headings,
+                    hero:rect(hero),
+                    firstInput:rect(first('input,textarea,select')),
+                    viewport:{ width:innerWidth, height:innerHeight },
+                    document:{ width:document.documentElement.scrollWidth, height:document.documentElement.scrollHeight },
+                    horizontalOverflow:document.documentElement.scrollWidth>innerWidth,
+                    actions, links,
+                  };
+                });
+                const base = `homepage-audit/screenshots/${site.id}-${viewport.id}`;
+                await page.screenshot({ path: `${base}-first.jpeg`, type:'jpeg', quality:72, fullPage:false, animations:'disabled' });
+                await page.screenshot({ path: `${base}-full.jpeg`, type:'jpeg', quality:62, fullPage:true, animations:'disabled' });
+                results.push({ site:site.id, url:site.url, viewport:viewport.id, status:responseStatus, ...metrics, pageErrors:consoleErrors.slice(0,10) });
+                console.log(JSON.stringify({ site:site.id, viewport:viewport.id, status:responseStatus, title:metrics.title, h1:metrics.h1, hero:metrics.hero, firstInput:metrics.firstInput, horizontalOverflow:metrics.horizontalOverflow, firstActions:metrics.actions.slice(0,4) }));
+              } catch (error) {
+                navigationError = String(error.message).slice(0, 500);
+                results.push({ site:site.id, url:site.url, viewport:viewport.id, status:responseStatus, navigationError, pageErrors:consoleErrors.slice(0,10) });
+                console.log(JSON.stringify({ site:site.id, viewport:viewport.id, status:responseStatus, navigationError }));
+              } finally {
+                await context.close();
+              }
+            }
+          }
+          await browser.close();
+          fs.writeFileSync('homepage-audit/metrics.json', JSON.stringify(results, null, 2));
+          const failures = results.filter(x => x.navigationError || (x.status !== null && x.status >= 500));
+          console.log(`AUDIT COMPLETE: ${results.length} viewport captures; ${failures.length} navigation/server failures.`);
+          NODE
+      - name: Upload visual evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nine-site-homepage-visual-audit
+          path: homepage-audit/
+          retention-days: 14
+          if-no-files-found: warn
