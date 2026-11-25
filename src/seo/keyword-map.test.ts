@@ -29,7 +29,7 @@ describe('evidence-backed SEO keyword targets', () => {
     [
       '/percentage-calculator',
       'percentage calculator',
-      'Percentage Calculator — Percent of, Change & Difference',
+      'Percentage Calculator — 7 Modes',
     ],
     [
       '/numeronym-generator',
@@ -63,13 +63,13 @@ describe('evidence-backed SEO keyword targets', () => {
   });
 
   it.each([
-    ['/ipv4-subnet-calculator', 'IPv4 subnet calculator', 'IPv4 Subnet Calculator — CIDR, Netmask & Usable Hosts'],
-    ['/csv-to-json', 'CSV to JSON converter', 'CSV to JSON Converter — Preview Rows & Convert Online'],
+    ['/ipv4-subnet-calculator', 'IPv4 subnet calculator', 'IPv4 Subnet Calculator — CIDR & Hosts'],
+    ['/csv-to-json', 'CSV to JSON converter', 'CSV to JSON Converter — Preview & Export'],
     ['/text-diff', 'text diff checker', 'Text Diff Checker — Compare Two Texts Side by Side'],
     ['/text-replacer', 'find and replace text online', 'Find and Replace Text — Plain Text & Regex Replacer'],
     ['/htpasswd-generator', 'htpasswd generator', 'htpasswd Generator & Checker — bcrypt & apr1'],
     ['/url-parser', 'url parser online', 'URL Parser — Inspect Query Parameters and UTM Tags'],
-    ['/ipv4-range-expander', 'IP range to CIDR', 'IP Range to CIDR Converter — Convert IPv4 Ranges Online'],
+    ['/ipv4-range-expander', 'IP range to CIDR', 'IP Range to CIDR Converter'],
     ['/pdf-merge', 'merge PDF files online', 'PDF Merge — Combine PDF Files Online'],
     ['/user-agent-parser', 'user agent parser', 'User Agent Parser — Browser, OS & Device Detection'],
     ['/xml-to-json', 'XML to JSON converter', 'XML to JSON Converter — Convert XML Online'],
@@ -77,16 +77,16 @@ describe('evidence-backed SEO keyword targets', () => {
     ['/pdf-split', 'split PDF pages online', 'PDF Split — Split PDF Pages or Extract a Range'],
     ['/pdf-watermark', 'add watermark to PDF', 'PDF Watermark — Add Text Watermarks to PDF'],
     ['/pdf-compress', 'compress PDF online', 'PDF Compressor — Reduce PDF File Size Online'],
-    ['/image-resize', 'resize image online', 'Image Resizer — Resize Images to Exact Dimensions'],
+    ['/image-resize', 'resize image online', 'Image Resizer — Exact Dimensions'],
     ['/image-compress', 'compress image online', 'Image Compressor — Reduce JPEG & WebP File Size'],
     ['/image-crop', 'crop image online', 'Image Cropper — Crop Photos to Any Aspect Ratio'],
     ['/favicon-generator', 'favicon generator', 'Favicon Generator — Create ICO & PNG Icons'],
-    ['/image-to-pdf', 'convert images to PDF', 'Images to PDF Converter — Combine JPG & PNG Online'],
+    ['/image-to-pdf', 'convert images to PDF', 'Images to PDF Converter — JPG & PNG'],
     ['/yaml-to-json-converter', 'YAML to JSON converter', 'YAML to JSON Converter — Convert YAML Online'],
     ['/case-converter', 'text case converter', 'Text Case Converter — camelCase, snake_case & More'],
-    ['/list-converter', 'list converter', 'List Converter — Sort, Deduplicate & Format Lines'],
-    ['/image-color-picker', 'image color picker', 'Image Color Picker — Get HEX, RGB & HSL from Any Image'],
-    ['/http-headers', 'http headers checker online', 'HTTP Header Analyzer — HAR Import & Security Score'],
+    ['/list-converter', 'list converter', 'List Converter — Sort & Deduplicate'],
+    ['/image-color-picker', 'image color picker', 'Image Color Picker — HEX, RGB & HSL'],
+    ['/http-headers', 'http headers checker online', 'HTTP Header Analyzer — HAR & Security'],
   ])('locks the landed metadata for %s', (path, keyword, lockedTitle) => {
     const entry = CLUSTER_KEYWORD_ENTRIES.find(item => item.path === path);
 
@@ -208,7 +208,7 @@ describe('evidence-backed SEO keyword targets', () => {
     expect(entry?.intent).toBe(intent);
     if (path === '/mime-types') {
       expect(entry?.landed).toBe(true);
-      expect(entry?.lockedTitle).toBe('MIME Type Lookup — Content-Type, Extensions & Server Config');
+      expect(entry?.lockedTitle).toBe('MIME Type Lookup — Types & Extensions');
       expect((entry?.keywords ?? []).length).toBeGreaterThanOrEqual(7);
       expect(entry?.note).toContain('Nginx types');
     }
@@ -332,7 +332,7 @@ describe('evidence-backed SEO keyword targets', () => {
   });
 
   it.each([
-    ['/og-meta-generator', 'Open Graph meta tag generator', 'Open Graph & Twitter Meta Tag Generator — Create Social Share Tags'],
+    ['/og-meta-generator', 'Open Graph meta tag generator', 'Open Graph & Twitter Meta Generator'],
     ['/whois-lookup', 'domain WHOIS lookup', 'Domain WHOIS & RDAP Lookup — Check Registration Details'],
     ['/rsa-key-pair-generator', 'RSA key pair generator', 'RSA Key Pair Generator — Create Public & Private PEM Keys'],
     ['/html-wysiwyg-editor', 'HTML WYSIWYG editor', 'HTML WYSIWYG Editor — Format Text & Copy HTML'],
@@ -348,7 +348,7 @@ describe('evidence-backed SEO keyword targets', () => {
   it.each([
     ['/otp-generator', 'TOTP generator online', 'TOTP Code Generator — 6-Digit Codes & QR'],
     ['/token-generator', 'random token generator', 'Random Token Generator — Custom Length & Character Sets'],
-    ['/bcrypt', 'bcrypt hash generator and checker', 'Bcrypt Hash Generator & Checker — Hash and Compare Passwords'],
+    ['/bcrypt', 'bcrypt hash generator and checker', 'Bcrypt Hash Generator & Checker'],
     ['/iban-validator-and-parser', 'IBAN validator and parser', 'IBAN Validator & Parser — Check Format, Country & BBAN'],
   ])('locks newly landed P1 utility %s to its capability-matched title', (path, keyword, lockedTitle) => {
     const entry = CLUSTER_KEYWORD_ENTRIES.find(item => item.path === path);
