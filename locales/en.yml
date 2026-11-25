@@ -1014,7 +1014,7 @@ tools:
 
   ipv4-range-expander:
     title: "IP Range to CIDR Converter"
-    description: "Convert a start and end IPv4 address into the smallest set of CIDR blocks covering the range. Copy results for firewall rules, cloud security groups and routing."
+    description: "Convert an IPv4 start and end address into the smallest CIDR block set covering the range. Use the blocks in firewall rules, cloud security groups and routing."
 
   text-diff:
     title: Text Diff Checker — Compare Two Texts Side by Side
