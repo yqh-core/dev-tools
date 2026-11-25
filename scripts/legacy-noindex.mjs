@@ -27,7 +27,7 @@ function applyNoindexMeta(html, fileLabel = 'legacy HTML') {
     throw new Error(`[legacy noindex] ${fileLabel}: missing a complete <head> element`);
   }
   const withoutRobotsMeta = html.replace(ROBOTS_META_RE, '');
-  return withoutRobotsMeta.replace(/[ \\t\\r\\n]*<\\/head\\s*>/i, `\\n  ${MARK}\\n</head>`);
+  return withoutRobotsMeta.replace(/[ \t\r\n]*<\/head\s*>/i, `\n  ${MARK}\n</head>`);
 }
 
 // Small independent fixtures protect replacement, normalization and idempotency.
