@@ -86,7 +86,7 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     competition: 'low',
     article: 'jwt-decoder-guide',
     landed: true,
-    lockedTitle: 'JWT Decoder & Parser — Inspect Header, Payload and Expiration',
+    lockedTitle: 'JWT Decoder & Parser — Claims & Expiration',
     note: '簇 1。关键事实：jwt.io 两次查询均未进 top5；`decoder` 与 `parser` 是两套零重叠的排名域名，两个词都能拿。',
   },
   {
@@ -312,7 +312,7 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     competition: 'low',
     article: 'devops-tools-guide',
     landed: true,
-    lockedTitle: 'Crontab Generator — Cron Expressions with Plain-English Preview',
+    lockedTitle: 'Crontab Generator — Plain-English Cron',
     note: '簇 6。⛔ 两个 intent 混杂（crontab generator 含命令+系统字段 vs 纯 5 字段表达式），页面需先做意图分流。',
   },
   {
@@ -335,7 +335,7 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     competition: 'high',
     article: 'base64-encoding-guide',
     landed: true,
-    lockedTitle: 'Base64 Encoder & Decoder — Padding, URL-Safe, Binary-Safe',
+    lockedTitle: 'Base64 Encoder & Decoder — URL-Safe',
     note: '簇 7。`base64 decode` 的 top5 里 4 条是教程站，其中一篇的立场是「别用在线工具」⇒ 单位成本最高。',
   },
   {
@@ -347,7 +347,7 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     competition: 'medium',
     article: 'base64-encoding-guide',
     landed: true,
-    lockedTitle: 'Base64 to Image — Online Decode, Preview and Download',
+    lockedTitle: 'Base64 File Converter — Encode & Decode',
     note: '簇 7。`base64 to image` 在 SERP 上是完全独立的域名集群（5/5 全是该类域名）。',
   },
   {
@@ -516,7 +516,7 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     priority: 'P0',
     competition: 'medium',
     landed: true,
-    lockedTitle: 'Percentage Calculator — Percent of, Change & Difference',
+    lockedTitle: 'Percentage Calculator — 7 Modes',
     note: 'GSC 90d snapshot: 224 impressions and 0 clicks across slash/no-slash URL variants (visible detail substantially anonymized; examples include arithmetic queries such as 0.05*250 and 26000*0.02). Competitor review found six- and seven-mode calculators commonly include reverse percentage and symmetric percentage difference; percentage-point change is also a distinct rate-intent task. The page now supports seven calculations, labelled batch rows, substituted formula/result rows, single-row and CSV/TSV copy, and browser-local history. On 2026-11-24 the SERP title and description were refined to state the supported calculation tasks more explicitly; this is a CTR hypothesis to re-measure after recrawl, not a claim of ranking or traffic lift.',
   },
 
@@ -530,7 +530,7 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     priority: 'P1',
     competition: 'medium',
     landed: true,
-    lockedTitle: 'IPv4 Subnet Calculator — CIDR, Netmask & Usable Hosts',
+    lockedTitle: 'IPv4 Subnet Calculator — CIDR & Hosts',
     note: 'Title and description landed against the actual calculator outputs: CIDR, usable hosts, network/broadcast addresses, netmask and wildcard. Competition remains provisional; no volume/KD claims.',
   },
   {
@@ -541,7 +541,7 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     priority: 'P1',
     competition: 'medium',
     landed: true,
-    lockedTitle: 'IP Range to CIDR Converter — Convert IPv4 Ranges Online',
+    lockedTitle: 'IP Range to CIDR Converter',
     note: 'Candidate mapping for the tool that converts a start/end IPv4 range into a valid subnet and CIDR notation. Competition is provisional; the title is now landed from US SERP review. No volume/KD claims.',
   },
   {
@@ -586,7 +586,7 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     priority: 'P1',
     competition: 'medium',
     landed: true,
-    lockedTitle: 'CSV to JSON Converter — Preview Rows & Convert Online',
+    lockedTitle: 'CSV to JSON Converter — Preview & Export',
     note: 'Title and description landed against paste-CSV conversion, optional first-row headers, row/column counts, preview, copy/download and parse warnings. Competition remains provisional; no volume/KD/SERP claim.',
   },
   {
@@ -742,7 +742,7 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     priority: 'P1',
     competition: 'high',
     landed: true,
-    lockedTitle: 'Image Resizer — Resize Images to Exact Dimensions',
+    lockedTitle: 'Image Resizer — Exact Dimensions',
     note: 'Matches custom width/height, aspect-ratio lock, output format and quality controls. Competition is provisional; no volume/KD/SERP claim.',
   },
   {
@@ -786,7 +786,7 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     priority: 'P1',
     competition: 'high',
     landed: true,
-    lockedTitle: 'Images to PDF Converter — Combine JPG & PNG Online',
+    lockedTitle: 'Images to PDF Converter — JPG & PNG',
     note: 'Matches multi-image PDF creation, image inspection, conversion of non-JPEG/PNG formats and margin control. Competition is provisional.',
   },
   // 2026-11-22: GSC-visible routes with small but direct page/query evidence.
@@ -799,7 +799,7 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     priority: 'P2',
     competition: 'high',
     landed: true,
-    lockedTitle: 'Morse Code Translator — Encode Text & Decode Morse',
+    lockedTitle: 'Morse Code Translator — Encode & Decode',
     note: 'GSC last 90 days: 4 page impressions, avg position 43.5; visible queries include "morse code generator" and "morse conversion" (one impression each). SERP spot-check shows focused tools target "Morse Code Translator"; DigDevBox supports text encode/decode for A–Z, digits and listed punctuation, not audio or image decoding. No volume/KD claim.',
   },
   {
@@ -856,7 +856,7 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     priority: 'P1',
     competition: 'high',
     landed: true,
-    lockedTitle: 'Image Color Picker — Get HEX, RGB & HSL from Any Image',
+    lockedTitle: 'Image Color Picker — HEX, RGB & HSL',
     note: 'Source confirms local image loading and canvas pixel sampling with RGB values; verify rendered HEX/HSL output before expanding copy. Candidate mapping only; no volume/KD/SERP evidence.',
   },
   {
@@ -867,7 +867,7 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     priority: 'P1',
     competition: 'medium',
     landed: true,
-    lockedTitle: 'List Converter — Sort, Deduplicate & Format Lines',
+    lockedTitle: 'List Converter — Sort & Deduplicate',
     note: 'Source model supports trimming, deduplication, sorting, reversing, case conversion, prefixes/suffixes and separators. Candidate mapping only; no volume/KD/SERP evidence.',
   },
   {
@@ -930,7 +930,7 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     priority: 'P1',
     competition: 'high',
     landed: true,
-    lockedTitle: 'Open Graph & Twitter Meta Tag Generator — Create Social Share Tags',
+    lockedTitle: 'Open Graph & Twitter Meta Generator',
     note: 'Source verified: generates copyable Open Graph and Twitter Card meta tags for website/article/book/profile/music/video metadata, including title, description, URL and image fields. It generates markup only; no live share-card preview or JSON-LD is provided. No volume/KD/SERP evidence.',
   },
   {
@@ -941,7 +941,7 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     priority: 'P2',
     competition: 'medium',
     landed: true,
-    lockedTitle: 'MIME Type Lookup — Content-Type, Extensions & Server Config',
+    lockedTitle: 'MIME Type Lookup — Types & Extensions',
     note: 'Adds capability-matched Nginx types, Apache AddType and static _headers snippet generation from the selected mime-types dataset entry. Source dataset is curated and is not a complete IANA registry. Competitor gap verified against Lee Johnson MIME Type Lookup and CapyToolkit MIME Reference.',
   },
   {
@@ -1271,7 +1271,7 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     priority: 'P1',
     competition: 'high',
     landed: true,
-    lockedTitle: 'Bcrypt Hash Generator & Checker — Hash and Compare Passwords',
+    lockedTitle: 'Bcrypt Hash Generator & Checker',
     note: 'Source verified: uses bcryptjs in the browser to create bcrypt hashes with configurable 0–100 salt rounds and compare plaintext against an existing hash. No account store, server login integration or hash decryption. No volume/KD/SERP evidence.',
   },
   {

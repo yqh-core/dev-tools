@@ -6,7 +6,7 @@ test.describe('Tool - Percentage calculator', () => {
   });
 
   test('Has the intended search title, description and H1', async ({ page }) => {
-    await expect(page).toHaveTitle('Percentage Calculator — Percent of, Change & Difference - DigDevBox');
+    await expect(page).toHaveTitle('Percentage Calculator — 7 Modes - DigDevBox');
     await expect(page.locator('meta[name="description"]')).toHaveAttribute(
       'content',
       'Calculate percentages, discounts, percentage change, reverse percentages and percentage points. Seven modes plus batch CSV/TSV export and worked formulas.',

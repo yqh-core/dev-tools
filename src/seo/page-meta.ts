@@ -75,9 +75,8 @@ const EN: Record<string, PageMeta> = {
   },
   '/about': {
     description:
-      'About DigDevBox: what the site is, which tools it collects, the tech stack and its licence. '
-      + 'Built with Vue 3 + Naive UI and Vite, deployed on Cloudflare Pages, '
-      + 'based on the open-source it-tools project (GPL-3.0).',
+      'Learn what DigDevBox offers, how its browser-based tools handle data, the technologies behind '
+      + 'the site, its open-source license and how to contact the team.',
   },
   '/privacy': {
     description:
@@ -91,8 +90,8 @@ const EN: Record<string, PageMeta> = {
   },
   '/contact': {
     description:
-      'Contact DigDevBox: tool bugs and feedback, new tool suggestions, privacy and data questions, '
-      + 'and advertising or business enquiries, plus what to include in your message.',
+      'Contact DigDevBox about tool bugs, feature requests, privacy or data questions, accessibility '
+      + 'issues, and business or advertising enquiries.',
   },
   '/tools': {
     description:
@@ -101,8 +100,8 @@ const EN: Record<string, PageMeta> = {
   },
   '/faq': {
     description:
-      'DigDevBox FAQ: whether the tools are free, whether what you paste is ever uploaded, '
-      + 'phone usability, and where to send bug reports, tool requests or accessibility problems.',
+      'Answers about free tools, browser-local data handling, mobile use, bug reports, new tool '
+      + 'requests, accessibility and the legacy tools area.',
   },
 };
 
