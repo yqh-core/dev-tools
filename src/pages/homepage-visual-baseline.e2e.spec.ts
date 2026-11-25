@@ -31,6 +31,7 @@ test('captures the homepage first fold at mobile and desktop viewports', async (
         ['quickSearch', '.hero-quick-search'],
         ['preview', '.home-hero-preview'],
         ['featuredTasks', '#home-featured'],
+        ['consent', '#digdevbox-analytics-consent'],
       ] as const;
 
       const rect = (selector: string) => {
@@ -59,6 +60,15 @@ test('captures the homepage first fold at mobile and desktop viewports', async (
 
     expect(metrics.documentWidth).toBeLessThanOrEqual(viewport.width);
     expect(metrics.elements.quickSearch?.insideViewport).toBe(true);
+
+    if (viewport.width <= 600) {
+      const consent = page.locator('#digdevbox-analytics-consent');
+      await expect(consent).toBeVisible();
+      await expect(consent.getByRole('button', { name: 'Accept analytics' })).toBeVisible();
+      await expect(consent.getByRole('button', { name: 'Reject analytics' })).toBeVisible();
+      expect(metrics.elements.consent?.height).toBeLessThanOrEqual(150);
+      expect(metrics.elements.consent?.top).toBeGreaterThan(metrics.elements.quickSearch!.bottom);
+    }
 
     const screenshot = await page.screenshot({
       animations: 'disabled',
