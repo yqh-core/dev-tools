@@ -47,6 +47,10 @@ const referenceRows = Object.entries(ESTABLISHED_NUMERONYMS).map(([short, expans
   context: NUMERONYM_CONTEXT[short] ?? '',
 }));
 
+function tryExample(value: string): void {
+  word.value = value;
+}
+
 function batchResultLabel(item: (typeof batchResults.value)[number]): string {
   if (item.result.mode === 'encode') {
     return (item.letterCount ?? 0) <= 3
@@ -77,6 +81,36 @@ function batchResultLabel(item: (typeof batchResults.value)[number]): string {
         Enter a word to generate its numeronym, or a known short form to look up its meaning.
         You can paste multiple terms at once. Unicode letters and hyphenated or apostrophe compounds are supported.
       </p>
+      <div class="mb-3 flex flex-wrap items-center gap-2" data-test-id="numeronym-quick-examples">
+        <span class="text-xs opacity-70">{{ t('tools.numeronym-generator.tryExample') }}</span>
+        <n-button
+          size="small"
+          quaternary
+          type="primary"
+          data-test-id="try-internationalization"
+          @click="tryExample('internationalization')"
+        >
+          {{ t('tools.numeronym-generator.exampleInternationalization') }}
+        </n-button>
+        <n-button
+          size="small"
+          quaternary
+          type="primary"
+          data-test-id="try-accessibility"
+          @click="tryExample('accessibility')"
+        >
+          {{ t('tools.numeronym-generator.exampleAccessibility') }}
+        </n-button>
+        <n-button
+          size="small"
+          quaternary
+          type="primary"
+          data-test-id="try-kubernetes"
+          @click="tryExample('Kubernetes')"
+        >
+          {{ t('tools.numeronym-generator.exampleKubernetes') }}
+        </n-button>
+      </div>
       <table w-full data-test-id="numeronym-reference">
         <thead>
           <tr>
