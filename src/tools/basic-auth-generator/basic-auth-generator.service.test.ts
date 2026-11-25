@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildBasicAuthExamples, decodeBasicAuthHeader } from './basic-auth-generator.service';
+import { buildBasicAuthExamples, decodeBasicAuthHeader, hasBasicAuthControlCharacters } from './basic-auth-generator.service';
 import { textToBase64 } from '@/utils/base64';
 
 describe('decodeBasicAuthHeader', () => {
@@ -21,6 +21,16 @@ describe('decodeBasicAuthHeader', () => {
   it('round-trips UTF-8 credentials', () => {
     expect(decodeBasicAuthHeader(`Basic ${textToBase64('münchen:pässword')}`))
       .toEqual({ username: 'münchen', password: 'pässword' });
+  });
+
+  it('rejects decoded credentials containing control characters', () => {
+    expect(() => decodeBasicAuthHeader(`Basic ${textToBase64('svc:pass\\r\\nX-Test: injected')}`))
+      .toThrow('cannot contain control characters');
+  });
+
+  it('detects control characters without rejecting ordinary UTF-8', () => {
+    expect(hasBasicAuthControlCharacters('münchen:pässword')).toBe(false);
+    expect(hasBasicAuthControlCharacters('svc\\u0001admin')).toBe(true);
   });
 
   it('rejects malformed Base64', () => {
