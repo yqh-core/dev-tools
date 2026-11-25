@@ -214,7 +214,7 @@ toolCard:
   new: '新'
 search:
   label: '搜索'
-  placeholder: '试试「格式化 JSON」「解码 JWT」「转换时间戳」'
+  placeholder: '搜索工具或任务…'
   inputLabel: '搜索工具'
   clear: '清空搜索'
   found: '找到 {count} 个匹配「{query}」的工具'
