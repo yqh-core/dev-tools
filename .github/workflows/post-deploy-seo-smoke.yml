@@ -722,8 +722,9 @@ jobs:
     needs: [detect-site-changes, production-smoke]
     if: needs.detect-site-changes.outputs.check_homepage_visual == 'true' && needs.production-smoke.result == 'success'
     runs-on: ubuntu-24.04
-    # Playwright 1.32 install-deps expects the pre-t64 libasound2 package; pin
-    # this screenshot job to 24.04 until the browser toolchain is upgraded.
+    # GitHub's Ubuntu 24.04 image already includes browser runtime libraries.
+    # Avoid Playwright 1.32's stale --with-deps apt list (libasound2 was renamed to
+    # libasound2t64); install only the pinned Chromium browser binary.
     timeout-minutes: 20
     env:
       BASE_URL: https://www.digdevbox.com
@@ -746,7 +747,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Install Chromium for the production screenshot
-        run: pnpm exec playwright install --with-deps chromium
+        run: pnpm exec playwright install chromium
 
       - name: Capture the live production homepage at 390px and 1440px
         run: pnpm exec playwright test src/pages/homepage-visual-baseline.e2e.spec.ts --project=chromium --reporter=line
