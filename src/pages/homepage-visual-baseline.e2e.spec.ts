@@ -35,7 +35,9 @@ test('captures the homepage first fold at mobile and desktop viewports', async (
 
       const rect = (selector: string) => {
         const element = document.querySelector(selector);
-        if (!element) return null;
+        if (!element) {
+          return null;
+        }
         const box = element.getBoundingClientRect();
         return {
           top: Math.round(box.top),
