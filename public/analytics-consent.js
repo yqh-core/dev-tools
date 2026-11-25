@@ -108,19 +108,22 @@
       root.id = 'digdevbox-analytics-consent';
       root.setAttribute('aria-label', 'Analytics privacy choices');
     }
-    root.style.cssText = 'position:fixed;z-index:2147483000;left:16px;right:16px;bottom:16px;max-width:720px;margin:0 auto;padding:16px 18px;background:#102a2a;color:#fff;border:1px solid #4b7773;border-radius:12px;box-shadow:0 8px 32px #0004;font:14px/1.5 system-ui,sans-serif';
+    var compact = !!(window.matchMedia && window.matchMedia('(max-width: 600px)').matches);
+    root.style.cssText = compact
+      ? 'position:fixed;z-index:2147483000;left:10px;right:10px;bottom:10px;max-width:720px;margin:0 auto;padding:10px 12px;box-sizing:border-box;background:#102a2a;color:#fff;border:1px solid #4b7773;border-radius:10px;box-shadow:0 8px 28px #0004;font:12px/1.35 system-ui,sans-serif'
+      : 'position:fixed;z-index:2147483000;left:16px;right:16px;bottom:16px;max-width:720px;margin:0 auto;padding:16px 18px;background:#102a2a;color:#fff;border:1px solid #4b7773;border-radius:12px;box-shadow:0 8px 32px #0004;font:14px/1.5 system-ui,sans-serif';
     if (!root.isConnected) document.body.appendChild(root);
     root.replaceChildren();
     var message = document.createElement('p');
-    message.textContent = 'Help us improve DigDevBox? Optional analytics measures visits and page usage only after you agree. Tool inputs, files, and form contents are never sent. You can reject and continue using the site.';
-    message.style.cssText = 'margin:0 0 12px';
+    message.textContent = 'Optional analytics measures visits and page usage. Tool inputs, files and form contents are never sent. You can reject and keep using the site.';
+    message.style.cssText = compact ? 'margin:0 0 8px' : 'margin:0 0 12px';
     var actions = document.createElement('div');
     actions.style.cssText = 'display:flex;gap:8px;flex-wrap:wrap';
     [['Accept analytics','accepted'],['Reject analytics','rejected']].forEach(function (item) {
       var button = document.createElement('button');
       button.type = 'button';
       button.textContent = item[0];
-      button.style.cssText = 'border:1px solid #9bc5bf;border-radius:7px;padding:8px 12px;background:transparent;color:#fff;font:inherit;cursor:pointer';
+      button.style.cssText = compact ? 'min-height:44px;border:1px solid #9bc5bf;border-radius:7px;padding:6px 10px;background:transparent;color:#fff;font:12px/1.3 system-ui,sans-serif;cursor:pointer' : 'border:1px solid #9bc5bf;border-radius:7px;padding:8px 12px;background:transparent;color:#fff;font:inherit;cursor:pointer';
       button.addEventListener('click', function () { saveConsent(item[1]); });
       actions.appendChild(button);
     });
