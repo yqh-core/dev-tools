@@ -30,9 +30,11 @@ const emits = defineEmits(['click']);
 const { variant, disabled, round, circle, href, type, to, size: sizeName } = toRefs(props);
 
 function handleClick(event: MouseEvent) {
-  if (!disabled.value) {
-    emits('click', event);
+  if (disabled.value) {
+    event.preventDefault();
+    return;
   }
+  emits('click', event);
 }
 
 const theme = useTheme();
@@ -58,6 +60,9 @@ const size = computed(() => theme.value.size[sizeName.value]);
     class="c-button"
     :class="{ disabled, round, circle }"
     :to="to"
+    :disabled="tag === 'button' ? disabled : undefined"
+    :aria-disabled="disabled ? 'true' : undefined"
+    :tabindex="disabled ? -1 : undefined"
     @click="handleClick"
   >
     <slot />

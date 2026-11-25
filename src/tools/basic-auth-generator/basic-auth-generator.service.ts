@@ -69,6 +69,12 @@ export function buildBasicAuthExamples(requestUrl: string): BasicAuthExamples {
   return { url, curl, nodeFetch, pythonRequests };
 }
 
+export function hasBasicAuthControlCharacters(value: string): boolean {
+  // RFC 7617 credentials must not contain ASCII control characters.
+  // eslint-disable-next-line no-control-regex
+  return /[\u0000-\u001F\u007F]/.test(value);
+}
+
 export function decodeBasicAuthHeader(input: string) {
   const token = input.trim()
     .replace(/^Authorization\s*:\s*Basic\s+/i, '')
@@ -85,6 +91,10 @@ export function decodeBasicAuthHeader(input: string) {
   }
   catch {
     throw new Error('The Basic Authorization value could not be decoded');
+  }
+
+  if (hasBasicAuthControlCharacters(decodedCredentials)) {
+    throw new Error('Basic Authorization credentials cannot contain control characters');
   }
 
   const separatorIndex = decodedCredentials.indexOf(':');
