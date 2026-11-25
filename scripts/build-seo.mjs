@@ -130,6 +130,17 @@ function decodeHtmlEntities(value) {
     .replace(/&nbsp;/g, ' ');
 }
 
+/** Normalize HTML-escaped metadata for semantic equality checks, not visual content. */
+function normalizeSeoText(value) {
+  let text = String(value ?? '');
+  for (let i = 0; i < 3; i += 1) {
+    const decoded = decodeHtmlEntities(text);
+    if (decoded === text) break;
+    text = decoded;
+  }
+  return text.normalize('NFC').replace(/[\\s\\u00a0\\u200b]+/g, ' ').trim();
+}
+
 function extractMetaContent(headTags, attribute, value) {
   const tags = headTags.match(/<meta\b[^>]*>/gi) ?? [];
   const tag = tags.find(item => item.includes(attribute + '="' + value + '"') || item.includes(attribute + "='" + value + "'"));
@@ -1005,17 +1016,17 @@ try {
     }
     if (kind === 'tool') {
       const entry = TOOL_SEO_ENTRIES_BY_PATH.get(path);
-      const expectedTitle = entry.name;
-      const expectedFullTitle = `${entry.name} - ${messages.site.name}`;
-      const actualTitle = extractSocialTitle(out);
-      const ogTitle = extractMetaContent(out, 'property', 'og:title');
-      const itempropName = extractMetaContent(out, 'itemprop', 'name');
+      const expectedTitle = normalizeSeoText(entry.name);
+      const expectedFullTitle = normalizeSeoText(`${entry.name} - ${messages.site.name}`);
+      const actualTitle = normalizeSeoText(extractSocialTitle(out));
+      const ogTitle = normalizeSeoText(extractMetaContent(out, 'property', 'og:title'));
+      const itempropName = normalizeSeoText(extractMetaContent(out, 'itemprop', 'name'));
       const description = extractMetaContent(out, 'name', 'description');
       const ogDescription = extractMetaContent(out, 'property', 'og:description');
       const itempropDescription = extractMetaContent(out, 'itemprop', 'description');
       if (actualTitle !== expectedTitle) { problems.push(`title 与 locales/${DEFAULT_LOCALE}.yml 不一致(${actualTitle})`); }
-      if (ogTitle !== expectedFullTitle) { problems.push(`og:title 与页面标题不一致(${ogTitle})`); }
-      if (itempropName !== expectedFullTitle) { problems.push(`itemprop name 与页面标题不一致(${itempropName})`); }
+      if (ogTitle !== expectedFullTitle) { problems.push(`og:title 与页面标题不一致(expected=${JSON.stringify(expectedFullTitle)}, actual=${JSON.stringify(ogTitle)})`); }
+      if (itempropName !== expectedFullTitle) { problems.push(`itemprop name 与页面标题不一致(expected=${JSON.stringify(expectedFullTitle)}, actual=${JSON.stringify(itempropName)})`); }
       if (description !== entry.description) { problems.push('meta description 与工具定义不一致'); }
       if (ogDescription !== entry.description) { problems.push('og:description 与 meta description 不一致'); }
       if (itempropDescription !== entry.description) { problems.push('itemprop description 与 meta description 不一致'); }
