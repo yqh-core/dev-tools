@@ -52,6 +52,22 @@ test.describe('Tool - Numeronym generator', () => {
     await expect(page.getByTestId('numeronym-batch')).toContainText('short words remain visible in the table but are omitted from Copy All');
   });
 
+  test('offers one-click examples and shows the real output immediately', async ({ page }) => {
+    await expect(page.getByTestId('numeronym-quick-examples')).toBeVisible();
+
+    await page.getByTestId('try-internationalization').click();
+    await expect(page.getByTestId('numeronym')).toHaveValue('i18n');
+    await expect(page.getByTestId('single-letter-count')).toContainText('20 letters counted');
+
+    await page.getByTestId('word-input').locator('textarea').fill('');
+    await page.getByTestId('try-accessibility').click();
+    await expect(page.getByTestId('numeronym')).toHaveValue('a11y');
+
+    await page.getByTestId('word-input').locator('textarea').fill('');
+    await page.getByTestId('try-kubernetes').click();
+    await expect(page.getByTestId('numeronym')).toHaveValue('K8s');
+  });
+
   test('shows a useful reference table when empty', async ({ page }) => {
     const examples = page.getByTestId('numeronym-examples');
     await expect(examples).toContainText('internationalization');
