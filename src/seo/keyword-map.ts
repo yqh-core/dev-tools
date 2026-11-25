@@ -426,7 +426,7 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     priority: 'P2',
     competition: 'medium',
     landed: true,
-    lockedTitle: 'HTTP Header Analyzer — HAR & Security',
+    lockedTitle: 'HTTP Header Analyzer — HAR Import & Security Score',
     note: 'The existing canonical route now accepts pasted curl/DevTools headers plus local HAR 1.2 and plain-text response-header files, allows selection among captured responses, preserves repeated Set-Cookie fields and sanitizes imported CR/LF. The local analyzer reports weighted coverage and CSP, cookie, CORS, cache and X-Robots-Tag findings; copy-ready low-context configuration is available for Nginx, Apache, Caddy, Vercel and Cloudflare Pages. It deliberately does not auto-generate application-specific CSP/CORS/cookie rules. The score is not an OWASP rating or a full security audit; search-volume metrics remain unclaimed.',
   },
   {
