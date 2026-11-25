@@ -21,6 +21,31 @@ test.describe('Tool - Percentage calculator', () => {
     await expect(page.locator('h1')).toHaveText('Percentage Calculator');
   });
 
+  test('loads common worked examples from the first-screen shortcuts', async ({ page }) => {
+    await page.getByTestId('percentage-example-percent-of').click();
+    await expect(page.getByTestId('percentageX').locator('input')).toHaveValue('15');
+    await expect(page.getByTestId('percentageY').locator('input')).toHaveValue('80');
+    await expect(page.getByTestId('percentageResult').locator('input')).toHaveValue('12');
+    await expect(page.getByTestId('percentage-details-percent-of')).toContainText('15% of 80 is 12.');
+
+    await page.getByTestId('percentage-example-part-to-whole').click();
+    await expect(page.getByTestId('numberX').locator('input')).toHaveValue('30');
+    await expect(page.getByTestId('numberY').locator('input')).toHaveValue('120');
+    await expect(page.getByTestId('numberResult').locator('input')).toHaveValue('25');
+    await expect(page.getByTestId('percentage-details-part-to-whole')).toContainText('30 is 25% of 120.');
+
+    await page.getByTestId('percentage-example-percentage-change').click();
+    await expect(page.getByTestId('numberFrom').locator('input')).toHaveValue('80');
+    await expect(page.getByTestId('numberTo').locator('input')).toHaveValue('92');
+    await expect(page.getByTestId('percentageIncreaseDecrease').locator('input')).toHaveValue('15');
+
+    await page.getByTestId('percentage-example-adjustment').click();
+    await expect(page.getByTestId('adjustmentValue').locator('input')).toHaveValue('80');
+    await expect(page.getByTestId('adjustmentPercent').locator('input')).toHaveValue('15');
+    await expect(page.getByTestId('increasedValue').locator('input')).toHaveValue('92');
+    await expect(page.getByTestId('decreasedValue').locator('input')).toHaveValue('68');
+  });
+
   test('shows one focused task at a time and switches between all seven workflows', async ({ page }) => {
     const modeButtons = page.locator('.percentage-mode-button');
     await expect(modeButtons).toHaveCount(7);
