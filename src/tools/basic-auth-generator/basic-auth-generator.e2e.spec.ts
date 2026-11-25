@@ -80,7 +80,7 @@ test.describe('Tool - Basic Auth generator', () => {
 
     const username = page.getByPlaceholder('Your username...');
     await username.evaluate((element: HTMLInputElement) => {
-      element.value = 'svc\\u0001admin';
+      element.value = 'svc\u0001admin';
       element.dispatchEvent(new Event('input', { bubbles: true }));
     });
     await page.getByPlaceholder('Your password...').fill('secret');
