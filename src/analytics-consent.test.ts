@@ -59,6 +59,36 @@ describe('shared GA4 consent gate', () => {
     expect((dom.window as unknown as { dataLayer?: unknown }).dataLayer).toBeUndefined();
   });
 
+  it('uses a compact mobile prompt while keeping both choices comfortably tappable', () => {
+    clickButton('Accept analytics');
+    Object.defineProperty(dom.window, 'matchMedia', {
+      configurable: true,
+      value: (query: string) => ({
+        matches: query === '(max-width: 600px)',
+        media: query,
+        onchange: null,
+        addListener: () => undefined,
+        removeListener: () => undefined,
+        addEventListener: () => undefined,
+        removeEventListener: () => undefined,
+        dispatchEvent: () => false,
+      }),
+    });
+
+    clickButton('Privacy choices');
+    const prompt = dom.window.document.getElementById('digdevbox-analytics-consent');
+    expect(prompt?.style.padding).toBe('10px 12px');
+    expect(prompt?.style.left).toBe('10px');
+    expect(prompt?.style.right).toBe('10px');
+
+    const choices = Array.from(prompt?.querySelectorAll('button') ?? [])
+      .filter(button => button.textContent !== 'Privacy choices');
+    expect(choices).toHaveLength(2);
+    expect(choices.map(button => button.textContent)).toEqual(['Accept analytics', 'Reject analytics']);
+    choices.forEach(button => expect(button.style.minHeight).toBe('44px'));
+    expect(prompt?.textContent).toContain('Tool inputs, files and form contents are never sent.');
+  });
+
   it('does not load GA4 or emit page views when analytics is rejected', async () => {
     clickButton('Reject analytics');
 
