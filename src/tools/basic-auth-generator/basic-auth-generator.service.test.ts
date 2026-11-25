@@ -24,13 +24,13 @@ describe('decodeBasicAuthHeader', () => {
   });
 
   it('rejects decoded credentials containing control characters', () => {
-    expect(() => decodeBasicAuthHeader(`Basic ${textToBase64('svc:pass\\r\\nX-Test: injected')}`))
+    expect(() => decodeBasicAuthHeader(`Basic ${textToBase64('svc:pass\r\nX-Test: injected')}`))
       .toThrow('cannot contain control characters');
   });
 
   it('detects control characters without rejecting ordinary UTF-8', () => {
     expect(hasBasicAuthControlCharacters('münchen:pässword')).toBe(false);
-    expect(hasBasicAuthControlCharacters('svc\\u0001admin')).toBe(true);
+    expect(hasBasicAuthControlCharacters('svc\u0001admin')).toBe(true);
   });
 
   it('rejects malformed Base64', () => {
