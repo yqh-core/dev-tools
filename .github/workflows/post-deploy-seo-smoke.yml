@@ -220,8 +220,8 @@ jobs:
           ];
           for (const path of legacyNoindexPaths) {
             const result = await get(path);
-            const robotsTags = [...result.body.matchAll(/<meta\\b[^>]*\\bname\\s*=\\s*(['"])robots\\1[^>]*>/gi)];
-            const robotsContent = robotsTags[0]?.[0]?.match(/\\bcontent\\s*=\\s*(['"])(.*?)\\1/i)?.[2] ?? '';
+            const robotsTags = [...result.body.matchAll(/<meta\b[^>]*\bname\s*=\s*(['"])robots\1[^>]*>/gi)];
+            const robotsContent = robotsTags[0]?.[0]?.match(/\bcontent\s*=\s*(['"])(.*?)\1/i)?.[2] ?? '';
             const directives = new Set(robotsContent.toLowerCase().split(',').map(value => value.trim()));
             if (!result.response.ok || result.finalUrl !== origin + path
                 || robotsTags.length !== 1 || !directives.has('noindex') || !directives.has('follow')) {
