@@ -130,6 +130,17 @@ function decodeHtmlEntities(value) {
     .replace(/&nbsp;/g, ' ');
 }
 
+/** Normalize HTML-escaped metadata for semantic equality checks, not visual content. */
+function normalizeSeoText(value) {
+  let text = String(value ?? '');
+  for (let i = 0; i < 3; i += 1) {
+    const decoded = decodeHtmlEntities(text);
+    if (decoded === text) break;
+    text = decoded;
+  }
+  return text.normalize('NFC').replace(/[\s\u00a0\u200b]+/g, ' ').trim();
+}
+
 function extractMetaContent(headTags, attribute, value) {
   const tags = headTags.match(/<meta\b[^>]*>/gi) ?? [];
   const tag = tags.find(item => item.includes(attribute + '="' + value + '"') || item.includes(attribute + "='" + value + "'"));
@@ -471,6 +482,29 @@ try {
   );
   console.log(`[keyword-map] 优先级分布 ${kwAudit.byPriority.join(' ')}｜搜索量 ${kwAudit.searchVolume}`);
 
+  // Normalize all SSG tool labels from the exact locale file used by the title-lock audit.
+  // The static registry may have been initialized with an older name; SEO HTML, breadcrumbs,
+  // internal workflow labels and SoftwareApplication JSON-LD must all use one title source.
+  const TOOL_TITLES_BY_PATH = Object.fromEntries(TOOL_SEO_PAGES.map((entry) => {
+    const key = entry.path.split('/').join('');
+    const title = messages.tools?.[key]?.title;
+    if (typeof title !== 'string' || !title.trim()) {
+      throw new Error(`[build-seo] locales/${DEFAULT_LOCALE}.yml 缺少工具标题: ${key}`);
+    }
+    return [entry.path, title.trim()];
+  }));
+  const TOOL_SEO_ENTRIES_BY_PATH = new Map(TOOL_SEO_PAGES.map((entry) => {
+    const titleFor = (path, fallback) => TOOL_TITLES_BY_PATH[path] ?? fallback;
+    const name = titleFor(entry.path, entry.name);
+    return [entry.path, {
+      ...entry,
+      name,
+      h1: name.split(' — ')[0],
+      related: entry.related.map(item => ({ ...item, name: titleFor(item.path, item.name) })),
+      workflow: entry.workflow.map(item => ({ ...item, name: titleFor(item.path, item.name) })),
+    }];
+  }));
+
   const staticPaths = new Set(STATIC_ROUTES.map(({ path }) => path));
   const collide = TOOL_SEO_PAGES.filter(({ path }) => staticPaths.has(path));
   if (collide.length > 0) {
@@ -505,7 +539,7 @@ try {
   const results = [];
   for (const job of jobs) {
     const r = job.kind === 'tool'
-      ? await mod.renderTool(job.path)
+      ? await mod.renderTool(job.path, TOOL_TITLES_BY_PATH)
       : job.kind === 'guide'
         ? await mod.renderGuideArticle(job.path)
         : await mod.render(job.path);
@@ -846,7 +880,7 @@ try {
     const html = stripComments(rawHtml);
     // 工具页在 page-seo 区块尾部追加 SoftwareApplication / BreadcrumbList JSON-LD（见函数注释）
     // 注意 faqs 挂在 entry.guide.faqs（ToolGuide 的字段），不是 entry.faqs
-    const entry = kind === 'tool' ? TOOL_SEO_PAGES.find(item => item.path === path) : undefined;
+    const entry = kind === 'tool' ? TOOL_SEO_ENTRIES_BY_PATH.get(path) : undefined;
     let pageTags = kind === 'tool'
       ? `${headTags}`
         + `\n      <script type="application/ld+json">${buildSoftwareApplicationLd(entry, canonical)}</script>`
@@ -981,7 +1015,21 @@ try {
       }
     }
     if (kind === 'tool') {
-      const entry = TOOL_SEO_PAGES.find(item => item.path === path);
+      const entry = TOOL_SEO_ENTRIES_BY_PATH.get(path);
+      const expectedTitle = normalizeSeoText(entry.name);
+      const expectedFullTitle = normalizeSeoText(`${entry.name} - ${messages.site.name}`);
+      const actualTitle = normalizeSeoText(extractSocialTitle(out));
+      const ogTitle = normalizeSeoText(extractMetaContent(out, 'property', 'og:title'));
+      const itempropName = normalizeSeoText(extractMetaContent(out, 'itemprop', 'name'));
+      const description = extractMetaContent(out, 'name', 'description');
+      const ogDescription = extractMetaContent(out, 'property', 'og:description');
+      const itempropDescription = extractMetaContent(out, 'itemprop', 'description');
+      if (actualTitle !== expectedTitle) { problems.push(`title 与 locales/${DEFAULT_LOCALE}.yml 不一致(${actualTitle})`); }
+      if (ogTitle !== expectedFullTitle) { problems.push(`og:title 与页面标题不一致(expected=${JSON.stringify(expectedFullTitle)}, actual=${JSON.stringify(ogTitle)})`); }
+      if (itempropName !== expectedFullTitle) { problems.push(`itemprop name 与页面标题不一致(expected=${JSON.stringify(expectedFullTitle)}, actual=${JSON.stringify(itempropName)})`); }
+      if (description !== entry.description) { problems.push('meta description 与工具定义不一致'); }
+      if (ogDescription !== entry.description) { problems.push('og:description 与 meta description 不一致'); }
+      if (itempropDescription !== entry.description) { problems.push('itemprop description 与 meta description 不一致'); }
       if (!/<h1[\s>]/i.test(html)) { problems.push('缺少 H1'); }
       if (!squash(bodyRaw).includes(squash(entry.name))) {
         problems.push(`正文里找不到工具名(${entry.name})`);

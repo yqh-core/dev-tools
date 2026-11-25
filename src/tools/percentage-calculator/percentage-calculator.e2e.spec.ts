@@ -6,6 +6,13 @@ test.describe('Tool - Percentage calculator', () => {
   });
 
   test('Has the intended search title, description and H1', async ({ page }) => {
+    const response = await page.goto('/percentage-calculator/');
+    expect(response).not.toBeNull();
+    const prerenderedHtml = await response!.text();
+    expect(prerenderedHtml).toContain('<title>Percentage Calculator — 7 Modes - DigDevBox</title>');
+    expect(prerenderedHtml).toContain('Percentage Calculator — 7 Modes');
+    expect(prerenderedHtml).not.toContain('Percentage Calculator — Percent of, Change & Difference');
+
     await expect(page).toHaveTitle('Percentage Calculator — 7 Modes - DigDevBox');
     await expect(page.locator('meta[name="description"]')).toHaveAttribute(
       'content',

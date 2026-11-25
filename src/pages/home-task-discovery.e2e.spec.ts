@@ -101,6 +101,10 @@ test.describe('Homepage task discovery', () => {
       'href',
       '/percentage-calculator/',
     );
+    await expect(calculateTask.locator('.featured-task-primary')).toHaveAttribute(
+      'aria-label',
+      'Open tool Percentage Calculator — 7 Modes',
+    );
     await expect(calculateTask.locator('a[href="/eta-calculator/"]')).toBeVisible();
   });
 });
