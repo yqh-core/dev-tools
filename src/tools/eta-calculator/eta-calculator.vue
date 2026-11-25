@@ -324,7 +324,7 @@ const displayedObservedRate = computed(() => {
           <n-button
             v-for="scenario in scenarioIds"
             :key="scenario"
-            :data-testid="`eta-scenario-${scenario}`"
+            :data-test-id="`eta-scenario-${scenario}`"
             :type="activeScenario === scenario ? 'primary' : 'default'"
             @click="loadScenario(scenario)"
           >
