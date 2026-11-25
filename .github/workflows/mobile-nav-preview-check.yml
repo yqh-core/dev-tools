@@ -127,7 +127,7 @@ jobs:
           await ttsPage.getByTestId('welcome-file').waitFor({ state: 'visible' });
           await ttsPage.getByTestId('welcome-url').waitFor({ state: 'visible' });
           const fileHint = (await ttsPage.getByTestId('welcome-file').innerText()).replace(/\\s+/g, ' ').trim();
-          assert.match(fileHint, /TXT or Markdown \\(\.txt \\/ \.md\\), up to 2 MB/, 'file import hint must match actual importer limits');
+          assert.ok(fileHint.includes('TXT or Markdown (.txt / .md), up to 2 MB'), 'file import hint must match actual importer limits: ' + fileHint);
           const ttsWidths = await ttsPage.evaluate(() => ({
             document: document.documentElement.scrollWidth,
             viewport: document.documentElement.clientWidth,
