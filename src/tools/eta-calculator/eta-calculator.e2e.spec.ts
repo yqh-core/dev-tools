@@ -15,7 +15,7 @@ test('ETA Calculator leads with task samples and loads the matching inputs', asy
   const intro = page.getByTestId('eta-first-screen-intro');
   await expect(intro).toBeVisible();
   await expect(intro).toContainText('Estimate when your work will finish');
-  await expect(page.locator('[data-testid^="eta-scenario-"]')).toHaveCount(4);
+  await expect(page.locator('[data-test-id^="eta-scenario-"]')).toHaveCount(4);
 
   await page.getByTestId('eta-scenario-build').click();
   await expect(page.getByTestId('eta-total').locator('input')).toHaveValue('240');
