@@ -116,7 +116,7 @@
 
 - [Git Commands Cheat Sheet — Common Commands & Undo](https://digdevbox.com/git-memo) - Quick reference for Git configuration, init/clone, commits, amend, reset and branch rename commands, with copyable examples. Replace placeholders before running; hard reset can discard work.
 - [Random port generator](https://digdevbox.com/random-port-generator) - Generate random port numbers outside of the range of "known" ports (0-1023).
-- [Crontab Generator — Plain-English Cron](https://digdevbox.com/crontab-generator) - Build cron expressions with a plain-English preview — every 5 minutes, weekdays, {'@'}reboot. Validate crontab and GitHub Actions schedules free in your browser.
+- [Crontab Generator — Plain-English Cron](https://digdevbox.com/crontab-generator) - Build cron expressions with a plain-English preview: every 5 minutes, weekdays and @reboot. Validate crontab and GitHub Actions schedules in your browser.
 - [JSON Formatter — Format, Validate & Diff](https://digdevbox.com/json-prettify) - Format and validate JSON online — pretty-print at your indent size, sort keys and spot syntax errors instantly, right in your browser.
 - [JSON Workspace — JSONPath, Tree & Schema](https://digdevbox.com/json-workspace) - Format and validate JSON, inspect an interactive tree, query with JSONPath, infer JSON Schema, and convert to YAML or CSV. Free in your browser.
 - [REST API Tester — cURL, Tests & Collections](https://digdevbox.com/api-debugger) - Send REST API requests, import cURL, inspect status, headers and JSON, add assertions, and run saved collections. Requests pass through a temporary relay.
@@ -140,7 +140,7 @@
 
 - [IPv4 Subnet Calculator — CIDR & Hosts](https://digdevbox.com/ipv4-subnet-calculator) - Calculate a subnet from an IPv4 address and CIDR prefix. View network and broadcast addresses, netmask, wildcard mask, subnet size and usable host range.
 - [IPv4 address converter](https://digdevbox.com/ipv4-address-converter) - Convert an IP address into decimal, binary, hexadecimal, or even an IPv6 representation of it.
-- [IP Range to CIDR Converter](https://digdevbox.com/ipv4-range-expander) - Convert a start and end IPv4 address into the smallest set of CIDR blocks covering the range. Copy the result for firewall rules, cloud security groups and routing.
+- [IP Range to CIDR Converter](https://digdevbox.com/ipv4-range-expander) - Convert a start and end IPv4 address into the smallest set of CIDR blocks covering the range. Copy results for firewall rules, cloud security groups and routing.
 - [MAC address lookup](https://digdevbox.com/mac-address-lookup) - Find the vendor and manufacturer of a device by its MAC address.
 - [MAC address generator](https://digdevbox.com/mac-address-generator) - Enter the quantity and prefix. MAC addresses will be generated in your chosen case (uppercase or lowercase)
 - [IPv6 ULA generator](https://digdevbox.com/ipv6-ula-generator) - Generate RFC 4193 fd00::/8 IPv6 Unique Local Address (ULA) /48 prefixes with secure random 40-bit Global IDs or a manual Global ID. Create up to 20 prefixes and inspect first/last /64 subnets in your browser.
@@ -164,7 +164,7 @@
 
 ### Text
 
-- [Lorem Ipsum Generator](https://digdevbox.com/lorem-ipsum-generator) - Generate placeholder text for layouts and mockups by paragraph, sentence or word count. Uses the classic printing-industry Lorem Ipsum text; free and instant in your browser.
+- [Lorem Ipsum Generator](https://digdevbox.com/lorem-ipsum-generator) - Generate placeholder text for layouts and mockups by paragraph, sentence or word count. Classic printing-industry Lorem Ipsum, free and instant in your browser.
 - [Text Statistics — Word & Character Counter](https://digdevbox.com/text-statistics) - Count words, characters, Unicode units, lines and UTF-8 bytes. Analyze top-term frequency and estimate reading and speaking time in your browser, with no text upload.
 - [Emoji picker](https://digdevbox.com/emoji-picker) - Copy and paste emojis easily and get the unicode and code points value of each emoji.
 - [String obfuscator](https://digdevbox.com/string-obfuscator) - Obfuscate a string (like a secret, an IBAN, or a token) to make it shareable and identifiable without revealing its content.
