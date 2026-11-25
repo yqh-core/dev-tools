@@ -29,9 +29,9 @@ import { guideArticleHref } from './guide-links';
 const props = defineProps<{ entry: ToolSeoEntry }>();
 
 const { entry } = props;
-const { t, te } = useI18n();
-const titleKey = `tools.${entry.path.split('/').join('')}.title`;
-const pageToolTitle = te(titleKey) ? t(titleKey) : entry.name;
+const { t } = useI18n();
+// entry.name is normalized from locales/<default>.yml by entry-server.ts during SSG.
+const pageToolTitle = entry.name;
 
 usePageSeo(entry.path, `${pageToolTitle} - ${t('site.name')}`, entry.description);
 
@@ -45,7 +45,7 @@ usePageSeo(entry.path, `${pageToolTitle} - ${t('site.name')}`, entry.description
  * （en）**上 —— 写死中文字面量会让英文页面的正文混进中文（与 guides 同一类问题）。
  */
 const lead = entry.guide?.intro
-  ?? t('seo.leadFallback', { name: entry.name, category: entry.category });
+  ?? t('seo.leadFallback', { name: pageToolTitle, category: entry.category });
 
 // 骨架是纯静态 HTML（无响应式状态），样式只能用内联属性：
 // SFC 的 <style scoped> 会被提取进客户端 chunk，不会出现在预渲染出的 HTML 里。
@@ -59,7 +59,7 @@ const box = 'max-width:800px;margin:0 auto;padding:32px 16px;box-sizing:border-b
       <span> / </span>
       <span>{{ entry.category }}</span>
       <span> / </span>
-      <span style="opacity:.9">{{ entry.name }}</span>
+      <span style="opacity:.9">{{ pageToolTitle }}</span>
     </nav>
 
     <h1 style="font-size:32px;font-weight:400;line-height:1.25;margin:0 0 12px">
@@ -92,7 +92,7 @@ const box = 'max-width:800px;margin:0 auto;padding:32px 16px;box-sizing:border-b
       -->
       <section v-if="entry.guide.about" class="dd-tool-about">
         <h2 style="font-size:16px;font-weight:500;opacity:.85;margin:10px 0 6px">
-          {{ t('seo.aboutTitle', { name: entry.name }) }}
+          {{ t('seo.aboutTitle', { name: pageToolTitle }) }}
         </h2>
         <p style="margin:0;opacity:.85">
           {{ entry.guide.about }}
