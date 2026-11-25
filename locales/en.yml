@@ -19,6 +19,12 @@ home:
     badgeNoSignup: "No signup"
     badgeTools: "{count} tools"
     cta: "Browse all tools"
+  quickSearch:
+    ariaLabel: "Quick task searches"
+    label: "Try a task:"
+    json: "Format JSON"
+    jwt: "Decode JWT"
+    regex: "Test regex"
   preview:
     eyebrow: "A real workflow, one click away"
     label: "STRUCTURED DATA"
