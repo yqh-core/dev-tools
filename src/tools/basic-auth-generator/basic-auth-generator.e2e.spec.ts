@@ -75,6 +75,21 @@ test.describe('Tool - Basic Auth generator', () => {
     await expect(page.getByTestId('basic-auth-decode-error')).toContainText('valid Basic Authorization header');
   });
 
+  test('rejects control characters in credentials before generating a header', async ({ page }) => {
+    await page.goto('/basic-auth-generator');
+
+    const username = page.getByPlaceholder('Your username...');
+    await username.evaluate((element: HTMLInputElement) => {
+      element.value = 'svc\\u0001admin';
+      element.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    await page.getByPlaceholder('Your password...').fill('secret');
+    await expect(page.getByTestId('basic-auth-control-character-error'))
+      .toHaveText('Control characters are not allowed in Basic Authentication credentials.');
+    await expect(page.getByTestId('basic-auth-generated-header')).toBeEmpty();
+    await expect(page.getByRole('button', { name: 'Copy header' })).toBeDisabled();
+  });
+
   test('rejects a colon in the username and never generates a malformed credential', async ({ page }) => {
     await page.goto('/basic-auth-generator');
 
