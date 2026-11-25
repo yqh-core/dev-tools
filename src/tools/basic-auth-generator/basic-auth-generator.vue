@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { buildBasicAuthExamples, decodeBasicAuthHeader } from './basic-auth-generator.service';
+import { buildBasicAuthExamples, decodeBasicAuthHeader, hasBasicAuthControlCharacters } from './basic-auth-generator.service';
 import { useCopy } from '@/composable/copy';
 import { textToBase64 } from '@/utils/base64';
 
@@ -8,7 +8,11 @@ const password = ref('');
 const usernameError = computed(() => username.value.includes(':')
   ? 'A Basic Authentication username cannot contain a colon.'
   : '');
-const header = computed(() => usernameError.value
+const controlCharacterError = computed(() => hasBasicAuthControlCharacters(username.value)
+  || hasBasicAuthControlCharacters(password.value)
+  ? 'Control characters are not allowed in Basic Authentication credentials.'
+  : '');
+const header = computed(() => usernameError.value || controlCharacterError.value
   ? ''
   : `Authorization: Basic ${textToBase64(`${username.value}:${password.value}`)}`);
 const requestUrl = ref('https://api.example.com/v1/resource');
@@ -71,8 +75,11 @@ const { copy: copyPythonRequests } = useCopy({ source: pythonRequestsExample, te
     <p v-if="usernameError" mt-3 role="alert" text-error data-test-id="basic-auth-username-error">
       {{ usernameError }}
     </p>
+    <p v-if="controlCharacterError" mt-3 role="alert" text-error data-test-id="basic-auth-control-character-error">
+      {{ controlCharacterError }}
+    </p>
     <div mt-5 flex justify-center>
-      <c-button :disabled="!!usernameError" @click="copyHeader()">
+      <c-button :disabled="!!usernameError || !!controlCharacterError" @click="copyHeader()">
         Copy header
       </c-button>
     </div>
