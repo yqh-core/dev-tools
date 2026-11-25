@@ -9,6 +9,35 @@ test('ETA Calculator explains the remaining-work formula and steady-rate assumpt
   await expect(example).toContainText('steady processing rate');
 });
 
+test('ETA Calculator leads with task samples and loads the matching inputs', async ({ page }) => {
+  await page.goto('/eta-calculator');
+
+  const intro = page.getByTestId('eta-first-screen-intro');
+  await expect(intro).toBeVisible();
+  await expect(intro).toContainText('Estimate when your work will finish');
+  await expect(page.locator('[data-testid^="eta-scenario-"]')).toHaveCount(4);
+
+  await page.getByTestId('eta-scenario-build').click();
+  await expect(page.getByTestId('eta-mode-observed')).toHaveAttribute('type', 'button');
+  await expect(page.getByTestId('eta-total').locator('input')).toHaveValue('240');
+  await expect(page.getByTestId('eta-completed').locator('input')).toHaveValue('90');
+  await expect(page.getByTestId('eta-elapsed-hours').locator('input')).toHaveValue('1');
+  await expect(page.getByTestId('eta-observed-rate')).toBeVisible();
+
+  await page.getByTestId('eta-scenario-migration').click();
+  await expect(page.getByTestId('eta-total').locator('input')).toHaveValue('12000');
+  await expect(page.getByTestId('eta-schedule-weekdays')).toBeVisible();
+  await expect(page.getByTestId('eta-working-start')).toBeVisible();
+
+  await page.getByTestId('eta-scenario-batch').click();
+  await expect(page.getByTestId('eta-total').locator('input')).toHaveValue('10000');
+  await expect(page.getByTestId('eta-completed').locator('input')).toHaveValue('3600');
+  await expect(page.getByTestId('eta-rate').locator('input')).toHaveValue('500');
+  await expect(page.getByTestId('eta-interval').locator('input')).toHaveValue('10');
+  await expect(page.getByTestId('eta-working-start')).toHaveCount(0);
+  await expect(page.getByTestId('eta-duration')).toBeVisible();
+});
+
 test('ETA Calculator projects remaining work and adds an optional buffer', async ({ page }) => {
   await page.goto('/eta-calculator');
   const fill = async (id: string, value: string) => {
@@ -268,9 +297,13 @@ test.describe('ETA Calculator weekday schedule in the device timezone', () => {
     await expect(page.getByTestId('eta-deadline-error')).toBeVisible();
   });
 
-  test('keeps the working-hours controls within a mobile viewport', async ({ page }) => {
+  test('keeps the first-screen scenarios and working-hours controls within a mobile viewport', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('/eta-calculator');
+    await expect(page.getByTestId('eta-first-screen-intro')).toBeVisible();
+    for (const scenario of ['build', 'migration', 'batch', 'conversion']) {
+      await expect(page.getByTestId(`eta-scenario-${scenario}`)).toBeVisible();
+    }
     await page.getByTestId('eta-schedule-weekdays').click();
 
     await expect(page.getByTestId('eta-working-start')).toBeVisible();
