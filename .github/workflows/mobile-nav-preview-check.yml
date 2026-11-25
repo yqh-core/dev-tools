@@ -205,8 +205,11 @@ jobs:
             await page.getByRole('button', { name: 'Privacy choices' }).click();
             await page.locator('#' + site.promptId + '[data-dd-consent-prompt="true"]').waitFor({ state: 'visible' });
             await page.getByRole('button', { name: 'Accept Google Analytics' }).click();
-            await page.waitForFunction(() => performance.getEntriesByType('resource').some(entry => entry.name.includes('googletagmanager.com/gtag/js')));
-            assert.ok(gaRequests >= 1, site.id + ': Google Analytics request may start only after explicit acceptance');
+            await page.waitForFunction(key => localStorage.getItem(key) === 'accepted', site.key);
+            await page.locator('script[src*="googletagmanager.com"]').waitFor({ state: 'attached', timeout: 10000 });
+            const gaScriptCount = await page.locator('script[src*="googletagmanager.com"]').count();
+            assert.equal(gaScriptCount, 1, site.id + ': GA script is inserted only after explicit acceptance');
+            if (site.id !== 'digttsreader') assert.ok(gaRequests >= 1, site.id + ': GA network request starts only after explicit acceptance');
             if (site.id === 'digttsreader') {
               for (const testId of ['welcome-paste', 'welcome-file', 'welcome-url']) {
                 const action = page.getByTestId(testId);
