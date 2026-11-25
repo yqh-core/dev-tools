@@ -1004,7 +1004,20 @@ try {
       }
     }
     if (kind === 'tool') {
-      const entry = TOOL_SEO_PAGES.find(item => item.path === path);
+      const entry = TOOL_SEO_ENTRIES_BY_PATH.get(path);
+      const expectedTitle = `${entry.name} - ${messages.site.name}`;
+      const actualTitle = decodeHtmlEntities(out.match(/<title[^>]*>([\\s\\S]*?)<\\/title>/i)?.[1] ?? '');
+      const ogTitle = extractMetaContent(out, 'property', 'og:title');
+      const itempropName = extractMetaContent(out, 'itemprop', 'name');
+      const description = extractMetaContent(out, 'name', 'description');
+      const ogDescription = extractMetaContent(out, 'property', 'og:description');
+      const itempropDescription = extractMetaContent(out, 'itemprop', 'description');
+      if (actualTitle !== expectedTitle) { problems.push(`title 与 locales/${DEFAULT_LOCALE}.yml 不一致(${actualTitle})`); }
+      if (ogTitle !== expectedTitle) { problems.push(`og:title 与页面标题不一致(${ogTitle})`); }
+      if (itempropName !== expectedTitle) { problems.push(`itemprop name 与页面标题不一致(${itempropName})`); }
+      if (description !== entry.description) { problems.push('meta description 与工具定义不一致'); }
+      if (ogDescription !== entry.description) { problems.push('og:description 与 meta description 不一致'); }
+      if (itempropDescription !== entry.description) { problems.push('itemprop description 与 meta description 不一致'); }
       if (!/<h1[\s>]/i.test(html)) { problems.push('缺少 H1'); }
       if (!squash(bodyRaw).includes(squash(entry.name))) {
         problems.push(`正文里找不到工具名(${entry.name})`);
