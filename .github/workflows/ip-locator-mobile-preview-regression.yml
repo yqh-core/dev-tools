@@ -1,0 +1,80 @@
+name: IP Locator mobile-first preview regression
+
+on:
+  push:
+    branches:
+      - ops/ip-locator-mobile-browser-check-20261125
+
+permissions:
+  contents: read
+
+jobs:
+  verify-preview-layout:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Playwright Chromium
+        run: |
+          npm install --no-save playwright
+          npx playwright install --with-deps chromium
+      - name: Assert the first-screen lookup layout in desktop and mobile viewports
+        run: |
+          mkdir -p ip-locator-mobile-audit
+          node --input-type=module <<'NODE'
+          import { chromium } from 'playwright';
+          import assert from 'node:assert/strict';
+          const url = 'https://feat-mobile-first-ip-lookup.locip.pages.dev/';
+          const browser = await chromium.launch({ headless:true });
+          const results = [];
+          for (const viewport of [
+            { name:'desktop', width:1440, height:960 },
+            { name:'mobile', width:390, height:844 },
+          ]) {
+            const page = await browser.newPage({ viewport:{ width:viewport.width, height:viewport.height }, deviceScaleFactor:viewport.name==='mobile'?2:1 });
+            const response = await page.goto(url, { waitUntil:'domcontentloaded', timeout:45000 });
+            assert.equal(response?.status(), 200, viewport.name + ': preview must return HTTP 200');
+            await page.waitForTimeout(900);
+            const m = await page.evaluate(() => {
+              const rect = id => { const r=document.getElementById(id).getBoundingClientRect(); return {x:Math.round(r.x),y:Math.round(r.y),width:Math.round(r.width),height:Math.round(r.height),bottom:Math.round(r.bottom)}; };
+              const brief = document.querySelector('.hero-brief');
+              const lookup = document.querySelector('.lookup-panel');
+              return {
+                title:document.title,
+                canonical:document.querySelector('link[rel=canonical]')?.href,
+                h1:document.querySelector('h1')?.innerText?.trim(),
+                input:rect('ipInput'),
+                query:rect('searchBtn'),
+                mobileBriefDisplay:brief?getComputedStyle(brief).display:null,
+                lookupInsideHero:!!lookup?.closest('.hero-panel'),
+                horizontalOverflow:document.documentElement.scrollWidth>innerWidth,
+                viewport:{width:innerWidth,height:innerHeight},
+              };
+            });
+            await page.screenshot({ path:'ip-locator-mobile-audit/'+viewport.name+'.png', fullPage:false });
+            assert.equal(m.canonical,'https://ip.digdevbox.com/','SEO canonical must remain unchanged');
+            assert.equal(m.h1,'🌍 IP Geolocation Lookup');
+            assert.equal(m.lookupInsideHero,true,'lookup panel must remain in the hero task flow');
+            assert.equal(m.horizontalOverflow,false,viewport.name+': no horizontal overflow');
+            assert.ok(Math.abs(m.input.y-m.query.y)<12,viewport.name+': input and Query must be aligned in one row');
+            if(viewport.name==='mobile'){
+              assert.equal(m.mobileBriefDisplay,'none','duplicate explainer card should collapse on mobile');
+              assert.ok(m.input.y<600,'mobile input should be visible in the first screen (y='+m.input.y+')');
+              assert.ok(m.query.bottom<680,'mobile Query action should be visible above the lower-page overlay (bottom='+m.query.bottom+')');
+            }
+            console.log(JSON.stringify({viewport:viewport.name,...m}));
+            results.push({viewport:viewport.name,...m});
+            await page.close();
+          }
+          await browser.close();
+          await import('node:fs').then(fs=>fs.writeFileSync('ip-locator-mobile-audit/results.json',JSON.stringify(results,null,2)));
+          NODE
+      - name: Upload mobile layout evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ip-locator-mobile-preview-audit
+          path: ip-locator-mobile-audit/
+          retention-days: 14
