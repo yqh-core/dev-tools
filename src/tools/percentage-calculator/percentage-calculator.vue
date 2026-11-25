@@ -304,6 +304,30 @@ const percentageBatchModeHints = computed<Record<PercentageBatchMode, string>>((
 }));
 const activeCalculationMode = ref<PercentageBatchMode>('percent-of');
 const percentageBatchMode = ref<PercentageBatchMode>('percent-of');
+
+type PercentageQuickExample = 'percent-of' | 'part-to-whole' | 'percentage-change' | 'adjustment';
+
+function loadPercentageQuickExample(example: PercentageQuickExample): void {
+  activeCalculationMode.value = example;
+  switch (example) {
+    case 'percent-of':
+      percentageX.value = 15;
+      percentageY.value = 80;
+      break;
+    case 'part-to-whole':
+      numberX.value = 30;
+      numberY.value = 120;
+      break;
+    case 'percentage-change':
+      numberFrom.value = 80;
+      numberTo.value = 92;
+      break;
+    case 'adjustment':
+      adjustmentValue.value = 80;
+      adjustmentPercent.value = 15;
+      break;
+  }
+}
 const percentageBatchInput = ref('');
 const percentageBatchRows = ref<PercentageBatchRow[]>([]);
 const percentageBatchHistory = ref<PercentageBatchHistoryItem[]>([]);
@@ -595,6 +619,44 @@ async function copySequentialSummary(): Promise<void> {
           @click="activeCalculationMode = mode"
         >
           {{ percentageBatchModeNames[mode] }}
+        </button>
+      </div>
+      <div class="percentage-example-strip" data-test-id="percentage-quick-examples">
+        <button
+          type="button"
+          class="percentage-example-button"
+          data-test-id="percentage-example-percent-of"
+          :aria-label="`${percentageBatchModeNames['percent-of']}: 15% of 80, result 12`"
+          @click="loadPercentageQuickExample('percent-of')"
+        >
+          15% × 80 = 12
+        </button>
+        <button
+          type="button"
+          class="percentage-example-button"
+          data-test-id="percentage-example-part-to-whole"
+          :aria-label="`${percentageBatchModeNames['part-to-whole']}: 30 of 120, result 25 percent`"
+          @click="loadPercentageQuickExample('part-to-whole')"
+        >
+          30 ÷ 120 = 25%
+        </button>
+        <button
+          type="button"
+          class="percentage-example-button"
+          data-test-id="percentage-example-percentage-change"
+          :aria-label="`${percentageBatchModeNames['percentage-change']}: 80 to 92, a 15 percent increase`"
+          @click="loadPercentageQuickExample('percentage-change')"
+        >
+          80 → 92 = +15%
+        </button>
+        <button
+          type="button"
+          class="percentage-example-button"
+          data-test-id="percentage-example-adjustment"
+          :aria-label="`${percentageBatchModeNames.adjustment}: increase or decrease 80 by 15 percent`"
+          @click="loadPercentageQuickExample('adjustment')"
+        >
+          80 ± 15% = 92 / 68
         </button>
       </div>
       <c-card mb-3 v-show="activeCalculationMode === 'percent-of'">
@@ -1228,6 +1290,49 @@ async function copySequentialSummary(): Promise<void> {
 </template>
 
 <style scoped>
+.percentage-example-strip {
+  display: flex;
+  gap: 0.45rem;
+  margin: -0.15rem 0 0.8rem;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  padding: 0.15rem 0.1rem 0.35rem;
+  scrollbar-width: thin;
+}
+.percentage-example-button {
+  display: inline-flex;
+  min-height: 36px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  padding: 0.45rem 0.7rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 999px;
+  background: #f8fafc;
+  color: #334155;
+  font-size: 0.74rem;
+  font-weight: 650;
+  line-height: 1.2;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.percentage-example-button:hover {
+  border-color: #0f766e;
+  color: #0f766e;
+}
+.percentage-example-button:focus-visible {
+  outline: 3px solid rgba(13, 148, 136, 0.35);
+  outline-offset: 2px;
+}
+:global(html[data-theme="dark"]) .percentage-example-button {
+  border-color: #475569;
+  background: #1f2937;
+  color: #e2e8f0;
+}
+:global(html[data-theme="dark"]) .percentage-example-button:hover {
+  border-color: #2dd4bf;
+  color: #5eead4;
+}
 .percentage-mode-intro {
   margin: 0 0 0.8rem;
   color: #64748b;
