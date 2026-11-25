@@ -18,6 +18,12 @@ home:
     badgeNoSignup: "无需注册"
     badgeTools: "{count} 个工具"
     cta: "浏览全部工具"
+  quickSearch:
+    ariaLabel: "快捷任务搜索"
+    label: "快速开始："
+    json: "格式化 JSON"
+    jwt: "解析 JWT"
+    regex: "测试正则"
   preview:
     eyebrow: "一个点击即可开始的真实工作流"
     label: "结构化数据"
@@ -208,7 +214,7 @@ toolCard:
   new: '新'
 search:
   label: '搜索'
-  placeholder: '试试「格式化 JSON」「解码 JWT」「转换时间戳」'
+  placeholder: '搜索工具或任务…'
   inputLabel: '搜索工具'
   clear: '清空搜索'
   found: '找到 {count} 个匹配「{query}」的工具'

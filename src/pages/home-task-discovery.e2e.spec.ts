@@ -67,6 +67,36 @@ test.describe('Homepage task discovery', () => {
     }
   });
 
+  test('starts common tool searches from the first-screen quick actions', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/');
+
+    const quickSearch = page.getByRole('group', { name: 'Quick task searches' });
+    await expect(quickSearch).toBeVisible();
+    await expect(page.getByRole('searchbox')).toBeVisible();
+
+    for (const [testId, query, expectedPath] of [
+      ['home-quick-search-json', 'json formatter', '/json-prettify/'],
+      ['home-quick-search-jwt', 'jwt decoder', '/jwt-parser/'],
+      ['home-quick-search-regex', 'regex tester', '/regex-tester/'],
+    ] as const) {
+      await page.getByTestId(testId).click();
+      await expect(page.getByRole('searchbox')).toHaveValue(query);
+      await expect(page.locator('div.grid a.decoration-none').first()).toHaveAttribute('href', expectedPath);
+      await page.getByRole('searchbox').fill('');
+    }
+
+    const buttons = page.locator('.hero-quick-search-button');
+    await expect(buttons).toHaveCount(3);
+    for (const button of await buttons.all()) {
+      const box = await button.boundingBox();
+      expect(box?.height).toBeGreaterThanOrEqual(44);
+    }
+
+    const documentWidth = await page.evaluate(() => document.documentElement.scrollWidth);
+    expect(documentWidth).toBeLessThanOrEqual(390);
+  });
+
   test('activates the API task entry with the keyboard', async ({ page }) => {
     await page.goto('/');
     const apiEntry = page.locator('#home-featured .featured-task-primary').first();

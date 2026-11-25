@@ -388,6 +388,33 @@ function onUpdateFavoriteTools() {
               <n-icon :component="IconX" size="16" />
             </button>
           </div>
+          <div class="hero-quick-search" role="group" :aria-label="t('home.quickSearch.ariaLabel')">
+            <span class="hero-quick-search-label">{{ t('home.quickSearch.label') }}</span>
+            <button
+              class="hero-quick-search-button"
+              data-test-id="home-quick-search-json"
+              type="button"
+              @click="searchQuery = 'json formatter'"
+            >
+              {{ t('home.quickSearch.json') }}
+            </button>
+            <button
+              class="hero-quick-search-button"
+              data-test-id="home-quick-search-jwt"
+              type="button"
+              @click="searchQuery = 'jwt decoder'"
+            >
+              {{ t('home.quickSearch.jwt') }}
+            </button>
+            <button
+              class="hero-quick-search-button"
+              data-test-id="home-quick-search-regex"
+              type="button"
+              @click="searchQuery = 'regex tester'"
+            >
+              {{ t('home.quickSearch.regex') }}
+            </button>
+          </div>
         </div>
 
         <RouterLink class="hero-cta"  :to="normalizePath('/tools')">
@@ -1454,6 +1481,63 @@ function onUpdateFavoriteTools() {
       outline: 2px solid var(--dd-primary);
       outline-offset: 2px;
     }
+  }
+}
+
+/* Quick task shortcuts: examples are real searches, not decorative chips. */
+.hero-quick-search {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin: 8px 2px 0;
+  color: var(--dd-text-muted);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.hero-quick-search-label {
+  padding-right: 2px;
+  font-weight: 550;
+}
+
+.hero-quick-search-button {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  padding: 7px 11px;
+  border: 1px solid var(--dd-border);
+  border-radius: 999px;
+  background: var(--dd-surface);
+  color: var(--dd-text-soft);
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.35;
+  transition: border-color 0.16s ease, background-color 0.16s ease, color 0.16s ease;
+}
+
+.hero-quick-search-button:hover {
+  border-color: color-mix(in srgb, var(--dd-primary) 65%, var(--dd-border));
+  background: color-mix(in srgb, var(--dd-primary) 6%, var(--dd-surface));
+  color: var(--dd-primary);
+}
+
+.hero-quick-search-button:focus-visible {
+  outline: 2px solid var(--dd-primary);
+  outline-offset: 2px;
+}
+
+@media (max-width: 420px) {
+  .hero-quick-search {
+    gap: 5px;
+  }
+
+  .hero-quick-search-button {
+    padding-right: 9px;
+    padding-left: 9px;
   }
 }
 
