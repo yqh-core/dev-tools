@@ -215,7 +215,7 @@ toolCard:
   new: New
 search:
   label: Search
-  placeholder: 'Try "format JSON", "decode JWT", "convert timestamp"'
+  placeholder: 'Search tools or tasks…'
   inputLabel: 'Search tools'
   clear: 'Clear search'
   found: 'Found {count} tools matching "{query}"'
