@@ -1153,7 +1153,7 @@ tools:
     description: "A searchable cheat sheet of common Linux commands with what they do and ready-to-use examples."
 
   http-headers:
-    title: "HTTP Header Analyzer — HAR & Security"
+    title: "HTTP Header Analyzer — HAR Import & Security Score"
     description: "Import HAR or paste curl/DevTools headers. Check CSP, HSTS, cookies, CORS and indexing; get a score plus copy-ready Nginx, Vercel and Cloudflare fixes locally."
     analyzer:
       cardTitle: "HTTP response header analyzer"
