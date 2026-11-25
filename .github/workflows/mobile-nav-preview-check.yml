@@ -1,0 +1,121 @@
+name: Verify compact mobile navigation previews
+
+on:
+  push:
+    branches:
+      - ops/verify-mobile-nav-previews-20261125
+
+permissions:
+  contents: read
+
+jobs:
+  chromium-mobile-preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Playwright Chromium
+        run: |
+          npm install --no-save playwright
+          npx playwright install --with-deps chromium
+      - name: Capture exact Cloudflare PR previews and assert mobile navigation
+        run: |
+          mkdir -p mobile-nav-audit
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import { chromium } from 'playwright';
+          import fs from 'node:fs';
+
+          const sites = [
+            { id: 'digimg', url: 'https://0a00b64e.digimg.pages.dev/' },
+            { id: 'streamplay', url: 'https://25753a19.streamplay-ey1.pages.dev/' },
+            { id: 'ip-locator', url: 'https://410df9ba.locip.pages.dev/' },
+          ];
+          const browser = await chromium.launch({ headless: true });
+          const metrics = [];
+          for (const site of sites) {
+            const context = await browser.newContext({
+              viewport: { width: 390, height: 844 },
+              isMobile: true,
+              deviceScaleFactor: 2,
+              locale: 'en-US',
+              reducedMotion: 'reduce',
+            });
+            const page = await context.newPage();
+            const pageErrors = [];
+            page.on('pageerror', e => pageErrors.push(String(e.message).slice(0, 240)));
+            try {
+              const response = await page.goto(site.url, { waitUntil: 'domcontentloaded', timeout: 45000 });
+              assert.equal(response?.status(), 200, site.id + ': preview must return HTTP 200');
+              await page.waitForFunction(() => document.querySelector('.dd-brandbar.slim nav'));
+              await page.waitForTimeout(500);
+              const nav = page.locator('.dd-brandbar.slim nav');
+              const before = await nav.evaluate(el => {
+                const cs = getComputedStyle(el);
+                const sb = getComputedStyle(el, '::-webkit-scrollbar');
+                const r = el.getBoundingClientRect();
+                const root = document.documentElement;
+                return {
+                  accessibleName: el.getAttribute('aria-label'),
+                  navWidth: el.clientWidth,
+                  navScrollWidth: el.scrollWidth,
+                  navScrollLeft: el.scrollLeft,
+                  minWidth: cs.minWidth,
+                  flex: cs.flex,
+                  scrollbarWidth: cs.scrollbarWidth,
+                  webkitScrollbarDisplay: sb.display,
+                  webkitScrollbarHeight: sb.height,
+                  navRight: Math.round(r.right),
+                  viewportWidth: innerWidth,
+                  documentWidth: root.scrollWidth,
+                  links: [...el.querySelectorAll('a')].map(a => ({ text: a.textContent.trim(), href: a.href })),
+                };
+              });
+              assert.equal(before.accessibleName, 'DigDevBox sites', site.id + ': nav landmark name');
+              assert.equal(before.documentWidth, before.viewportWidth, site.id + ': no document-level horizontal overflow');
+              assert.ok(before.navScrollWidth > before.navWidth, site.id + ': compact navigation must actually overflow internally');
+              assert.equal(before.scrollbarWidth, 'thin', site.id + ': thin scrollbar must be declared');
+              assert.equal(before.webkitScrollbarDisplay, 'block', site.id + ': WebKit scrollbar must be visible');
+              assert.equal(before.webkitScrollbarHeight, '3px', site.id + ': visible track must be 3px');
+
+              await page.screenshot({ path: 'mobile-nav-audit/' + site.id + '-390-before.jpeg', type: 'jpeg', quality: 85, fullPage: false });
+              await nav.evaluate(el => { el.scrollLeft = el.scrollWidth; });
+              await page.waitForTimeout(150);
+              const after = await nav.evaluate(el => {
+                const links = [...el.querySelectorAll('a')];
+                const last = links.at(-1);
+                const nr = el.getBoundingClientRect();
+                const lr = last.getBoundingClientRect();
+                return {
+                  scrollLeft: el.scrollLeft,
+                  lastLink: last.textContent.trim(),
+                  lastLinkLeft: Math.round(lr.left),
+                  lastLinkRight: Math.round(lr.right),
+                  navLeft: Math.round(nr.left),
+                  navRight: Math.round(nr.right),
+                };
+              });
+              assert.ok(after.scrollLeft > 0, site.id + ': nav scroll position must move');
+              assert.ok(after.lastLinkLeft >= after.navLeft - 1, site.id + ': final link left edge is visible after scrolling');
+              assert.ok(after.lastLinkRight <= after.navRight + 1, site.id + ': final link right edge is visible after scrolling');
+              await page.screenshot({ path: 'mobile-nav-audit/' + site.id + '-390-scrolled.jpeg', type: 'jpeg', quality: 85, fullPage: false });
+              metrics.push({ site: site.id, status: response.status(), before, after, pageErrors });
+              console.log(JSON.stringify({ site: site.id, status: response.status(), nav: before.navWidth + '/' + before.navScrollWidth, scrollbar: before.scrollbarWidth + ' / ' + before.webkitScrollbarDisplay + ' / ' + before.webkitScrollbarHeight, scrolled: after.scrollLeft, lastLink: after.lastLink, documentWidth: before.documentWidth, pageErrors }));
+            } finally {
+              await context.close();
+            }
+          }
+          await browser.close();
+          fs.writeFileSync('mobile-nav-audit/metrics.json', JSON.stringify(metrics, null, 2));
+          console.log('PASS: three exact Cloudflare previews, 390px nav scrolling, visible scrollbar, accessible landmark, and zero root horizontal overflow.');
+          NODE
+      - name: Upload mobile preview screenshots and metrics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mobile-nav-preview-chromium-audit
+          path: mobile-nav-audit/
+          retention-days: 14
+          if-no-files-found: warn
