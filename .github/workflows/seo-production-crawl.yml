@@ -290,6 +290,12 @@ jobs:
             "https://www.digdevbox.com/legacy/rmbdaxie/"
             "https://www.digdevbox.com/legacy/runjs/"
             "https://www.digdevbox.com/legacy/contenttype/"
+            # Current crawl flagged these three legacy-only pages for missing H1.
+            # They are outside the English-first product scope; the response header
+            # should keep them crawlable but excluded from indexing.
+            "https://www.digdevbox.com/legacy/html2cj/"
+            "https://www.digdevbox.com/legacy/jianfan/"
+            "https://www.digdevbox.com/legacy/textflip/"
           )
           report="reports/main-legacy-noindex.txt"
           : > "$report"
