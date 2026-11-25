@@ -1,0 +1,116 @@
+name: Temporary cross-site verification
+
+on:
+  push:
+    branches:
+      - ops/cross-site-verification-20261125
+
+permissions:
+  contents: read
+
+jobs:
+  verify-digttsreader:
+    name: Verify DigTTSReader PR #20
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout exact DigTTSReader candidate
+        run: git clone --depth=1 --branch feat/reader-first-visit-welcome-20261125 https://github.com/yqh-core/digttsreader.git digttsreader
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Enable pinned pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@9.11.0 --activate
+
+      - name: Install frozen dependencies
+        working-directory: digttsreader
+        run: pnpm install --frozen-lockfile
+
+      - name: Production build and SEO prerender
+        working-directory: digttsreader
+        run: pnpm build
+
+      - name: Unit tests
+        working-directory: digttsreader
+        run: pnpm test
+
+      - name: Install Chromium for first-visit interaction test
+        working-directory: digttsreader
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: First-visit welcome E2E
+        working-directory: digttsreader
+        run: pnpm test:e2e tests/e2e/first-visit-welcome.spec.ts
+
+  verify-forge-notes:
+    name: Verify Forge Notes PR #32
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout exact Forge Notes candidate
+        run: git clone --depth=1 --branch content/outlook-safelinks-batch-20261124 https://github.com/yqh-core/forge-notes.git forge-notes
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: forge-notes/.nvmrc
+          cache: npm
+          cache-dependency-path: forge-notes/package-lock.json
+
+      - name: Install locked dependencies
+        working-directory: forge-notes
+        run: npm ci
+
+      - name: Content gate
+        working-directory: forge-notes
+        run: npm run check:content
+
+      - name: Content gate falsification test
+        working-directory: forge-notes
+        run: npm run check:content:falsify
+
+      - name: Build production site
+        working-directory: forge-notes
+        run: npm run build:site
+
+      - name: Priority article sitemap gate
+        working-directory: forge-notes
+        run: |
+          set -euo pipefail
+          sitemap="docs/.vitepress/dist/sitemap.xml"
+          test -s "$sitemap"
+          for path in \
+            /posts/100kb-image-challenge \
+            /posts/m3u8-hls-cors-troubleshooting \
+            /posts/ip-geolocation-accuracy-and-limits \
+            /posts/percentage-change-vs-percentage-points \
+            /posts/eta-calculator-guide \
+            /posts/outlook-safelinks-decoder-guide \
+            /posts/http-basic-auth-header-guide; do
+            grep -Fq "https://notes.digdevbox.com$path" "$sitemap"
+          done
+
+      - name: URL regression gate
+        working-directory: forge-notes
+        run: npm run check:urls
+
+      - name: Inline link gate
+        working-directory: forge-notes
+        run: node scripts/check-inline-links.mjs
+
+      - name: Breadcrumb output gate
+        working-directory: forge-notes
+        run: npm run check:breadcrumb
+
+      - name: Architecture gate
+        working-directory: forge-notes
+        run: npm run check:architecture
+
+      - name: Architecture gate falsification test
+        working-directory: forge-notes
+        run: npm run check:architecture:falsify
