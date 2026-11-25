@@ -103,7 +103,7 @@ test.describe('Homepage task discovery', () => {
     );
     await expect(calculateTask.locator('.featured-task-primary')).toHaveAttribute(
       'aria-label',
-      'Open Percentage Calculator — 7 Modes',
+      'Open tool Percentage Calculator — 7 Modes',
     );
     await expect(calculateTask.locator('a[href="/eta-calculator/"]')).toBeVisible();
   });
