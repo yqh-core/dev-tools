@@ -70,7 +70,7 @@ export function buildBasicAuthExamples(requestUrl: string): BasicAuthExamples {
 }
 
 export function hasBasicAuthControlCharacters(value: string): boolean {
-  return /[\\u0000-\\u001F\\u007F]/.test(value);
+  return /[\u0000-\u001F\u007F]/.test(value);
 }
 
 export function decodeBasicAuthHeader(input: string) {
