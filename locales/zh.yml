@@ -18,6 +18,12 @@ home:
     badgeNoSignup: "无需注册"
     badgeTools: "{count} 个工具"
     cta: "浏览全部工具"
+  quickSearch:
+    ariaLabel: "快捷任务搜索"
+    label: "快速开始："
+    json: "格式化 JSON"
+    jwt: "解析 JWT"
+    regex: "测试正则"
   preview:
     eyebrow: "一个点击即可开始的真实工作流"
     label: "结构化数据"
