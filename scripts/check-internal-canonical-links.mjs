@@ -12,11 +12,11 @@ const graphPages = [];
 let checked = 0;
 
 /**
- * The legacy archive is deliberately retained for visitors and redirect targets,
- * but it is Chinese-only historical content outside the English-first US/EU
- * indexation scope. The HTML pages do not carry a robots meta tag; Cloudflare
- * Pages applies the policy through _headers. Guard both the response-header
- * policy and sitemap exclusion here so a build cannot silently lose noindex.
+ * The legacy archive remains available to visitors, but every retained HTML
+ * page is outside the current English-first US/EU indexation scope. _headers
+ * provides a response-header defense; each built HTML file must also carry an
+ * explicit noindex,follow meta directive because Pages Functions can bypass
+ * _headers response processing. The build guards both mechanisms and sitemap exclusion.
  */
 function assertLegacyNoindexPolicy() {
   const headersPath = path.join(root, '_headers');
@@ -39,12 +39,46 @@ function assertLegacyNoindexPolicy() {
     }
   }
 
+  const legacyRoot = path.join(root, 'legacy');
+  if (!fs.existsSync(legacyRoot)) {
+    throw new Error('[legacy noindex] dist/legacy is missing');
+  }
+  const legacyHtmlFiles = [];
+  function walkLegacy(dir) {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) walkLegacy(full);
+      else if (entry.isFile() && entry.name.toLowerCase().endsWith('.html')) legacyHtmlFiles.push(full);
+    }
+  }
+  walkLegacy(legacyRoot);
+  if (legacyHtmlFiles.length === 0) {
+    throw new Error('[legacy noindex] no built legacy HTML files found; refusing an empty pass');
+  }
+  const legacyMetaFailures = [];
+  for (const file of legacyHtmlFiles) {
+    const html = fs.readFileSync(file, 'utf8');
+    const robotsTags = [...html.matchAll(/<meta\\b[^>]*\\bname\\s*=\\s*(['"])robots\\1[^>]*>/gi)];
+    const robotsContent = robotsTags[0]?.[0]?.match(/\\bcontent\\s*=\\s*(['"])(.*?)\\1/i)?.[2] ?? '';
+    const directives = new Set(robotsContent.toLowerCase().split(',').map(value => value.trim()));
+    if (robotsTags.length !== 1 || !directives.has('noindex') || !directives.has('follow')) {
+      legacyMetaFailures.push(path.relative(root, file).split(path.sep).join('/'));
+    }
+  }
+  if (legacyMetaFailures.length > 0) {
+    throw new Error('[legacy noindex] built HTML pages missing exactly one noindex,follow directive: '
+      + legacyMetaFailures.slice(0, 40).join(', ')
+      + (legacyMetaFailures.length > 40 ? ' … +' + (legacyMetaFailures.length - 40) + ' more' : ''));
+  }
+  console.log('[legacy noindex] PASS: ' + legacyHtmlFiles.length + ' HTML files contain exactly one noindex,follow meta directive');
+
   const sitemap = fs.readFileSync(sitemapPath, 'utf8');
   const legacyEntries = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/gi)]
     .map(match => match[1])
     .filter(url => {
       try {
-        return new URL(url).pathname.startsWith('/legacy/');
+        const pathname = new URL(url).pathname;
+        return pathname === '/legacy' || pathname.startsWith('/legacy/');
       } catch {
         return false;
       }
