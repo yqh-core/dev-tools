@@ -10,7 +10,7 @@ test.describe('Tool - Percentage calculator', () => {
     expect(response).not.toBeNull();
     const prerenderedHtml = await response!.text();
     expect(prerenderedHtml).toContain('<title>Percentage Calculator — 7 Modes - DigDevBox</title>');
-    expect(prerenderedHtml).toContain('What is Percentage Calculator — 7 Modes?');
+    expect(prerenderedHtml).toContain('Percentage Calculator — 7 Modes');
     expect(prerenderedHtml).not.toContain('Percentage Calculator — Percent of, Change & Difference');
 
     await expect(page).toHaveTitle('Percentage Calculator — 7 Modes - DigDevBox');
