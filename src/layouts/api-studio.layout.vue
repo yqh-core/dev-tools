@@ -213,4 +213,33 @@ const methodLegend = [
     display: none;
   }
 }
+
+@media (max-width: 520px) {
+  .api-topbar {
+    gap: 7px;
+    padding: 0 9px;
+  }
+
+  .api-brand {
+    gap: 6px;
+  }
+
+  .api-brand-mark {
+    width: 26px;
+    height: 26px;
+  }
+
+  .api-brand-name {
+    font-size: var(--api-fs);
+  }
+
+  .api-brand-tag,
+  .api-version {
+    display: none;
+  }
+
+  .api-topbar-actions {
+    gap: 5px;
+  }
+}
 </style>
