@@ -447,7 +447,7 @@ function addAssertion(type: AssertionType = 'status') {
 }
 function changeAssertionType(assertion: Assertion, value: unknown) {
   const type = String(value) as AssertionType;
-  if (!Object.prototype.hasOwnProperty.call(OPS_BY_TYPE, type)) {
+  if (!Object.prototype.hasOwnProperty.call(assertionEngine.OPS_BY_TYPE, type)) {
     return;
   }
   const fresh = assertionEngine.makeAssertion(assertion.id, type);
