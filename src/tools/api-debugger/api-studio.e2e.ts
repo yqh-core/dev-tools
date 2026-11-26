@@ -446,6 +446,7 @@ test('manages environments and scoped variables without changing the legacy acti
   expect(store.envs.Staging).toBeUndefined();
   expect(store.envs.Default).toBeDefined();
   expect(store.active).toBe('Default');
+  expect(store.secrets ?? []).not.toContain('API_TOKEN');
 
   // Collection-scope edits persist across reload and remain shared through the existing store.
   await page.getByTestId('scope-collection').click();
