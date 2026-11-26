@@ -17,8 +17,15 @@ export interface CliRunOutcome {
 }
 
 export function classifyCliExit(o: CliRunOutcome): CliExitKind {
-  if (o.reportWriteFailed) return { code: 3, label: 'REPORT_WRITE_FAILED' };
-  if (!o.completed) return { code: 2, label: 'RUN_NOT_COMPLETED' };
-  if (!o.allPassed) return { code: 1, label: 'FAILURES_PRESENT' };
+  if (o.reportWriteFailed) {
+    return { code: 3, label: 'REPORT_WRITE_FAILED' };
+  }
+
+  if (!o.completed) {
+    return { code: 2, label: 'RUN_NOT_COMPLETED' };
+  }
+  if (!o.allPassed) {
+    return { code: 1, label: 'FAILURES_PRESENT' };
+  }
   return { code: 0, label: 'ALL_PASSED' };
 }

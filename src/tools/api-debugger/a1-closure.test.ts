@@ -6,7 +6,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { parseSaved, saveRequest } from './store';
 import type { SavedRequest } from './store';
 import { exportCollection, importCollection } from './collection';
-import { type RunnerResponse, type RunScriptFn, runCollection } from './runner';
+import { type RunScriptFn, type RunnerResponse, runCollection } from './runner';
 import type { ScriptSnapshot } from './script-runtime';
 
 const baseReq = { method: 'GET' as const, url: 'https://api.example.test/x', headers: [], body: '' };
@@ -52,7 +52,11 @@ describe('collection：Postman v2.1 脚本往返', () => {
     const first = importCollection(JSON.stringify(doc));
     expect(first.requests[0].scriptEvents?.prerequest).toBe('pm.environment.set("t","1");');
     const savedForExport: SavedRequest[] = first.requests.map(r => ({
-      id: 'x', name: r.name, request: r.request, createdAt: 1, updatedAt: 1,
+      id: 'x',
+      name: r.name,
+      request: r.request,
+      createdAt: 1,
+      updatedAt: 1,
       ...(r.scriptEvents ? { scriptEvents: r.scriptEvents } : {}),
     }));
     const exported = exportCollection(savedForExport);
@@ -69,7 +73,10 @@ describe('runner：请求失败时 test 脚本仍执行（pm.response=null）', 
     return { url: 'https://x.test/', status: 200, statusText: 'OK', headers: {}, body: '{}', elapsedMs: 1 };
   }
   it('send 抛错 → test 脚本照跑、scriptTests 记录、passed=false', async () => {
-    const send = vi.fn(async () => { throw new Error('network down'); });
+    const send = vi.fn(async () => {
+      throw new Error('network down');
+    });
+
     let seenResponse: unknown = 'unset';
     const runScript: RunScriptFn = async (_code, snap: ScriptSnapshot) => {
       seenResponse = snap.response;

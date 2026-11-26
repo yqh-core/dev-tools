@@ -24,7 +24,10 @@ export interface ReportRedactOptions {
 }
 
 export function redactText(text: string, secretValues?: string[]): string {
-  if (!secretValues?.length) return text;
+  if (!secretValues?.length) {
+    return text;
+  }
+
   let out = text;
   for (const v of secretValues) {
     if (typeof v === 'string' && v.length > 3 && out.includes(v)) {
@@ -168,11 +171,22 @@ function xmlEsc(s: string): string {
  *  pm.test 失败（脚本正常执行但断言未过）归入 assertion_failed（Newman 同口径）；
  *  fail-closed：!passed 但无具体类型时绝不映射为"通过"——记 unknown_error。 */
 function failureTypeOf(r: { sent: boolean; passed: boolean; error?: string; scriptError?: string; assertions: { passed: boolean }[]; scriptTests: { passed: boolean }[] }): string | null {
-  if (r.passed) return null;
-  if (r.scriptError && /timeout|killed/i.test(r.scriptError)) return 'timeout';
-  if (!r.sent) return r.scriptError ? 'script_error' : 'request_error';
-  if (r.scriptError) return 'script_error';
-  if (r.assertions.some(a => !a.passed) || r.scriptTests.some(t => !t.passed)) return 'assertion_failed';
+  if (r.passed) {
+    return null;
+  }
+
+  if (r.scriptError && /timeout|killed/i.test(r.scriptError)) {
+    return 'timeout';
+  }
+  if (!r.sent) {
+    return r.scriptError ? 'script_error' : 'request_error';
+  }
+  if (r.scriptError) {
+    return 'script_error';
+  }
+  if (r.assertions.some(a => !a.passed) || r.scriptTests.some(t => !t.passed)) {
+    return 'assertion_failed';
+  }
   return r.error ? 'request_error' : 'unknown_error';
 }
 
@@ -188,23 +202,23 @@ export function toJUnitXml(report: RunReport): string {
   const timeSec = (report.summary.durationMs / 1000).toFixed(3);
 
   const lines: string[] = [];
-  lines.push(`<?xml version="1.0" encoding="UTF-8"?>`);
+  lines.push('<?xml version="1.0" encoding="UTF-8"?>');
   lines.push(`<testsuites name="${esc(report.meta.collectionName ?? 'API Studio Collection Run')}" tests="${totalCases}" failures="${failures}" skipped="${skipped}" time="${timeSec}">`);
-  lines.push(`  <properties>`);
+  lines.push('  <properties>');
   lines.push(`    <property name="apiStudioVersion" value="${esc(report.meta.apiStudioVersion)}"/>`);
   lines.push(`    <property name="runId" value="${esc(report.meta.runId)}"/>`);
   lines.push(`    <property name="result" value="${report.summary.allPassed ? 'ALL PASSED' : 'FAILURES PRESENT'}"/>`);
   lines.push(`    <property name="dataFile" value="${report.dataFile ? `${report.dataFile.type} rows=${report.dataFile.rows}` : 'none'}"/>`);
   lines.push(`    <property name="security" value="secrets: ${report.security.secretsExcluded ? 'marked-values-redacted' : 'none (structural exclusions only)'}; env/data-row/body/header-values excluded structurally"/>`);
-  lines.push(`  </properties>`);
+  lines.push('  </properties>');
   for (const { iteration, r } of rows) {
     const classname = `iteration ${iteration} · ${esc(r.name)}`;
     const name = `${esc(r.method)} ${esc(r.url)}`;
     if (cancelledNotSent(r)) {
       // 取消且未执行 → skipped（优先于 failure：取消不是失败，B4 状态区分硬要求）
       lines.push(`  <testcase classname="${classname}" name="${name}" time="0">`);
-      lines.push(`    <skipped message="run cancelled before this request"/>`);
-      lines.push(`  </testcase>`);
+      lines.push('    <skipped message="run cancelled before this request"/>');
+      lines.push('  </testcase>');
       continue;
     }
     const ftype = failureTypeOf(r);
@@ -216,21 +230,21 @@ export function toJUnitXml(report: RunReport): string {
         ?? 'failed';
       lines.push(`  <testcase classname="${classname}" name="${name}" time="${((r.elapsedMs ?? 0) / 1000).toFixed(3)}">`);
       lines.push(`    <failure type="${esc(ftype)}" message="${esc(detail.slice(0, 300))}">${esc(detail.slice(0, 2000))}</failure>`);
-      lines.push(`  </testcase>`);
+      lines.push('  </testcase>');
     }
     else {
       // 通过（含 HTTP 4xx/5xx 但断言全过——B4：服务响应状态≠测试失败，状态记入属性）
       lines.push(`  <testcase classname="${classname}" name="${name}" time="${((r.elapsedMs ?? 0) / 1000).toFixed(3)}">`);
-      lines.push(`    <properties>`);
+      lines.push('    <properties>');
       lines.push(`      <property name="httpStatus" value="${r.status ?? 'not-sent'}"/>`);
       if (r.status !== null && r.status >= 400) {
         lines.push(`      <property name="note" value="HTTP ${r.status} returned but all assertions passed (service status is not a test failure)"/>`);
       }
-      lines.push(`    </properties>`);
-      lines.push(`  </testcase>`);
+      lines.push('    </properties>');
+      lines.push('  </testcase>');
     }
   }
-  lines.push(`</testsuites>`);
+  lines.push('</testsuites>');
   return lines.join('\n');
 }
 
@@ -238,17 +252,20 @@ export function toJUnitXml(report: RunReport): string {
 export function isWellFormedXml(x: string): boolean {
   const tagRe = /<(\/?)([A-Za-z][\w:-]*)((?:"[^"]*"|'[^']*'|[^>"'])*)(\/?)>/g;
   const stack: string[] = [];
-  let m: RegExpExecArray | null;
   let lastIndexEnd = 0;
-  while ((m = tagRe.exec(x)) !== null) {
+  for (let m = tagRe.exec(x); m !== null; m = tagRe.exec(x)) {
     // 标签之间只允许空白/文本（这里允许任意文本，只校验标签结构）
     lastIndexEnd = tagRe.lastIndex;
     const closing = m[1] === '/';
     const name = m[2];
     const selfClosing = m[4] === '/' || m[0].endsWith('/>');
-    if (name.toLowerCase() === '?xml') continue;
+    if (name.toLowerCase() === '?xml') {
+      continue;
+    }
     if (closing) {
-      if (stack.pop() !== name) return false;
+      if (stack.pop() !== name) {
+        return false;
+      }
     }
     else if (!selfClosing) {
       stack.push(name);

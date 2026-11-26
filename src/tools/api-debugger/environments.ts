@@ -162,13 +162,17 @@ export function isSecret(store: EnvStore, name: string): boolean {
  *  值长度 >3 才收集（短值误伤登记）；名字本身不进值集合；去重。 */
 export function collectSecretValues(store: EnvStore): string[] {
   const names = new Set(store.secrets ?? []);
-  if (!names.size) return [];
+  if (!names.size) {
+    return [];
+  }
   const layers: Record<string, string>[] = [store.global ?? {}, store.collection ?? {}, ...Object.values(store.envs ?? {})];
   const values: string[] = [];
   for (const layer of layers) {
     for (const name of names) {
       const v = layer[name];
-      if (typeof v === 'string' && v.length > 3 && !values.includes(v)) values.push(v);
+      if (typeof v === 'string' && v.length > 3 && !values.includes(v)) {
+        values.push(v);
+      }
     }
   }
   return values;

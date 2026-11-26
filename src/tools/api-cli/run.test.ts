@@ -2,10 +2,11 @@
  * CLI run 编排单测（加载/目录合并/环境/数据文件/stub 执行/报告落盘/写失败/退出码）。
  * 顺序锁：B 阶段暴露过 store 头插致逆序执行缺陷——此处锁导入顺序=执行顺序。
  */
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { mkdtempSync, writeFileSync, readFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import process from 'node:process';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { CliRunError, executeRun, loadCollectionRequests, loadEnvironment, loadIterationData } from './run';
 import type { CliArgs } from './args';
 
@@ -19,7 +20,9 @@ const COLLECTION = JSON.stringify({
 const ENV_FILE = JSON.stringify({ name: 'cli-test', values: [{ key: 'baseUrl', value: 'https://upstream.example.test', enabled: true }, { key: 'token', value: 'T-CLI', enabled: true, secret: true }] });
 const DATA_CSV = 'email,expectedRole\nalice@example.test,admin\nbob@example.test,reader\n';
 
-function tmpDir(): string { return mkdtempSync(join(tmpdir(), 'api-cli-run-')); }
+function tmpDir(): string {
+  return mkdtempSync(join(tmpdir(), 'api-cli-run-'));
+}
 function baseArgs(patch: Partial<CliArgs> = {}): CliArgs {
   return { command: 'run', collectionPath: '', requestTimeoutMs: 30000, delayMs: 0, stopOnError: true, stopOnFailure: false, reporters: ['cli'], ci: false, ...patch };
 }
@@ -100,7 +103,7 @@ describe('loadEnvironment / loadIterationData', () => {
 
 describe('executeRun（stub send/runScript）', () => {
   // 结构类型收窄（vi.spyOn 重载的 ReturnType 与 MockInstance 泛型不匹配——TS2322 根因）
-  type WriteSpy = { mock: { calls: unknown[][] }; mockRestore: () => void };
+  interface WriteSpy { mock: { calls: unknown[][] }; mockRestore: () => void }
   let stdoutSpy: WriteSpy;
   let stderrSpy: WriteSpy;
   beforeEach(() => {
@@ -156,7 +159,11 @@ describe('executeRun（stub send/runScript）', () => {
     writeFileSync(join(dir, 'env.json'), ENV_FILE);
     writeFileSync(join(dir, 'd.csv'), DATA_CSV);
     const seenUrls: string[] = [];
-    const send = async (p: { url: string }) => { seenUrls.push(p.url); return { url: p.url, status: 200, statusText: 'OK', headers: {}, body: '{}', elapsedMs: 1 }; };
+    const send = async (p: { url: string }) => {
+      seenUrls.push(p.url);
+
+      return { url: p.url, status: 200, statusText: 'OK', headers: {}, body: '{}', elapsedMs: 1 };
+    };
     await executeRun(baseArgs({ collectionPath: join(dir, 'c.json'), environmentFile: join(dir, 'env.json'), iterationDataFile: join(dir, 'd.csv') }), { runScript: passingScript as never, send: send as never });
     expect(seenUrls).toEqual(['https://upstream.example.test/a?email=alice@example.test', 'https://upstream.example.test/b', 'https://upstream.example.test/a?email=bob@example.test', 'https://upstream.example.test/b']);
   }, 20000);
@@ -165,10 +172,13 @@ describe('executeRun（stub send/runScript）', () => {
     const dir = tmpDir();
     writeFileSync(join(dir, 'c.json'), COLLECTION);
     // baseUrl+email 齐夹具（缺变量→请求不发送→exit 1 假象，首轮失败根因同 E3 锁）
-    writeFileSync(join(dir, 'env.json'), JSON.stringify({ name: 'cli-mkdir', values: [
-      { key: 'baseUrl', value: 'https://upstream.example.test', enabled: true },
-      { key: 'email', value: 'alice@example.test', enabled: true },
-    ] }));
+    writeFileSync(join(dir, 'env.json'), JSON.stringify({
+      name: 'cli-mkdir',
+      values: [
+        { key: 'baseUrl', value: 'https://upstream.example.test', enabled: true },
+        { key: 'email', value: 'alice@example.test', enabled: true },
+      ],
+    }));
     const nested = join(dir, 'fresh-reports', 'sub', 'run.json');
     const r = await executeRun(baseArgs({ collectionPath: join(dir, 'c.json'), environmentFile: join(dir, 'env.json'), reporters: ['json'], reportJsonPath: nested }), { runScript: passingScript as never, send: stubSend as never });
     expect(r.exit).toBe(0);
@@ -183,11 +193,14 @@ describe('executeRun（stub send/runScript）', () => {
     const dir = tmpDir();
     writeFileSync(join(dir, 'c.json'), COLLECTION);
     // baseUrl/email 必须齐：缺变量 → 请求不发送 → runScript 不触发 → 夹具空洞（首轮失败根因）。
-    writeFileSync(join(dir, 'env.json'), JSON.stringify({ name: 'cli-test', values: [
-      { key: 'baseUrl', value: 'https://upstream.example.test', enabled: true },
-      { key: 'email', value: 'alice@example.test', enabled: true },
-      { key: 'apiToken', value: 'SK-CLI-PLANT-9f3', enabled: true, secret: true },
-    ] }));
+    writeFileSync(join(dir, 'env.json'), JSON.stringify({
+      name: 'cli-test',
+      values: [
+        { key: 'baseUrl', value: 'https://upstream.example.test', enabled: true },
+        { key: 'email', value: 'alice@example.test', enabled: true },
+        { key: 'apiToken', value: 'SK-CLI-PLANT-9f3', enabled: true, secret: true },
+      ],
+    }));
     const failingScript = async () => ({ outcome: { tests: [{ name: 't', passed: false, error: 'expected 200 got 500; token=SK-CLI-PLANT-9f3' }], envWrites: [], requestMutations: {}, logs: [], sendRequests: [], asyncPending: false }, timedOut: false });
     const reportPath = join(dir, 'report.json');
     const r = await executeRun(baseArgs({ collectionPath: join(dir, 'c.json'), environmentFile: join(dir, 'env.json'), reporters: ['json'], reportJsonPath: reportPath }), { runScript: failingScript as never, send: stubSend as never });

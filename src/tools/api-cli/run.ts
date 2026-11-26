@@ -11,17 +11,18 @@
  * 3 报告写入失败 / 4 用法错误。
  */
 /// <reference types="node" />
-import { readFileSync, readdirSync, statSync, writeFileSync, mkdirSync } from 'node:fs';
+import { mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { basename, dirname, join } from 'node:path';
+import process from 'node:process';
 import { importCollection } from '../api-debugger/collection';
 import type { ImportedRequest } from '../api-debugger/openapi';
-import { parseDataFile, type DataFile } from '../api-debugger/datafiles';
-import { runCollection, formatCollectionReportText, type CollectionRunSummary, type RequestRunResult, type RunnerResponse, type SendFn } from '../api-debugger/runner';
-import { buildRunReport, toJUnitXml, type RunReportMeta } from '../api-debugger/report';
+import { type DataFile, parseDataFile } from '../api-debugger/datafiles';
+import { type CollectionRunSummary, type RequestRunResult, type RunnerResponse, type SendFn, formatCollectionReportText, runCollection } from '../api-debugger/runner';
+import { type RunReportMeta, buildRunReport, toJUnitXml } from '../api-debugger/report';
 import type { SavedRequest } from '../api-debugger/store';
 import { parseEnvironmentFile } from './env-file';
 import { classifyCliExit } from './exit-code';
-import { createSandboxRunScript, type CliRunScriptFn } from './sandbox';
+import { type CliRunScriptFn, createSandboxRunScript } from './sandbox';
 import { API_STUDIO_CLI_VERSION } from './version';
 import type { CliArgs } from './args';
 
@@ -95,7 +96,10 @@ export function loadCollectionRequests(collectionPath: string): { requests: Save
 
 /** 环境加载：-e 文件（Postman environment v2.1 或扁平表）；命名环境 fail-closed（CLI 无本地存储）。 */
 export function loadEnvironment(environmentFile: string | undefined): { env: Record<string, string>; name?: string; secretNames: string[] } {
-  if (!environmentFile) return { env: {}, secretNames: [] };
+  if (!environmentFile) {
+    return { env: {}, secretNames: [] };
+  }
+
   let text: string;
   try {
     text = readFileSync(environmentFile, 'utf8');
@@ -112,7 +116,10 @@ export function loadEnvironment(environmentFile: string | undefined): { env: Rec
 
 /** 数据文件加载：严格解析 fail-closed（与浏览器同引擎）。 */
 export function loadIterationData(iterationDataFile: string | undefined): { dataFile: DataFile; dataFileType: 'csv' | 'json' } | null {
-  if (!iterationDataFile) return null;
+  if (!iterationDataFile) {
+    return null;
+  }
+
   let text: string;
   try {
     text = readFileSync(iterationDataFile, 'utf8');
@@ -145,7 +152,9 @@ export function buildCliSend(requestTimeoutMs: number): SendFn {
       });
       const body = await resp.text();
       const headers: Record<string, string> = {};
-      resp.headers.forEach((v, k) => { headers[k] = v; });
+      resp.headers.forEach((v, k) => {
+        headers[k] = v;
+      });
       const response: RunnerResponse = {
         url: resp.url,
         status: resp.status,
@@ -224,7 +233,10 @@ export async function executeRun(args: CliArgs, opts: ExecuteRunOptions = {}): P
   let reportWriteFailed = false;
   let firstWriteError: string | undefined;
   const tryWrite = (path: string | undefined, content: string, kind: string) => {
-    if (!path) return;
+    if (!path) {
+      return;
+    }
+
     try {
       // 终审 07 指令 C-006：报告父目录自动创建（干净 runner 上 writeFileSync 不建父目录→exit 3 与断言失败混淆；
       // GA 示例 mkdir -p 与本口径双保险。父路径是文件时 mkdir 抛错→如实 exit 3，S5 锁口径不变）。
@@ -241,7 +253,7 @@ export async function executeRun(args: CliArgs, opts: ExecuteRunOptions = {}): P
   };
   // cli reporter：stdout 仅放最终文本报告（进度在 stderr），CI 日志可完整重定向
   if (args.reporters.includes('cli')) {
-    process.stdout.write(formatCollectionReportText(summary, { secretValues }) + '\n');
+    process.stdout.write(`${formatCollectionReportText(summary, { secretValues })}\n`);
   }
   tryWrite(args.reportJsonPath, JSON.stringify(report, null, 2), 'json');
   tryWrite(args.reportJunitPath, toJUnitXml(report), 'junit');

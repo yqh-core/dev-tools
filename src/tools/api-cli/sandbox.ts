@@ -17,13 +17,14 @@
  * 测试分层），产品默认子进程传输；CLI E2E/逃逸探针驱动真实子进程入口。
  */
 /// <reference types="node" />
-import { spawn, execFile, type ChildProcess } from 'node:child_process';
+import { type ChildProcess, execFile, spawn } from 'node:child_process';
 import { mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 import { Worker } from 'node:worker_threads';
-import { truncateResponseBody, type ScriptSnapshot, type ScriptOutcomeData } from '../api-debugger/script-runtime';
+import { type ScriptOutcomeData, type ScriptSnapshot, truncateResponseBody } from '../api-debugger/script-runtime';
 import type { RunnerResponse } from '../api-debugger/runner';
 
 /** 与浏览器 RunnerOptions.runScript 同签名（DI：单测注入 stub/夹具传输；E2E 走真实子进程）。 */
@@ -49,27 +50,50 @@ const WIN = process.platform === 'win32';
 /** 整树 kill：POSIX 进程组（-pid，detached 新组）；Windows taskkill /T /F。 */
 function killTree(child: ChildProcess): void {
   const pid = child.pid;
-  if (pid === undefined) { try { child.kill() } catch { /* 已退出 */ } return; }
+  if (pid === undefined) {
+    try {
+      child.kill();
+    }
+    catch { /* 已退出 */ }
+    return;
+  }
   if (WIN) {
-    try { spawn('taskkill', ['/T', '/F', '/PID', String(pid)], { stdio: 'ignore' }) } catch { /* 兜底 below */ }
+    try {
+      spawn('taskkill', ['/T', '/F', '/PID', String(pid)], { stdio: 'ignore' });
+    }
+    catch { /* 兜底 below */ }
   }
   else {
-    try { process.kill(-pid, 'SIGKILL') } catch { /* 组已散 */ }
+    try {
+      process.kill(-pid, 'SIGKILL');
+    }
+    catch { /* 组已散 */ }
   }
-  try { child.kill('SIGKILL') } catch { /* 已退出 */ }
+  try {
+    child.kill('SIGKILL');
+  }
+  catch { /* 已退出 */ }
 }
 
 /** 子进程 rss 软上限轮询（Windows tasklist / POSIX ps；解析失败=null=无意见，绝不静默判绿）。 */
 function childMemoryKb(pid: number): Promise<number | null> {
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     const cmd = WIN ? 'tasklist' : 'ps';
     const args = WIN ? ['/fi', `PID eq ${pid}`, '/fo', 'csv'] : ['-o', 'rss=', '-p', String(pid)];
     execFile(cmd, args, { timeout: 2000 }, (e, stdout) => {
-      if (e) { resolve(null); return; }
+      if (e) {
+        resolve(null);
+        return;
+      }
+
       const m = WIN
         ? /"(\d[\d,]*)"\s*K/.exec(stdout.replace(/"/g, '')) || /(\d[\d,]*)\s*K/.exec(stdout)
         : /^\s*(\d+)\s*$/.exec(stdout.trim());
-      if (!m) { resolve(null); return; }
+      if (!m) {
+        resolve(null);
+
+        return;
+      }
       const kb = Number(m[1].replace(/,/g, ''));
       resolve(Number.isFinite(kb) ? kb : null);
     });
@@ -78,11 +102,11 @@ function childMemoryKb(pid: number): Promise<number | null> {
 
 /** G2 产品默认传输：隔离子进程（干净 env/空 cwd/进程组 kill/内存软上限）。 */
 export class SubprocessTransport implements SandboxTransport {
-  private child: ChildProcess
-  private deadHandlers: (() => void)[] = []
-  private dead = false
-  readonly pid: number | undefined
-  readonly cwd: string
+  private child: ChildProcess;
+  private deadHandlers: (() => void)[] = [];
+  private dead = false;
+  readonly pid: number | undefined;
+  readonly cwd: string;
 
   constructor(url: URL, opts: { args?: string[]; memoryLimitMb?: number } = {}) {
     const empty = mkdtempSync(join(tmpdir(), 'api-studio-sandbox-'));
@@ -92,7 +116,9 @@ export class SubprocessTransport implements SandboxTransport {
     // （HOMEDRIVE/HOMEPATH/PATH/SYSTEMROOT/USERPROFILE 等——无用户定义变量、零 secret 模式）；
     // 判据锁见 sandbox.test（G2 边界①：键集封闭 + 零 secret 模式）。
     const env: Record<string, string> = { TMPDIR: empty, TEMP: empty, TMP: empty };
-    if (process.env.SYSTEMROOT) env.SYSTEMROOT = process.env.SYSTEMROOT;
+    if (process.env.SYSTEMROOT) {
+      env.SYSTEMROOT = process.env.SYSTEMROOT;
+    }
     this.child = spawn(process.execPath, [fileURLToPath(url), ...(opts.args ?? [])], {
       stdio: ['ignore', 'pipe', 'pipe', 'ipc'],
       env,
@@ -102,31 +128,50 @@ export class SubprocessTransport implements SandboxTransport {
     this.pid = this.child.pid;
     this.child.stderr?.resume(); // 诊断面不阻塞（崩溃文本由 exit 事件承载）
     this.child.stdout?.resume();
-    this.child.on('exit', code => {
-      if (this.dead) return;
+    this.child.on('exit', (code) => {
+      if (this.dead) {
+        return;
+      }
+
       this.dead = true;
-      if (code !== 0) for (const h of this.deadHandlers) h();
+      if (code !== 0) {
+        for (const h of this.deadHandlers) {
+          h();
+        }
+      }
     });
   }
 
   post(message: unknown): void {
-    try { this.child.send(message as Parameters<ChildProcess['send']>[0]) } catch { /* 通道已断：崩溃回调承载 */ }
+    try {
+      this.child.send(message as Parameters<ChildProcess['send']>[0]);
+    }
+    catch { /* 通道已断：崩溃回调承载 */ }
   }
+
   onMessage(handler: (d: any) => void): void {
-    this.child.on('message', handler)
+    this.child.on('message', handler);
   }
+
   onDead(handler: () => void): void {
-    this.deadHandlers.push(handler)
+    this.deadHandlers.push(handler);
   }
+
   kill(): void {
-    if (this.dead) return;
+    if (this.dead) {
+      return;
+    }
+
     this.dead = true;
     killTree(this.child);
   }
 
   /** 内存软上限轮询句柄（由执行器启停）；超限返回 true=已 kill。 */
   async checkMemory(limitMb: number): Promise<boolean> {
-    if (this.pid === undefined || this.dead) return false;
+    if (this.pid === undefined || this.dead) {
+      return false;
+    }
+
     const kb = await childMemoryKb(this.pid);
     if (kb !== null && kb > limitMb * 1024) {
       this.kill();
@@ -138,25 +183,42 @@ export class SubprocessTransport implements SandboxTransport {
 
 /** 单测/夹具传输：worker_threads（协议夹具 .ts 夹具由 vitest 加载；产品传输=子进程，见 SubprocessTransport）。 */
 export class WorkerTransport implements SandboxTransport {
-  private worker: Worker
+  private worker: Worker;
   constructor(url: URL) {
-    this.worker = new Worker(url)
-    this.worker.unref?.()
+    this.worker = new Worker(url);
+    this.worker.unref?.();
   }
+
   post(message: unknown): void {
-    try { this.worker.postMessage(message) } catch { /* 通道已断：死亡回调承载 */ }
+    try {
+      this.worker.postMessage(message);
+    }
+    catch { /* 通道已断：死亡回调承载 */ }
   }
+
   onMessage(handler: (d: any) => void): void {
-    this.worker.on('message', handler)
+    this.worker.on('message', handler);
   }
+
   onDead(handler: () => void): void {
-    const thisTransport = this;
-    const wrapped = () => { if (thisTransport.worker !== undefined) handler() };
-    this.worker.on('error', wrapped)
-    this.worker.on('exit', code => { if (code !== 0) wrapped() })
+    const wrapped = () => {
+      if (this.worker !== undefined) {
+        handler();
+      }
+    };
+    this.worker.on('error', wrapped);
+    this.worker.on('exit', (code) => {
+      if (code !== 0) {
+        wrapped();
+      }
+    });
   }
+
   kill(): void {
-    try { this.worker.terminate() } catch { /* 已退出 */ }
+    try {
+      this.worker.terminate();
+    }
+    catch { /* 已退出 */ }
   }
 }
 
@@ -175,7 +237,11 @@ export function createSandboxRunScript(
   const active = new Map<number, { resolve: (r: { outcome: ScriptOutcomeData; error?: string; timedOut: boolean }) => void; timer: ReturnType<typeof setTimeout>; send: SendBridge; memPoll: ReturnType<typeof setInterval> | null }>();
 
   function killTransport(): void {
-    try { transport?.kill() } catch { /* 已死 */ }
+    try {
+      transport?.kill();
+    }
+    catch { /* 已死 */ }
+
     transport = null;
   }
 
@@ -184,38 +250,62 @@ export function createSandboxRunScript(
       const t = makeTransport(url);
       const thisTransport = t;
       t.onMessage((d: any) => {
-        if (transport !== thisTransport) return; // 陈旧事件（已 kill 重建的实例）忽略——A-017 同口径
+        if (transport !== thisTransport) {
+          return;
+        }
+
+        // 陈旧事件（已 kill 重建的实例）忽略——A-017 同口径
         if (d?.type === 'sendRequest') {
           const run = active.get(d.nonce);
-          if (!run) return;
+          if (!run) {
+            return;
+          }
           const spec = d.spec ?? {};
           void run.send({ url: String(spec.url), method: String(spec.method ?? 'GET'), headers: Array.isArray(spec.header) ? spec.header : [], body: String(spec.body ?? '') })
-            .then(res => {
+            .then((res) => {
               // 终审 P1-03 口径延续：宿主桥回填前响应体字节级截断（子进程面不接收无界响应体）
               const t = truncateResponseBody(res.body);
-              thisTransport.post({ type: 'sendResponse', reqId: d.reqId, ok: true, result: {
-                code: res.status, status: String(res.status), statusText: res.statusText,
-                headers: Object.entries(res.headers).map(([name, value]) => ({ name, value })),
-                body: t.body, responseTime: res.elapsedMs, truncated: t.truncated,
-              } });
+              thisTransport.post({
+                type: 'sendResponse',
+                reqId: d.reqId,
+                ok: true,
+                result: {
+                  code: res.status,
+                  status: String(res.status),
+                  statusText: res.statusText,
+                  headers: Object.entries(res.headers).map(([name, value]) => ({ name, value })),
+                  body: t.body,
+                  responseTime: res.elapsedMs,
+                  truncated: t.truncated,
+                },
+              });
             })
             .catch(err => thisTransport.post({ type: 'sendResponse', reqId: d.reqId, ok: false, error: String(err instanceof Error ? err.message : err).slice(0, 200) }));
           return;
         }
         if (d?.type === 'done') {
           const run = active.get(d.nonce);
-          if (!run) return; // 陈旧 done（超时后迟到的旧实例消息）不回填——nonce 精确匹配+active 删除
+          if (!run) {
+            return;
+          } // 陈旧 done（超时后迟到的旧实例消息）不回填——nonce 精确匹配+active 删除
           active.delete(d.nonce);
           clearTimeout(run.timer);
-          if (run.memPoll) clearInterval(run.memPoll);
+          if (run.memPoll) {
+            clearInterval(run.memPoll);
+          }
           run.resolve({ outcome: d.outcome ?? emptyOutcome(), error: d.error, timedOut: false });
         }
       });
       t.onDead(() => {
-        if (transport !== thisTransport) return;
+        if (transport !== thisTransport) {
+          return;
+        }
+
         for (const [n, run] of active) {
           clearTimeout(run.timer);
-          if (run.memPoll) clearInterval(run.memPoll);
+          if (run.memPoll) {
+            clearInterval(run.memPoll);
+          }
           active.delete(n);
           run.resolve({ outcome: emptyOutcome(), error: 'sandbox process exited unexpectedly (crash or killed) — run result not fabricated', timedOut: false });
         }
@@ -229,11 +319,16 @@ export function createSandboxRunScript(
   return async (code, snapshot, send) => {
     const t = ensureTransport();
     const n = ++nonce;
-    return new Promise<{ outcome: ScriptOutcomeData; error?: string; timedOut: boolean }>(resolve => {
+    return new Promise<{ outcome: ScriptOutcomeData; error?: string; timedOut: boolean }>((resolve) => {
       let memPoll: ReturnType<typeof setInterval> | null = null;
       const finish = (r: { outcome: ScriptOutcomeData; error?: string; timedOut: boolean }) => {
-        if (memPoll) clearInterval(memPoll);
-        if (active.has(n)) active.delete(n);
+        if (memPoll) {
+          clearInterval(memPoll);
+        }
+
+        if (active.has(n)) {
+          active.delete(n);
+        }
         resolve(r);
       };
       const timer = setTimeout(() => {
@@ -244,7 +339,13 @@ export function createSandboxRunScript(
       }, timeoutMs);
       // G2 内存软上限：rss 轮询（外部观察，脚本事件循环阻塞不影响宿主判据）；超限 kill tree 如实标记
       memPoll = setInterval(async () => {
-        if (!active.has(n)) { if (memPoll) clearInterval(memPoll); return; }
+        if (!active.has(n)) {
+          if (memPoll) {
+            clearInterval(memPoll);
+          }
+          return;
+        }
+
         if (t instanceof SubprocessTransport && await t.checkMemory(memoryLimitMb)) {
           finish({ outcome: emptyOutcome(), error: `sandbox memory limit exceeded (${memoryLimitMb} MB rss) — process tree killed; result not fabricated`, timedOut: false });
         }

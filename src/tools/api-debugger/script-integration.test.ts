@@ -5,7 +5,7 @@
  */
 import { describe, expect, it, vi } from 'vitest';
 import { importCollection } from './collection';
-import { type RunnerResponse, type RunScriptFn, runCollection } from './runner';
+import { type RunScriptFn, type RunnerResponse, runCollection } from './runner';
 import type { SavedRequest } from './store';
 import type { ScriptOutcomeData, ScriptSnapshot } from './script-runtime';
 
@@ -15,9 +15,12 @@ function outcome(patch: Partial<ScriptOutcomeData> = {}): ScriptOutcomeData {
 
 function saved(name: string, patch: Partial<SavedRequest> = {}): SavedRequest {
   return {
-    id: `s-${name}`, name,
+    id: `s-${name}`,
+    name,
     request: { method: 'GET', url: `https://x.test/${name}`, headers: [], body: '' },
-    createdAt: 1, updatedAt: 1, ...patch,
+    createdAt: 1,
+    updatedAt: 1,
+    ...patch,
   };
 }
 
@@ -52,7 +55,7 @@ describe('collection v2.1 事件提取', () => {
     const { requests } = importCollection(doc);
     const noEv = requests.find(r => r.name === 'Folder / NoEv');
     expect(noEv?.scriptEvents?.prerequest).toBe('echo-folder'); // Postman 行为：folder 事件对子请求生效
-    expect(noEv?.scriptEvents?.test).toBeUndefined();           // 没有 test 就不该出现 test 键
+    expect(noEv?.scriptEvents?.test).toBeUndefined(); // 没有 test 就不该出现 test 键
     const bare = importCollection(JSON.stringify({ item: [{ name: 'B', request: { method: 'GET', url: 'https://x.test/b' } }] })).requests[0];
     expect(bare.scriptEvents).toBeUndefined();
   });
@@ -64,7 +67,10 @@ describe('runner 脚本生命周期', () => {
     const send = vi.fn(async () => resp());
     const runScript: RunScriptFn = async (code, _snap, _s) => {
       // 模拟真实沙箱：脚本写的是 outcome.envWrites，由 runner 应用到分层
-      if (code.includes('set-token')) return { outcome: outcome({ envWrites: [{ layer: 'environment', name: 'token', value: 'T9' }] }), timedOut: false };
+      if (code.includes('set-token')) {
+        return { outcome: outcome({ envWrites: [{ layer: 'environment', name: 'token', value: 'T9' }] }), timedOut: false };
+      }
+
       return { outcome: outcome(), timedOut: false };
     };
     const s1 = saved('login', { scriptEvents: { prerequest: 'set-token' } });
@@ -122,7 +128,7 @@ describe('runner 脚本生命周期', () => {
     const send = vi.fn(async () => resp());
     const signal = { aborted: false };
     const runScript: RunScriptFn = async () => {
-      await new Promise(r => setTimeout(r, 30));
+      await new Promise(resolve => setTimeout(resolve, 30));
       signal.aborted = true; // 模拟用户在脚本执行中点取消
       return { outcome: outcome(), timedOut: false };
     };

@@ -12,7 +12,10 @@
 export type EnvParseResult = { ok: true; name?: string; env: Record<string, string>; secretNames: string[] } | { ok: false; error: string };
 
 export function parseEnvironmentFile(text: string, filename: string): EnvParseResult {
-  if (typeof text !== 'string') return { ok: false, error: 'Environment file content must be text.' };
+  if (typeof text !== 'string') {
+    return { ok: false, error: 'Environment file content must be text.' };
+  }
+
   let doc: unknown;
   try {
     doc = JSON.parse(text.replace(/^\uFEFF/, ''));
@@ -33,19 +36,26 @@ export function parseEnvironmentFile(text: string, filename: string): EnvParseRe
         return { ok: false, error: `Environment file "${filename}": every values entry must be an object.` };
       }
       const rec = entry as Record<string, unknown>;
-      if (rec.enabled === false) continue;
+      if (rec.enabled === false) {
+        continue;
+      }
       if (typeof rec.key !== 'string' || rec.key.trim() === '') {
         return { ok: false, error: `Environment file "${filename}": values entries require a non-empty string "key".` };
       }
       env[rec.key] = rec.value === undefined || rec.value === null ? '' : String(rec.value);
-      if (rec.secret === true) secretNames.push(rec.key);
+      if (rec.secret === true) {
+        secretNames.push(rec.key);
+      }
     }
     return { ok: true, name: typeof obj.name === 'string' ? obj.name : undefined, env, secretNames };
   }
   // 形态 2：扁平键值表（无 secret 标记机制——空集合）
   const env: Record<string, string> = {};
   for (const [k, v] of Object.entries(obj)) {
-    if (v === undefined || v === null) continue;
+    if (v === undefined || v === null) {
+      continue;
+    }
+
     if (typeof v === 'object') {
       return { ok: false, error: `Environment file "${filename}": nested values are not supported (flat map or Postman values array only).` };
     }

@@ -10,7 +10,9 @@ describe('parseArgs', () => {
   it('run + 位置参数 + 全标志解析', () => {
     const r = run(['-e', 'env.json', '-d', 'data.csv', '-n', '3', '--bail', '--timeout-request', '5000', '--delay-request', '200', '--reporters', 'cli,json,junit', '--report-json', 'r.json', '--report-junit', 'r.xml', '--ci', '--no-stop-on-error']);
     expect(r.ok).toBe(true);
-    if (!r.ok || !('args' in r)) return; // 判别联合收窄（help/version 变体无 args）
+    if (!r.ok || !('args' in r)) {
+      return;
+    } // 判别联合收窄（help/version 变体无 args）
     expect(r.args.command).toBe('run');
     expect(r.args.collectionPath).toBe('/tmp/c.json');
     expect(r.args.environmentFile).toBe('env.json');
@@ -29,7 +31,9 @@ describe('parseArgs', () => {
   it('长标志等价 + 默认值（timeout 30000/delay 0/stopOnError true/reporters cli）', () => {
     const r = run(['--environment', 'e.json', '--iteration-data', 'd.json', '--iteration-count', '2', '--reporters', 'cli,json', '--report-json', 'o.json']);
     expect(r.ok).toBe(true);
-    if (!r.ok || !('args' in r)) return; // 判别联合收窄
+    if (!r.ok || !('args' in r)) {
+      return;
+    } // 判别联合收窄
     expect(r.args.environmentFile).toBe('e.json');
     expect(r.args.iterationDataFile).toBe('d.json');
     expect(r.args.iterations).toBe(2);
@@ -61,7 +65,9 @@ describe('parseArgs', () => {
   ])('fail-closed：%s', (_label, argv) => {
     const r = parseArgs(argv);
     expect(r.ok).toBe(false);
-    if (r.ok) return;
+    if (r.ok) {
+      return;
+    }
     expect(r.error.length).toBeGreaterThan(0);
   });
 });

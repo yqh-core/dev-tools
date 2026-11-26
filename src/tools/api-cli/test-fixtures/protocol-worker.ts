@@ -21,7 +21,9 @@ port.on('message', (msg: { type: string; nonce?: number; code?: string; reqId?: 
     port.postMessage({ type: 'done', nonce: lastNonce, outcome: { tests: [], envWrites: [], requestMutations: {}, logs: [], sendRequests: [lastSpec], asyncPending: false }, ...(msg.ok === false ? { error: 'outbox bridge rejected (fixture)' } : {}) });
     return;
   }
-  if (msg.type !== 'run') return;
+  if (msg.type !== 'run') {
+    return;
+  }
   lastNonce = msg.nonce ?? 0;
   const code = String(msg.code ?? '');
   if (code.includes('HANG')) {

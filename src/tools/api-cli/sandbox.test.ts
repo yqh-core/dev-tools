@@ -5,9 +5,9 @@
  * 干净 env/空 cwd/进程组 kill（超时重建 pid 变）/崩溃承载/outbox 桥/内存软上限。
  * 真实子进程 bundle（api-studio-cli-child.mjs）由 CLI E2E（S16）+ 逃逸探针矩阵覆盖（分层）。
  */
-import { describe, expect, it, vi } from 'vitest';
-import { createSandboxRunScript, WorkerTransport, SubprocessTransport } from './sandbox';
+import { describe, expect, it } from 'vitest';
 import type { ScriptSnapshot } from '../api-debugger/script-runtime';
+import { SubprocessTransport, WorkerTransport, createSandboxRunScript } from './sandbox';
 
 const fixtureUrl = new URL('./test-fixtures/protocol-worker.ts', import.meta.url);
 const fakeChildUrl = new URL('./test-fixtures/child-fake.mjs', import.meta.url);
@@ -76,7 +76,10 @@ describe('createSandboxRunScript（夹具 Worker 传输：协议面锁）', () =
   }, 10000);
 
   it('outbox 桥失败承载（宿主 send reject → sendResponse ok:false → done error 如实）', async () => {
-    const send = async () => { throw new Error('upstream unreachable (fixture)'); };
+    const send = async () => {
+      throw new Error('upstream unreachable (fixture)');
+    };
+
     const run = createSandboxRunScript(fixtureUrl, 5000, viaWorker);
     const r = await run('OUTBOX_FAIL', snapshot, send as never);
     expect(r.error).toMatch(/outbox bridge rejected/);
@@ -136,7 +139,11 @@ describe('createSandboxRunScript（SubprocessTransport：G2 OS 边界锁，真�
 
   it('G2 传输 outbox 桥：子进程 sendRequest → 宿主桥 → sendResponse → done（协议完整 round-trip）', async () => {
     const seen: string[] = [];
-    const send = async (p: { url: string }) => { seen.push(p.url); return { url: p.url, status: 200, statusText: 'OK', headers: {}, body: '{}', elapsedMs: 2 }; };
+    const send = async (p: { url: string }) => {
+      seen.push(p.url);
+
+      return { url: p.url, status: 200, statusText: 'OK', headers: {}, body: '{}', elapsedMs: 2 };
+    };
     const run = createSandboxRunScript(fakeChildUrl, 8000, fakeChild('outbox'));
     const r = await run('outbox', snapshot, send as never);
     expect(seen).toEqual(['http://fixture.test/x']);

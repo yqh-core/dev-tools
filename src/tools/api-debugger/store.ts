@@ -85,8 +85,12 @@ export function saveRequest(
   const testsSnapshot = assertions === undefined ? undefined : cloneAssertions(assertions);
   // API-011：脚本事件只持久化非空字符串（prerequest/test），脏字段不落盘
   const cleanScripts: { prerequest?: string; test?: string } = {};
-  if (typeof scriptEvents?.prerequest === 'string' && scriptEvents.prerequest.trim()) cleanScripts.prerequest = scriptEvents.prerequest;
-  if (typeof scriptEvents?.test === 'string' && scriptEvents.test.trim()) cleanScripts.test = scriptEvents.test;
+  if (typeof scriptEvents?.prerequest === 'string' && scriptEvents.prerequest.trim()) {
+    cleanScripts.prerequest = scriptEvents.prerequest;
+  }
+  if (typeof scriptEvents?.test === 'string' && scriptEvents.test.trim()) {
+    cleanScripts.test = scriptEvents.test;
+  }
   const scriptsSnapshot = Object.keys(cleanScripts).length ? cleanScripts : undefined;
   const i = list.findIndex(s => s.name.trim().toLowerCase() === trimmed.toLowerCase());
   if (i >= 0) {
@@ -180,8 +184,8 @@ export function parseSaved(raw: unknown): SavedRequest[] {
     const assertions = s.assertions === undefined ? undefined : parseAssertions(s.assertions);
     // API-011：脚本事件只做白名单形状校验（字符串），不执行、不信任任何函数字段
     const se = s.scriptEvents as { prerequest?: unknown; test?: unknown } | undefined;
-    const scriptEvents = (se && typeof se === 'object' &&
-      (typeof se.prerequest === 'string' || typeof se.test === 'string'))
+    const scriptEvents = (se && typeof se === 'object'
+      && (typeof se.prerequest === 'string' || typeof se.test === 'string'))
       ? { ...(typeof se.prerequest === 'string' ? { prerequest: se.prerequest } : {}), ...(typeof se.test === 'string' ? { test: se.test } : {}) }
       : undefined;
     out.push({ id: s.id, name: s.name, request: s.request as ApiRequestState, createdAt: s.createdAt, updatedAt: s.updatedAt, ...(assertions === undefined ? {} : { assertions }), ...(scriptEvents === undefined ? {} : { scriptEvents }) });

@@ -4,8 +4,8 @@
  * stopOnFailure 停整个运行、取消、无数据文件回归锁、进度全局长度。
  */
 import { describe, expect, it, vi } from 'vitest';
-import { type Assertion, makeAssertion } from './assertions';
-import { type RunnerResponse, type RunScriptFn, formatCollectionReportText, runCollection } from './runner';
+import { makeAssertion } from './assertions';
+import { type RunScriptFn, type RunnerResponse, formatCollectionReportText, runCollection } from './runner';
 import type { SavedRequest } from './store';
 import type { ScriptSnapshot } from './script-runtime';
 
@@ -16,17 +16,22 @@ let seq = 0;
 function saved(name: string, patch: Partial<SavedRequest['request']> = {}, scriptEvents?: { prerequest?: string; test?: string }): SavedRequest {
   seq += 1;
   return {
-    id: `s-${seq}`, name,
+    id: `s-${seq}`,
+    name,
     request: { method: 'GET', url: `https://x.test/${name}`, headers: [], body: '', ...patch },
-    createdAt: 1, updatedAt: 1,
+    createdAt: 1,
+    updatedAt: 1,
     ...(scriptEvents ? { scriptEvents } : {}),
   };
 }
-const DATA = { columns: ['email', 'role'], rows: [
-  { email: 'a@x.test', role: 'admin' },
-  { email: 'b@x.test', role: 'reader' },
-  { email: 'c@x.test', role: 'editor' },
-] };
+const DATA = {
+  columns: ['email', 'role'],
+  rows: [
+    { email: 'a@x.test', role: 'admin' },
+    { email: 'b@x.test', role: 'reader' },
+    { email: 'c@x.test', role: 'editor' },
+  ],
+};
 function stubScript(recorder: { seen: ScriptSnapshot[] }): RunScriptFn {
   return async (_code, snap) => {
     recorder.seen.push(JSON.parse(JSON.stringify(snap)) as ScriptSnapshot);
@@ -91,7 +96,9 @@ describe('B 作用域生命周期（契约 v1.1）', () => {
       rec.seen.push(JSON.parse(JSON.stringify(snap)) as ScriptSnapshot);
       n++;
       // 奇数次调用（每轮第 1 请求）写 local；偶数次（每轮第 2 请求）验证 local 为空
-      if (n % 2 === 1) return { outcome: { tests: [], envWrites: [{ layer: 'local', name: 'tmp', value: 'x' }], requestMutations: {}, logs: [], sendRequests: [], asyncPending: false }, timedOut: false };
+      if (n % 2 === 1) {
+        return { outcome: { tests: [], envWrites: [{ layer: 'local', name: 'tmp', value: 'x' }], requestMutations: {}, logs: [], sendRequests: [], asyncPending: false }, timedOut: false };
+      }
       expect(Object.keys(snap.local)).toEqual([]);
       return { outcome: { tests: [], envWrites: [], requestMutations: {}, logs: [], sendRequests: [], asyncPending: false }, timedOut: false };
     };
@@ -145,7 +152,9 @@ describe('B 停止与取消', () => {
     let rounds = 0;
     const runScript: RunScriptFn = async () => {
       rounds++;
-      if (rounds === 2) signal.aborted = true; // 第 2 个脚本执行时取消
+      if (rounds === 2) {
+        signal.aborted = true;
+      } // 第 2 个脚本执行时取消
       return { outcome: { tests: [], envWrites: [], requestMutations: {}, logs: [], sendRequests: [], asyncPending: false }, timedOut: false };
     };
     const sum = await runCollection([saved('r', {}, { test: 't' })], {}, vi.fn(async () => resp()) as never, { runScript, dataFile: DATA, signal });

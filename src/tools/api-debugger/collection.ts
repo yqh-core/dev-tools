@@ -46,8 +46,12 @@ export function exportCollection(saved: SavedRequest[], name = 'DigDevBox Collec
   // A-002/A-003：手动集合级脚本导出为 Postman doc 级事件（round-trip 闭合：
   // 导出 doc 级 → 导入时按契约 v1.1 合并进各请求执行链，语义不丢）。
   const docEvents: { listen: string; script: { exec: string[] } }[] = [];
-  if (collectionScripts?.prerequest?.trim()) { docEvents.push({ listen: 'prerequest', script: { exec: collectionScripts.prerequest.split('\n') } }); }
-  if (collectionScripts?.test?.trim()) { docEvents.push({ listen: 'test', script: { exec: collectionScripts.test.split('\n') } }); }
+  if (collectionScripts?.prerequest?.trim()) {
+    docEvents.push({ listen: 'prerequest', script: { exec: collectionScripts.prerequest.split('\n') } });
+  }
+  if (collectionScripts?.test?.trim()) {
+    docEvents.push({ listen: 'test', script: { exec: collectionScripts.test.split('\n') } });
+  }
   return {
     info: { name, schema: POSTMAN_SCHEMA },
     ...(docEvents.length ? { event: docEvents } : {}),
@@ -55,8 +59,12 @@ export function exportCollection(saved: SavedRequest[], name = 'DigDevBox Collec
       const req: ApiRequestState = stripAuth ? sanitizeForShare(s.request) : s.request;
       // API-011：脚本事件导出为 Postman v2.1 event（exec 按行数组）——导入/导出往返不丢脚本
       const events: { listen: string; script: { exec: string[] } }[] = [];
-      if (s.scriptEvents?.prerequest) { events.push({ listen: 'prerequest', script: { exec: s.scriptEvents.prerequest.split('\n') } }); }
-      if (s.scriptEvents?.test) { events.push({ listen: 'test', script: { exec: s.scriptEvents.test.split('\n') } }); }
+      if (s.scriptEvents?.prerequest) {
+        events.push({ listen: 'prerequest', script: { exec: s.scriptEvents.prerequest.split('\n') } });
+      }
+      if (s.scriptEvents?.test) {
+        events.push({ listen: 'test', script: { exec: s.scriptEvents.test.split('\n') } });
+      }
       return {
         name: s.name,
         request: {
@@ -101,7 +109,9 @@ export function importCollection(text: string): { requests: ImportedRequest[]; w
       if (ev && ev.listen === listen && ev.script) {
         const exec = Array.isArray(ev.script.exec) ? ev.script.exec : (typeof ev.script.exec === 'string' ? [ev.script.exec] : []);
         const body = exec.filter((l: unknown) => typeof l === 'string').join('\n');
-        if (body.trim()) { parts.push(body); }
+        if (body.trim()) {
+          parts.push(body);
+        }
       }
     }
     return parts.length ? parts.join('\n') : undefined;
@@ -155,8 +165,12 @@ export function importCollection(text: string): { requests: ImportedRequest[]; w
       const pre = [...preChain, ...(ownPre ? [ownPre] : [])].filter(Boolean).join('\n');
       const test = [...(ownTest ? [ownTest] : []), ...testChain].filter(Boolean).join('\n');
       const scriptEvents: ScriptEvents = {};
-      if (pre) { scriptEvents.prerequest = pre; }
-      if (test) { scriptEvents.test = test; }
+      if (pre) {
+        scriptEvents.prerequest = pre;
+      }
+      if (test) {
+        scriptEvents.test = test;
+      }
       requests.push({ name, request: { method, url, headers, body }, ...(Object.keys(scriptEvents).length ? { scriptEvents } : {}) });
     }
   };
@@ -182,7 +196,9 @@ function takeNodeEvents(evs: unknown[] | undefined, listen: 'prerequest' | 'test
       const script = (ev as Record<string, unknown>).script as Record<string, unknown>;
       const exec = Array.isArray(script.exec) ? script.exec : (typeof script.exec === 'string' ? [script.exec] : []);
       const body = exec.filter((l: unknown) => typeof l === 'string').join('\n');
-      if (body.trim()) { parts.push(body); }
+      if (body.trim()) {
+        parts.push(body);
+      }
     }
   }
   return parts.length ? parts.join('\n') : undefined;
@@ -300,8 +316,12 @@ export function importCollectionTree(text: string): ImportCollectionTreeResult {
 export function exportCollectionTree(tree: CollectionNode, stripAuth = true): Record<string, unknown> {
   const eventsOf = (scripts: ScriptEvents | undefined): { listen: string; script: { exec: string[] } }[] => {
     const events: { listen: string; script: { exec: string[] } }[] = [];
-    if (scripts?.prerequest?.trim()) { events.push({ listen: 'prerequest', script: { exec: scripts.prerequest.split('\n') } }); }
-    if (scripts?.test?.trim()) { events.push({ listen: 'test', script: { exec: scripts.test.split('\n') } }); }
+    if (scripts?.prerequest?.trim()) {
+      events.push({ listen: 'prerequest', script: { exec: scripts.prerequest.split('\n') } });
+    }
+    if (scripts?.test?.trim()) {
+      events.push({ listen: 'test', script: { exec: scripts.test.split('\n') } });
+    }
     return events;
   };
   const exportNode = (node: TreeNode): Record<string, unknown> => {

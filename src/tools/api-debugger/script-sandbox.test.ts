@@ -4,7 +4,7 @@
  * 自身协议通道 postMessage 不受封锁（worker 通信命脉）。
  */
 import { describe, expect, it } from 'vitest';
-import { installSandboxGuards, SANDBOX_BLOCKED_GLOBALS } from './script-runtime';
+import { SANDBOX_BLOCKED_GLOBALS, installSandboxGuards } from './script-runtime';
 
 function fakeScope() {
   return {

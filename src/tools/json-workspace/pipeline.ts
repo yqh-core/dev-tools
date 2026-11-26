@@ -20,8 +20,8 @@ import { inferModels, renderCode } from '../json-to-code/json-to-code.models';
 import { inferSchemaDocument } from './schema';
 import { jsonPath } from './jsonpath';
 import { TransformError, toCsv } from './transform';
+import { DEFAULT_INPUT, type NodeParams, type NodeResult, type OpId, type PipelineNode, makeNode } from './pipeline-defs';
 import { csvToObjects } from '@/utils/csv';
-import { DEFAULT_INPUT, makeNode, type NodeParams, type NodeResult, type OpId, type PipelineNode } from './pipeline-defs';
 
 // 纯定义（类型/常量/节点工厂）移入 pipeline-defs 叶模块——CLI 图只经 defs 取 makeNode，
 // 不再把转换工具链（yaml/xml-js/lodash/json5/toml）拖进 CLI bundle（终审 P1-07 图手术）。

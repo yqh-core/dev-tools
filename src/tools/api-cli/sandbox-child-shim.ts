@@ -10,6 +10,8 @@
  * 求值顺序：本模块先于 script-worker（自检 self/postMessage/onmessage 映射 + process 全局中和）。
  */
 /// <reference types="node" />
+import process from 'node:process';
+
 const g = globalThis as unknown as Record<string, any>;
 
 if (!g.self) {
@@ -18,7 +20,9 @@ if (!g.self) {
 // 守卫前捕获 IPC send（postMessage 闭包晚期读 process 会撞 process 中和 getter——实证崩溃口径）
 const rawSend = typeof process.send === 'function' ? process.send.bind(process) : undefined;
 if (typeof g.postMessage !== 'function') {
-  g.postMessage = (msg: unknown) => { rawSend?.(msg); };
+  g.postMessage = (msg: unknown) => {
+    rawSend?.(msg);
+  };
 }
 // script-worker 赋值 self.onmessage = handler —— 映射到子进程 IPC 消息事件
 let messageHandler: ((e: { data: any }) => void) | null = null;
@@ -28,7 +32,9 @@ Object.defineProperty(g, 'onmessage', {
   get() { return messageHandler; },
 });
 // 守卫前注册 IPC 监听（process.on 此刻读 process 合法；中和后脚本面读取即抛）
-process.on('message', (data: any) => { messageHandler?.({ data }); });
+process.on('message', (data: any) => {
+  messageHandler?.({ data });
+});
 
 // 沙箱进程面中和（与浏览器守卫/worker_threads 时代同口径）：
 // 子进程内 process 仍是真实全局（env=干净但存在/进程/文件逃逸面）——用户脚本无合法用途（pm.* 语义不需要

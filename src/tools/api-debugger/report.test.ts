@@ -3,27 +3,54 @@
  * 取消→skipped、良构性、Secret 脱敏负控。
  */
 import { describe, expect, it } from 'vitest';
-import { buildRunReport, isWellFormedXml, toJUnitXml, type RunReportMeta } from './report';
+import { type RunReportMeta, buildRunReport, isWellFormedXml, toJUnitXml } from './report';
 import type { CollectionRunSummary, RequestRunResult } from './runner';
 
 function req(patch: Partial<RequestRunResult> = {}): RequestRunResult {
   return {
-    id: 'r1', name: 'Get user', method: 'GET', url: 'https://api.example.test/user',
-    sent: true, status: 200, elapsedMs: 12, report: null, passed: true, ...patch,
+    id: 'r1',
+    name: 'Get user',
+    method: 'GET',
+    url: 'https://api.example.test/user',
+    sent: true,
+    status: 200,
+    elapsedMs: 12,
+    report: null,
+    passed: true,
+    ...patch,
   };
 }
 function summary(patch: Partial<CollectionRunSummary> = {}): CollectionRunSummary {
   return {
-    results: [], iterations: [], iterationCount: 1, dataFile: null,
-    total: 0, sent: 0, failed: 0, assertionsPassed: 0, assertionsTotal: 0,
-    scriptTestsPassed: 0, scriptTestsTotal: 0, scriptErrors: 0,
-    totalDurationMs: 100, avgResponseMs: 10, allPassed: true,
-    stoppedEarly: false, cancelled: false, startedAt: 1, finishedAt: 2, ...patch,
+    results: [],
+    iterations: [],
+    iterationCount: 1,
+    dataFile: null,
+    total: 0,
+    sent: 0,
+    failed: 0,
+    assertionsPassed: 0,
+    assertionsTotal: 0,
+    scriptTestsPassed: 0,
+    scriptTestsTotal: 0,
+    scriptErrors: 0,
+    totalDurationMs: 100,
+    avgResponseMs: 10,
+    allPassed: true,
+    stoppedEarly: false,
+    cancelled: false,
+    startedAt: 1,
+    finishedAt: 2,
+    ...patch,
   };
 }
 const meta: RunReportMeta = {
-  runId: 'run-1', apiStudioVersion: '2026.01.22-v2', collectionName: 'Smoke', environmentName: 'Default',
-  startedAt: '2026-11-18T00:00:00.000Z', finishedAt: '2026-11-18T00:00:01.000Z',
+  runId: 'run-1',
+  apiStudioVersion: '2026.01.22-v2',
+  collectionName: 'Smoke',
+  environmentName: 'Default',
+  startedAt: '2026-11-18T00:00:00.000Z',
+  finishedAt: '2026-11-18T00:00:01.000Z',
 };
 
 describe('buildRunReport 结构与脱敏声明', () => {
@@ -35,8 +62,12 @@ describe('buildRunReport 结构与脱敏声明', () => {
     expect(r.summary.skipped).toBe(0);
     // 无已标记 secret 值 → 值级管道未启用（如实 false/none）；结构面排除恒真
     expect(r.security).toEqual({
-      secretsExcluded: false, secretRedactionScope: 'none', envValuesExcluded: true,
-      dataRowValuesExcluded: true, requestResponseBodiesExcluded: true, headerValuesExcluded: true,
+      secretsExcluded: false,
+      secretRedactionScope: 'none',
+      envValuesExcluded: true,
+      dataRowValuesExcluded: true,
+      requestResponseBodiesExcluded: true,
+      headerValuesExcluded: true,
     });
     expect(r.iterations).toEqual([]);
   });
@@ -64,7 +95,9 @@ describe('buildRunReport 结构与脱敏声明', () => {
   it('迭代分组与请求映射（含 scriptTests/断言）', () => {
     const s = summary({
       iterations: [{
-        iteration: 1, dataRowColumns: ['email'], dataRowIndex: 0,
+        iteration: 1,
+        dataRowColumns: ['email'],
+        dataRowIndex: 0,
         results: [req({
           report: { allPassed: true, total: 1, passed: 1, results: [{ id: 'a1', label: 'status 200', passed: true, actual: '200', message: 'ok' }], failed: 0, ranAt: 0 },
           scriptTests: [{ name: 'marker', passed: true }],
@@ -94,7 +127,10 @@ describe('toJUnitXml 映射规则（B4）', () => {
     const notExec1 = req({ sent: false, status: null, passed: false, error: 'not executed' });
     const notExec2 = req({ sent: false, status: null, passed: false, error: 'not executed' });
     const s = summary({
-      cancelled: true, sent: 1, total: 3, failed: 2,
+      cancelled: true,
+      sent: 1,
+      total: 3,
+      failed: 2,
       results: [ok, notExec1, notExec2],
       iterations: [{ iteration: 1, dataRowColumns: null, dataRowIndex: null, results: [ok, notExec1, notExec2] }],
     });
@@ -107,9 +143,13 @@ describe('toJUnitXml 映射规则（B4）', () => {
   it('E3 secret 值级 redact（终审 P0-2）：已标记值进报告文本面被替换；未标记不动（负控：不伪装全知扫描）；短值阈值不误伤', () => {
     const s = summary({
       iterations: [{
-        iteration: 1, dataRowColumns: null, dataRowIndex: null,
+        iteration: 1,
+        dataRowColumns: null,
+        dataRowIndex: null,
         results: [req({
-          sent: false, status: null, passed: false,
+          sent: false,
+          status: null,
+          passed: false,
           error: 'token leaked: SK-PLANT-9f3',
           scriptError: 'expect got SK-PLANT-9f3',
           scriptTests: [{ name: 't', passed: false, error: 'pm.expect — SK-PLANT-9f3' }],
@@ -154,7 +194,9 @@ describe('toJUnitXml 映射规则（B4）', () => {
 
   it('取消 → 未发送请求映射为 skipped', () => {
     const s = summary({
-      cancelled: true, sent: 0, total: 2,
+      cancelled: true,
+      sent: 0,
+      total: 2,
       iterations: [{ iteration: 1, dataRowColumns: null, dataRowIndex: null, results: [req({ sent: false, passed: false, error: 'not executed' }), req({ sent: false, passed: false, error: 'not executed' })] }],
     });
     const xml = toJUnitXml(buildRunReport(s, meta));

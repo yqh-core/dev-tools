@@ -8,13 +8,15 @@ import { describe, expect, it } from 'vitest';
 import { exportCollection, importCollection } from './collection';
 import type { SavedRequest } from './store';
 
-const saved = (name: string): SavedRequest => ({
-  id: 'r1',
-  name,
-  request: { method: 'GET', url: 'https://api.example.test/x', headers: [], body: '' },
-  createdAt: 1,
-  updatedAt: 1,
-});
+function saved(name: string): SavedRequest {
+  return {
+    id: 'r1',
+    name,
+    request: { method: 'GET', url: 'https://api.example.test/x', headers: [], body: '' },
+    createdAt: 1,
+    updatedAt: 1,
+  };
+}
 
 describe('exportCollection 集合级脚本 doc 级事件', () => {
   it('手动集合脚本导出为 doc 级 event（prerequest/test 各一条，exec 按行）', () => {

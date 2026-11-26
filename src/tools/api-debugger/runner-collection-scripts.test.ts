@@ -14,14 +14,16 @@ import { describe, expect, it, vi } from 'vitest';
 import { runCollection } from './runner';
 import type { SavedRequest } from './store';
 
-const req = (name: string, scriptEvents?: { prerequest?: string; test?: string }): SavedRequest => ({
-  id: `r-${name}`,
-  name,
-  request: { method: 'GET', url: 'https://api.example.test/x', headers: [], body: '' },
-  createdAt: 1,
-  updatedAt: 1,
-  ...(scriptEvents ? { scriptEvents } : {}),
-});
+function req(name: string, scriptEvents?: { prerequest?: string; test?: string }): SavedRequest {
+  return {
+    id: `r-${name}`,
+    name,
+    request: { method: 'GET', url: 'https://api.example.test/x', headers: [], body: '' },
+    createdAt: 1,
+    updatedAt: 1,
+    ...(scriptEvents ? { scriptEvents } : {}),
+  };
+}
 
 interface Seen { event: string; code: string; snap: any }
 /** 按代码标记注入效果：集合 pre 写 collection 层；请求 test 写 environment 层（跨请求持久口径）。 */

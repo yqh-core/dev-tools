@@ -5,7 +5,7 @@
  * 超时与资源控制由主线程（script-sandbox.ts）terminate 负责；
  * pm.sendRequest 不在 Worker 直发网络，而是消息往返主线程的 apiproxy（权限控制在宿主）。
  */
-import { createPmAPI, installSandboxGuards, CONSOLE_TOTAL_MAX_BYTES, utf8Bytes, type ScriptSnapshot, type RuntimeIO, type ScriptOutcomeData, type BridgeResponse } from './script-runtime';
+import { type BridgeResponse, CONSOLE_TOTAL_MAX_BYTES, type RuntimeIO, type ScriptOutcomeData, type ScriptSnapshot, createPmAPI, installSandboxGuards, utf8Bytes } from './script-runtime';
 
 /** E6' 模块加载静态护栏判据（导出供单测锁；Postman 沙箱同口径：用户脚本无模块系统）。
  *  已知局限（如实）：静态正则，混淆构造可绕过——与运行时全局守卫同级口径，
@@ -24,10 +24,10 @@ let reqSeq = 0;
 // 自身协议通道（postMessage）先抓引用再封锁全局，outbox 是唯一网络路径。
 // 终审 P0-01：宿主自身 eval 用户代码用构造前捕获的 RawFunction（守卫后 new Function 读取即抛）。
 const RawFunction = Function;
-const rawPostMessage = (self as unknown as Worker).postMessage.bind(self);
-installSandboxGuards(self as unknown as Record<string, unknown>);
+const rawPostMessage = (globalThis as unknown as Worker).postMessage.bind(globalThis);
+installSandboxGuards(globalThis as unknown as Record<string, unknown>);
 try {
-  (self as unknown as Record<string, unknown>).postMessage = () => {
+  (globalThis as unknown as Record<string, unknown>).postMessage = () => {
     throw new Error('[api-studio sandbox] direct postMessage from script is disabled. Use pm.* APIs only.');
   };
 }
@@ -37,14 +37,20 @@ function postOut(message: Record<string, unknown>, transfer?: Transferable[]) {
   rawPostMessage(message, transfer ?? []);
 }
 
-self.onmessage = async (e: MessageEvent<RunMsg | SendResponseMsg>) => {
+globalThis.onmessage = async (e: MessageEvent<RunMsg | SendResponseMsg>) => {
   const msg = e.data;
   if (msg.type === 'sendResponse') {
     const p = pendingSends.get(msg.reqId);
-    if (p) { pendingSends.delete(msg.reqId); msg.ok ? p.resolve(msg.result) : p.reject(new Error(String(msg.error))); }
+    if (p) {
+      pendingSends.delete(msg.reqId);
+
+      msg.ok ? p.resolve(msg.result) : p.reject(new Error(String(msg.error)));
+    }
     return;
   }
-  if (msg.type !== 'run') { return; }
+  if (msg.type !== 'run') {
+    return;
+  }
   const outcome: ScriptOutcomeData = { tests: [], envWrites: [], requestMutations: {}, logs: [], sendRequests: [], asyncPending: false };
   // 终审 P1-03：console 捕获单行 500 字符 + 全轮累计字节上限（超出丢弃并标记——不静默无限增长）
   let consoleBytes = 0;
@@ -52,7 +58,10 @@ self.onmessage = async (e: MessageEvent<RunMsg | SendResponseMsg>) => {
   const io: RuntimeIO = {
     outcome,
     console: (...a) => {
-      if (consoleCapped) return;
+      if (consoleCapped) {
+        return;
+      }
+
       const line = a.map(v => typeof v === 'string' ? v : JSON.stringify(v, null, 0) ?? String(v)).join(' ').slice(0, 500);
       consoleBytes += utf8Bytes(line);
       if (consoleBytes > CONSOLE_TOTAL_MAX_BYTES) {
@@ -62,7 +71,7 @@ self.onmessage = async (e: MessageEvent<RunMsg | SendResponseMsg>) => {
       }
       outcome.logs.push(line);
     },
-    sendRequest: async spec => {
+    sendRequest: async (spec) => {
       const reqId = ++reqSeq;
       postOut({ type: 'sendRequest', nonce: msg.nonce, reqId, spec });
       // 终审 P1-04：桥失败如实 reject（传播为脚本错误，fail-closed）；不再伪造 ERROR 占位响应
@@ -84,14 +93,13 @@ self.onmessage = async (e: MessageEvent<RunMsg | SendResponseMsg>) => {
   // 无内部硬上限——宿主 5s 超时 kill 是唯一预算口径（脚本未完成=如实 timedOut，不双重预算）。
   const waitPendingSends = async (): Promise<void> => {
     while (pendingSends.size > 0) {
-      await new Promise(r => setTimeout(r, 10));
+      await new Promise(resolve => setTimeout(resolve, 10));
     }
   };
   try {
-    // eslint-disable-next-line no-new-func
     // E5：async 包装支持顶层 await；脚本未完成（含 await pm.sendRequest）不发送 done
     // 终审 P0-01：用构造前捕获的 RawFunction（全局 Function 已被守卫中和）
-    const fn = RawFunction('pm', 'console', 'return (async () => {\n' + msg.code + '\n})()');
+    const fn = RawFunction('pm', 'console', `return (async () => {\n${msg.code}\n})()`);
     await fn(pm, capi);
   }
   catch (err) {

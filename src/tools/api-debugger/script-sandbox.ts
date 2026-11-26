@@ -4,7 +4,7 @@
  * 超时（默认 5s）直接 terminate 重建——这就是审查裁定要的"隔离沙箱+超时+资源限制"。
  * pm.sendRequest 的桥接到宿主注入的 send（走既有 apiproxy allowlist，凭据不回给脚本）。
  */
-import type { ScriptSnapshot, ScriptOutcomeData } from './script-runtime';
+import type { ScriptOutcomeData, ScriptSnapshot } from './script-runtime';
 import { truncateResponseBody } from './script-runtime';
 import type { RunnerResponse } from './runner';
 
@@ -27,24 +27,37 @@ function ensureWorker(): Worker {
       const d = e.data;
       if (d.type === 'sendRequest') {
         const run = active.get(d.nonce);
-        if (!run) { return; }
+        if (!run) {
+          return;
+        }
         const spec = d.spec as { url: string; method?: string; header?: { name: string; value: string }[]; body?: string };
         void run.send({ url: String(spec.url), method: String(spec.method ?? 'GET'), headers: spec.header ?? [], body: String(spec.body ?? '') })
-          .then(res => {
+          .then((res) => {
             // 终审 P1-03/P1-04：桥回填完整响应面；响应体字节级截断（脚本面不接收无界响应体）
             const t = truncateResponseBody(res.body);
-            worker?.postMessage({ type: 'sendResponse', reqId: d.reqId, ok: true, result: {
-              code: res.status, status: String(res.status), statusText: res.statusText,
-              headers: Object.entries(res.headers).map(([name, value]) => ({ name, value })),
-              body: t.body, responseTime: res.elapsedMs, truncated: t.truncated,
-            } });
+            worker?.postMessage({
+              type: 'sendResponse',
+              reqId: d.reqId,
+              ok: true,
+              result: {
+                code: res.status,
+                status: String(res.status),
+                statusText: res.statusText,
+                headers: Object.entries(res.headers).map(([name, value]) => ({ name, value })),
+                body: t.body,
+                responseTime: res.elapsedMs,
+                truncated: t.truncated,
+              },
+            });
           })
           .catch(err => worker?.postMessage({ type: 'sendResponse', reqId: d.reqId, ok: false, error: String(err).slice(0, 200) }));
         return;
       }
       if (d.type === 'done') {
         const run = active.get(d.nonce);
-        if (!run) { return; }
+        if (!run) {
+          return;
+        }
         active.delete(d.nonce);
         clearTimeout(run.timer);
         run.resolve({ outcome: d.outcome, error: d.error, timedOut: false });
@@ -55,8 +68,17 @@ function ensureWorker(): Worker {
 }
 
 function killWorker() {
-  if (worker) { worker.terminate(); worker = null; }
-  for (const [n, run] of active) { clearTimeout(run.timer); run.resolve({ outcome: emptyOutcome(), error: 'sandbox terminated', timedOut: true }); active.delete(n); }
+  if (worker) {
+    worker.terminate();
+    worker = null;
+  }
+
+  for (const [n, run] of active) {
+    clearTimeout(run.timer);
+
+    run.resolve({ outcome: emptyOutcome(), error: 'sandbox terminated', timedOut: true });
+    active.delete(n);
+  }
 }
 
 function emptyOutcome(): ScriptOutcomeData {
@@ -69,7 +91,7 @@ export function runScriptIsolated(
   send: SendBridge,
   timeoutMs = 5000,
 ): Promise<SandboxRunResult> {
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     const w = ensureWorker();
     const n = ++nonce;
     active.set(n, {
@@ -89,4 +111,6 @@ export function runScriptIsolated(
 }
 
 /** 测试/清理钩子：终止当前 worker（单测或页面卸载用）。 */
-export function resetSandbox() { killWorker(); }
+export function resetSandbox() {
+  killWorker();
+}

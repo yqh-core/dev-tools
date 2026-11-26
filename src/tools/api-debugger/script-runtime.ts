@@ -36,8 +36,10 @@ export function utf8Bytes(s: string): number {
 /** 响应体字节级截断（多字节字符尾部不完整序列由 TextDecoder 非 fatal 丢弃，不冒充完整内容）。 */
 export function truncateResponseBody(body: string, max = RESPONSE_BODY_MAX_BYTES): { body: string; truncated: boolean } {
   const bytes = te.encode(body);
-  if (bytes.byteLength <= max) return { body, truncated: false };
-  return { body: new TextDecoder().decode(bytes.slice(0, max)) + `\n[truncated at ${max} bytes by sandbox response cap]`, truncated: true };
+  if (bytes.byteLength <= max) {
+    return { body, truncated: false };
+  }
+  return { body: `${new TextDecoder().decode(bytes.slice(0, max))}\n[truncated at ${max} bytes by sandbox response cap]`, truncated: true };
 }
 
 /** 主线程→Worker 的快照（全部可结构化克隆；不含函数/凭据引用）。 */
@@ -142,7 +144,7 @@ function wrapBridgeResponse(res: BridgeResponse) {
   };
 }
 
-const STR = (v: unknown): string => typeof v === 'string' ? v : String(v ?? '')
+const STR = (v: unknown): string => typeof v === 'string' ? v : String(v ?? '');
 
 /**
  * 变量解析优先级（Postman 语义；终审 P1-01：唯一权威序——resolveVariable 供
@@ -156,7 +158,9 @@ export type VarLayerName = (typeof VARIABLE_PRECEDENCE)[number];
 export function resolveVariable(snap: ScriptSnapshot, name: string): string | undefined {
   for (const layer of VARIABLE_PRECEDENCE) {
     const v = snap[layer][name];
-    if (v !== undefined) return v;
+    if (v !== undefined) {
+      return v;
+    }
   }
   return undefined;
 }
@@ -173,80 +177,164 @@ const STRICT_TAIL = ' Raw values are not printed by default (security default; m
 class ExpectError extends Error {}
 
 function buildExpect(actual: unknown) {
-  const assert = (cond: boolean, msg: string) => { if (!cond) throw new ExpectError(msg) }
-  const chain: Record<string, unknown> = {}
-  const self = () => chain
-  chain.to = self(); (chain as any).be = self(); (chain as any).been = self(); (chain as any).is = self()
-  chain.and = self(); (chain as any).has = self(); (chain as any).with = self(); (chain as any).that = self()
+  const assert = (cond: boolean, msg: string) => {
+    if (!cond) {
+      throw new ExpectError(msg);
+    }
+  };
+
+  const chain: Record<string, unknown> = {};
+  const self = () => chain;
+  chain.to = self();
+  (chain as any).be = self();
+  (chain as any).been = self();
+  (chain as any).is = self();
+  chain.and = self();
+  (chain as any).has = self();
+  (chain as any).with = self();
+  (chain as any).that = self();
   chain.not = {
     equal: (x: unknown) => assert(String(actual) !== String(x), `Assertion failed: inequality not satisfied (operator=not.equal; actual type=${typeName(actual)}, expected type=${typeName(x)}).${STRICT_TAIL}`),
     exist: () => assert(actual === null || actual === undefined, `Assertion failed: expected absence but value exists (operator=not.exist; actual type=${typeName(actual)}).`),
-  }
-  chain.equal = (x: unknown) => { assert(actual === x, `Assertion failed: equality not satisfied (operator=equal; actual type=${typeName(actual)}, expected type=${typeName(x)}).${STRICT_TAIL}`); return self() }
-  chain.eql = (x: unknown) => { assert(JSON.stringify(actual) === JSON.stringify(x), `Assertion failed: deep equality not satisfied (operator=eql; actual type=${typeName(actual)}, expected type=${typeName(x)}).${STRICT_TAIL}`); return self() }
+  };
+  chain.equal = (x: unknown) => {
+    assert(actual === x, `Assertion failed: equality not satisfied (operator=equal; actual type=${typeName(actual)}, expected type=${typeName(x)}).${STRICT_TAIL}`);
+
+    return self();
+  };
+  chain.eql = (x: unknown) => {
+    assert(JSON.stringify(actual) === JSON.stringify(x), `Assertion failed: deep equality not satisfied (operator=eql; actual type=${typeName(actual)}, expected type=${typeName(x)}).${STRICT_TAIL}`);
+
+    return self();
+  };
   chain.include = (x: unknown) => {
-    const ok = typeof actual === 'string' ? actual.includes(String(x)) : Array.isArray(actual) ? actual.map(String).includes(String(x)) : false
-    assert(ok, `Assertion failed: inclusion not satisfied (operator=include; actual type=${typeName(actual)}).${STRICT_TAIL}`); return self()
-  }
-  chain.match = (re: RegExp) => { assert(re.test(STR(actual)), `Assertion failed: regex match not satisfied (operator=match; actual type=string).${STRICT_TAIL}`); return self() }
-  chain.above = (n: number) => { assert(Number(actual) > n, `Assertion failed: numeric order (operator=above; threshold=${n}; actual type=${typeName(actual)}).${STRICT_TAIL}`); return self() }
-  chain.below = (n: number) => { assert(Number(actual) < n, `Assertion failed: numeric order (operator=below; threshold=${n}; actual type=${typeName(actual)}).${STRICT_TAIL}`); return self() }
-  chain.ok = () => { assert(!!actual, `Assertion failed: truthiness (operator=ok; actual type=${typeName(actual)}).`); return self() }
-  chain.true = () => { assert(actual === true, `Assertion failed: expected true (operator=true; actual type=${typeName(actual)}).`); return self() }
-  chain.null = () => { assert(actual === null, `Assertion failed: expected null (operator=null; actual type=${typeName(actual)}).`); return self() }
-  chain.exist = () => { assert(actual !== null && actual !== undefined, `Assertion failed: expected value to exist (operator=exist; actual type=${typeName(actual)}).`); return self() }
-  chain.lengthOf = (n: number) => { const len = (actual as { length?: number })?.length; assert(len === n, `Assertion failed: length (operator=lengthOf; expected length=${n}, actual length=${len === undefined ? 'n/a' : len}).`); return self() }
+    const ok = typeof actual === 'string' ? actual.includes(String(x)) : Array.isArray(actual) ? actual.map(String).includes(String(x)) : false;
+    assert(ok, `Assertion failed: inclusion not satisfied (operator=include; actual type=${typeName(actual)}).${STRICT_TAIL}`);
+    return self();
+  };
+  chain.match = (re: RegExp) => {
+    assert(re.test(STR(actual)), `Assertion failed: regex match not satisfied (operator=match; actual type=string).${STRICT_TAIL}`);
+
+    return self();
+  };
+  chain.above = (n: number) => {
+    assert(Number(actual) > n, `Assertion failed: numeric order (operator=above; threshold=${n}; actual type=${typeName(actual)}).${STRICT_TAIL}`);
+
+    return self();
+  };
+  chain.below = (n: number) => {
+    assert(Number(actual) < n, `Assertion failed: numeric order (operator=below; threshold=${n}; actual type=${typeName(actual)}).${STRICT_TAIL}`);
+
+    return self();
+  };
+  chain.ok = () => {
+    assert(!!actual, `Assertion failed: truthiness (operator=ok; actual type=${typeName(actual)}).`);
+
+    return self();
+  };
+  chain.true = () => {
+    assert(actual === true, `Assertion failed: expected true (operator=true; actual type=${typeName(actual)}).`);
+
+    return self();
+  };
+  chain.null = () => {
+    assert(actual === null, `Assertion failed: expected null (operator=null; actual type=${typeName(actual)}).`);
+
+    return self();
+  };
+  chain.exist = () => {
+    assert(actual !== null && actual !== undefined, `Assertion failed: expected value to exist (operator=exist; actual type=${typeName(actual)}).`);
+
+    return self();
+  };
+  chain.lengthOf = (n: number) => {
+    const len = (actual as { length?: number })?.length;
+
+    assert(len === n, `Assertion failed: length (operator=lengthOf; expected length=${n}, actual length=${len === undefined ? 'n/a' : len}).`);
+    return self();
+  };
   chain.property = (name: string, val?: unknown) => {
-    const v = (actual as Record<string, unknown>)?.[name]
-    assert(v !== undefined, `Assertion failed: property path "${name}" not present (operator=property).`)
-    if (val !== undefined) assert(String(v) === String(val), `Assertion failed: property path "${name}" value mismatch (operator=property; actual type=${typeName(v)}, expected type=${typeName(val)}).${STRICT_TAIL}`)
-    return self()
-  }
-  chain.oneOf = (arr: unknown[]) => { assert(Array.isArray(arr) && arr.some(x => String(x) === String(actual)), `Assertion failed: membership (operator=oneOf; actual type=${typeName(actual)}, candidates=${arr.length}).${STRICT_TAIL}`); return self() }
-  chain.a = (t: string) => { assert((t === 'number' ? typeof actual === 'number' : t === 'string' ? typeof actual === 'string' : t === 'array' ? Array.isArray(actual) : t === 'object' ? typeof actual === 'object' : false), `Assertion failed: type (operator=a; expected type=${t}, actual type=${typeName(actual)}).`); return self() }
-  chain.have = self(); chain.with = self()
-  return chain
+    const v = (actual as Record<string, unknown>)?.[name];
+    assert(v !== undefined, `Assertion failed: property path "${name}" not present (operator=property).`);
+    if (val !== undefined) {
+      assert(String(v) === String(val), `Assertion failed: property path "${name}" value mismatch (operator=property; actual type=${typeName(v)}, expected type=${typeName(val)}).${STRICT_TAIL}`);
+    }
+    return self();
+  };
+  chain.oneOf = (arr: unknown[]) => {
+    assert(Array.isArray(arr) && arr.some(x => String(x) === String(actual)), `Assertion failed: membership (operator=oneOf; actual type=${typeName(actual)}, candidates=${arr.length}).${STRICT_TAIL}`);
+
+    return self();
+  };
+  chain.a = (t: string) => {
+    assert((t === 'number' ? typeof actual === 'number' : t === 'string' ? typeof actual === 'string' : t === 'array' ? Array.isArray(actual) : t === 'object' ? typeof actual === 'object' : false), `Assertion failed: type (operator=a; expected type=${t}, actual type=${typeName(actual)}).`);
+
+    return self();
+  };
+  chain.have = self();
+  chain.with = self();
+  return chain;
 }
 
 /* ---------- pm.* API 工厂（纯：一切副作用记录进 io.outcome） ---------- */
 export function createPmAPI(snap: ScriptSnapshot, io: RuntimeIO) {
-  const { outcome } = io
-  const tests: ScriptOutcomeData['tests'] = []
-  const pendingTests: Promise<void>[] = [] // E5 异步断言（pm.test 回调返回 Promise）等待收集
+  const { outcome } = io;
+  const tests: ScriptOutcomeData['tests'] = [];
+  const pendingTests: Promise<void>[] = []; // E5 异步断言（pm.test 回调返回 Promise）等待收集
   const varList = (layer: keyof Pick<ScriptSnapshot, 'globals' | 'collection' | 'environment' | 'iterationData' | 'local'>) =>
-    Object.entries(snap[layer]).map(([key, value]) => ({ key, value }))
+    Object.entries(snap[layer]).map(([key, value]) => ({ key, value }));
 
   const makeVarLayer = (layer: 'globals' | 'collection' | 'environment') => ({
     get: (name: string) => snap[layer][name],
     set: (name: string | { key: string; value: string } | Record<string, string>, value?: string) => {
-      if (typeof name === 'string') { outcome.envWrites.push({ layer, name, value: STR(value) }); snap[layer][name] = STR(value) }
-      else if (Array.isArray(name)) { for (const v of name) { outcome.envWrites.push({ layer, name: v.key, value: STR(v.value) }); snap[layer][v.key] = STR(v.value) } }
-      else { for (const [k, v] of Object.entries(name)) { outcome.envWrites.push({ layer, name: k, value: STR(v) }); snap[layer][k] = STR(v) } }
+      if (typeof name === 'string') {
+        outcome.envWrites.push({ layer, name, value: STR(value) });
+        snap[layer][name] = STR(value);
+      }
+      else if (Array.isArray(name)) {
+        for (const v of name) {
+          outcome.envWrites.push({ layer, name: v.key, value: STR(v.value) });
+          snap[layer][v.key] = STR(v.value);
+        }
+      }
+      else {
+        for (const [k, v] of Object.entries(name)) {
+          outcome.envWrites.push({ layer, name: k, value: STR(v) });
+          snap[layer][k] = STR(v);
+        }
+      }
     },
-    unset: (name: string) => { outcome.envWrites.push({ layer, name, value: null }); delete snap[layer][name] },
+    unset: (name: string) => {
+      outcome.envWrites.push({ layer, name, value: null });
+      delete snap[layer][name];
+    },
     has: (name: string) => snap[layer][name] !== undefined,
     toObject: () => varList(layer),
     count: () => Object.keys(snap[layer]).length,
-  })
+  });
 
-  const response = snap.response ? {
-    code: snap.response.status,
-    status: snap.response.statusText,
-    text: () => snap.response!.body,
-    json: (pathOrReviver?: unknown) => {
-      const parsed = JSON.parse(snap.response!.body)
-      if (typeof pathOrReviver === 'function') return (pathOrReviver as (k: string, v: unknown) => unknown)('', parsed)
-      return parsed
-    },
-    headers: {
-      get: (name: string) => snap.response!.headers[name.toLowerCase()] ?? snap.response!.headers[name],
-      all: () => Object.entries(snap.response!.headers).map(([key, value]) => ({ key, value })),
-      has: (name: string) => snap.response!.headers[name.toLowerCase()] !== undefined || snap.response!.headers[name] !== undefined,
-      count: () => Object.keys(snap.response!.headers).length,
-    },
-    responseTime: snap.response.responseTime,
-    size: snap.response.body.length,
-  } : null
+  const response = snap.response
+    ? {
+        code: snap.response.status,
+        status: snap.response.statusText,
+        text: () => snap.response!.body,
+        json: (pathOrReviver?: unknown) => {
+          const parsed = JSON.parse(snap.response!.body);
+          if (typeof pathOrReviver === 'function') {
+            return (pathOrReviver as (k: string, v: unknown) => unknown)('', parsed);
+          }
+          return parsed;
+        },
+        headers: {
+          get: (name: string) => snap.response!.headers[name.toLowerCase()] ?? snap.response!.headers[name],
+          all: () => Object.entries(snap.response!.headers).map(([key, value]) => ({ key, value })),
+          has: (name: string) => snap.response!.headers[name.toLowerCase()] !== undefined || snap.response!.headers[name] !== undefined,
+          count: () => Object.keys(snap.response!.headers).length,
+        },
+        responseTime: snap.response.responseTime,
+        size: snap.response.body.length,
+      }
+    : null;
 
   const request = {
     url: { toString: () => snap.request.url },
@@ -254,22 +342,34 @@ export function createPmAPI(snap: ScriptSnapshot, io: RuntimeIO) {
     headers: {
       get: (name: string) => snap.request.headers.find(h => h.name.toLowerCase() === name.toLowerCase())?.value,
       upsert: (h: { key: string; value: string }) => {
-        const i = snap.request.headers.findIndex(x => x.name.toLowerCase() === h.key.toLowerCase())
-        const nv = { name: h.key, value: STR(h.value) }
-        if (i >= 0) snap.request.headers[i] = nv; else snap.request.headers.push(nv)
-        outcome.requestMutations.headers = [...snap.request.headers]
+        const i = snap.request.headers.findIndex(x => x.name.toLowerCase() === h.key.toLowerCase());
+        const nv = { name: h.key, value: STR(h.value) };
+        if (i >= 0) {
+          snap.request.headers[i] = nv;
+        }
+        else { snap.request.headers.push(nv); }
+        outcome.requestMutations.headers = [...snap.request.headers];
       },
-      add: (h: { key: string; value: string }) => { snap.request.headers.push({ name: h.key, value: STR(h.value) }); outcome.requestMutations.headers = [...snap.request.headers] },
-      remove: (keyOrName: string) => { snap.request.headers = snap.request.headers.filter(x => x.name !== keyOrName); outcome.requestMutations.headers = [...snap.request.headers] },
+      add: (h: { key: string; value: string }) => {
+        snap.request.headers.push({ name: h.key, value: STR(h.value) });
+        outcome.requestMutations.headers = [...snap.request.headers];
+      },
+      remove: (keyOrName: string) => {
+        snap.request.headers = snap.request.headers.filter(x => x.name !== keyOrName);
+        outcome.requestMutations.headers = [...snap.request.headers];
+      },
       all: () => snap.request.headers.map(h => ({ key: h.name, value: h.value })),
       has: (name: string) => snap.request.headers.some(h => h.name.toLowerCase() === name.toLowerCase()),
       count: () => snap.request.headers.length,
     },
     body: {
       toString: () => snap.request.body,
-      update: (raw: string) => { snap.request.body = STR(raw); outcome.requestMutations.body = snap.request.body },
+      update: (raw: string) => {
+        snap.request.body = STR(raw);
+        outcome.requestMutations.body = snap.request.body;
+      },
     },
-  }
+  };
 
   const unsupported = (feature: string): never => {
     throw new ExpectError(`pm.${feature} is not supported by API Studio script runtime yet (see docs/api-studio/PM_SUPPORT_MATRIX.md). Use the documented pm.* subset or pm.sendRequest.`);
@@ -285,14 +385,22 @@ export function createPmAPI(snap: ScriptSnapshot, io: RuntimeIO) {
     iterationData: { get: (n: string) => snap.iterationData[n], has: (n: string) => snap.iterationData[n] !== undefined, toObject: () => varList('iterationData'), count: () => Object.keys(snap.iterationData).length },
     variables: {
       get: (n: string) => resolveVariable(snap, n),
-      set: (n: string, v: string) => { outcome.envWrites.push({ layer: 'local', name: n, value: STR(v) }); snap.local[n] = STR(v) },
-      unset: (n: string) => { outcome.envWrites.push({ layer: 'local', name: n, value: null }); delete snap.local[n] },
+      set: (n: string, v: string) => {
+        outcome.envWrites.push({ layer: 'local', name: n, value: STR(v) });
+        snap.local[n] = STR(v);
+      },
+      unset: (n: string) => {
+        outcome.envWrites.push({ layer: 'local', name: n, value: null });
+        delete snap.local[n];
+      },
       has: (n: string) => resolveVariable(snap, n) !== undefined,
       toObject: () => {
         // 与 resolveVariable 同序：高优先级覆盖低优先级（先赋低优先级，后赋高优先级）
-        const merged: Record<string, string> = {}
-        for (const layer of [...VARIABLE_PRECEDENCE].reverse()) Object.assign(merged, snap[layer])
-        return Object.entries(merged).map(([key, value]) => ({ key, value }))
+        const merged: Record<string, string> = {};
+        for (const layer of [...VARIABLE_PRECEDENCE].reverse()) {
+          Object.assign(merged, snap[layer]);
+        }
+        return Object.entries(merged).map(([key, value]) => ({ key, value }));
       },
       replaceIn: (text: string) => STR(text).replace(/{{\s*([\w.-]+)\s*}}/g, (_m, name: string) => resolveVariable(snap, name) ?? ''),
     },
@@ -303,15 +411,15 @@ export function createPmAPI(snap: ScriptSnapshot, io: RuntimeIO) {
           // E5 异步断言（终审 P1-2）：settled 后才定成败——Postman 沙箱语义，
           // 脚本未完成结论不出具（同步路径行为不变，回归锁保护）。
           pendingTests.push(Promise.resolve(r).then(
-            () => { tests.push({ name, passed: true }) },
-            (e: unknown) => { tests.push({ name, passed: false, error: e instanceof Error ? e.message : String(e) }) },
+            () => { tests.push({ name, passed: true }); },
+            (e: unknown) => { tests.push({ name, passed: false, error: e instanceof Error ? e.message : String(e) }); },
           ));
         }
         else {
-          tests.push({ name, passed: true })
+          tests.push({ name, passed: true });
         }
       }
-      catch (e) { tests.push({ name, passed: false, error: e instanceof Error ? e.message : String(e) }) }
+      catch (e) { tests.push({ name, passed: false, error: e instanceof Error ? e.message : String(e) }); }
     },
     expect: (actual: unknown) => buildExpect(actual),
     sendRequest: async (urlOrReq: unknown, cb?: (err: unknown, res: unknown) => void) => {
@@ -322,46 +430,57 @@ export function createPmAPI(snap: ScriptSnapshot, io: RuntimeIO) {
       // 口径：OUTBOX_MAX_SENDS=单脚本**累计**发送数上限；spec 上限按 UTF-8 字节（非码元数）。
       if (outcome.sendRequests.length >= OUTBOX_MAX_SENDS) {
         const e = new Error(`pm.sendRequest cumulative send limit (${OUTBOX_MAX_SENDS} per script run) exceeded — host aborting to protect resources.`);
-        cb?.(e, null); throw e;
+        cb?.(e, null);
+        throw e;
       }
       const bytes = specByteLength(spec);
       if (bytes > OUTBOX_SPEC_MAX_BYTES) {
         const e = new Error(`pm.sendRequest spec exceeds ${OUTBOX_SPEC_MAX_BYTES} UTF-8 bytes (got ${bytes}; URL+headers+body) — host aborting to protect resources.`);
-        cb?.(e, null); throw e;
+        cb?.(e, null);
+        throw e;
       }
-      outcome.sendRequests.push(spec)
+      outcome.sendRequests.push(spec);
       try {
-        const res = await io.sendRequest(spec)
+        const res = await io.sendRequest(spec);
         const wrapped = wrapBridgeResponse(res); // 终审 P1-04：Postman 风格响应视图（text/json/headers.get…）
         cb?.(null, wrapped);
         return wrapped;
       }
-      catch (e) { cb?.(e, null); throw e }
+      catch (e) {
+        cb?.(e, null);
+        throw e;
+      }
     },
     // fail-closed：pm.cookie / pm.execution 未实现就显式报错，绝不静默 no-op 伪装支持
-  cookies: unsupported as unknown as never,
-  cookieJar: unsupported as unknown as never,
-  execution: unsupported as unknown as never,
+    cookies: unsupported as unknown as never,
+    cookieJar: unsupported as unknown as never,
+    execution: unsupported as unknown as never,
     /** 未逐条实现的 API 一律显式失败（fail-closed），不静默 no-op 伪装支持。 */
-    unsupported: (feature: string): never => { throw new ExpectError(`pm.${feature} is not supported by API Studio script runtime yet`) },
-  }
+    unsupported: (feature: string): never => { throw new ExpectError(`pm.${feature} is not supported by API Studio script runtime yet`); },
+  };
   const consoleShim = {
     log: (...a: unknown[]) => io.console(...a),
     info: (...a: unknown[]) => io.console(...a),
     warn: (...a: unknown[]) => io.console(...a),
     error: (...a: unknown[]) => io.console(...a),
     debug: (...a: unknown[]) => io.console(...a),
-  }
+  };
   // E5 双模 flushTests：同步脚本路径（pendingTests 空）立即 push——现有调用零回归；
   // 异步断言路径返回 Promise（worker 统一 await；同步调用方不 await 也已拿到结果）。
   const flushTests = (): void | Promise<void> => {
-    if (pendingTests.length === 0) { outcome.tests.push(...tests); return; }
-    return Promise.allSettled(pendingTests).then(() => { outcome.tests.push(...tests) });
+    if (pendingTests.length === 0) {
+      outcome.tests.push(...tests);
+      return;
+    }
+
+    return Promise.allSettled(pendingTests).then(() => {
+      outcome.tests.push(...tests);
+    });
   };
   return { pm: pm as unknown as PmApi, console: consoleShim, flushTests };
 }
 
-export const EXPECT_ERROR_NAME = 'ExpectError'
+export const EXPECT_ERROR_NAME = 'ExpectError';
 
 /* ---------- 沙箱网络中和（A5 P0：Worker 无 DOM ≠ 无网络） ----------
  * 威胁模型：用户脚本运行在专用 module Worker 内，但仍可调用 fetch / XHR / WebSocket /
@@ -407,8 +526,14 @@ export function installSandboxGuards(scope: Record<string, unknown>): string[] {
     catch {
       // 该运行时不存在此全局（如 module Worker 无 importScripts）——补定义同样 fail-closed
       try {
-        Object.defineProperty(scope, k, { configurable: true, get: () => { throw new Error(`[api-studio sandbox] ${k} is disabled.`); } });
-        installed.push(k + ':absent');
+        Object.defineProperty(scope, k, {
+          configurable: true,
+          get: () => {
+            throw new Error(`[api-studio sandbox] ${k} is disabled.`);
+          },
+        });
+
+        installed.push(`${k}:absent`);
       }
       catch { /* 非 configurable 且不存在——记录但不阻断 */ }
     }

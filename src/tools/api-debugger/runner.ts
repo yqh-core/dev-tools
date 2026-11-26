@@ -168,12 +168,20 @@ async function executeSequence(
   };
 
   for (let round = 0; round < roundCount; round++) {
-    if (opts.signal?.aborted) { cancelled = true; break; }
+    if (opts.signal?.aborted) {
+      cancelled = true;
+      break;
+    }
+
     const dataRow = dataRows.length ? dataRows[round % dataRows.length] : (opts.iterationData ?? null);
     const roundResults: RequestRunResult[] = [];
 
     for (let i = 0; i < executables.length; i++) {
-      if (opts.signal?.aborted) { cancelled = true; break; }
+      if (opts.signal?.aborted) {
+        cancelled = true;
+        break;
+      }
+
       const e = executables[i];
       const base = { id: e.id, name: e.name, method: e.method, url: e.url };
       // 执行链在构造执行单元时已计算好（flat=请求+集合层叠加；树=运行期祖先链）——
@@ -186,15 +194,26 @@ async function executeSequence(
       const applyWrites = (outcome: ScriptOutcomeData) => {
         for (const w of outcome.envWrites) {
           const target = w.layer === 'environment' ? env : w.layer === 'globals' ? layers.globals : w.layer === 'collection' ? layers.collection : layers.local;
-          if (w.value === null) { delete target[w.name]; }
+          if (w.value === null) {
+            delete target[w.name];
+          }
           else { target[w.name] = w.value; }
         }
       };
       const takeMutations = (outcome: ScriptOutcomeData) => {
-        if (outcome.requestMutations.headers) { workingReq.headers = outcome.requestMutations.headers as KV[]; }
-        if (typeof outcome.requestMutations.body === 'string') { workingReq.body = outcome.requestMutations.body; }
-        if (typeof outcome.requestMutations.url === 'string') { workingReq.url = outcome.requestMutations.url; }
-        if (typeof outcome.requestMutations.method === 'string') { workingReq.method = outcome.requestMutations.method; }
+        if (outcome.requestMutations.headers) {
+          workingReq.headers = outcome.requestMutations.headers as KV[];
+        }
+
+        if (typeof outcome.requestMutations.body === 'string') {
+          workingReq.body = outcome.requestMutations.body;
+        }
+        if (typeof outcome.requestMutations.url === 'string') {
+          workingReq.url = outcome.requestMutations.url;
+        }
+        if (typeof outcome.requestMutations.method === 'string') {
+          workingReq.method = outcome.requestMutations.method;
+        }
       };
       const mergedForSubstitution = (): Record<string, string> => ({ ...layers.globals, ...layers.collection, ...env, ...(dataRow ?? {}), ...layers.local });
       const snapshotFor = (event: 'prerequest' | 'test', response: RunnerResponse | null): ScriptSnapshot => ({
@@ -212,13 +231,20 @@ async function executeSequence(
       let scriptError: string | undefined;
       if (opts.runScript && mergedPre) {
         const r = await opts.runScript(mergedPre, snapshotFor('prerequest', null), send);
-        if (r.timedOut) { scriptError = 'pre-request script killed (timeout)'; }
-        else if (r.error) { scriptError = `pre-request script error: ${r.error}`; }
+        if (r.timedOut) {
+          scriptError = 'pre-request script killed (timeout)';
+        }
+        else if (r.error) {
+          scriptError = `pre-request script error: ${r.error}`;
+        }
         // Postman 语义：prerequest 阶段的 pm.test 结果同样计入（徽章/报告/JUnit 不分阶段）。
         // D 批次盘查补缺：原实现丢弃 pre 段 tests——跨段断言（如集合 pre 写标记、请求 pre 断言）
         // 的结果不可见，判据级缺口。
-        if (r.outcome.tests.length) { scriptTests = r.outcome.tests.map(t => ({ name: t.name, passed: t.passed, ...(t.error ? { error: t.error } : {}) })); }
-        applyWrites(r.outcome); takeMutations(r.outcome);
+        if (r.outcome.tests.length) {
+          scriptTests = r.outcome.tests.map(t => ({ name: t.name, passed: t.passed, ...(t.error ? { error: t.error } : {}) }));
+        }
+        applyWrites(r.outcome);
+        takeMutations(r.outcome);
       }
 
       const { payload, missing } = buildProxyPayload(workingReq, mergedForSubstitution());
@@ -237,9 +263,15 @@ async function executeSequence(
           const report = runAssertions(e.assertions ?? [], resp, now());
           if (opts.runScript && mergedTest) {
             const r2 = await opts.runScript(mergedTest, snapshotFor('test', resp), send);
-            if (r2.outcome.tests.length) { scriptTests = [...(scriptTests ?? []), ...r2.outcome.tests.map(t => ({ name: t.name, passed: t.passed, ...(t.error ? { error: t.error } : {}) }))]; }
-            if (r2.timedOut) { scriptError = `${scriptError ? `${scriptError} | ` : ''}test script killed (timeout)`; }
-            else if (r2.error) { scriptError = `${scriptError ? `${scriptError} | ` : ''}test script error: ${r2.error}`; }
+            if (r2.outcome.tests.length) {
+              scriptTests = [...(scriptTests ?? []), ...r2.outcome.tests.map(t => ({ name: t.name, passed: t.passed, ...(t.error ? { error: t.error } : {}) }))];
+            }
+            if (r2.timedOut) {
+              scriptError = `${scriptError ? `${scriptError} | ` : ''}test script killed (timeout)`;
+            }
+            else if (r2.error) {
+              scriptError = `${scriptError ? `${scriptError} | ` : ''}test script error: ${r2.error}`;
+            }
             applyWrites(r2.outcome);
           }
           const scriptOk = !scriptError && (scriptTests ?? []).every(t => t.passed);
@@ -251,9 +283,15 @@ async function executeSequence(
           if (opts.runScript && mergedTest && !scriptError) {
             try {
               const r2 = await opts.runScript(mergedTest, snapshotFor('test', null), send);
-              if (r2.outcome.tests.length) { scriptTests = [...(scriptTests ?? []), ...r2.outcome.tests.map(t => ({ name: t.name, passed: t.passed, ...(t.error ? { error: t.error } : {}) }))]; }
-              if (r2.timedOut) { scriptError = 'test script killed (timeout)'; }
-              else if (r2.error) { scriptError = `test script error: ${r2.error}`; }
+              if (r2.outcome.tests.length) {
+                scriptTests = [...(scriptTests ?? []), ...r2.outcome.tests.map(t => ({ name: t.name, passed: t.passed, ...(t.error ? { error: t.error } : {}) }))];
+              }
+              if (r2.timedOut) {
+                scriptError = 'test script killed (timeout)';
+              }
+              else if (r2.error) {
+                scriptError = `test script error: ${r2.error}`;
+              }
               applyWrites(r2.outcome);
             }
             catch { /* 沙箱层错误已由 r2 承载 */ }
@@ -261,17 +299,27 @@ async function executeSequence(
           result = { ...base, sent: false, status: null, elapsedMs: null, error: e instanceof Error ? e.message : String(e), report: null, ...(scriptTests ? { scriptTests } : {}), passed: false };
         }
       }
-      if (!result.sent && scriptError && !result.error) { result.error = scriptError; }
+      if (!result.sent && scriptError && !result.error) {
+        result.error = scriptError;
+      }
       roundResults.push(result);
       allResults.push(result);
       opts.onProgress?.(result, globalIdx, totalRequests);
       globalIdx++;
 
-      if (stopOnError && !result.sent) { stoppedEarly = true; break; }
+      if (stopOnError && !result.sent) {
+        stoppedEarly = true;
+
+        break;
+      }
       // --bail 口径修正（终审 P0）：pm.test 失败/脚本错误同样即停——result.passed 已含
       // scriptOk 语义（report.allPassed && scriptOk）。原检查只覆盖结构化断言
       // （result.report.allPassed），pm.test 失败时 report.allPassed=true 不触发即停。
-      if (stopOnFailure && result.sent && !result.passed) { stoppedEarly = true; break; }
+      if (stopOnFailure && result.sent && !result.passed) {
+        stoppedEarly = true;
+
+        break;
+      }
       const isLastRequestOfLastRound = round === roundCount - 1 && i === executables.length - 1;
       if (delayMs > 0 && !isLastRequestOfLastRound && !opts.signal?.aborted) {
         await sleep(delayMs);
@@ -284,11 +332,15 @@ async function executeSequence(
       dataRowIndex: dataRow ? round % dataRows.length : null,
       results: roundResults,
     });
-    if (stoppedEarly) { break; }
+    if (stoppedEarly) {
+      break;
+    }
   }
 
   // 取消语义：末行执行中（含脚本在沙箱内跑）点取消，run 也如实标 cancelled。
-  if (opts.signal?.aborted) { cancelled = true; }
+  if (opts.signal?.aborted) {
+    cancelled = true;
+  }
   const finishedAt = now();
   const sentResults = allResults.filter(r => r.sent);
   const failed = allResults.filter(r => !r.passed).length;
@@ -404,7 +456,9 @@ export function formatCollectionReportText(summary: CollectionRunSummary, opts: 
           lines.push(`       [${a.passed ? 'PASS' : 'FAIL'}] ${a.label} — ${redactText(a.message, sv)}`);
         }
       }
-      if (r.scriptError) { lines.push(`       [SCRIPT] ${redactText(r.scriptError, sv)}`); }
+      if (r.scriptError) {
+        lines.push(`       [SCRIPT] ${redactText(r.scriptError, sv)}`);
+      }
       for (const t of r.scriptTests ?? []) {
         lines.push(`       [${t.passed ? 'PASS' : 'FAIL'}] pm.test: ${t.name}${t.error ? ` — ${redactText(t.error, sv)}` : ''}`);
       }

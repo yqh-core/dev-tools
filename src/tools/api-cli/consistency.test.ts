@@ -4,12 +4,12 @@
  * 时间字段（durationMs/startedAt/finishedAt/avgResponseMs）天然不等——排除后逐键深相等。
  * 价值：抓 CLI args→RunnerOptions 映射漂移（如 iterations/dataFile/stop 策略错位）。
  */
-import { describe, expect, it, vi } from 'vitest';
 import { mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { describe, expect, it, vi } from 'vitest';
 import { runCollection } from '../api-debugger/runner';
-import { createPmAPI, type ScriptSnapshot } from '../api-debugger/script-runtime';
+import { type ScriptSnapshot, createPmAPI } from '../api-debugger/script-runtime';
 import type { SavedRequest } from '../api-debugger/store';
 import { executeRun } from './run';
 import type { CliArgs } from './args';
@@ -23,10 +23,12 @@ const COLLECTION = JSON.stringify({
 });
 const CSV = 'email\na@x.test\nb@x.test\n';
 
-const fixtureSaved = (): SavedRequest[] => [
-  { id: 'c1', name: 'C1', request: { method: 'GET', url: '{{baseUrl}}/a?email={{email}}', headers: [], body: '' }, createdAt: 1, updatedAt: 1, scriptEvents: { test: 'pm.test("c1", () => {});' } },
-  { id: 'c2', name: 'C2', request: { method: 'GET', url: '{{baseUrl}}/b', headers: [], body: '' }, createdAt: 1, updatedAt: 1 },
-];
+function fixtureSaved(): SavedRequest[] {
+  return [
+    { id: 'c1', name: 'C1', request: { method: 'GET', url: '{{baseUrl}}/a?email={{email}}', headers: [], body: '' }, createdAt: 1, updatedAt: 1, scriptEvents: { test: 'pm.test("c1", () => {});' } },
+    { id: 'c2', name: 'C2', request: { method: 'GET', url: '{{baseUrl}}/b', headers: [], body: '' }, createdAt: 1, updatedAt: 1 },
+  ];
+}
 
 const mkSend = () => async (p: { url: string }) => ({ url: p.url, status: 200, statusText: 'OK', headers: {}, body: '{}', elapsedMs: 1 });
 const mkScript = () => vi.fn(async () => ({ outcome: { tests: [{ name: 'c1', passed: true }], envWrites: [], requestMutations: {}, logs: [], sendRequests: [], asyncPending: false }, timedOut: false }));
@@ -35,19 +37,25 @@ const mkScript = () => vi.fn(async () => ({ outcome: { tests: [{ name: 'c1', pas
 //   id（各路径存储层自生成：浏览器 fixture 'r-A'/'c1' vs CLI 'cli-N'，非执行语义）
 //   ranAt（毫秒时间戳，双跑先后天然不等）
 // 保留 elapsedMs（stub 固定口径下相等=耗时语义一致证明）。
-const stripTiming = (obj: unknown): unknown => {
-  if (Array.isArray(obj)) return obj.map(stripTiming);
+function stripTiming(obj: unknown): unknown {
+  if (Array.isArray(obj)) {
+    return obj.map(stripTiming);
+  }
+
   if (obj && typeof obj === 'object') {
     const out: Record<string, unknown> = {};
     for (const [k, v] of Object.entries(obj)) {
       // 排除：id（存储标识各路径自生成）/ ranAt（毫秒时间戳）/ 顶层运行时间四字段（双跑先后天然不等）
-      if (k === 'id' || k === 'ranAt' || k === 'totalDurationMs' || k === 'startedAt' || k === 'finishedAt' || k === 'avgResponseMs') continue;
+      if (k === 'id' || k === 'ranAt' || k === 'totalDurationMs' || k === 'startedAt' || k === 'finishedAt' || k === 'avgResponseMs') {
+        continue;
+      }
+
       out[k] = stripTiming(v);
     }
     return out;
   }
   return obj;
-};
+}
 const norm = (s: unknown) => stripTiming(s);
 
 describe('C-004 浏览器/CLI 双跑一致性', () => {
@@ -70,8 +78,17 @@ describe('C-004 浏览器/CLI 双跑一致性', () => {
 
     // CLI 路径（args → executeRun → 同引擎；注入同口径 stub）
     const args: CliArgs = {
-      command: 'run', collectionPath: colPath, environmentFile: envPath, iterationDataFile: csvPath, iterations: 2,
-      requestTimeoutMs: 30000, delayMs: 0, stopOnError: true, stopOnFailure: false, reporters: ['cli'], ci: false,
+      command: 'run',
+      collectionPath: colPath,
+      environmentFile: envPath,
+      iterationDataFile: csvPath,
+      iterations: 2,
+      requestTimeoutMs: 30000,
+      delayMs: 0,
+      stopOnError: true,
+      stopOnFailure: false,
+      reporters: ['cli'],
+      ci: false,
     };
     const cli = await executeRun(args, { runScript: mkScript() as never, send: mkSend() as never });
 
@@ -91,8 +108,11 @@ describe('C-004 浏览器/CLI 双跑一致性', () => {
     const s: ScriptSnapshot = {
       request: { method: 'GET', url: 'https://x/', headers: [], body: '' },
       response: null,
-      globals: { shared: 'GLOB' }, collection: { shared: 'COLL' }, environment: { shared: 'ENV' },
-      iterationData: { shared: 'DATA' }, local: {},
+      globals: { shared: 'GLOB' },
+      collection: { shared: 'COLL' },
+      environment: { shared: 'ENV' },
+      iterationData: { shared: 'DATA' },
+      local: {},
       info: { event: 'test', iteration: 1, counter: 1, requestName: 'matrix' },
     };
     const outcome = { tests: [], envWrites: [], requestMutations: {}, logs: [], sendRequests: [], asyncPending: false };
@@ -103,11 +123,16 @@ describe('C-004 浏览器/CLI 双跑一致性', () => {
     // runner 插值侧（mergedForSubstitution 同序；无 local 写入时 dataRow 胜 environment）
     const saved: SavedRequest = { id: 'm', name: 'M', request: { method: 'GET', url: 'https://x/?v={{shared}}', headers: [], body: '' }, createdAt: 1, updatedAt: 1 };
     const sent: string[] = [];
-    const send = async (p: { url: string }) => { sent.push(p.url); return { url: p.url, status: 200, statusText: 'OK', headers: {}, body: '{}', elapsedMs: 1 }; };
+    const send = async (p: { url: string }) => {
+      sent.push(p.url);
+
+      return { url: p.url, status: 200, statusText: 'OK', headers: {}, body: '{}', elapsedMs: 1 };
+    };
     await runCollection([saved], { shared: 'ENV' }, send as never, {
       runScript: vi.fn(async () => ({ outcome: { tests: [], envWrites: [], requestMutations: {}, logs: [], sendRequests: [], asyncPending: false }, timedOut: false })) as never,
       variableLayers: { globals: { shared: 'GLOB' }, collection: { shared: 'COLL' } },
-      dataFile: { columns: ['shared'], rows: [{ shared: 'DATA' }] }, dataFileType: 'csv',
+      dataFile: { columns: ['shared'], rows: [{ shared: 'DATA' }] },
+      dataFileType: 'csv',
     });
     expect(sent[0]).toContain('v=DATA'); // 与 runtime 侧同 winner
   }, 30000);
