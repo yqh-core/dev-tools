@@ -259,6 +259,14 @@ test('sends a selected request with edited query params and headers, then inspec
   expect(sentPayload?.headers).toContainEqual({ name: 'x-api-version', value: 'v2' });
   expect(sentPayload?.headers).toContainEqual({ name: 'Authorization', value: 'Bearer local-secret' });
 
+  // Assert the exact request is persisted before a reload can mask the source of a failure.
+  const storedTree = await page.evaluate((key) => {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) as { items: { request: { url: string; headers: { name: string; value: string }[] } }[] } : null;
+  }, TREE_KEY);
+  expect(storedTree?.items[0].request.url).toBe('https://api.test/users/42?active=2');
+  expect(storedTree?.items[0].request.headers).toContainEqual({ name: 'x-api-version', value: 'v2' });
+
   // Editing and sending persists the collection request locally, including headers and query string.
   await page.reload();
   await page.getByTestId('tree-method').click();
