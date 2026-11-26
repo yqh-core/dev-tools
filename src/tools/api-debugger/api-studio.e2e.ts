@@ -224,12 +224,13 @@ test('sends a selected request with edited query params and headers, then inspec
 
   let sentPayload: { url: string; method: string; headers: { name: string; value: string }[]; body: string } | null = null;
   await page.route(/\/api\/apiproxy/, async (route) => {
-    sentPayload = route.request().postDataJSON() as typeof sentPayload;
+    const payload = route.request().postDataJSON() as { url: string; method: string; headers: { name: string; value: string }[]; body: string };
+    sentPayload = payload;
     return route.fulfill({
       status: 200,
       contentType: 'application/json',
       body: JSON.stringify({
-        url: sentPayload.url,
+        url: payload.url,
         status: 200,
         statusText: 'OK',
         headers: { 'content-type': 'application/json' },
