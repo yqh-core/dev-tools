@@ -310,7 +310,7 @@ test('runs saved structured request assertions and shows each pass/fail result',
     ([key, val]) => localStorage.setItem(key, val),
     [TREE_KEY, JSON.stringify(treeSeed)] as [string, string],
   );
-  await page.route(/\\/api\\/apiproxy/, route => route.fulfill({
+  await page.route(/\/api\/apiproxy/, route => route.fulfill({
     status: 200,
     contentType: 'application/json',
     body: JSON.stringify({
