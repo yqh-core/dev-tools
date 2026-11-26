@@ -31,8 +31,10 @@ import {
 } from '@/tools/api-debugger/collection-tree';
 import type { KV } from '@/tools/api-debugger/engine';
 import { buildProxyPayload } from '@/tools/api-debugger/engine';
-import type { Assertion, AssertionReport, AssertionType } from '@/tools/api-debugger/assertions';
-import { ASSERTIONS_CAP, assertionProblem, makeAssertion, OP_LABELS, OPS_BY_TYPE, runAssertions } from '@/tools/api-debugger/assertions';
+import * as assertionEngine from '@/tools/api-debugger/assertions';
+type Assertion = assertionEngine.Assertion;
+type AssertionReport = assertionEngine.AssertionReport;
+type AssertionType = assertionEngine.AssertionType;
 import { buildUrlWithQuery, parseQueryParams } from '@/tools/api-debugger/query';
 import type { CollectionRunSummary, RunnerResponse, SendFn } from '@/tools/api-debugger/runner';
 import { formatCollectionReportText, runCollectionTree } from '@/tools/api-debugger/runner';
@@ -414,7 +416,7 @@ function assertionId(): string {
   return `assertion-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
 }
 function assertionOperatorOptions(type: AssertionType) {
-  return OPS_BY_TYPE[type].map(operator => ({ label: OP_LABELS[operator] ?? operator, value: operator }));
+  return assertionEngine.OPS_BY_TYPE[type].map(operator => ({ label: assertionEngine.OP_LABELS[operator] ?? operator, value: operator }));
 }
 function assertionNeedsTarget(assertion: Assertion): boolean {
   return assertion.type === 'json' || assertion.type === 'header';
@@ -436,11 +438,11 @@ function commitAssertions() {
   applyTree(result.tree);
 }
 function addAssertion(type: AssertionType = 'status') {
-  if (edAssertions.value.length >= ASSERTIONS_CAP) {
-    banner.value = `You can add up to ${ASSERTIONS_CAP} assertions to one request.`;
+  if (edAssertions.value.length >= assertionEngine.ASSERTIONS_CAP) {
+    banner.value = `You can add up to ${assertionEngine.ASSERTIONS_CAP} assertions to one request.`;
     return;
   }
-  edAssertions.value = [...edAssertions.value, makeAssertion(assertionId(), type)];
+  edAssertions.value = [...edAssertions.value, assertionEngine.makeAssertion(assertionId(), type)];
   commitAssertions();
 }
 function changeAssertionType(assertion: Assertion, value: unknown) {
@@ -448,7 +450,7 @@ function changeAssertionType(assertion: Assertion, value: unknown) {
   if (!Object.prototype.hasOwnProperty.call(OPS_BY_TYPE, type)) {
     return;
   }
-  const fresh = makeAssertion(assertion.id, type);
+  const fresh = assertionEngine.makeAssertion(assertion.id, type);
   Object.assign(assertion, fresh, { enabled: assertion.enabled });
   commitAssertions();
 }
@@ -458,7 +460,7 @@ function removeAssertion(index: number) {
 }
 function updateAssertion(assertion: Assertion) {
   // Incomplete rules remain visible and fail closed when the request is sent.
-  if (assertionProblem(assertion)) {
+  if (assertionEngine.assertionProblem(assertion)) {
     singleAssertionReport.value = null;
   }
   commitAssertions();
@@ -656,7 +658,7 @@ async function sendSelectedRequest() {
   try {
     const response = await runnerSend(payload);
     singleResponse.value = response;
-    singleAssertionReport.value = runAssertions(edAssertions.value, {
+    singleAssertionReport.value = assertionEngine.runAssertions(edAssertions.value, {
       status: response.status,
       headers: response.headers,
       body: response.body,
@@ -1051,7 +1053,7 @@ function onMenuSelect(key: string, node: TreeNode) {
                 @change="updateAssertion(assertion)"
               >
               <button class="api-mini-action api-assertion-remove" type="button" :aria-label="`Remove test ${i + 1}`" @click="removeAssertion(i)">×</button>
-              <p v-if="assertionProblem(assertion)" class="api-assertion-warning">{{ assertionProblem(assertion) }}</p>
+              <p v-if="assertionEngine.assertionProblem(assertion)" class="api-assertion-warning">{{ assertionEngine.assertionProblem(assertion) }}</p>
             </div>
           </section>
 
