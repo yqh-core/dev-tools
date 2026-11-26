@@ -29,6 +29,9 @@ import {
   updateFolderScripts,
   updateRequestNode,
 } from '@/tools/api-debugger/collection-tree';
+import type { KV } from '@/tools/api-debugger/engine';
+import { buildProxyPayload } from '@/tools/api-debugger/engine';
+import { buildUrlWithQuery, parseQueryParams } from '@/tools/api-debugger/query';
 import type { CollectionRunSummary, RunnerResponse, SendFn } from '@/tools/api-debugger/runner';
 import { formatCollectionReportText, runCollectionTree } from '@/tools/api-debugger/runner';
 import { runScriptIsolated } from '@/tools/api-debugger/script-sandbox';
@@ -332,6 +335,11 @@ const edName = ref('');
 const edMethod = ref('GET');
 const edUrl = ref('');
 const edBody = ref('');
+const edHeaders = ref<KV[]>([]);
+const edQueryParams = ref<KV[]>([]);
+const sendingSingle = ref(false);
+const singleResponse = ref<RunnerResponse | null>(null);
+const singleError = ref('');
 const edPre = ref('');
 const edTest = ref('');
 // 仅在切换选中节点（id 变化）时回填，避免每次提交后 clobber 用户正在编辑的内容。
@@ -342,6 +350,10 @@ watch(() => selectedNode.value?.id, () => {
   edMethod.value = r?.request.method ?? 'GET';
   edUrl.value = r?.request.url ?? '';
   edBody.value = r?.request.body ?? '';
+  edHeaders.value = (r?.request.headers ?? []).map(h => ({ ...h }));
+  edQueryParams.value = parseQueryParams(r?.request.url ?? '');
+  singleResponse.value = null;
+  singleError.value = '';
   edPre.value = n?.scripts?.prerequest ?? '';
   edTest.value = n?.scripts?.test ?? '';
 }, { immediate: true });
@@ -367,7 +379,16 @@ function commitRequest() {
   if (!s) {
     return;
   }
-  const request = { ...s.request, method: edMethod.value, url: edUrl.value, body: edBody.value };
+  // A changed request must not leave an older response looking like the result of the new input.
+  singleResponse.value = null;
+  singleError.value = '';
+  const request = {
+    ...s.request,
+    method: edMethod.value,
+    url: edUrl.value,
+    headers: edHeaders.value.filter(h => h.name.trim()),
+    body: edBody.value,
+  };
   const r = updateRequestNode(tree.value, s.id, { name: edName.value, request });
   if (r.error) {
     banner.value = r.error;
@@ -380,6 +401,58 @@ function commitRequest() {
 function onMethodChange(v: unknown) {
   edMethod.value = String(v);
   commitRequest();
+}
+
+function onUrlChange() {
+  edQueryParams.value = parseQueryParams(edUrl.value);
+  commitRequest();
+}
+
+function applyQueryParams() {
+  edUrl.value = buildUrlWithQuery(edUrl.value, edQueryParams.value);
+  commitRequest();
+}
+
+function addQueryParam() {
+  edQueryParams.value = [...edQueryParams.value, { name: '', value: '' }];
+}
+
+function removeQueryParam(index: number) {
+  edQueryParams.value = edQueryParams.value.filter((_, i) => i !== index);
+  applyQueryParams();
+}
+
+function addHeader() {
+  edHeaders.value = [...edHeaders.value, { name: '', value: '' }];
+}
+
+function removeHeader(index: number) {
+  edHeaders.value = edHeaders.value.filter((_, i) => i !== index);
+  commitRequest();
+}
+
+function isSensitiveHeader(name: string): boolean {
+  return ['authorization', 'cookie', 'x-api-key', 'proxy-authorization'].includes(name.trim().toLowerCase());
+}
+
+function formatResponseBody(body: string): string {
+  try {
+    return JSON.stringify(JSON.parse(body), null, 2);
+  }
+  catch {
+    return body;
+  }
+}
+
+function useRedirectTarget() {
+  const target = singleResponse.value?.redirect;
+  if (!target) {
+    return;
+  }
+  edUrl.value = target;
+  onUrlChange();
+  singleResponse.value = null;
+  singleError.value = '';
 }
 
 function commitScripts() {
@@ -483,6 +556,51 @@ const runnerSend: SendFn = async (payload) => {
   }
   return j as RunnerResponse;
 };
+
+async function sendSelectedRequest() {
+  const selected = selectedRequest.value;
+  if (!selected || sendingSingle.value) {
+    return;
+  }
+
+  const request = {
+    method: edMethod.value,
+    url: buildUrlWithQuery(edUrl.value, edQueryParams.value),
+    headers: edHeaders.value.filter(h => h.name.trim()),
+    body: edBody.value,
+  };
+  // Persist the exact request that will be sent; do not rely on a later blur/change event.
+  edUrl.value = request.url;
+  const saved = updateRequestNode(tree.value, selected.id, { name: edName.value, request });
+  if (saved.error) {
+    singleResponse.value = null;
+    singleError.value = saved.error;
+    return;
+  }
+  applyTree(saved.tree);
+  const { payload, missing } = buildProxyPayload(request, env.value);
+  if (missing.length) {
+    singleResponse.value = null;
+    singleError.value = `Missing variables: ${missing.join(', ')}. Define them in the selected environment.`;
+    return;
+  }
+
+  sendingSingle.value = true;
+  singleError.value = '';
+  singleResponse.value = null;
+  try {
+    const response = await runnerSend(payload);
+    singleResponse.value = response;
+    banner.value = `Received HTTP ${response.status} in ${response.elapsedMs} ms.`;
+  }
+  catch (e) {
+    singleError.value = e instanceof Error ? e.message : String(e);
+    banner.value = 'Request could not be completed. Review the error and try again.';
+  }
+  finally {
+    sendingSingle.value = false;
+  }
+}
 
 async function onRun() {
   if (countRequests(tree.value) === 0) {
@@ -758,11 +876,81 @@ function onMenuSelect(key: string, node: TreeNode) {
         <div class="api-field-row">
           <input v-model="edName" class="api-name-input" data-test-id="editor-name" :placeholder="selectedRequest ? 'Request name' : 'Name'" @change="commitName">
           <n-select v-if="selectedRequest" :value="edMethod" :options="methodOptions" class="api-method-select" data-test-id="editor-method" @update:value="onMethodChange" />
+          <button
+            v-if="selectedRequest"
+            class="api-tool-btn api-send-btn"
+            type="button"
+            data-test-id="send-request"
+            :disabled="sendingSingle"
+            @click="sendSelectedRequest"
+          >
+            {{ sendingSingle ? 'Sending…' : 'Send' }}
+          </button>
         </div>
 
         <template v-if="selectedRequest">
-          <input v-model="edUrl" class="api-url-input" data-test-id="editor-url" placeholder="https://api.example.com/endpoint" @change="commitRequest">
+          <input v-model="edUrl" class="api-url-input" data-test-id="editor-url" placeholder="https://api.example.com/endpoint" @change="onUrlChange">
+
+          <section class="api-request-section" aria-label="Query parameters" data-test-id="query-params">
+            <div class="api-request-section-head">
+              <span>Query params</span>
+              <button class="api-mini-action" type="button" data-test-id="add-query-param" @click="addQueryParam">+ Add</button>
+            </div>
+            <div v-for="(param, i) in edQueryParams" :key="`query-${i}`" class="api-kv-row">
+              <input v-model="param.name" class="api-kv-input" :aria-label="`Query parameter ${i + 1} name`" data-test-id="query-name" placeholder="Parameter" />
+              <input v-model="param.value" class="api-kv-input" :aria-label="`Query parameter ${i + 1} value`" data-test-id="query-value" placeholder="Value" />
+              <button class="api-mini-action" type="button" :aria-label="`Remove query parameter ${i + 1}`" @click="removeQueryParam(i)">×</button>
+            </div>
+            <div class="api-request-section-foot">
+              <button class="api-mini-action" type="button" data-test-id="apply-query-params" @click="applyQueryParams">Apply to URL</button>
+              <span class="api-field-hint">Repeated keys and empty values are preserved.</span>
+            </div>
+          </section>
+
+          <section class="api-request-section" aria-label="Request headers" data-test-id="request-headers">
+            <div class="api-request-section-head">
+              <span>Headers <span class="api-field-hint">Sensitive values are masked</span></span>
+              <button class="api-mini-action" type="button" data-test-id="add-header" @click="addHeader">+ Add</button>
+            </div>
+            <div v-for="(header, i) in edHeaders" :key="`header-${i}`" class="api-kv-row">
+              <input v-model="header.name" class="api-kv-input" :aria-label="`Header ${i + 1} name`" data-test-id="header-name" placeholder="Header name" @change="commitRequest" />
+              <input
+                v-model="header.value"
+                @change="commitRequest"
+                class="api-kv-input"
+                :type="isSensitiveHeader(header.name) ? 'password' : 'text'"
+                :aria-label="`Header ${i + 1} value`"
+                data-test-id="header-value"
+                :placeholder="isSensitiveHeader(header.name) ? 'Sensitive value (masked)' : 'Value'"
+              />
+              <button class="api-mini-action" type="button" :aria-label="`Remove header ${i + 1}`" @click="removeHeader(i)">×</button>
+            </div>
+            <p class="api-field-hint">Authorization and API-key headers are sent only when you choose Send or Run.</p>
+          </section>
+
           <textarea v-model="edBody" class="api-body-input" data-test-id="editor-body" placeholder="Request body (raw)" @change="commitRequest" />
+          <div v-if="singleError" class="api-response-error" role="alert" data-test-id="single-send-error">
+            {{ singleError }}
+          </div>
+          <section v-if="singleResponse" class="api-response-panel" data-test-id="single-response" aria-label="Response">
+            <div class="api-response-head">
+              <div class="api-response-status">
+                <span class="api-response-code" :data-ok="singleResponse.status >= 200 && singleResponse.status < 400">{{ singleResponse.status }} {{ singleResponse.statusText }}</span>
+                <span class="api-field-hint">{{ singleResponse.elapsedMs }} ms · {{ singleResponse.url }}</span>
+              </div>
+              <button class="api-mini-action" type="button" data-test-id="clear-response" @click="singleResponse = null">Clear</button>
+            </div>
+            <p v-if="singleResponse.note" class="api-response-note">{{ singleResponse.note }}</p>
+            <div v-if="singleResponse.redirect" class="api-response-redirect">
+              <span>Redirect target: <code>{{ singleResponse.redirect }}</code></span>
+              <button class="api-mini-action" type="button" data-test-id="use-redirect-target" @click="useRedirectTarget">Use target</button>
+            </div>
+            <details class="api-response-headers">
+              <summary>Response headers ({{ Object.keys(singleResponse.headers).length }})</summary>
+              <pre>{{ JSON.stringify(singleResponse.headers, null, 2) }}</pre>
+            </details>
+            <pre class="api-response-body" data-test-id="single-response-body">{{ formatResponseBody(singleResponse.body) }}</pre>
+          </section>
         </template>
 
         <!-- 脚本面板 + 三层继承链 -->
@@ -1194,6 +1382,178 @@ function onMenuSelect(key: string, node: TreeNode) {
   gap: var(--api-gap-sm);
 }
 
+.api-send-btn {
+  flex: 0 0 76px;
+  min-height: 34px;
+}
+
+.api-request-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  border: 1px solid var(--api-border);
+  border-radius: var(--api-radius);
+  background: var(--api-surface);
+}
+
+.api-request-section-head,
+.api-request-section-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+  color: var(--api-text-soft);
+  font-size: var(--api-fs-sm);
+  font-weight: 600;
+}
+
+.api-request-section-foot {
+  justify-content: flex-start;
+  font-weight: 400;
+}
+
+.api-kv-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr) 28px;
+  gap: 6px;
+  align-items: center;
+}
+
+.api-kv-input {
+  width: 100%;
+  min-width: 0;
+  height: 32px;
+  padding: 0 8px;
+  border: 1px solid var(--api-border);
+  border-radius: var(--api-radius-sm);
+  background: var(--api-surface-2);
+  color: var(--api-text);
+  font: inherit;
+  font-size: var(--api-fs-sm);
+}
+
+.api-kv-input:focus {
+  outline: none;
+  border-color: var(--api-primary);
+  box-shadow: var(--api-focus-ring);
+}
+
+.api-mini-action {
+  min-width: 28px;
+  min-height: 28px;
+  border: 1px solid var(--api-border);
+  border-radius: var(--api-radius-sm);
+  padding: 3px 7px;
+  background: var(--api-surface-2);
+  color: var(--api-text-soft);
+  font: inherit;
+  font-size: var(--api-fs-sm);
+  cursor: pointer;
+}
+
+.api-mini-action:hover {
+  border-color: var(--api-primary-line);
+  color: var(--api-text);
+}
+
+.api-field-hint {
+  color: var(--api-text-faint);
+  font-size: var(--api-fs-xs);
+  font-weight: 400;
+}
+
+.api-response-error {
+  padding: 9px 12px;
+  border: 1px solid var(--api-danger, #d45b5b);
+  border-radius: var(--api-radius-sm);
+  background: var(--api-surface-2);
+  color: var(--api-danger, #d45b5b);
+  font-size: var(--api-fs-sm);
+  overflow-wrap: anywhere;
+}
+
+.api-response-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--api-border);
+  border-radius: var(--api-radius);
+  background: var(--api-surface);
+}
+
+.api-response-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.api-response-status {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.api-response-code {
+  color: var(--api-danger, #d45b5b);
+  font-family: var(--api-font-mono);
+  font-weight: 700;
+}
+
+.api-response-code[data-ok="true"] {
+  color: var(--api-success);
+}
+
+.api-response-note,
+.api-response-redirect {
+  margin: 0;
+  padding: 8px;
+  border-radius: var(--api-radius-sm);
+  background: var(--api-surface-2);
+  color: var(--api-text-soft);
+  font-size: var(--api-fs-sm);
+  overflow-wrap: anywhere;
+}
+
+.api-response-redirect {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.api-response-headers {
+  color: var(--api-text-soft);
+  font-size: var(--api-fs-sm);
+}
+
+.api-response-headers pre {
+  overflow: auto;
+  max-height: 180px;
+  font-family: var(--api-font-mono);
+  font-size: var(--api-fs-xs);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.api-response-body {
+  margin: 0;
+  max-height: 360px;
+  overflow: auto;
+  padding: 12px;
+  border-radius: var(--api-radius-sm);
+  background: var(--api-surface-2);
+  color: var(--api-text);
+  font-family: var(--api-font-mono);
+  font-size: var(--api-fs-sm);
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
 .api-name-input {
   flex: 1 1 auto;
   min-width: 0;
@@ -1533,6 +1893,28 @@ function onMenuSelect(key: string, node: TreeNode) {
 @media (max-width: 720px) {
   .api-chain-cols {
     grid-template-columns: 1fr;
+  }
+
+  .api-field-row {
+    flex-wrap: wrap;
+  }
+
+  .api-name-input {
+    flex: 1 1 100%;
+  }
+
+  .api-method-select {
+    flex: 1 1 auto;
+    min-width: 120px;
+  }
+
+  .api-send-btn {
+    flex: 0 0 88px;
+    min-height: 40px;
+  }
+
+  .api-kv-row {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr) 28px;
   }
 }
 </style>

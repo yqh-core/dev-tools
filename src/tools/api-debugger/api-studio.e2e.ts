@@ -163,7 +163,11 @@ test('environment drives {{var}} resolution at run time (selector wired to activ
   };
   await page.addInitScript(
     ([key, val]) => {
-      localStorage.setItem(key, val);
+      // addInitScript runs on every navigation, including reload. Seed only the empty origin
+      // so the reload assertion observes the real persisted collection instead of resetting it.
+      if (localStorage.getItem(key) === null) {
+        localStorage.setItem(key, val);
+      }
     },
     [TREE_KEY, JSON.stringify(treeSeed)] as [string, string],
   );
@@ -193,6 +197,96 @@ test('environment drives {{var}} resolution at run time (selector wired to activ
   expect(sentUrl).toBe('https://api.test/ping');
 
   await page.screenshot({ path: join(SHOTS, '04-env-resolve.png'), fullPage: true });
+});
+
+test('sends a selected request with edited query params and headers, then inspects the response', async ({ page }) => {
+  const treeSeed = {
+    id: 'send-collection',
+    name: 'Users API',
+    items: [
+      {
+        id: 'get-user',
+        name: 'Get user',
+        request: {
+          method: 'GET',
+          url: 'https://api.test/users/42?active=1',
+          headers: [
+            { name: 'x-api-version', value: 'v1' },
+            { name: 'Authorization', value: 'Bearer local-secret' },
+          ],
+          body: '',
+        },
+      },
+    ],
+  };
+  await page.addInitScript(
+    ([key, val]) => {
+      // Playwright runs this before every navigation, including reload. Never overwrite
+      // the collection saved by the application when the page is refreshed.
+      if (localStorage.getItem(key) === null) {
+        localStorage.setItem(key, val);
+      }
+    },
+    [TREE_KEY, JSON.stringify(treeSeed)] as [string, string],
+  );
+  let sentPayload: { url: string; method: string; headers: { name: string; value: string }[]; body: string } | null = null;
+  await page.route(/\/api\/apiproxy/, async (route) => {
+    const payload = route.request().postDataJSON() as { url: string; method: string; headers: { name: string; value: string }[]; body: string };
+    sentPayload = payload;
+    return route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        url: payload.url,
+        status: 200,
+        statusText: 'OK',
+        headers: { 'content-type': 'application/json' },
+        body: '{"id":42,"active":true}',
+        elapsedMs: 12,
+      }),
+    });
+  });
+
+  await page.goto('/api-studio');
+  await page.getByTestId('tree-method').click();
+
+  await expect(page.getByTestId('query-value')).toHaveCount(1);
+  await page.getByTestId('query-value').fill('2');
+  await page.getByTestId('header-value').nth(0).fill('v2');
+  await expect(page.getByTestId('header-value').nth(1)).toHaveAttribute('type', 'password');
+
+  await page.getByTestId('send-request').click();
+  await expect(page.getByTestId('single-response')).toBeVisible();
+  await expect(page.getByTestId('single-response')).toContainText('200 OK');
+  await expect(page.getByTestId('single-response-body')).toContainText('"active": true');
+
+  expect(sentPayload).not.toBeNull();
+  expect(sentPayload?.method).toBe('GET');
+  expect(sentPayload?.url).toBe('https://api.test/users/42?active=2');
+  expect(sentPayload?.headers).toContainEqual({ name: 'x-api-version', value: 'v2' });
+  expect(sentPayload?.headers).toContainEqual({ name: 'Authorization', value: 'Bearer local-secret' });
+
+  // Assert the exact request is persisted before a reload can mask the source of a failure.
+  const storedTree = await page.evaluate((key) => {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) as { items: { request: { url: string; headers: { name: string; value: string }[] } }[] } : null;
+  }, TREE_KEY);
+  expect(storedTree?.items[0].request.url).toBe('https://api.test/users/42?active=2');
+  expect(storedTree?.items[0].request.headers).toContainEqual({ name: 'x-api-version', value: 'v2' });
+
+  // Editing and sending persists the collection request locally, including headers and query string.
+  // The seed script above must not overwrite this value during the reload.
+  await page.reload();
+  const restoredTree = await page.evaluate((key) => {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) as { items: { request: { url: string; headers: { name: string; value: string }[] } }[] } : null;
+  }, TREE_KEY);
+  expect(restoredTree?.items[0].request.url).toBe('https://api.test/users/42?active=2');
+  expect(restoredTree?.items[0].request.headers).toContainEqual({ name: 'x-api-version', value: 'v2' });
+  await page.getByTestId('tree-method').click();
+  await expect(page.getByTestId('editor-url')).toHaveValue('https://api.test/users/42?active=2');
+  await expect(page.getByTestId('header-value').nth(0)).toHaveValue('v2');
+  await expect(page.getByTestId('header-value').nth(1)).toHaveAttribute('type', 'password');
 });
 
 test('imports a Postman v2.1 collection into the tree and exports it back (round-trip)', async ({ page }) => {
