@@ -466,6 +466,10 @@ function updateAssertion(assertion: Assertion) {
   }
   commitAssertions();
 }
+function changeAssertionOperator(assertion: Assertion, value: unknown) {
+  assertion.operator = String(value);
+  updateAssertion(assertion);
+}
 function onMethodChange(v: unknown) {
   edMethod.value = String(v);
   commitRequest();
@@ -1042,7 +1046,7 @@ function onMenuSelect(key: string, node: TreeNode) {
                 class="api-assertion-operator"
                 :aria-label="`Test ${i + 1} operator`"
                 data-test-id="assertion-operator"
-                @update:value="(value) => { assertion.operator = String(value); updateAssertion(assertion); }"
+                @update:value="changeAssertionOperator(assertion, $event)"
               />
               <input
                 v-if="assertionNeedsExpected(assertion)"
