@@ -162,7 +162,7 @@ test.describe('Homepage task discovery', () => {
     await expect(flagship).toBeVisible();
     await expect(flagship).toHaveAttribute('href', '/api-studio/');
     await expect(flagship).toContainText('API Studio');
-    await expect(flagship).toContainText('创建请求');
+    await expect(flagship).toContainText('Build requests');
     await flagship.click();
 
     await expect(page).toHaveURL(/\\/api-studio\\/?$/);
