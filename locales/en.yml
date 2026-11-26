@@ -24,6 +24,7 @@ home:
     badgeNoSignup: "No signup"
     badgeTools: "{count} tools"
     cta: "Browse all tools"
+    studioCta: "Open API Studio"
   quickSearch:
     ariaLabel: "Quick task searches"
     label: "Try a task:"
