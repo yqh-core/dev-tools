@@ -444,43 +444,6 @@ function formatResponseBody(body: string): string {
   }
 }
 
-async function sendSelectedRequest() {
-  const selected = selectedRequest.value;
-  if (!selected || sendingSingle.value) {
-    return;
-  }
-
-  edUrl.value = buildUrlWithQuery(edUrl.value, edQueryParams.value);
-  commitRequest();
-  const request = {
-    method: edMethod.value,
-    url: edUrl.value,
-    headers: edHeaders.value.filter(h => h.name.trim()),
-    body: edBody.value,
-  };
-  const { payload, missing } = buildProxyPayload(request, env.value);
-  if (missing.length) {
-    singleResponse.value = null;
-    singleError.value = `Missing variables: ${missing.join(', ')}. Define them in the selected environment.`;
-    return;
-  }
-
-  sendingSingle.value = true;
-  singleError.value = '';
-  singleResponse.value = null;
-  try {
-    const response = await runnerSend(payload);
-    singleResponse.value = response;
-    banner.value = `Received HTTP ${response.status} in ${response.elapsedMs} ms.`;
-  }
-  catch (e) {
-    singleError.value = e instanceof Error ? e.message : String(e);
-    banner.value = 'Request could not be completed. Review the error and try again.';
-  }
-  finally {
-    sendingSingle.value = false;
-  }
-}
 
 function useRedirectTarget() {
   const target = singleResponse.value?.redirect;
@@ -594,6 +557,45 @@ const runnerSend: SendFn = async (payload) => {
   }
   return j as RunnerResponse;
 };
+
+async function sendSelectedRequest() {
+  const selected = selectedRequest.value;
+  if (!selected || sendingSingle.value) {
+    return;
+  }
+
+  edUrl.value = buildUrlWithQuery(edUrl.value, edQueryParams.value);
+  commitRequest();
+  const request = {
+    method: edMethod.value,
+    url: edUrl.value,
+    headers: edHeaders.value.filter(h => h.name.trim()),
+    body: edBody.value,
+  };
+  const { payload, missing } = buildProxyPayload(request, env.value);
+  if (missing.length) {
+    singleResponse.value = null;
+    singleError.value = `Missing variables: ${missing.join(', ')}. Define them in the selected environment.`;
+    return;
+  }
+
+  sendingSingle.value = true;
+  singleError.value = '';
+  singleResponse.value = null;
+  try {
+    const response = await runnerSend(payload);
+    singleResponse.value = response;
+    banner.value = `Received HTTP ${response.status} in ${response.elapsedMs} ms.`;
+  }
+  catch (e) {
+    singleError.value = e instanceof Error ? e.message : String(e);
+    banner.value = 'Request could not be completed. Review the error and try again.';
+  }
+  finally {
+    sendingSingle.value = false;
+  }
+}
+
 
 async function onRun() {
   if (countRequests(tree.value) === 0) {
