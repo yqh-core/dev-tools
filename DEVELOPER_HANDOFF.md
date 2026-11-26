@@ -19,7 +19,7 @@ Current implementation details:
 - Outbound requests use the first-party Pages Function /api/apiproxy and shared target validation in functions/api/_ssrf.js. Do not claim the request path is entirely local.
 - A subdomain creates a new browser Origin. Existing local storage will not be readable there. Implement a user-controlled backup/restore and migration path before any forced host transition; never silently move secrets to a remote service.
 - Preserve /api-studio/ on www.digdevbox.com until the new host, migration and rollback are fully verified.
-- Working host candidate studio.digdevbox.com is subject to owner confirmation; no DNS or custom-domain configuration has been performed.
+- Working host candidate studio.digdevbox.com is subject to owner confirmation; no DNS or custom-domain configuration has been performed. Current deployment architecture recommendation is a second Cloudflare Pages project connected to this same repository, with a dedicated API Studio build command/output and independent custom subdomain. The existing main Pages project must retain its own root homepage and SEO behavior. See the API Studio independent product plan.
 - Do not add fabricated adoption or usage counters to the product landing page. Clearly label demo fixtures and only publish reproducible real metrics.
 
 ## Environment and package manager
