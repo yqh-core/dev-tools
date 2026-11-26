@@ -1008,13 +1008,13 @@ function onMenuSelect(key: string, node: TreeNode) {
 
           <textarea v-model="edBody" class="api-body-input" data-test-id="editor-body" placeholder="Request body (raw)" @change="commitRequest" />
 
-          <section class="api-request-section api-assertions" aria-label="Request tests" data-test-id="request-assertions">
+          <section class="api-request-section api-assertions" aria-label="Request assertions" data-test-id="request-assertions">
             <div class="api-request-section-head">
-              <span>Tests <span class="api-field-hint">Check the response after Send</span></span>
-              <button class="api-mini-action" type="button" data-test-id="add-assertion" @click="addAssertion()">+ Add test</button>
+              <span>Assertions <span class="api-field-hint">Check the response after Send</span></span>
+              <button class="api-mini-action" type="button" data-test-id="add-assertion" @click="addAssertion()">+ Add assertion</button>
             </div>
             <p v-if="edAssertions.length === 0" class="api-field-hint api-assertions-empty">
-              No tests yet. Add a status, JSON field, response header or response-time check.
+              No assertions yet. Add a status, JSON field, response header or response-time assertion.
             </p>
             <div v-for="(assertion, i) in edAssertions" :key="assertion.id" class="api-assertion-row" data-test-id="assertion-row">
               <label class="api-assertion-enabled">
@@ -1085,7 +1085,7 @@ function onMenuSelect(key: string, node: TreeNode) {
             <pre class="api-response-body" data-test-id="single-response-body">{{ formatResponseBody(singleResponse.body) }}</pre>
             <section v-if="singleAssertionReport" class="api-assertion-results" data-test-id="single-assertion-report" aria-label="Test results">
               <div class="api-assertion-results-head">
-                <strong>{{ singleAssertionReport.total === 0 ? 'Request sent · no enabled tests' : `${singleAssertionReport.passed}/${singleAssertionReport.total} tests passed` }}</strong>
+                <strong>{{ singleAssertionReport.total === 0 ? 'Request sent · no enabled assertions' : `${singleAssertionReport.passed}/${singleAssertionReport.total} assertions passed` }}</strong>
                 <span v-if="singleAssertionReport.failed" class="api-assertion-failed-count">{{ singleAssertionReport.failed }} failed</span>
               </div>
               <ul v-if="singleAssertionReport.total" class="api-assertion-result-list">
