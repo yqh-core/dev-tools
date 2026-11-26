@@ -466,8 +466,9 @@ async function sendSelectedRequest() {
   singleError.value = '';
   singleResponse.value = null;
   try {
-    singleResponse.value = await runnerSend(payload);
-    banner.value = `Received HTTP ${singleResponse.value.status} in ${singleResponse.value.elapsedMs} ms.`;
+    const response = await runnerSend(payload);
+    singleResponse.value = response;
+    banner.value = `Received HTTP ${response.status} in ${response.elapsedMs} ms.`;
   }
   catch (e) {
     singleError.value = e instanceof Error ? e.message : String(e);
