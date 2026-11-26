@@ -1,6 +1,6 @@
 /**
  * CLI 沙箱单测（G2：传输抽象化分层；任务书 §10.2）。
- * 协议/nonce/超时/崩溃/outbox 锁=夹具 Worker 传输（test-fixtures/protocol-worker.ts，vitest 可加载 .ts）；
+ * 协议/nonce/超时/崩溃/outbox 锁=夹具 Worker 传输（test-fixtures/protocol-worker.mjs，纯 JS——不依赖 Node 类型剥离，见该文件头注）；
  * 子进程传输锁=假子进程夹具（test-fixtures/child-fake.mjs，真实 spawn + IPC）：
  * 干净 env/空 cwd/进程组 kill（超时重建 pid 变）/崩溃承载/outbox 桥/内存软上限。
  * 真实子进程 bundle（api-studio-cli-child.mjs）由 CLI E2E（S16）+ 逃逸探针矩阵覆盖（分层）。
@@ -9,7 +9,7 @@ import { describe, expect, it } from 'vitest';
 import type { ScriptSnapshot } from '../api-debugger/script-runtime';
 import { SubprocessTransport, WorkerTransport, createSandboxRunScript } from './sandbox';
 
-const fixtureUrl = new URL('./test-fixtures/protocol-worker.ts', import.meta.url);
+const fixtureUrl = new URL('./test-fixtures/protocol-worker.mjs', import.meta.url);
 const fakeChildUrl = new URL('./test-fixtures/child-fake.mjs', import.meta.url);
 const snapshot = {} as ScriptSnapshot;
 const noopSend = async () => ({ url: 'http://unused', status: 0, statusText: '', headers: {}, body: '', elapsedMs: 0 });
