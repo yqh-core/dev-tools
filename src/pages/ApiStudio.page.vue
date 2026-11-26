@@ -447,6 +447,7 @@ async function sendSelectedRequest() {
     return;
   }
 
+  edUrl.value = buildUrlWithQuery(edUrl.value, edQueryParams.value);
   commitRequest();
   const request = {
     method: edMethod.value,
@@ -1449,6 +1450,16 @@ function onMenuSelect(key: string, node: TreeNode) {
   color: var(--api-text-faint);
   font-size: var(--api-fs-xs);
   font-weight: 400;
+}
+
+.api-response-error {
+  padding: 9px 12px;
+  border: 1px solid var(--api-danger, #d45b5b);
+  border-radius: var(--api-radius-sm);
+  background: var(--api-surface-2);
+  color: var(--api-danger, #d45b5b);
+  font-size: var(--api-fs-sm);
+  overflow-wrap: anywhere;
 }
 
 .api-response-panel {
