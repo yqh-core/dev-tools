@@ -31,6 +31,22 @@ const toolStore = useToolStore();
       </p>
     </header>
 
+    <RouterLink
+      class="catalog-flagship"
+      :to="normalizePath('/api-studio')"
+      :aria-label="t('toolsCatalog.flagship.open')"
+    >
+      <div class="catalog-flagship-copy">
+        <span class="catalog-flagship-eyebrow">{{ t('toolsCatalog.flagship.eyebrow') }}</span>
+        <h2 class="catalog-flagship-title">{{ t('toolsCatalog.flagship.title') }}</h2>
+        <p class="catalog-flagship-description">{{ t('toolsCatalog.flagship.description') }}</p>
+      </div>
+      <span class="catalog-flagship-action">
+        {{ t('toolsCatalog.flagship.open') }}
+        <span aria-hidden="true">→</span>
+      </span>
+    </RouterLink>
+
     <div class="catalog-body">
       <section
         v-for="cat in toolStore.toolsByCategory"
@@ -81,6 +97,83 @@ const toolStore = useToolStore();
 .catalog-subtitle {
   color: var(--dd-text-soft, #475569);
   margin: 0;
+}
+
+.catalog-flagship {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin: 0 0 32px;
+  padding: 20px 22px;
+  border: 1px solid color-mix(in srgb, var(--dd-primary) 28%, var(--dd-border));
+  border-left: 4px solid var(--dd-primary);
+  border-radius: var(--dd-radius, 10px);
+  background: var(--dd-surface, #fff);
+  color: var(--dd-text, #0f172a);
+  text-decoration: none;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+
+  &:hover {
+    border-color: var(--dd-primary);
+    background: var(--dd-surface-2, #f8fafc);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--dd-primary);
+    outline-offset: 3px;
+  }
+}
+
+.catalog-flagship-copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.catalog-flagship-eyebrow {
+  color: var(--dd-primary);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.catalog-flagship-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 650;
+}
+
+.catalog-flagship-description {
+  margin: 0;
+  color: var(--dd-text-soft, #475569);
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.catalog-flagship-action {
+  display: inline-flex;
+  min-height: 44px;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 13px;
+  border: 1px solid var(--dd-primary);
+  border-radius: 8px;
+  color: var(--dd-primary);
+  font-size: 13px;
+  font-weight: 650;
+}
+
+@media (max-width: 600px) {
+  .catalog-flagship {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 14px;
+    padding: 17px;
+  }
 }
 
 .catalog-section {

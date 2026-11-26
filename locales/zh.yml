@@ -1,6 +1,11 @@
 toolsCatalog:
   title: "全部工具"
   subtitle: "DigDevBox 所有工具一览 —— 共 {count} 个，按类目分组，全部免费。"
+  flagship:
+    eyebrow: "旗舰工作台"
+    title: "API Studio"
+    description: "创建请求、整理请求集合、切换环境、运行测试，并在一个工作台中查看响应。"
+    open: "打开 API Studio"
 site:
   name: "DigDevBox"
   homeTitle: "DigDevBox - 开发者常用在线工具"
@@ -39,6 +44,7 @@ home:
       api:
         title: "API 测试与调试"
         description: "构造请求、切换环境、查看响应历史、添加断言并运行请求集合。"
+        studioLink: "打开 API Studio"
       json:
         title: "处理 JSON 与结构化数据"
         description: "查看、格式化和比较 JSON，并在常见结构化格式之间转换。"

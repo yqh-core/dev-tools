@@ -515,7 +515,15 @@ function onUpdateFavoriteTools() {
               <p class="featured-task-description">
                 {{ t(`home.featured.items.${task.id}.description`) }}
               </p>
-              <div v-if="task.tools.length > 1" class="featured-task-links">
+              <div v-if="task.tools.length > 1 || task.id === 'api'" class="featured-task-links">
+                <RouterLink
+                  v-if="task.id === 'api'"
+                  class="featured-task-link featured-task-workspace-link"
+                  :to="normalizePath('/api-studio')"
+                >
+                  {{ t('home.featured.items.api.studioLink') }}
+                  <span aria-hidden="true">↗</span>
+                </RouterLink>
                 <RouterLink
                   v-for="tool in task.tools.slice(1)"
                   :key="tool.path"
@@ -1218,6 +1226,19 @@ function onUpdateFavoriteTools() {
   &:focus-visible {
     outline: 2px solid var(--dd-primary);
     outline-offset: 2px;
+  }
+}
+
+.featured-task-workspace-link {
+  justify-content: space-between;
+  gap: 8px;
+  border-color: color-mix(in srgb, var(--task-accent) 55%, var(--dd-border));
+  background: color-mix(in srgb, var(--task-accent) 7%, transparent);
+  color: var(--dd-primary);
+  font-weight: 650;
+
+  &:hover {
+    background: color-mix(in srgb, var(--task-accent) 12%, transparent);
   }
 }
 
