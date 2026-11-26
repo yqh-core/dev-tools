@@ -1,6 +1,11 @@
 toolsCatalog:
   title: "All tools"
   subtitle: "Browse all {count} DigDevBox tools by task: JSON formatting, JWT decoding, UUID/ULID generation, Base64, regex, cron and Docker converters. Free, no signup, browser-local."
+  flagship:
+    eyebrow: "FLAGSHIP WORKSPACE"
+    title: "API Studio"
+    description: "Build requests, organize collections, switch environments, run tests and inspect responses in one focused workspace."
+    open: "Open API Studio"
 site:
   name: "DigDevBox"
   homeTitle: "Free Online Developer Tools — Private, No Signup {'|'} DigDevBox"
