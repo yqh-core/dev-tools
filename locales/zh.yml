@@ -1,6 +1,11 @@
 toolsCatalog:
   title: "全部工具"
   subtitle: "DigDevBox 所有工具一览 —— 共 {count} 个，按类目分组，全部免费。"
+  flagship:
+    eyebrow: "旗舰工作台"
+    title: "API Studio"
+    description: "创建请求、整理请求集合、切换环境、运行测试，并在一个工作台中查看响应。"
+    open: "打开 API Studio"
 site:
   name: "DigDevBox"
   homeTitle: "DigDevBox - 开发者常用在线工具"
