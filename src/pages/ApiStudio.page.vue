@@ -693,7 +693,7 @@ function createEnvironment() {
   }
   persistEnvStore(next, name);
   newEnvName.value = '';
-  banner.value = \`Created environment "\${name}". The legacy API Debugger default was not changed.\`;
+  banner.value = `Created environment "${name}". The legacy API Debugger default was not changed.`;
 }
 
 function renameEnvironment() {
@@ -713,7 +713,7 @@ function renameEnvironment() {
     return;
   }
   persistEnvStore(next, nextName);
-  banner.value = \`Renamed "\${oldName}" to "\${nextName}".\`;
+  banner.value = `Renamed "${oldName}" to "${nextName}".`;
 }
 
 function variableExistsInAnyScope(store: EnvStore, name: string): boolean {
@@ -740,7 +740,7 @@ function deleteEnvironment() {
     return;
   }
   persistEnvStore(clearOrphanedSecretMarkers(next), next.active);
-  banner.value = \`Deleted environment "\${oldName}".\`;
+  banner.value = `Deleted environment "${oldName}".`;
 }
 
 function updateScopeVariable(name: string, value: string) {
@@ -795,7 +795,7 @@ function addScopeVariable() {
   newVarName.value = '';
   newVarValue.value = '';
   newVarSecret.value = false;
-  banner.value = \`Added variable "\${name}".\`;
+  banner.value = `Added variable "${name}".`;
 }
 
 function removeScopeVariable(name: string) {
@@ -804,7 +804,7 @@ function removeScopeVariable(name: string) {
     next = environmentEngine.setSecret(next, name, false);
   }
   persistEnvStore(next);
-  banner.value = \`Removed variable "\${name}" from \${scopeLabel(activeScope.value)}.\`;
+  banner.value = `Removed variable "${name}" from ${scopeLabel(activeScope.value)}.`;
 }
 
 function toggleScopeSecret(name: string) {
@@ -812,8 +812,8 @@ function toggleScopeSecret(name: string) {
   const secret = !environmentEngine.isSecret(current, name);
   persistEnvStore(environmentEngine.setSecret(current, name, secret));
   banner.value = secret
-    ? \`Marked "\${name}" as secret. This masks the value and blanks it in exports; it does not encrypt browser storage.\`
-    : \`Removed the secret marker from "\${name}".\`;
+    ? `Marked "${name}" as secret. This masks the value and blanks it in exports; it does not encrypt browser storage.`
+    : `Removed the secret marker from "${name}".`;
 }
 
 function isVariableRevealed(name: string): boolean {
@@ -1242,7 +1242,7 @@ function onMenuSelect(key: string, node: TreeNode) {
               class="api-env-scope-button"
               :class="{ 'is-active': activeScope === option.value }"
               type="button"
-              :data-test-id="\`scope-\${option.value}\`"
+              :data-test-id="`scope-${option.value}`"
               :aria-pressed="activeScope === option.value"
               @click="activeScope = option.value"
             >
@@ -1270,7 +1270,7 @@ function onMenuSelect(key: string, node: TreeNode) {
                 class="api-env-manager-input api-env-variable-name"
                 type="text"
                 :value="row.name"
-                :aria-label="\`Variable name \${row.name}\`"
+                :aria-label="`Variable name ${row.name}`"
                 data-test-id="var-name"
                 @change="(event: Event) => renameScopeVariable(row.name, (event.target as HTMLInputElement).value, row.value)"
               >
@@ -1279,7 +1279,7 @@ function onMenuSelect(key: string, node: TreeNode) {
                   class="api-env-manager-input"
                   :type="row.secret && !isVariableRevealed(row.name) ? 'password' : 'text'"
                   :value="row.value"
-                  :aria-label="\`Variable value \${row.name}\`"
+                  :aria-label="`Variable value ${row.name}`"
                   data-test-id="var-value"
                   @change="(event: Event) => updateScopeVariable(row.name, (event.target as HTMLInputElement).value)"
                 >
@@ -1294,7 +1294,7 @@ function onMenuSelect(key: string, node: TreeNode) {
                 </button>
               </div>
               <span class="api-env-origin" data-test-id="scope-origin">
-                {{ row.effectiveScope === activeScope ? 'Effective' : \`Overridden by \${scopeLabel(row.effectiveScope)}\` }}
+                {{ row.effectiveScope === activeScope ? 'Effective' : `Overridden by ${scopeLabel(row.effectiveScope)}` }}
               </span>
               <button
                 class="api-mini-action"
