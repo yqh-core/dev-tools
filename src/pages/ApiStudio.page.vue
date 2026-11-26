@@ -2842,5 +2842,4 @@ function onMenuSelect(key: string, node: TreeNode) {
     min-width: 0;
   }
 }
-
 </style>
