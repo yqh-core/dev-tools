@@ -563,14 +563,21 @@ async function sendSelectedRequest() {
     return;
   }
 
-  edUrl.value = buildUrlWithQuery(edUrl.value, edQueryParams.value);
-  commitRequest();
   const request = {
     method: edMethod.value,
-    url: edUrl.value,
+    url: buildUrlWithQuery(edUrl.value, edQueryParams.value),
     headers: edHeaders.value.filter(h => h.name.trim()),
     body: edBody.value,
   };
+  // Persist the exact request that will be sent; do not rely on a later blur/change event.
+  edUrl.value = request.url;
+  const saved = updateRequestNode(tree.value, selected.id, { name: edName.value, request });
+  if (saved.error) {
+    singleResponse.value = null;
+    singleError.value = saved.error;
+    return;
+  }
+  applyTree(saved.tree);
   const { payload, missing } = buildProxyPayload(request, env.value);
   if (missing.length) {
     singleResponse.value = null;
