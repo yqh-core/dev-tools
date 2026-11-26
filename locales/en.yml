@@ -40,6 +40,7 @@ home:
       api:
         title: "Test & Debug APIs"
         description: "Build requests, switch environments, inspect response history, add assertions and run collections."
+        studioLink: "Open API Studio"
       json:
         title: "Work with JSON & Data"
         description: "Inspect JSON, format or compare it, then convert structured data across common formats."
