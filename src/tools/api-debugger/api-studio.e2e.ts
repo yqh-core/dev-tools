@@ -289,6 +289,75 @@ test('sends a selected request with edited query params and headers, then inspec
   await expect(page.getByTestId('header-value').nth(1)).toHaveAttribute('type', 'password');
 });
 
+test('runs saved structured request assertions and shows each pass/fail result', async ({ page }) => {
+  const treeSeed = {
+    id: 'assertion-collection',
+    name: 'Assertion Demo',
+    items: [{
+      id: 'assertion-request',
+      name: 'Get user',
+      request: { method: 'GET', url: 'https://api.test/users/42', headers: [], body: '' },
+      assertions: [
+        { id: 'status-ok', enabled: true, type: 'status', target: '', operator: 'eq', expected: '200' },
+        { id: 'json-id', enabled: true, type: 'json', target: '$.id', operator: 'eq', expected: '42' },
+        { id: 'json-missing', enabled: true, type: 'json', target: '$.missing', operator: 'exists', expected: '' },
+        { id: 'header-content-type', enabled: true, type: 'header', target: 'content-type', operator: 'contains', expected: 'application/json' },
+        { id: 'response-time', enabled: true, type: 'time', target: '', operator: 'lt', expected: '1000' },
+      ],
+    }],
+  };
+  await page.addInitScript(
+    ([key, val]) => {
+      // addInitScript runs again on reload; preserve edits made by the application.
+      if (localStorage.getItem(key) === null) {
+        localStorage.setItem(key, val);
+      }
+    },
+    [TREE_KEY, JSON.stringify(treeSeed)] as [string, string],
+  );
+  await page.route(/\/api\/apiproxy/, route => route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    body: JSON.stringify({
+      url: 'https://api.test/users/42',
+      status: 200,
+      statusText: 'OK',
+      headers: { 'content-type': 'application/json' },
+      body: '{"id":42,"active":true}',
+      elapsedMs: 12,
+    }),
+  }));
+
+  await page.goto('/api-studio');
+  await page.getByTestId('tree-method').click();
+  await expect(page.getByTestId('request-assertions')).toBeVisible();
+  await expect(page.getByTestId('assertion-row')).toHaveCount(5);
+  await expect(page.getByTestId('request-assertions')).toContainText('Assertions');
+  await expect(page.getByTestId('add-assertion')).toHaveText('+ Add assertion');
+
+  // Edit a saved rule, blur to persist, then reload before executing the request.
+  await page.getByTestId('assertion-expected').nth(0).fill('201');
+  await page.getByTestId('assertion-expected').nth(0).press('Tab');
+  const editedTree = await page.evaluate((key) => {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) as { items: { assertions: { expected: string }[] }[] } : null;
+  }, TREE_KEY);
+  expect(editedTree?.items[0].assertions[0].expected).toBe('201');
+
+  await page.reload();
+  await page.getByTestId('tree-method').click();
+  await expect(page.getByTestId('assertion-expected').nth(0)).toHaveValue('201');
+  await page.getByTestId('send-request').click();
+
+  const report = page.getByTestId('single-assertion-report');
+  await expect(report).toBeVisible();
+  await expect(report).toContainText('3/5 assertions passed');
+  await expect(report.getByTestId('assertion-result')).toHaveCount(5);
+  await expect(report.locator('[data-passed="true"]')).toHaveCount(3);
+  await expect(report.locator('[data-passed="false"]')).toHaveCount(2);
+  await expect(report).toContainText('JSON $.missing exists');
+});
+
 test('imports a Postman v2.1 collection into the tree and exports it back (round-trip)', async ({ page }) => {
   // 空工作树 → 导入：直接采用集合（保留集合名 + folder 结构 + 请求），所见即所得。
   const postmanFixture = {
