@@ -337,7 +337,7 @@ test('runs saved structured request assertions and shows each pass/fail result',
   await expect(report.locator('[data-passed="false"]')).toHaveCount(1);
   await expect(report).toContainText('JSON $.missing exists');
 });
- 
+
 test('imports a Postman v2.1 collection into the tree and exports it back (round-trip)', async ({ page }) => {
   // 空工作树 → 导入：直接采用集合（保留集合名 + folder 结构 + 请求），所见即所得。
   const postmanFixture = {
