@@ -327,14 +327,27 @@ test('runs saved structured request assertions and shows each pass/fail result',
   await page.getByTestId('tree-method').click();
   await expect(page.getByTestId('request-assertions')).toBeVisible();
   await expect(page.getByTestId('assertion-row')).toHaveCount(5);
+
+  // Edit a saved rule, blur to persist, then reload before executing the request.
+  await page.getByTestId('assertion-expected').nth(0).fill('201');
+  await page.getByTestId('assertion-expected').nth(0).press('Tab');
+  const editedTree = await page.evaluate((key) => {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) as { items: { assertions: { expected: string }[] }[] } : null;
+  }, TREE_KEY);
+  expect(editedTree?.items[0].assertions[0].expected).toBe('201');
+
+  await page.reload();
+  await page.getByTestId('tree-method').click();
+  await expect(page.getByTestId('assertion-expected').nth(0)).toHaveValue('201');
   await page.getByTestId('send-request').click();
 
   const report = page.getByTestId('single-assertion-report');
   await expect(report).toBeVisible();
-  await expect(report).toContainText('4/5 tests passed');
+  await expect(report).toContainText('3/5 assertions passed');
   await expect(report.getByTestId('assertion-result')).toHaveCount(5);
-  await expect(report.locator('[data-passed="true"]')).toHaveCount(4);
-  await expect(report.locator('[data-passed="false"]')).toHaveCount(1);
+  await expect(report.locator('[data-passed="true"]')).toHaveCount(3);
+  await expect(report.locator('[data-passed="false"]')).toHaveCount(2);
   await expect(report).toContainText('JSON $.missing exists');
 });
 
