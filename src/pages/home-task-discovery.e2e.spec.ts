@@ -21,7 +21,7 @@ test.describe('Homepage task discovery', () => {
     await expect(studioLink).toHaveAttribute('href', '/api-studio/');
 
     await studioLink.click();
-    await expect(page).toHaveURL(/\/api-studio\/?$/);
+    await expect(page).toHaveURL(url => url.pathname === '/api-studio/' || url.pathname === '/api-studio');
     await expect(page.getByRole('complementary', { name: 'Collections' })).toBeVisible();
     await expect(page.getByTestId('add-request')).toBeVisible();
     await expect(page.getByTestId('import-collection')).toBeVisible();
@@ -165,7 +165,7 @@ test.describe('Homepage task discovery', () => {
     await expect(flagship).toContainText('Build requests');
     await flagship.click();
 
-    await expect(page).toHaveURL(/\\/api-studio\\/?$/);
+    await expect(page).toHaveURL(url => url.pathname === '/api-studio/' || url.pathname === '/api-studio');
     await expect(page.getByRole('complementary', { name: 'Collections' })).toBeVisible();
     await expect(page.getByTestId('add-request')).toBeVisible();
   });
