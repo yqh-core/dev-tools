@@ -1,0 +1,145 @@
+/* ==========================================================================
+   API Studio · api-studio-tokens.css — 产品级设计令牌（变量层）
+   --------------------------------------------------------------------------
+   单一事实来源：API-Studio 全屏壳的所有视觉变量。延续 DigDevBox 的 teal-on-navy
+   品牌 DNA（见 dd-tokens.css），但为「开发者高密度 API 工作台」重新调校：
+   默认深色（IDE 级低照度 navy），明色作自适应备选，新增 HTTP 方法色标与密度尺度。
+   对标 Postman / Bruno / Insomnia / Hoppscotch 的信息密度与可读性。
+
+   作用域：全部变量定义在 .api-studio-shell 内，不污染站点 --dd-*，
+   也不受站点明暗影响（壳自带 n-config-provider 决定 naive-ui 主题）。
+   明色：在 .api-studio-shell 上加 data-api-theme="light"。
+   ========================================================================== */
+
+.api-studio-shell {
+  /* ---------- 表面 / 层级（深色为默认，自深到浅的可用面） ---------- */
+  --api-bg: #070b14;            /* 应用最底（比站点 navy 更深一档，减少眩光） */
+  --api-surface: #0e1626;       /* 主面板 */
+  --api-surface-2: #131c2e;     /* 次级面板 / 侧栏 */
+  --api-surface-3: #18233a;     /* 抬升元素 / 输入底 */
+  --api-elevated: #1c2942;      /* 弹层 / hover 行 */
+
+  /* ---------- 描边 ---------- */
+  --api-border: #223050;
+  --api-border-strong: #2e3f63;
+
+  /* ---------- 文字 ---------- */
+  --api-text: #e6eaf2;          /* 主文字 */
+  --api-text-soft: #aab3c5;     /* 次要 */
+  --api-text-muted: #6f7c96;    /* 弱化 / 占位 */
+  --api-text-faint: #515d77;    /* 极弱（分隔、计数） */
+
+  /* ---------- 品牌主色（teal · 暗底提亮保对比） ---------- */
+  --api-primary: #2dd4bf;
+  --api-primary-hover: #5eead4;
+  --api-primary-active: #14b8a6;
+  --api-on-primary: #04201d;
+  --api-primary-soft: rgba(45, 212, 191, 0.14);
+  --api-primary-line: rgba(45, 212, 191, 0.32);
+
+  /* ---------- 语义色 ---------- */
+  --api-success: #34d399;
+  --api-success-soft: rgba(52, 211, 153, 0.14);
+  --api-danger: #f87171;
+  --api-danger-soft: rgba(248, 113, 113, 0.14);
+  --api-warning: #fbbf24;
+  --api-warning-soft: rgba(251, 191, 36, 0.14);
+  --api-warning-line: rgba(251, 191, 36, 0.38);
+  --api-info: #60a5fa;
+  --api-info-soft: rgba(96, 165, 250, 0.14);
+
+  /* ---------- HTTP 方法色标（商业 API 工具的硬需求：一眼区分动词） ---------- */
+  --api-method-get: #2dd4bf;
+  --api-method-post: #fbbf24;
+  --api-method-put: #60a5fa;
+  --api-method-patch: #c084fc;
+  --api-method-delete: #f87171;
+  --api-method-head: #94a3b8;
+  --api-method-options: #94a3b8;
+  --api-method-neutral: #94a3b8;
+
+  /* ---------- 圆角 / 阴影 / 焦点 ---------- */
+  --api-radius-sm: 5px;
+  --api-radius: 8px;
+  --api-radius-lg: 12px;
+  --api-shadow: 0 1px 2px rgba(0, 0, 0, 0.5), 0 6px 18px rgba(0, 0, 0, 0.38);
+  --api-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.45);
+  --api-focus-ring: 0 0 0 2px rgba(45, 212, 191, 0.42);
+
+  /* ---------- 密度尺度（开发者工作台：比站点更紧） ---------- */
+  --api-topbar-h: 52px;
+  --api-sidebar-w: 300px;
+  --api-row-h: 30px;            /* 树/表格行高 */
+  --api-gap-xs: 4px;
+  --api-gap-sm: 8px;
+  --api-gap: 12px;
+  --api-gap-lg: 20px;
+  --api-pad: 16px;
+
+  /* ---------- 字号 ---------- */
+  --api-fs-xs: 11px;
+  --api-fs-sm: 12px;
+  --api-fs: 13px;               /* 正文/控件基准（高密度） */
+  --api-fs-md: 14px;
+  --api-fs-lg: 16px;
+
+  /* ---------- 字体 ---------- */
+  --api-font: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+              "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --api-font-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+
+  color-scheme: dark;
+  font-family: var(--api-font);
+  font-size: var(--api-fs);
+  background: var(--api-bg);
+  color: var(--api-text);
+}
+
+/* ---------- 明色自适应（data-api-theme="light"）：teal-on-light，密度不变 ---------- */
+.api-studio-shell[data-api-theme="light"] {
+  --api-bg: #eef1f6;
+  --api-surface: #ffffff;
+  --api-surface-2: #f5f7fb;
+  --api-surface-3: #eaeef5;
+  --api-elevated: #ffffff;
+
+  --api-border: #d8deea;
+  --api-border-strong: #c2cbdb;
+
+  --api-text: #0f172a;
+  --api-text-soft: #475569;
+  --api-text-muted: #8a94a6;
+  --api-text-faint: #aab3c2;
+
+  --api-primary: #0f766e;
+  --api-primary-hover: #115e59;
+  --api-primary-active: #134e4a;
+  --api-on-primary: #ffffff;
+  --api-primary-soft: #ccfbf1;
+  --api-primary-line: #99f6e4;
+
+  --api-success: #059669;
+  --api-success-soft: #ecfdf5;
+  --api-danger: #dc2626;
+  --api-danger-soft: #fef2f2;
+  --api-warning: #d97706;
+  --api-warning-soft: #fffbeb;
+  --api-warning-line: rgba(217, 119, 6, 0.32);
+  --api-info: #2563eb;
+  --api-info-soft: #eff6ff;
+
+  --api-method-get: #0d9488;
+  --api-method-post: #d97706;
+  --api-method-put: #2563eb;
+  --api-method-patch: #9333ea;
+  --api-method-delete: #dc2626;
+  --api-method-head: #64748b;
+  --api-method-options: #64748b;
+  --api-method-neutral: #64748b;
+
+  --api-shadow: 0 1px 2px rgba(15, 23, 42, 0.08), 0 6px 18px rgba(15, 23, 42, 0.10);
+  --api-shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.08);
+  --api-focus-ring: 0 0 0 2px rgba(20, 184, 166, 0.35);
+
+  color-scheme: light;
+}

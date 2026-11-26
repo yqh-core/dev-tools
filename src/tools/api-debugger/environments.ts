@@ -158,6 +158,26 @@ export function isSecret(store: EnvStore, name: string): boolean {
   return (store.secrets ?? []).includes(name);
 }
 
+/** E3 终审 P0-2：收集所有层已标记 secret 的变量**值**（报告 redact 用）。
+ *  值长度 >3 才收集（短值误伤登记）；名字本身不进值集合；去重。 */
+export function collectSecretValues(store: EnvStore): string[] {
+  const names = new Set(store.secrets ?? []);
+  if (!names.size) {
+    return [];
+  }
+  const layers: Record<string, string>[] = [store.global ?? {}, store.collection ?? {}, ...Object.values(store.envs ?? {})];
+  const values: string[] = [];
+  for (const layer of layers) {
+    for (const name of names) {
+      const v = layer[name];
+      if (typeof v === 'string' && v.length > 3 && !values.includes(v)) {
+        values.push(v);
+      }
+    }
+  }
+  return values;
+}
+
 /** 标记/取消敏感（按变量名，跨作用域生效）。 */
 export function setSecret(store: EnvStore, name: string, secret: boolean): EnvStore {
   const cur = new Set(store.secrets ?? []);

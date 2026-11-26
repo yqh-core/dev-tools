@@ -235,8 +235,25 @@ describe('readable report', () => {
     expect(text).toContain('1/2 passed, 1 FAILED');
     expect(text).toContain('[PASS] Status equals 200');
     expect(text).toContain('[FAIL] JSON $.data.id equals 99');
-    expect(text).toContain('got 42');
+    expect(text).toContain('satisfy');
+    expect(text).toContain('actual type=number');
+    expect(text).not.toContain('got 42'); // G1 严格口径：原始值不进消息
     expect(text).not.toContain('Content-Type');
+  });
+
+  it('G1 严格消息口径：JSON/header 失败消息不打印原始值（植物负控+类型正控）', () => {
+    const jsonPlant = runOne(a('json', { target: '$.name', operator: 'eq', expected: 'wrong-value' }));
+    expect(jsonPlant.passed).toBe(false);
+    expect(jsonPlant.message).toContain('satisfy');
+    expect(jsonPlant.message).toContain('actual type=string');
+    expect(jsonPlant.message).not.toContain('digest'); // 响应值植物零回显
+    expect(jsonPlant.message).not.toContain('wrong-value'); // 期望值（用户配置）同样不回显
+    const headerPlant = runOne(a('header', { target: 'x-request-id', operator: 'eq', expected: 'wrong' }));
+    expect(headerPlant.passed).toBe(false);
+    expect(headerPlant.message).not.toContain('abc123');
+    expect(headerPlant.message).toContain('actual type=string');
+    // actual 字段（UI 操作员面）保留显示值——报告序列化面不含 actual（report.ts 结构口径）
+    expect(headerPlant.actual).toContain('abc123');
   });
 
   it('empty report says so explicitly', () => {

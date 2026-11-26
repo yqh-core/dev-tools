@@ -192,7 +192,9 @@ function evaluate(a: Assertion, resp: AssertableResponse, json: JsonParse | null
   const label = assertionLabel(a);
   const pass = (actual: string, message: string): AssertionResult => ({ id: a.id, label, passed: true, actual, message });
   const fail = (actual: string, message: string): AssertionResult => ({ id: a.id, label, passed: false, actual, message });
-
+  // G1 严格消息口径（yqh 裁定②）：message 只承载结果元数据（操作符/目标路径/类型/安全标量），
+  // 不打印 actual/expected 原始值——响应数据面可能含 secret。actual **字段**保留（UI 操作员面，
+  // Postman 同口径；不进报告 message 序列化面）。label 承载用户配置（目标/操作符/期望）。
   const problem = assertionProblem(a);
   if (problem) {
     return fail('—', `Assertion incomplete: ${problem}`);
@@ -232,21 +234,21 @@ function evaluate(a: Assertion, resp: AssertableResponse, json: JsonParse | null
       if (a.operator === 'eq') {
         return value === a.expected
           ? pass(display(value), `Header "${a.target}" equals the expected value.`)
-          : fail(display(value), `Expected header "${a.target}" to equal "${a.expected}", got "${value}".`);
+          : fail(display(value), `Expected header "${a.target}" to equal the expected value, but it differs (actual type=string). Raw values are not printed by default.`);
       }
       if (a.operator === 'ne') {
         return value !== a.expected
-          ? pass(display(value), `Header "${a.target}" differs from "${a.expected}" as expected.`)
-          : fail(display(value), `Expected header "${a.target}" to differ from "${a.expected}", but it matches.`);
+          ? pass(display(value), `Header "${a.target}" differs from the expected value as expected.`)
+          : fail(display(value), `Expected header "${a.target}" to differ from the expected value, but it matches.`);
       }
       // contains
       return value.includes(a.expected)
-        ? pass(display(value), `Header "${a.target}" contains "${a.expected}".`)
-        : fail(display(value), `Expected header "${a.target}" to contain "${a.expected}", got "${value}".`);
+        ? pass(display(value), `Header "${a.target}" contains the expected value.`)
+        : fail(display(value), `Expected header "${a.target}" to contain the expected value, but it does not (actual type=string). Raw values are not printed by default.`);
     }
     case 'json': {
       if (!json || !json.ok) {
-        return fail('(unparsable)', `Response body is not valid JSON: ${json && !json.ok ? json.error : 'no body'}.`);
+        return fail('(unparsable)', 'Response body is not valid JSON (parse failed; body content is not echoed by default).');
       }
       let matches: unknown[];
       try {
@@ -276,8 +278,8 @@ function evaluate(a: Assertion, resp: AssertableResponse, json: JsonParse | null
         const equal = deepEqual(actual, expected);
         const ok = a.operator === 'eq' ? equal : !equal;
         return ok
-          ? pass(shown, `Value at ${a.target} satisfies "${op} ${display(expected)}".`)
-          : fail(shown, `Expected ${a.target} ${op} ${display(expected)}, got ${display(actual)}.`);
+          ? pass(shown, `Value at ${a.target} satisfies "${op}" against the configured expectation.`)
+          : fail(shown, `Expected value at ${a.target} to satisfy "${op}" against the configured expectation (actual type=${jsonType(actual)}, expected type=${jsonType(expected)}). Raw values are not printed by default.`);
       }
       if (a.operator === 'contains' || a.operator === 'not_contains') {
         const included = Array.isArray(actual)
@@ -285,24 +287,24 @@ function evaluate(a: Assertion, resp: AssertableResponse, json: JsonParse | null
           : display(actual).includes(a.expected);
         const ok = a.operator === 'contains' ? included : !included;
         return ok
-          ? pass(shown, `Value at ${a.target} satisfies "${op} ${a.expected}".`)
-          : fail(shown, `Expected ${a.target} ${op} "${a.expected}", got ${display(actual)}.`);
+          ? pass(shown, `Value at ${a.target} satisfies "${op}" against the configured expectation.`)
+          : fail(shown, `Expected value at ${a.target} to satisfy "${op}" against the configured expectation, but it does not (actual type=${jsonType(actual)}). Raw values are not printed by default.`);
       }
       if (a.operator === 'gt' || a.operator === 'lt') {
         if (typeof actual !== 'number' || !Number.isFinite(actual)) {
-          return fail(shown, `Value at ${a.target} is not a JSON number (${display(actual)}); cannot compare numerically.`);
+          return fail(shown, `Value at ${a.target} is not a JSON number (actual type=${jsonType(actual)}); numeric comparison is not possible.`);
         }
         const expected = Number(a.expected);
         const ok = a.operator === 'gt' ? actual > expected : actual < expected;
         return ok
-          ? pass(shown, `Value ${actual} satisfies "${op} ${expected}".`)
-          : fail(shown, `Expected ${a.target} ${op} ${expected}, got ${actual}.`);
+          ? pass(shown, `Value at ${a.target} satisfies the numeric "${op}" comparison against the configured expectation.`)
+          : fail(shown, `Expected value at ${a.target} to satisfy the numeric "${op}" comparison against the configured expectation, but it does not (numeric values are not printed).`);
       }
       // type_is
       const t = jsonType(actual);
       return t === a.expected.trim()
         ? pass(shown, `Value at ${a.target} is of type ${t}.`)
-        : fail(shown, `Expected ${a.target} to be of type ${a.expected.trim()}, got ${t}.`);
+        : fail(shown, `Expected value at ${a.target} to be of type ${a.expected.trim()}, got type ${t}.`);
     }
   }
 }

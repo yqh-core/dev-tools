@@ -4,14 +4,17 @@ import { useStorage } from '@vueuse/core';
 import { JsonPathError, jsonPath } from '../json-workspace/jsonpath';
 import { parseCurl, toCurl } from './curl';
 import { AUTH_HEADER_NAMES, type KV, buildProxyPayload, responseToWorkspaceLink, sanitizeForShare, stashHandoff } from './engine';
-import { type HistoryEntry, type SavedRequest, exportSavedRequest, parseHistory, parseSaved, pushHistory, removeHistory, removeSaved, renameSaved, saveRequest } from './store';
+import { type HistoryEntry, SAVED_CAP, type SavedRequest, exportSavedRequest, parseHistory, parseSaved, pushHistory, removeHistory, removeSaved, renameSaved, saveRequest } from './store';
 import { type Assertion, type AssertionReport, type AssertionType, OPS_BY_TYPE, OP_LABELS, formatReportText, makeAssertion, parseAssertions, runAssertions } from './assertions';
-import { type CollectionRunSummary, type RequestRunResult, type RunnerResponse, type SendFn, formatCollectionReportText, runCollection } from './runner';
+import { type CollectionRunSummary, type IterationSummary, type RequestRunResult, type RunnerResponse, type SendFn, formatCollectionReportText, runCollection } from './runner';
+import { type DataFile, parseDataFile, previewRows } from './datafiles';
+import { type RunReportMeta, buildRunReport, toJUnitXml } from './report';
 import { formatBytes, searchBody, utf8Bytes } from './response';
 import { authHeaderPreset, buildUrlWithQuery, parseQueryParams } from './query';
 import { importOpenApi } from './openapi';
-import { type EnvStore, VAR_SCOPES, type VarScope, activeVars, addEnv, deleteEnv, exportableVars, isSecret, migrateEnv, removeScopeVar, renameEnv, scopeOf, scopeVars, setEnvVar, setScopeVar, setSecret } from './environments';
+import { type EnvStore, VAR_SCOPES, type VarScope, activeVars, addEnv, collectSecretValues, deleteEnv, exportableVars, isSecret, migrateEnv, removeScopeVar, renameEnv, scopeOf, scopeVars, setEnvVar, setScopeVar, setSecret } from './environments';
 import { exportCollection, importCollection } from './collection';
+import { runScriptIsolated } from './script-sandbox';
 import { buildDownloadFilename, downloadTextFile, mimeForLanguage } from '@/composable/downloadText';
 import TextareaCopyable from '@/components/TextareaCopyable.vue';
 
@@ -151,6 +154,12 @@ const bodyQuery = ref('');
 
 // ── API-009 测试断言（结构化 Runner，对标 Postman Tests；不执行任意脚本）──
 const assertions = useStorage<Assertion[]>('api-debugger:assertions', [], undefined, { serializer: { read: (v: string) => parseAssertions(v ? JSON.parse(v) : null), write: (v: Assertion[]) => JSON.stringify(v) } });
+// API-011：当前请求的 pm.* 脚本文本（保存进 SavedRequest.scriptEvents；执行走隔离 Worker 沙箱）
+const preScript = ref('');
+const testScript = ref('');
+// A-002/A-003：集合级脚本（独立一层事件；运行叠加进每请求链——pre 最外先执行/test 最后执行；
+// 导出为 Postman doc 级事件；导入集合的 doc 级脚本已合并进各请求链，本区为手动管理层）
+const collectionScripts = useStorage<{ prerequest: string; test: string }>('api-debugger:collection-scripts', { prerequest: '', test: '' });
 const testReport = ref<AssertionReport | null>(null);
 const testMeta = ref<{ method: string; url: string } | null>(null);
 const testsNote = ref('');
@@ -193,9 +202,25 @@ async function copyReport(): Promise<void> {
   }
 }
 function downloadReport(): void {
-  downloadTextFile({ content: reportText(), filename: buildDownloadFilename('api-test-report', 'txt'), mimeType: 'text/plain' });
-  banner.value = 'Test report downloaded (assertion results only; no credential headers included).';
+  const ok = downloadTextFile({ content: reportText(), filename: buildDownloadFilename('api-test-report', 'txt'), mimeType: 'text/plain' });
+  banner.value = ok ? 'Test report downloaded (assertion results only; no credential headers included).' : 'Download failed: report content was empty (no file written).';
 }
+
+// ── API-012/B 数据驱动运行（B1 数据文件 / B2 迭代 / B3+B4 报告下载）────────
+// 数据文件只在本机用 FileReader 读取、内存解析（永不上传）；报告、日志与迭代显示
+// 默认不含数据行值——只有列名与行计数（脱敏口径见 report.ts / datafiles.ts）。
+// 状态声明前移：runCollectionNow / runnerReportMeta 引用先于定义（no-use-before-define 闭合）。
+const dataFilePicker = ref<HTMLInputElement | null>(null);
+const dataFile = ref<DataFile | null>(null);
+const dataFileType = ref<'csv' | 'json'>('csv');
+const dataFileName = ref('');
+const dataFileError = ref('');
+const iterationsInput = ref('');
+const iterationsError = ref('');
+const lastRunId = ref('');
+/** E3 终审 P0-2：已标记 secret 的环境变量值集合（报告 redact 用——值级扫描；
+ *  未标记的任意值引擎无法预知，不假装全知扫描，边界如实登记）。 */
+const secretValues = computed(() => collectSecretValues(envStore.value));
 
 // ── API-010 集合级批量 Runner（对标 Postman Collection Runner；顺序执行+逐请求断言）──
 const runnerRunning = ref(false);
@@ -224,10 +249,15 @@ async function runCollectionNow(): Promise<void> {
     banner.value = 'Collection is empty; save a request first.';
     return;
   }
+  const rounds = resolveIterations();
+  if (rounds === null) {
+    return;
+  }
   runnerRunning.value = true;
   runnerError.value = '';
   runnerSummary.value = null;
   runnerResults.value = [];
+  lastRunId.value = `run-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
   const signal = { aborted: false };
   runnerSignal = signal;
   try {
@@ -236,7 +266,13 @@ async function runCollectionNow(): Promise<void> {
       stopOnFailure: stopOnFailure.value,
       delayMs: Number(runnerDelay.value) || 0,
       signal,
+      dataFile: dataFile.value ?? undefined,
+      dataFileType: dataFile.value ? dataFileType.value : undefined,
+      iterations: rounds,
+      collectionScripts: { prerequest: collectionScripts.value.prerequest, test: collectionScripts.value.test },
       onProgress: (r) => { runnerResults.value = [...runnerResults.value, r]; },
+      // API-011：pm.* 脚本在隔离 Worker 沙箱执行；网络只走宿主 apiproxy（outbox）
+      runScript: (code, snapshot) => runScriptIsolated(code, snapshot, runnerSend),
     });
   }
   catch (e) {
@@ -253,7 +289,7 @@ function cancelRun(): void {
   }
 }
 function runnerReportText(): string {
-  return runnerSummary.value ? formatCollectionReportText(runnerSummary.value) : '';
+  return runnerSummary.value ? formatCollectionReportText(runnerSummary.value, { secretValues: secretValues.value }) : '';
 }
 async function copyRunnerReport(): Promise<void> {
   try {
@@ -265,15 +301,133 @@ async function copyRunnerReport(): Promise<void> {
   }
 }
 function downloadRunnerReport(): void {
-  downloadTextFile({ content: runnerReportText(), filename: buildDownloadFilename('collection-run-report', 'txt'), mimeType: 'text/plain' });
-  banner.value = 'Collection run report downloaded (no credential headers included).';
+  const ok = downloadTextFile({ content: runnerReportText(), filename: buildDownloadFilename('collection-run-report', 'txt'), mimeType: 'text/plain' });
+  banner.value = ok ? 'Collection run report downloaded (no credential headers included).' : 'Download failed: report content was empty (no file written).';
 }
+
+const dataFilePreview = computed(() => (dataFile.value ? previewRows(dataFile.value) : null));
+
+/** 迭代计划（输入即校验；非法输入 fail-closed，不静默回退默认值）。 */
+const iterationPlan = computed(() => {
+  const rows = dataFile.value?.rows.length ?? 0;
+  if (!rows) {
+    return { rounds: 1, note: iterationsInput.value.trim() ? 'iterations require a data file — running a single round' : 'no data file — single round' };
+  }
+  const raw = iterationsInput.value.trim();
+  if (!raw) {
+    return { rounds: rows, note: `default: one round per data row (${rows})` };
+  }
+  const n = Number(raw);
+  if (!Number.isInteger(n) || n <= 0) {
+    return { rounds: -1, note: 'must be a positive integer (empty = one round per data row)' };
+  }
+  if (n > rows) {
+    return { rounds: n, note: `${n} rounds > ${rows} rows — rows are reused in cycle (round % rows)` };
+  }
+  return { rounds: n, note: n > 1 ? `${n} explicit rounds` : 'single round' };
+});
+
+function onDataFilePicked(e: Event): void {
+  const input = e.target as HTMLInputElement;
+  const file = input.files?.[0];
+  input.value = ''; // 允许重新选择同名文件
+  dataFileError.value = '';
+  if (!file) {
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = () => {
+    const r = parseDataFile(file.name, String(reader.result ?? ''));
+    if (!r.ok) {
+      dataFileError.value = r.error;
+      dataFile.value = null;
+      dataFileName.value = '';
+      return;
+    }
+    dataFile.value = r.data;
+    dataFileType.value = file.name.toLowerCase().endsWith('.json') ? 'json' : 'csv';
+    dataFileName.value = file.name;
+    iterationsInput.value = ''; // 行数变了，默认轮数（=行数）随之重置
+    iterationsError.value = '';
+    banner.value = `Data file loaded: ${r.data.rows.length} rows × ${r.data.columns.length} columns (parsed locally, never uploaded; values are redacted from reports and logs).`;
+  };
+  reader.onerror = () => {
+    dataFileError.value = 'Could not read the file (local read failed).';
+  };
+  reader.readAsText(file);
+}
+function clearDataFile(): void {
+  dataFile.value = null;
+  dataFileName.value = '';
+  dataFileError.value = '';
+  iterationsInput.value = '';
+  iterationsError.value = '';
+}
+/** @returns 计划轮数；非法输入返回 null（调用方中止运行并展示错误）。 */
+function resolveIterations(): number | null {
+  if (iterationPlan.value.rounds < 0) {
+    iterationsError.value = 'Iterations must be a positive integer (empty = one round per data row).';
+    return null;
+  }
+  iterationsError.value = '';
+  return iterationPlan.value.rounds;
+}
+
+/** 与 package.json version 同步（报告 meta 的信息性字段）。 */
+const API_STUDIO_VERSION = '2026.01.22-v2';
+function runnerReportMeta(): RunReportMeta {
+  return {
+    runId: lastRunId.value,
+    apiStudioVersion: API_STUDIO_VERSION,
+    collectionName: `API Studio saved collection (${saved.value.length} requests)`,
+    environmentName: envStore.value.active,
+    startedAt: runnerSummary.value ? new Date(runnerSummary.value.startedAt).toISOString() : '',
+    finishedAt: runnerSummary.value ? new Date(runnerSummary.value.finishedAt).toISOString() : '',
+  };
+}
+function downloadRunnerJsonReport(): void {
+  if (!runnerSummary.value) {
+    return;
+  }
+  const ok = downloadTextFile({
+    content: JSON.stringify(buildRunReport(runnerSummary.value, runnerReportMeta(), { secretValues: secretValues.value }), null, 2),
+    filename: buildDownloadFilename('api-studio-run', 'json'),
+    mimeType: 'application/json',
+  });
+  banner.value = ok ? 'JSON run report downloaded (secrets, env values, data row values, bodies and header values excluded by default).' : 'Download failed: report content was empty (no file written).';
+}
+function downloadRunnerJunitReport(): void {
+  if (!runnerSummary.value) {
+    return;
+  }
+  const ok = downloadTextFile({
+    content: toJUnitXml(buildRunReport(runnerSummary.value, runnerReportMeta(), { secretValues: secretValues.value })),
+    filename: buildDownloadFilename('api-studio-run', 'xml'),
+    mimeType: 'application/xml',
+  });
+  banner.value = ok ? 'JUnit XML report downloaded (CI-parseable; HTTP 4xx/5xx with passing assertions is not a failure).' : 'Download failed: report content was empty (no file written).';
+}
+
+/** 结果显示：运行中=扁平行（实时追加）；完成后按迭代分组（B2：每轮隔离可见，列名级脱敏）。 */
+const runnerGroups = computed<IterationSummary[]>(() => {
+  if (runnerSummary.value) {
+    return runnerSummary.value.iterations;
+  }
+  return runnerResults.value.length ? [{ iteration: 1, dataRowColumns: null, dataRowIndex: null, results: runnerResults.value }] : [];
+});
+/** 运行中的实时轮次指示（已完成数 ÷ 每轮请求数）。 */
+const liveIteration = computed(() => {
+  if (!runnerRunning.value || !saved.value.length) {
+    return null;
+  }
+  return Math.floor(runnerResults.value.length / saved.value.length) + 1;
+});
 
 const respBytes = computed(() => resp.value ? utf8Bytes(resp.value.body) : 0);
 const bodyView = computed(() => resp.value ? searchBody(resp.value.body, bodyQuery.value) : null);
 const bodyShown = computed(() => bodyView.value ? bodyView.value.lines.join('\n') : '');
 
-function loadRequest(r: { method: string; url: string; headers: KV[]; body: string }, loadAssertions?: Assertion[]): void {
+function loadRequest(r: { method: string; url: string; headers: KV[]; body: string }, loadAssertions?: Assertion[], loadScripts?: { prerequest?: string; test?: string }): void {
   method.value = r.method;
   url.value = r.url;
   headers.value = r.headers.map(h => ({ ...h }));
@@ -281,6 +435,8 @@ function loadRequest(r: { method: string; url: string; headers: KV[]; body: stri
   if (loadAssertions !== undefined) {
     assertions.value = loadAssertions.map(a => ({ ...a }));
   }
+  preScript.value = loadScripts?.prerequest ?? '';
+  testScript.value = loadScripts?.test ?? '';
   banner.value = 'Request loaded into the builder.';
 }
 function recordHistory(request: { method: string; url: string; headers: KV[]; body: string }, status: number | null, elapsedMs: number | null, error?: string, tests?: { passed: number; failed: number }): void {
@@ -296,14 +452,21 @@ function recordHistory(request: { method: string; url: string; headers: KV[]; bo
 }
 function saveCurrent(): void {
   saveError.value = '';
-  const r = saveRequest(saved.value, saveName.value, currentRequest.value, Date.now(), `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, assertions.value);
+  const scriptEvents: { prerequest?: string; test?: string } = {};
+  if (preScript.value.trim()) {
+    scriptEvents.prerequest = preScript.value;
+  }
+  if (testScript.value.trim()) {
+    scriptEvents.test = testScript.value;
+  }
+  const r = saveRequest(saved.value, saveName.value, currentRequest.value, Date.now(), `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, assertions.value, SAVED_CAP, Object.keys(scriptEvents).length ? scriptEvents : undefined);
   if (r.error) {
     saveError.value = r.error;
     return;
   }
   saved.value = r.list;
   saveName.value = '';
-  banner.value = `Saved "${r.saved?.name}" to your collection (local only).`;
+  banner.value = `Saved "${r.saved?.name}" to your collection (browser localStorage).`;
 }
 function exportSaved(s: SavedRequest): void {
   downloadTextFile({ content: toCurl(exportSavedRequest(s)), filename: buildDownloadFilename(s.name.replace(/[^\w.-]+/g, '-'), 'sh'), mimeType: 'text/plain' });
@@ -366,11 +529,11 @@ function exportPostman(): void {
     return;
   }
   downloadTextFile({
-    content: JSON.stringify(exportCollection(saved.value), null, 2),
+    content: JSON.stringify(exportCollection(saved.value, 'DigDevBox Collection', true, { prerequest: collectionScripts.value.prerequest, test: collectionScripts.value.test }), null, 2),
     filename: buildDownloadFilename('digdevbox', 'postman_collection.json'),
     mimeType: 'application/json',
   });
-  banner.value = 'Exported Postman v2.1 collection (auth headers stripped; re-add them in Postman). Assertions stay local — Postman uses its own script format.';
+  banner.value = 'Exported Postman v2.1 collection (auth headers stripped; re-add them in Postman). pm.* pre-request/test scripts round-trip as v2.1 events; structured assertions stay local.';
 }
 const postmanText = ref('');
 const postmanWarnings = ref<string[]>([]);
@@ -385,13 +548,13 @@ function importPostman(): void {
   }
   let list = saved.value;
   for (const imp of r.requests) {
-    const res = saveRequest(list, imp.name, imp.request, Date.now(), `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`);
+    const res = saveRequest(list, imp.name, imp.request, Date.now(), `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, undefined, SAVED_CAP, imp.scriptEvents);
     if (!res.error) {
       list = res.list;
     }
   }
   saved.value = list;
-  loadRequest(r.requests[0].request);
+  loadRequest(r.requests[0].request, [], r.requests[0].scriptEvents);
   banner.value = `Imported ${r.requests.length} request(s) from Postman collection; first one loaded.`;
 }
 function exportCurl(): void {
@@ -721,7 +884,33 @@ function statusType(s: number): 'success' | 'warning' | 'error' | 'info' {
         </n-button>
       </div>
       <p class="hint" style="margin-top: 6px">
-        JSON assertions use JSONPath ($.key, [0], ..recursive). "contains" is a case-sensitive substring match, or element membership on arrays. Expected values accept JSON literals (42, true, null, "text"). Postman pm.* scripts are not executed.
+        JSON assertions use JSONPath ($.key, [0], ..recursive). "contains" is a case-sensitive substring match, or element membership on arrays. Expected values accept JSON literals (42, true, null, "text"). Single sends use these structured assertions; pm.* scripts run in the Collection Runner below.
+      </p>
+    </div>
+
+    <!-- API-011 脚本（pm.*）：保存在请求上，由 Collection Runner 在隔离 Worker 沙箱内执行 -->
+    <div class="section" data-test-id="scripts-section">
+      <h3 class="section-title">
+        Scripts <span class="hint">pm.* pre-request / test — run by the Collection Runner in an isolated Worker (no DOM, 5 s timeout, module-load/Function/eval guards plus runtime global neutralization; within the guard surface, network is only reachable via the controlled pm.sendRequest outbox)</span>
+      </h3>
+      <div class="row" style="margin-bottom: 4px" data-test-id="collection-scripts-bar">
+        <n-tag size="small" type="info">
+          Collection
+        </n-tag>
+        <span class="hint">Collection-level scripts (a separate layer: pre-request runs before each request chain, test after; exported as Postman doc-level events. Doc-level scripts from imported collections are merged into each request chain per the contract — see each request panel)</span>
+      </div>
+      <n-input v-model:value="collectionScripts.prerequest" type="textarea" :rows="3" monospace placeholder="pm.variables.set(&quot;fixtureRun&quot;, &quot;api-studio-smoke&quot;);" data-test-id="collection-script-prerequest" />
+      <n-input v-model:value="collectionScripts.test" type="textarea" :rows="3" monospace placeholder="pm.test(&quot;collection-level&quot;, () => {});" data-test-id="collection-script-test" style="margin-top: 6px" />
+      <div class="row" style="margin: 8px 0 4px">
+        <strong>Pre-request</strong> <span class="hint">before send; set variables or mutate this request</span>
+      </div>
+      <n-input v-model:value="preScript" type="textarea" :rows="5" monospace placeholder="pm.environment.set(&quot;token&quot;, &quot;abc&quot;);" data-test-id="script-prerequest" />
+      <div class="row" style="margin: 8px 0 4px">
+        <strong>Test</strong> <span class="hint">after response — also when the request failed (pm.response is null)</span>
+      </div>
+      <n-input v-model:value="testScript" type="textarea" :rows="5" monospace placeholder="pm.test(&quot;status 200&quot;, () => pm.expect(pm.response.code).to.equal(200));" data-test-id="script-test" />
+      <p class="hint" style="margin-top: 6px">
+        Supported: pm.environment / collectionVariables / globals / variables / iterationData / request / response / info / test / expect subset / sendRequest. Unsupported pm.* APIs fail closed (throw) — never silently no-op. Saved with the request; exported to Postman v2.1 events.
       </p>
     </div>
 
@@ -810,7 +999,7 @@ function statusType(s: number): 'success' | 'warning' | 'error' | 'info' {
         <div v-for="s in saved" :key="s.id" class="row" data-test-id="saved-item">
           <c-input-text :value="s.name" size="small" style="width: 180px" @update:value="(v: string) => renameSavedInline(s, v)" />
           <span class="hint" style="flex: 1; min-width: 160px">{{ s.request.method }} {{ s.request.url }}</span>
-          <n-button size="tiny" data-test-id="saved-load" @click="loadRequest(s.request, s.assertions ?? [])">
+          <n-button size="tiny" data-test-id="saved-load" @click="loadRequest(s.request, s.assertions ?? [], s.scriptEvents)">
             Load
           </n-button>
           <n-button size="tiny" data-test-id="saved-export" @click="exportSaved(s)">
@@ -825,6 +1014,47 @@ function statusType(s: number): 'success' | 'warning' | 'error' | 'info' {
         Nothing saved yet. Build a request above, then save it here for reuse.
       </p>
 
+      <!-- API-012/B1 数据文件 + B2 迭代（本地 FileReader 解析，不上传；值不进报告/日志） -->
+      <div class="row" style="margin-top: 10px" data-test-id="datafile-bar">
+        <input ref="dataFilePicker" type="file" accept=".csv,.json" class="visually-hidden-file" data-test-id="datafile-input" @change="onDataFilePicked">
+        <n-button size="tiny" data-test-id="datafile-pick" @click="dataFilePicker?.click()">
+          Choose data file (.csv/.json)
+        </n-button>
+        <n-button v-if="dataFile" size="tiny" quaternary data-test-id="datafile-clear" @click="clearDataFile">
+          Remove data file
+        </n-button>
+        <span v-if="dataFile" class="hint" data-test-id="datafile-summary">{{ dataFileName }} · {{ dataFile.rows.length }} rows × {{ dataFile.columns.length }} columns → iterationData layer</span>
+        <span class="hint">Iterations</span>
+        <c-input-text v-model:value="iterationsInput" size="small" monospace placeholder="default = rows" style="width: 110px" data-test-id="runner-iterations" :disabled="!dataFile" />
+        <span class="hint" data-test-id="iteration-plan">{{ iterationPlan.note }}</span>
+      </div>
+      <n-alert v-if="dataFileError" type="error" style="margin-top: 6px" data-test-id="datafile-error">
+        {{ dataFileError }}
+      </n-alert>
+      <n-alert v-if="iterationsError" type="error" style="margin-top: 6px" data-test-id="iterations-error">
+        {{ iterationsError }}
+      </n-alert>
+      <div v-if="dataFilePreview" class="datafile-preview" style="margin-top: 6px" data-test-id="datafile-preview">
+        <table>
+          <thead>
+            <tr>
+              <th v-for="c in dataFilePreview.columns" :key="c">
+                {{ c }}
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(row, ri) in dataFilePreview.rows" :key="ri">
+              <td v-for="(v, ci) in row" :key="ci">
+                {{ v }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="hint" style="margin: 4px 0 0">
+          Preview shows your local file content (values truncated at 40 chars). The file is parsed in your browser; row values are substituted into requests and sent to the upstream by the runner (host-side) — they are excluded from iteration displays, logs and reports; only column names and row counts appear there.
+        </p>
+      </div>
       <!-- API-010 集合批量 Runner -->
       <div class="row runner-bar" style="margin-top: 10px">
         <n-button size="small" type="primary" :loading="runnerRunning" :disabled="!saved.length" data-test-id="run-collection" @click="runCollectionNow">
@@ -833,6 +1063,7 @@ function statusType(s: number): 'success' | 'warning' | 'error' | 'info' {
         <n-button v-if="runnerRunning" size="small" data-test-id="cancel-run" @click="cancelRun">
           Cancel
         </n-button>
+        <span v-if="liveIteration" class="hint" data-test-id="runner-live-iteration">Running iteration {{ liveIteration }}…</span>
         <n-checkbox v-model:checked="stopOnError" size="small" data-test-id="runner-stop-on-error">
           Stop on send error
         </n-checkbox>
@@ -844,53 +1075,70 @@ function statusType(s: number): 'success' | 'warning' | 'error' | 'info' {
         <span class="hint">ms</span>
       </div>
       <p class="hint" style="margin-top: 4px">
-        Runs every saved request in order through the edge relay, applying each request's saved assertions. No iterations/data files or pm.* scripts (use Postman/Newman for those).
+        Runs every saved request in order through the edge relay, applying each request's saved assertions. With a data file, each row drives one iteration (an explicit round count overrides; more rounds than rows cycles them). pm.* scripts run in the isolated Worker sandbox; network in the guard surface only via the apiproxy outbox. Request execution is host-side: this page relays through the same-origin /api proxy (the CLI connects directly) — scripts never hold the network stack.
       </p>
       <n-alert v-if="runnerError" type="error" style="margin-top: 6px" data-test-id="runner-error">
         {{ runnerError }}
       </n-alert>
-      <div v-if="runnerResults.length" class="test-results" style="margin-top: 8px" data-test-id="runner-results">
+      <div v-if="runnerResults.length || runnerSummary" class="test-results" style="margin-top: 8px" data-test-id="runner-results">
         <div v-if="runnerSummary" class="row" style="margin-bottom: 6px">
           <n-tag size="small" :type="runnerSummary.allPassed ? 'success' : 'error'" data-test-id="runner-summary">
-            {{ runnerSummary.sent }}/{{ runnerSummary.total }} sent · {{ runnerSummary.failed }} failed · Tests {{ runnerSummary.assertionsPassed }}/{{ runnerSummary.assertionsTotal }}
+            {{ runnerSummary.sent }}/{{ runnerSummary.total }} sent · {{ runnerSummary.failed }} failed · Tests {{ runnerSummary.assertionsPassed }}/{{ runnerSummary.assertionsTotal }}{{ runnerSummary.scriptTestsTotal ? ` · pm.test ${runnerSummary.scriptTestsPassed}/${runnerSummary.scriptTestsTotal}` : '' }} · Iterations {{ runnerSummary.iterationCount }}{{ runnerSummary.dataFile ? ` · Data ${runnerSummary.dataFile.type} ${runnerSummary.dataFile.rows}r/${runnerSummary.dataFile.columnsCount}c` : '' }}
           </n-tag>
-          <span class="hint" data-test-id="runner-meta">{{ runnerSummary.totalDurationMs }} ms{{ runnerSummary.avgResponseMs !== null ? ` · avg ${runnerSummary.avgResponseMs} ms` : '' }}{{ runnerSummary.cancelled ? ' · cancelled' : runnerSummary.stoppedEarly ? ' · stopped early' : '' }}</span>
+          <span class="hint" data-test-id="runner-meta">{{ runnerSummary.totalDurationMs }} ms{{ runnerSummary.avgResponseMs !== null ? ` · avg ${runnerSummary.avgResponseMs} ms` : '' }}{{ runnerSummary.cancelled ? ' · cancelled' : runnerSummary.stoppedEarly ? ' · stopped early' : '' }}{{ runnerSummary.dataFile ? ` · data file: ${runnerSummary.dataFile.type} ${runnerSummary.dataFile.rows} rows × ${runnerSummary.dataFile.columnsCount} columns` : '' }}</span>
           <n-button size="tiny" data-test-id="runner-copy-report" @click="copyRunnerReport">
             Copy report
           </n-button>
           <n-button size="tiny" data-test-id="runner-download-report" @click="downloadRunnerReport">
             Download report
           </n-button>
+          <n-button size="tiny" data-test-id="runner-download-json" @click="downloadRunnerJsonReport">
+            JSON report
+          </n-button>
+          <n-button size="tiny" data-test-id="runner-download-junit" @click="downloadRunnerJunitReport">
+            JUnit XML
+          </n-button>
         </div>
-        <div v-for="(r, i) in runnerResults" :key="r.id" class="runner-item" data-test-id="runner-result-row">
-          <div class="row">
-            <n-tag size="small" :type="r.passed ? 'success' : 'error'">
-              {{ r.passed ? 'PASS' : 'FAIL' }}
-            </n-tag>
-            <span class="hint" style="flex: 1; min-width: 180px"><strong>{{ i + 1 }}. {{ r.name }}</strong> · {{ r.method }} {{ r.url }}</span>
-            <n-tag v-if="r.sent" size="small" :type="statusType(r.status ?? 0)">
-              {{ r.status }}
-            </n-tag>
-            <span v-if="r.sent" class="hint">{{ r.elapsedMs }} ms</span>
-            <n-tag v-if="r.report && r.report.total" size="small" :type="r.report.allPassed ? 'success' : 'error'">
-              Tests {{ r.report.passed }}/{{ r.report.total }}
-            </n-tag>
+        <template v-for="g in runnerGroups" :key="g.iteration">
+          <div class="runner-iteration-head" data-test-id="runner-iteration-head">
+            Iteration {{ runnerSummary ? g.iteration : (liveIteration ?? g.iteration) }}<span class="hint">{{ g.dataRowIndex !== null ? ` · data row ${g.dataRowIndex + 1}` : '' }}{{ g.dataRowColumns ? ` · columns: ${g.dataRowColumns.join(', ')}` : (dataFile ? ` · columns: ${dataFile.columns.join(', ')}` : '') }}</span>
           </div>
-          <p v-if="r.error" class="hint" style="margin: 2px 0 0; color: var(--n-error-color, #d03050)">
-            {{ r.error }}
-          </p>
-          <details v-if="r.report && r.report.total" style="margin-top: 2px">
-            <summary class="hint">
-              Assertions
-            </summary>
-            <div v-for="a in r.report.results" :key="a.id" class="row test-result">
-              <n-tag size="small" :type="a.passed ? 'success' : 'error'">
-                {{ a.passed ? 'PASS' : 'FAIL' }}
+          <div v-for="(r, ri) in g.results" :key="r.id" class="runner-item" data-test-id="runner-result-row">
+            <div class="row">
+              <n-tag size="small" :type="r.passed ? 'success' : 'error'">
+                {{ r.passed ? 'PASS' : 'FAIL' }}
               </n-tag>
-              <span class="hint" style="flex: 1; min-width: 180px">{{ a.label }} — {{ a.message }}</span>
+              <span class="hint" style="flex: 1; min-width: 180px"><strong>{{ ri + 1 }}. {{ r.name }}</strong> · {{ r.method }} {{ r.url }}</span>
+              <n-tag v-if="r.sent" size="small" :type="statusType(r.status ?? 0)">
+                {{ r.status }}
+              </n-tag>
+              <span v-if="r.sent" class="hint">{{ r.elapsedMs }} ms</span>
+              <n-tag v-if="r.report && r.report.total" size="small" :type="r.report.allPassed ? 'success' : 'error'">
+                Tests {{ r.report.passed }}/{{ r.report.total }}
+              </n-tag>
+              <n-tag v-if="r.scriptTests && r.scriptTests.length" size="small" :type="r.scriptTests.every(t => t.passed) ? 'success' : 'error'">
+                pm.test {{ r.scriptTests.filter(t => t.passed).length }}/{{ r.scriptTests.length }}
+              </n-tag>
             </div>
-          </details>
-        </div>
+            <p v-if="r.error" class="hint" style="margin: 2px 0 0; color: var(--n-error-color, #d03050)">
+              {{ r.error }}
+            </p>
+            <p v-if="r.scriptError" class="hint" style="margin: 2px 0 0; color: var(--n-error-color, #d03050)" data-test-id="runner-script-error">
+              Script: {{ r.scriptError }}
+            </p>
+            <details v-if="r.report && r.report.total" style="margin-top: 2px">
+              <summary class="hint">
+                Assertions
+              </summary>
+              <div v-for="a in r.report.results" :key="a.id" class="row test-result">
+                <n-tag size="small" :type="a.passed ? 'success' : 'error'">
+                  {{ a.passed ? 'PASS' : 'FAIL' }}
+                </n-tag>
+                <span class="hint" style="flex: 1; min-width: 180px">{{ a.label }} — {{ a.message }}</span>
+              </div>
+            </details>
+          </div>
+        </template>
       </div>
     </div>
 
@@ -1024,5 +1272,11 @@ function statusType(s: number): 'success' | 'warning' | 'error' | 'info' {
 .test-result { margin-top: 4px; }
 .runner-bar { align-items: center; }
 .runner-item { padding: 6px 0; border-top: 1px solid rgba(127, 127, 127, 0.15); &:first-of-type { border-top: none; } }
+.runner-iteration-head { padding: 8px 0 2px; font-size: 12px; font-weight: 600; }
+.visually-hidden-file { position: absolute; left: -9999px; top: auto; width: 1px; height: 1px; overflow: hidden; }
+.datafile-preview { max-height: 180px; overflow: auto; border: 1px solid rgba(127, 127, 127, 0.2); border-radius: 6px; }
+.datafile-preview table { border-collapse: collapse; width: 100%; font-size: 12px; }
+.datafile-preview th, .datafile-preview td { border: 1px solid rgba(127, 127, 127, 0.2); padding: 3px 8px; text-align: left; max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.datafile-preview th { background: rgba(127, 127, 127, 0.08); }
 .footer-hint { margin-top: 16px; }
 </style>

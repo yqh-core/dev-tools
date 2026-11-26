@@ -97,6 +97,27 @@ describe('saveRequest (collection v1)', () => {
     expect(update.saved?.id).toBe('id-0');
   });
 
+  it('追加语义：集合顺序=插入顺序（导入循环与手动保存同序；Runner 按此序执行）', () => {
+    let list: SavedRequest[] = [];
+    list = saveRequest(list, '01 - first', req, 1, 'id-1').list;
+    list = saveRequest(list, '02 - second', req, 2, 'id-2').list;
+    list = saveRequest(list, '03 - third', req, 3, 'id-3').list;
+    expect(list.map(s => s.name)).toEqual(['01 - first', '02 - second', '03 - third']);
+  });
+
+  it('同名更新不改变位置（插入序稳定，Runner 顺序不漂移）', () => {
+    let list = saveRequest([], 'A', req, 1, 'id-a').list;
+    list = saveRequest(list, 'B', req, 2, 'id-b').list;
+    const updated = saveRequest(list, 'A', req, 3, 'id-x'); // 精确同名更新
+    expect(updated.error).toBeUndefined();
+    expect(updated.list.map(s => s.name)).toEqual(['A', 'B']);
+    expect(updated.list[0].id).toBe('id-a'); // 原地更新，不是头插新条目
+    // 大小写变体同名更新保留位置（名字取新 trim 值——既有语义）
+    const casing = saveRequest(updated.list, 'a', req, 4, 'id-y');
+    expect(casing.list.map(s => s.name)).toEqual(['a', 'B']);
+    expect(casing.list[0].id).toBe('id-a');
+  });
+
   it('snapshots the request: editing the original after save does NOT mutate the saved entry (negative control)', () => {
     const live: ApiRequestState = { method: 'POST', url: 'https://api.x.test/login', headers: [{ name: 'Authorization', value: 'Bearer T1' }], body: '{"p":1}' };
     const r = saveRequest([], 'Login', live, 100, 'id-1');

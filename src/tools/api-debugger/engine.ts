@@ -7,7 +7,7 @@
  *  · 请求/响应体不发送服务端存储（apiproxy 仅瞬时转发）。
  */
 
-import { makeNode } from '../json-workspace/pipeline';
+import { makeNode } from '../json-workspace/pipeline-defs';
 import { LinkTooLargeError, encodeLink } from '../json-workspace/workspace-link';
 
 export interface KV { name: string; value: string }

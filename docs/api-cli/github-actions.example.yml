@@ -1,0 +1,76 @@
+# GitHub Actions 示例：API Studio CLI 数据驱动 CI（任务书 §8 C4；终审 P1-08 加固版）
+
+```yaml
+name: api-tests
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# GITHUB_TOKEN 最小权限（终审 P1-08：默认 write 全量权限不做）
+permissions:
+  contents: read
+
+jobs:
+  api-studio:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # 1) 安装：本仓库自研 CLI（自举构建；产物零外置 npm 导入——构建期审计 + 干净目录实弹冒烟双门禁）
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci
+      - run: node scripts/build-cli.mjs          # → dist-cli/api-studio-cli.mjs（含干净目录冒烟门禁）
+
+      # 2) 报告目录预建（终审 P1-08：CLI 退出码 3=报告写入失败预演；目录缺失不应与断言失败混淆）
+      - run: mkdir -p reports
+
+      # 3) 从 CI Secrets 注入凭据——生成**restrictive 权限**临时环境文件
+      #    （不硬编码 Secret；值不进报告；文件不进仓库；不上传 Artifact）
+      - run: |
+          node -e "const fs=require('fs');fs.writeFileSync('ci-env.json',JSON.stringify({name:'ci',values:[{key:'baseUrl',value:process.env.API_BASE_URL,enabled:true},{key:'token',value:process.env.API_TOKEN,enabled:true,secret:true}]}))"
+          chmod 600 ci-env.json
+        env:
+          API_BASE_URL: ${{ secrets.API_BASE_URL }}
+          API_TOKEN: ${{ secrets.API_TOKEN }}
+
+      # 4) 执行数据驱动测试（Newman 常见参数兼容：-d 数据文件 -n 轮数 --bail）
+      #    退出码契约 0/1/2/3/4 全非零即 Job 红（run 步骤直接传播）
+      - run: |
+          node dist-cli/api-studio-cli.mjs run ./collections/smoke.json \
+            --environment ci-env.json \
+            --iteration-data ./data/users.csv \
+            -n 3 \
+            --reporters cli,json,junit \
+            --report-json ./reports/run.json \
+            --report-junit ./reports/junit.xml \
+            --ci
+
+      # 5) 上传报告 Artifact（无论成败保留证据；缺文件不误判绿）
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: api-studio-reports
+          path: |
+            reports/run.json
+            reports/junit.xml
+          if-no-files-found: warn
+
+      # 6) 临时环境文件清理——always() 执行，放在上传之后；
+      #    不使用 continue-on-error 掩盖任何原始失败（终审 P1-08）
+      - name: Remove temp env file (never an artifact)
+        if: always()
+        run: rm -f ci-env.json
+```
+
+## C4 硬要求落实核对（含终审 P1-08 加固点）
+
+- **GITHUB_TOKEN 最小权限**：job 级 `permissions: contents: read`。
+- **CI 不硬编码 Secret**：凭据只经 `secrets.*` → 临时环境文件（chmod 600）→ CLI；文件不进仓库、**永不上传 Artifact**（第 5 步只含 reports/）。
+- **日志不泄露**：CLI 报告引擎默认排除 Secret/Authorization/Cookie/API Key/环境变量值/数据行值/请求响应体/响应头值；**已标记 secret 的值**在 JSON/JUnit/stdout 三面做值级替换（`[REDACTED-Secret]`）；URL 面同样过脱敏；进度只打方法/状态/耗时。
+- **未配置 Secret 时安全失败**：`ci-env.json` 缺 API_TOKEN 时，集合内 `{{token}}` 未解析 → Missing variables fail-closed（退出码 2，Job 红），不偷退任何生产凭据；或使用非敏感示例环境。
+- **测试失败使 Job 非零退出**：CLI 退出码契约 0/1/2/3/4 全非零即红。
+- **清理不掩盖失败**：清理步骤 `if: always()` 且无 `continue-on-error`；上传先于清理，缺文件 `warn` 不误判绿。
+- **真实 CI 运行**：本示例随 C 批次交付、E 批次加固；在本仓库推送 CI（main 保护）需 yqh 授权——未授权前按任务书 §10.2 标注 NOT RUN（授权后补真实 CI 日志与 Artifact 回执）。

@@ -8,7 +8,7 @@
  *  - 凭据警告由 UI 负责（状态里可能含用户数据，链接持有者可见）。
  */
 
-import { type NodeParams, OP_IDS, type OpId, PARSE_SOURCES, type PipelineNode, TRANSFORM_TARGETS, TYPE_LANGS } from './pipeline';
+import { type NodeParams, OP_IDS, type OpId, PARSE_SOURCES, type PipelineNode, TRANSFORM_TARGETS, TYPE_LANGS } from './pipeline-defs';
 
 export const LINK_LIMIT = 8192;
 
