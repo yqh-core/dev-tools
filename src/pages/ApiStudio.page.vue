@@ -36,14 +36,15 @@ import { buildUrlWithQuery, parseQueryParams } from '@/tools/api-debugger/query'
 import type { CollectionRunSummary, RunnerResponse, SendFn } from '@/tools/api-debugger/runner';
 import { formatCollectionReportText, runCollectionTree } from '@/tools/api-debugger/runner';
 import { runScriptIsolated } from '@/tools/api-debugger/script-sandbox';
-import type { EnvStore } from '@/tools/api-debugger/environments';
-import { activeVars, envNames, migrateEnv } from '@/tools/api-debugger/environments';
+import * as environmentEngine from '@/tools/api-debugger/environments';
 import { exportCollectionTree, importCollectionTree } from '@/tools/api-debugger/collection';
 import { buildDownloadFilename, downloadTextFile } from '@/composable/downloadText';
 
 type Assertion = assertionEngine.Assertion;
 type AssertionReport = assertionEngine.AssertionReport;
 type AssertionType = assertionEngine.AssertionType;
+type EnvStore = environmentEngine.EnvStore;
+type VarScope = environmentEngine.VarScope;
 
 // localStorage 键：用 join(':') 拆分构造，避免整串 `scheme:token` 形态被工具链的凭据代理替换损坏
 // （历史教训：直接写 'api-studio:tree' 等曾被替换成 '***'/带省略号的坏串）。运行时值与工具页一致。
@@ -74,7 +75,7 @@ const dropPos = ref<'before' | 'after' | 'inside'>('inside');
 // 环境变量：复用工具页同一份 api-debugger:env（单一事实源）。selectedEnv 只是本壳运行时的本地选择覆盖，
 // 不写回共享 store 的 active（避免在 API-Studio 切环境时意外改掉工具页的当前环境）。
 const ENV_KEY = ['api-debugger', 'env'].join(':');
-const envStore = ref<EnvStore>(migrateEnv(null));
+const envStore = ref<EnvStore>(environmentEngine.migrateEnv(null));
 const selectedEnv = ref<string>('Default');
 
 function emptyRoot(): CollectionNode {
@@ -123,13 +124,14 @@ onMounted(() => {
   // 载入共享环境（工具页 api-debugger:env）；本地选中 = 其当前 active。
   try {
     const rawEnv = localStorage.getItem(ENV_KEY);
-    envStore.value = migrateEnv(rawEnv ? JSON.parse(rawEnv) : null);
+    envStore.value = environmentEngine.migrateEnv(rawEnv ? JSON.parse(rawEnv) : null);
     selectedEnv.value = envStore.value.active;
   }
   catch {
-    envStore.value = migrateEnv(null);
+    envStore.value = environmentEngine.migrateEnv(null);
     selectedEnv.value = 'Default';
   }
+  renameEnvDraft.value = selectedEnv.value;
 });
 
 // ── 扁平可见行（按折叠状态展开，depth 决定缩进）───────────────────────
@@ -608,11 +610,235 @@ function onDropRow(row: Row) {
 }
 
 // 运行用环境 = 共享 store 的变量，但用本地 selectedEnv 覆盖 active（不写回，避免耦合工具页）。
-const env = computed<Record<string, string>>(() => activeVars({ ...envStore.value, active: selectedEnv.value }));
-const envOptions = computed(() => envNames(envStore.value).map(n => ({ label: n, value: n })));
+const envManagerOpen = ref(false);
+const activeScope = ref<VarScope>('environment');
+const scopeOptions: { label: string; value: VarScope }[] = [
+  { label: 'Environment', value: 'environment' },
+  { label: 'Collection', value: 'collection' },
+  { label: 'Global', value: 'global' },
+];
+const renameEnvDraft = ref('Default');
+const newEnvName = ref('');
+const newVarName = ref('');
+const newVarValue = ref('');
+const newVarSecret = ref(false);
+const revealedVars = ref<Set<string>>(new Set());
+
+const selectedEnvStore = computed<EnvStore>(() => ({
+  ...envStore.value,
+  active: envStore.value.envs[selectedEnv.value] ? selectedEnv.value : envStore.value.active,
+}));
+const env = computed<Record<string, string>>(() => environmentEngine.activeVars(selectedEnvStore.value));
+const envOptions = computed(() => environmentEngine.envNames(envStore.value).map(name => ({ label: name, value: name })));
 const envVarCount = computed(() => Object.keys(env.value).length);
+const scopeRows = computed(() => Object.entries(environmentEngine.scopeVars(selectedEnvStore.value, activeScope.value))
+  .sort(([a], [b]) => a.localeCompare(b))
+  .map(([name, value]) => ({
+    name,
+    value,
+    secret: environmentEngine.isSecret(selectedEnvStore.value, name),
+    effectiveScope: environmentEngine.scopeOf(selectedEnvStore.value, name),
+  })));
+
+function scopeLabel(scope: VarScope | null): string {
+  if (scope === 'environment') {
+    return 'Environment';
+  }
+  if (scope === 'collection') {
+    return 'Collection';
+  }
+  return scope === 'global' ? 'Global' : 'Not defined';
+}
+
+function persistEnvStore(next: EnvStore, preferredEnvironment = selectedEnv.value) {
+  // Studio edits a temporary active environment; keep the legacy API Debugger default unchanged.
+  const legacyActive = envStore.value.active;
+  const active = Object.prototype.hasOwnProperty.call(next.envs, legacyActive) ? legacyActive : next.active;
+  const persisted: EnvStore = { ...next, active };
+  envStore.value = persisted;
+  selectedEnv.value = Object.prototype.hasOwnProperty.call(persisted.envs, preferredEnvironment)
+    ? preferredEnvironment
+    : active;
+  renameEnvDraft.value = selectedEnv.value;
+  revealedVars.value = new Set();
+  try {
+    localStorage.setItem(ENV_KEY, JSON.stringify(persisted));
+  }
+  catch {
+    banner.value = 'Changes are active in this tab but could not be saved to browser storage. Keep this tab open and check the browser storage settings.';
+  }
+}
+
 function onEnvChange(v: unknown) {
-  selectedEnv.value = String(v);
+  const name = String(v);
+  if (!Object.prototype.hasOwnProperty.call(envStore.value.envs, name)) {
+    return;
+  }
+  selectedEnv.value = name;
+  renameEnvDraft.value = name;
+  revealedVars.value = new Set();
+}
+
+function createEnvironment() {
+  const name = newEnvName.value.trim();
+  if (!name) {
+    banner.value = 'Enter a name for the new environment.';
+    return;
+  }
+  const current = selectedEnvStore.value;
+  const next = environmentEngine.addEnv(current, name);
+  if (next === current) {
+    banner.value = 'That environment name is empty or already in use.';
+    return;
+  }
+  persistEnvStore(next, name);
+  newEnvName.value = '';
+  banner.value = 'Created environment "' + name + '". The legacy API Debugger default was not changed.';
+}
+
+function renameEnvironment() {
+  const oldName = selectedEnv.value;
+  const nextName = renameEnvDraft.value.trim();
+  if (!nextName) {
+    banner.value = 'Enter a name for this environment.';
+    return;
+  }
+  if (nextName === oldName) {
+    return;
+  }
+  const current = selectedEnvStore.value;
+  const next = environmentEngine.renameEnv(current, oldName, nextName);
+  if (next === current) {
+    banner.value = 'That name is already used by another environment.';
+    return;
+  }
+  persistEnvStore(next, nextName);
+  banner.value = 'Renamed "' + oldName + '" to "' + nextName + '".';
+}
+
+function deleteEnvironment() {
+  const oldName = selectedEnv.value;
+  const current = selectedEnvStore.value;
+  const next = environmentEngine.deleteEnv(current, oldName);
+  if (next === current) {
+    banner.value = 'Keep at least one environment. The last environment cannot be deleted.';
+    return;
+  }
+  persistEnvStore(next, next.active);
+  banner.value = 'Deleted environment "' + oldName + '".';
+}
+
+function variableExistsInAnyScope(store: EnvStore, name: string): boolean {
+  if (Object.prototype.hasOwnProperty.call(store.global ?? {}, name)
+    || Object.prototype.hasOwnProperty.call(store.collection ?? {}, name)) {
+    return true;
+  }
+  return Object.values(store.envs).some(vars => Object.prototype.hasOwnProperty.call(vars, name));
+}
+
+function updateScopeVariable(name: string, value: string) {
+  const current = selectedEnvStore.value;
+  const next = environmentEngine.setScopeVar(current, activeScope.value, name, value);
+  persistEnvStore(next);
+}
+
+function renameScopeVariable(oldName: string, newNameValue: string, value: string) {
+  const newName = newNameValue.trim();
+  if (!newName) {
+    banner.value = 'Variable names cannot be empty.';
+    return;
+  }
+  if (newName === oldName) {
+    return;
+  }
+  const current = selectedEnvStore.value;
+  const scope = environmentEngine.scopeVars(current, activeScope.value);
+  if (Object.prototype.hasOwnProperty.call(scope, newName)) {
+    banner.value = 'A variable with that name already exists in this scope.';
+    return;
+  }
+  const wasSecret = environmentEngine.isSecret(current, oldName);
+  let next = environmentEngine.removeScopeVar(current, activeScope.value, oldName);
+  next = environmentEngine.setScopeVar(next, activeScope.value, newName, value);
+  if (wasSecret) {
+    next = environmentEngine.setSecret(next, newName, true);
+  }
+  if (!variableExistsInAnyScope(next, oldName)) {
+    next = environmentEngine.setSecret(next, oldName, false);
+  }
+  persistEnvStore(next);
+}
+
+function addScopeVariable() {
+  const name = newVarName.value.trim();
+  if (!name) {
+    banner.value = 'Enter a variable name.';
+    return;
+  }
+  const current = selectedEnvStore.value;
+  if (Object.prototype.hasOwnProperty.call(environmentEngine.scopeVars(current, activeScope.value), name)) {
+    banner.value = 'That variable already exists in this scope. Edit its existing row instead.';
+    return;
+  }
+  let next = environmentEngine.setScopeVar(current, activeScope.value, name, newVarValue.value);
+  if (newVarSecret.value) {
+    next = environmentEngine.setSecret(next, name, true);
+  }
+  persistEnvStore(next);
+  newVarName.value = '';
+  newVarValue.value = '';
+  newVarSecret.value = false;
+  banner.value = 'Added variable "' + name + '".';
+}
+
+function removeScopeVariable(name: string) {
+  let next = environmentEngine.removeScopeVar(selectedEnvStore.value, activeScope.value, name);
+  if (!variableExistsInAnyScope(next, name)) {
+    next = environmentEngine.setSecret(next, name, false);
+  }
+  persistEnvStore(next);
+  banner.value = 'Removed variable "' + name + '" from ' + scopeLabel(activeScope.value) + '.';
+}
+
+function toggleScopeSecret(name: string) {
+  const current = selectedEnvStore.value;
+  const secret = !environmentEngine.isSecret(current, name);
+  persistEnvStore(environmentEngine.setSecret(current, name, secret));
+  banner.value = secret
+    ? 'Marked "' + name + '" as secret. This masks the value and blanks it in exports; it does not encrypt browser storage.'
+    : 'Removed the secret marker from "' + name + '".';
+}
+
+function isVariableRevealed(name: string): boolean {
+  return revealedVars.value.has(name);
+}
+
+function toggleVariableReveal(name: string) {
+  const next = new Set(revealedVars.value);
+  if (next.has(name)) {
+    next.delete(name);
+  }
+  else {
+    next.add(name);
+  }
+  revealedVars.value = next;
+}
+
+function exportEnvironmentVariables() {
+  const current = selectedEnvStore.value;
+  const content = JSON.stringify({
+    environment: selectedEnv.value,
+    precedence: 'Environment > Collection > Global',
+    variables: environmentEngine.exportableVars(current),
+  }, null, 2);
+  const ok = downloadTextFile({
+    content,
+    filename: buildDownloadFilename('api-studio', 'environment_variables.json'),
+    mimeType: 'application/json',
+  });
+  banner.value = ok
+    ? 'Exported resolved variables. Secret-marked values were replaced with empty strings.'
+    : 'Could not start the variables download. Check browser download permissions.';
 }
 
 // ── 运行 ────────────────────────────────────────────────────────────
