@@ -23,6 +23,7 @@ home:
     badgeNoSignup: "无需注册"
     badgeTools: "{count} 个工具"
     cta: "浏览全部工具"
+    studioCta: "打开 API Studio"
   quickSearch:
     ariaLabel: "快捷任务搜索"
     label: "快速开始："
