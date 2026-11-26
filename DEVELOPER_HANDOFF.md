@@ -24,13 +24,14 @@ Current implementation details:
 
 ## API Studio delivery status — 2026-11-27
 
-- `/api-studio/` remains part of DigDevBox Main and this repository; no independent host is configured.
+- The existing `/api-studio/` workspace remains part of DigDevBox Main and this repository; it is not a tenth site or independent host.
 - [PR #215](https://github.com/yqh-core/dev-tools/pull/215) merged as `455fa052`; exact CI/E2E (132 assertions), Verify/Build and Pages Preview passed.
-- [PR #216](https://github.com/yqh-core/dev-tools/pull/216) merged as `e09522ae`; exact full CI/E2E, Verify/Build and Preview https://18c81e16.coderkit.pages.dev/ passed. Adds structured single-request assertions and PASS/FAIL output.
-- [PR #217](https://github.com/yqh-core/dev-tools/pull/217) is current P1, exact HEAD `39d99d6ba8872d4e71c635178b323767fdfa823a`. CI #45912180452 has install, Lint, unit tests, typecheck, build and Chromium install PASS; targeted Playwright E2E IN_PROGRESS. Verify/Build #45912180463 SUCCESS. Latest Pages bot comment still identifies the old SHA `2ea051d`; exact current-head Preview success has not yet been confirmed. Do not merge until current-head E2E and Preview pass.
-- PR #217 reuses `EnvStore` and `environments.ts`: Environment / Collection / Global scopes; env CRUD; variable add/edit/rename/remove; secret mask/reveal; export blanks secret values. It preserves legacy API Debugger's `active` default unless that actual environment is removed.
-- Storage disclosure says all scopes are in origin-scoped `api-debugger:env` localStorage and shared with the legacy Debugger; secret markers mask UI / redact exports but do not encrypt at rest; outbound requests continue via `/api/apiproxy`.
-- Issue #213 remains open. After #217, complete collection-run per-request details/cancel/retry and mobile/keyboard/focus acceptance, then proceed to #214 dedicated build/landing work.
+- [PR #216](https://github.com/yqh-core/dev-tools/pull/216) merged as `e09522ae`; exact full CI/E2E, Verify/Build and Preview https://18c81e16.coderkit.pages.dev/ passed. Adds structured request assertions and per-rule PASS/FAIL.
+- [PR #217](https://github.com/yqh-core/dev-tools/pull/217) merged as `d41c874722a875efe02e38f16bdad271c001dffe`; exact CI/E2E, Verify/Build and Preview https://e7eb264f.coderkit.pages.dev/ passed. It adds a Studio-native Environment / Collection / Global variable manager, environment CRUD, variable CRUD, secret masking/reveal, secret-safe export and clear localStorage/shared-relay disclosure.
+- Current open [PR #218](https://github.com/yqh-core/dev-tools/pull/218) addresses mobile workbench layout; latest exact HEAD `02cd77b6d6076509344c07e80afa973d0a6eabbd`. CI #45913352898: Lint, unit tests and typecheck PASS; production build IN_PROGRESS. Verify/Build #45913352875: example audit and SEO self-test PASS; type/build IN_PROGRESS. Exact-head Pages Preview build has started; no success URL yet. Do not merge until current SHA Chromium E2E and Preview pass.
+- PR #218 stacks collections/editor at <=760px, exposes row actions for touch, compacts topbar at <=520px, and adds a 390×844 no-horizontal-overflow/keyboard E2E.
+- Environment manager reuses `EnvStore`; values remain in origin-scoped `api-debugger:env` localStorage, shared with legacy API Debugger. Studio preserves legacy `active` by default. Secret masking/redaction is not encryption at rest; outbound requests still use `/api/apiproxy`.
+- Issue #213 remains open. After #218, finish collection-run per-request details, cancellation/stop/retry and any remaining focus/accessibility items; then proceed to #214 dedicated build/landing page work.
 
 ## Environment and package manager
 
