@@ -32,9 +32,6 @@ import {
 import type { KV } from '@/tools/api-debugger/engine';
 import { buildProxyPayload } from '@/tools/api-debugger/engine';
 import * as assertionEngine from '@/tools/api-debugger/assertions';
-type Assertion = assertionEngine.Assertion;
-type AssertionReport = assertionEngine.AssertionReport;
-type AssertionType = assertionEngine.AssertionType;
 import { buildUrlWithQuery, parseQueryParams } from '@/tools/api-debugger/query';
 import type { CollectionRunSummary, RunnerResponse, SendFn } from '@/tools/api-debugger/runner';
 import { formatCollectionReportText, runCollectionTree } from '@/tools/api-debugger/runner';
@@ -43,6 +40,10 @@ import type { EnvStore } from '@/tools/api-debugger/environments';
 import { activeVars, envNames, migrateEnv } from '@/tools/api-debugger/environments';
 import { exportCollectionTree, importCollectionTree } from '@/tools/api-debugger/collection';
 import { buildDownloadFilename, downloadTextFile } from '@/composable/downloadText';
+
+type Assertion = assertionEngine.Assertion;
+type AssertionReport = assertionEngine.AssertionReport;
+type AssertionType = assertionEngine.AssertionType;
 
 // localStorage 键：用 join(':') 拆分构造，避免整串 `scheme:token` 形态被工具链的凭据代理替换损坏
 // （历史教训：直接写 'api-studio:tree' 等曾被替换成 '***'/带省略号的坏串）。运行时值与工具页一致。
