@@ -417,9 +417,18 @@ function onUpdateFavoriteTools() {
           </div>
         </div>
 
-        <RouterLink class="hero-cta"  :to="normalizePath('/tools')">
-          {{ t('home.hero.cta') }} ↓
-        </RouterLink>
+        <div class="hero-cta-row">
+          <RouterLink class="hero-cta" :to="normalizePath('/tools')">
+            {{ t('home.hero.cta') }} ↓
+          </RouterLink>
+          <RouterLink
+            class="hero-cta hero-cta-workspace"
+            :to="normalizePath('/api-studio')"
+          >
+            {{ t('home.hero.studioCta') }}
+            <span aria-hidden="true">↗</span>
+          </RouterLink>
+        </div>
 
           </div>
           <aside class="home-hero-preview" aria-labelledby="home-hero-preview-title">
@@ -997,11 +1006,19 @@ function onUpdateFavoriteTools() {
 }
 
 /* S2：主 CTA。锚点滚动到分类区，链接式弱按钮，不与搜索框抢视觉。 */
+.hero-cta-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+
 .hero-cta {
   display: inline-flex;
   min-height: 44px;
   align-items: center;
-  margin-top: 12px;
+  margin-top: 0;
   padding: 8px 14px;
 
   border: 1px solid color-mix(in srgb, var(--dd-primary) 55%, transparent);
@@ -1023,6 +1040,29 @@ function onUpdateFavoriteTools() {
 
   .dark & {
     color: var(--dd-primary);
+  }
+}
+
+.hero-cta-workspace {
+  justify-content: center;
+  gap: 8px;
+  border-color: var(--dd-primary);
+  background: var(--dd-primary);
+  color: var(--dd-on-primary, #fff);
+  font-weight: 650;
+
+  &:hover {
+    background: var(--dd-primary-hover);
+    color: var(--dd-on-primary, #fff);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--dd-primary);
+    outline-offset: 3px;
+  }
+
+  .dark & {
+    color: var(--dd-on-primary, #fff);
   }
 }
 

@@ -11,6 +11,25 @@ test.describe('Homepage task discovery', () => {
     await expect(directoryLink).toBeVisible();
   });
 
+  test('surfaces API Studio in the mobile hero before the long workflow preview', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/');
+
+    const studioLink = page.locator('.hero-cta-workspace');
+    await expect(studioLink).toBeVisible();
+    await expect(studioLink).toHaveAttribute('href', '/api-studio/');
+
+    const box = await studioLink.boundingBox();
+    expect(box).not.toBeNull();
+    expect(box!.height).toBeGreaterThanOrEqual(44);
+    expect(box!.y + box!.height).toBeLessThanOrEqual(844);
+
+    await studioLink.click();
+    await expect(page).toHaveURL(/api-studio/);
+    await expect(page.getByRole('complementary', { name: 'Collections' })).toBeVisible();
+    await expect(page.getByTestId('add-request')).toBeVisible();
+  });
+
   test('promotes API Studio from the homepage into the full API workspace', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto('/');
@@ -21,7 +40,7 @@ test.describe('Homepage task discovery', () => {
     await expect(studioLink).toHaveAttribute('href', '/api-studio/');
 
     await studioLink.click();
-    await expect(page).toHaveURL(/api-studio\/?$/);
+    await expect(page).toHaveURL(/api-studio/);
     await expect(page.getByRole('complementary', { name: 'Collections' })).toBeVisible();
     await expect(page.getByTestId('add-request')).toBeVisible();
     await expect(page.getByTestId('import-collection')).toBeVisible();
@@ -164,7 +183,7 @@ test.describe('Homepage task discovery', () => {
     await expect(flagship).toContainText('Build requests');
     await flagship.click();
 
-    await expect(page).toHaveURL(/api-studio\/?$/);
+    await expect(page).toHaveURL(/api-studio/);
     await expect(page.getByRole('complementary', { name: 'Collections' })).toBeVisible();
     await expect(page.getByTestId('add-request')).toBeVisible();
   });
