@@ -1330,7 +1330,7 @@ function onMenuSelect(key: string, node: TreeNode) {
         </div>
 
         <p class="api-env-disclosure" data-test-id="environment-disclosure">
-          Saved in this browser's local storage for this website. A Secret marker masks the value here and blanks it in exports; it does not encrypt the value at rest. Collection and Global variables are shared with the legacy API Debugger. Variables are substituted into requests sent through the first-party API relay.
+          Saved in this browser's localStorage for this website's origin. Environment names and all three scopes share the legacy API Debugger store; the selection made here does not change its default environment. Secret marking applies to a variable name across scopes, masks its value here and blanks it in exports; it does not encrypt the value at rest. Variables are substituted into requests sent through the first-party API relay.
         </p>
       </section>
 
