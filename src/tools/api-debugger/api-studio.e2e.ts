@@ -358,6 +358,111 @@ test('runs saved structured request assertions and shows each pass/fail result',
   await expect(report).toContainText('JSON $.missing exists');
 });
 
+test('manages environments and scoped variables without changing the legacy active environment', async ({ page }) => {
+  const envSeed = {
+    active: 'Default',
+    envs: {
+      Default: { baseUrl: 'https://environment.test', defaultOnly: 'from environment' },
+      Prod: { baseUrl: 'https://production.test' },
+    },
+    collection: { baseUrl: 'https://collection.test', collectionOnly: 'shared collection value' },
+    global: { baseUrl: 'https://global.test', globalOnly: 'shared global value' },
+    secrets: [],
+  };
+  await page.addInitScript(
+    ([key, value]) => {
+      if (localStorage.getItem(key) === null) {
+        localStorage.setItem(key, value);
+      }
+    },
+    [['api-debugger', 'env'].join(':'), JSON.stringify(envSeed)] as [string, string],
+  );
+
+  await page.goto('/api-studio');
+  await page.getByTestId('manage-environments').click();
+  await expect(page.getByTestId('env-manager')).toBeVisible();
+
+  // Environment > Collection > Global is visible while browsing each raw scope.
+  await page.getByTestId('scope-collection').click();
+  let baseUrlRow = page.locator('[data-test-id="var-row"][data-var-name="baseUrl"]');
+  await expect(baseUrlRow.getByTestId('var-value')).toHaveValue('https://collection.test');
+  await expect(baseUrlRow.getByTestId('scope-origin')).toHaveText('Overridden by Environment');
+
+  await page.getByTestId('scope-global').click();
+  baseUrlRow = page.locator('[data-test-id="var-row"][data-var-name="baseUrl"]');
+  await expect(baseUrlRow.getByTestId('var-value')).toHaveValue('https://global.test');
+  await expect(baseUrlRow.getByTestId('scope-origin')).toHaveText('Overridden by Environment');
+
+  // Creating and selecting a Studio environment must not rewrite the legacy API Debugger default.
+  await page.getByTestId('scope-environment').click();
+  await page.getByTestId('new-environment-name').fill('QA');
+  await page.getByTestId('create-environment').click();
+  await expect(page.getByTestId('env-select')).toContainText('QA');
+  let store = await page.evaluate(() => JSON.parse(localStorage.getItem(['api-debugger', 'env'].join(':')) || '{}'));
+  expect(store.active).toBe('Default');
+  expect(store.envs.QA).toEqual({});
+
+  // Add, edit and mask a secret variable; its value stays local and is blanked on export.
+  await page.getByTestId('scope-environment').click();
+  await page.getByTestId('new-var-name').fill('API_TOKEN');
+  await page.getByTestId('new-var-value').fill('first-secret');
+  await page.getByTestId('new-var-secret').check();
+  await page.getByTestId('add-variable').click();
+
+  const tokenRow = page.locator('[data-test-id="var-row"][data-var-name="API_TOKEN"]');
+  await expect(tokenRow.getByTestId('var-value')).toHaveAttribute('type', 'password');
+  await tokenRow.getByTestId('var-value').fill('updated-secret');
+  await tokenRow.getByTestId('var-value').press('Tab');
+  await tokenRow.getByTestId('show-variable').click();
+  await expect(tokenRow.getByTestId('var-value')).toHaveAttribute('type', 'text');
+
+  const [download] = await Promise.all([
+    page.waitForEvent('download'),
+    page.getByTestId('export-variables').click(),
+  ]);
+  const downloadPath = await download.path();
+  expect(downloadPath).not.toBeNull();
+  const exported = JSON.parse(readFileSync(downloadPath!, 'utf8')) as { environment: string; variables: Record<string, string> };
+  expect(exported.environment).toBe('QA');
+  expect(exported.variables.API_TOKEN).toBe('');
+
+  // Variable removal works in the selected scope.
+  await page.getByTestId('new-var-name').fill('TEMP_VALUE');
+  await page.getByTestId('new-var-value').fill('temporary');
+  await page.getByTestId('add-variable').click();
+  await page.locator('[data-test-id="var-row"][data-var-name="TEMP_VALUE"]').getByTestId('remove-variable').click();
+  await expect(page.locator('[data-test-id="var-row"][data-var-name="TEMP_VALUE"]')).toHaveCount(0);
+
+  // Rename and delete the selected environment, but keep the last environment and legacy active intact.
+  await page.getByTestId('env-rename-input').fill('Staging');
+  await page.getByTestId('rename-environment').click();
+  store = await page.evaluate(() => JSON.parse(localStorage.getItem(['api-debugger', 'env'].join(':')) || '{}'));
+  expect(store.envs.Staging.API_TOKEN).toBe('updated-secret');
+  expect(store.envs.QA).toBeUndefined();
+  expect(store.active).toBe('Default');
+
+  await page.getByTestId('delete-environment').click();
+  store = await page.evaluate(() => JSON.parse(localStorage.getItem(['api-debugger', 'env'].join(':')) || '{}'));
+  expect(store.envs.Staging).toBeUndefined();
+  expect(store.envs.Default).toBeDefined();
+  expect(store.active).toBe('Default');
+
+  // Collection-scope edits persist across reload and remain shared through the existing store.
+  await page.getByTestId('scope-collection').click();
+  await page.getByTestId('new-var-name').fill('sharedPath');
+  await page.getByTestId('new-var-value').fill('/v2');
+  await page.getByTestId('add-variable').click();
+  await page.reload();
+  await page.getByTestId('manage-environments').click();
+  await page.getByTestId('scope-collection').click();
+  const sharedRow = page.locator('[data-test-id="var-row"][data-var-name="sharedPath"]');
+  await expect(sharedRow.getByTestId('var-value')).toHaveValue('/v2');
+  store = await page.evaluate(() => JSON.parse(localStorage.getItem(['api-debugger', 'env'].join(':')) || '{}'));
+  expect(store.active).toBe('Default');
+  expect(store.collection.sharedPath).toBe('/v2');
+  await expect(page.getByTestId('environment-disclosure')).toContainText('does not encrypt the value at rest');
+});
+ 
 test('imports a Postman v2.1 collection into the tree and exports it back (round-trip)', async ({ page }) => {
   // 空工作树 → 导入：直接采用集合（保留集合名 + folder 结构 + 请求），所见即所得。
   const postmanFixture = {
