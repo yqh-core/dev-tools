@@ -36,14 +36,15 @@ import { buildUrlWithQuery, parseQueryParams } from '@/tools/api-debugger/query'
 import type { CollectionRunSummary, RunnerResponse, SendFn } from '@/tools/api-debugger/runner';
 import { formatCollectionReportText, runCollectionTree } from '@/tools/api-debugger/runner';
 import { runScriptIsolated } from '@/tools/api-debugger/script-sandbox';
-import type { EnvStore } from '@/tools/api-debugger/environments';
-import { activeVars, envNames, migrateEnv } from '@/tools/api-debugger/environments';
+import * as environmentEngine from '@/tools/api-debugger/environments';
 import { exportCollectionTree, importCollectionTree } from '@/tools/api-debugger/collection';
 import { buildDownloadFilename, downloadTextFile } from '@/composable/downloadText';
 
 type Assertion = assertionEngine.Assertion;
 type AssertionReport = assertionEngine.AssertionReport;
 type AssertionType = assertionEngine.AssertionType;
+type EnvStore = environmentEngine.EnvStore;
+type VarScope = environmentEngine.VarScope;
 
 // localStorage 键：用 join(':') 拆分构造，避免整串 `scheme:token` 形态被工具链的凭据代理替换损坏
 // （历史教训：直接写 'api-studio:tree' 等曾被替换成 '***'/带省略号的坏串）。运行时值与工具页一致。
@@ -74,8 +75,9 @@ const dropPos = ref<'before' | 'after' | 'inside'>('inside');
 // 环境变量：复用工具页同一份 api-debugger:env（单一事实源）。selectedEnv 只是本壳运行时的本地选择覆盖，
 // 不写回共享 store 的 active（避免在 API-Studio 切环境时意外改掉工具页的当前环境）。
 const ENV_KEY = ['api-debugger', 'env'].join(':');
-const envStore = ref<EnvStore>(migrateEnv(null));
+const envStore = ref<EnvStore>(environmentEngine.migrateEnv(null));
 const selectedEnv = ref<string>('Default');
+const renameEnvDraft = ref('Default');
 
 function emptyRoot(): CollectionNode {
   return { id: 'root', name: 'Collection', items: [] };
@@ -123,13 +125,14 @@ onMounted(() => {
   // 载入共享环境（工具页 api-debugger:env）；本地选中 = 其当前 active。
   try {
     const rawEnv = localStorage.getItem(ENV_KEY);
-    envStore.value = migrateEnv(rawEnv ? JSON.parse(rawEnv) : null);
+    envStore.value = environmentEngine.migrateEnv(rawEnv ? JSON.parse(rawEnv) : null);
     selectedEnv.value = envStore.value.active;
   }
   catch {
-    envStore.value = migrateEnv(null);
+    envStore.value = environmentEngine.migrateEnv(null);
     selectedEnv.value = 'Default';
   }
+  renameEnvDraft.value = selectedEnv.value;
 });
 
 // ── 扁平可见行（按折叠状态展开，depth 决定缩进）───────────────────────
@@ -608,11 +611,241 @@ function onDropRow(row: Row) {
 }
 
 // 运行用环境 = 共享 store 的变量，但用本地 selectedEnv 覆盖 active（不写回，避免耦合工具页）。
-const env = computed<Record<string, string>>(() => activeVars({ ...envStore.value, active: selectedEnv.value }));
-const envOptions = computed(() => envNames(envStore.value).map(n => ({ label: n, value: n })));
+const envManagerOpen = ref(false);
+const activeScope = ref<VarScope>('environment');
+const scopeOptions: { label: string; value: VarScope }[] = [
+  { label: 'Environment', value: 'environment' },
+  { label: 'Collection', value: 'collection' },
+  { label: 'Global', value: 'global' },
+];
+const newEnvName = ref('');
+const newVarName = ref('');
+const newVarValue = ref('');
+const newVarSecret = ref(false);
+const revealedVars = ref<Set<string>>(new Set());
+
+const selectedEnvStore = computed<EnvStore>(() => ({
+  ...envStore.value,
+  active: envStore.value.envs[selectedEnv.value] ? selectedEnv.value : envStore.value.active,
+}));
+const env = computed<Record<string, string>>(() => environmentEngine.activeVars(selectedEnvStore.value));
+const envOptions = computed(() => environmentEngine.envNames(envStore.value).map(name => ({ label: name, value: name })));
 const envVarCount = computed(() => Object.keys(env.value).length);
+const scopeRows = computed(() => Object.entries(environmentEngine.scopeVars(selectedEnvStore.value, activeScope.value))
+  .sort(([a], [b]) => a.localeCompare(b))
+  .map(([name, value]) => ({
+    name,
+    value,
+    secret: environmentEngine.isSecret(selectedEnvStore.value, name),
+    effectiveScope: environmentEngine.scopeOf(selectedEnvStore.value, name),
+  })));
+
+function scopeLabel(scope: VarScope | null): string {
+  if (scope === 'environment') {
+    return 'Environment';
+  }
+  if (scope === 'collection') {
+    return 'Collection';
+  }
+  return scope === 'global' ? 'Global' : 'Not defined';
+}
+
+function persistEnvStore(next: EnvStore, preferredEnvironment = selectedEnv.value) {
+  // Studio edits a temporary active environment; keep the legacy API Debugger default unchanged.
+  const legacyActive = envStore.value.active;
+  const active = Object.prototype.hasOwnProperty.call(next.envs, legacyActive) ? legacyActive : next.active;
+  const persisted: EnvStore = { ...next, active };
+  envStore.value = persisted;
+  selectedEnv.value = Object.prototype.hasOwnProperty.call(persisted.envs, preferredEnvironment)
+    ? preferredEnvironment
+    : active;
+  renameEnvDraft.value = selectedEnv.value;
+  revealedVars.value = new Set();
+  try {
+    localStorage.setItem(ENV_KEY, JSON.stringify(persisted));
+  }
+  catch {
+    banner.value = 'Changes are active in this tab but could not be saved to browser storage. Keep this tab open and check the browser storage settings.';
+  }
+}
+
 function onEnvChange(v: unknown) {
-  selectedEnv.value = String(v);
+  const name = String(v);
+  if (!Object.prototype.hasOwnProperty.call(envStore.value.envs, name)) {
+    return;
+  }
+  selectedEnv.value = name;
+  renameEnvDraft.value = name;
+  revealedVars.value = new Set();
+}
+
+function createEnvironment() {
+  const name = newEnvName.value.trim();
+  if (!name) {
+    banner.value = 'Enter a name for the new environment.';
+    return;
+  }
+  const current = selectedEnvStore.value;
+  const next = environmentEngine.addEnv(current, name);
+  if (next === current) {
+    banner.value = 'That environment name is empty or already in use.';
+    return;
+  }
+  persistEnvStore(next, name);
+  newEnvName.value = '';
+  banner.value = `Created environment "${name}". The legacy API Debugger default was not changed.`;
+}
+
+function renameEnvironment() {
+  const oldName = selectedEnv.value;
+  const nextName = renameEnvDraft.value.trim();
+  if (!nextName) {
+    banner.value = 'Enter a name for this environment.';
+    return;
+  }
+  if (nextName === oldName) {
+    return;
+  }
+  const current = selectedEnvStore.value;
+  const next = environmentEngine.renameEnv(current, oldName, nextName);
+  if (next === current) {
+    banner.value = 'That name is already used by another environment.';
+    return;
+  }
+  persistEnvStore(next, nextName);
+  banner.value = `Renamed "${oldName}" to "${nextName}".`;
+}
+
+function variableExistsInAnyScope(store: EnvStore, name: string): boolean {
+  if (Object.prototype.hasOwnProperty.call(store.global ?? {}, name)
+    || Object.prototype.hasOwnProperty.call(store.collection ?? {}, name)) {
+    return true;
+  }
+  return Object.values(store.envs).some(vars => Object.prototype.hasOwnProperty.call(vars, name));
+}
+
+function clearOrphanedSecretMarkers(store: EnvStore): EnvStore {
+  return (store.secrets ?? []).reduce(
+    (next, name) => variableExistsInAnyScope(next, name) ? next : environmentEngine.setSecret(next, name, false),
+    store,
+  );
+}
+
+function deleteEnvironment() {
+  const oldName = selectedEnv.value;
+  const current = selectedEnvStore.value;
+  const next = environmentEngine.deleteEnv(current, oldName);
+  if (next === current) {
+    banner.value = 'Keep at least one environment. The last environment cannot be deleted.';
+    return;
+  }
+  persistEnvStore(clearOrphanedSecretMarkers(next), next.active);
+  banner.value = `Deleted environment "${oldName}".`;
+}
+
+function updateScopeVariable(name: string, value: string) {
+  const current = selectedEnvStore.value;
+  const next = environmentEngine.setScopeVar(current, activeScope.value, name, value);
+  persistEnvStore(next);
+}
+
+function renameScopeVariable(oldName: string, newNameValue: string, value: string) {
+  const newName = newNameValue.trim();
+  if (!newName) {
+    banner.value = 'Variable names cannot be empty.';
+    return;
+  }
+  if (newName === oldName) {
+    return;
+  }
+  const current = selectedEnvStore.value;
+  const scope = environmentEngine.scopeVars(current, activeScope.value);
+  if (Object.prototype.hasOwnProperty.call(scope, newName)) {
+    banner.value = 'A variable with that name already exists in this scope.';
+    return;
+  }
+  const wasSecret = environmentEngine.isSecret(current, oldName);
+  let next = environmentEngine.removeScopeVar(current, activeScope.value, oldName);
+  next = environmentEngine.setScopeVar(next, activeScope.value, newName, value);
+  if (wasSecret) {
+    next = environmentEngine.setSecret(next, newName, true);
+  }
+  if (!variableExistsInAnyScope(next, oldName)) {
+    next = environmentEngine.setSecret(next, oldName, false);
+  }
+  persistEnvStore(next);
+}
+
+function addScopeVariable() {
+  const name = newVarName.value.trim();
+  if (!name) {
+    banner.value = 'Enter a variable name.';
+    return;
+  }
+  const current = selectedEnvStore.value;
+  if (Object.prototype.hasOwnProperty.call(environmentEngine.scopeVars(current, activeScope.value), name)) {
+    banner.value = 'That variable already exists in this scope. Edit its existing row instead.';
+    return;
+  }
+  let next = environmentEngine.setScopeVar(current, activeScope.value, name, newVarValue.value);
+  if (newVarSecret.value) {
+    next = environmentEngine.setSecret(next, name, true);
+  }
+  persistEnvStore(next);
+  newVarName.value = '';
+  newVarValue.value = '';
+  newVarSecret.value = false;
+  banner.value = `Added variable "${name}".`;
+}
+
+function removeScopeVariable(name: string) {
+  let next = environmentEngine.removeScopeVar(selectedEnvStore.value, activeScope.value, name);
+  if (!variableExistsInAnyScope(next, name)) {
+    next = environmentEngine.setSecret(next, name, false);
+  }
+  persistEnvStore(next);
+  banner.value = `Removed variable "${name}" from ${scopeLabel(activeScope.value)}.`;
+}
+
+function toggleScopeSecret(name: string) {
+  const current = selectedEnvStore.value;
+  const secret = !environmentEngine.isSecret(current, name);
+  persistEnvStore(environmentEngine.setSecret(current, name, secret));
+  banner.value = secret
+    ? `Marked "${name}" as secret. This masks the value and blanks it in exports; it does not encrypt browser storage.`
+    : `Removed the secret marker from "${name}".`;
+}
+
+function isVariableRevealed(name: string): boolean {
+  return revealedVars.value.has(name);
+}
+
+function toggleVariableReveal(name: string) {
+  const next = new Set(revealedVars.value);
+  if (next.has(name)) {
+    next.delete(name);
+  }
+  else {
+    next.add(name);
+  }
+  revealedVars.value = next;
+}
+
+function exportEnvironmentVariables() {
+  const current = selectedEnvStore.value;
+  const content = JSON.stringify({
+    environment: selectedEnv.value,
+    precedence: 'Environment > Collection > Global',
+    variables: environmentEngine.exportableVars(current),
+  }, null, 2);
+  const ok = downloadTextFile({
+    content,
+    filename: buildDownloadFilename('api-studio', 'environment_variables.json'),
+    mimeType: 'application/json',
+  });
+  banner.value = ok
+    ? 'Exported resolved variables. Secret-marked values were replaced with empty strings.'
+    : 'Could not start the variables download. Check browser download permissions.';
 }
 
 // ── 运行 ────────────────────────────────────────────────────────────
@@ -824,6 +1057,15 @@ function onMenuSelect(key: string, node: TreeNode) {
           data-test-id="env-select"
           @update:value="onEnvChange"
         />
+        <button
+          class="api-env-manage-toggle"
+          type="button"
+          data-test-id="manage-environments"
+          :aria-expanded="envManagerOpen"
+          @click="envManagerOpen = !envManagerOpen"
+        >
+          {{ envManagerOpen ? 'Close' : 'Manage' }}
+        </button>
         <span class="api-envbar-count" data-test-id="env-count">{{ envVarCount }} var(s)</span>
       </div>
 
@@ -949,6 +1191,165 @@ function onMenuSelect(key: string, node: TreeNode) {
       <div v-if="banner" class="api-banner" role="status" data-test-id="banner">
         {{ banner }}
       </div>
+
+      <section v-if="envManagerOpen" class="api-env-manager" aria-label="Manage environments and variables" data-test-id="env-manager">
+        <div class="api-env-manager-heading">
+          <div>
+            <h2>Environments &amp; variables</h2>
+            <p>Keep request values organized by where they belong.</p>
+          </div>
+          <button class="api-mini-action" type="button" data-test-id="close-env-manager" @click="envManagerOpen = false">Close</button>
+        </div>
+
+        <div class="api-env-manager-section" data-test-id="environment-management">
+          <div class="api-env-manager-section-title">
+            <strong>Environments</strong>
+            <span class="api-field-hint">Selected in API Studio only</span>
+          </div>
+          <div class="api-env-manager-actions">
+            <input
+              v-model="renameEnvDraft"
+              class="api-env-manager-input"
+              type="text"
+              aria-label="Rename selected environment"
+              data-test-id="env-rename-input"
+              placeholder="Environment name"
+            >
+            <button class="api-mini-action" type="button" data-test-id="rename-environment" @click="renameEnvironment">Rename</button>
+            <input
+              v-model="newEnvName"
+              class="api-env-manager-input"
+              type="text"
+              aria-label="New environment name"
+              data-test-id="new-environment-name"
+              placeholder="New environment"
+              @keyup.enter="createEnvironment"
+            >
+            <button class="api-mini-action" type="button" data-test-id="create-environment" @click="createEnvironment">+ Create</button>
+            <button class="api-mini-action api-env-delete" type="button" data-test-id="delete-environment" :disabled="envOptions.length <= 1" @click="deleteEnvironment">Delete selected</button>
+          </div>
+        </div>
+
+        <div class="api-env-manager-section" data-test-id="variable-management">
+          <div class="api-env-manager-section-title">
+            <strong>Variables</strong>
+            <span class="api-field-hint">Narrower scopes override broader ones</span>
+          </div>
+          <div class="api-env-scope-bar" role="group" aria-label="Variable scope">
+            <button
+              v-for="option in scopeOptions"
+              :key="option.value"
+              class="api-env-scope-button"
+              :class="{ 'is-active': activeScope === option.value }"
+              type="button"
+              :data-test-id="`scope-${option.value}`"
+              :aria-pressed="activeScope === option.value"
+              @click="activeScope = option.value"
+            >
+              {{ option.label }}
+            </button>
+            <button
+              class="api-mini-action api-env-export"
+              type="button"
+              data-test-id="export-variables"
+              @click="exportEnvironmentVariables"
+            >
+              Export resolved variables
+            </button>
+          </div>
+
+          <div v-if="scopeRows.length" class="api-env-variable-list" data-test-id="variable-list">
+            <div
+              v-for="row in scopeRows"
+              :key="row.name"
+              class="api-env-variable-row"
+              data-test-id="var-row"
+              :data-var-name="row.name"
+            >
+              <input
+                class="api-env-manager-input api-env-variable-name"
+                type="text"
+                :value="row.name"
+                :aria-label="`Variable name ${row.name}`"
+                data-test-id="var-name"
+                @change="(event: Event) => renameScopeVariable(row.name, (event.target as HTMLInputElement).value, row.value)"
+              >
+              <div class="api-env-variable-value">
+                <input
+                  class="api-env-manager-input"
+                  :type="row.secret && !isVariableRevealed(row.name) ? 'password' : 'text'"
+                  :value="row.value"
+                  :aria-label="`Variable value ${row.name}`"
+                  data-test-id="var-value"
+                  @change="(event: Event) => updateScopeVariable(row.name, (event.target as HTMLInputElement).value)"
+                >
+                <button
+                  v-if="row.secret"
+                  class="api-mini-action"
+                  type="button"
+                  :data-test-id="isVariableRevealed(row.name) ? 'hide-variable' : 'show-variable'"
+                  @click="toggleVariableReveal(row.name)"
+                >
+                  {{ isVariableRevealed(row.name) ? 'Hide' : 'Show' }}
+                </button>
+              </div>
+              <span class="api-env-origin" data-test-id="scope-origin">
+                {{ row.effectiveScope === activeScope ? 'Effective' : `Overridden by ${scopeLabel(row.effectiveScope)}` }}
+              </span>
+              <button
+                class="api-mini-action"
+                :class="{ 'is-secret': row.secret }"
+                type="button"
+                data-test-id="toggle-variable-secret"
+                @click="toggleScopeSecret(row.name)"
+              >
+                {{ row.secret ? 'Secret ✓' : 'Make secret' }}
+              </button>
+              <button
+                class="api-mini-action api-env-remove"
+                type="button"
+                data-test-id="remove-variable"
+                :aria-label="`Remove ${row.name}`"
+                @click="removeScopeVariable(row.name)"
+              >
+                Remove
+              </button>
+            </div>
+          </div>
+          <p v-else class="api-env-empty" data-test-id="empty-variable-scope">
+            No variables in this scope yet. Add one below.
+          </p>
+
+          <div class="api-env-variable-add" data-test-id="add-variable-row">
+            <input
+              v-model="newVarName"
+              class="api-env-manager-input"
+              type="text"
+              aria-label="New variable name"
+              data-test-id="new-var-name"
+              placeholder="Variable name"
+            >
+            <input
+              v-model="newVarValue"
+              class="api-env-manager-input"
+              :type="newVarSecret ? 'password' : 'text'"
+              aria-label="New variable value"
+              data-test-id="new-var-value"
+              placeholder="Value"
+              @keyup.enter="addScopeVariable"
+            >
+            <label class="api-env-secret-new">
+              <input v-model="newVarSecret" type="checkbox" data-test-id="new-var-secret">
+              Secret
+            </label>
+            <button class="api-mini-action api-env-add" type="button" data-test-id="add-variable" @click="addScopeVariable">+ Add variable</button>
+          </div>
+        </div>
+
+        <p class="api-env-disclosure" data-test-id="environment-disclosure">
+          Saved in this browser's localStorage for this website's origin. Environment names and all three scopes share the legacy API Debugger store; the selection made here does not change its default environment. Secret marking applies to a variable name across scopes, masks its value here and blanks it in exports; it does not encrypt the value at rest. Variables are substituted into requests sent through the first-party API relay.
+        </p>
+      </section>
 
       <div v-if="selectedNode" class="api-editor-form">
         <div class="api-field-row">
@@ -2179,6 +2580,214 @@ function onMenuSelect(key: string, node: TreeNode) {
   .api-assertion-remove {
     grid-column: 3;
     grid-row: 1;
+  }
+}
+
+.api-env-manage-toggle {
+  flex: 0 0 auto;
+  min-height: 28px;
+  padding: 0 9px;
+  border: 1px solid var(--api-primary-line);
+  border-radius: var(--api-radius-sm);
+  background: var(--api-primary-soft);
+  color: var(--api-primary);
+  font-size: var(--api-fs-xs);
+  font-weight: 600;
+  cursor: pointer;
+}
+.api-env-manager {
+  display: grid;
+  gap: 14px;
+  width: 100%;
+  max-width: 900px;
+  margin-bottom: var(--api-gap);
+  padding: 14px;
+  border: 1px solid var(--api-border);
+  border-radius: var(--api-radius);
+  background: var(--api-surface);
+}
+.api-env-manager-heading,
+.api-env-manager-section-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.api-env-manager-heading h2 {
+  margin: 0;
+  color: var(--api-text);
+  font-size: var(--api-fs-md);
+  font-weight: 650;
+}
+.api-env-manager-heading p {
+  margin: 3px 0 0;
+  color: var(--api-text-muted);
+  font-size: var(--api-fs-sm);
+}
+.api-env-manager-section {
+  display: grid;
+  gap: 9px;
+}
+.api-env-manager-section-title {
+  color: var(--api-text);
+  font-size: var(--api-fs-sm);
+}
+.api-env-manager-actions {
+  display: grid;
+  grid-template-columns: minmax(120px, 1fr) auto minmax(140px, 1fr) auto auto;
+  align-items: center;
+  gap: 7px;
+}
+.api-env-manager-input {
+  width: 100%;
+  min-width: 0;
+  min-height: 34px;
+  padding: 0 9px;
+  border: 1px solid var(--api-border);
+  border-radius: var(--api-radius-sm);
+  background: var(--api-surface-2);
+  color: var(--api-text);
+  font: inherit;
+  font-size: var(--api-fs-sm);
+}
+.api-env-manager-input:focus {
+  outline: none;
+  border-color: var(--api-primary);
+  box-shadow: var(--api-focus-ring);
+}
+.api-env-scope-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.api-env-scope-button {
+  min-height: 30px;
+  padding: 0 10px;
+  border: 1px solid var(--api-border);
+  border-radius: var(--api-radius-sm);
+  background: var(--api-surface-2);
+  color: var(--api-text-soft);
+  font-size: var(--api-fs-sm);
+  cursor: pointer;
+}
+.api-env-scope-button.is-active {
+  border-color: var(--api-primary-line);
+  background: var(--api-primary-soft);
+  color: var(--api-primary);
+  font-weight: 600;
+}
+.api-env-export {
+  margin-left: auto;
+}
+.api-env-variable-list {
+  display: grid;
+  gap: 7px;
+}
+.api-env-variable-row {
+  display: grid;
+  grid-template-columns: minmax(115px, 0.85fr) minmax(180px, 1.35fr) minmax(110px, 0.8fr) auto auto;
+  align-items: center;
+  gap: 7px;
+  padding: 8px;
+  border: 1px solid var(--api-border);
+  border-radius: var(--api-radius-sm);
+  background: var(--api-surface-2);
+}
+.api-env-variable-value {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+}
+.api-env-variable-value input {
+  flex: 1 1 auto;
+}
+.api-env-origin {
+  color: var(--api-text-faint);
+  font-size: var(--api-fs-xs);
+  overflow-wrap: anywhere;
+}
+.api-env-origin:not(:empty) {
+  white-space: normal;
+}
+.api-env-variable-row [data-test-id="toggle-variable-secret"].is-secret {
+  color: var(--api-warning);
+  border-color: var(--api-warning-line, var(--api-border));
+}
+.api-env-remove {
+  color: var(--api-text-muted);
+}
+.api-env-secret-new {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--api-text-soft);
+  font-size: var(--api-fs-sm);
+  white-space: nowrap;
+}
+.api-env-variable-add {
+  display: grid;
+  grid-template-columns: minmax(120px, 0.85fr) minmax(180px, 1.35fr) auto auto;
+  align-items: center;
+  gap: 7px;
+  padding-top: 8px;
+  border-top: 1px solid var(--api-border);
+}
+.api-env-empty {
+  margin: 0;
+  padding: 12px;
+  border: 1px dashed var(--api-border);
+  border-radius: var(--api-radius-sm);
+  color: var(--api-text-muted);
+  font-size: var(--api-fs-sm);
+}
+.api-env-disclosure {
+  margin: 0;
+  padding: 9px 11px;
+  border-left: 3px solid var(--api-warning, #b7791f);
+  border-radius: var(--api-radius-sm);
+  background: var(--api-surface-2);
+  color: var(--api-text-soft);
+  font-size: var(--api-fs-xs);
+  line-height: 1.55;
+}
+.api-env-delete:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+@media (max-width: 760px) {
+  .api-env-manager {
+    padding: 10px;
+  }
+  .api-env-manager-actions {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .api-env-variable-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .api-env-variable-name,
+  .api-env-variable-value,
+  .api-env-origin {
+    grid-column: 1 / -1;
+  }
+  .api-env-variable-value {
+    grid-column: 1;
+  }
+  .api-env-variable-row .api-env-remove {
+    grid-column: 2;
+    grid-row: 2;
+  }
+  .api-env-variable-add {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .api-env-variable-add input,
+  .api-env-secret-new {
+    grid-column: 1 / -1;
+  }
+  .api-env-export {
+    margin-left: 0;
   }
 }
 </style>
