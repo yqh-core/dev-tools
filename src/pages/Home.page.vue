@@ -14,6 +14,7 @@ import { useFuzzySearch } from '@/composable/fuzzySearch';
 import { TOOL_CLUSTERS } from '@/seo/clusters';
 import { config } from '@/config';
 import { usePageSeo } from '@/seo/use-page-seo';
+import { normalizePath } from '@/seo/site';
 
 // [B3-experiment E3] vuedraggable(+sortablejs) 静态导入会随 Home 进主 chunk ——
 // 而拖拽 UI 只在 `v-if="favoriteTools.length > 0"`（纯客户端 localStorage，SSR 恒为假）
@@ -396,7 +397,7 @@ function onUpdateFavoriteTools() {
           </div>
         </div>
 
-        <RouterLink class="hero-cta" to="/tools">
+        <RouterLink class="hero-cta"  :to="normalizePath('/tools')">
           {{ t('home.hero.cta') }} ↓
         </RouterLink>
       </header>
@@ -419,14 +420,14 @@ function onUpdateFavoriteTools() {
           <ColoredCard v-if="config.showBanner" :title="$t('home.follow.title')" :icon="IconHeart">
             {{ $t('home.follow.p1') }}
             <a
-              href="https://digdevbox.com/"
+              href="https://www.digdevbox.com/"
               rel="noopener"
               target="_blank"
               :aria-label="$t('home.follow.githubRepository')"
             >DigDevBox</a>
             {{ $t('home.follow.p2') }}
             <a
-              href="https://digdevbox.com/"
+              href="https://www.digdevbox.com/"
               rel="noopener"
               target="_blank"
               :aria-label="$t('home.follow.twitterXAccount')"
@@ -488,7 +489,7 @@ function onUpdateFavoriteTools() {
                   v-for="tool in cat.sampleTools"
                   :key="tool.path"
                   class="task-chip"
-                  :to="tool.path"
+                  :to="normalizePath(tool.path)"
                 >
                   <n-icon :component="tool.icon" size="14" class="task-chip-icon" />
                   <span class="task-chip-name">{{ tool.name }}</span>
@@ -496,7 +497,7 @@ function onUpdateFavoriteTools() {
               </div>
             </div>
           </div>
-          <RouterLink class="home-blog-more" to="/tools">
+          <RouterLink class="home-blog-more" :to="normalizePath('/tools')">
             {{ $t('home.tasks.allTools') }} →
           </RouterLink>
         </section>
@@ -538,14 +539,36 @@ function onUpdateFavoriteTools() {
           原独立大区块降为一行式引流 —— 单站导流不值得一个主区块的视觉权重（审计 P1-4）。
           ⛔ 原有纪律全部继承：不带 query、不写死统计数字、不编造评价。
         -->
-        <a
-          class="home-practice-inline"
-          href="https://geek-typing.digdevbox.com/"
-          target="_blank"
-          rel="noopener"
-        >
-          {{ $t('home.practice.title') }} — {{ $t('home.practice.subtitle') }} →
-        </a>
+        <section class="home-block" id="more-from-digdevbox" aria-labelledby="more-from-digdevbox-title">
+          <h2 class="home-block-title" id="more-from-digdevbox-title">More tools from DigDevBox</h2>
+          <p class="home-block-subtitle">Explore focused browser-based tools for image workflows, network research, media playback and text-to-speech.</p>
+          <div class="home-blog-list">
+            <a class="home-blog-card" href="https://img.digdevbox.com/">
+              <span class="home-blog-card-title">DigImg — Image Compressor</span>
+              <span class="home-blog-card-desc">Compress and convert images locally, compare formats and target a specific file size.</span>
+            </a>
+            <a class="home-blog-card" href="https://ip.digdevbox.com/">
+              <span class="home-blog-card-title">IP Locator</span>
+              <span class="home-blog-card-desc">Look up public IPv4 and IPv6 addresses, ASN, ISP, CIDR and DNS records.</span>
+            </a>
+            <a class="home-blog-card" href="https://play.digdevbox.com/">
+              <span class="home-blog-card-title">StreamPlay — HLS / M3U8 Player</span>
+              <span class="home-blog-card-desc">Play and inspect HLS streams, analyze playlists and generate iframe embeds.</span>
+            </a>
+            <a class="home-blog-card" href="https://draw.digdevbox.com/">
+              <span class="home-blog-card-title">ImageForge</span>
+              <span class="home-blog-card-desc">Edit and prepare images in your browser with local-first processing.</span>
+            </a>
+            <a class="home-blog-card" href="https://ttsreader.digdevbox.com/">
+              <span class="home-blog-card-title">TTS Reader</span>
+              <span class="home-blog-card-desc">Listen to text with browser-based text-to-speech and reading tools.</span>
+            </a>
+            <a class="home-blog-card" href="https://notes.digdevbox.com/">
+              <span class="home-blog-card-title">Forge Notes</span>
+              <span class="home-blog-card-desc">Read practical guides on developer tools, web standards and engineering workflows.</span>
+            </a>
+          </div>
+        </section>
 
         <!--
           Why DigDevBox（G-01a）。
@@ -584,7 +607,7 @@ function onUpdateFavoriteTools() {
               v-for="tool in networkTools"
               :key="tool.path"
               class="home-network-chip"
-              :to="tool.path"
+              :to="normalizePath(tool.path)"
             >
               {{ tool.name }}
             </RouterLink>

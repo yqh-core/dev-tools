@@ -323,6 +323,18 @@ function buildFaqPageLd(entry) {
 try {
   // —— 全部从 TypeScript 侧取，保证与页面/路由使用同一份数据 ——
   const { canonicalUrl, SITE_ORIGIN } = await vite.ssrLoadModule('/src/seo/site.ts');
+  const { buildGuideMetaDescription } = await vite.ssrLoadModule('/src/seo/guide-links.ts');
+  const robotsSource = await readFile(join(root, 'public/robots.txt'), 'utf8');
+  if (!robotsSource.includes(`Sitemap: ${SITE_ORIGIN}/sitemap.xml`)) {
+    throw new Error(`[build-seo] robots.txt Sitemap 主机与 SITE_ORIGIN 不一致：期望 ${SITE_ORIGIN}/sitemap.xml`);
+  }
+  const sourceTemplate = await readFile(join(root, 'index.html'), 'utf8');
+  if (sourceTemplate.includes('https://digdevbox.com')) {
+    throw new Error('[build-seo] index.html 仍包含裸域绝对 URL；生产最终主机为 www，必须统一 canonical / OG / JSON-LD');
+  }
+  if (!sourceTemplate.includes(`rel=\"canonical\" href=\"${SITE_ORIGIN}/\"`)) {
+    throw new Error(`[build-seo] index.html source canonical 与 SITE_ORIGIN 不一致：${SITE_ORIGIN}/`);
+  }
   const { STATIC_ROUTES } = await vite.ssrLoadModule('/src/seo/routes.ts');
   const { TOOL_SEO_PAGES, auditToolSeoData } = await vite.ssrLoadModule('/src/seo/tool-page.ts');
   // Keyword Map 的已落地 title 与 locales/en.yml 逐字比对：drift 即构建失败。
@@ -418,6 +430,19 @@ try {
   }
 
   // —— 文章页信息增量实测：拿同一份渲染结果里的工具页与文章页比句子 ——
+  const repeatedGuideDescriptions = [];
+  for (const page of GUIDE_ARTICLE_PAGES) {
+    const guideDescription = buildGuideMetaDescription(page.entry.guide, page.entry.description);
+    const toolDescription = page.entry.description;
+    if (!guideDescription || guideDescription === toolDescription) {
+      repeatedGuideDescriptions.push(page.path);
+    }
+  }
+  if (repeatedGuideDescriptions.length) {
+    throw new Error(`[build-seo] 指南页仍缺少独立摘要或复用工具页 meta description: ${repeatedGuideDescriptions.join(', ')}`);
+  }
+  console.log(`[guides] 指南页 meta description 与对应工具页区分：${GUIDE_ARTICLE_PAGES.length}/${GUIDE_ARTICLE_PAGES.length} PASS`);
+
   const rendered = new Map(results.map(item => [item.path, item.html]));
   const guideNovel = {};
   for (const page of GUIDE_ARTICLE_PAGES) {
@@ -752,11 +777,14 @@ try {
     if (entry?.guide?.faqs?.length) {
       pageTags += `\n      <script type="application/ld+json">${buildFaqPageLd(entry)}</script>`;
     }
+    // The prerenderer renders page components without App.vue's layout wrapper.
+    // Add the main landmark to the initial HTML so crawlers and assistive tech see it
+    // before the client app mounts; the per-page self-check below enforces exactly one.
     const out = replaceOnce(
       replaceOnce(
         template,
         '<div id="app"></div>',
-        `<div id="app">${html}${STATIC_FOOTER}</div>`,
+        `<div id="app">${/<main(?:\s|>)/i.test(html) ? html : `<main id="main-content">${html}</main>`}${STATIC_FOOTER}</div>`,
       ),
       pageSeoBlock,
       `<!-- page-seo:start -->\n${pageTags}\n      <!-- page-seo:end -->`,
@@ -769,12 +797,14 @@ try {
     const titleCount = (out.match(/<title[\s>]/gi) ?? []).length;
     const canonicalCount = (out.match(/rel=["']canonical["']/gi) ?? []).length;
     const hasDescription = /<meta[^>]+name=["']description["']/i.test(out);
+    const mainLandmarkCount = (out.match(/<main(?:\s|>)/gi) ?? []).length;
     const hasAdsense = out.includes('ca-pub-7944759654100814');
 
     const problems = [];
     if (titleCount !== 1) { problems.push(`title=${titleCount}`); }
     if (canonicalCount !== 1) { problems.push(`canonical=${canonicalCount}`); }
     if (!hasDescription) { problems.push('description 缺失'); }
+    if (mainLandmarkCount !== 1) { problems.push(`main landmark=${mainLandmarkCount}`); }
     if (!hasAdsense) { problems.push('AdSense 丢失'); }
     if (!out.includes(`rel="canonical" href="${canonical}"`) && !out.includes(`rel='canonical' href='${canonical}'`)) {
       problems.push(`canonical 未自指(${canonical})`);

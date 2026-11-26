@@ -8,15 +8,17 @@
  * 想要的是**文章形态**的页面：有目录、有解释、有例子、有 FAQ，而不是一上来就要你操作。
  * 独立 URL 才能承接这类查询，也才能把内链从「工具 ↔ 工具」扩成「工具 ↔ 指南 ↔ FAQ」。
  *
- * ## 不复制内容
- * 这一层**不新写任何正文**：文章由 `TOOL_SEO_PAGES[].guide` 现场组装，
- * 与工具页折叠面板同源同字。工具页说明改了，文章自动跟着改，不存在第二份事实。
+ * ## 内容来源与去重
+ * 这一层不写正文；所有文字都来自 `TOOL_SEO_PAGES[].guide`，避免模板里藏第二份事实。
+ * intro / steps / example / notes / about / FAQs 在工具页与文章页按需共享；
+ * `articleOnlySections` 专门承载需要独立解释的原创段落，只在指南文章中渲染，
+ * 工具页操作面板不会显示它们。这样既保持同一份双语数据源，也能让文章 URL 提供
+ * 超出工具操作说明的实际信息增量。
  *
- * ## 与工具页的关系（口径写在这里，免得被当成重复内容缺陷）
- * 两者确实共享 about/faqs 文字。区别是：工具页 = 操作面（标题短、核心词、直接给工具），
- * 文章页 = 解释面（标题带 guide、有目录、有面包屑、回链到工具与同簇工具）。
- * 是否要把工具页正文进一步收敛成「只留 intro」以彻底消除重叠，属产品裁定，
- * 会牵动 114 页的预渲染判据，不在本批次内做。
+ * ## 与工具页的关系
+ * 工具页 = 操作面（标题短、核心词、直接给工具）；文章页 = 解释面（目录、面包屑、
+ * 具体场景、独立案例，并回链到工具与同簇工具）。共享字段必须保持同源；
+ * 需要额外解释时，新增 articleOnlySections，而不是把两页正文机械复制一遍。
  */
 import { GUIDE_PREFIX, guideArticlePath } from './guide-links';
 import type { ToolSeoEntry } from './tool-page';
@@ -54,6 +56,8 @@ export interface GuideSection {
   key: string
   kind: 'prose' | 'list' | 'steps' | 'faqs' | 'example'
   text?: string
+  /** 独立指南文章专属标题；有值时覆盖 locale 通用小节标题。 */
+  title?: string
   /** example 一节：可直接照抄的输入原文（与工具页那个按钮填进去的是同一串字）。 */
   code?: string
   items?: string[]
@@ -85,6 +89,19 @@ export function buildGuideSections(guide: ToolGuide): GuideSection[] {
 
   if (guide.steps?.length) {
     sections.push({ id: 'how-to-use', key: 'steps', kind: 'steps', items: guide.steps });
+  }
+
+  // Original article-only sections are deliberately excluded from the tool page.
+  // They add distinct explanatory value to the guide URL instead of duplicating
+  // the same intro/about/FAQ copy across two indexable pages.
+  for (const [index, section] of (guide.articleOnlySections ?? []).entries()) {
+    sections.push({
+      id: `article-only-${index + 1}`,
+      key: 'what',
+      kind: 'prose',
+      title: section.title,
+      text: section.text,
+    });
   }
 
   // 一键示例：把 guides 里那份 example 如实展示成「可以照抄的输入」，

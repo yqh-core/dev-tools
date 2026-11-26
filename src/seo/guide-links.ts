@@ -17,6 +17,32 @@
  */
 
 /**
+ * 为独立指南页生成自己的 SERP 摘要。
+ *
+ * 工具页 description 是面向「立即使用工具」的文案；指南页应从该指南的
+ * 知识说明中提炼摘要，不能复用工具页 description，否则成百篇 /guides
+ * 与对应工具页会共享完全相同的 meta description。
+ */
+export function buildGuideMetaDescription(
+  guide: { about?: string; intro?: string } | null | undefined,
+  fallback: string,
+  maxLength = 160,
+): string {
+  const source = guide?.about?.trim() || guide?.intro?.trim() || fallback.trim();
+  const normalized = source.replace(/\s+/g, ' ');
+  if (normalized.length <= maxLength) {
+    return normalized;
+  }
+
+  const candidate = normalized.slice(0, maxLength - 1);
+  const boundary = candidate.lastIndexOf(' ');
+  const readable = boundary >= Math.floor(maxLength * 0.65)
+    ? candidate.slice(0, boundary)
+    : candidate;
+  return `${readable.trimEnd()}…`;
+}
+
+/**
  * 文章路由前缀与拼法。**放在这个零依赖模块里**而不是 guide-articles.ts，是因为
  * 运行时的 `tool.layout.vue`（每一个工具页都过它）也要拼这个链接：
  * guide-articles.ts 会拉起 TOOL_SEO_PAGES → `@/tools`（整个工具注册表）+ guides.en/zh，

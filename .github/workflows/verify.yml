@@ -46,6 +46,9 @@ jobs:
       - name: example 覆盖门禁（audit:example --check）
         run: pnpm run audit:example
 
+      - name: SEO 生产爬取门禁脚本自检
+        run: node scripts/seo-crawl-gate.mjs --self-test
+
       - name: 类型检查 + 构建
         run: pnpm run build
 

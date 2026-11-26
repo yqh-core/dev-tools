@@ -1,0 +1,369 @@
+name: SEO production crawl audit
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/seo-production-crawl.yml
+      - scripts/seo-crawl-gate.mjs
+  workflow_dispatch:
+  schedule:
+    - cron: "23 3 * * 1"
+  workflow_run:
+    workflows: ["verify"]
+    types: [completed]
+
+permissions:
+  contents: read
+  checks: read
+
+concurrency:
+  group: seo-production-crawl
+  cancel-in-progress: false
+
+jobs:
+  detect-site-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      should_run: ${{ steps.detect.outputs.should_run }}
+      wait_for_deploy: ${{ steps.detect.outputs.wait_for_deploy }}
+    steps:
+      - name: Detect deployable changes for the exact source commit
+        id: detect
+        uses: actions/github-script@v7
+        with:
+          script: |
+            if (context.eventName !== 'workflow_run') {
+              core.setOutput('should_run', 'true');
+              core.setOutput('wait_for_deploy', 'false');
+              core.info('Scheduled/manual crawl: scan current production without waiting for a new deployment');
+              return;
+            }
+            const run = context.payload.workflow_run;
+            if (run.conclusion !== 'success' || run.head_branch !== 'main') {
+              core.setOutput('should_run', 'false');
+              core.setOutput('wait_for_deploy', 'false');
+              core.info('Not a successful main-branch verification; skip crawl');
+              return;
+            }
+            const { owner, repo } = context.repo;
+            const { data } = await github.rest.repos.getCommit({ owner, repo, ref: run.head_sha });
+            const files = data.files || [];
+            const deployable = files.filter(({ filename }) =>
+              !filename.startsWith('.github/') &&
+              !filename.startsWith('scripts/') &&
+              !['README.md', 'CONTRIBUTING.md'].includes(filename)
+            );
+            core.info('Changed files: ' + files.map(file => file.filename).join(', '));
+            core.info('Deployable site files: ' + deployable.map(file => file.filename).join(', '));
+            const crawlControlChanged = files.some(({ filename }) =>
+              filename === '.github/workflows/seo-production-crawl.yml' ||
+              filename === 'scripts/seo-crawl-gate.mjs'
+            );
+            const shouldRun = deployable.length > 0 || crawlControlChanged;
+            core.info('Crawler control-plane changed: ' + crawlControlChanged);
+            const shouldWaitForDeploy = deployable.length > 0;
+            core.setOutput('should_run', shouldRun ? 'true' : 'false');
+            core.setOutput('wait_for_deploy', shouldWaitForDeploy ? 'true' : 'false');
+
+  wait-for-deploy:
+    needs: detect-site-changes
+    if: ${{ needs.detect-site-changes.outputs.should_run == 'true' && ((github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main') || (github.event_name != 'workflow_run' && github.ref == 'refs/heads/main')) }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Wait for the exact Cloudflare production deployment
+        env:
+          TARGET_SHA: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_TOKEN: ${{ github.token }}
+          WAIT_FOR_DEPLOY: ${{ needs.detect-site-changes.outputs.wait_for_deploy }}
+        run: |
+          node --input-type=module <<'NODE'
+          const token = process.env.GITHUB_TOKEN;
+          const targetSha = process.env.TARGET_SHA;
+          const headers = {
+            authorization: 'Bearer ' + token,
+            accept: 'application/vnd.github+json',
+            'x-github-api-version': '2022-11-28',
+          };
+          const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+          const checksUrl = 'https://api.github.com/repos/' + process.env.GITHUB_REPOSITORY +
+            '/commits/' + targetSha + '/check-runs';
+          let deployed = process.env.WAIT_FOR_DEPLOY !== 'true';
+          if (deployed) {
+            console.log('No exact deployment wait required; checking current production before the scheduled/manual crawl');
+          }
+          for (let attempt = 1; !deployed && attempt <= 90; attempt++) {
+            const response = await fetch(checksUrl, { headers, signal: AbortSignal.timeout(10000) });
+            if (!response.ok) throw new Error('GitHub check-run API HTTP ' + response.status);
+            const payload = await response.json();
+            const check = (payload.check_runs || []).find((item) =>
+              item.name === 'Cloudflare Pages' && item.head_sha === targetSha
+            );
+            if (check?.status === 'completed') {
+              if (check.conclusion !== 'success') {
+                throw new Error('Cloudflare Pages deployment concluded ' + check.conclusion +
+                  ': ' + (check.details_url || 'no details URL'));
+              }
+              console.log('PASS: dev-tools production deployment succeeded for ' + targetSha);
+              deployed = true;
+              break;
+            }
+            console.log('Waiting for dev-tools Cloudflare deployment (' + attempt + '/90): ' +
+              (check?.status || 'check not created'));
+            await sleep(10000);
+          }
+          if (!deployed) throw new Error('dev-tools Cloudflare deployment did not complete within 15 minutes');
+
+          // Forge Notes is deployed from its own repository. Wait for the new
+          // English support page marker (not merely HTTP 200) so the seven-site
+          // crawl cannot race its independent Cloudflare Pages deployment.
+          const notesUrl = 'https://notes.digdevbox.com/about';
+          for (let attempt = 1; attempt <= 60; attempt++) {
+            const response = await fetch(notesUrl, {
+              headers: { 'cache-control': 'no-cache' },
+              redirect: 'follow',
+              signal: AbortSignal.timeout(10000),
+            });
+            const body = await response.text();
+            if (response.ok &&
+                body.includes('About Forge Notes') &&
+                body.includes('Forge Notes is an engineering publication by DigDevBox')) {
+              console.log('PASS: Forge Notes English support page is live after its independent deployment');
+              process.exit(0);
+            }
+            console.log('Waiting for Forge Notes deployment marker (' + attempt + '/60): HTTP ' +
+              response.status);
+            await sleep(10000);
+          }
+          throw new Error('Forge Notes English support page was not live within 10 minutes');
+          NODE
+
+  crawl:
+    needs: [detect-site-changes, wait-for-deploy]
+    if: ${{ needs.detect-site-changes.outputs.should_run == 'true' && ((github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main') || (github.event_name != 'workflow_run' && github.ref == 'refs/heads/main')) }}
+    name: "Crawl ${{ matrix.label }}"
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        include:
+          - label: Main site
+            slug: main
+            url: https://www.digdevbox.com/
+            max_pages: 260
+          - label: DigImg
+            slug: digimg
+            url: https://img.digdevbox.com/
+            max_pages: 160
+          - label: IP Locator
+            slug: ip-locator
+            url: https://ip.digdevbox.com/
+            max_pages: 160
+          - label: StreamPlay
+            slug: streamplay
+            url: https://play.digdevbox.com/
+            max_pages: 160
+          - label: TTS Reader
+            slug: tts-reader
+            url: https://ttsreader.digdevbox.com/
+            max_pages: 160
+          - label: ImageForge
+            slug: imageforge
+            url: https://draw.digdevbox.com/
+            max_pages: 160
+          - label: Forge Notes
+            slug: forge-notes
+            url: https://notes.digdevbox.com/
+            max_pages: 160
+          # These two properties remain outside the US/EU growth priority, but
+          # are included in the technical health crawl so the full nine-site
+          # estate is monitored for availability, broken links and SEO regressions.
+          - label: Fangdai (technical health only)
+            slug: fangdai
+            url: https://fangdai.digdevbox.com/
+            max_pages: 100
+          - label: Geek Typing (technical health only)
+            slug: geek-typing
+            url: https://geek-typing.digdevbox.com/
+            max_pages: 100
+
+    steps:
+      - name: Download pinned SiteOne Crawler release
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/siteone" reports
+          curl --fail --silent --show-error --location \
+            "https://github.com/janreges/siteone-crawler/releases/download/v2.5.1/siteone-crawler-v2.5.1-linux-x64.tar.gz" \
+            --output "$RUNNER_TEMP/siteone/siteone.tar.gz"
+          echo "09278d958d4a087fa46093805cd33b085b96618001dd31d45c448ad724c9024e  $RUNNER_TEMP/siteone/siteone.tar.gz" | sha256sum --check
+          tar -xzf "$RUNNER_TEMP/siteone/siteone.tar.gz" -C "$RUNNER_TEMP/siteone"
+          BIN="$(find "$RUNNER_TEMP/siteone" -type f -name siteone-crawler -print -quit)"
+          test -n "$BIN"
+          chmod +x "$BIN"
+          echo "SiteOne Crawler v2.5.1 verified by pinned SHA-256"
+          echo "SITEONE_BIN=$BIN" >> "$GITHUB_ENV"
+
+      - name: Measure live Brotli negotiation at the Cloudflare edge
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p reports
+          headers_file="$(mktemp)"
+          status="$(curl --silent --show-error --location --max-time 20 \
+            --dump-header "$headers_file" --output /dev/null \
+            --header 'Accept-Encoding: br' \
+            --write-out '%{http_code}' "${{ matrix.url }}")"
+          encoding="$(awk 'tolower($1) == "content-encoding:" { gsub("\\r", "", $2); value=tolower($2) } END { print value }' "$headers_file")"
+          {
+            echo "url=${{ matrix.url }}"
+            echo "http_status=$status"
+            echo "accept_encoding=br"
+            echo "content_encoding=${encoding:-identity}"
+          } | tee "reports/${{ matrix.slug }}.compression.txt"
+          if [[ "$status" =~ ^2[0-9][0-9]$ && "$encoding" == "br" ]]; then
+            echo "PASS: Cloudflare returned Brotli-compressed production HTML"
+          else
+            echo "::warning::Brotli was not confirmed for ${{ matrix.label }} (HTTP $status, Content-Encoding: ${encoding:-identity}); investigate edge compression settings separately from SiteOne's heuristic"
+          fi
+          rm -f "$headers_file"
+
+      - name: Verify hashed asset cache headers and stable-file revalidation
+        if: ${{ matrix.slug == 'main' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          base="${{ matrix.url }}"
+          html_file="$(mktemp)"
+          curl --fail --silent --show-error --location --max-time 20 "$base" --output "$html_file"
+
+          mapfile -t assets < <(grep -oE '(src|href)="/assets/[^"]+\.(js|css)"' "$html_file" | sed -E 's/^(src|href)="([^"]+)"$/\2/' | sort -u)
+          rm -f "$html_file"
+          if [[ "${#assets[@]}" -eq 0 ]]; then
+            echo "::error::No content-hashed /assets JS or CSS files found in production HTML"
+            exit 1
+          fi
+
+          for asset in "${assets[@]}"; do
+            headers_file="$(mktemp)"
+            status="$(curl --fail --silent --show-error --location --max-time 20 \
+              --dump-header "$headers_file" --output /dev/null \
+              --write-out '%{http_code}' "${base%/}$asset")"
+            cache="$(awk 'tolower($1) == "cache-control:" { $1=""; sub(/^[[:space:]]+/, ""); gsub("\\r", ""); value=$0 } END { print value }' "$headers_file")"
+            rm -f "$headers_file"
+            printf '%s | HTTP %s | Cache-Control: %s\n' "$asset" "$status" "${cache:-missing}"
+            if [[ "$status" != "200" || "$cache" != *"public"* || "$cache" != *"max-age=31536000"* || "$cache" != *"immutable"* ]]; then
+              echo "::error::Hashed asset is not served with the expected one-year immutable cache policy: $asset"
+              exit 1
+            fi
+          done
+
+          for stable in /sw.js /analytics-consent.js; do
+            headers_file="$(mktemp)"
+            status="$(curl --fail --silent --show-error --location --max-time 20 \
+              --dump-header "$headers_file" --output /dev/null \
+              --write-out '%{http_code}' "${base%/}$stable")"
+            cache="$(awk 'tolower($1) == "cache-control:" { $1=""; sub(/^[[:space:]]+/, ""); gsub("\\r", ""); value=$0 } END { print value }' "$headers_file")"
+            rm -f "$headers_file"
+            printf '%s | HTTP %s | Cache-Control: %s\n' "$stable" "$status" "${cache:-missing}"
+            if [[ "$status" != "200" || "$cache" == *"max-age=31536000"* && "$cache" == *"immutable"* ]]; then
+              echo "::error::Stable file is missing or incorrectly marked immutable: $stable"
+              exit 1
+            fi
+          done
+          echo "PASS: hashed JS/CSS assets are immutable; stable files remain revalidated"
+      - name: Verify legacy archive is excluded from indexing
+        if: ${{ matrix.slug == 'main' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p reports
+          routes=(
+            "https://www.digdevbox.com/legacy/areacode/"
+            "https://www.digdevbox.com/legacy/rmbdaxie/"
+            "https://www.digdevbox.com/legacy/runjs/"
+            "https://www.digdevbox.com/legacy/contenttype/"
+          )
+          report="reports/main-legacy-noindex.txt"
+          : > "$report"
+          for url in "${routes[@]}"; do
+            headers_file="$(mktemp)"
+            status="$(curl --silent --show-error --location --max-time 20 \
+              --dump-header "$headers_file" --output /dev/null \
+              --write-out '%{http_code}' "$url")"
+            robots="$(awk 'tolower($1) == "x-robots-tag:" { $1=""; sub(/^[[:space:]]+/, ""); value=tolower(value " " $0) } END { gsub("\\r", "", value); print value }' "$headers_file")"
+            printf '%s | HTTP %s | X-Robots-Tag: %s\n' "$url" "$status" "${robots:-missing}" | tee -a "$report"
+            rm -f "$headers_file"
+            if [[ ! "$status" =~ ^2[0-9][0-9]$ || "$robots" != *noindex* ]]; then
+              echo "::error::Legacy URL is not confirmed as HTTP 2xx with X-Robots-Tag noindex: $url"
+              exit 1
+            fi
+          done
+          echo "PASS: sampled legacy archive URLs explicitly instruct crawlers not to index them"
+
+      - name: Crawl production site politely
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p reports
+          set +e
+          "$SITEONE_BIN" \
+            --url="${{ matrix.url }}" \
+            --device=mobile \
+            --workers=1 \
+            --max-reqs-per-sec=1 \
+            --timeout=20 \
+            --max-depth=4 \
+            --max-queue-length=600 \
+            --max-visited-urls="${{ matrix.max_pages }}" \
+            --output=text \
+            --output-json-file="reports/${{ matrix.slug }}.json" \
+            --output-html-report="reports/${{ matrix.slug }}.html" \
+            --html-report-options="summary,seo-opengraph,visited-urls,security,redirects,404-pages,headers,best-practices,accessibility"
+          code=$?
+          set -e
+          echo "$code" > "reports/${{ matrix.slug }}.exit-code.txt"
+          if [ "$code" -ne 0 ]; then
+            echo "::error::SiteOne crawler failed at runtime for ${{ matrix.label }} (exit $code)"
+            exit "$code"
+          fi
+
+      - name: Upload crawl evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: seo-crawl-${{ matrix.slug }}
+          path: reports/
+          if-no-files-found: warn
+          retention-days: 30
+
+
+  crawl-quality-gate:
+    needs: [detect-site-changes, wait-for-deploy, crawl]
+    if: ${{ needs.detect-site-changes.outputs.should_run == 'true' && needs.crawl.result == 'success' && ((github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main') || (github.event_name != 'workflow_run' && github.ref == 'refs/heads/main')) }}
+    name: Enforce production SEO crawl quality gates
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+
+      - name: Download all nine production crawl evidence packages
+        uses: actions/download-artifact@v4
+        with:
+          pattern: seo-crawl-*
+          path: reports
+          merge-multiple: false
+
+      - name: Validate crawler evidence and enforce growth-site release gates
+        run: |
+          node scripts/seo-crawl-gate.mjs --self-test
+          node scripts/seo-crawl-gate.mjs reports

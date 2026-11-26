@@ -7,4 +7,4 @@ Allow: /
 User-agent: *
 Allow: /
 
-Sitemap: https://digdevbox.com/sitemap.xml
+Sitemap: https://www.digdevbox.com/sitemap.xml

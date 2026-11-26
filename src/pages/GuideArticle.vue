@@ -6,6 +6,8 @@ import type { ToolGuide } from '@/tools/guides';
 import { usePageSeo } from '@/seo/use-page-seo';
 import { GUIDE_PREFIX, buildGuideSections, getGuideArticle } from '@/seo/guide-articles';
 import { loadGuides } from '@/tools/guides';
+import { normalizePath } from '@/seo/site';
+import { buildGuideMetaDescription } from '@/seo/guide-links';
 
 /**
  * 工具指南文章页 `/guides/<slug>`。
@@ -99,7 +101,15 @@ const title = computed(() => {
   return `${toolH1.value} — ${t('guideArticle.suffix')} - ${t('legal.siteName')}`;
 });
 
-const description = computed(() => (page.value ? descOf(page.value.toolPath, page.value.entry.description) : ''));
+const description = computed(() => {
+  if (!page.value) {
+    return '';
+  }
+  return buildGuideMetaDescription(
+    activeGuide.value,
+    descOf(page.value.toolPath, page.value.entry.description),
+  );
+});
 
 // 第一个形参是普通字符串（不是 MaybeRef）：一次渲染内 path 不会变。
 usePageSeo(String(route.path), title, description);
@@ -112,7 +122,7 @@ usePageSeo(String(route.path), title, description);
     </h1>
     <p mt-3 op-75>
       {{ t('guideArticle.missingBody') }}
-      <RouterLink to="/tools">
+      <RouterLink :to="normalizePath('/tools')">
         {{ t('toolsCatalog.title') }}
       </RouterLink>
     </p>
@@ -120,11 +130,11 @@ usePageSeo(String(route.path), title, description);
 
   <article v-else mx-auto mt-50px max-w-760px px-4>
     <nav text-13px op-65>
-      <RouterLink to="/">
+      <RouterLink :to="normalizePath('/')">
         {{ t('legal.siteName') }}
       </RouterLink>
       ·
-      <RouterLink :to="page.toolPath">
+      <RouterLink :to="normalizePath(page.toolPath)">
         {{ toolH1 }}
       </RouterLink>
       ·
@@ -145,7 +155,7 @@ usePageSeo(String(route.path), title, description);
       </h2>
       <ol mt-2 pl-5 leading-7>
         <li v-for="s of sections" :key="`toc-${s.id}`">
-          <a :href="`#${s.id}`">{{ t(`guideArticle.sections.${s.key}`) }}</a>
+          <a :href="`#${s.id}`">{{ s.title ?? t(`guideArticle.sections.${s.key}`) }}</a>
         </li>
       </ol>
     </nav>
@@ -158,7 +168,7 @@ usePageSeo(String(route.path), title, description);
       scroll-mt-20
     >
       <h2 text-20px font-semibold>
-        {{ t(`guideArticle.sections.${s.key}`) }}
+        {{ s.title ?? t(`guideArticle.sections.${s.key}`) }}
       </h2>
 
       <c-markdown v-if="s.kind === 'prose'" :markdown="s.text ?? ''" mt-2 />
@@ -182,7 +192,7 @@ usePageSeo(String(route.path), title, description);
         <pre mt-2 ws-pre-wrap break-all border rounded bg-gray-2 p-3 text-13px>{{ s.code }}</pre>
         <p mt-2 text-13px op-65>
           {{ t('guideArticle.exampleHint') }}
-          <RouterLink :to="page.toolPath">
+          <RouterLink :to="normalizePath(page.toolPath)">
             {{ toolH1 }}
           </RouterLink>
         </p>
@@ -205,20 +215,20 @@ usePageSeo(String(route.path), title, description);
         {{ t('guideArticle.nextTitle') }}
       </h2>
       <p mt-2>
-        <RouterLink :to="page.toolPath" font-semibold>
+        <RouterLink :to="normalizePath(page.toolPath)" font-semibold>
           {{ t('guideArticle.openTool', { name: toolH1 }) }}
         </RouterLink>
       </p>
       <ul v-if="relatedArticles.length" mt-2 pl-5 leading-7>
         <li v-for="rel of relatedArticles" :key="rel.path">
-          <RouterLink :to="`/guides${rel.path}`">
+          <RouterLink :to="normalizePath(`/guides${rel.path}`)">
             {{ rel.name }}
           </RouterLink>
         </li>
       </ul>
       <p mt-3 text-13px op-65>
         {{ t('guideArticle.feedback') }}
-        <RouterLink to="/contact">
+        <RouterLink :to="normalizePath('/contact')">
           {{ t('legal.contact') }}
         </RouterLink>
       </p>

@@ -221,6 +221,17 @@ export function auditToolSeoData() {
     if ((en.faqs?.length ?? 0) !== (zh.faqs?.length ?? 0)) {
       contentGaps.push(`${path}: faqs 条数不一致（en ${en.faqs?.length ?? 0} / zh ${zh.faqs?.length ?? 0}）`);
     }
+    const enArticleSections = en.articleOnlySections ?? [];
+    const zhArticleSections = zh.articleOnlySections ?? [];
+    if (enArticleSections.length !== zhArticleSections.length) {
+      contentGaps.push(`${path}: articleOnlySections 条数不一致（en ${enArticleSections.length} / zh ${zhArticleSections.length}）`);
+    }
+    for (const [index, section] of enArticleSections.entries()) {
+      const translated = zhArticleSections[index];
+      if (!section.title.trim() || !section.text.trim() || !translated?.title.trim() || !translated?.text.trim()) {
+        contentGaps.push(`${path}: articleOnlySections[${index}] 标题或正文为空`);
+      }
+    }
   }
   if (contentGaps.length > 0) {
     throw new Error(`[seo/tool-page] about/faqs 语言数据不成对: ${contentGaps.join('; ')}`);

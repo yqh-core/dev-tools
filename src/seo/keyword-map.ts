@@ -44,10 +44,10 @@ import { toolsWithCategory } from '@/tools';
  * ⛔ 为什么必须是白名单而不是「相信人写对了」：`D:\work\forge-notes` 在本仓库之外，
  * 没有版本控制、没有 CI。一个拼错的 slug 在本仓库里查不出来，只会在生产站点上
  * 变成一条 404 外链（首页 Blog 卡片 + 工具页 related guides 都会链过去）。
- * 实测该目录 23 个文件 = 1 个 index.md + 22 篇正文，其中 `lang: en` 的只有 5 篇。
+ * 这份白名单只收录已核验 frontmatter、明确标记 `lang: en` 的文章；新增文章必须先
+ * 在真实 forge-notes 仓库核对 slug、title、description 和语言，再加入本表。
  *
- * ⛔ 这 5 篇之外的 17 篇是中文（AdSense / 跨境电商 / SEO / VitePress 等），
- * **不得**进入英文主站的 Blog 区块与 related guides。
+ * ⛔ 未进入本白名单的文章（尤其是中文内容）不得进入英文主站的 Blog 区块与 related guides。
  */
 export const KNOWN_NOTE_SLUGS = [
   'devops-tools-guide',
@@ -58,6 +58,7 @@ export const KNOWN_NOTE_SLUGS = [
   'base64-encoding-guide',
   'unix-timestamp-guide',
   'url-encoding-guide',
+  'what-is-a-numeronym',
   'yaml-vs-json-guide',
   'http-status-codes-guide',
 ] as const;
@@ -66,7 +67,7 @@ export const KNOWN_NOTE_SLUGS = [
 export const NOTES_ORIGIN = 'https://notes.digdevbox.com';
 
 /**
- * Keyword Map §1 总表：11 个关键词簇 / 24 行。
+ * Keyword Map §1 总表：11 个原始关键词簇 / 24 行；2026-11-20 增补 3 条 GSC/Bing 实测页面，共 27 行。
  *
  * 行序与原文档一致（⛔ 不要按 path 重排 —— 序号本身就是「先做哪一批」的阅读顺序）。
  * 字段口径见 `KeywordMapEntry`。
@@ -205,14 +206,14 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
   },
   {
     path: '/regex-tester',
-    keyword: 'regex tester online',
-    keywords: ['online regex tester javascript', 'ReDoS', 'greedy vs lazy quantifiers', 'Explain this regex'],
+    keyword: 'regular expression tester',
+    keywords: ['regex tester online', 'regex expression tester', 'online regex tester javascript', 'JavaScript regex flavor', 'ReDoS', 'greedy vs lazy quantifiers', 'Explain this regex'],
     intent: 'debug',
     priority: 'P0',
     competition: 'low',
     article: 'regex-testing-guide',
     landed: true,
-    lockedTitle: 'Regex Tester — JavaScript Regex Tester Online',
+    lockedTitle: 'Regular Expression Tester — JavaScript Regex',
     note: '簇 5。关键事实：regex101.com 与 regexr.com 三次查询均未进 top5。',
   },
   {
@@ -444,6 +445,43 @@ export const CLUSTER_KEYWORD_ENTRIES: KeywordMapEntry[] = [
     article: 'json-formatting-guide',
     landed: false,
     note: '簇 2 矩阵。与 #2 联动一起做：排名页普遍在做 formatter ↔ validator ↔ minifier ↔ diff ↔ repair 的互链闭环，这是可直接复制的模板。竞争度随 /json-prettify。',
+  },
+  // 2026-11-20 additions: keyword targets selected from authenticated GSC/Bing data.
+  // Evidence snapshots and query caveats: docs/seo/gsc-live-snapshot-2026-11-20.md and docs/seo/bing-serp-research-2026-11-20.md.
+  // Keep title locks synchronized with locales/en.yml and the generated README.
+  // These are existing live titles, locked unchanged; this adds governance/coverage, not metadata rewrites.
+  {
+    path: '/basic-auth-generator',
+    keyword: 'basic auth generator',
+    keywords: ['basic authorization generator', 'basic auth header generator', 'web basic auth generator', 'generate basic auth', 'HTTP Basic Authorization header'],
+    intent: 'generate',
+    priority: 'P0',
+    competition: 'medium',
+    landed: true,
+    lockedTitle: 'Basic Auth Generator — Build an HTTP Authorization Header',
+    note: 'Bing Webmaster 28d: page 33 impressions, avg position 6.24; exact query 17 impressions, avg position 5.41; zero clicks. This PR tests a task-first title and clarifies Base64 is not encryption; it is not live until merge/deploy. Validate header/curl examples against the tool before adding copy.',
+  },
+  {
+    path: '/safelink-decoder',
+    keyword: 'outlook safelink decoder',
+    keywords: ['safelink decoder', 'decode outlook safelink', 'how to open the outlook safelink original url', 'convert outlook safelinke to url', 'original URL from Outlook Safe Links'],
+    intent: 'inspect',
+    priority: 'P0',
+    competition: 'medium',
+    landed: true,
+    lockedTitle: 'Outlook Safe Links Decoder — Reveal the Original URL',
+    note: 'Bing Webmaster 28d: page 23 impressions, avg position 7.00; visible Outlook Safe Links queries around positions 3–10; zero clicks. This PR tests plural “Safe Links” plus “Reveal the Original URL”; not live until merge/deploy. Safety copy distinguishes revealing a destination from verifying it is safe or bypassing Microsoft click-time protection.',
+  },
+  {
+    path: '/percentage-calculator',
+    keyword: 'percentage calculator',
+    keywords: ['percent calculator', 'calculate percentage', 'percentage change calculator', 'percent increase calculator', 'percent decrease calculator', 'what percent of calculator', 'percentage difference calculator'],
+    intent: 'compute',
+    priority: 'P0',
+    competition: 'medium',
+    landed: true,
+    lockedTitle: 'Percentage Calculator — Percent of a Number & Percent Change',
+    note: 'GSC 90d: canonical 150 impressions plus slashless variant 74, zero clicks; average positions 9.1667 and 8.2568. One canonical intent/URL only. Query details are substantially anonymized and US page slice did not show this URL. This PR tests a natural-language title describing the four calculator modes already documented in README; not live until merge/deploy.',
   },
 ];
 

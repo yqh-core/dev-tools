@@ -16,10 +16,10 @@
  * 因此 canonical / sitemap / 站内链接**一律使用带尾斜杠形式**，
  * 避免预渲染铺开之后大批 URL 变成「sitemap 里是 A、实际服务的是 B」的跳转条目。
  */
-export const SITE_ORIGIN = 'https://digdevbox.com';
+export const SITE_ORIGIN = 'https://www.digdevbox.com';
 
 /** 站点主机名，用于需要在正文里提到域名的场景。 */
-export const SITE_HOST = 'digdevbox.com';
+export const SITE_HOST = 'www.digdevbox.com';
 
 export const SITE_NAME = 'DigDevBox';
 

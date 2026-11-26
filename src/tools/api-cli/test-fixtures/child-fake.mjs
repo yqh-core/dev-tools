@@ -3,6 +3,7 @@
 // 模式：echo / envkeys（env+pod 报告）/ cwd / hang / boom / outbox / memory。
 import { Buffer } from 'node:buffer';
 import process from 'node:process';
+
 const mode = process.argv[2] ?? 'echo';
 const g = globalThis;
 g.self = g;

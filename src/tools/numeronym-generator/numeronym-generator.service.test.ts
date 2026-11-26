@@ -11,6 +11,7 @@ describe('numeronym-generator service', () => {
       expect(generateNumeronym('internationalization')).toBe('i18n');
       expect(generateNumeronym('accessibility')).toBe('a11y');
       expect(generateNumeronym('localization')).toBe('l10n');
+      expect(generateNumeronym('canonicalization')).toBe('c14n');
     });
     it('a numeronym of a word with 3 letters is the word itself', () => {
       expect(generateNumeronym('abc')).toBe('abc');
@@ -27,6 +28,7 @@ describe('numeronym-generator service', () => {
         expect(r.matches?.length, key).toBeGreaterThan(0);
         for (const m of r.matches ?? []) {
           expect(m.length, `${key}→${m}`).toBeGreaterThan(1);
+          expect(generateNumeronym(m).toLowerCase(), `${key} must match the literal letter count for ${m}`).toBe(key);
         }
       }
     });
@@ -40,17 +42,25 @@ describe('numeronym-generator service', () => {
     });
   });
 
-  describe('验收点 2 · 歧义处理', () => {
-    it('t11n 存在真实歧义：返回全部候选并显式 ambiguous，不伪装唯一答案', () => {
-      const r = evaluate('t11n');
+  describe('验收点 2 · dictionary accuracy', () => {
+    it('t9n is the literal numeronym for translation', () => {
+      const r = evaluate('t9n');
       expect(r.mode).toBe('decode');
-      expect(r.matches).toEqual(['translation', 'transcription']);
-      expect(r.ambiguous).toBe(true);
+      expect(r.matches).toEqual(['translation']);
+      expect(r.ambiguous).toBe(false);
     });
 
-    it('无歧义词条 ambiguous=false（非恒真对照：若实现恒报 true 此条必红）', () => {
-      expect(evaluate('k8s').ambiguous).toBe(false);
-      expect(evaluate('k8s').matches).toEqual(['Kubernetes']);
+    it('does not guess an unsupported t11n expansion', () => {
+      const r = evaluate('t11n');
+      expect(r.mode).toBe('invalid');
+      expect(r.reason).toBe('not-in-dictionary');
+      expect(r.matches).toBeUndefined();
+    });
+
+    it('c14n looks up canonicalization in XML contexts', () => {
+      const r = evaluate('c14n');
+      expect(r.mode).toBe('decode');
+      expect(r.matches).toEqual(['canonicalization']);
     });
   });
 

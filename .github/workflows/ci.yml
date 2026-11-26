@@ -49,3 +49,16 @@ jobs:
 
       - name: 构建
         run: pnpm run build
+
+      # The highest-priority SEO landing pages have interactive calculators.
+      # Run their browser-level regression tests against the production build,
+      # not only the component/unit-test environment.
+      - name: Install Chromium for targeted E2E
+        run: pnpm exec playwright install chromium
+
+      - name: E2E — percentage calculator and numeronym generator
+        run: >-
+          pnpm exec playwright test
+          src/tools/percentage-calculator/percentage-calculator.e2e.spec.ts
+          src/tools/numeronym-generator/numeronym-generator.e2e.spec.ts
+          --project=chromium

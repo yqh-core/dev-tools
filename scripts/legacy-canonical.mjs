@@ -1,19 +1,19 @@
 /**
  * 给 legacy 静态子站补 canonical + og:url。
  *
- * 为什么要做（2026-10-13 实测）
- *   - 162/164 页**完全没有 canonical**，唯一有的那页（index/）href 是空串，
- *     空 href 会解析成「当前 URL」，于是 www 变体自我归一到 www —— 加重而不是消除重复。
- *   - www.digdevbox.com 返回 200（未 301），Google 已把 www 变体当独立 URL 收录：
- *     GSC 页面榜里 legacy 的 6 次曝光**全部**挂在 www 下。
- *   - 主站页有 canonical 指回裸域可自愈，legacy 没有，所以自愈不了。
+ * 为什么要做（2026-11-19 生产核查）
+ *   - 裸域主机 digdevbox.com 会 301/308 到最终主机 www.digdevbox.com。
+ *   - 但主站 canonical、sitemap、robots Sitemap 指令仍指向裸域，形成
+ *     「sitemap 提交 A → A 再跳转到 B，而页面实际规范主机应是 B」的信号冲突。
+ *   - 本脚本把 legacy 页面 canonical / og:url 与站内绝对链接统一到最终主机 www，
+ *     并在每次生产构建前幂等执行，避免旧页面继续散发跳转 URL。
  *
  * 三种页，三种目标（判据全部机器可推导，不靠人工清单）
  *   ① 带 dd-toolnotice 横幅的页（= 静态化时已判定「主站已有等价功能」，实测 29 页）
  *      → canonical 指向横幅里那个新工具页。这些页本身已 noindex，
  *        canonical 把重复信号并给新页是收益，不会让它们被索引。
- *   ② legacy 首页 index/ → https://digdevbox.com/legacy/
- *   ③ 其余可索引工具页（实测 133 页）→ 自指 https://digdevbox.com/legacy/<slug>/
+ *   ② legacy 首页 index/ → https://www.digdevbox.com/legacy/
+ *   ③ 其余可索引工具页（实测 133 页）→ 自指 https://www.digdevbox.com/legacy/<slug>/
  *
  * 幂等：已存在且值正确的 canonical 跳过；存在但值错的替换（修 index/ 那个空 href）。
  * fail-closed：横幅里取不到 href、或 href 指向的路由在主站不存在 → 报错退出，不猜。
@@ -26,7 +26,7 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const LEGACY = join(ROOT, 'public', 'legacy');
-const ORIGIN = 'https://digdevbox.com';
+const ORIGIN = 'https://www.digdevbox.com';
 const DRY = process.argv.includes('--dry');
 
 // 主站已注册路由（权威口径：读每个工具的 defineTool.path，不用目录名）
@@ -48,14 +48,18 @@ async function registeredRoutes() {
 const routes = await registeredRoutes();
 const entries = await readdir(LEGACY, { withFileTypes: true });
 
-let self = 0, toNew = 0, indexPage = 0, skipped = 0, fixed = 0;
+let self = 0, toNew = 0, indexPage = 0, skipped = 0, fixed = 0, hostRewrites = 0;
 const errors = [];
 
 for (const e of entries) {
   if (!e.isDirectory()) continue;
   const file = join(LEGACY, e.name, 'index.html');
-  let html;
-  try { html = await readFile(file, 'utf8'); } catch { continue; }
+  let originalHtml;
+  try { originalHtml = await readFile(file, 'utf8'); } catch { continue; }
+  // 统一 legacy 页内所有指向主站的绝对链接，避免 sitemap/canonical 修正后
+  // 正文导航仍先请求裸域再跳转到 www。
+  let html = originalHtml.replaceAll('https://digdevbox.com', 'https://www.digdevbox.com');
+  if (html !== originalHtml) hostRewrites++;
 
   // —— 目标 URL 判定 ——
   let target;
@@ -100,7 +104,7 @@ for (const e of entries) {
     next = next.replace(/(<link[^>]+rel="canonical"[^>]*>)/i, `$1\n${wantOg}`);
   }
 
-  if (next !== html) {
+  if (next !== originalHtml) {
     if (!DRY) await writeFile(file, next, 'utf8');
   }
 }
@@ -108,6 +112,7 @@ for (const e of entries) {
 console.log(`自指 canonical   : ${self} 页`);
 console.log(`并给主站新工具页 : ${toNew} 页（横幅目标路由已逐个核验存在）`);
 console.log(`legacy 首页      : ${indexPage} 页`);
+console.log(`绝对链接主机归一化: ${hostRewrites} 页`);
 console.log(`已正确跳过       : ${skipped} 页`);
 console.log(`修正错误值       : ${fixed} 页（如 index/ 的空 href）`);
 if (errors.length) {

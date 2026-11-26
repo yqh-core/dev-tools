@@ -93,7 +93,7 @@ about:
     3. **工具免费，广告不参与结果。** 页面挂有 Google AdSense；广告代码对计算没有任何输入，
        任何工具的输出也不会因为你点或没点广告而改变。
     4. **每个工具都自带说明。** 每页都写了用法和一个可直接点开的示例。发现错误请
-       [告诉我们](/contact)，这个站就是靠反馈改好的。
+       [告诉我们](/contact/)，这个站就是靠反馈改好的。
 
     ## 你的数据去了哪里
 
@@ -101,9 +101,9 @@ about:
 
     有三个工具是例外，因为它们不联网就拿不到结果：
 
-    - [WHOIS 查询](/whois-lookup) 要问域名注册局
-    - [HTTP 状态检测](/http-status-checker) 要请求你填入的网址
-    - [历史上的今天](/today-in-history) 要读一份公开数据
+    - [WHOIS 查询](/whois-lookup/) 要问域名注册局
+    - [HTTP 状态检测](/http-status-checker/) 要请求你填入的网址
+    - [历史上的今天](/today-in-history/) 要读一份公开数据
 
     这几个会把你输入的值发给第三方服务以取得结果。其余全部留在你本机。
 
@@ -111,7 +111,7 @@ about:
 
     ## 谁在做这个站
 
-    DigDevBox 由一个人维护，不是公司也不是团队。站点靠广告维持；这涉及哪些 Cookie 和个性化广告，[隐私政策](/privacy) 里写清楚了。
+    DigDevBox 由一个人维护，不是公司也不是团队。站点靠广告维持；这涉及哪些 Cookie 和个性化广告，[隐私政策](/privacy/) 里写清楚了。
 
     ## 代码从哪来
 
@@ -123,7 +123,7 @@ about:
 
     ## 反馈、报错、想要新工具
 
-    功能建议和缺陷报告请走[联系页](/contact)。
+    功能建议和缺陷报告请走[联系页](/contact/)。
 
     ## 同站群的其他工具
 
@@ -241,8 +241,8 @@ tools:
       copy: 复制
       refresh: 刷新
   percentage-calculator:
-    title: 百分比计算器
-    description: 一个数的百分之几是多少？求某数占另一数的百分比，或计算增长/下降幅度——每种结果都附上所用公式，免费在线，浏览器本地计算。
+    title: 百分比计算器 — 百分比计算、增减幅与折扣
+    description: 计算 X% 的 Y、比较两个数值、计算百分比变化，并按百分比增加数值或计算折扣。四种实时计算方式，免费且在浏览器本地运行。
 
   svg-placeholder-generator:
     title: SVG 占位符生成器
@@ -312,7 +312,7 @@ tools:
 
   eta-calculator:
     title: ETA 计算器
-    description: ETA 是什么？估计到达/完成时间（Estimated Time of Arrival）——按当前进度推算下载、构建或批处理何时结束，同时给出剩余时长与完成时刻。免费，浏览器本地计算。
+    description: 根据任务总量、开始时间和单位时间处理量，估算下载、构建或批处理的总耗时与预计完成时刻。免费，浏览器本地计算。
 
   roman-numeral-converter:
     title: 罗马数字转换器
@@ -362,8 +362,8 @@ tools:
     description: 从用户代理字符串中检测和分析浏览器、引擎、操作系统、CPU和设备类型/型号。
 
   numeronym-generator:
-    title: 数字缩写生成器
-    description: 数字缩写（numeronym）是把中间字母替换为个数的缩写形式——internationalization 缩写为 i18n，kubernetes 为 k8s，accessibility 为 a11y。在线为任意单词生成数字缩写，或反查内置词典中已确立的缩写——免费，全程在浏览器本地完成。
+    title: 数字缩略词生成器 — i18n、a11y、k8s
+    description: 每行输入一个单词即可批量生成数字缩略词，也可查询 i18n、a11y、k8s 等已确立的常见缩写。免费，浏览器本地即时处理。
 
   case-converter:
     title: 大小写转换

@@ -421,15 +421,15 @@ export const GUIDES: Record<string, ToolGuide> = {
   },
 
   '/eta-calculator': {
-    intro: 'Estimates when a task will finish based on current progress — a clear way to see how much longer a download or batch job needs.',
-    steps: ['Enter the amount completed', 'Enter the total amount', 'Read the estimated completion time'],
-    example: { label: 'Fill in a sample amount', text: '500' },
-    about: 'A travel-time estimate is really three numbers pretending to be one: moving time, stop time, and buffer. Dividing distance by average speed gives only the first, which is why naive ETAs fail on real roads — a 300 km trip at 100 km/h "should" take 3 hours but takes 4 with fuel, meals and traffic. This calculator keeps the arithmetic honest (distance, speed, time are linked and recalculate together, so you can solve for whichever leg is unknown) while the stats panel shows the derived figures — pace per kilometer, speed per hour — that people actually compare. Two conventions worth knowing: highway planning assumes posted speed minus about 15% for real conditions, and city driving at night is closer to the speed limit than the same road at 5pm. Round your result up, never down; a plan that needs the estimate to be optimistic is already late.',
+    intro: 'Estimates when a download, build, batch job or other process will finish from its total workload, start time and observed processing rate.',
+    steps: ['Enter the total amount to process', 'Set the time processing started', 'Enter how many units are processed in a known interval', 'Read the estimated total duration and finish time'],
+    example: { label: 'Example total workload', text: '500' },
+    about: 'This is a throughput-based ETA calculator, not a route or travel-time planner. Enter the total amount of work, when processing started, and how many units are completed in a measured time interval. The calculator converts that rate into an estimated total duration and adds it to the start time to project the finish. For example, if a batch processes 5 records in 3 minutes and contains 500 records, the estimate is 5 hours from the start. Use a consistent unit such as files, records, pages or requests, and measure a representative interval. If the processing rate changes, update the observed rate; the estimate changes with it.',
     faqs: [
-      { q: 'Why is my real travel time always longer than distance divided by speed?', a: 'Because average speed over a route includes stops, lights and slowdowns. The straight division only models constant motion; add explicit stop time or reduce the speed input by 10–20% for realism.' },
-      { q: 'Which unit should I enter for mixed trips?', a: 'Pick one unit pair (km with km/h, or miles with mph) and convert legs before entering. Mixing units is the single most common ETA error in shared itineraries.' },
-      { q: 'Can it solve for speed instead of time?', a: 'Yes — the three fields are linked. Leave the result you want unknown, change the other two, and the panel recalculates the missing leg including pace and hourly speed.' },
-      { q: 'How much buffer should I add for trips with a deadline?', a: 'Common practice is 15% for predictable roads and 25–50% for unfamiliar cities or weather exposure. The buffer belongs to the deadline, not to your speed input.' },
+      { q: 'What does ETA mean for a download or batch job?', a: 'ETA means estimated time of arrival or completion. For a process, it is the projected finish time calculated from the total workload, start time and observed processing rate.' },
+      { q: 'How do I estimate completion time from throughput?', a: 'Divide the total workload by the processing rate. This calculator uses the amount completed per selected time interval to calculate the duration, then adds that duration to the start time.' },
+      { q: 'Which units should I use?', a: 'Use the same unit for the total workload and the observed rate: for example, records and records per minute, files and files per hour, or pages and pages per second.' },
+      { q: 'What if the processing rate changes?', a: 'The result is an estimate based on the rate you enter. If the workload speeds up or slows down, measure a new representative interval and update the rate to refresh the projected finish time.' },
     ],
   },
 
@@ -963,15 +963,36 @@ export const GUIDES: Record<string, ToolGuide> = {
   },
 
   '/numeronym-generator': {
-    intro: 'Builds numeronyms such as i18n and k8s — first letter, letter count, last letter.',
-    steps: ['Enter a long word to get its numeronym', 'Or type a known short form (k8s) to look it up', 'Copy and use it'],
+    intro: 'Generates numeronyms such as i18n, a11y and k8s from one word or a batch of words, and looks up established short forms.',
+    steps: ['Enter one English word or known short form per line', 'Use multiple lines to convert a batch at once', 'Copy the generated results or look up established forms such as k8s'],
     example: { label: 'Fill in a sample word', text: 'internationalization' },
-    about: 'Numeronyms — a letter, a number, a word — were born from two hard constraints: telegraph billing and radio brevity. Internationalization (i18n) stuck because the number 18 fits between the letters without ambiguity; localization (l10n) copied the pattern. Not every shortening survives contact with readers: k8s for Kubernetes reads fine in a Slack thread, but d10n for decentralization never left a whitepaper. The rule of thumb experienced teams use: keep the word if readers already know the abbreviation, drop it if you have to explain it twice. This tool generates candidates by stripping the inner letters and counting them, which also exposes an ugly edge — words of 3 or 4 letters produce numeronyms indistinguishable from typos (a-b-c has nothing to count), so short words are worth leaving alone.',
+    about: 'A numeronym keeps the first and last letters of a word and replaces the middle letters with their count. Familiar developer examples include i18n (internationalization), l10n (localization), a11y (accessibility), k8s (Kubernetes), g11n (globalization) and t9n (translation). In XML canonicalization, c14n is a specialist abbreviation for canonicalization. This generator applies the literal count rule to plain ASCII English words, accepts one word per line for batch conversion, and only reverse-looks up entries in a curated dictionary. It does not invent meanings for unknown strings. Very short words often produce awkward results, so words of three letters or fewer are returned unchanged.',
+    articleOnlySections: [
+      {
+        title: 'Batch mode is line-based, not phrase-based',
+        text: 'Paste one plain-English word or one known numeronym per line. The tool trims leading and trailing spaces and ignores blank lines, but a line containing spaces, punctuation or mixed characters is not treated as a word. Words of three letters or fewer are returned unchanged, so a short token such as API stays API rather than being expanded. In batch mode, each line is evaluated independently; warning rows remain visible, while the copyable batch output contains only successful conversions. Review warning rows before copying if every input line must be accounted for.',
+      },
+      {
+        title: 'Reverse lookup is deliberately dictionary-bound',
+        text: 'Encoding is mechanical for plain A–Z words, but decoding is not guessed from a numeronym-shaped string. The lookup table recognizes i18n, l10n, a11y, k8s, g11n, c14n, n7m and t9n; a form that looks like a numeronym but is not in that list returns a not-in-dictionary warning. Lookup ignores letter case, so K8S resolves to Kubernetes, but an unknown form such as x11y is not assigned an invented expansion. In external documentation, keep the full term nearby when a short form is not established, and check the supported list before relying on reverse lookup.',
+      },
+    ],
     faqs: [
-      { q: 'Why do i18n and a11y use the same pattern but different numbers?', a: 'The number is simply the count of omitted letters: i18n drops 18 letters, a11y drops 11. The pattern is identical; the words are different lengths.' },
-      { q: 'Should I use numeronyms in formal documentation?', a: 'Only for terms your audience already recognizes, like i18n or k8s. Inventing a new numeronym for a term readers have never seen usually costs more explanation than it saves.' },
-      { q: 'What happens with very short words?', a: 'Three- and four-letter words leave zero or one letters to count, so the result looks like a typo. A good convention is to skip words shorter than about six letters.' },
-      { q: 'Do numeronyms affect search and grep?', a: 'Yes — searching for a numeronym finds only texts that already use it. Teams usually keep the full word in headings and the numeronym in shorthand notes to stay greppable.' },
+      { q: 'How is the number in a numeronym calculated?', a: 'It is the number of letters between the first and last letters. Internationalization has 18 middle letters, so it becomes i18n; accessibility has 11, so it becomes a11y.' },
+      { q: 'What does t9n mean?', a: 'T9n is a common numeronym for translation: the first letter is t, the last letter is n, and the nine letters between them are omitted.' },
+      { q: 'Can every numeronym be decoded?', a: 'No. The pattern can generate many possible strings, but the same shape does not prove a meaning. This tool only expands entries in its curated dictionary and does not guess unknown forms.' },
+      { q: 'What is c14n?', a: 'C14N is used in XML canonicalization contexts. It is a specialist abbreviation; in general writing, spell out canonicalization unless the XML context is clear.' },
+      { q: 'Should I invent a new numeronym?', a: 'Usually not. Use a short form only when the intended audience already recognizes it. For a new term, write the full word first and define any shorthand before reusing it.' },
+      { q: 'What happens with very short words?', a: 'Words of three letters or fewer are returned unchanged. A generated form for a very short word can look more like a typo than a useful abbreviation.' },
+    ],
+    relatedNotes: [
+      {
+        slug: 'what-is-a-numeronym',
+        title: 'What Is a Numeronym? Examples: i18n, a11y, k8s and t9n',
+        description: 'Learn the first-letter, omitted-letter count and last-letter rule with developer examples such as i18n, a11y, k8s and t9n — and when not to invent one.',
+        url: 'https://notes.digdevbox.com/posts/what-is-a-numeronym',
+        tag: 'Numeronyms',
+      },
     ],
   },
 
@@ -1182,14 +1203,29 @@ export const GUIDES: Record<string, ToolGuide> = {
   },
 
   '/percentage-calculator': {
-    intro: 'Computes percentages between two numbers, percentage increases or decreases, or works backwards from a percentage.',
+    intro: 'Solves four common percentage tasks: find X% of Y, find what percent X is of Y, calculate percentage change, and increase or decrease a value by a percentage.',
     // example 已移除：requires-pair (G-02j): X 单独填入无可见结果，example=死按钮
     steps: ['Pick the mode matching your question', 'Enter the known values', 'Read the result'],
-    about: 'Percentage mistakes in reports rarely come from arithmetic — they come from mixing up which base you divided by. "Revenue went from 80 to 100, so +25%" and "the new figure is 125% of the old" are the same fact told from two different denominators, and a third phrasing ("100 is 20% more than 80") uses yet another base. This calculator keeps the three questions separate — what percent is X of Y, how much is P% of N, and the change between two values — so you never silently swap denominators mid-calculation. For price and salary math, remember the classic trap: a 20% rise followed by a 20% fall leaves you 4% below the start, because the second percentage divides by the raised base. The fields recalculate together, so you can watch that asymmetry happen live.',
+    notes: [
+      'When reversing a discount, divide the sale price by 1 minus the discount rate; adding the same percentage back to the sale price is not the inverse.',
+      'For percentage change, use the starting value as the denominator. Reversing the direction changes the base and can produce a different rate.',
+    ],
+    articleOnlySections: [
+      {
+        title: 'Choose the denominator before you calculate',
+        text: 'Every percentage question has a base: the amount that represents 100%. Write that base down before choosing a formula. If the question asks for a part of a whole, the whole is the base; if it asks for a change, the starting amount is the base; if it asks for tax or a discount, the base is the pre-tax or original price. A rate change is different: subtract the old rate from the new rate to get percentage points, then divide by the old rate only if you also need relative growth.',
+      },
+      {
+        title: 'Worked examples: discounts, bills and rates',
+        text: 'An item marked $72 after a 10% discount had an original price of $80: $72 ÷ 0.90 = $80. Adding 10% to $72 gives $79.20, not $80, because the discount was taken from the original price. If a monthly bill moves from $48 to $54, the increase is $6 ÷ $48 = 12.5%. If a conversion rate moves from 4% to 5%, it rose by 1 percentage point and by 25% relative to its starting rate. A $120 pre-tax amount with a hypothetical 15% tax adds $18, producing a $138 total.',
+      },
+    ],
+    about: 'Percentage mistakes in reports rarely come from arithmetic — they come from mixing up which base you divided by. "Revenue went from 80 to 100, so +25%" and "the new figure is 125% of the old" are the same fact told from two different denominators, and a third phrasing ("100 is 20% more than 80") uses yet another base. This calculator keeps four questions separate — what percent is X of Y, how much is P% of N, the change between two values, and the result after adding or subtracting a percentage — so you never silently swap denominators mid-calculation. For price and salary math, remember the classic trap: a 20% rise followed by a 20% fall leaves you 4% below the start, because the second percentage divides by the raised base. The fields recalculate together, so you can watch that asymmetry happen live.',
     faqs: [
       { q: 'Why does a 20% increase then a 20% decrease not return to the original?', a: 'Because the decrease is computed on the larger value. Going from 100 to 120 and back down by 20% gives 96 — a net 4% loss. Percentage changes are not symmetric.' },
       { q: 'What is the difference between percent change and percentage-point change?', a: 'If a rate moves from 5% to 7%, that is a 2-percentage-point change but a 40% relative increase. Reports mix these up constantly; state which one you mean.' },
-      { q: 'Can I use this for discounts and VAT?', a: 'Yes — the "P% of N" mode handles discount amounts and tax directly; the "X of Y" mode recovers the original ratio when you know both prices.' },
+      { q: 'How do I calculate a percentage off a price or add sales tax?', a: 'For a discount, use the decrease mode: multiply the original price by 1 − (discount ÷ 100). A $80 item with 20% off saves $16 and costs $64. For VAT or sales tax, use the increase mode with the tax rate.' },
+      { q: 'How do I increase or decrease a value by a percentage?', a: 'Multiply the starting value by 1 + (rate ÷ 100) to increase it, or by 1 − (rate ÷ 100) to decrease it. For example, increasing 80 by 15% gives 92; decreasing it by 15% gives 68.' },
       { q: 'Why are there separate fields instead of one formula?', a: 'Each question has a different unknown in a different position. Separating them avoids the most common error: rearranging the formula and dividing by the wrong base.' },
     ],
   },

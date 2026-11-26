@@ -15,6 +15,7 @@ import { useToolStore } from '@/tools/tools.store';
 import { useTracker } from '@/modules/tracker/tracker.services';
 import CollapsibleToolMenu from '@/components/CollapsibleToolMenu.vue';
 import { groupByPrimaryCluster } from '@/tools/nav-groups';
+import { normalizePath } from '@/seo/site';
 
 const themeVars = useThemeVars();
 const styleStore = useStyleStore();
@@ -70,25 +71,25 @@ const tools = computed<ToolCategory[]>(() => [
         <div class="footer">
           <div>
             © {{ new Date().getFullYear() }}
-            <c-link href="https://digdevbox.com">
+            <c-link href="https://www.digdevbox.com/">
               digdevbox.com
             </c-link>
           </div>
 
           <div class="footer-legal">
-            <RouterLink to="/privacy">
+            <RouterLink :to="normalizePath('/privacy')">
               {{ $t('legal.privacy') }}
             </RouterLink>
             <span class="dot">·</span>
-            <RouterLink to="/terms">
+            <RouterLink :to="normalizePath('/terms')">
               {{ $t('legal.terms') }}
             </RouterLink>
             <span class="dot">·</span>
-            <RouterLink to="/faq">
+            <RouterLink :to="normalizePath('/faq')">
               {{ $t('legal.faq') }}
             </RouterLink>
             <span class="dot">·</span>
-            <RouterLink to="/contact">
+            <RouterLink :to="normalizePath('/contact')">
               {{ $t('legal.contact') }}
             </RouterLink>
           </div>
@@ -96,12 +97,11 @@ const tools = computed<ToolCategory[]>(() => [
           <div class="footer-network">
             {{ $t('network.label') }}
             <a href="https://ip.digdevbox.com/">{{ $t('network.ip') }}</a> ·
-            <a href="https://fangdai.digdevbox.com/">{{ $t('network.fangdai') }}</a> ·
             <a href="https://play.digdevbox.com/">{{ $t('network.play') }}</a> ·
             <a href="https://draw.digdevbox.com/">{{ $t('network.draw') }}</a> ·
             <a href="https://img.digdevbox.com/">{{ $t('network.img') }}</a> ·
             <a href="https://notes.digdevbox.com/">{{ $t('network.notes') }}</a> ·
-            <a href="https://geek-typing.digdevbox.com/">{{ $t('network.typing') }}</a>
+            <a href="https://ttsreader.digdevbox.com/">Text to Speech Reader</a>
           </div>
 
           <div class="footer-trust">
@@ -129,7 +129,7 @@ const tools = computed<ToolCategory[]>(() => [
         </c-tooltip>
 
         <c-tooltip :tooltip="$t('home.uiLib')" position="bottom">
-          <c-button v-if="config.app.env === 'development'" to="/c-lib" circle variant="text" :aria-label="$t('home.uiLib')">
+          <c-button v-if="config.app.env === 'development'" :to="normalizePath('/c-lib')" circle variant="text" :aria-label="$t('home.uiLib')">
             <icon-mdi:brush-variant text-20px />
           </c-button>
         </c-tooltip>

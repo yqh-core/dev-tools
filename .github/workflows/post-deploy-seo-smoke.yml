@@ -1,0 +1,347 @@
+name: Post-deploy SEO smoke
+
+on:
+  workflow_run:
+    workflows: ["verify"]
+    types: [completed]
+
+permissions:
+  contents: read
+  checks: read
+
+jobs:
+  detect-site-changes:
+    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' }}
+    runs-on: ubuntu-latest
+    outputs:
+      wait_for_deploy: ${{ steps.detect.outputs.wait_for_deploy }}
+    steps:
+      - name: Detect whether this exact commit changes deployable site files
+        id: detect
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const sha = context.payload.workflow_run.head_sha;
+            const { data } = await github.rest.repos.getCommit({ owner, repo, ref: sha });
+            const files = data.files || [];
+            const deployable = files.filter(({ filename }) =>
+              !filename.startsWith('.github/') &&
+              !['README.md', 'CONTRIBUTING.md'].includes(filename)
+            );
+            core.info('Changed files: ' + files.map(file => file.filename).join(', '));
+            core.info('Deployable site files: ' + deployable.map(file => file.filename).join(', '));
+            core.setOutput('wait_for_deploy', deployable.length ? 'true' : 'false');
+
+  production-smoke:
+    needs: detect-site-changes
+    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Wait for Cloudflare Git deployment and verify crawler-facing pages
+        env:
+          SITE_ORIGIN: "https://www.digdevbox.com"
+          EXPECTED_TITLE: "Free Online Developer Tools"
+          TARGET_SHA: ${{ github.event.workflow_run.head_sha }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_TOKEN: ${{ github.token }}
+          WAIT_FOR_DEPLOY: ${{ needs.detect-site-changes.outputs.wait_for_deploy }}
+        run: |
+          node --input-type=module <<'NODE'
+          const origin = process.env.SITE_ORIGIN;
+          const expectedTitle = process.env.EXPECTED_TITLE;
+          const ua = 'Googlebot/2.1 (+http://www.google.com/bot.html)';
+          const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+          // Wait for the Cloudflare Pages check belonging to this exact source commit.
+          const targetSha = process.env.TARGET_SHA;
+          const checksUrl = 'https://api.github.com/repos/' + process.env.GITHUB_REPOSITORY +
+            '/commits/' + targetSha + '/check-runs';
+          let cloudflareReady = process.env.WAIT_FOR_DEPLOY !== 'true';
+          if (cloudflareReady) {
+            console.log('No deployable site files changed; validating current production without waiting for a new Cloudflare build');
+          }
+          for (let attempt = 1; !cloudflareReady && attempt <= 90; attempt++) {
+            const response = await fetch(checksUrl, {
+              headers: {
+                authorization: 'Bearer ' + process.env.GITHUB_TOKEN,
+                accept: 'application/vnd.github+json',
+                'x-github-api-version': '2022-11-28',
+              },
+              signal: AbortSignal.timeout(10000),
+            });
+            if (!response.ok) throw new Error('GitHub check-run API returned HTTP ' + response.status);
+            const payload = await response.json();
+            const check = (payload.check_runs || []).find((item) =>
+              item.name === 'Cloudflare Pages' && item.head_sha === targetSha
+            );
+            if (check?.status === 'completed') {
+              if (check.conclusion !== 'success') {
+                throw new Error('Cloudflare Pages deployment concluded ' + check.conclusion +
+                  ': ' + (check.details_url || 'no details URL'));
+              }
+              cloudflareReady = true;
+              console.log('Cloudflare Pages deployment succeeded for exact commit ' + targetSha);
+              break;
+            }
+            console.log('Waiting for exact Cloudflare deployment (' + attempt + '/90): ' +
+              (check?.status || 'check not created'));
+            await sleep(10000);
+          }
+          if (!cloudflareReady) throw new Error('Exact Cloudflare Pages deployment did not complete within 15 minutes');
+
+          async function get(path, userAgent = ua) {
+            const response = await fetch(origin + path, {
+              redirect: 'follow',
+              headers: { 'user-agent': userAgent, 'cache-control': 'no-cache' },
+            });
+            return { response, body: await response.text(), finalUrl: response.url, redirected: response.redirected };
+          }
+
+          let home = null;
+          for (let attempt = 1; attempt <= 20; attempt++) {
+            try {
+              const result = await get('/');
+              if (result.response.ok && result.body.includes(expectedTitle) && result.body.includes('rel="canonical"')) {
+                home = result;
+                console.log(`Production homepage ready (attempt ${attempt})`);
+                break;
+              }
+              console.log(`Waiting for deployment (${attempt}/20): HTTP ${result.response.status}`);
+            } catch (error) {
+              console.log(`Waiting for origin (${attempt}/20): ${error.message}`);
+            }
+            await sleep(15000);
+          }
+          if (!home) throw new Error('Production homepage did not expose expected SEO HTML within 5 minutes');
+
+          // Verify the browser-visible final URL, not only the HTML canonical tag.
+          // A canonical URL that itself redirects is a conflicting indexing signal.
+          if (home.finalUrl !== origin + '/') {
+            throw new Error('Homepage final URL conflicts with canonical origin: requested ' +
+              origin + '/ but ended at ' + home.finalUrl);
+          }
+          for (const [label, url] of [
+            ['apex HTTPS', 'https://digdevbox.com/'],
+            ['www HTTPS', 'https://www.digdevbox.com/'],
+            ['apex HTTP', 'http://digdevbox.com/'],
+          ]) {
+            const result = await fetch(url, {
+              redirect: 'follow',
+              headers: { 'user-agent': ua, 'cache-control': 'no-cache' },
+            });
+            if (!result.ok || result.url !== origin + '/') {
+              throw new Error(label + ' does not converge to ' + origin + '/ (HTTP ' +
+                result.status + ', final ' + result.url + ')');
+            }
+          }
+
+          // Search Console has exposed both slashless and slash URLs for several
+          // priority tools. Require every variant to converge to the one sitemap URL.
+          for (const route of [
+            '/percentage-calculator',
+            '/regex-tester',
+            '/numeronym-generator',
+            '/token-generator',
+            '/device-information',
+            '/ipv4-range-expander',
+            '/pdf-signature-checker',
+          ]) {
+            const expected = origin + route + '/';
+            for (const variant of [route, route + '/']) {
+              const result = await get(variant);
+              if (!result.response.ok || result.finalUrl !== expected) {
+                throw new Error(variant + ' does not converge to ' + expected + ' (HTTP ' +
+                  result.response.status + ', final ' + result.finalUrl + ')');
+              }
+            }
+          }
+
+          const canonical = home.body.includes('href="' + origin + '/"');
+          if (!canonical) throw new Error('Homepage canonical does not match the selected production origin');
+          const productLinks = [
+            'https://img.digdevbox.com/',
+            'https://ip.digdevbox.com/',
+            'https://play.digdevbox.com/',
+            'https://draw.digdevbox.com/',
+            'https://ttsreader.digdevbox.com/',
+            'https://notes.digdevbox.com/',
+          ];
+          const missingProductLinks = productLinks.filter((url) => !home.body.includes(url));
+          if (missingProductLinks.length) throw new Error('Main-site product discovery links missing: ' + missingProductLinks.join(', '));
+          if (/href=["']https:\/\/(?:fangdai|geek-typing)\.digdevbox\.com\//i.test(home.body)) {
+            throw new Error('Deferred China-only product link remains in the English main site');
+          }
+          if (home.body.includes('href="https://digdevbox.com/')) throw new Error('Stale bare-domain internal link remains on the main site');
+
+          // The shared SEO article template is rendered on every tool landing page.
+          // Check a representative page so retired China-only products cannot leak back
+          // into the crawlable tool directory through the reusable template.
+          const toolLanding = await get('/api-debugger/');
+          if (!toolLanding.response.ok || !toolLanding.body.includes('rel="canonical"')) {
+            throw new Error('API Debugger landing page is not crawlable: HTTP ' + toolLanding.response.status);
+          }
+          if (/href=["']https:\/\/(?:fangdai|geek-typing)\.digdevbox\.com\//i.test(toolLanding.body)) {
+            throw new Error('Deferred China-only product link remains in a tool landing page');
+          }
+          for (const url of [
+            'https://img.digdevbox.com/',
+            'https://ip.digdevbox.com/',
+            'https://play.digdevbox.com/',
+            'https://draw.digdevbox.com/',
+            'https://ttsreader.digdevbox.com/',
+            'https://notes.digdevbox.com/',
+          ]) {
+            if (!toolLanding.body.includes(url)) throw new Error('Tool landing page missing product network link: ' + url);
+          }
+
+          // Compare Googlebot's raw HTML with a normal browser request on the two
+          // priority English tool pages. This catches UA-dependent HTML/cache variants
+          // and guarantees the crawler sees the same title, description, H1 and canonical.
+          const browserUa = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/130.0.0.0 Safari/537.36';
+          const priorityPages = ['/', '/percentage-calculator/', '/numeronym-generator/'];
+          for (const path of priorityPages) {
+            const [bot, browser] = await Promise.all([get(path), get(path, browserUa)]);
+            for (const [label, result] of [['Googlebot', bot], ['browser', browser]]) {
+              if (!result.response.ok || result.finalUrl !== origin + path) {
+                throw new Error(path + ' ' + label + ' request did not resolve to the canonical URL (HTTP ' +
+                  result.response.status + ', final ' + result.finalUrl + ')');
+              }
+            }
+            const extract = (html) => ({
+              title: html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1]?.trim() || '',
+              description: html.match(/<meta[^>]+name=["']description["'][^>]+content=["']([^"']*)["']/i)?.[1] || '',
+              canonical: html.match(/<link[^>]+rel=["']canonical["'][^>]+href=["']([^"']+)["']/i)?.[1] || '',
+              h1: html.match(/<h1\b[^>]*>([\s\S]*?)<\/h1>/i)?.[1]?.replace(/<[^>]+>/g, '').trim() || '',
+              mainLandmarks: (html.match(/<main(?:\s|>)/gi) || []).length,
+            });
+            const botMeta = extract(bot.body);
+            const browserMeta = extract(browser.body);
+            if (!botMeta.title || !botMeta.description || !botMeta.h1 || botMeta.canonical !== origin + path || botMeta.mainLandmarks !== 1) {
+              throw new Error(path + ' Googlebot HTML is missing title, description, H1, one main landmark or self-canonical metadata: ' + JSON.stringify(botMeta));
+            }
+            if (JSON.stringify(botMeta) !== JSON.stringify(browserMeta)) {
+              throw new Error(path + ' Googlebot HTML differs from browser HTML: ' +
+                JSON.stringify({ googlebot: botMeta, browser: browserMeta }));
+            }
+            if (path === '/percentage-calculator/' &&
+                (botMeta.title !== 'Percentage Calculator — Percent of a Number & Percent Change - DigDevBox' ||
+                 botMeta.description !== 'Calculate X% of Y, find what percent X is of Y, measure percentage change, or increase/decrease a value. Four free calculators, instant results, no sign-up.' ||
+                 botMeta.h1 !== 'Percentage Calculator')) {
+              throw new Error('Percentage Calculator production SEO metadata does not match the approved title, description and H1');
+            }
+            if (/<meta[^>]+name=["']robots["'][^>]+content=["'][^"']*noindex/i.test(bot.body)) {
+              throw new Error(path + ' unexpectedly carries noindex');
+            }
+            const robotsHeader = bot.response.headers.get('x-robots-tag') || '';
+            if (/noindex/i.test(robotsHeader)) throw new Error(path + ' unexpectedly carries X-Robots-Tag: ' + robotsHeader);
+          }
+
+          // Guide pages must have their own knowledge summary, not reuse the paired tool-page snippet.
+          const guidePath = '/guides/numeronym-generator/';
+          const guideResult = await get(guidePath);
+          const pairedToolResult = await get('/numeronym-generator/');
+          const extractDescription = html =>
+            html.match(/<meta name=["']description["'] content=["']([^"']*)["']/i)?.[1] || '';
+          const guideDescription = extractDescription(guideResult.body);
+          const pairedToolDescription = extractDescription(pairedToolResult.body);
+          const guideCanonical = guideResult.body.match(/<link[^>]+rel=["']canonical["'][^>]+href=["']([^"']+)["']/i)?.[1] || '';
+          if (!guideResult.response.ok || guideResult.finalUrl !== origin + guidePath ||
+              !guideDescription || !pairedToolDescription || guideDescription === pairedToolDescription ||
+              guideCanonical !== origin + guidePath) {
+            throw new Error('Guide page must be live, self-canonical and have a distinct meta description from its tool page');
+          }
+
+          // Percentage Calculator's guide was previously excluded by the content
+          // novelty gate. Once original article-only sections make it indexable,
+          // verify the production URL is live and independently canonical.
+          const percentageGuidePath = '/guides/percentage-calculator/';
+          const percentageGuideResult = await get(percentageGuidePath);
+          const percentageToolResult = await get('/percentage-calculator/');
+          const percentageGuideDescription = extractDescription(percentageGuideResult.body);
+          const percentageToolDescription = extractDescription(percentageToolResult.body);
+          const percentageGuideCanonical = percentageGuideResult.body.match(/<link[^>]+rel=["']canonical["'][^>]+href=["']([^"']+)["']/i)?.[1] || '';
+          if (!percentageGuideResult.response.ok ||
+              percentageGuideResult.finalUrl !== origin + percentageGuidePath ||
+              !percentageGuideDescription || !percentageToolDescription ||
+              percentageGuideDescription === percentageToolDescription ||
+              percentageGuideCanonical !== origin + percentageGuidePath ||
+              /<meta[^>]+name=["']robots["'][^>]+content=["'][^"']*noindex/i.test(percentageGuideResult.body)) {
+            throw new Error('Percentage Calculator guide must be live, indexable, self-canonical and have a distinct meta description');
+          }
+
+          const robots = await get('/robots.txt');
+          if (!robots.response.ok || !/Sitemap:\s*https:\/\//i.test(robots.body) || !robots.body.includes(origin + '/sitemap.xml')) {
+            throw new Error('robots.txt does not reference the canonical production sitemap');
+          }
+          const sitemap = await get('/sitemap.xml');
+          if (!sitemap.response.ok || !sitemap.body.includes('<urlset')) throw new Error('sitemap.xml unavailable or malformed');
+
+          // Verify the new English numeronym content cluster is connected in both directions.
+          const numeronymLanding = await get('/numeronym-generator/');
+          const noteUrl = 'https://notes.digdevbox.com/posts/what-is-a-numeronym';
+          if (!numeronymLanding.response.ok || !numeronymLanding.body.includes(noteUrl)) {
+            throw new Error('Numeronym tool page is missing its contextual Forge Notes guide link');
+          }
+          const noteResponse = await fetch(noteUrl, {
+            headers: { 'user-agent': ua, 'cache-control': 'no-cache' },
+            redirect: 'follow',
+            signal: AbortSignal.timeout(15000),
+          });
+          const noteBody = await noteResponse.text();
+          const noteCanonical = noteBody.match(/<link[^>]+rel=["']canonical["'][^>]+href=["']([^"']+)["']/i)?.[1] || '';
+          if (!noteResponse.ok || noteResponse.url !== noteUrl || noteCanonical !== noteUrl || !noteBody.includes('What Is a Numeronym?')) {
+            throw new Error('Forge Notes numeronym guide is not live, self-canonical or title-correct');
+          }
+          for (const route of [
+            "/",
+            "/tools/",
+            "/percentage-calculator/",
+            "/guides/percentage-calculator/",
+            "/guides/numeronym-generator/",
+            "/regex-tester/",
+            "/numeronym-generator/",
+            "/token-generator/",
+            "/device-information/",
+            "/ipv4-range-expander/",
+            "/pdf-signature-checker/",
+          ]) {
+            const url = origin + route;
+            if (!sitemap.body.includes(url)) throw new Error('sitemap missing priority search page ' + url);
+          }
+
+          // The archive root and retained Chinese-only legacy pages must stay out of
+          // the English US/EU index. Test the wildcard _headers rule on real descendants,
+          // including paths observed in Search Console, not only the /legacy/ directory.
+          for (const path of [
+            "/legacy/",
+            "/legacy/areacode/",
+            "/legacy/html2ubb/",
+            "/legacy/autoformat/",
+            "/legacy/quanbaojiao/",
+            "/legacy/quanbaojiao/",
+            "/legacy/runjs/",
+          ]) {
+            const result = await get(path);
+            if (!result.response.ok) {
+              throw new Error(`${path}: expected HTTP 200, got ${result.response.status}`);
+            }
+            if (path === "/legacy/" &&
+                !/<meta[^>]+name=["']robots["'][^>]+content=["'][^"']*noindex/i.test(result.body)) {
+              throw new Error(`${path}: expected a noindex robots meta tag in the legacy archive`);
+            }
+            const robotsHeader = result.response.headers.get('x-robots-tag') || '';
+            if (!/noindex/i.test(robotsHeader) || !/follow/i.test(robotsHeader)) {
+              throw new Error(`${path}: expected X-Robots-Tag: noindex, follow; got "${robotsHeader}"`);
+            }
+          }
+          if (sitemap.body.includes(origin + '/legacy/')) {
+            throw new Error('Legacy archive URLs must not appear in the canonical sitemap');
+          }
+
+          console.log('PASS: production homepage, canonical host, robots.txt, sitemap.xml, legacy noindex header and selected search landing pages');
+          NODE
