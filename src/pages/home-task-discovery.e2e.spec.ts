@@ -153,7 +153,6 @@ test.describe('Homepage task discovery', () => {
     expect(categoryLink?.height).toBeGreaterThanOrEqual(44);
   });
 
-
   test('features API Studio in the full tools directory', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('/tools/');
