@@ -1,0 +1,60 @@
+name: GSC redirect-chain audit
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - scripts/audit-gsc-redirects.mjs
+      - scripts/fixtures/gsc-redirect-urls-2026-11-21.json
+      - .github/workflows/gsc-redirect-audit.yml
+  push:
+    branches:
+      - audit/gsc-redirect-chains-20261122
+    paths:
+      - scripts/audit-gsc-redirects.mjs
+      - scripts/fixtures/gsc-redirect-urls-2026-11-21.json
+      - .github/workflows/gsc-redirect-audit.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: gsc-redirect-audit-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout pinned branch commit
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Fetch and record every redirect hop
+        run: node scripts/audit-gsc-redirects.mjs
+
+      - name: Add audit summary
+        if: always()
+        run: |
+          if [ -f gsc-redirect-audit-summary.md ]; then
+            cat gsc-redirect-audit-summary.md >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "Audit summary file was not produced." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload raw hop evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gsc-redirect-audit-${{ github.sha }}
+          path: |
+            gsc-redirect-audit-results.json
+            gsc-redirect-audit-summary.md
+          if-no-files-found: warn
+          retention-days: 30

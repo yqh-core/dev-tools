@@ -1,0 +1,242 @@
+name: Verify compact mobile navigation previews
+
+on:
+  push:
+    branches:
+      - ops/verify-mobile-nav-previews-20261125
+
+permissions:
+  contents: read
+
+jobs:
+  chromium-mobile-preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Playwright Chromium
+        run: |
+          npm install --no-save playwright
+          npx playwright install --with-deps chromium
+      - name: Capture exact Cloudflare PR previews and assert mobile navigation
+        run: |
+          mkdir -p mobile-nav-audit
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import { chromium } from 'playwright';
+          import fs from 'node:fs';
+
+          const sites = [
+            { id: 'digimg', url: 'https://0a00b64e.digimg.pages.dev/' },
+            { id: 'streamplay', url: 'https://25753a19.streamplay-ey1.pages.dev/' },
+            { id: 'ip-locator', url: 'https://410df9ba.locip.pages.dev/' },
+          ];
+          const browser = await chromium.launch({ headless: true });
+          const metrics = [];
+          for (const site of sites) {
+            const context = await browser.newContext({
+              viewport: { width: 390, height: 844 },
+              isMobile: true,
+              deviceScaleFactor: 2,
+              locale: 'en-US',
+              reducedMotion: 'reduce',
+            });
+            const page = await context.newPage();
+            const pageErrors = [];
+            page.on('pageerror', e => pageErrors.push(String(e.message).slice(0, 240)));
+            try {
+              const response = await page.goto(site.url, { waitUntil: 'domcontentloaded', timeout: 45000 });
+              assert.equal(response?.status(), 200, site.id + ': preview must return HTTP 200');
+              await page.waitForFunction(() => document.querySelector('.dd-brandbar.slim nav'));
+              await page.waitForTimeout(500);
+              const nav = page.locator('.dd-brandbar.slim nav');
+              const before = await nav.evaluate(el => {
+                const cs = getComputedStyle(el);
+                const sb = getComputedStyle(el, '::-webkit-scrollbar');
+                const r = el.getBoundingClientRect();
+                const root = document.documentElement;
+                return {
+                  accessibleName: el.getAttribute('aria-label'),
+                  navWidth: el.clientWidth,
+                  navScrollWidth: el.scrollWidth,
+                  navScrollLeft: el.scrollLeft,
+                  minWidth: cs.minWidth,
+                  flex: cs.flex,
+                  scrollbarWidth: cs.scrollbarWidth,
+                  webkitScrollbarDisplay: sb.display,
+                  webkitScrollbarHeight: sb.height,
+                  navRight: Math.round(r.right),
+                  viewportWidth: innerWidth,
+                  documentWidth: root.scrollWidth,
+                  links: [...el.querySelectorAll('a')].map(a => ({ text: a.textContent.trim(), href: a.href })),
+                };
+              });
+              assert.equal(before.accessibleName, 'DigDevBox sites', site.id + ': nav landmark name');
+              assert.equal(before.documentWidth, before.viewportWidth, site.id + ': no document-level horizontal overflow');
+              assert.ok(before.navScrollWidth > before.navWidth, site.id + ': compact navigation must actually overflow internally');
+              assert.equal(before.scrollbarWidth, 'thin', site.id + ': thin scrollbar must be declared');
+              assert.equal(before.webkitScrollbarDisplay, 'block', site.id + ': WebKit scrollbar must be visible');
+              assert.equal(before.webkitScrollbarHeight, '3px', site.id + ': visible track must be 3px');
+
+              await page.screenshot({ path: 'mobile-nav-audit/' + site.id + '-390-before.jpeg', type: 'jpeg', quality: 85, fullPage: false });
+              await nav.evaluate(el => { el.scrollLeft = el.scrollWidth; });
+              await page.waitForTimeout(150);
+              const after = await nav.evaluate(el => {
+                const links = [...el.querySelectorAll('a')];
+                const last = links.at(-1);
+                const nr = el.getBoundingClientRect();
+                const lr = last.getBoundingClientRect();
+                return {
+                  scrollLeft: el.scrollLeft,
+                  lastLink: last.textContent.trim(),
+                  lastLinkLeft: Math.round(lr.left),
+                  lastLinkRight: Math.round(lr.right),
+                  navLeft: Math.round(nr.left),
+                  navRight: Math.round(nr.right),
+                };
+              });
+              assert.ok(after.scrollLeft > 0, site.id + ': nav scroll position must move');
+              assert.ok(after.lastLinkLeft >= after.navLeft - 1, site.id + ': final link left edge is visible after scrolling');
+              assert.ok(after.lastLinkRight <= after.navRight + 1, site.id + ': final link right edge is visible after scrolling');
+              await page.screenshot({ path: 'mobile-nav-audit/' + site.id + '-390-scrolled.jpeg', type: 'jpeg', quality: 85, fullPage: false });
+              metrics.push({ site: site.id, status: response.status(), before, after, pageErrors });
+              console.log(JSON.stringify({ site: site.id, status: response.status(), nav: before.navWidth + '/' + before.navScrollWidth, scrollbar: before.scrollbarWidth + ' / ' + before.webkitScrollbarDisplay + ' / ' + before.webkitScrollbarHeight, scrolled: after.scrollLeft, lastLink: after.lastLink, documentWidth: before.documentWidth, pageErrors }));
+            } finally {
+              await context.close();
+            }
+          }
+          // DigTTSReader: verify the first-visit welcome and the first action on a clean mobile session.
+          const ttsContext = await browser.newContext({
+            viewport: { width: 390, height: 844 },
+            isMobile: true,
+            deviceScaleFactor: 2,
+            locale: 'en-US',
+            reducedMotion: 'reduce',
+          });
+          const ttsPage = await ttsContext.newPage();
+          const ttsErrors = [];
+          ttsPage.on('pageerror', e => ttsErrors.push(String(e.message).slice(0, 240)));
+          const ttsResponse = await ttsPage.goto('https://6e5021ce.digttsreader.pages.dev/', { waitUntil: 'domcontentloaded', timeout: 45000 });
+          assert.equal(ttsResponse?.status(), 200, 'DigTTSReader PR preview must return HTTP 200');
+          const welcome = ttsPage.getByTestId('reader-welcome');
+          await welcome.waitFor({ state: 'visible', timeout: 20000 });
+          await assert.doesNotReject(async () => welcome.getByRole('heading', { name: 'Turn a long document into a focused listening session.' }).waitFor({ state: 'visible' }));
+          await ttsPage.getByTestId('welcome-paste').waitFor({ state: 'visible' });
+          await ttsPage.getByTestId('welcome-file').waitFor({ state: 'visible' });
+          await ttsPage.getByTestId('welcome-url').waitFor({ state: 'visible' });
+          const fileHint = (await ttsPage.getByTestId('welcome-file').innerText()).replace(/\\s+/g, ' ').trim();
+          assert.ok(fileHint.includes('TXT or Markdown (.txt / .md), up to 2 MB'), 'file import hint must match actual importer limits: ' + fileHint);
+          const ttsWidths = await ttsPage.evaluate(() => ({
+            document: document.documentElement.scrollWidth,
+            viewport: document.documentElement.clientWidth,
+          }));
+          assert.ok(ttsWidths.document <= ttsWidths.viewport, 'DigTTSReader mobile page must not overflow horizontally');
+          await ttsPage.screenshot({ path: 'mobile-nav-audit/digttsreader-390-welcome.jpeg', type: 'jpeg', quality: 85, fullPage: false });
+          await ttsPage.getByTestId('welcome-paste').click({ timeout: 15000 });
+          await ttsPage.locator('[data-import-dialog]').waitFor({ state: 'visible', timeout: 15000 });
+          console.log(JSON.stringify({ site: 'digttsreader', status: ttsResponse.status(), fileHint, viewport: ttsWidths.viewport, document: ttsWidths.document, pasteOpensDialog: true, pageErrors: ttsErrors }));
+          await ttsContext.close();
+
+          // Four site-specific mobile consent prompts: verify default-denied behavior and compact layout.
+          const consentSites = [
+            { id: 'digimg', url: 'https://ux-mobile-compact-consent-20.digimg.pages.dev/', promptId: 'digimg-analytics-consent', key: 'digimg.analytics-consent.v1' },
+            { id: 'streamplay', url: 'https://ux-mobile-compact-consent-20.streamplay-ey1.pages.dev/', promptId: 'digdevbox-analytics-consent', key: 'streamplay.ga4-consent.v1' },
+            { id: 'ip-locator', url: 'https://ux-mobile-compact-consent-20.locip.pages.dev/', promptId: 'digdevbox-analytics-consent', key: 'ip-locator.ga4-consent.v1' },
+            { id: 'digttsreader', url: 'https://ux-mobile-compact-consent-20.digttsreader.pages.dev/', promptId: 'digdevbox-analytics-consent', key: 'ttsreader.ga4-consent.v1' },
+          ];
+          const consentMetrics = [];
+          for (const site of consentSites) {
+            const context = await browser.newContext({
+              viewport: { width: 390, height: 844 },
+              isMobile: true,
+              deviceScaleFactor: 2,
+              locale: 'en-US',
+              reducedMotion: 'reduce',
+            });
+            const page = await context.newPage();
+            let gaRequests = 0;
+            await page.route('https://www.googletagmanager.com/**', async route => {
+              gaRequests += 1;
+              await route.abort();
+            });
+            const response = await page.goto(site.url, { waitUntil: 'domcontentloaded', timeout: 45000 });
+            assert.equal(response?.status(), 200, site.id + ': consent preview must return HTTP 200');
+            const prompt = page.locator('#' + site.promptId + '[data-dd-consent-prompt="true"]');
+            await prompt.waitFor({ state: 'visible', timeout: 20000 });
+            const mobile = await prompt.evaluate(el => {
+              const r = el.getBoundingClientRect();
+              const cs = getComputedStyle(el);
+              const buttons = [...el.querySelectorAll('button')].map(button => {
+                const br = button.getBoundingClientRect();
+                return { text: button.textContent.trim(), top: Math.round(br.top), left: Math.round(br.left), right: Math.round(br.right), height: Math.round(br.height), visible: br.width > 0 && br.height > 0 };
+              });
+              const p = el.querySelector('p');
+              return {
+                height: Math.round(r.height), top: Math.round(r.top), bottom: Math.round(r.bottom),
+                width: Math.round(r.width), fontSize: cs.fontSize, padding: cs.padding,
+                display: getComputedStyle(el.querySelector('div')).display,
+                flexWrap: getComputedStyle(el.querySelector('div')).flexWrap,
+                messageFontSize: p ? getComputedStyle(p).fontSize : null,
+                buttons,
+                documentWidth: document.documentElement.scrollWidth,
+                viewportWidth: document.documentElement.clientWidth,
+              };
+            });
+            assert.ok(mobile.height <= 230, site.id + ': mobile consent overlay must be compact (<=230px), got ' + mobile.height);
+            assert.equal(mobile.documentWidth, mobile.viewportWidth, site.id + ': no root horizontal overflow');
+            assert.equal(mobile.flexWrap, 'nowrap', site.id + ': Accept/Reject controls stay on one row');
+            assert.equal(mobile.buttons.length, 2, site.id + ': both consent choices are present');
+            assert.ok(mobile.buttons.every(button => button.visible && button.height >= 36), site.id + ': both consent buttons are visible and at least 36px high');
+            assert.ok(Math.abs(mobile.buttons[0].top - mobile.buttons[1].top) <= 1, site.id + ': consent buttons are side by side');
+            assert.equal(gaRequests, 0, site.id + ': no Google Analytics request before consent');
+            await page.screenshot({ path: 'mobile-nav-audit/' + site.id + '-390-consent-compact.jpeg', type: 'jpeg', quality: 85, fullPage: false });
+            await page.getByRole('button', { name: 'Reject Google Analytics' }).click();
+            await page.waitForFunction(key => localStorage.getItem(key) === 'rejected', site.key);
+            assert.equal(gaRequests, 0, site.id + ': Reject must never load Google Analytics');
+            await page.getByRole('button', { name: 'Privacy choices' }).click();
+            await page.locator('#' + site.promptId + '[data-dd-consent-prompt="true"]').waitFor({ state: 'visible' });
+            await page.getByRole('button', { name: 'Accept Google Analytics' }).click();
+            await page.waitForFunction(() => performance.getEntriesByType('resource').some(entry => entry.name.includes('googletagmanager.com/gtag/js')));
+            assert.ok(gaRequests >= 1, site.id + ': Google Analytics request may start only after explicit acceptance');
+            if (site.id === 'digttsreader') {
+              for (const testId of ['welcome-paste', 'welcome-file', 'welcome-url']) {
+                const action = page.getByTestId(testId);
+                await action.waitFor({ state: 'visible' });
+              }
+            }
+            consentMetrics.push({ site: site.id, mobile, gaRequestsAfterAccept: gaRequests, rejectedBeforeAccept: true });
+            await context.close();
+
+            const desktopContext = await browser.newContext({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1, locale: 'en-US' });
+            const desktopPage = await desktopContext.newPage();
+            await desktopPage.goto(site.url, { waitUntil: 'domcontentloaded', timeout: 45000 });
+            const desktopPrompt = desktopPage.locator('#' + site.promptId + '[data-dd-consent-prompt="true"]');
+            await desktopPrompt.waitFor({ state: 'visible', timeout: 20000 });
+            const desktop = await desktopPrompt.evaluate(el => {
+              const r = el.getBoundingClientRect();
+              const cs = getComputedStyle(el);
+              return { width: Math.round(r.width), height: Math.round(r.height), padding: cs.padding, fontSize: cs.fontSize };
+            });
+            assert.ok(desktop.width <= 720, site.id + ': desktop consent prompt keeps 720px max width');
+            assert.equal(desktop.padding, '16px 18px', site.id + ': desktop consent padding remains unchanged');
+            assert.equal(desktop.fontSize, '14px', site.id + ': desktop consent typography remains unchanged');
+            await desktopPage.screenshot({ path: 'mobile-nav-audit/' + site.id + '-1440-consent-desktop.jpeg', type: 'jpeg', quality: 85, fullPage: false });
+            await desktopContext.close();
+          }
+          fs.writeFileSync('mobile-nav-audit/consent-metrics.json', JSON.stringify(consentMetrics, null, 2));
+          console.log('PASS: four consent previews preserve default-denied, Reject, opt-in-only GA loading, compact 390px controls and unchanged 1440px styling.');
+
+          await browser.close();
+          fs.writeFileSync('mobile-nav-audit/metrics.json', JSON.stringify(metrics, null, 2));
+          console.log('PASS: three exact Cloudflare previews, 390px nav scrolling, visible scrollbar, accessible landmark, and zero root horizontal overflow.');
+          NODE
+      - name: Upload mobile preview screenshots and metrics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mobile-nav-preview-chromium-audit
+          path: mobile-nav-audit/
+          retention-days: 14
+          if-no-files-found: warn

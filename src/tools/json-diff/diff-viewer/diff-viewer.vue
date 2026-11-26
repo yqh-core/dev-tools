@@ -1,19 +1,44 @@
 <script lang="ts" setup>
-import { isEqual, isUndefined } from 'lodash';
-import { diff } from '../json-diff.models';
+import { isUndefined } from 'lodash';
+import { flattenDifferences } from '../json-diff.models';
+import type { Difference } from '../json-diff.types';
 import { DiffRootViewer } from './diff-viewer.models';
 import { useAppTheme } from '@/ui/theme/themes';
 
-const props = defineProps<{ leftJson: unknown; rightJson: unknown }>();
-const onlyShowDifferences = ref(false);
+const props = defineProps<{
+  leftJson: unknown
+  rightJson: unknown
+  precomputedResult: Difference
+  largeInput: boolean
+  focusedPath: string
+}>();
+const onlyShowDifferences = ref(props.largeInput);
 const { leftJson, rightJson } = toRefs(props);
 const appTheme = useAppTheme();
 
-const result = computed(() =>
-  diff(leftJson.value, rightJson.value, { onlyShowDifferences: onlyShowDifferences.value }),
-);
+function filterUnchanged(difference: Difference): Difference | null {
+  if ('children' in difference) {
+    if (difference.status === 'unchanged') {
+      return null;
+    }
+    const children = difference.children
+      .map(filterUnchanged)
+      .filter((child): child is Difference => child !== null);
+    if (difference.status === 'children-updated' && children.length === 0) {
+      return null;
+    }
+    return { ...difference, children };
+  }
+  return difference.status === 'unchanged' ? null : difference;
+}
 
-const jsonAreTheSame = computed(() => isEqual(leftJson.value, rightJson.value));
+const result = computed(() => {
+  if (!onlyShowDifferences.value) {
+    return props.precomputedResult;
+  }
+  return filterUnchanged(props.precomputedResult) ?? props.precomputedResult;
+});
+const jsonAreTheSame = computed(() => flattenDifferences(result.value).length === 0);
 const showResults = computed(() => !isUndefined(leftJson.value) && !isUndefined(rightJson.value));
 </script>
 
@@ -29,13 +54,19 @@ const showResults = computed(() => !isUndefined(leftJson.value) && !isUndefined(
       <div v-if="jsonAreTheSame" text-center op-70>
         The provided JSONs are the same
       </div>
-      <DiffRootViewer v-else :diff="result" />
+      <DiffRootViewer v-else :diff="result" :focused-path="focusedPath" />
     </c-card>
   </div>
 </template>
 
 <style lang="less" scoped>
 ::v-deep(.diffs-viewer) {
+  li.is-focused {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
   color: v-bind('appTheme.text.mutedColor');
 
   & > ul {

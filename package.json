@@ -22,7 +22,7 @@
   ],
   "scripts": {
     "dev": "node scripts/build-dd-tokens.mjs && vite",
-    "build": "node scripts/check-locale-registry.mjs && node scripts/build-dd-tokens.mjs && node scripts/legacy-canonical.mjs && vue-tsc --noEmit -p tsconfig.app.json --composite false && vite build && node scripts/build-cli.mjs && node scripts/build-seo.mjs && node scripts/check-internal-canonical-links.mjs && node scripts/sync-readme.mjs --check",
+    "build": "node scripts/check-locale-registry.mjs && node scripts/build-dd-tokens.mjs && node scripts/legacy-canonical.mjs && node scripts/legacy-noindex.mjs && vue-tsc --noEmit -p tsconfig.app.json --composite false && vite build && node scripts/build-cli.mjs && node scripts/build-seo.mjs && node scripts/check-internal-canonical-links.mjs && node scripts/sync-readme.mjs --check",
     "build:cli": "node scripts/build-cli.mjs",
     "cli": "node dist-cli/api-studio-cli.mjs",
     "tokens:check": "node scripts/build-dd-tokens.mjs --check",

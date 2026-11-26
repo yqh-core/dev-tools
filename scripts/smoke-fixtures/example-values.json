@@ -1,6 +1,6 @@
 {
   "generatedFrom": "src/tools/guides.en.ts",
-  "count": 90,
+  "count": 91,
   "values": {
     "/ascii-text-drawer": "DigDevBox",
     "/base-converter": "255",
@@ -29,7 +29,7 @@
     "/ipv4-address-converter": "192.168.1.1",
     "/ipv4-range-expander": "10.0.0.1",
     "/ipv4-subnet-calculator": "192.168.1.0/24",
-    "/ipv6-ula-generator": "00:11:22:33:44:55",
+    "/ipv6-ula-generator": "0123456789",
     "/json-diff": "{ \"name\": \"DigDevBox\", \"version\": 1, \"tags\": [\"a\", \"b\"] }",
     "/json-minify": "{\n  \"name\": \"DigDevBox\",\n  \"list\": [1, 2, 3]\n}",
     "/json-prettify": "{\"name\":\"DigDevBox\",\"tools\":[\"toolbox\",\"devtools\"],\"count\":2}",
@@ -49,19 +49,19 @@
     "/numeronym-generator": "internationalization",
     "/og-meta-generator": "My Awesome Site",
     "/otp-generator": "JBSWY3DPEHPK3PXP",
-    "/phone-parser-and-formatter": "+86 138 0013 8000",
+    "/phone-parser-and-formatter": "+1 650-253-0000",
     "/qrcode-generator": "https://digdevbox.com",
     "/regex-tester": "\\d{3}-\\d{4}",
     "/roman-numeral-converter": "2024",
     "/rsa-key-pair-generator": "4096",
     "/safelink-decoder": "https://nam.safelinks.protection.outlook.com/?url=https%3A%2F%2Fexample.com%2Fdocs",
-    "/slugify-string": "Hello World! 你好 2026",
+    "/slugify-string": "How to Build a Better API\nThe Complete Guide to URL Slugs\nDéjà Vu and Unicode",
     "/sql-prettify": "select id,name,created_at from users where status=1 order by created_at desc limit 10",
     "/string-obfuscator": "my-secret-token-123456",
     "/svg-placeholder-generator": "800",
     "/temperature-converter": "100",
     "/text-diff": "First line\nSecond line\nThird line",
-    "/text-statistics": "The quick brown fox jumps over the lazy dog.",
+    "/text-statistics": "The quick brown fox jumps over the lazy dog. 👋",
     "/text-to-binary": "Hi",
     "/text-to-nato-alphabet": "SOS",
     "/text-to-unicode": "Hello 你好",
@@ -88,9 +88,10 @@
     "/json-to-code": "{\n  \"id\": 1,\n  \"name\": \"Alice\",\n  \"email\": \"alice@example.com\",\n  \"active\": true\n}",
     "/unit-converter": "100",
     "/ascii-table": "A",
-    "/http-headers": "cache",
+    "/http-headers": "HTTP/2 200 OK\nstrict-transport-security: max-age=31536000\nx-content-type-options: nosniff\nset-cookie: session=abc; Secure; HttpOnly; SameSite=Lax",
     "/linux-commands": "grep",
     "/whois-lookup": "example.com",
-    "/http-status-checker": "example.com"
+    "/http-status-checker": "example.com",
+    "/redirect-generator": "Source URL,Target URL\n/old-product,https://example.com/products/new-product\n/legacy-guide,/guides/current-guide\n/sale,/offers"
   }
 }

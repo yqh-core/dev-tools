@@ -115,11 +115,30 @@ export async function renderGuideArticle(path: string) {
 }
 
 /** 工具页预渲染。`path` 必须来自 `src/seo/tool-page.ts` 的 TOOL_SEO_PAGES。 */
-export async function renderTool(path: string) {
-  const entry = getToolSeoEntry(path);
-  if (!entry) {
+export async function renderTool(path: string, titleByPath: Record<string, string> = {}) {
+  const sourceEntry = getToolSeoEntry(path);
+  if (!sourceEntry) {
     throw new Error(`[entry-server] 不是可索引的工具页路径: ${path}`);
   }
+
+  // The parsed default-locale file is the SEO build's title authority. Do not rely
+  // on the module-level tool registry snapshot, which can retain a pre-refresh name.
+  const titleFor = (toolPath: string, fallback: string) =>
+    titleByPath[toolPath]?.trim() || fallback;
+  const name = titleFor(path, sourceEntry.name);
+  const entry = {
+    ...sourceEntry,
+    name,
+    h1: name.split(' — ')[0],
+    related: sourceEntry.related.map(item => ({
+      ...item,
+      name: titleFor(item.path, item.name),
+    })),
+    workflow: sourceEntry.workflow.map(item => ({
+      ...item,
+      name: titleFor(item.path, item.name),
+    })),
+  };
 
   return renderPage(ToolSeoPage as unknown as Component, path, { entry }, { resolveRoute: false });
 }

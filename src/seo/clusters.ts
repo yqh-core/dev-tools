@@ -216,13 +216,6 @@ export const TOOL_CLUSTERS: ToolCluster[] = [
     ],
   },
   {
-    id: 'regex',
-    members: [
-      '/regex-tester',
-      '/regex-memo',
-    ],
-  },
-  {
     id: 'devops',
     members: [
       '/chmod-calculator',
@@ -240,6 +233,7 @@ export const TOOL_CLUSTERS: ToolCluster[] = [
       '/url-parser',
       '/safelink-decoder',
       '/slugify-string',
+      '/redirect-generator',
       '/html-entities',
     ],
   },
@@ -310,6 +304,17 @@ export const TOOL_CLUSTERS: ToolCluster[] = [
     ],
   },
   {
+    // 正则表达式工作流：编写/验证表达式、查阅语法，再把表达式应用到文本。
+    // Text Replacer 同时属于 text-transform 和 regex；它的主簇仍由 text-transform 优先决定，
+    // 但 related 会聚合所有所属簇，让 Regex Tester 与实际替换工具互相可达。
+    id: 'regex',
+    members: [
+      '/regex-tester',
+      '/regex-memo',
+      '/text-replacer',
+    ],
+  },
+  {
     // 剩下的比较 / 生成类，保持 id 不变以复用既有 en/zh 词条。
     id: 'text',
     members: [
@@ -376,16 +381,17 @@ export interface RelatedOptions<T extends { path: string; category?: string }> {
 }
 
 /**
- * 相关工具：同簇优先 → 同分类兜底。
+ * 相关工具：按定义顺序聚合同一工具所属的全部簇 → 同分类兜底。
  *
- * 为什么还要兜底：单个小簇（regex 只有 2 个成员）如果只给簇内结果，
- * 区块会短得不像一个区块；而「同分类」虽然弱，也比留空强。
- * 顺序上簇成员永远排在前面 —— 兜底只补数量，不抢位置。
+ * 一个工具可以有多个任务关系（例如 Text Replacer 既是文本转换工具，也能实际应用正则表达式）。
+ * related 聚合这些关系，让跨任务的下一步可发现；每个簇按自己的成员顺序输出，
+ * 同一路径去重，最后再用同分类补齐。resolveWorkflow 仍只使用第一个主簇，
+ * 因此多簇关系不会改变工具的主要工作流。
  */
 export function resolveRelated<T extends { path: string; category?: string }>(
   { path, category, tools, max = 6 }: RelatedOptions<T>,
 ): T[] {
-  const cluster = clusterOf(path);
+  const clusters = TOOL_CLUSTERS.filter(cluster => cluster.members.includes(path));
   const picked: T[] = [];
   const used = new Set<string>([path]);
 
@@ -396,8 +402,8 @@ export function resolveRelated<T extends { path: string; category?: string }>(
     }
   };
 
-  if (cluster) {
-    // 按簇内顺序取，而不是按 tools 数组顺序 —— 顺序即工作流语义。
+  for (const cluster of clusters) {
+    // 按簇定义顺序，再按簇内顺序取；一个工具的跨任务关系保持确定且可测。
     for (const memberPath of cluster.members) {
       push(tools.find(tool => tool.path === memberPath));
     }

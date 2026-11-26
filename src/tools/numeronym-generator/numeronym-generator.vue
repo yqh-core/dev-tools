@@ -1,33 +1,68 @@
 <script setup lang="ts">
-import { ESTABLISHED_NUMERONYMS, evaluate } from './numeronym-generator.service';
+import { useI18n } from 'vue-i18n';
+import {
+  ESTABLISHED_NUMERONYMS,
+  NUMERONYM_CONTEXT,
+  countLetters,
+  describeNumeronym,
+  evaluate,
+  tokenizeNumeronymInput,
+} from './numeronym-generator.service';
 
+const { t } = useI18n();
 const word = ref('');
 
-const result = computed(() => evaluate(word.value));
-const batchResults = computed(() => word.value
-  .split(/\r?\n/)
-  .map(input => input.trim())
-  .filter(Boolean)
-  .map(input => ({ input, result: evaluate(input) })));
+const tokens = computed(() => tokenizeNumeronymInput(word.value));
+const singleInput = computed(() => tokens.value[0] ?? word.value.trim());
+const result = computed(() => evaluate(singleInput.value));
+const singleBreakdown = computed(() => result.value.mode === 'encode'
+  ? describeNumeronym(singleInput.value)
+  : undefined);
+const batchResults = computed(() => tokens.value.map((input, index) => {
+  const itemResult = evaluate(input);
+  return {
+    index,
+    input,
+    letterCount: itemResult.mode === 'encode' ? countLetters(input) : null,
+    breakdown: itemResult.mode === 'encode' ? describeNumeronym(input) : undefined,
+    result: itemResult,
+  };
+}));
 const isBatch = computed(() => batchResults.value.length > 1);
 const batchOutput = computed(() => batchResults.value
-  .map(({ result }) => result.mode === 'encode'
-    ? result.output
-    : result.mode === 'decode'
-      ? (result.matches ?? []).join(' / ')
-      : '')
+  .map(({ input, result: itemResult }) => {
+    if (itemResult.mode === 'encode') {
+      return countLetters(input) > 3 ? itemResult.output : '';
+    }
+    return itemResult.mode === 'decode'
+      ? (itemResult.matches ?? []).join(' / ')
+      : '';
+  })
   .filter(Boolean)
   .join('\n'));
 const dictionaryKeys = Object.keys(ESTABLISHED_NUMERONYMS);
+const referenceRows = Object.entries(ESTABLISHED_NUMERONYMS).map(([short, expansions]) => ({
+  short,
+  expansion: expansions.join(' / '),
+  context: NUMERONYM_CONTEXT[short] ?? '',
+}));
+
+function tryExample(value: string): void {
+  word.value = value;
+}
 
 function batchResultLabel(item: (typeof batchResults.value)[number]): string {
   if (item.result.mode === 'encode') {
-    return item.result.output;
+    return (item.letterCount ?? 0) <= 3
+      ? t('tools.numeronym-generator.shortWordResult')
+      : item.result.output;
   }
   if (item.result.mode === 'decode') {
     return (item.result.matches ?? []).join(' / ');
   }
-  return 'No established match';
+  return item.result.reason === 'not-in-dictionary'
+    ? 'Not in the reference list'
+    : 'Unsupported token';
 }
 </script>
 
@@ -37,29 +72,122 @@ function batchResultLabel(item: (typeof batchResults.value)[number]): string {
       v-model:value="word"
       type="textarea"
       :autosize="{ minRows: 2, maxRows: 8 }"
-      placeholder="Enter one word or known numeronym per line. Multiple lines are supported."
+      placeholder="Paste a word, phrase, or list of terms. Separate items with spaces, commas, semicolons, or newlines."
       data-test-id="word-input"
     />
 
-    <c-card v-if="isBatch" w-full max-w-600px data-test-id="numeronym-batch">
-      <div v-for="item in batchResults" :key="item.input" flex justify-between items-center gap-3 py-1>
-        <span font-mono>{{ item.input }}</span>
-        <span opacity-60>→</span>
-        <span text-right>{{ batchResultLabel(item) }}</span>
+    <c-card v-if="word.trim() === ''" w-full max-w-700px title="Common developer numeronyms" data-test-id="numeronym-examples">
+      <p mb-3 text-sm opacity-70>
+        Enter a word to generate its numeronym, or a known short form to look up its meaning.
+        You can paste multiple terms at once. Unicode letters and hyphenated or apostrophe compounds are supported.
+      </p>
+      <div class="mb-3 flex flex-wrap items-center gap-2" data-test-id="numeronym-quick-examples">
+        <span class="text-xs opacity-70">{{ t('tools.numeronym-generator.tryExample') }}</span>
+        <n-button
+          size="small"
+          quaternary
+          type="primary"
+          data-test-id="try-internationalization"
+          @click="tryExample('internationalization')"
+        >
+          {{ t('tools.numeronym-generator.exampleInternationalization') }}
+        </n-button>
+        <n-button
+          size="small"
+          quaternary
+          type="primary"
+          data-test-id="try-accessibility"
+          @click="tryExample('accessibility')"
+        >
+          {{ t('tools.numeronym-generator.exampleAccessibility') }}
+        </n-button>
+        <n-button
+          size="small"
+          quaternary
+          type="primary"
+          data-test-id="try-kubernetes"
+          @click="tryExample('Kubernetes')"
+        >
+          {{ t('tools.numeronym-generator.exampleKubernetes') }}
+        </n-button>
       </div>
-      <div mt-3>
-        <n-input :value="batchOutput" type="textarea" readonly data-test-id="batch-numeronyms" />
-        <input-copyable :value="batchOutput" readonly placeholder="Copy all generated results" test-id="batch-copy" />
-      </div>
+      <table w-full data-test-id="numeronym-reference">
+        <thead>
+          <tr>
+            <th text-left>Short form</th>
+            <th text-left>Meaning</th>
+            <th text-left>Typical context</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="entry in referenceRows" :key="entry.short">
+            <td><code>{{ entry.short }}</code></td>
+            <td>{{ entry.expansion }}</td>
+            <td>{{ entry.context }}</td>
+          </tr>
+        </tbody>
+      </table>
+      <p mt-3 text-xs opacity-60>
+        The list contains established examples only. Forms such as e2e and b2b follow different abbreviation patterns and are not generated by this letter-count rule.
+      </p>
     </c-card>
 
-    <!-- encode 方向：保持既有单词输入 → 输出契约 -->
+    <c-card v-if="isBatch" w-full max-w-700px data-test-id="numeronym-batch">
+      <table w-full data-test-id="numeronym-batch-table">
+        <thead>
+          <tr>
+            <th text-left>Input</th>
+            <th text-right>Letters</th>
+            <th text-left>{{ t('tools.numeronym-generator.breakdownHeader') }}</th>
+            <th text-left>Numeronym or meaning</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="item in batchResults" :key="item.index">
+            <td><span font-mono>{{ item.input }}</span></td>
+            <td text-right>{{ item.letterCount ?? '—' }}</td>
+            <td class="breakdown-cell">
+              <template v-if="item.breakdown && !item.breakdown.unchanged">
+                <code>{{ item.breakdown.first }}</code>
+                + <strong>{{ item.breakdown.middleCount }}</strong> {{ t('tools.numeronym-generator.middleLetters') }}
+                + <code>{{ item.breakdown.last }}</code>
+                = <code>{{ item.breakdown.output }}</code>
+              </template>
+              <span v-else-if="item.breakdown">{{ t('tools.numeronym-generator.shortWordBreakdown') }}</span>
+              <span v-else>—</span>
+            </td>
+            <td>{{ batchResultLabel(item) }}</td>
+          </tr>
+        </tbody>
+      </table>
+      <div mt-3>
+        <n-input :value="batchOutput" type="textarea" readonly data-test-id="batch-numeronyms" />
+        <input-copyable :value="batchOutput" readonly placeholder="Copy all generated results and lookups" test-id="batch-copy" />
+      </div>
+      <p mt-2 text-xs opacity-60>{{ t('tools.numeronym-generator.batchCopyNote') }}</p>
+    </c-card>
+
+    <!-- Keep the established single-word output contract. -->
     <template v-else-if="result.mode === 'encode'">
       <icon-mdi-arrow-down text-30px />
       <input-copyable :value="result.output" size="large" readonly placeholder="Your numeronym will be here, e.g. 'i18n'" test-id="numeronym" />
+      <p text-sm opacity-60 data-test-id="single-letter-count">{{ countLetters(singleInput) }} letters counted</p>
+      <p
+        v-if="singleBreakdown && !singleBreakdown.unchanged"
+        text-xs
+        opacity-70
+        data-test-id="numeronym-breakdown"
+      >
+        <code>{{ singleBreakdown.first }}</code>
+        + <strong>{{ singleBreakdown.middleCount }}</strong> {{ t('tools.numeronym-generator.middleLetters') }}
+        + <code>{{ singleBreakdown.last }}</code>
+        = <code>{{ singleBreakdown.output }}</code>
+      </p>
+      <p v-if="countLetters(singleInput) <= 3" text-xs opacity-70 data-test-id="short-word-note">
+        {{ t('tools.numeronym-generator.shortWordNote') }}
+      </p>
     </template>
 
-    <!-- decode 方向：词典命中，多候选必须并列呈现，不伪装唯一答案 -->
     <c-card
       v-else-if="result.mode === 'decode'"
       :title="result.ambiguous ? 'Likely meanings' : 'Meaning'"
@@ -68,7 +196,7 @@ function batchResultLabel(item: (typeof batchResults.value)[number]): string {
       data-test-id="numeronym-meaning"
     >
       <div v-for="m in result.matches" :key="m" data-test-id="meaning-row" flex justify-between items-center>
-        <span font-mono>{{ word.trim().toLowerCase() }}</span>
+        <span font-mono>{{ singleInput.toLowerCase() }}</span>
         <span opacity-60>=</span>
         <span font-weight-600>{{ m }}</span>
       </div>
@@ -77,18 +205,17 @@ function batchResultLabel(item: (typeof batchResults.value)[number]): string {
       </div>
     </c-card>
 
-    <!-- invalid：未匹配时把词典边界摊给用户看，绝不现场编造释义 -->
     <c-alert v-else-if="word.trim() !== '' && result.reason === 'not-in-dictionary'" type="warning" w-full max-w-600px data-test-id="not-in-dict">
       <div>
-        "<strong>{{ word.trim() }}</strong>" looks like a numeronym, but look-up only covers a fixed dictionary of established ones — nothing was invented for it.
+        "<strong>{{ singleInput }}</strong>" looks like a numeronym, but the reference list only expands established forms — no meaning has been guessed.
       </div>
       <div mt-2 text-sm>
-        Supported look-ups: <span v-for="(k, i) in dictionaryKeys" :key="k"><code>{{ k }}</code><span v-if="i < dictionaryKeys.length - 1">, </span></span>.
-        Any plain English word still converts normally (e.g. type "internationalization").
+        Supported look-ups:
+        <span v-for="(k, i) in dictionaryKeys" :key="k"><code>{{ k }}</code><span v-if="i < dictionaryKeys.length - 1">, </span></span>.
       </div>
     </c-alert>
     <c-alert v-else-if="word.trim() !== '' && result.reason === 'mixed'" w-full max-w-600px data-test-id="mixed-input">
-      Enter one plain English word or one established short form per line.
+      Enter a word, a supported numeronym, or a list of terms separated by spaces, commas, semicolons, or newlines.
     </c-alert>
   </div>
 </template>

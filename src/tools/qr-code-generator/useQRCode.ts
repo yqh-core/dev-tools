@@ -14,20 +14,28 @@ export function useQRCode({
   options?: QRCodeToDataURLOptions
 }) {
   const qrcode = ref('');
+  let requestId = 0;
 
   watch(
     [text, background, foreground, errorCorrectionLevel].filter(isRef),
     async () => {
-      if (get(text)) {
-        qrcode.value = await QRCode.toDataURL(get(text).trim(), {
-          color: {
-            dark: get(foreground),
-            light: get(background),
-            ...options?.color,
-          },
-          errorCorrectionLevel: get(errorCorrectionLevel) ?? 'M',
-          ...options,
-        });
+      const currentRequest = ++requestId;
+      const value = get(text).trim();
+      if (!value) {
+        qrcode.value = '';
+        return;
+      }
+      const generated = await QRCode.toDataURL(value, {
+        color: {
+          dark: get(foreground),
+          light: get(background),
+          ...options?.color,
+        },
+        errorCorrectionLevel: get(errorCorrectionLevel) ?? 'M',
+        ...options,
+      });
+      if (currentRequest === requestId) {
+        qrcode.value = generated;
       }
     },
     { immediate: true },

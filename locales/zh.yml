@@ -18,6 +18,39 @@ home:
     badgeNoSignup: "无需注册"
     badgeTools: "{count} 个工具"
     cta: "浏览全部工具"
+  quickSearch:
+    ariaLabel: "快捷任务搜索"
+    label: "快速开始："
+    json: "格式化 JSON"
+    jwt: "解析 JWT"
+    regex: "测试正则"
+  preview:
+    eyebrow: "一个点击即可开始的真实工作流"
+    label: "结构化数据"
+    title: "让 JSON 更容易阅读"
+    description: "在一个专注的工作台中格式化响应、比较差异，或转换结构化数据。"
+    codeLabel: "JSON 示例数据"
+    cta: "打开 JSON 工作台"
+  featured:
+    title: "从任务开始"
+    intro: "选择你要完成的工作。每个入口直达对应工具；分类浏览和完整目录仍保留在下方。"
+    open: "打开工具"
+    items:
+      api:
+        title: "API 测试与调试"
+        description: "构造请求、切换环境、查看响应历史、添加断言并运行请求集合。"
+      json:
+        title: "处理 JSON 与结构化数据"
+        description: "查看、格式化和比较 JSON，并在常见结构化格式之间转换。"
+      jwt:
+        title: "检查 JWT 与认证令牌"
+        description: "解码 JWT 头部和载荷、查看声明；解码不等于验证令牌签名。"
+      convert:
+        title: "计算与转换"
+        description: "计算百分比和任务完成时间，编码 URL 与 Base64，并转换时间戳和单位。"
+      network:
+        title: "排查 HTTP 与网络"
+        description: "检查 URL 的 HTTP 响应、查阅响应头、计算 IPv4 子网并查询域名注册信息。"
   why:
     title: "为什么选择 DigDevBox"
     point1: "快：工具直接在浏览器里运行，不需要等服务端往返。"
@@ -181,7 +214,7 @@ toolCard:
   new: '新'
 search:
   label: '搜索'
-  placeholder: '试试「格式化 JSON」「解码 JWT」「转换时间戳」'
+  placeholder: '搜索工具或任务…'
   inputLabel: '搜索工具'
   clear: '清空搜索'
   found: '找到 {count} 个匹配「{query}」的工具'
@@ -242,7 +275,113 @@ tools:
       refresh: 刷新
   percentage-calculator:
     title: 百分比计算器 — 百分比计算、增减幅与折扣
-    description: 计算 X% 的 Y、比较两个数值、计算百分比变化，并按百分比增加数值或计算折扣。四种实时计算方式，免费且在浏览器本地运行。
+    description: 免费计算百分比、折扣、百分比变化、反向百分比和百分点。支持七种计算模式、批量 CSV/TSV 导出及逐步公式说明。
+    resultDetails:
+      inWords: 结果说明
+      formula: 计算公式
+      percentOf: "{whole} 的 {percent}% 是 {result}。"
+      partToWhole: "{part} 占 {whole} 的 {result}%。"
+      percentageChange: "数值从 {oldValue} 变化到 {newValue}，百分比变化为 {result}%。"
+      increase: "将 {value} 增加 {percent}% 后得到 {result}。"
+      decrease: "将 {value} 减少 {percent}% 后得到 {result}。"
+      reverseIncrease: "增加 {percent}% 后得到 {finalValue}，增加前的数值是 {originalValue}。"
+      reverseDecrease: "减少 {percent}% 后得到 {finalValue}，减少前的数值是 {originalValue}。"
+      percentageDifference: "{first} 和 {second} 之间的对称百分比差异为 {result}%。"
+      percentagePoints: "比率从 {oldRate}% 变化到 {newRate}%，相差 {result} 个百分点。"
+    sequential:
+      summary: 连续折扣与百分比调整
+      title: 连续百分比调整
+      description: 输入起始金额，并将每次增加或减少应用于上一步的中间结果。逐步查看金额，以及相对于原始金额的综合变化率。
+      startingAmount: 起始金额
+      stepsTitle: 调整步骤
+      stepLimit: 最多 {maximum} 步
+      stepNumber: 第 {number} 步
+      percentage: 百分比
+      addStep: 添加步骤
+      loadExample: 加载示例
+      remove: 删除
+      moveUp: 上移
+      moveDown: 下移
+      operations:
+        increase: 增加
+        decrease: 减少
+      resultsTitle: 逐步计算结果
+      finalAmount: 最终金额
+      totalChange: 金额总变化
+      effectiveChange: 综合百分比变化
+      formula: 连乘公式
+      compoundingNote: 每一步百分比都作用于上一步的结果。例如先打八折，再减价 10%，总折扣是 28%，不是 30%。相同百分比乘数调换顺序会改变中间金额，但在数学计算中不会改变最终金额。显示结果最多保留 12 位有效数字，不进行特定货币的小数位舍入。
+      notDefined: 起始金额为零时无法定义
+      copySummary: 复制计算摘要
+      exampleLoaded: 已加载示例。修改金额或步骤即可计算自己的情况。
+      copied: 已复制计算摘要。
+      clipboardUnavailable: 当前浏览器无法访问剪贴板，请手动选择摘要并复制。
+      errors:
+        invalidStart: 请输入大于或等于零的有限起始金额。
+        noSteps: 请至少添加一个百分比步骤。
+        tooManySteps: 最多使用 {maximum} 步。
+        invalidRate: 每一步请输入 0 到 1,000 之间的有限百分比。
+        discountOver100: 减少比例不能超过 100%。
+        overflow: 结果超出可支持的数值范围，请调低金额或百分比。
+    batch:
+      summary: 批量计算多组数值（可选）
+      title: 百分比批量计算器
+      description: 每行粘贴一组数据，两个数字之间使用制表符或逗号分隔，也可以在第一列添加文字标签。每行独立计算，某一行无效不会中断其他行。
+      calculation: 计算类型
+      inputLabel: 数值（每行一组）
+      placeholder: "Groceries\t20\t150\nTaxi\t10\t40"
+      run: 计算所有行
+      copyCsv: 复制 CSV 结果
+      copyTsv: 复制 TSV 结果
+      downloadCsv: 下载 CSV
+      downloadTsv: 下载 TSV
+      row: 行
+      formula: 公式
+      resultIssue: 结果 / 问题
+      action: 操作
+      copyRow: 复制本行
+      historyTitle: 最近计算记录（仅保存在当前浏览器）
+      clearHistory: 清除历史
+      restore: 恢复
+      remove: 删除
+      removeAria: 从历史记录中删除 {mode}
+      privacy: 计算全部在本地运行。批量输入和最近历史只保存在当前浏览器，不会发送到分析服务；可随时清除本地历史。
+      rowsStatusPartial: 已计算 {total} 行中的 {successful} 行；另有 {failed} 行需要检查。输入和历史记录仅保存在当前浏览器。
+      rowsStatusSuccess: 已计算 {total} 行。输入和历史记录仅保存在当前浏览器。
+      historyUnavailable: 当前浏览器无法保存历史记录，但本次计算结果仍可使用。
+      empty: 请至少粘贴一行非空数据后再计算。
+      clipboardUnavailable: 当前浏览器无法访问剪贴板，请手动选择并复制结果。
+      copiedRow: 已复制 {label} 及其公式和结果。
+      calculateBeforeCopy: 请先计算至少一行，再复制结果。
+      calculateBeforeDownload: 请先计算至少一行，再下载结果。
+      copiedCsv: 已将所有批量结果复制为 CSV。
+      copiedTsv: 已将所有批量结果复制为 TSV。
+      downloaded: "已下载 {format} 批量计算结果。"
+      restored: "已恢复本地历史记录：{date}。"
+      removed: 已从本地历史记录中删除该次计算。
+      cleared: 已清除本地历史记录，当前计算结果不受影响。
+      modes:
+        percent-of: 求 X% 的 Y
+        part-to-whole: X 占 Y 的百分之几
+        percentage-change: 百分比增加或减少
+        adjustment: 按百分比增加或减少
+        reverse: 反推百分比变化前的原值
+        percentage-difference: 两个数值的百分比差异
+        percentage-points: 两个比率之间的百分点变化
+      hints:
+        percent-of: 两列：百分比、数值。示例：15<TAB>80
+        part-to-whole: 两列：部分、整体。示例：30<TAB>120
+        percentage-change: 两列：原始值、新值。示例：80<TAB>92
+        adjustment: 两列：起始值、百分比。每行同时返回增加和减少后的结果。
+        reverse: 两列：最终值、百分比。每行同时反推增加前和减少前的原值。
+        percentage-difference: 两列：数值 A、数值 B。示例：100<TAB>150
+        percentage-points: 两列：旧比率 (%)、新比率 (%)。示例：5<TAB>7
+      errors:
+        columns: 每行需要两列数值，使用制表符或逗号分隔；也可在前面添加文字标签。
+        numbers: 两列都必须是有限数值。
+        wholeZero: 整体数值不能为零。
+        startZero: 计算百分比变化时，起始值不能为零。
+        differenceZero: 两个数值都为零时，百分比差异没有定义。
 
   svg-placeholder-generator:
     title: SVG 占位符生成器
@@ -295,8 +434,108 @@ tools:
     description: Git是一种去中心化的版本管理软件。使用此备忘单，您可以快速访问最常见的git命令.
 
   slugify-string:
-    title: 字符串转 Slug
-    description: 确保字符串 url、文件名和 id 安全。
+    title: "URL Slug 生成器 — 批量生成 SEO 友好网址"
+    description: "批量将标题转换为 URL slug。可选连字符、下划线或点号，删除英文停用词，按完整单词限制长度，并预览完整网址。"
+    batch:
+      title: "批量 URL Slug 生成器"
+      intro: "将一个或多个标题转换为适合 URL 的 slug。每个非空行生成一条结果。"
+      inputLabel: "标题或短语"
+      inputPlaceholder: |-
+        每行输入一个标题，例如：
+        How to Build a Better API
+        The Complete Guide to URL Slugs
+        Déjà Vu and Unicode
+      separator: "单词分隔符"
+      hyphen: "连字符 (-)"
+      underscore: "下划线 (_)"
+      dot: "点号 (.)"
+      maximumLength: "最大长度"
+      noLimit: "不限制"
+      characters: "{count} 个字符"
+      lowercase: "转换为小写"
+      decamelize: "拆分 camelCase 单词"
+      stopWords: "删除常见英文停用词"
+      unique: "为重复 slug 添加唯一后缀"
+      baseUrl: "可选完整网址预览"
+      invalidBaseUrl: "请输入有效的 http:// 或 https:// 基础网址。"
+      copyAll: "复制全部 Slug"
+      downloadTxt: "下载 TXT"
+      downloadCsv: "下载 CSV"
+      generated: "已生成 {count} 条 Slug"
+      shortened: "{count} 条已缩短"
+      warnings: "{count} 条警告"
+      line: "第 {number} 行"
+      chars: "{count} 个字符"
+      truncated: "已按完整单词边界缩短，以符合所选长度。"
+      emptyState: "每行输入一个标题。空行会忽略；所有结果都在当前浏览器中处理。"
+      inputTooLarge: "输入内容过长，请控制在 {count} 个字符以内。"
+      tooManyRows: "本批次有 {actual} 行，最多允许 {limit} 行。"
+      rowTooLong: "最大长度太短，无法保留一个完整单词。"
+      noCharacters: "转换后没有剩余可用于 URL 的字符。"
+      copied: "已复制全部 Slug"
+
+  redirect-generator:
+    title: 批量 301 重定向生成器 — Apache、Nginx、Cloudflare
+    description: 为 Apache、Nginx、Cloudflare、Netlify 和 Vercel 批量生成重定向规则。导入 CSV，检查循环与重定向链，并在浏览器本地导出配置。
+    cardTitle: 批量 URL 重定向映射
+    intro: 粘贴或导入旧 URL 与目标地址清单，验证映射后导出五种平台可用的重定向配置。
+    inputPlaceholder: "Source URL,Target URL\n/old-page,https://example.com/new-page\n/legacy,/current"
+    loadSample: 加载示例
+    clear: 清空
+    importCsv: 导入 CSV / TSV
+    outputFormat: 输出格式
+    statusCode: 重定向状态码
+    siteOrigin: Cloudflare 相对 URL 的站点源地址
+    preserveQueryString: 保留请求中的查询参数
+    includeSubdomains: 匹配子域名
+    subpathMatching: 匹配来源路径下的子路径
+    preservePathSuffix: 保留匹配后的剩余路径
+    cloudflareNote: Cloudflare CSV 包含七列且不带表头。来源 URL 省略协议；子域名和子路径匹配可单独选择。保留剩余路径必须同时启用子路径匹配。
+    netlifyNote: Netlify 使用纯文本 _redirects 文件。下载生成的 .txt 文件后，请将文件名准确改为发布目录中的 _redirects。本工具的 Netlify 输出支持 301 和 302。
+    vercelNote: Vercel 输出为 vercel.json 的 redirects 数组。来源和目标使用映射中的精确路径，请结合部署自身的路由规则核对。
+    summary:
+      total: 映射数量
+      ready: 可导出
+      errors: 错误
+      warnings: 警告
+    line: 第 {line} 行
+    invalid: 需要修正
+    review: 建议检查
+    outputTitle: 生成的重定向规则
+    copy: 复制规则
+    download: 下载文件
+    copied: 已复制重定向规则
+    emptyState: 粘贴两列 CSV、制表符分隔的清单，或每行一条「旧 URL -> 新 URL」映射即可开始。
+    safetyNote: 发布前请先在预发布环境检查生成的规则。尽量保持旧 URL 稳定，并更新站内链接，让它们直接指向最终目标地址。
+    formats:
+      apache: Apache .htaccess（mod_alias）
+      nginx: Nginx server block
+      cloudflare: Cloudflare Bulk Redirect CSV
+      netlify: Netlify _redirects 文件
+      vercel: Vercel vercel.json
+    status:
+      permanent: 永久
+      temporary: 临时
+      temporaryMethod: 临时（保留请求方法）
+      permanentMethod: 永久（保留请求方法）
+    errors:
+      invalidInput: 无法分析当前输入。
+      originRequired: 生成 Cloudflare CSV 前，请填写站点源地址。
+      outputFailed: 无法生成该格式的结果。
+      fileRead: 无法读取所选文件。
+      inputTooLarge: 输入超过 200,000 个字符的安全限制。
+      tooManyRows: 最多输入 1,000 条重定向映射。
+      parseRow: 无法解析此行。请使用包含来源和目标的两列映射。
+      invalidSource: 请输入有效的 HTTP/HTTPS 来源 URL，或不带查询参数的具体路径。
+      invalidTarget: 请输入有效的 HTTP/HTTPS 目标 URL 或路径。
+      duplicateSource: 此来源 URL 已被另一条映射使用。
+      selfRedirect: 来源和目标指向同一主机上的相同路径。
+      redirectChain: 此目标在当前批次中还会经过另一条重定向。请尽量直接指向最终地址。
+      redirectLoop: 此映射属于重定向循环，导出前请先解除循环。
+      cloudflareSourceLimits: Cloudflare 来源 URL 不支持端口或用户凭据，请在导出前移除。
+      cloudflareQueryConflict: 启用「保留查询参数」后，目标 URL 自带的查询参数会被丢弃。请移除目标查询参数或关闭此选项。
+      pathSuffixRequiresSubpath: 请先启用子路径匹配，再选择保留匹配后的剩余路径。
+      netlifyStatusUnsupported: 本工具的 Netlify _redirects 导出仅生成 301 和 302。需要 307 或 308 时，请选择其他输出格式。
 
   encryption:
     title: 加密/解密文本
@@ -311,8 +550,49 @@ tools:
     description: 将YAML字符串修饰为友好的可读格式。
 
   eta-calculator:
-    title: ETA 计算器
-    description: 根据任务总量、开始时间和单位时间处理量，估算下载、构建或批处理的总耗时与预计完成时刻。免费，浏览器本地计算。
+    title: ETA 计算器 — 软件构建与任务完成时间
+    description: 估算软件构建、CI 任务、数据迁移或批处理何时完成。可按已知速率或实际进度计算，并比较截止时间、缓冲和工作日时段。
+    firstScreenTitle: 估算任务何时完成
+    firstScreenIntro: 根据当前进度或已知处理速率，预测软件构建、CI 任务、数据迁移和批处理的完成时间。
+    scenariosTitle: 从常见任务开始
+    scenariosHint: 加载可编辑的示例数值，再替换成你的实际数据。
+    scenario:
+      build: 软件构建 / CI 任务
+      migration: 数据迁移
+      batch: 批量处理
+      conversion: 文件转换
+    rateMode: 输入已知处理速率
+    observedMode: 根据已耗时间计算
+    elapsedTitle: 已运行时间
+    elapsedHours: 小时
+    elapsedMinutes: 分钟
+    elapsedSeconds: 秒
+    unitsPerHour: 单位/小时
+    observedModeHelp: 根据已完成数量和已运行时间计算平均处理速率，预计完成时刻从当前时间开始推算。
+    observedModeHint: 请填写大于零的已完成数量和已耗时间，才能推导处理速率。若任务已全部完成，则无需提供耗时样本。
+    localFinishTime: 本地完成时间
+    copyFinishTime: 复制完成时间
+    copyRemainingDuration: 复制剩余时间
+    copySuccess: 已复制到剪贴板
+    additionalPauseMinutes: 预计额外暂停时间（分钟）
+    additionalPauseHelp: 在处理速率和缓冲时间之外，加入预计的暂停或休息时间。
+    additionalPauseResult: 额外计划暂停时间
+    deadlineLabel: 目标截止时间（本地时间）
+    deadlineHelp: 可选。比较当前处理速度与按时完成所需的速度；计算已包含计划暂停和缓冲比例。工作日模式只统计配置的周一至周五本地工作时段。
+    requiredPace: 按时完成所需速度
+    currentPace: 当前处理速度
+    deadlineOnTrack: 当前处理速度足以在截止时间前完成。
+    deadlineBehind: '需要将处理速度提高 {percent}% 才能按时完成。'
+    deadlineTooSoon: 截止时间必须晚于预计开始时间，并在扣除计划暂停和缓冲后仍有可用工作时间。
+    deadlineComplete: 当前任务已经完成。
+    scheduleTitle: 完成时间排程
+    calendarSchedule: 全天候连续计算（24/7）
+    weekdaySchedule: 周一至周五工作时段
+    workingDayStart: 每日上班时间
+    workingDayEnd: 每日下班时间
+    weekdayScheduleHelp: 只统计你本地时区（{timezone}）中周一至周五、上述起止时间之间的时段。开始时间若不在工作窗口内，任务会从下一个工作日的开工时间继续。
+    workingWindowCounted: 工作时段内计入的时间（包含缓冲和计划暂停）
+    workingScheduleError: 请输入有效的 24 小时制时间；同一天的下班时间必须晚于上班时间。
 
   roman-numeral-converter:
     title: 罗马数字转换器
@@ -363,7 +643,17 @@ tools:
 
   numeronym-generator:
     title: 数字缩略词生成器 — i18n、a11y、k8s
-    description: 每行输入一个单词即可批量生成数字缩略词，也可查询 i18n、a11y、k8s 等已确立的常见缩写。免费，浏览器本地即时处理。
+    description: 粘贴单词、短语或列表，按 Unicode 字母计数生成数字缩略词；支持复合词、保留大小写、批量复制，并查询 i18n、a11y、k8s 等常见形式。
+    tryExample: '试试示例：'
+    exampleInternationalization: 'internationalization → i18n'
+    exampleAccessibility: 'accessibility → a11y'
+    exampleKubernetes: 'Kubernetes → K8s'
+    shortWordResult: 单词太短，保持原样
+    shortWordNote: 三个字母及以下的单词保持原样，因为生成更短的缩写没有实际意义。
+    batchCopyNote: 不支持的项目及三个字母或更短的单词会保留在表格中，但不会包含在“全部复制”的结果中。
+    breakdownHeader: 缩略规则拆解
+    middleLetters: 个中间字母
+    shortWordBreakdown: 短词缩写后不会更短，因此保持原样。
 
   case-converter:
     title: 大小写转换
@@ -394,8 +684,8 @@ tools:
     description: 通过设备的MAC地址查找设备的供应商和制造商。
 
   mime-types:
-    title: mime类型
-    description: 将mime类型转换为扩展，反之亦然。
+    title: "MIME 类型查询 — Content-Type、扩展名与服务器配置"
+    description: "按扩展名查询 MIME 类型，或反向查找文件扩展名；基于查询结果生成可复制的 Nginx、Apache AddType 和静态站点 _headers 规则。"
 
   toml-to-json:
     title: TOML 到 JSON
@@ -442,8 +732,8 @@ tools:
     description: 输入数量和前缀。MAC地址将以您选择的大小写（大写或小写）生成
 
   json-diff:
-    title: JSON 差异比较
-    description: 比较两个JSON对象并获得它们之间的差异。
+    title: "JSON 差异比较器 — 在线比较 JSON"
+    description: "在线比较粘贴内容或本地 JSON/JSON5 文件，按路径查看嵌套变化并导出报告。数组支持按索引、忽略顺序或稳定 ID 匹配；大文档使用可取消的后台 Worker 比较。"
   jwt-parser:
     title: JWT 解码器与解析器 — 在线解析 JSON Web Token
     description: 在线解码并解析 JSON Web Token（JWT）— 一目了然查看 Header、Payload 与标准声明。
@@ -457,8 +747,8 @@ tools:
     description: 将 Unix 时间戳（秒或毫秒）转换为可读日期，或把日期转成时间戳。
 
   phone-parser-and-formatter:
-    title: 电话分析器和格式化程序
-    description: 解析、验证和格式化电话号码。获取有关电话号码的信息，如国家/地区代码、类型等。
+    title: "国际电话号码解析与格式化 — E.164 批量转换"
+    description: "解析国际电话号码，检查编号计划中的可能性与有效性，并转换为 E.164、国内、国际或 RFC 3966 格式。支持本地批量处理最多 200 个号码并导出 CSV。"
 
   prepare-deployment:
     title: 部署准备评估
@@ -474,7 +764,27 @@ tools:
 
   ipv6-ula-generator:
     title: IPv6 ULA生成器
-    description: 根据RFC4193在网络上生成您自己的本地不可路由IP地址。
+    description: 按 RFC 4193 生成 fd00::/8 IPv6 唯一本地地址（ULA）/48 前缀。支持浏览器安全随机生成或手动指定 40 位 Global ID，批量查看首尾 /64 子网。
+    randomMode: 安全随机生成
+    manualMode: 手动指定 Global ID
+    quantity: 前缀数量
+    randomHelp: 使用浏览器 Web Crypto 安全随机数生成器，无需输入 MAC 地址，一次最多生成 20 个不重复前缀。
+    globalId: 40 位 Global ID
+    manualHelp: 输入恰好 10 个十六进制字符（也可带 0x 前缀），即可复现指定的 /48 前缀。
+    generate: 生成
+    copyAll: 复制全部前缀
+    resultNumber: 前缀 {number}
+    ulaPrefix: ULA 前缀（/48）
+    firstSubnet: 第一个 /64 子网
+    lastSubnet: 最后一个 /64 子网
+    subnetCount: 一个 /48 前缀包含 {count} 个 /64 子网。
+    copied: 已复制 ULA 前缀。
+    privacyNote: 随机生成使用浏览器本地 Web Crypto 完成。MAC 地址、Global ID 和生成的前缀不会发送到服务器或分析服务。
+    routingWarning: ULA 用于私有网络内部通信，不应路由到公网。随机 ID 能降低冲突风险，但不能保证绝对唯一；连接不同站点或 VPN 前，请检查现有前缀。ULA 也不是安全边界。
+    errors:
+      invalidQuantity: 前缀数量必须在 1 到 20 之间。
+      invalidGlobalId: 请输入恰好 10 个十六进制字符作为 40 位 Global ID。
+      randomUnavailable: 当前浏览器无法使用安全随机数，请使用启用了 Web Crypto 的现代浏览器。
 
   hash-text:
     title: Hash 文本
@@ -665,8 +975,34 @@ tools:
     description: 在ipv6中，将ip地址转换为十进制、二进制、十六进制或事件
 
   text-statistics:
-    title: 文本统计
-    description: 获取有关文本、字符数、字数、大小等的信息
+    title: 文本统计 — 在线字数与字符数统计工具
+    description: 统计字数、字符、Unicode 单元、行数和 UTF-8 字节，分析高频词，并估算阅读与演讲时间。所有文本均在浏览器本地处理。
+    speakingTime: 预计朗读时间
+    speakingSpeed: 朗读速度
+    speakingSpeedAria: 每分钟朗读词数
+    wordsPerMinute: 词/分钟
+    topTerms: 高频词统计
+    excludeEnglishStopWords: 排除常见英文停用词
+    stopWordsDescription: 仅英文分析可用。排除的词不会计入本表的分母，但不会改变上方总词数。
+    analyzedTokens: "参与统计的词元：{count}"
+    termColumn: 词语
+    countColumn: 出现次数
+    shareColumn: 占比
+    noTerms: 暂无可展示的词语。
+    termFrequencyNote: 占比以本表上方显示的词元总数为分母。词频仅描述输入文本，不代表搜索量、关键词需求或排名数据。
+    customLimitTitle: 自定义字符预算
+    customLimitLabel: 自定义上限
+    customLimitAria: 自定义字符上限
+    customLimitUnit: 统计单位
+    customLimitHelp: 请按目标平台公开的计数规则设置上限。本工具不会假设或预设任何平台限制。
+    limitUnits:
+      graphemes: 可见字符（字素簇）
+      codePoints: Unicode 码点
+      utf16CodeUnits: UTF-16 代码单元
+      bytes: UTF-8 字节
+    limitRemaining: '还可输入 {count} {unit}。'
+    limitReached: '已达到自定义上限（{unit}）。'
+    limitOver: '超出自定义上限 {count}（{unit}）。'
 
   text-to-nato-alphabet:
     title: 文本转北约字母表
@@ -674,7 +1010,16 @@ tools:
 
   basic-auth-generator:
     title: 基本身份验证生成器
-    description: 从用户名和密码生成 base64 基本身份验证标头。
+    description: 生成或解码 HTTP Basic Authorization 标头，并复制 cURL、Node.js 和 Python 示例。运算在浏览器本地完成；请求请使用 HTTPS。
+    requestUrl: 代码示例的请求 URL
+    requestUrlPlaceholder: https://api.example.com/v1/resource
+    invalidRequestUrl: 请输入有效的 HTTP 或 HTTPS URL，且不要在 URL 中嵌入用户名或密码。
+    curl: cURL
+    nodeFetch: Node.js fetch
+    pythonRequests: Python requests
+    decodedPassword:
+      show: 显示解码后的密码
+      hide: 隐藏解码后的密码
 
   text-to-unicode:
     title: 文本转 Unicode
@@ -724,11 +1069,48 @@ tools:
 
   regex-tester:
     title: 正则表达式测试器 — 在线测试正则匹配
-    description: 在线测试正则表达式 — JavaScript 语法，实时高亮匹配结果，可切换标志位与捕获组。
+    description: 在线测试 JavaScript 正则表达式，实时查看匹配、捕获组和替换预览，并用命名正向/反向测试用例查看逐项通过或失败结果。
 
   safelink-decoder:
-    title: Outlook 安全链接解码器
-    description: 解码 Outlook 邮件里的 SafeLink 安全链接，还原真实地址。
+    title: Outlook Safe Links 批量解码器 — 还原原始网址
+    description: 批量解码 Microsoft Outlook Safe Links，每行一个包装链接，最多解开五层嵌套，并显示目标协议与主机；仅在浏览器本地解析，不进行安全扫描。
+    batch:
+      title: 批量解码 Outlook Safe Links
+      intro: 每行粘贴一个 Microsoft Outlook Safe Links 地址，一次处理多条邮件链接。
+      instructions: 空行会忽略；每条非空行独立解码并保留原始行号。复制时只包含成功提取的目标地址。
+      placeholder: 每行粘贴一个 Outlook Safe Links 地址...
+      decode: 开始批量解码
+      copy: 复制成功结果
+      summary: "已解码 {success}/{total} 条，失败 {failed} 条。"
+      line: "第 {line} 行"
+      success: 已提取目标地址（未进行安全检测）
+      resultDetails: "目标地址：{scheme} · {host} · 包装层数 {depth}"
+      copied: 已复制成功解码的地址。
+      copyFailed: 无法访问剪贴板，请手动选择并复制解码结果。
+    guide:
+      title: 如何批量解码 Outlook Safe Links
+      intro: 本工具只接受 Microsoft Outlook Safe Links 域名下的 HTTPS 包装链接，最多解开五层嵌套。所有操作只解析浏览器中的 URL 文本，不会请求或打开包装链接及目标网站。
+      exampleTitle: 示例：一次处理两条链接
+      example: |-
+        第 1 行：https://nam01.safelinks.protection.outlook.com/?url=https%3A%2F%2Fexample.com%2Fdocs
+        第 2 行：https://eur01.safelinks.protection.outlook.com/?url=https%3A%2F%2Fexample.org%2Faccount
+
+        提取出的目标地址：
+        https://example.com/docs
+        https://example.org/account
+      securityTitle: 重要的安全边界
+      security1: 解码成功只表示提取出了嵌入的地址。协议、主机和包装层数仅描述 URL 结构，不代表域名信誉检查或安全结论。
+      security2: 工具不会请求、打开、扫描或认证目标网站。决定访问前，请检查主机名、邮件上下文并遵循组织安全流程。
+      security3: Microsoft Safe Links 仍可在点击时执行安全检查。本工具不会替代、关闭或绕过这项保护。
+      relatedTitle: 继续检查目标地址
+      urlParser: 使用 URL Parser 查看协议、主机、端口、路径、查询参数和片段。
+      article: 阅读 Outlook Safe Links 指南
+    single:
+      title: 解码单条 Outlook Safe Links
+      instructions: 只有一条链接时，可展开下方的单条解码器；批量解码仍是页面的主要工作流。
+      placeholder: 粘贴一个 Outlook Safe Links 地址...
+      inputLabel: Outlook Safe Links 地址
+      outputLabel: 解码后的目标地址
 
   xml-to-json:
     title: XML 转 JSON
@@ -785,8 +1167,82 @@ tools:
     description: "常用 Linux 命令速查，含作用说明与可直接复用的示例，覆盖文件、文本处理、进程、网络等场景。"
 
   http-headers:
-    title: "HTTP 头与请求方法速查"
-    description: "常见 HTTP 请求头与响应头，外加九种标准请求方法的速查表，涵盖 CORS、缓存、安全字段及 safe / idempotent 语义说明。"
+    title: "HTTP 响应头分析器 — HAR 导入、CSP 与安全检查"
+    description: "导入 HAR 或粘贴 curl/DevTools 响应头，在浏览器本地检查 CSP、HSTS、Cookie、CORS 和索引状态，查看覆盖评分，并生成 Nginx、Vercel、Cloudflare 等服务器配置。"
+    analyzer:
+      cardTitle: "HTTP 响应头分析器"
+      intro: "粘贴从 curl 或浏览器 DevTools 复制的响应头。所有解析和检查都在当前标签页本地完成，不会上传你粘贴的内容。"
+      inputPlaceholder: "粘贴 curl -I / -i 输出或原始 Response Headers…"
+      loadSample: "载入示例"
+      clear: "清空"
+      supportsFormats: "支持重复响应头、curl -v 响应行，以及 curl -L 输出的重定向链。"
+      harImportLabel: "导入 HAR 或响应头文件"
+      harPrivacyNote: "HAR 或响应头文件可能包含 Cookie 或令牌。文件仅在本地读取和解析，不会上传。"
+      harTooLarge: "文件超过 10 MB，请导出较小的网络记录后重试。"
+      harNoResponses: "此 HAR 文件中没有找到包含有效状态码的 HTTP 响应。"
+      harInvalid: "无法读取此文件，请选择包含 log.entries 的有效 HAR 1.2 文件。"
+      harDropNote: "也可将 .har 或 .txt 响应头文件拖到此处，全部处理均在当前标签页本地完成。"
+      scoreLabel: "响应头覆盖评分"
+      statusLineMissing: "未包含 HTTP 状态行"
+      responseBlocks: "检测到 {count} 个响应块；按最后一个响应块评分"
+      scoreDisclaimer: "这是透明的响应头覆盖检查清单，不是 OWASP 评级、渗透测试，也不保证应用整体安全。部分策略并非所有网站都需要，错误配置还可能破坏嵌入内容或第三方资源。"
+      checksTitle: "安全响应头检查"
+      nextStep: "建议下一步"
+      otherFindings: "其他发现"
+      parsedCsp: "已解析的 Content-Security-Policy"
+      noValue: "（无值）"
+      parseEmpty: "未能解析出响应头。请粘贴完整响应头区块，每行格式应类似"
+      referenceTitle: "HTTP 响应头速查"
+      searchPlaceholder: "按响应头名称或用途搜索，例如 Cookie / CORS / cache…"
+      entriesCount: "{count} 条"
+      noMatches: "没有匹配的响应头，请尝试其他关键词。"
+      methodsTitle: "HTTP 请求方法"
+      methodsIntro: "九种标准请求方法，以及每种方法是否安全、是否幂等。"
+      method: "方法"
+      safe: "安全"
+      idempotent: "幂等"
+      description: "说明"
+      yes: "是"
+      no: "否"
+      checks:
+        csp: "内容安全策略（CSP）"
+        hsts: "严格传输安全（HSTS）"
+        frame: "页面框架嵌入保护"
+        nosniff: "MIME 类型嗅探保护"
+        referrer: "来源地址策略"
+        permissions: "浏览器权限策略"
+        isolation: "跨源隔离策略"
+      severity:
+        high: "高"
+        medium: "中"
+        info: "提示"
+      direction:
+        request: "请求"
+        response: "响应"
+        both: "请求与响应"
+      findings:
+        cookie: "Cookie {name}"
+        serverDisclosure: "服务器信息泄露"
+        corsCredentials: "CORS 凭据配置冲突"
+        weakCsp: "CSP 包含不安全的来源表达式"
+        broadCsp: "CSP 使用过于宽泛的通配符来源"
+        noindex: "X-Robots-Tag 阻止页面索引"
+        noCacheControl: "未设置 Cache-Control 缓存策略"
+        redirect: "当前响应是重定向"
+        httpError: "HTTP 错误响应"
+        multipleBlocks: "检测到多个响应块"
+      remediation:
+        title: "可复制的服务器配置"
+        intro: "选择服务器类型，为明确缺失且风险较低的响应头生成配置片段。"
+        copy: "复制配置"
+        copied: "配置已复制"
+        caution: "部署前请先在预发布环境验证。HSTS 仅在 HTTPS 响应中生效。生成器刻意不自动生成 CSP、框架嵌入策略、Permissions-Policy、CORS 和 Cookie 修改，因为正确配置取决于具体应用。"
+        platforms:
+          nginx: "Nginx"
+          apache: "Apache"
+          caddy: "Caddy"
+          vercel: "Vercel（vercel.json）"
+          cloudflare: "Cloudflare Pages"
 
   ascii-table:
     title: "ASCII 码表"

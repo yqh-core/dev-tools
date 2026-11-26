@@ -27,6 +27,7 @@ import { fileURLToPath } from 'node:url';
 import { createServer } from 'vite';
 import { parse } from 'yaml';
 import { parseRegistry } from './lib/locale-registry.mjs';
+import { createSocialCardPng } from './social-cards.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const DRY_RUN = process.argv.includes('--dry-run');
@@ -83,12 +84,13 @@ const hasKey = (loc, dotted) => {
   const v = dotted.split('.').reduce((o, k) => (o == null ? o : o[k]), MESSAGES_BY_LOCALE[loc]);
   return typeof v === 'string' && v.trim().length > 0;
 };
-// 与客户端真实页脚的链接集合一致：首页 / 关于 + 3 个法务页。
+// 与客户端真实页脚的链接集合一致：首页 / 关于 + 隐私 / 条款 / FAQ / 联系。
 const FOOTER_LINKS = [
   { href: '/', text: label('home.home') },
   { href: '/about/', text: label('home.nav.aboutLabel') },
   { href: '/privacy/', text: label('legal.privacy') },
   { href: '/terms/', text: label('legal.terms') },
+  { href: '/faq/', text: label('legal.faq') },
   { href: '/contact/', text: label('legal.contact') },
 ];
 
@@ -116,6 +118,102 @@ function replaceOnce(haystack, needle, value) {
   }
 
   return haystack.replace(needle, () => value);
+}
+
+function decodeHtmlEntities(value) {
+  return String(value ?? '')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;|&#x27;/g, "'")
+    .replace(/&amp;/g, '&')
+    .replace(/&nbsp;/g, ' ');
+}
+
+/** Normalize HTML-escaped metadata for semantic equality checks, not visual content. */
+function normalizeSeoText(value) {
+  let text = String(value ?? '');
+  for (let i = 0; i < 3; i += 1) {
+    const decoded = decodeHtmlEntities(text);
+    if (decoded === text) break;
+    text = decoded;
+  }
+  return text.normalize('NFC').replace(/[\s\u00a0\u200b]+/g, ' ').trim();
+}
+
+function extractMetaContent(headTags, attribute, value) {
+  const tags = headTags.match(/<meta\b[^>]*>/gi) ?? [];
+  const tag = tags.find(item => item.includes(attribute + '="' + value + '"') || item.includes(attribute + "='" + value + "'"));
+  return decodeHtmlEntities(tag?.match(/\bcontent=(["'])(.*?)\1/i)?.[2] ?? '');
+}
+
+function extractSocialTitle(headTags) {
+  const title = decodeHtmlEntities(headTags.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1] ?? '');
+  return title.replace(/\s+-\s+DigDevBox$/i, '').trim();
+}
+
+function escapeHtmlAttribute(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+function setMetaContent(headTags, attribute, name, content) {
+  const keyDouble = `${attribute}="${name}"`;
+  const keySingle = `${attribute}='${name}'`;
+  const withoutExisting = headTags.replace(/<meta\b[^>]*>/gi, (tag) =>
+    tag.includes(keyDouble) || tag.includes(keySingle) ? '' : tag);
+  return `${withoutExisting}\n<meta ${attribute}="${name}" content="${escapeHtmlAttribute(content)}">`;
+}
+
+function setPageTitle(headTags, title) {
+  const withoutExisting = headTags.replace(/<title\b[^>]*>[\s\S]*?<\/title>/gi, '');
+  return `<title>${escapeHtmlAttribute(title)}</title>\n${withoutExisting}`;
+}
+
+/** GuideArticle.vue uses the same default-locale messages and guide summary builder. */
+function setGuidePageHead(headTags, guidePage, canonical, imageUrl, buildGuideMetaDescription, messages) {
+  const toolKey = guidePage.toolPath.split('/').join('');
+  const toolMessages = messages.tools?.[toolKey] ?? {};
+  const toolTitle = typeof toolMessages.title === 'string' && toolMessages.title.trim()
+    ? toolMessages.title
+    : guidePage.entry.h1;
+  const toolDescription = typeof toolMessages.description === 'string'
+    ? toolMessages.description
+    : guidePage.entry.description;
+  const toolH1 = String(toolTitle ?? guidePage.entry.h1).split(' — ')[0];
+  const suffix = messages.guideArticle?.suffix;
+  const siteName = messages.legal?.siteName;
+  if (!toolH1 || typeof suffix !== 'string' || typeof siteName !== 'string' ||
+      !toolDescription || !guidePage.entry.guide) {
+    throw new Error(`[build-seo] ${guidePage.path} cannot resolve the same title/description data as GuideArticle.vue`);
+  }
+
+  const title = `${toolH1} — ${suffix} - ${siteName}`;
+  const description = buildGuideMetaDescription(guidePage.entry.guide, toolDescription);
+  if (!description) {
+    throw new Error(`[build-seo] ${guidePage.path} has no guide description for its social card`);
+  }
+
+  let output = setPageTitle(headTags, title);
+  output = setMetaContent(output, 'name', 'description', description);
+  output = setMetaContent(output, 'property', 'og:url', canonical);
+  output = setMetaContent(output, 'property', 'og:type', 'article');
+  output = setMetaContent(output, 'property', 'og:title', title);
+  output = setMetaContent(output, 'property', 'og:description', description);
+  output = setMetaContent(output, 'property', 'og:image', imageUrl);
+  output = setMetaContent(output, 'property', 'og:image:type', 'image/png');
+  output = setMetaContent(output, 'property', 'og:image:width', '1200');
+  output = setMetaContent(output, 'property', 'og:image:height', '630');
+  output = setMetaContent(output, 'property', 'og:image:alt', title);
+  output = setMetaContent(output, 'name', 'twitter:card', 'summary_large_image');
+  output = setMetaContent(output, 'name', 'twitter:title', title);
+  output = setMetaContent(output, 'name', 'twitter:description', description);
+  output = setMetaContent(output, 'name', 'twitter:image', imageUrl);
+  output = setMetaContent(output, 'name', 'twitter:image:alt', title);
+  return output;
 }
 
 function buildSitemap(entries) {
@@ -322,7 +420,7 @@ function buildFaqPageLd(entry) {
 
 try {
   // —— 全部从 TypeScript 侧取，保证与页面/路由使用同一份数据 ——
-  const { canonicalUrl, SITE_ORIGIN } = await vite.ssrLoadModule('/src/seo/site.ts');
+  const { canonicalUrl, socialImagePath, socialImageUrl, SITE_ORIGIN } = await vite.ssrLoadModule('/src/seo/site.ts');
   const { buildGuideMetaDescription } = await vite.ssrLoadModule('/src/seo/guide-links.ts');
   const robotsSource = await readFile(join(root, 'public/robots.txt'), 'utf8');
   if (!robotsSource.includes(`Sitemap: ${SITE_ORIGIN}/sitemap.xml`)) {
@@ -384,6 +482,29 @@ try {
   );
   console.log(`[keyword-map] 优先级分布 ${kwAudit.byPriority.join(' ')}｜搜索量 ${kwAudit.searchVolume}`);
 
+  // Normalize all SSG tool labels from the exact locale file used by the title-lock audit.
+  // The static registry may have been initialized with an older name; SEO HTML, breadcrumbs,
+  // internal workflow labels and SoftwareApplication JSON-LD must all use one title source.
+  const TOOL_TITLES_BY_PATH = Object.fromEntries(TOOL_SEO_PAGES.map((entry) => {
+    const key = entry.path.split('/').join('');
+    const title = messages.tools?.[key]?.title;
+    if (typeof title !== 'string' || !title.trim()) {
+      throw new Error(`[build-seo] locales/${DEFAULT_LOCALE}.yml 缺少工具标题: ${key}`);
+    }
+    return [entry.path, title.trim()];
+  }));
+  const TOOL_SEO_ENTRIES_BY_PATH = new Map(TOOL_SEO_PAGES.map((entry) => {
+    const titleFor = (path, fallback) => TOOL_TITLES_BY_PATH[path] ?? fallback;
+    const name = titleFor(entry.path, entry.name);
+    return [entry.path, {
+      ...entry,
+      name,
+      h1: name.split(' — ')[0],
+      related: entry.related.map(item => ({ ...item, name: titleFor(item.path, item.name) })),
+      workflow: entry.workflow.map(item => ({ ...item, name: titleFor(item.path, item.name) })),
+    }];
+  }));
+
   const staticPaths = new Set(STATIC_ROUTES.map(({ path }) => path));
   const collide = TOOL_SEO_PAGES.filter(({ path }) => staticPaths.has(path));
   if (collide.length > 0) {
@@ -418,7 +539,7 @@ try {
   const results = [];
   for (const job of jobs) {
     const r = job.kind === 'tool'
-      ? await mod.renderTool(job.path)
+      ? await mod.renderTool(job.path, TOOL_TITLES_BY_PATH)
       : job.kind === 'guide'
         ? await mod.renderGuideArticle(job.path)
         : await mod.render(job.path);
@@ -751,13 +872,15 @@ try {
   }
 
   let thinPages = 0;
+  let socialImagesCreated = 0;
+  const socialImagePaths = new Set();
   for (const { path, kind, html: rawHtml, headTags } of results) {
     const canonical = canonicalUrl(path);
     // 先剥注释再注入：dev 模式下 Vue 会把模板注释输出到渲染结果里（见 stripComments）
     const html = stripComments(rawHtml);
     // 工具页在 page-seo 区块尾部追加 SoftwareApplication / BreadcrumbList JSON-LD（见函数注释）
     // 注意 faqs 挂在 entry.guide.faqs（ToolGuide 的字段），不是 entry.faqs
-    const entry = kind === 'tool' ? TOOL_SEO_PAGES.find(item => item.path === path) : undefined;
+    const entry = kind === 'tool' ? TOOL_SEO_ENTRIES_BY_PATH.get(path) : undefined;
     let pageTags = kind === 'tool'
       ? `${headTags}`
         + `\n      <script type="application/ld+json">${buildSoftwareApplicationLd(entry, canonical)}</script>`
@@ -765,6 +888,14 @@ try {
       : headTags;
     const guidePage = kind === 'guide' ? GUIDE_ARTICLE_PAGES.find(item => item.path === path) : undefined;
     if (guidePage) {
+      pageTags = setGuidePageHead(
+        pageTags,
+        guidePage,
+        canonical,
+        socialImageUrl(path),
+        buildGuideMetaDescription,
+        messages,
+      );
       pageTags += `\n      <script type="application/ld+json">${buildGuideArticleLd(guidePage, canonical, SITE_ORIGIN)}</script>`;
       pageTags += `\n      <script type="application/ld+json">${buildGuideBreadcrumbLd(guidePage, canonical, SITE_ORIGIN)}</script>`;
       if (guidePage.sections.some(s => s.kind === 'faqs')) {
@@ -777,6 +908,47 @@ try {
     if (entry?.guide?.faqs?.length) {
       pageTags += `\n      <script type="application/ld+json">${buildFaqPageLd(entry)}</script>`;
     }
+
+    // Every prerendered route receives its own 1200×630 PNG social card.
+    const imagePath = socialImagePath(path);
+    const imageUrl = socialImageUrl(path);
+    if (socialImagePaths.has(imagePath)) {
+      throw new Error(`[build-seo] duplicate social image path ${imagePath} generated by route ${path}`);
+    }
+    socialImagePaths.add(imagePath);
+    const socialTitle = extractSocialTitle(pageTags);
+    const socialDescription = extractMetaContent(pageTags, 'name', 'description');
+    const socialImageTag = extractMetaContent(pageTags, 'property', 'og:image');
+    const twitterImageTag = extractMetaContent(pageTags, 'name', 'twitter:image');
+    const socialImageType = extractMetaContent(pageTags, 'property', 'og:image:type');
+    const socialImageWidth = extractMetaContent(pageTags, 'property', 'og:image:width');
+    const socialImageHeight = extractMetaContent(pageTags, 'property', 'og:image:height');
+    if (!socialTitle || !socialDescription) {
+      throw new Error(`[build-seo] ${path} is missing the title or description required for its social card`);
+    }
+    if (socialImageTag !== imageUrl || twitterImageTag !== imageUrl || socialImageType !== 'image/png' || socialImageWidth !== '1200' || socialImageHeight !== '630') {
+      throw new Error(`[build-seo] ${path} has incorrect social image metadata: ${JSON.stringify({ expected: imageUrl, og: socialImageTag, twitter: twitterImageTag })}`);
+    }
+    const socialImage = createSocialCardPng({
+      title: socialTitle,
+      description: socialDescription,
+      path,
+      kind,
+    });
+    if (socialImage.readUInt32BE(16) !== 1200 || socialImage.readUInt32BE(20) !== 630) {
+      throw new Error(`[build-seo] ${path} social card is not 1200×630`);
+    }
+    if (!DRY_RUN) {
+      const relativeImagePath = imagePath.startsWith('/') ? imagePath.slice(1) : imagePath;
+      const socialFile = join(root, 'dist', relativeImagePath);
+      await mkdir(dirname(socialFile), { recursive: true });
+      await writeFile(socialFile, socialImage);
+      if (!existsSync(socialFile)) {
+        throw new Error(`[build-seo] ${path} generated image is missing from dist: ${socialFile}`);
+      }
+    }
+    socialImagesCreated += 1;
+
     // The prerenderer renders page components without App.vue's layout wrapper.
     // Add the main landmark to the initial HTML so crawlers and assistive tech see it
     // before the client app mounts; the per-page self-check below enforces exactly one.
@@ -843,7 +1015,21 @@ try {
       }
     }
     if (kind === 'tool') {
-      const entry = TOOL_SEO_PAGES.find(item => item.path === path);
+      const entry = TOOL_SEO_ENTRIES_BY_PATH.get(path);
+      const expectedTitle = normalizeSeoText(entry.name);
+      const expectedFullTitle = normalizeSeoText(`${entry.name} - ${messages.site.name}`);
+      const actualTitle = normalizeSeoText(extractSocialTitle(out));
+      const ogTitle = normalizeSeoText(extractMetaContent(out, 'property', 'og:title'));
+      const itempropName = normalizeSeoText(extractMetaContent(out, 'itemprop', 'name'));
+      const description = extractMetaContent(out, 'name', 'description');
+      const ogDescription = extractMetaContent(out, 'property', 'og:description');
+      const itempropDescription = extractMetaContent(out, 'itemprop', 'description');
+      if (actualTitle !== expectedTitle) { problems.push(`title 与 locales/${DEFAULT_LOCALE}.yml 不一致(${actualTitle})`); }
+      if (ogTitle !== expectedFullTitle) { problems.push(`og:title 与页面标题不一致(expected=${JSON.stringify(expectedFullTitle)}, actual=${JSON.stringify(ogTitle)})`); }
+      if (itempropName !== expectedFullTitle) { problems.push(`itemprop name 与页面标题不一致(expected=${JSON.stringify(expectedFullTitle)}, actual=${JSON.stringify(itempropName)})`); }
+      if (description !== entry.description) { problems.push('meta description 与工具定义不一致'); }
+      if (ogDescription !== entry.description) { problems.push('og:description 与 meta description 不一致'); }
+      if (itempropDescription !== entry.description) { problems.push('itemprop description 与 meta description 不一致'); }
       if (!/<h1[\s>]/i.test(html)) { problems.push('缺少 H1'); }
       if (!squash(bodyRaw).includes(squash(entry.name))) {
         problems.push(`正文里找不到工具名(${entry.name})`);
@@ -897,12 +1083,13 @@ try {
 
     if (bodyText < 200) { thinPages += 1; }
 
-    console.log(
+  console.log(
       `[build-seo] ${path.padEnd(42)} html=${String(html.length).padStart(6)}B`
       + `  text=${String(bodyText).padStart(5)}  canonical=${canonical}`,
     );
   }
 
+  console.log(`[social] ${socialImagesCreated}/${results.length} routes generated unique PNG Open Graph cards (1200×630)`);
   console.log(
     `[build-seo] 完成：${results.length} 个页面（静态 ${STATIC_ROUTES.length} + 工具 ${TOOL_SEO_PAGES.length} + 指南 ${GUIDE_ARTICLE_PAGES.length}）`
     + ` + sitemap（${sitemapEntries.length} 条）。站点源 ${SITE_ORIGIN}`,

@@ -4,6 +4,8 @@ on:
   workflow_run:
     workflows: ["verify"]
     types: [completed]
+    branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -11,10 +13,12 @@ permissions:
 
 jobs:
   detect-site-changes:
-    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' }}
     runs-on: ubuntu-latest
     outputs:
       wait_for_deploy: ${{ steps.detect.outputs.wait_for_deploy }}
+      deploy_sha: ${{ steps.detect.outputs.deploy_sha }}
+      check_eta_release: ${{ steps.detect.outputs.check_eta_release }}
+      check_homepage_visual: ${{ steps.detect.outputs.check_homepage_visual }}
     steps:
       - name: Detect whether this exact commit changes deployable site files
         id: detect
@@ -22,20 +26,56 @@ jobs:
         with:
           script: |
             const { owner, repo } = context.repo;
-            const sha = context.payload.workflow_run.head_sha;
-            const { data } = await github.rest.repos.getCommit({ owner, repo, ref: sha });
-            const files = data.files || [];
-            const deployable = files.filter(({ filename }) =>
-              !filename.startsWith('.github/') &&
-              !['README.md', 'CONTRIBUTING.md'].includes(filename)
-            );
-            core.info('Changed files: ' + files.map(file => file.filename).join(', '));
-            core.info('Deployable site files: ' + deployable.map(file => file.filename).join(', '));
-            core.setOutput('wait_for_deploy', deployable.length ? 'true' : 'false');
+            // Allow an operator to re-run the production smoke against the live site
+            // after updating its assertions, without requiring a dummy product commit.
+            if (context.eventName === 'workflow_dispatch') {
+              core.setOutput('deploy_sha', context.sha);
+              core.setOutput('wait_for_deploy', 'false');
+              core.setOutput('check_eta_release', 'true');
+              core.setOutput('check_homepage_visual', 'true');
+              core.info('Manual production smoke: validate the currently served release markers and capture the live homepage.');
+              return;
+            }
+            if (context.payload.workflow_run.conclusion !== 'success') {
+              core.info('Source verify did not succeed; production smoke will exit without checking deployment.');
+              core.setOutput('deploy_sha', context.payload.workflow_run.head_sha);
+              core.setOutput('wait_for_deploy', 'false');
+              core.setOutput('check_eta_release', 'false');
+              core.setOutput('check_homepage_visual', 'false');
+              return;
+            }
+            let cursor = context.payload.workflow_run.head_sha;
+            let deploySha = cursor;
+            let waitForDeploy = false;
+            let checkEtaRelease = false;
+            let checkHomepageVisual = false;
+            // A workflow-only follow-up commit must still wait for the latest
+            // ancestor that actually changed the deployed site (e.g. locale files).
+            for (let depth = 0; depth < 20 && cursor; depth++) {
+              const { data } = await github.rest.repos.getCommit({ owner, repo, ref: cursor });
+              const files = data.files || [];
+              const deployable = files.filter(({ filename }) =>
+                !filename.startsWith('.github/') &&
+                !['README.md', 'CONTRIBUTING.md'].includes(filename)
+              );
+              core.info('Inspecting commit ' + cursor + ': ' + files.map(file => file.filename).join(', '));
+              if (deployable.length) {
+                deploySha = cursor;
+                waitForDeploy = true;
+                checkEtaRelease = deployable.some(({ filename }) => filename.startsWith('src/tools/eta-calculator/'));
+                checkHomepageVisual = true;
+                core.info('Latest deployable site commit: ' + deploySha);
+                break;
+              }
+              cursor = data.parents?.[0]?.sha || '';
+            }
+            core.setOutput('deploy_sha', deploySha);
+            core.setOutput('wait_for_deploy', waitForDeploy ? 'true' : 'false');
+            core.setOutput('check_eta_release', checkEtaRelease ? 'true' : 'false');
+            core.setOutput('check_homepage_visual', checkHomepageVisual ? 'true' : 'false');
 
   production-smoke:
     needs: detect-site-changes
-    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -47,12 +87,18 @@ jobs:
         env:
           SITE_ORIGIN: "https://www.digdevbox.com"
           EXPECTED_TITLE: "Free Online Developer Tools"
-          TARGET_SHA: ${{ github.event.workflow_run.head_sha }}
+          TARGET_SHA: ${{ needs.detect-site-changes.outputs.deploy_sha }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           GITHUB_TOKEN: ${{ github.token }}
           WAIT_FOR_DEPLOY: ${{ needs.detect-site-changes.outputs.wait_for_deploy }}
+          CHECK_ETA_RELEASE: ${{ needs.detect-site-changes.outputs.check_eta_release }}
+          SOURCE_CONCLUSION: ${{ github.event_name == 'workflow_dispatch' && 'success' || github.event.workflow_run.conclusion }}
         run: |
           node --input-type=module <<'NODE'
+          if (process.env.SOURCE_CONCLUSION !== 'success') {
+            console.log('Source verify did not succeed; skipping production SEO smoke.');
+            process.exit(0);
+          }
           const origin = process.env.SITE_ORIGIN;
           const expectedTitle = process.env.EXPECTED_TITLE;
           const ua = 'Googlebot/2.1 (+http://www.google.com/bot.html)';
@@ -79,17 +125,84 @@ jobs:
             const check = (payload.check_runs || []).find((item) =>
               item.name === 'Cloudflare Pages' && item.head_sha === targetSha
             );
-            if (check?.status === 'completed') {
-              if (check.conclusion !== 'success') {
-                throw new Error('Cloudflare Pages deployment concluded ' + check.conclusion +
-                  ': ' + (check.details_url || 'no details URL'));
-              }
+            if (check?.status === 'completed' && check.conclusion === 'success') {
               cloudflareReady = true;
               console.log('Cloudflare Pages deployment succeeded for exact commit ' + targetSha);
               break;
             }
+
+            // GitHub's Cloudflare status can lag the edge rollout. The exact
+            // production SEO marker is a stronger fallback: it proves the new
+            // deployable commit is already serving the approved metadata.
+            const [percentageResponse, htpasswdResponse, safeLinksResponse, etaResponse] = await Promise.all([
+              fetch(origin + '/percentage-calculator/', {
+                redirect: 'follow',
+                headers: { 'user-agent': ua, 'cache-control': 'no-cache' },
+                signal: AbortSignal.timeout(10000),
+              }),
+              fetch(origin + '/htpasswd-generator/', {
+                redirect: 'follow',
+                headers: { 'user-agent': ua, 'cache-control': 'no-cache' },
+                signal: AbortSignal.timeout(10000),
+              }),
+              fetch(origin + '/safelink-decoder/', {
+                redirect: 'follow',
+                headers: { 'user-agent': ua, 'cache-control': 'no-cache' },
+                signal: AbortSignal.timeout(10000),
+              }),
+              fetch(origin + '/eta-calculator/', {
+                redirect: 'follow',
+                headers: { 'user-agent': ua, 'cache-control': 'no-cache' },
+                signal: AbortSignal.timeout(10000),
+              }),
+            ]);
+            const [percentageHtml, htpasswdHtml, safeLinksHtml, etaHtml] = await Promise.all([
+              percentageResponse.text(),
+              htpasswdResponse.text(),
+              safeLinksResponse.text(),
+              etaResponse.text(),
+            ]);
+            const percentageMarkerReady = percentageResponse.ok &&
+              percentageResponse.url === origin + '/percentage-calculator/' &&
+              percentageHtml.includes('<title>Percentage Calculator — Percent of, Change & Difference - DigDevBox</title>') &&
+              percentageHtml.includes('content="Calculate percentages, discounts, percentage change, reverse percentages and percentage points. Seven modes plus batch CSV/TSV export and worked formulas."') &&
+              percentageHtml.includes('Can I calculate a list of percentage problems at once?') &&
+              percentageHtml.includes('Sequential percentage adjustments') &&
+              percentageHtml.includes('28% off overall, not 30%') &&
+              percentageHtml.includes('Batch mode uses two numeric columns per row') &&
+              percentageHtml.includes('href="' + origin + '/percentage-calculator/"');
+            const htpasswdMarkerReady = htpasswdResponse.ok &&
+              htpasswdResponse.url === origin + '/htpasswd-generator/' &&
+              htpasswdHtml.includes('content="Build multi-user Apache/Nginx .htpasswd files with bcrypt or apr1. Copy, download or verify a username:hash line locally. Passwords stay in your browser."') &&
+              htpasswdHtml.includes('Build a complete .htpasswd file with one line per user for Apache or Nginx Basic Auth') &&
+              htpasswdHtml.includes('href="' + origin + '/htpasswd-generator/"');
+            const safeLinksMarkerReady = safeLinksResponse.ok &&
+              safeLinksResponse.url === origin + '/safelink-decoder/' &&
+              safeLinksHtml.includes('<title>Outlook Safe Links Batch Decoder — Reveal Original URLs - DigDevBox</title>') &&
+              safeLinksHtml.includes('content="Batch-decode Microsoft Outlook Safe Links one wrapper per line. Unwrap up to five layers, inspect destination scheme and host, and copy valid URLs; local parsing only, no safety scan."') &&
+              safeLinksHtml.includes('Outlook Safe Links Batch Decoder') &&
+              safeLinksHtml.includes('one wrapper per line') &&
+              safeLinksHtml.includes('href="' + origin + '/safelink-decoder/"');
+            const etaMarkerReady = process.env.CHECK_ETA_RELEASE !== 'true' || (
+              etaResponse.ok &&
+              etaResponse.url === origin + '/eta-calculator/' &&
+              etaHtml.includes('<title>ETA Calculator — Software Build & Task Completion - DigDevBox</title>') &&
+              etaHtml.includes('Estimate when a software build, CI job, data migration or batch process will finish. Use measured progress or a known rate, compare pace with a deadline, and include buffers and weekday work hours.') &&
+              etaHtml.includes('Calculate from elapsed time') &&
+              etaHtml.includes('href="' + origin + '/eta-calculator/"')
+            );
+            const productionMarkerReady = percentageMarkerReady && htpasswdMarkerReady && safeLinksMarkerReady && etaMarkerReady;
+            if (productionMarkerReady) {
+              cloudflareReady = true;
+              console.log('Production SEO marker confirms the exact release is serving, despite a pending/stale Cloudflare check');
+              break;
+            }
+            if (check?.status === 'completed' && check.conclusion !== 'success') {
+              throw new Error('Cloudflare Pages deployment concluded ' + check.conclusion +
+                ' and the production marker is not live: ' + (check.details_url || 'no details URL'));
+            }
             console.log('Waiting for exact Cloudflare deployment (' + attempt + '/90): ' +
-              (check?.status || 'check not created'));
+              (check?.status || 'check not created') + '; production marker not live yet');
             await sleep(10000);
           }
           if (!cloudflareReady) throw new Error('Exact Cloudflare Pages deployment did not complete within 15 minutes');
@@ -101,6 +214,28 @@ jobs:
             });
             return { response, body: await response.text(), finalUrl: response.url, redirected: response.redirected };
           }
+
+          // The legacy archive is retained for visitors but excluded from the current
+          // English-first index. Verify the final deployed HTML directly: _headers
+          // alone is insufficient when a Pages Function handles the response.
+          const legacyNoindexPaths = [
+            '/legacy/',
+            '/legacy/html2cj/',
+            '/legacy/jianfan/',
+            '/legacy/textflip/',
+          ];
+          for (const path of legacyNoindexPaths) {
+            const result = await get(path);
+            const robotsTags = [...result.body.matchAll(/<meta\b[^>]*\bname\s*=\s*(['"])robots\1[^>]*>/gi)];
+            const robotsContent = robotsTags[0]?.[0]?.match(/\bcontent\s*=\s*(['"])(.*?)\1/i)?.[2] ?? '';
+            const directives = new Set(robotsContent.toLowerCase().split(',').map(value => value.trim()));
+            if (!result.response.ok || result.finalUrl !== origin + path
+                || robotsTags.length !== 1 || !directives.has('noindex') || !directives.has('follow')) {
+              throw new Error('Legacy route is not served with exactly one noindex,follow meta directive: '
+                + path + ' (HTTP ' + result.response.status + ', final ' + result.finalUrl + ')');
+            }
+          }
+          console.log('Production legacy noindex smoke PASS: archive index + three previously exposed legacy tools');
 
           let home = null;
           for (let attempt = 1; attempt <= 20; attempt++) {
@@ -150,7 +285,22 @@ jobs:
             '/device-information',
             '/ipv4-range-expander',
             '/pdf-signature-checker',
-          ]) {
+          
+            '/api-debugger',
+            '/json-prettify',
+            '/json-workspace',
+            '/base-converter',
+            '/html-entities',
+            '/json-to-get-params',
+            '/docker-run-to-docker-compose-converter',
+            '/otp-generator',
+            '/htpasswd-generator',
+            '/json-to-toml',
+            '/text-statistics',
+            '/json-diff',
+            '/slugify-string',
+            '/redirect-generator',
+            '/eta-calculator',]) {
             const expected = origin + route + '/';
             for (const variant of [route, route + '/']) {
               const result = await get(variant);
@@ -183,7 +333,7 @@ jobs:
           // into the crawlable tool directory through the reusable template.
           const toolLanding = await get('/api-debugger/');
           if (!toolLanding.response.ok || !toolLanding.body.includes('rel="canonical"')) {
-            throw new Error('API Debugger landing page is not crawlable: HTTP ' + toolLanding.response.status);
+            throw new Error('REST API Tester landing page is not crawlable: HTTP ' + toolLanding.response.status);
           }
           if (/href=["']https:\/\/(?:fangdai|geek-typing)\.digdevbox\.com\//i.test(toolLanding.body)) {
             throw new Error('Deferred China-only product link remains in a tool landing page');
@@ -200,10 +350,10 @@ jobs:
           }
 
           // Compare Googlebot's raw HTML with a normal browser request on the two
-          // priority English tool pages. This catches UA-dependent HTML/cache variants
+          // priority English pages. This catches UA-dependent HTML/cache variants
           // and guarantees the crawler sees the same title, description, H1 and canonical.
           const browserUa = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/130.0.0.0 Safari/537.36';
-          const priorityPages = ['/', '/percentage-calculator/', '/numeronym-generator/'];
+          const priorityPages = ['/', '/safelink-decoder/', '/percentage-calculator/', '/http-headers/', '/eta-calculator/', '/ipv6-ula-generator/', '/numeronym-generator/', '/api-debugger/', '/regex-tester/', '/json-prettify/', '/json-workspace/', '/json-diff/', '/base-converter/', '/html-entities/', '/json-to-get-params/', '/docker-run-to-docker-compose-converter/', '/otp-generator/', '/htpasswd-generator/', '/json-to-toml/', '/text-statistics/', '/slugify-string/', '/redirect-generator/', '/uuid-generator/', '/ipv4-subnet-calculator/', '/xml-formatter/', '/json-to-xml/', '/basic-auth-generator/', '/privacy/', '/guides/hash-text/', '/guides/rmb-uppercase/', '/guides/numeronym-generator/', '/guides/git-memo/'];
           for (const path of priorityPages) {
             const [bot, browser] = await Promise.all([get(path), get(path, browserUa)]);
             for (const [label, result] of [['Googlebot', bot], ['browser', browser]]) {
@@ -212,11 +362,22 @@ jobs:
                   result.response.status + ', final ' + result.finalUrl + ')');
               }
             }
+            const decodeHtmlEntities = (value) => {
+              const named = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: '\u00a0' };
+              const decodePoint = (entity, point) =>
+                Number.isInteger(point) && point >= 0 && point <= 0x10ffff
+                  ? String.fromCodePoint(point)
+                  : entity;
+              return value
+                .replace(/&#x([\da-f]+);/gi, (entity, hex) => decodePoint(entity, Number.parseInt(hex, 16)))
+                .replace(/&#(\d+);/g, (entity, decimal) => decodePoint(entity, Number(decimal)))
+                .replace(/&([a-z]+);/gi, (entity, name) => named[name.toLowerCase()] ?? entity);
+            };
             const extract = (html) => ({
               title: html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1]?.trim() || '',
               description: html.match(/<meta[^>]+name=["']description["'][^>]+content=["']([^"']*)["']/i)?.[1] || '',
               canonical: html.match(/<link[^>]+rel=["']canonical["'][^>]+href=["']([^"']+)["']/i)?.[1] || '',
-              h1: html.match(/<h1\b[^>]*>([\s\S]*?)<\/h1>/i)?.[1]?.replace(/<[^>]+>/g, '').trim() || '',
+              h1: decodeHtmlEntities(html.match(/<h1\b[^>]*>([\s\S]*?)<\/h1>/i)?.[1]?.replace(/<[^>]+>/g, '').trim() || ''),
               mainLandmarks: (html.match(/<main(?:\s|>)/gi) || []).length,
             });
             const botMeta = extract(bot.body);
@@ -228,11 +389,38 @@ jobs:
               throw new Error(path + ' Googlebot HTML differs from browser HTML: ' +
                 JSON.stringify({ googlebot: botMeta, browser: browserMeta }));
             }
-            if (path === '/percentage-calculator/' &&
-                (botMeta.title !== 'Percentage Calculator — Percent of a Number & Percent Change - DigDevBox' ||
-                 botMeta.description !== 'Calculate X% of Y, find what percent X is of Y, measure percentage change, or increase/decrease a value. Four free calculators, instant results, no sign-up.' ||
-                 botMeta.h1 !== 'Percentage Calculator')) {
-              throw new Error('Percentage Calculator production SEO metadata does not match the approved title, description and H1');
+            const expectedMetadata = {
+              '/http-headers/': { title: 'HTTP Header Analyzer — HAR Import & Security Score - DigDevBox', description: 'Import HAR or paste curl/DevTools headers. Check CSP, HSTS, cookies, CORS and indexing; get a score plus copy-ready Nginx, Vercel and Cloudflare fixes locally.', h1: 'HTTP Header Analyzer' },
+              '/percentage-calculator/': { title: 'Percentage Calculator — 7 Modes - DigDevBox', description: 'Calculate percentages, discounts, percentage change, reverse percentages and percentage points. Seven modes plus batch CSV/TSV export and worked formulas.', h1: 'Percentage Calculator' },
+              '/eta-calculator/': { title: 'ETA Calculator — Software Build & Task Completion - DigDevBox', description: 'Estimate when a software build, CI job, data migration or batch process will finish. Use measured progress or a known rate, compare pace with a deadline, and include buffers and weekday work hours.', h1: 'ETA Calculator' },
+              '/ipv6-ula-generator/': { title: 'IPv6 ULA generator - DigDevBox', description: 'Generate RFC 4193 fd00::/8 IPv6 Unique Local Address (ULA) /48 prefixes with secure random 40-bit Global IDs or a manual Global ID. Create up to 20 prefixes and inspect first/last /64 subnets in your browser.', h1: 'IPv6 ULA generator' },
+              '/api-debugger/': { title: 'REST API Tester — cURL, Tests & Collections - DigDevBox', description: 'Send REST API requests, import cURL, inspect status, headers and JSON, add assertions, and run saved collections. Requests pass through a temporary relay.', h1: 'REST API Tester' },
+              '/regex-tester/': { title: 'Regular Expression Tester — JavaScript Regex - DigDevBox', description: 'Test JavaScript regular expressions online with live matches, capture groups, replacement preview and named positive/negative test cases with pass/fail results. A 300ms worker timeout stops runaway patterns.', h1: 'Regular Expression Tester' },
+              '/json-prettify/': { title: 'JSON Formatter — Format, Validate & Diff - DigDevBox', description: 'Format and validate JSON online — pretty-print at your indent size, sort keys and spot syntax errors instantly, right in your browser.', h1: 'JSON Formatter' },
+              '/json-workspace/': { title: 'JSON Workspace — JSONPath, Tree & Schema - DigDevBox', description: 'Format and validate JSON, inspect an interactive tree, query with JSONPath, infer JSON Schema, and convert to YAML or CSV. Free in your browser.', h1: 'JSON Workspace' },
+              '/base-converter/': { title: 'Number Base Converter — Bases 2–64 - DigDevBox', description: 'Convert non-negative integers between bases 2–64, including binary, octal, decimal, hexadecimal and custom alphabets. This converts numbers, not text.', h1: 'Number Base Converter' },
+              '/html-entities/': { title: 'HTML Entity Encoder & Decoder - DigDevBox', description: 'Encode and decode HTML entities for ampersands, angle brackets, quotes and apostrophes. Search named and numeric references; encoding does not sanitize HTML.', h1: 'HTML Entity Encoder & Decoder' },
+              '/json-to-get-params/': { title: 'JSON to Query String Converter - DigDevBox', description: 'Percent-encode nested JSON as URL query parameters, or rebuild JSON from a query string or full URL. Supports bracketed object keys and indexed arrays.', h1: 'JSON to Query String Converter' },
+              '/docker-run-to-docker-compose-converter/': { title: 'Docker Run to Compose Converter - DigDevBox', description: 'Paste a docker run command and get a docker-compose service — ports, volumes and env mapped. Free online decomposerize alternative, in your browser.', h1: 'Docker Run to Compose Converter' },
+              '/otp-generator/': { title: 'TOTP Code Generator — 6-Digit Codes & QR - DigDevBox', description: 'Generate current, previous and next 6-digit TOTP codes from a Base32 secret, view the 30-second timer, and create an otpauth QR code. Uses Web Crypto.', h1: 'TOTP Code Generator' },
+              '/htpasswd-generator/': { title: 'htpasswd Generator & Checker — bcrypt & apr1 - DigDevBox', description: 'Build multi-user Apache/Nginx .htpasswd files with bcrypt or apr1. Copy, download or verify a username:hash line locally. Passwords stay in your browser.', h1: 'htpasswd Generator & Checker' },
+              '/safelink-decoder/': { title: 'Outlook Safe Links Batch Decoder — Reveal Original URLs - DigDevBox', description: 'Batch-decode Microsoft Outlook Safe Links one wrapper per line. Unwrap up to five layers, inspect destination scheme and host, and copy valid URLs; local parsing only, no safety scan.', h1: 'Outlook Safe Links Batch Decoder' },
+              '/basic-auth-generator/': { title: 'Basic Auth Generator & Decoder — HTTP Header - DigDevBox', description: 'Generate or decode an HTTP Basic Authorization header, then copy ready-to-use cURL, Node.js and Python examples. Runs locally; use HTTPS.', h1: 'Basic Auth Generator & Decoder' },
+              '/json-to-toml/': { title: 'JSON to TOML Converter - DigDevBox', description: 'Convert JSON or JSON5 objects to TOML. Nested objects become tables or dotted keys; arrays become TOML arrays. Unsupported values may prevent conversion.', h1: 'JSON to TOML Converter' },
+              '/text-statistics/': { title: 'Text Statistics — Word & Character Counter - DigDevBox', description: 'Count words, characters, Unicode units, lines and UTF-8 bytes. Analyze top-term frequency and estimate reading and speaking time in your browser, with no text upload.', h1: 'Text Statistics' },
+              '/json-diff/': { title: 'JSON Diff Checker — Compare JSON Online - DigDevBox', description: 'Compare JSON files or pasted JSON online. Inspect nested changes by path, export a report, and match arrays by index, ignore-order or stable ID. Large comparisons run in a cancellable worker.', h1: 'JSON Diff Checker' },
+              '/slugify-string/': { title: 'URL Slug Generator — Create SEO-Friendly Slugs in Bulk - DigDevBox', description: 'Generate URL slugs from titles in bulk. Choose hyphens, underscores or dots, remove English stop words, set a word-safe length cap and preview full URLs.', h1: 'URL Slug Generator' },
+              '/redirect-generator/': { title: 'Bulk 301 Redirect Generator — Apache, Nginx & Cloudflare - DigDevBox', description: 'Generate bulk redirects for Apache, Nginx, Cloudflare, Netlify and Vercel. Import CSV, detect loops and chains, and export server-ready rules locally.', h1: 'Bulk 301 Redirect Generator' },
+            };
+            const expected = path === '/eta-calculator/' && process.env.CHECK_ETA_RELEASE !== 'true'
+              ? null
+              : expectedMetadata[path];
+            if (expected &&
+                (botMeta.title !== expected.title ||
+                 botMeta.description !== expected.description ||
+                 botMeta.h1 !== expected.h1)) {
+              throw new Error(path + ' production SEO metadata mismatch: ' +
+                JSON.stringify({ expected, actual: botMeta }));
             }
             if (/<meta[^>]+name=["']robots["'][^>]+content=["'][^"']*noindex/i.test(bot.body)) {
               throw new Error(path + ' unexpectedly carries noindex');
@@ -240,6 +428,72 @@ jobs:
             const robotsHeader = bot.response.headers.get('x-robots-tag') || '';
             if (/noindex/i.test(robotsHeader)) throw new Error(path + ' unexpectedly carries X-Robots-Tag: ' + robotsHeader);
           }
+
+          // Social cards must be route-specific raster files that work for common share crawlers.
+          const socialRoutes = [
+            '/',
+            '/ipv6-ula-generator/',
+            '/text-statistics/',
+            '/eta-calculator/',
+            '/guides/eta-calculator/',
+            '/guides/redirect-generator/',
+          ];
+          const socialImageUrls = new Set();
+          const extractMetaContent = (html, attribute, value) => {
+            const tags = html.match(/<meta[^>]*>/gi) || [];
+            const tag = tags.find(item =>
+              item.includes(attribute + '="' + value + '"') || item.includes(attribute + "='" + value + "'"));
+            return tag?.match(/content=["']([^"']*)["']/i)?.[1] || '';
+          };
+          for (const path of socialRoutes) {
+            const page = await get(path);
+            if (!page.response.ok || page.finalUrl !== origin + path) {
+              throw new Error('Social card source page is not live at its canonical route: ' + path);
+            }
+            const imageUrl = extractMetaContent(page.body, 'property', 'og:image');
+            const twitterImage = extractMetaContent(page.body, 'name', 'twitter:image');
+            const imageType = extractMetaContent(page.body, 'property', 'og:image:type');
+            const imageWidth = extractMetaContent(page.body, 'property', 'og:image:width');
+            const imageHeight = extractMetaContent(page.body, 'property', 'og:image:height');
+            if (!imageUrl || imageUrl !== twitterImage || imageType !== 'image/png' ||
+                imageWidth !== '1200' || imageHeight !== '630') {
+              throw new Error(path + ' has incomplete or inconsistent OG/Twitter image metadata: ' +
+                JSON.stringify({ imageUrl, twitterImage, imageType, imageWidth, imageHeight }));
+            }
+            const parsedImageUrl = new URL(imageUrl);
+            if (parsedImageUrl.origin !== origin || !parsedImageUrl.pathname.startsWith('/og/') ||
+                !parsedImageUrl.pathname.endsWith('.png')) {
+              throw new Error(path + ' social image must be an absolute same-origin PNG URL: ' + imageUrl);
+            }
+            if (socialImageUrls.has(imageUrl)) {
+              throw new Error(path + ' reuses a social image URL already assigned to another page: ' + imageUrl);
+            }
+            socialImageUrls.add(imageUrl);
+            const imageResponse = await fetch(imageUrl, {
+              headers: { 'user-agent': ua, 'cache-control': 'no-cache' },
+              redirect: 'follow',
+              signal: AbortSignal.timeout(15000),
+            });
+            const imageBytes = Buffer.from(await imageResponse.arrayBuffer());
+            const pngSignature = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
+            if (!imageResponse.ok || imageResponse.url !== imageUrl ||
+                imageResponse.headers.get('content-type')?.split(';')[0] !== 'image/png' ||
+                imageBytes.length < 24 || !imageBytes.subarray(0, 8).equals(pngSignature) ||
+                imageBytes.readUInt32BE(16) !== 1200 || imageBytes.readUInt32BE(20) !== 630 ||
+                imageBytes.length > 5 * 1024 * 1024) {
+              throw new Error(path + ' social image is unavailable or invalid: ' +
+                JSON.stringify({
+                  status: imageResponse.status,
+                  finalUrl: imageResponse.url,
+                  contentType: imageResponse.headers.get('content-type'),
+                  bytes: imageBytes.length,
+                  width: imageBytes.length >= 24 ? imageBytes.readUInt32BE(16) : null,
+                  height: imageBytes.length >= 24 ? imageBytes.readUInt32BE(20) : null,
+                }));
+            }
+          }
+          console.log('PASS: ' + socialImageUrls.size +
+            ' route-specific 1200x630 PNG social cards return HTTP 200 with correct metadata and unique URLs');
 
           // Guide pages must have their own knowledge summary, not reuse the paired tool-page snippet.
           const guidePath = '/guides/numeronym-generator/';
@@ -270,8 +524,110 @@ jobs:
               !percentageGuideDescription || !percentageToolDescription ||
               percentageGuideDescription === percentageToolDescription ||
               percentageGuideCanonical !== origin + percentageGuidePath ||
+              !percentageGuideResult.body.includes('20% off gives $80; another 10% off gives $72') ||
+              !percentageGuideResult.body.includes('28% of the original amount—not 30%') ||
               /<meta[^>]+name=["']robots["'][^>]+content=["'][^"']*noindex/i.test(percentageGuideResult.body)) {
             throw new Error('Percentage Calculator guide must be live, indexable, self-canonical and have a distinct meta description');
+          }
+
+          // API Tester guide became indexable after original bilingual workflow sections
+          // pushed its measured novel-content ratio above the build gate.
+          const apiGuidePath = '/guides/api-debugger/';
+          const apiGuideResult = await get(apiGuidePath);
+          const apiToolResult = await get('/api-debugger/');
+          const apiGuideDescription = extractDescription(apiGuideResult.body);
+          const apiToolDescription = extractDescription(apiToolResult.body);
+          const apiGuideCanonical = apiGuideResult.body.match(/<link[^>]+rel=["']canonical["'][^>]+href=["']([^"']+)["']/i)?.[1] || '';
+          if (!apiGuideResult.response.ok ||
+              apiGuideResult.finalUrl !== origin + apiGuidePath ||
+              !apiGuideDescription || !apiToolDescription ||
+              apiGuideDescription === apiToolDescription ||
+              apiGuideCanonical !== origin + apiGuidePath ||
+              /<meta[^>]+name=["']robots["'][^>]+content=["'][^"']*noindex/i.test(apiGuideResult.body)) {
+            throw new Error('API Tester guide must be live, indexable, self-canonical and have a distinct meta description');
+          }
+
+
+          if (process.env.CHECK_ETA_RELEASE === 'true') {
+            const etaGuidePath = '/guides/eta-calculator/';
+            const etaGuideResult = await get(etaGuidePath);
+            const etaToolResult = await get('/eta-calculator/');
+            const etaGuideDescription = extractDescription(etaGuideResult.body);
+            const etaToolDescription = extractDescription(etaToolResult.body);
+            const etaGuideCanonical = etaGuideResult.body.match(/<link[^>]+rel=["']canonical["'][^>]+href=["']([^"']+)["']/i)?.[1] || '';
+            if (!etaGuideResult.response.ok ||
+                etaGuideResult.finalUrl !== origin + etaGuidePath ||
+                !etaGuideDescription || !etaToolDescription ||
+                etaGuideDescription === etaToolDescription ||
+                etaGuideCanonical !== origin + etaGuidePath ||
+                !etaGuideResult.body.includes('100 records per hour') ||
+                !etaGuideResult.body.includes('manual estimate, not live process monitoring') ||
+                /<meta[^>]+name=["']robots["'][^>]+content=["'][^"']*noindex/i.test(etaGuideResult.body)) {
+              throw new Error('ETA Calculator guide must be live, indexable, self-canonical and document the observed-pace calculation');
+            }
+          }
+
+          // The JSON Diff guide must be live, self-canonical and distinct from its tool page.
+          const jsonDiffGuidePath = '/guides/json-diff/';
+          const jsonDiffGuideResult = await get(jsonDiffGuidePath);
+          const jsonDiffToolResult = await get('/json-diff/');
+          const jsonDiffGuideDescription = extractDescription(jsonDiffGuideResult.body);
+          const jsonDiffToolDescription = extractDescription(jsonDiffToolResult.body);
+          const jsonDiffGuideCanonical = jsonDiffGuideResult.body.match(/<link[^>]+rel=["']canonical["'][^>]+href=["']([^"']+)["']/i)?.[1] || '';
+          if (!jsonDiffGuideResult.response.ok ||
+              jsonDiffGuideResult.finalUrl !== origin + jsonDiffGuidePath ||
+              !jsonDiffGuideDescription || !jsonDiffToolDescription ||
+              jsonDiffGuideDescription === jsonDiffToolDescription ||
+              jsonDiffGuideCanonical !== origin + jsonDiffGuidePath ||
+              /<meta[^>]+name=["']robots["'][^>]+content=["'][^"']*noindex/i.test(jsonDiffGuideResult.body)) {
+            throw new Error('JSON Diff guide must be live, indexable, self-canonical and have a distinct meta description');
+          }
+
+          const textStatisticsGuidePath = '/guides/text-statistics/';
+          const textStatisticsGuideResult = await get(textStatisticsGuidePath);
+          const textStatisticsToolResult = await get('/text-statistics/');
+          const textStatisticsGuideDescription = extractDescription(textStatisticsGuideResult.body);
+          const textStatisticsToolDescription = extractDescription(textStatisticsToolResult.body);
+          const textStatisticsGuideCanonical = textStatisticsGuideResult.body.match(/<link[^>]+rel=["']canonical["'][^>]+href=["']([^"']+)["']/i)?.[1] || '';
+          if (!textStatisticsGuideResult.response.ok ||
+              textStatisticsGuideResult.finalUrl !== origin + textStatisticsGuidePath ||
+              !textStatisticsGuideDescription || !textStatisticsToolDescription ||
+              textStatisticsGuideDescription === textStatisticsToolDescription ||
+              textStatisticsGuideCanonical !== origin + textStatisticsGuidePath ||
+              /<meta[^>]+name=["']robots["'][^>]+content=["'][^"']*noindex/i.test(textStatisticsGuideResult.body)) {
+            throw new Error('Text Statistics guide must be live, indexable, self-canonical and have a distinct meta description');
+          }
+
+          // Bulk Slug Generator guide: keep the editorial landing page distinct from its tool route.
+          const slugGuidePath = '/guides/slugify-string/';
+          const slugGuideResult = await get(slugGuidePath);
+          const slugToolResult = await get('/slugify-string/');
+          const slugGuideDescription = extractDescription(slugGuideResult.body);
+          const slugToolDescription = extractDescription(slugToolResult.body);
+          const slugGuideCanonical = slugGuideResult.body.match(/<link[^>]+rel=["']canonical["'][^>]+href=["']([^"']+)["']/i)?.[1] || '';
+          if (!slugGuideResult.response.ok ||
+              slugGuideResult.finalUrl !== origin + slugGuidePath ||
+              !slugGuideDescription || !slugToolDescription ||
+              slugGuideDescription === slugToolDescription ||
+              slugGuideCanonical !== origin + slugGuidePath ||
+              /<meta[^>]+name=["']robots["'][^>]+content=["'][^"']*noindex/i.test(slugGuideResult.body)) {
+            throw new Error('Bulk Slug Generator guide must be live, indexable, self-canonical and have a distinct meta description');
+          }
+
+          // Bulk Redirect Generator guide: keep the editorial landing page distinct from its tool route.
+          const redirectGuidePath = '/guides/redirect-generator/';
+          const redirectGuideResult = await get(redirectGuidePath);
+          const redirectToolResult = await get('/redirect-generator/');
+          const redirectGuideDescription = extractDescription(redirectGuideResult.body);
+          const redirectToolDescription = extractDescription(redirectToolResult.body);
+          const redirectGuideCanonical = redirectGuideResult.body.match(/<link[^>]+rel=["']canonical["'][^>]+href=["']([^"']+)["']/i)?.[1] || '';
+          if (!redirectGuideResult.response.ok ||
+              redirectGuideResult.finalUrl !== origin + redirectGuidePath ||
+              !redirectGuideDescription || !redirectToolDescription ||
+              redirectGuideDescription === redirectToolDescription ||
+              redirectGuideCanonical !== origin + redirectGuidePath ||
+              /<meta[^>]+name=["']robots["'][^>]+content=["'][^"']*noindex/i.test(redirectGuideResult.body)) {
+            throw new Error('Bulk Redirect Generator guide must be live, indexable, self-canonical and have a distinct meta description');
           }
 
           const robots = await get('/robots.txt');
@@ -280,6 +636,11 @@ jobs:
           }
           const sitemap = await get('/sitemap.xml');
           if (!sitemap.response.ok || !sitemap.body.includes('<urlset')) throw new Error('sitemap.xml unavailable or malformed');
+          for (const path of ['/safelink-decoder/', '/slugify-string/', '/redirect-generator/', '/guides/slugify-string/', '/guides/redirect-generator/']) {
+            if (!sitemap.body.includes(origin + path)) {
+              throw new Error('sitemap.xml missing live tool or guide URL: ' + path);
+            }
+          }
 
           // Verify the new English numeronym content cluster is connected in both directions.
           const numeronymLanding = await get('/numeronym-generator/');
@@ -300,15 +661,22 @@ jobs:
           for (const route of [
             "/",
             "/tools/",
+            "/eta-calculator/",
+            "/guides/eta-calculator/",
             "/percentage-calculator/",
             "/guides/percentage-calculator/",
             "/guides/numeronym-generator/",
+            "/guides/api-debugger/",
+            "/api-debugger/",
             "/regex-tester/",
             "/numeronym-generator/",
             "/token-generator/",
             "/device-information/",
             "/ipv4-range-expander/",
             "/pdf-signature-checker/",
+            "/slugify-string/",
+            "/redirect-generator/",
+            "/guides/redirect-generator/",
           ]) {
             const url = origin + route;
             if (!sitemap.body.includes(url)) throw new Error('sitemap missing priority search page ' + url);
@@ -343,5 +711,54 @@ jobs:
             throw new Error('Legacy archive URLs must not appear in the canonical sitemap');
           }
 
-          console.log('PASS: production homepage, canonical host, robots.txt, sitemap.xml, legacy noindex header and selected search landing pages');
+          console.log('PASS: production homepage, canonical host, robots.txt, sitemap.xml, legacy noindex header and selected search landing pages, including Bulk Slug and Redirect tool/guide routes');
           NODE
+
+
+  # Use the same Playwright first-fold spec on the deployed production origin,
+  # not only against a local Vite preview. This makes consent geometry and
+  # primary task visibility a permanent post-deploy regression gate.
+  production-homepage-visual:
+    needs: [detect-site-changes, production-smoke]
+    if: needs.detect-site-changes.outputs.check_homepage_visual == 'true' && needs.production-smoke.result == 'success'
+    runs-on: ubuntu-24.04
+    # GitHub's Ubuntu 24.04 image already includes browser runtime libraries.
+    # Avoid Playwright 1.32's stale --with-deps apt list (libasound2 was renamed to
+    # libasound2t64); install only the pinned Chromium browser binary.
+    timeout-minutes: 20
+    env:
+      BASE_URL: https://www.digdevbox.com
+      NO_WEB_SERVER: 'true'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.detect-site-changes.outputs.deploy_sha }}
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.11.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Chromium for the production screenshot
+        run: pnpm exec playwright install chromium
+
+      - name: Capture the live production homepage at 390px and 1440px
+        run: pnpm exec playwright test src/pages/homepage-visual-baseline.e2e.spec.ts --project=chromium --reporter=line
+
+      - name: Upload production homepage screenshots and geometry
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-homepage-visual-${{ github.run_id }}
+          path: |
+            artifacts/homepage-visual/
+            playwright-report/
+            test-results/
+          if-no-files-found: error

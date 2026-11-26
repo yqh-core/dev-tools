@@ -69,12 +69,12 @@ const searchTools = computed(() =>
 
 const { searchResult: fuzzyMatchedTools } = useFuzzySearch({
   search: searchQuery,
-  data: searchTools.value,
+  data: searchTools,
   options: {
     keys: [
       { name: 'name', weight: 3 },
       { name: 'description', weight: 2 },
-      { name: 'aliasList', weight: 2 },
+      { name: 'aliasList', weight: 3 },
       { name: 'keywords', weight: 1 },
       { name: 'path', weight: 1 },
     ],
@@ -103,83 +103,73 @@ const matchedTools = computed<ToolWithCategory[]>(() =>
 const isSearching = computed(() => searchQuery.value.trim().length > 0);
 
 /**
- * 常用工具（Start Here / Popular Tools）—— 12 个，按真实搜索意图排序（P1 重排扩容，对齐参考站范式）。
+ * Home discovery routes.
  *
- * 为什么是硬编码清单而不是按访问量排序：站点没有后端，拿不到真实访问统计；
- * 硬编码一份**人工确认过的**清单，比拍脑袋造一个「热度算法」诚实。
- *
- * 排序依据是用户给出的任务优先级（JSON → JWT → Base64 → ID → 正则 → 时间戳 →
- * URL → 哈希），⛔ 顺序即产品语义，不要按字母或按 path 重排。
- *
- * ## 目录名 ≠ 路由 path（本文件最容易踩的坑）
- *   `json-viewer/` 的路由是 `/json-prettify`；`date-time-converter/` → `/date-converter`；
- *   `integer-base-converter/` → `/base-converter`。本清单里有两个踩在这上面：
- *   「Timestamp Converter」= `/date-converter`（不是 `/date-time-converter`）、
- *   「Hash Generator」= `/hash-text`（⛔ 站上没有 `/hash-generator`，别按工具名拼）。
- *
- * ## 为什么这里必须断言，而不能靠 filter(Boolean) 兜底
- *   下面 `popularTools` 沿用既有写法 `.filter(Boolean)` —— 它保证「工具下架时区块少一张卡、
- *   不白屏」，但**同时会把写错的 path 静默丢掉**：少一张卡不会报错，构建全绿，
- *   线上表现为「Popular 只剩 7 个」这种没人会注意的降级。上一轮就是这么漏掉的。
- *   所以这里在**模块求值期**（SSR 预渲染与客户端首帧都会跑，不依赖任何交互）
- *   直接对着 `tools` 注册表断言：12 个 path 必须全部存在、解析结果必须恰好 12 个。
- *   写错一个字符 → 首页在预渲染阶段就抛错，`npm run build` 直接失败。
+ * The former curated Popular list is retained as a registry invariant so route
+ * regressions are caught at build time, while the visible first-level entry
+ * surface is organized around complete developer jobs.
  */
-const POPULAR_TOOL_PATHS = [
-  '/json-prettify', // JSON Formatter（目录是 json-viewer/）
-  '/jwt-parser', // JWT Decoder
-  '/base64-string-converter', // Base64 Encoder
-  '/uuid-generator', // UUID Generator
-  '/regex-tester', // Regex Tester
-  '/date-converter', // Timestamp Converter（目录是 date-time-converter/）
-  '/url-encoder', // URL Encoder
-  '/hash-text', // Hash Generator（⛔ 没有 /hash-generator 这个路由）
-  '/password-generator', // Password Generator（2026-10-13 P1 扩容：高频词工具）
-  '/token-generator', // Token Generator
-  '/percentage-calculator', // Percentage Calculator
-  '/sql-prettify', // SQL Formatter
+const LEGACY_POPULAR_TOOL_PATHS = [
+  '/json-prettify',
+  '/jwt-parser',
+  '/base64-string-converter',
+  '/uuid-generator',
+  '/regex-tester',
+  '/date-converter',
+  '/url-encoder',
+  '/hash-text',
+  '/password-generator',
+  '/token-generator',
+  '/percentage-calculator',
+  '/sql-prettify',
 ];
 
-/**
- * Popular Tools 的 path 断言（构建期门禁）。
- *
- * 为什么放在模块顶层而不是 computed 里：computed 要等模板访问才求值，
- * 预渲染时只有「真的渲染到该区块」才会执行 —— 一旦有人给区块加了 v-if，
- * 断言就静默失效了。模块顶层在**导入时**就执行，与渲染无关。
- *
- * ⚠️ 实测：这道断言由 **`node scripts/build-seo.mjs`（npm run build 的第四步）**
- *   触发，不是 `vite build` 触发的。原因：`vite build` 只打包首页组件的代码，
- *   **从不执行**它的模块体（没有 ssrLoadModule）；真正执行模块体的是 build-seo.mjs
- *   通过 `vite.ssrLoadModule('/src/entry-server.ts')` 渲染首页的那一刻。
- *   实测把 `/hash-text` 故意写成 `/hash-generator` 后：
- *     - `npx vite build` → exit 0（构建全绿，什么都没报）
- *     - `node scripts/build-seo.mjs` → exit 1，打印缺失 path 与本函数行号
- *   ⇒ 光看 vite build 的绿灯会误以为断言没生效；`npm run build` 串联四步，
- *     所以走 npm run build 才会红。这不是断言失效，是它所在的阶段本来就在第四步。
- *
- * ⛔ 断言的是「注册表里真实存在」，不是「目录名看起来对」：
- *   所有 path 都从 tools 注册表比对，与 tools.store 用的是同一份数据源。
- */
-function assertPopularToolPaths(paths: string[], tools: ToolWithCategory[]) {
+const FEATURED_TASKS = [
+  { id: 'api', primaryPath: '/api-debugger', toolPaths: ['/api-debugger'], hue: 205 },
+  {
+    id: 'json',
+    primaryPath: '/json-workspace',
+    toolPaths: ['/json-workspace', '/json-prettify', '/json-diff', '/json-to-yaml-converter', '/json-to-csv', '/csv-to-json'],
+    hue: 258,
+  },
+  { id: 'jwt', primaryPath: '/jwt-parser', toolPaths: ['/jwt-parser', '/base64-string-converter'], hue: 42 },
+  {
+    id: 'convert',
+    primaryPath: '/percentage-calculator',
+    toolPaths: ['/percentage-calculator', '/eta-calculator', '/url-encoder', '/base64-string-converter', '/date-converter', '/unit-converter'],
+    hue: 154,
+  },
+  {
+    id: 'network',
+    primaryPath: '/http-status-checker',
+    toolPaths: ['/http-status-checker', '/http-headers', '/ipv4-subnet-calculator', '/whois-lookup'],
+    hue: 216,
+  },
+] as const;
+
+function assertHomeToolPaths(paths: readonly string[], label: string, tools: ToolWithCategory[]) {
   const known = new Set(tools.map(tool => tool.path));
   const missing = paths.filter(path => !known.has(path));
-
   if (missing.length > 0) {
     throw new Error(
-      `[Home.page] POPULAR_TOOL_PATHS 断言失败：${missing.length}/${paths.length} 个 path `
-      + `在 tools 注册表中不存在：\n  - ${missing.join('\n  - ')}\n`
-      + '⛔ 目录名 ≠ 路由 path（json-viewer/→/json-prettify、date-time-converter/→/date-converter、'
-      + 'integer-base-converter/→/base-converter）。请对照 src/tools/*/index.ts 的 path 字段填写，'
-      + '⛔ 不要按目录名或工具显示名拼路径。',
+      `[Home.page] ${label} references missing tool routes:\n  - ${missing.join('\n  - ')}`,
     );
-  }
-
-  if (paths.length !== 12) {
-    throw new Error(`[Home.page] POPULAR_TOOL_PATHS 应为 12 个，实际 ${paths.length} 个`);
   }
 }
 
-assertPopularToolPaths(POPULAR_TOOL_PATHS, toolsWithCategory);
+if (LEGACY_POPULAR_TOOL_PATHS.length !== 12) {
+  throw new Error('[Home.page] legacy curated route guard must retain all 12 original paths');
+}
+assertHomeToolPaths(LEGACY_POPULAR_TOOL_PATHS, 'LEGACY_POPULAR_TOOL_PATHS', toolsWithCategory);
+
+const FEATURED_TASK_PATHS = [...new Set(
+  FEATURED_TASKS.flatMap(task => [task.primaryPath, ...task.toolPaths]),
+)];
+assertHomeToolPaths(FEATURED_TASK_PATHS, 'FEATURED_TASKS', toolsWithCategory);
+
+if (FEATURED_TASKS.length < 3 || FEATURED_TASKS.length > 5) {
+  throw new Error(`[Home.page] FEATURED_TASKS must contain 3–5 entries; found ${FEATURED_TASKS.length}`);
+}
 
 /**
  * 必须联网才能工作的工具。
@@ -327,10 +317,11 @@ const BLOG_POSTS = (() => {
   return [...byUrl.values()].slice(0, 6);
 })();
 
-const popularTools = computed(() =>
-  POPULAR_TOOL_PATHS
-    .map(path => toolStore.tools.find(tool => tool.path === path))
-    .filter(Boolean) as ToolWithCategory[],
+const featuredTasks = computed(() =>
+  FEATURED_TASKS.map(task => ({
+    ...task,
+    tools: task.toolPaths.map(path => toolStore.tools.find(tool => tool.path === path)!),
+  })),
 );
 
 // Update favorite tools order when drag is finished
@@ -350,6 +341,8 @@ function onUpdateFavoriteTools() {
         工具总数从 store 取真实值，不写死在文案里。
       -->
       <header class="home-hero">
+        <div class="home-hero-layout">
+          <div class="home-hero-main">
         <h1 class="home-hero-title">
           {{ $t('home.hero.title') }}
         </h1>
@@ -395,12 +388,67 @@ function onUpdateFavoriteTools() {
               <n-icon :component="IconX" size="16" />
             </button>
           </div>
+          <div class="hero-quick-search" role="group" :aria-label="t('home.quickSearch.ariaLabel')">
+            <span class="hero-quick-search-label">{{ t('home.quickSearch.label') }}</span>
+            <button
+              class="hero-quick-search-button"
+              data-test-id="home-quick-search-json"
+              type="button"
+              @click="searchQuery = 'json formatter'"
+            >
+              {{ t('home.quickSearch.json') }}
+            </button>
+            <button
+              class="hero-quick-search-button"
+              data-test-id="home-quick-search-jwt"
+              type="button"
+              @click="searchQuery = 'jwt decoder'"
+            >
+              {{ t('home.quickSearch.jwt') }}
+            </button>
+            <button
+              class="hero-quick-search-button"
+              data-test-id="home-quick-search-regex"
+              type="button"
+              @click="searchQuery = 'regex tester'"
+            >
+              {{ t('home.quickSearch.regex') }}
+            </button>
+          </div>
         </div>
 
         <RouterLink class="hero-cta"  :to="normalizePath('/tools')">
           {{ t('home.hero.cta') }} ↓
         </RouterLink>
-      </header>
+
+          </div>
+          <aside class="home-hero-preview" aria-labelledby="home-hero-preview-title">
+            <div class="hero-preview-topline">
+              <span class="hero-preview-status" aria-hidden="true" />
+              <span>{{ t('home.preview.eyebrow') }}</span>
+            </div>
+            <div class="hero-preview-copy">
+              <p class="hero-preview-label">{{ t('home.preview.label') }}</p>
+              <h2 id="home-hero-preview-title">{{ t('home.preview.title') }}</h2>
+              <p class="hero-preview-description">{{ t('home.preview.description') }}</p>
+            </div>
+            <div class="hero-preview-code" :aria-label="t('home.preview.codeLabel')">
+              <div class="hero-preview-codebar">
+                <span>sample.json</span>
+                <span>JSON</span>
+              </div>
+              <pre><code>{
+  "status": "ready",
+  "items": [3, 8, 13]
+}</code></pre>
+            </div>
+            <RouterLink class="hero-preview-link" :to="normalizePath('/json-workspace')">
+              {{ t('home.preview.cta') }}
+              <span aria-hidden="true">→</span>
+            </RouterLink>
+          </aside>
+        </div>
+            </header>
 
       <div v-if="isSearching" class="search-result-head">
         <span v-if="matchedTools.length > 0">
@@ -438,16 +486,54 @@ function onUpdateFavoriteTools() {
         </div>
 
         <!--
-          Popular Tools：8 个高频工具，按用户搜索意图排序（脚本段 POPULAR_TOOL_PATHS）。
-          101 个工具平铺时，第一次来的人只会看到一片网格。⛔ 这 8 个 path 已由模块级
-          断言校验存在于 tools 注册表 —— 不要绕过断言，也不要靠 filter(Boolean) 兜底。
+          Five flagship entry points replace the flat 12-card Popular grid.
+          The original curated routes remain guarded and available through
+          search, category browsing and the full /tools directory.
         -->
-        <section id="home-popular">
-          <h2 class="home-block-title">
-            {{ $t('home.categories.popularTools') }}
+        <section id="home-featured" aria-labelledby="home-featured-title">
+          <h2 id="home-featured-title" class="home-block-title">
+            {{ t('home.featured.title') }}
           </h2>
-          <div class="grid grid-cols-1 gap-12px lg:grid-cols-3 md:grid-cols-3 sm:grid-cols-2 xl:grid-cols-4">
-            <ToolCard v-for="tool in popularTools" :key="tool.path" :tool="tool" />
+          <p class="home-block-text">
+            {{ t('home.featured.intro') }}
+          </p>
+          <div class="featured-task-grid">
+            <article
+              v-for="task in featuredTasks"
+              :key="task.id"
+              class="featured-task-card"
+              :style="{ '--task-hue': task.hue }"
+            >
+              <div class="featured-task-heading">
+                <span class="featured-task-icon" aria-hidden="true">
+                  <n-icon :component="task.tools[0].icon" size="20" />
+                </span>
+                <h3 class="featured-task-title">
+                  {{ t(`home.featured.items.${task.id}.title`) }}
+                </h3>
+              </div>
+              <p class="featured-task-description">
+                {{ t(`home.featured.items.${task.id}.description`) }}
+              </p>
+              <div v-if="task.tools.length > 1" class="featured-task-links">
+                <RouterLink
+                  v-for="tool in task.tools.slice(1)"
+                  :key="tool.path"
+                  class="featured-task-link"
+                  :to="normalizePath(tool.path)"
+                >
+                  {{ tool.name }}
+                </RouterLink>
+              </div>
+              <RouterLink
+                class="featured-task-primary"
+                :to="normalizePath(task.primaryPath)"
+                :aria-label="`${t('home.featured.open')} ${task.tools[0].name}`"
+              >
+                {{ t('home.featured.open') }}
+                <span aria-hidden="true">→</span>
+              </RouterLink>
+            </article>
           </div>
         </section>
 
@@ -725,6 +811,146 @@ function onUpdateFavoriteTools() {
   }
 }
 
+/* Hero layout pairs the primary search action with one concrete, working tool path. */
+.home-hero-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.12fr) minmax(280px, 0.88fr);
+  align-items: center;
+  gap: 28px;
+
+  @media (max-width: 960px) {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 20px;
+  }
+}
+
+.home-hero-main {
+  min-width: 0;
+}
+
+.home-hero-preview {
+  position: relative;
+  min-width: 0;
+  overflow: hidden;
+  padding: 20px;
+  border: 1px solid color-mix(in srgb, var(--dd-primary) 24%, var(--dd-border));
+  border-radius: 14px;
+  background:
+    radial-gradient(95% 110% at 100% 0%, color-mix(in srgb, var(--dd-primary) 14%, transparent), transparent 66%),
+    var(--dd-surface);
+  box-shadow: var(--dd-shadow);
+}
+
+.hero-preview-topline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--dd-text-muted);
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.hero-preview-status {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 7px;
+  border-radius: 50%;
+  background: var(--dd-success);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--dd-success) 14%, transparent);
+}
+
+.hero-preview-copy {
+  margin-top: 18px;
+
+  .hero-preview-label {
+    margin: 0 0 6px;
+    color: var(--dd-primary);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  h2 {
+    margin: 0;
+    color: var(--dd-text);
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1.25;
+    letter-spacing: -0.02em;
+  }
+
+  .hero-preview-description {
+    max-width: 38ch;
+    margin: 8px 0 0;
+    color: var(--dd-text-soft);
+    font-size: 13px;
+    line-height: 1.55;
+  }
+}
+
+.hero-preview-code {
+  overflow: hidden;
+  margin-top: 16px;
+  border: 1px solid var(--dd-border);
+  border-radius: 9px;
+  background: var(--dd-surface-2);
+
+  .hero-preview-codebar {
+    display: flex;
+    justify-content: space-between;
+    padding: 7px 11px;
+    border-bottom: 1px solid var(--dd-border);
+    color: var(--dd-text-muted);
+    font-size: 10px;
+    font-weight: 650;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+  }
+
+  pre {
+    overflow: hidden;
+    margin: 0;
+    padding: 12px 14px;
+    color: var(--dd-text);
+    font-family: var(--dd-font-mono);
+    font-size: 12px;
+    line-height: 1.65;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+}
+
+.hero-preview-link {
+  display: flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+  padding: 10px 13px;
+  border: 1px solid var(--dd-primary);
+  border-radius: 8px;
+  background: var(--dd-primary);
+  color: var(--dd-on-primary);
+  font-size: 13px;
+  font-weight: 650;
+  text-decoration: none;
+  transition: background-color 0.18s ease, transform 0.18s ease;
+
+  &:hover {
+    background: var(--dd-primary-hover);
+    transform: translateY(-1px);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--dd-primary);
+    outline-offset: 3px;
+  }
+}
+
 /* S2：badge 行。真实能力三条（Free / No signup / 计数），不放 browser-only。 */
 .hero-badges {
   display: flex;
@@ -764,8 +990,11 @@ function onUpdateFavoriteTools() {
 
 /* S2：主 CTA。锚点滚动到分类区，链接式弱按钮，不与搜索框抢视觉。 */
 .hero-cta {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
   margin-top: 12px;
-  padding: 6px 14px;
+  padding: 8px 14px;
 
   border: 1px solid color-mix(in srgb, var(--dd-primary) 55%, transparent);
   border-radius: 8px;
@@ -883,8 +1112,138 @@ function onUpdateFavoriteTools() {
   }
 }
 
-#home-popular {
+#home-featured {
   margin-top: 26px;
+}
+
+.featured-task-grid {
+  display: grid;
+  gap: 12px;
+  margin-top: 12px;
+  grid-template-columns: minmax(0, 1fr);
+
+  @media (min-width: 640px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  @media (min-width: 1024px) {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.featured-task-card {
+  --task-accent: hsl(var(--task-hue, 210) 70% 48%);
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  padding: 17px;
+  border: 1px solid var(--dd-border);
+  border-top: 3px solid color-mix(in srgb, var(--task-accent) 70%, transparent);
+  border-radius: var(--dd-radius);
+  background: var(--dd-surface);
+  box-shadow: var(--dd-shadow);
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+
+  &:hover {
+    border-color: color-mix(in srgb, var(--task-accent) 62%, var(--dd-border));
+    box-shadow: var(--dd-shadow-hover);
+    transform: translateY(-2px);
+  }
+
+  &:focus-within {
+    border-color: color-mix(in srgb, var(--task-accent) 76%, var(--dd-border));
+  }
+}
+
+.featured-task-heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.featured-task-icon {
+  display: inline-flex;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  color: var(--task-accent);
+  background: color-mix(in srgb, var(--task-accent) 12%, transparent);
+}
+
+.featured-task-title {
+  min-width: 0;
+  margin: 0;
+  color: var(--dd-text);
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.featured-task-description {
+  min-height: 3.2em;
+  margin: 12px 0 10px;
+  color: var(--dd-text-soft);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.featured-task-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 12px;
+}
+
+.featured-task-link {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  padding: 8px 10px;
+  border: 1px solid var(--dd-border);
+  border-radius: 8px;
+  color: var(--dd-text);
+  font-size: 12px;
+  line-height: 1.4;
+  text-decoration: none;
+
+  &:hover {
+    border-color: color-mix(in srgb, var(--task-accent) 65%, transparent);
+    background: color-mix(in srgb, var(--task-accent) 6%, transparent);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--dd-primary);
+    outline-offset: 2px;
+  }
+}
+
+.featured-task-primary {
+  display: flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: auto;
+  padding: 9px 12px;
+  border: 1px solid color-mix(in srgb, var(--task-accent) 55%, transparent);
+  border-radius: 8px;
+  color: var(--dd-primary);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+
+  &:hover {
+    background: color-mix(in srgb, var(--task-accent) 8%, transparent);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--dd-primary);
+    outline-offset: 2px;
+  }
 }
 
 .home-blog-list {
@@ -1098,20 +1457,87 @@ function onUpdateFavoriteTools() {
 
   .search-clear {
     display: flex;
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
+    min-height: 44px;
     align-items: center;
-
-    padding: 2px;
+    justify-content: center;
+    padding: 0;
     border: none;
-    border-radius: 4px;
+    border-radius: 8px;
     background: none;
 
     color: inherit;
     cursor: pointer;
-    opacity: 0.5;
+    opacity: 0.65;
 
     &:hover {
       opacity: 1;
+      background: color-mix(in srgb, var(--dd-primary) 8%, transparent);
     }
+
+    &:focus-visible {
+      outline: 2px solid var(--dd-primary);
+      outline-offset: 2px;
+    }
+  }
+}
+
+/* Quick task shortcuts: examples are real searches, not decorative chips. */
+.hero-quick-search {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin: 8px 2px 0;
+  color: var(--dd-text-muted);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.hero-quick-search-label {
+  padding-right: 2px;
+  font-weight: 550;
+}
+
+.hero-quick-search-button {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  padding: 7px 11px;
+  border: 1px solid var(--dd-border);
+  border-radius: 999px;
+  background: var(--dd-surface);
+  color: var(--dd-text-soft);
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.35;
+  transition: border-color 0.16s ease, background-color 0.16s ease, color 0.16s ease;
+}
+
+.hero-quick-search-button:hover {
+  border-color: color-mix(in srgb, var(--dd-primary) 65%, var(--dd-border));
+  background: color-mix(in srgb, var(--dd-primary) 6%, var(--dd-surface));
+  color: var(--dd-primary);
+}
+
+.hero-quick-search-button:focus-visible {
+  outline: 2px solid var(--dd-primary);
+  outline-offset: 2px;
+}
+
+@media (max-width: 420px) {
+  .hero-quick-search {
+    gap: 5px;
+  }
+
+  .hero-quick-search-button {
+    padding-right: 9px;
+    padding-left: 9px;
   }
 }
 
@@ -1215,6 +1641,7 @@ function onUpdateFavoriteTools() {
 
 .task-chip {
   display: inline-flex;
+  min-height: 44px;
   align-items: center;
   gap: 5px;
 
@@ -1223,7 +1650,7 @@ function onUpdateFavoriteTools() {
      Validate JSON Online」），限宽会被截成「UUID Generator — Free Online UUID v4…」
      反而认不出是哪个工具。这里让 chip 按内容自适应宽度：flex-wrap 负责换行，
      窄屏时整枚 chip 会移到下一行，而不是被裁掉一半。 */
-  padding: 3px 9px;
+  padding: 8px 11px;
 
   border: 1px solid rgba(128, 128, 128, 0.22);
   border-radius: 999px;

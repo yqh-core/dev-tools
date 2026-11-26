@@ -19,6 +19,39 @@ home:
     badgeNoSignup: "No signup"
     badgeTools: "{count} tools"
     cta: "Browse all tools"
+  quickSearch:
+    ariaLabel: "Quick task searches"
+    label: "Try a task:"
+    json: "Format JSON"
+    jwt: "Decode JWT"
+    regex: "Test regex"
+  preview:
+    eyebrow: "A real workflow, one click away"
+    label: "STRUCTURED DATA"
+    title: "Make JSON easier to read"
+    description: "Format a response, compare changes, or convert structured data in one focused workspace."
+    codeLabel: "Example JSON payload"
+    cta: "Open JSON Workspace"
+  featured:
+    title: "Start with a task"
+    intro: "Choose the job you need to finish. Each entry opens a focused tool workflow; category browsing and the full directory remain available below."
+    open: "Open tool"
+    items:
+      api:
+        title: "Test & Debug APIs"
+        description: "Build requests, switch environments, inspect response history, add assertions and run collections."
+      json:
+        title: "Work with JSON & Data"
+        description: "Inspect JSON, format or compare it, then convert structured data across common formats."
+      jwt:
+        title: "Inspect JWT & Auth"
+        description: "Decode JWT headers and payloads and inspect claims. Decoding does not verify a token's signature."
+      convert:
+        title: "Calculate & Convert"
+        description: "Calculate percentages and task completion ETAs, encode URLs and Base64, and convert timestamps and units."
+      network:
+        title: "Diagnose HTTP & Network"
+        description: "Check a URL's HTTP response, review header references, calculate IPv4 subnets and query domain records."
   why:
     title: "Why DigDevBox"
     point1: "Fast: tools load in your browser with no round trip to a server."
@@ -182,7 +215,7 @@ toolCard:
   new: New
 search:
   label: Search
-  placeholder: 'Try "format JSON", "decode JWT", "convert timestamp"'
+  placeholder: 'Search tools or tasks…'
   inputLabel: 'Search tools'
   clear: 'Clear search'
   found: 'Found {count} tools matching "{query}"'
@@ -202,8 +235,8 @@ tools:
     data: Data
 
   password-strength-analyser:
-    title: Password strength analyser
-    description: Discover the strength of your password with this client-side-only password strength analyser and crack time estimation tool.
+    title: "Password Strength Checker — Entropy & Crack-Time Estimate"
+    description: "Estimate password length, character-set entropy, score and brute-force crack time locally in your browser. The estimate does not account for dictionary attacks and is not a guarantee; the password is not uploaded."
 
   chronometer:
     title: Chronometer
@@ -230,8 +263,8 @@ tools:
       refresh: Refresh
 
   token-generator:
-    title: Token Generator
-    description: Generate random tokens and strings online — pick the length (1-512) and character set (uppercase, lowercase, digits, symbols). Free, instant, nothing leaves your browser.
+    title: "Random Token Generator — Custom Length & Character Sets"
+    description: "Generate random strings 1–512 characters long using uppercase, lowercase, digits and optional symbols. Choose the character sets and copy or refresh the result. Uses non-cryptographic randomness; do not use for passwords, API secrets or security tokens."
 
     uppercase: Uppercase (ABC...)
     lowercase: Lowercase (abc...)
@@ -244,8 +277,114 @@ tools:
       copy: Copy
       refresh: Refresh
   percentage-calculator:
-    title: "Percentage Calculator — Percent of a Number & Percent Change"
-    description: "Calculate X% of Y, find what percent X is of Y, measure percentage change, or increase/decrease a value. Four free calculators, instant results, no sign-up."
+    title: "Percentage Calculator — 7 Modes"
+    description: "Calculate percentages, discounts, percentage change, reverse percentages and percentage points. Seven modes plus batch CSV/TSV export and worked formulas."
+    resultDetails:
+      inWords: In words
+      formula: Formula
+      percentOf: "{percent}% of {whole} is {result}."
+      partToWhole: "{part} is {result}% of {whole}."
+      percentageChange: "The percentage change from {oldValue} to {newValue} is {result}%."
+      increase: "Increasing {value} by {percent}% gives {result}."
+      decrease: "Decreasing {value} by {percent}% gives {result}."
+      reverseIncrease: "Before a {percent}% increase, {finalValue} was {originalValue}."
+      reverseDecrease: "Before a {percent}% decrease, {finalValue} was {originalValue}."
+      percentageDifference: "The symmetric percentage difference between {first} and {second} is {result}%."
+      percentagePoints: "The change from {oldRate}% to {newRate}% is {result} percentage points."
+    sequential:
+      summary: Try a sequential discount or percentage chain
+      title: Sequential percentage adjustments
+      description: Start with an amount and apply each increase or decrease to the current intermediate value. Review every step and the effective change from the original amount.
+      startingAmount: Starting amount
+      stepsTitle: Adjustment steps
+      stepLimit: Up to {maximum} steps
+      stepNumber: Step {number}
+      percentage: Percentage
+      addStep: Add step
+      loadExample: Load example
+      remove: Remove
+      moveUp: Move up
+      moveDown: Move down
+      operations:
+        increase: Increase
+        decrease: Decrease
+      resultsTitle: Step-by-step results
+      finalAmount: Final amount
+      totalChange: Total amount change
+      effectiveChange: Effective percentage change
+      formula: Multiplier formula
+      compoundingNote: Each percentage applies to the previous step's result. For example, 20% off followed by another 10% off is 28% off overall, not 30%. Reordering the same percentage multipliers changes the intermediate values but not the mathematical final amount. Displayed values use up to 12 significant digits; no currency-specific rounding is applied.
+      notDefined: Undefined when the starting amount is zero
+      copySummary: Copy calculation summary
+      exampleLoaded: Example loaded. Edit the amount or steps to try your own calculation.
+      copied: Calculation summary copied.
+      clipboardUnavailable: Clipboard access is unavailable; select the summary and copy it manually.
+      errors:
+        invalidStart: Enter a finite starting amount that is zero or greater.
+        noSteps: Add at least one percentage step.
+        tooManySteps: Use no more than {maximum} steps.
+        invalidRate: Enter a finite percentage from 0 to 1,000 for each step.
+        discountOver100: A decrease cannot exceed 100%.
+        overflow: The result exceeds the supported numeric range. Reduce the amount or percentage.
+    batch:
+      summary: Calculate a list of values — optional batch mode
+      title: Batch percentage calculator
+      description: "Paste one row per line. Separate the two numbers with a tab or comma; you may add a text label as the first column. Each row is calculated independently, so one invalid row does not stop the others."
+      calculation: Calculation
+      inputLabel: Values — one row per line
+      placeholder: "Groceries\t20\t150\nTaxi\t10\t40"
+      run: Calculate rows
+      copyCsv: Copy results as CSV
+      copyTsv: Copy results as TSV
+      downloadCsv: Download CSV
+      downloadTsv: Download TSV
+      row: Row
+      formula: Formula
+      resultIssue: Result / issue
+      action: Action
+      copyRow: Copy row
+      historyTitle: Recent runs — stored in this browser
+      clearHistory: Clear history
+      restore: Restore
+      remove: Remove
+      removeAria: "Remove {mode} from history"
+      privacy: "Calculations run locally. Batch values and recent history stay in this browser and are not sent to analytics. Clear local history whenever you need to remove saved runs."
+      rowsStatusPartial: "{successful} of {total} rows calculated; {failed} need attention. Inputs and history stay in this browser."
+      rowsStatusSuccess: "{total} rows calculated. Inputs and history stay in this browser."
+      historyUnavailable: Local history is unavailable in this browser; the current results are still available.
+      empty: Paste at least one non-empty row to calculate.
+      clipboardUnavailable: Clipboard access is unavailable. Select the result text and copy it manually.
+      copiedRow: "Copied {label} with its formula and result."
+      calculateBeforeCopy: Calculate at least one row before copying the results.
+      calculateBeforeDownload: Calculate at least one row before downloading results.
+      copiedCsv: Copied all batch rows as CSV.
+      copiedTsv: Copied all batch rows as TSV.
+      downloaded: "Downloaded {format} batch results."
+      restored: "Restored a local run from {date}."
+      removed: Removed that run from local history.
+      cleared: Local history cleared. Current results are unchanged.
+      modes:
+        percent-of: What is X% of Y?
+        part-to-whole: X is what percent of Y?
+        percentage-change: Percentage increase or decrease
+        adjustment: Add or subtract a percentage
+        reverse: Reverse a percentage increase or decrease
+        percentage-difference: Percentage difference between two values
+        percentage-points: Percentage-point change between two rates
+      hints:
+        percent-of: "Columns: percentage, number. Example: 15<TAB>80"
+        part-to-whole: "Columns: part, whole. Example: 30<TAB>120"
+        percentage-change: "Columns: original value, new value. Example: 80<TAB>92"
+        adjustment: "Columns: starting value, percentage. Each row returns both increase and decrease results."
+        reverse: "Columns: final value, percentage. Each row returns the original before an increase and before a decrease."
+        percentage-difference: "Columns: value A, value B. Example: 100<TAB>150"
+        percentage-points: "Columns: old rate (%), new rate (%). Example: 5<TAB>7"
+      errors:
+        columns: "Expected two numeric columns. Separate values with a tab or comma; an optional text label may come first."
+        numbers: Both input columns must contain finite numbers.
+        wholeZero: The whole value cannot be zero.
+        startZero: The starting value cannot be zero for percentage change.
+        differenceZero: Percentage difference is undefined when both values are zero.
 
   svg-placeholder-generator:
     title: SVG placeholder generator
@@ -255,12 +394,12 @@ tools:
     title: JSON to CSV
     description: Convert JSON to CSV with automatic header detection.
   csv-to-json:
-    title: CSV to JSON
-    description: Convert CSV to a JSON array with quoted fields, real newlines and duplicate-column safeguards.
+    title: "CSV to JSON Converter — Preview & Export"
+    description: "Convert CSV to JSON with an optional header row, row preview and downloadable output. Handles quoted fields and reports parsing warnings."
 
   camera-recorder:
-    title: Camera Recorder
-    description: Record video or take photos from your webcam online — no app install, no upload. Frames and clips stay on your machine until you download them. Works in any modern browser.
+    title: "Webcam Recorder — Record Video & Take Photos Online"
+    description: "Record webcam video or take still photos in your browser. Choose a camera and microphone, pause or resume recording, then download your clip. Files stay on your device."
 
   keycode-info:
     title: Keycode info
@@ -271,16 +410,16 @@ tools:
     description: Copy and paste emojis easily and get the unicode and code points value of each emoji.
 
   color-converter:
-    title: Color converter
-    description: Convert color between the different formats (hex, rgb, hsl and css name)
+    title: "Color Converter — HEX, RGB, HSL, HWB, LCH and CMYK"
+    description: "Convert and edit colors between HEX, RGB, HSL, HWB, LCH, CMYK and the nearest CSS color name, with a color picker. Values are computed in your browser."
 
   bcrypt:
-    title: Bcrypt
-    description: Hash and compare text string using bcrypt. Bcrypt is a password-hashing function based on the Blowfish cipher.
+    title: "Bcrypt Hash Generator & Checker"
+    description: "Generate bcrypt hashes with configurable salt rounds and compare plaintext against an existing hash. Runs in your browser; bcrypt hashes cannot be decrypted."
 
   crontab-generator:
-    title: Crontab Generator — Cron Expressions with Plain-English Preview
-    description: Build cron expressions with a plain-English preview — every 5 minutes, weekdays, {'@'}reboot. Validate crontab and GitHub Actions schedules free in your browser.
+    title: "Crontab Generator — Plain-English Cron"
+    description: "Build cron expressions with a plain-English preview: every 5 minutes, weekdays and {'@'}reboot. Validate crontab and GitHub Actions schedules in your browser."
 
   http-status-codes:
     title: HTTP status codes
@@ -295,12 +434,112 @@ tools:
     description: Easily compare execution time of tasks with this very simple online benchmark builder.
 
   git-memo:
-    title: Git cheatsheet
-    description: Git is a decentralized version management software. With this cheatsheet, you will have quick access to the most common git commands.
+    title: "Git Commands Cheat Sheet — Common Commands & Undo"
+    description: "Quick reference for Git configuration, init/clone, commits, amend, reset and branch rename commands, with copyable examples. Replace placeholders before running; hard reset can discard work."
 
   slugify-string:
-    title: Slugify string
-    description: Make a string url, filename and id safe.
+    title: "URL Slug Generator — Create SEO-Friendly Slugs in Bulk"
+    description: "Generate URL slugs from titles in bulk. Choose hyphens, underscores or dots, remove English stop words, set a word-safe length cap and preview full URLs."
+    batch:
+      title: "Bulk URL slug generator"
+      intro: "Convert one title or a batch of titles. Each non-empty line becomes one URL-friendly slug."
+      inputLabel: "Titles or phrases"
+      inputPlaceholder: |-
+        One title per line, e.g.:
+        How to Build a Better API
+        The Complete Guide to URL Slugs
+        Déjà Vu and Unicode
+      separator: "Word separator"
+      hyphen: "Hyphen (-)"
+      underscore: "Underscore (_)"
+      dot: "Dot (.)"
+      maximumLength: "Maximum length"
+      noLimit: "No limit"
+      characters: "{count} characters"
+      lowercase: "Lowercase"
+      decamelize: "Split camelCase words"
+      stopWords: "Remove common English stop words"
+      unique: "Make duplicate slugs unique"
+      baseUrl: "Optional base URL preview"
+      invalidBaseUrl: "Enter a valid http:// or https:// base URL."
+      copyAll: "Copy all slugs"
+      downloadTxt: "Download TXT"
+      downloadCsv: "Download CSV"
+      generated: "{count} slugs generated"
+      shortened: "{count} shortened"
+      warnings: "{count} warnings"
+      line: "Line {number}"
+      chars: "{count} chars"
+      truncated: "Shortened at a word boundary to fit the selected limit."
+      emptyState: "Enter one title per line. Blank lines are ignored; results stay in this browser."
+      inputTooLarge: "Input is too large. Please use {count} characters or fewer."
+      tooManyRows: "This batch has {actual} lines. The limit is {limit}."
+      rowTooLong: "The maximum length is too short to keep a complete word."
+      noCharacters: "No URL-safe characters remain after conversion."
+      copied: "All slugs copied to clipboard"
+
+  redirect-generator:
+    title: Bulk 301 Redirect Generator — Apache, Nginx & Cloudflare
+    description: Generate bulk redirects for Apache, Nginx, Cloudflare, Netlify and Vercel. Import CSV, detect loops and chains, and export server-ready rules locally.
+    cardTitle: Bulk URL redirect mapping
+    intro: Import or paste old and new URL pairs, validate the mapping list, then export server-ready redirect configuration for five platforms.
+    inputPlaceholder: "Source URL,Target URL\n/old-page,https://example.com/new-page\n/legacy,/current"
+    loadSample: Load sample
+    clear: Clear
+    importCsv: Import CSV / TSV
+    outputFormat: Output format
+    statusCode: Redirect status
+    siteOrigin: Site origin for relative Cloudflare URLs
+    preserveQueryString: Preserve incoming query strings
+    includeSubdomains: Match subdomains
+    subpathMatching: Match paths below the source path
+    preservePathSuffix: Preserve the path suffix after the match
+    cloudflareNote: Cloudflare CSV has seven columns and no header. Source URLs omit the scheme; choose subdomain and path matching explicitly. Preserving the suffix requires subpath matching.
+    netlifyNote: Netlify uses a plain-text _redirects file. Download the generated .txt file and rename it exactly to _redirects in the publish directory. This generator supports Netlify 301 and 302 rules.
+    vercelNote: Vercel output is a vercel.json redirects array. Source and destination values use the exact paths from your mapping; review them against your deployment's routing rules.
+    summary:
+      total: Mappings
+      ready: Ready to export
+      errors: Errors
+      warnings: Warnings
+    line: Line {line}
+    invalid: Fix this row
+    review: Review recommended
+    outputTitle: Generated redirect rules
+    copy: Copy rules
+    download: Download file
+    copied: Redirect rules copied
+    emptyState: Paste a two-column CSV, tab-separated list or one "old URL -> new URL" pair per line to get started.
+    safetyNote: Review the generated rules in a staging environment before deploying. Keep old URLs stable where possible and update internal links to point directly to their final destinations.
+    formats:
+      apache: Apache .htaccess (mod_alias)
+      nginx: Nginx server block
+      cloudflare: Cloudflare Bulk Redirect CSV
+      netlify: Netlify _redirects file
+      vercel: Vercel vercel.json
+    status:
+      permanent: Permanent
+      temporary: Temporary
+      temporaryMethod: Temporary (preserve method)
+      permanentMethod: Permanent (preserve method)
+    errors:
+      invalidInput: The input could not be analyzed.
+      originRequired: Enter a site origin before generating a Cloudflare CSV.
+      outputFailed: Could not generate this output format.
+      fileRead: The selected file could not be read.
+      inputTooLarge: Input exceeds the 200,000-character safety limit.
+      tooManyRows: Enter 1,000 redirects or fewer.
+      parseRow: This row could not be parsed. Use a two-column mapping with a source and destination.
+      invalidSource: Enter a valid HTTP/HTTPS source URL or a specific path without a query string.
+      invalidTarget: Enter a valid HTTP/HTTPS destination URL or a path.
+      duplicateSource: This source URL is already used by another mapping.
+      selfRedirect: The source and destination point to the same path on the same host.
+      redirectChain: This destination continues through another redirect in the current batch. Point it directly to the final destination.
+      redirectLoop: This mapping is part of a redirect loop. Break the loop before exporting.
+      cloudflareSourceLimits: Cloudflare source URLs cannot include ports or user information. Remove them before exporting.
+      cloudflareQueryConflict: The target URL query is discarded when Preserve query string is enabled. Remove the target query or disable this option.
+      pathSuffixRequiresSubpath: Enable subpath matching before preserving the remaining path suffix.
+      netlifyStatusUnsupported: This generator limits Netlify _redirects output to 301 and 302. Choose another format for 307 or 308.
 
   encryption:
     title: Encrypt / decrypt text
@@ -315,8 +554,49 @@ tools:
     description: Format and validate YAML online — fix indentation, catch tabs and syntax errors before kubectl or CI rejects your config. Free, runs in your browser.
 
   eta-calculator:
-    title: ETA Calculator — Task Completion Time
-    description: Estimate when a download, build or batch job will finish from total work and current processing rate. Set the start time and rate to see duration and finish time.
+    title: ETA Calculator — Software Build & Task Completion
+    description: Estimate when a software build, CI job, data migration or batch process will finish. Use measured progress or a known rate, compare pace with a deadline, and include buffers and weekday work hours.
+    firstScreenTitle: Estimate when your work will finish
+    firstScreenIntro: Forecast software builds, CI runs, data migrations and batch jobs from current progress or a known processing rate.
+    scenariosTitle: Start with a common workflow
+    scenariosHint: Load editable sample values, then replace them with your own.
+    scenario:
+      build: Software build / CI run
+      migration: Data migration
+      batch: Batch processing
+      conversion: File conversion
+    rateMode: Enter a known processing rate
+    observedMode: Calculate from elapsed time
+    elapsedTitle: Elapsed time so far
+    elapsedHours: Hours
+    elapsedMinutes: Minutes
+    elapsedSeconds: Seconds
+    unitsPerHour: units/hour
+    observedModeHelp: Derive the average processing pace from completed work and elapsed time. The finish time is projected from now.
+    observedModeHint: Enter completed work greater than zero and a positive elapsed time to derive a pace. A completed workload needs no elapsed-time sample.
+    localFinishTime: Local finish time
+    copyFinishTime: Copy finish time
+    copyRemainingDuration: Copy remaining time
+    copySuccess: Copied to clipboard
+    additionalPauseMinutes: Additional pause or break time (minutes)
+    additionalPauseHelp: Add expected pauses to the finish-time estimate after applying the rate and buffer.
+    additionalPauseResult: Additional planned pause time
+    deadlineLabel: Target deadline (local time)
+    deadlineHelp: Optional. Compare your current pace with the pace needed to finish by this date and time. Planned pauses and your buffer are included; weekday mode counts only configured Monday-Friday working hours.
+    requiredPace: Required pace
+    currentPace: Current pace
+    deadlineOnTrack: Your current pace is sufficient to meet this deadline.
+    deadlineBehind: 'Increase your pace by {percent}% to meet this deadline.'
+    deadlineTooSoon: The deadline must be later than the estimate start time and include working time after planned pauses and buffer.
+    deadlineComplete: This workload is already complete.
+    scheduleTitle: Completion schedule
+    calendarSchedule: 24/7 calendar time
+    weekdaySchedule: Monday-Friday working hours
+    workingDayStart: Workday starts
+    workingDayEnd: Workday ends
+    weekdayScheduleHelp: Only Monday-Friday time between these hours is counted in your local timezone ({timezone}). Work starts at the next opening when the start time is outside the window.
+    workingWindowCounted: Time counted inside working windows (includes buffer and planned pauses)
+    workingScheduleError: Choose valid 24-hour times. The closing time must be later than the opening time on the same day.
 
   roman-numeral-converter:
     title: Roman numeral converter
@@ -331,15 +611,15 @@ tools:
     description: Generate a BIP39 passphrase from an existing or random mnemonic, or get the mnemonic from the passphrase.
 
   base64-file-converter:
-    title: Base64 to Image — Online Decode, Preview and Download
-    description: Convert a string, file, or image into its base64 representation.
+    title: "Base64 File Converter — Encode & Decode"
+    description: "Encode files as Base64 or decode Base64 strings and data URIs to preview and download images or documents. Processing stays in your browser."
 
   list-converter:
-    title: List converter
-    description: Remove duplicates, sort, reverse, lowercase, trim and add prefix/suffix to a list, one item per line. Everything runs in your browser — no upload.
+    title: "List Converter — Sort & Deduplicate"
+    description: "Clean up line-by-line lists: remove duplicates, sort or reverse items, trim whitespace, change case, add prefixes or suffixes, and join with a separator."
 
   base64-string-converter:
-    title: Base64 Encoder & Decoder — Padding, URL-Safe, Binary-Safe
+    title: "Base64 Encoder & Decoder — URL-Safe"
     description: Encode and decode Base64 online — URL-safe base64url, padding options, binary-safe text, with RFC 4648 and atob()/btoa() notes. Free, in your browser.
 
   toml-to-yaml:
@@ -355,88 +635,98 @@ tools:
     description: Simply convert JSON to YAML with this online live converter.
 
   url-parser:
-    title: URL parser
-    description: Parse a URL into its separate constituent parts (protocol, origin, params, port, username-password, ...)
+    title: URL Parser — Inspect Query Parameters and UTM Tags
+    description: Parse a URL into its scheme, hostname, port, path, query parameters and fragment. Inspect UTM tags in the URL with your browser's built-in parser.
 
   iban-validator-and-parser:
-    title: IBAN validator and parser
-    description: Validate and parse IBAN numbers. Check if an IBAN is valid and get the country, BBAN, if it is a QR-IBAN and the IBAN friendly format.
+    title: "IBAN Validator & Parser — Check Format, Country & BBAN"
+    description: "Validate an IBAN's country-specific structure and checksum, inspect errors, identify QR-IBAN status and extract the country code and BBAN. A valid checksum does not confirm account ownership or payment availability."
 
   user-agent-parser:
-    title: User-agent parser
-    description: Detect and parse Browser, Engine, OS, CPU, and Device type/model from an user-agent string.
+    title: User Agent Parser — Browser, OS & Device Detection
+    description: Parse a user-agent string to identify its browser, rendering engine, operating system, CPU and device type. Use the results for debugging and analytics, not authentication.
 
   numeronym-generator:
     title: Numeronym Generator — i18n, a11y & k8s
-    description: Generate numeronyms from one word or a batch of words, one per line, and look up established forms such as i18n, a11y and k8s. Free and instant in your browser.
+    description: Generate numeronyms from pasted words and phrases. Supports Unicode letters, hyphenated terms, case-preserving batch output and lookups for i18n, a11y and k8s.
+    tryExample: 'Try an example:'
+    exampleInternationalization: 'internationalization → i18n'
+    exampleAccessibility: 'accessibility → a11y'
+    exampleKubernetes: 'Kubernetes → K8s'
+    shortWordResult: Too short — unchanged
+    shortWordNote: Words with three letters or fewer stay unchanged because a shorter numeronym would not be useful.
+    batchCopyNote: Unsupported items and short words remain visible in the table but are omitted from Copy All.
+    breakdownHeader: Rule breakdown
+    middleLetters: middle letters
+    shortWordBreakdown: Short words stay unchanged because the abbreviation would not be shorter.
 
   case-converter:
-    title: Case converter
-    description: Transform the case of a string and choose between different formats
+    title: Text Case Converter — camelCase, snake_case & More
+    description: "Convert text between camelCase, PascalCase, snake_case, kebab-case, CONSTANT_CASE, uppercase, lowercase and other naming styles. Paste once, choose a format and copy the result."
 
   html-entities:
-    title: Escape HTML entities
-    description: Escape or unescape HTML entities (turn <, >, &, " and ' into their HTML form) and look up common characters — quotes, dashes, currency, math and Greek symbols — in a searchable entity reference table.
+    title: "HTML Entity Encoder & Decoder"
+    description: "Encode and decode HTML entities for ampersands, angle brackets, quotes and apostrophes. Search named and numeric references; encoding does not sanitize HTML."
 
   json-prettify:
-    title: JSON Formatter & Validator — Beautify, Validate, Diff and Convert
-    description: Format and validate JSON online — pretty-print at your indent size, sort keys and spot syntax errors instantly, right in your browser.
+    title: "JSON Formatter — Format, Validate & Diff"
+    description: "Format and validate JSON online — pretty-print at your indent size, sort keys and spot syntax errors instantly, right in your browser."
 
   json-workspace:
-    title: JSON Developer Workspace — Format, Query, Tree, Schema & Convert
-    description: A professional JSON workspace — format and validate, explore an interactive tree, query with JSONPath, infer JSON Schema, and convert to YAML or CSV, all in your browser.
+    title: "JSON Workspace — JSONPath, Tree & Schema"
+    description: "Format and validate JSON, inspect an interactive tree, query with JSONPath, infer JSON Schema, and convert to YAML or CSV. Free in your browser."
 
   api-debugger:
-    title: API Debug Workspace — cURL, Test Assertions & Response Pipeline
-    description: Import a cURL command, send the request through a transient edge relay, assert status codes, JSON fields, headers and response time with a built-in test runner, run your whole saved collection as a regression suite, organize variables into Global / Collection / Environment scopes with secret masking, then inspect the response or hand it to the JSON workspace — all in your browser.
+    title: "REST API Tester — cURL, Tests & Collections"
+    description: "Send REST API requests, import cURL, inspect status, headers and JSON, add assertions, and run saved collections. Requests pass through a temporary relay."
 
   docker-run-to-docker-compose-converter:
-    title: Docker Run to Compose Converter — Generate a compose Service from a Command
-    description: Paste a docker run command and get a docker-compose service — ports, volumes and env mapped. Free online decomposerize alternative, in your browser.
+    title: "Docker Run to Compose Converter"
+    description: "Paste a docker run command and get a docker-compose service — ports, volumes and env mapped. Free online decomposerize alternative, in your browser."
 
   mac-address-lookup:
     title: MAC address lookup
     description: Find the vendor and manufacturer of a device by its MAC address.
 
   mime-types:
-    title: MIME types
-    description: Convert MIME types to file extensions and vice-versa.
+    title: "MIME Type Lookup — Types & Extensions"
+    description: "Find MIME types by file extension or find extensions by Content-Type. Generate copy-ready Nginx, Apache and Cloudflare _headers snippets."
 
   toml-to-json:
-    title: TOML to JSON
-    description: Parse and convert TOML to JSON.
+    title: "TOML to JSON Converter — Convert TOML Config to JSON"
+    description: "Convert TOML configuration into formatted JSON. Tables and arrays of tables become nested objects and arrays; TOML date and time values are serialized as strings, while comments and formatting are not preserved."
 
   lorem-ipsum-generator:
     title: Lorem Ipsum Generator
-    description: Generate lorem ipsum placeholder text — paragraphs, sentences or words — for layouts and mockups. The classic printing-industry dummy text since the 1500s, free and instant, right in your browser.
+    description: "Generate placeholder text for layouts and mockups by paragraph, sentence or word count. Classic printing-industry Lorem Ipsum, free and instant in your browser."
 
   qrcode-generator:
-    title: QR Code generator
-    description: Generate and download a QR code for a URL (or just plain text), and customize the background and foreground colors.
+    title: "QR Code Generator — Create & Download Custom QR Codes"
+    description: "Create a QR code from a URL or text. Customize foreground and background colors, choose an error-correction level, and download a PNG image."
 
   wifi-qrcode-generator:
-    title: WiFi QR Code generator
-    description: Generate and download QR codes for quick connections to WiFi networks.
+    title: "WiFi QR Code Generator — Create Network Login QR Codes"
+    description: "Generate a WiFi QR code for WPA/WEP, open networks or WPA2-EAP. Enter SSID, password, hidden-network and EAP settings, customize colors and download a PNG. QR codes contain credentials in readable form."
 
   xml-formatter:
     title: XML Formatter — Beautify, Validate and Minify XML
     description: Prettify or minify your XML string — human-readable indentation, or strip it back down to a single line.
 
   temperature-converter:
-    title: Temperature converter
-    description: Degrees temperature conversions for Kelvin, Celsius, Fahrenheit, Rankine, Delisle, Newton, Réaumur, and Rømer.
+    title: "Temperature Converter — Celsius, Fahrenheit, Kelvin & More"
+    description: "Convert between Celsius, Fahrenheit, Kelvin, Rankine, Delisle, Newton, Réaumur and Rømer. Enter a value in any scale to update the other seven instantly."
 
   chmod-calculator:
     title: Chmod Calculator — Unix File Permissions (755, 644, 777)
     description: Compute your chmod permissions and commands with this online chmod calculator.
 
   rsa-key-pair-generator:
-    title: RSA Key Pair Generator
-    description: Generate an RSA private/public key pair online — PEM format, 2048 to 8192 bits, for SSH, TLS or JWT RS256. No OpenSSL install, keys never leave your browser.
+    title: "RSA Key Pair Generator — Create Public & Private PEM Keys"
+    description: "Generate an RSA public/private key pair in your browser and copy both PEM outputs. Choose a key size from 256 to 16,384 bits in 8-bit steps; no native OpenSSH output or other key algorithms are included."
 
   html-wysiwyg-editor:
-    title: HTML WYSIWYG editor
-    description: Online, feature-rich WYSIWYG HTML editor which generates the source code of the content immediately.
+    title: "HTML WYSIWYG Editor — Format Text & Copy HTML"
+    description: "Format text visually with headings, paragraphs, lists, quotes, inline formatting and code blocks, then copy the generated HTML. Tables, images, links and direct source editing are not supported."
 
   yaml-to-toml:
     title: YAML to TOML
@@ -447,11 +737,11 @@ tools:
     description: Enter the quantity and prefix. MAC addresses will be generated in your chosen case (uppercase or lowercase)
 
   json-diff:
-    title: JSON diff
-    description: Compare two JSON objects and get the differences between them.
+    title: "JSON Diff Checker — Compare JSON Online"
+    description: "Compare JSON files or pasted JSON online. Inspect nested changes by path, export a report, and match arrays by index, ignore-order or stable ID. Large comparisons run in a cancellable worker."
 
   jwt-parser:
-    title: JWT Decoder & Parser — Inspect Header, Payload and Expiration
+    title: "JWT Decoder & Parser — Claims & Expiration"
     description: Decode JWTs online — inspect header, payload, claims and expiration (exp/iat) as readable dates. Your token never leaves your browser. Free, no signup.
 
   date-converter:
@@ -463,40 +753,60 @@ tools:
     description: Convert a Unix epoch timestamp (seconds or milliseconds) to a readable date, or turn a date into a timestamp online.
 
   phone-parser-and-formatter:
-    title: Phone parser and formatter
-    description: Parse, validate and format phone numbers. Get information about the phone number, like the country code, type, etc.
+    title: "International Phone Number Parser & Formatter — E.164"
+    description: "Parse and validate an international phone number, then copy E.164, national, international or RFC 3966 formats. Batch-check up to 200 numbers locally and export CSV."
 
   prepare-deployment:
     title: Prepare Deployment — Pre-Deploy Readiness Gate for Docker, CI & Lockfiles
     description: Pre-deployment readiness gate for your project. Paste package.json, lockfile, Dockerfile and CI workflow, or import Trivy/Checkov/Hadolint/SARIF JSON or actionlint text; get a READY / READY_WITH_WARNINGS / BLOCKED / NOT_ASSESSED verdict with evidence-backed findings (reproducible builds, pinned images, non-root containers, CI injection risks, hardcoded secrets, real scanner results) and an exportable release report. Inspired by Vercel/Netlify preflight checks; runs fully in your browser.
 
   ipv4-subnet-calculator:
-    title: IPv4 Subnet Calculator
-    description: Paste a CIDR like 192.168.1.0/24 and get the full subnet breakdown — usable hosts, first/last address, netmask, wildcard. Built for VPC and VLAN planning, free in your browser.
+    title: "IPv4 Subnet Calculator — CIDR & Hosts"
+    description: "Calculate a subnet from an IPv4 address and CIDR prefix. View network and broadcast addresses, netmask, wildcard mask, subnet size and usable host range."
 
   og-meta-generator:
-    title: Open graph meta generator
-    description: Generate open-graph and socials HTML meta tags for your website.
+    title: "Open Graph & Twitter Meta Generator"
+    description: "Create copyable Open Graph and Twitter Card tags for a page title, description, URL and image. Choose website, article, profile, book, music or video metadata."
 
   ipv6-ula-generator:
     title: IPv6 ULA generator
-    description: Generate your own local, non-routable IP addresses for your network according to RFC4193.
+    description: Generate RFC 4193 fd00::/8 IPv6 Unique Local Address (ULA) /48 prefixes with secure random 40-bit Global IDs or a manual Global ID. Create up to 20 prefixes and inspect first/last /64 subnets in your browser.
+    randomMode: Secure random
+    manualMode: Manual Global ID
+    quantity: Number of prefixes
+    randomHelp: Uses the browser cryptographic random generator. No MAC address is needed; generate up to 20 unique prefixes at once.
+    globalId: 40-bit Global ID
+    manualHelp: Enter exactly 10 hexadecimal characters (or prefix 0x) to reproduce a specific /48 prefix.
+    generate: Generate
+    copyAll: Copy all prefixes
+    resultNumber: Prefix {number}
+    ulaPrefix: ULA prefix (/48)
+    firstSubnet: First /64 subnet
+    lastSubnet: Last /64 subnet
+    subnetCount: A /48 contains {count} /64 subnets.
+    copied: ULA prefixes copied to the clipboard.
+    privacyNote: Random generation uses Web Crypto in your browser. No MAC address, Global ID or generated prefix is sent to a server or analytics.
+    routingWarning: ULAs are for private network use and are not expected to be routed on the public internet. Random IDs reduce collision risk but do not guarantee uniqueness; check existing prefixes before connecting sites or VPNs. A ULA is not a security boundary.
+    errors:
+      invalidQuantity: Choose between 1 and 20 prefixes.
+      invalidGlobalId: Enter exactly 10 hexadecimal characters for a 40-bit Global ID.
+      randomUnavailable: Secure browser randomness is unavailable. Use a modern browser with Web Crypto enabled.
 
   hash-text:
     title: Hash Generator — MD5, SHA-1, SHA-256 Online
     description: 'Hash a text string using the function you need : MD5, SHA1, SHA256, SHA224, SHA512, SHA384, SHA3 or RIPEMD160 — with 16-digit MD5 and upper/lower-case hex output'
 
   json-to-toml:
-    title: JSON to TOML
-    description: Parse and convert JSON to TOML.
+    title: "JSON to TOML Converter"
+    description: "Convert JSON or JSON5 objects to TOML. Nested objects become tables or dotted keys; arrays become TOML arrays. Unsupported values may prevent conversion."
 
   device-information:
     title: Device information
     description: Get information about your current device (screen size, pixel-ratio, user agent, ...)
 
   pdf-merge:
-    title: PDF Merge
-    description: Combine multiple PDF files into one — in upload order, page count shown before you start. Free, private, everything happens in your browser.
+    title: PDF Merge — Combine PDF Files Online
+    description: Combine two or more PDF files into one document in your browser. Files are merged in upload order, with page counts shown before you start; download the combined PDF.
     pickFiles: Choose PDF files
     selected: '{count} file selected | {count} files selected'
     working: Merging…
@@ -507,8 +817,8 @@ tools:
       needTwo: Select at least two PDF files to merge.
 
   pdf-split:
-    title: PDF Split
-    description: Split a PDF into single pages, or extract a page range — page count is read from the file before you choose. Free, private, runs in your browser.
+    title: PDF Split — Split PDF Pages or Extract a Range
+    description: Split a PDF into separate single-page files or extract a selected page range into a new PDF. Check the page count first; processing runs in your browser.
     pickFile: Choose a PDF file
     pageCount: 'This document has {count} page. | This document has {count} pages.'
     working: Splitting…
@@ -522,8 +832,8 @@ tools:
       split: Split PDF
 
   pdf-watermark:
-    title: PDF Watermark
-    description: Add a text watermark to every page of a PDF — adjustable size, opacity, angle, single line or tiled. Free, private, runs in your browser.
+    title: PDF Watermark — Add Text Watermarks to PDF
+    description: Add a text watermark to every page of a PDF. Adjust font size, opacity and angle, then choose a single centered line or a tiled layout; processing stays in your browser.
     pickFile: Choose a PDF file
     text: Watermark text
     textPlaceholder: e.g. CONFIDENTIAL
@@ -539,8 +849,8 @@ tools:
       needText: Enter the watermark text first.
 
   pdf-compress:
-    title: PDF Compressor
-    description: Compress PDF files online by recompressing embedded photos and rebuilding the file structure. Two levels, live before/after sizes, never larger than the original. Free, private, runs in your browser.
+    title: PDF Compressor — Reduce PDF File Size Online
+    description: Compress a PDF by recompressing embedded photos and rebuilding file structure. Compare before-and-after sizes with balanced or strong compression; text and vector content stay untouched, and the result is never larger than the original.
     pickFile: Choose a PDF file
     levelLabel: Compression level
     balanced: Balanced (recommended)
@@ -560,8 +870,8 @@ tools:
       tooLarge: File exceeds 80 MB — browser-side processing would be unreliable. Please use a desktop tool.
 
   image-crop:
-    title: Image Cropper
-    description: Crop an image to an exact pixel region in your browser — drag the box, lock a ratio, and export at the true source resolution, not a scaled-down copy.
+    title: Image Cropper — Crop Photos to Any Aspect Ratio
+    description: "Crop an image to exact pixel dimensions using a preset aspect ratio or freeform selection, then export in a supported image format."
     pickFile: Choose an image
     ratio: Aspect ratio
     ratioFree: Free
@@ -572,13 +882,13 @@ tools:
     button: Crop image
     buttonDownload: Download cropped image
   image-color-picker:
-    title: Image Color Picker
-    description: Click any pixel of an image to read its exact colour as HEX, RGB and HSL — sampled from the original file, entirely offline in your browser.
+    title: "Image Color Picker — HEX, RGB & HSL"
+    description: "Sample a pixel from an image and read its HEX, RGB and HSL values. Processing uses the original image locally; transparent pixels retain their stored RGB."
     pickFile: Choose an image
     clickHint: Click a pixel to sample it.
   favicon-generator:
-    title: Favicon Generator
-    description: Turn any image into a real multi-size favicon.ico plus apple-touch-icon and 512px PNG — centre-cropped and resized in your browser, nothing uploaded.
+    title: Favicon Generator — Create ICO & PNG Icons
+    description: Create a multi-size favicon.ico, Apple touch icon and PNG app icons from an image. Choose a transparent or white background; image processing runs in your browser.
     pickFile: Choose an image
     background: Background
     bgTransparent: Keep transparency
@@ -590,8 +900,8 @@ tools:
     htmlSnippet: HTML to paste
     copySnippet: Copy HTML
   image-to-pdf:
-    title: Images to PDF
-    description: Combine images into one PDF, each on its own page at its own size — JPEG is carried in without re-compression, and everything runs in your browser.
+    title: "Images to PDF Converter — JPG & PNG"
+    description: Combine multiple images into one PDF, with each image placed on its own page. Add images, review the selection and create a downloadable PDF in your browser.
     pickFile: Choose images
     selected: '{count} image selected | {count} images selected'
     margin: Page margin (pt)
@@ -603,8 +913,8 @@ tools:
       unreadable: This file could not be decoded as an image
 
   image-resize:
-    title: Image Resizer
-    description: Resize images online to exact pixel dimensions — step-down scaling keeps detail instead of smearing it, and nothing is uploaded because it all runs in your browser.
+    title: "Image Resizer — Exact Dimensions"
+    description: "Resize images to exact pixel width and height with an optional aspect-ratio lock. Export PNG, JPEG or WebP when supported; processing stays local."
     pickFile: Choose an image
     width: Target width (px)
     height: Target height (px)
@@ -617,8 +927,8 @@ tools:
     previewAlt: Resized image preview
     buttonDownload: Download resized image
   image-compress:
-    title: Image Compressor
-    description: Compress JPEG and WebP images online to a quality level or a target file size — lossy re-encoding in your browser, so the file never leaves your machine.
+    title: Image Compressor — Reduce JPEG & WebP File Size
+    description: "Compress JPEG and WebP images in your browser. Adjust quality or set a target size in KB; lossy output may not reach every target."
     pickFile: Choose an image
     format: Output format
     quality: 'Quality: {q}'
@@ -632,8 +942,8 @@ tools:
       targetUnreachable: Even the lowest quality could not reach that size. Raise the target, or resize the image first.
 
   pdf-signature-checker:
-    title: PDF signature checker
-    description: Verify the signatures of a PDF file. A signed PDF file contains one or more signatures that may be used to determine whether the contents of the file have been altered since the file was signed.
+    title: "PDF Signature Checker — Verify PDF Signatures & Certificates"
+    description: "Inspect supported PDF digital signatures, check signed-byte integrity and certificate trust or expiry, and distinguish unsupported or unreadable files. These are technical checks, not legal certification."
 
   json-minify:
     title: JSON minify
@@ -655,12 +965,12 @@ tools:
     description: Obfuscate a string (like a secret, an IBAN, or a token) to make it shareable and identifiable without revealing its content.
 
   base-converter:
-    title: Integer base converter
-    description: Convert a number between different bases (decimal, hexadecimal, binary, octal, base64, ...)
+    title: "Number Base Converter — Bases 2–64"
+    description: "Convert non-negative integers between bases 2–64, including binary, octal, decimal, hexadecimal and custom alphabets. This converts numbers, not text."
 
   yaml-to-json-converter:
-    title: YAML to JSON converter
-    description: Simply convert YAML to JSON with this online live converter.
+    title: YAML to JSON Converter — Convert YAML Online
+    description: "Convert YAML configuration data into JSON in your browser. Nested mappings become objects, sequences become arrays, and YAML scalar types are reflected in the JSON output; comments are not preserved."
 
   uuid-generator:
     title: UUID Generator — v4, v1, v3, v5 and NIL IDs
@@ -671,40 +981,75 @@ tools:
     description: Convert an IP address into decimal, binary, hexadecimal, or even an IPv6 representation of it.
 
   text-statistics:
-    title: Text statistics
-    description: Get information about a text, the number of characters, the number of words, its size in bytes, ...
+    title: "Text Statistics — Word & Character Counter"
+    description: "Count words, characters, Unicode units, lines and UTF-8 bytes. Analyze top-term frequency and estimate reading and speaking time in your browser, with no text upload."
+    speakingTime: Estimated speaking time
+    speakingSpeed: Speaking speed
+    speakingSpeedAria: Speaking speed in words per minute
+    wordsPerMinute: words/min
+    topTerms: Top terms
+    excludeEnglishStopWords: Exclude common English stop words
+    stopWordsDescription: Available only for English. Excluded words are removed from this table's denominator; the headline word count stays unchanged.
+    analyzedTokens: "Analyzed tokens: {count}"
+    termColumn: Term
+    countColumn: Count
+    shareColumn: Share
+    noTerms: No terms to display yet.
+    termFrequencyNote: Shares use the analyzed token count shown above. Term frequency is descriptive text analysis, not search volume, keyword demand or ranking data.
+    customLimitTitle: Custom character budget
+    customLimitLabel: Your limit
+    customLimitAria: Custom character limit
+    customLimitUnit: Count by
+    customLimitHelp: Set a limit using the receiving service's documented counting rule. No platform limit is assumed.
+    limitUnits:
+      graphemes: Visible characters (graphemes)
+      codePoints: Unicode code points
+      utf16CodeUnits: UTF-16 code units
+      bytes: UTF-8 bytes
+    limitRemaining: '{count} {unit} remaining.'
+    limitReached: 'At your custom limit ({unit}).'
+    limitOver: 'Over your limit by {count} ({unit}).'
 
   text-to-nato-alphabet:
     title: Text to NATO alphabet
     description: Transform text into the NATO phonetic alphabet for oral transmission.
 
   basic-auth-generator:
-    title: "Basic Auth Generator — Build an HTTP Authorization Header"
-    description: "Generate an HTTP Basic Authorization header from a username and password. Copy the Base64 value for curl or API clients. Base64 is not encryption; use HTTPS."
+    title: "Basic Auth Generator & Decoder — HTTP Header"
+    description: "Generate or decode an HTTP Basic Authorization header, then copy ready-to-use cURL, Node.js and Python examples. Runs locally; use HTTPS."
+    requestUrl: Request URL for code examples
+    requestUrlPlaceholder: https://api.example.com/v1/resource
+    invalidRequestUrl: Enter a valid HTTP or HTTPS URL without embedded credentials.
+    curl: cURL
+    nodeFetch: Node.js fetch
+    pythonRequests: Python requests
+    decodedPassword:
+      show: Show decoded password
+      hide: Hide decoded password
 
   text-to-unicode:
-    title: Text to Unicode
-    description: Parse and convert text to unicode and vice-versa — HTML entities or plain decimal code points.
+    title: "Text to Unicode Converter — Decimal HTML References & Code Points"
+    description: "Convert text to decimal HTML numeric character references and back, or convert text to decimal Unicode code-point lists. HTML-reference mode uses UTF-16 code units and does not support hexadecimal entities or \\u escapes."
 
   ipv4-range-expander:
-    title: IPv4 range expander
-    description: Given a start and an end IPv4 address, this tool calculates a valid IPv4 subnet along with its CIDR notation.
+    title: "IP Range to CIDR Converter"
+    description: "Convert an IPv4 start and end address into the smallest CIDR block set covering the range. Use the blocks in firewall rules, cloud security groups and routing."
 
   text-diff:
-    title: Text diff
-    description: Compare two texts and see the differences between them.
+    title: Text Diff Checker — Compare Two Texts Side by Side
+    description: Compare two text inputs in a side-by-side diff editor to spot additions, deletions and changed lines.
 
   otp-generator:
-    title: OTP code generator
-    description: Generate and validate time-based OTP (one time password) for multi-factor authentication.
+    title: "TOTP Code Generator — 6-Digit Codes & QR"
+    description: "Generate current, previous and next 6-digit TOTP codes from a Base32 secret, view the 30-second timer, and create an otpauth QR code. Uses Web Crypto."
 
   url-encoder:
     title: URL Encoder & Decoder — Percent-Encoding, encodeURIComponent Pitfalls
     description: Encode text to URL-encoded format (also known as "percent-encoded"), or decode from it.
 
   text-to-binary:
-    title: Text to ASCII binary
-    description: Convert text to its ASCII binary representation and vice-versa.
+    title: "Text to Binary Converter — ASCII 8-Bit Encoder & Decoder"
+    description: "Convert basic ASCII text to 8-bit binary groups and decode byte-aligned ASCII binary back to text. This is not a Unicode or UTF-8 byte encoder."
 
   ascii-text-drawer:
     title: ASCII Art Generator
@@ -715,12 +1060,12 @@ tools:
     description: Normalize email addresses to a standard format for easier comparison, deduplication and data cleaning.
 
   json-to-xml:
-    title: JSON to XML
-    description: Convert JSON data to XML format.
+    title: "JSON to XML Converter"
+    description: "Convert JSON objects and arrays to XML. Set the root element and array item names, preview the output, then copy or download the generated XML in your browser."
 
   markdown-to-html:
-    title: Markdown to HTML
-    description: Convert Markdown to HTML, with print support (save as PDF).
+    title: Markdown to HTML Converter — Live Preview & HTML Output
+    description: Convert Markdown to HTML with a live preview in your browser. Copy the generated HTML or use the print dialog to save the rendered result as a PDF.
 
   regex-memo:
     title: Regex Cheat Sheet — Complete Regular Expression Reference
@@ -728,39 +1073,76 @@ tools:
 
   regex-tester:
     title: Regular Expression Tester — JavaScript Regex
-    description: Test regular expressions online with live match results — JavaScript flavor, toggle flags and capture groups instantly.
+    description: Test JavaScript regular expressions online with live matches, capture groups, replacement preview and named positive/negative test cases with pass/fail results. A 300ms worker timeout stops runaway patterns.
 
   safelink-decoder:
-    title: "Outlook Safe Links Decoder — Reveal the Original URL"
-    description: "Decode an Outlook Safe Links URL to reveal its original destination without opening it. Runs in your browser; decoding does not verify whether the destination is safe."
+    title: "Outlook Safe Links Batch Decoder — Reveal Original URLs"
+    description: "Batch-decode Microsoft Outlook Safe Links one wrapper per line. Unwrap up to five layers, inspect destination scheme and host, and copy valid URLs; local parsing only, no safety scan."
+    batch:
+      title: Decode Outlook Safe Links in batches
+      intro: Paste one Microsoft Outlook Safe Links URL per line to decode a list of email links in one pass.
+      instructions: Blank lines are ignored. Each non-empty row is decoded independently, original line numbers are preserved, and only successful destinations are included when you copy results.
+      placeholder: Paste one Outlook Safe Links URL per line...
+      decode: Decode links
+      copy: Copy successful URLs
+      summary: "{success} of {total} links decoded; {failed} failed."
+      line: "Line {line}"
+      success: Destination extracted — not safety-checked
+      resultDetails: "Destination: {scheme} · {host} · {depth} wrapper layer(s)"
+      copied: Successful URLs copied.
+      copyFailed: Clipboard access failed. Select and copy the decoded URLs manually.
+    guide:
+      title: How to batch-decode Outlook Safe Links
+      intro: The decoder accepts HTTPS Microsoft Outlook Safe Links wrappers and unwraps up to five nested layers. It parses URL text in your browser; it never requests or opens the wrapper or destination.
+      exampleTitle: "Example: two links in one batch"
+      example: |-
+        Line 1: https://nam01.safelinks.protection.outlook.com/?url=https%3A%2F%2Fexample.com%2Fdocs
+        Line 2: https://eur01.safelinks.protection.outlook.com/?url=https%3A%2F%2Fexample.org%2Faccount
+
+        Destinations:
+        https://example.com/docs
+        https://example.org/account
+      securityTitle: Important security limits
+      security1: A successful decode only reveals the embedded address. The displayed scheme, host and wrapper depth describe URL structure; they are not reputation checks or a safety verdict.
+      security2: The tool does not fetch, open, scan or certify a destination. Inspect the hostname and message context before deciding whether to visit it.
+      security3: Microsoft Safe Links can perform click-time checks. This decoder does not replace, disable or bypass that protection; follow your organization's security process.
+      relatedTitle: Continue inspecting the link
+      urlParser: Open the URL Parser to inspect scheme, host, port, path, query and fragment.
+      article: Read the Outlook Safe Links guide
+    single:
+      title: Decode a single Outlook Safe Links URL
+      instructions: For one link, expand this optional single-link decoder. Batch decoding remains the primary workflow.
+      placeholder: Paste one Outlook Safe Links URL...
+      inputLabel: Outlook Safe Links URL
+      outputLabel: Decoded destination URL
 
   xml-to-json:
-    title: XML to JSON
-    description: Convert XML data to JSON format.
+    title: XML to JSON Converter — Convert XML Online
+    description: Convert XML into JSON in your browser. Elements become objects, repeated elements become arrays, and attributes and text are represented with separate keys.
 
   fullwidth-converter:
     title: "Full-width / half-width converter"
     description: "Convert between full-width and half-width characters using the fixed Unicode offset 0xFEE0, or adjust punctuation only."
 
   morse-code-converter:
-    title: "Morse Code Converter"
-    description: "What is Morse code? The dot-and-dash alphabet dating from the 1840s. Encode text to Morse or decode it back — letters separated by spaces, words by a slash, free and instant in your browser."
+    title: "Morse Code Translator — Encode & Decode"
+    description: "Translate text to Morse code or decode dot-and-dash sequences. Supports A–Z, digits and common punctuation; letters use spaces and words use slashes."
 
   rmb-uppercase:
     title: "RMB amount in Chinese uppercase"
     description: "Turn a numeric amount into the Chinese financial uppercase wording (yuan / jiao / fen), with an optional RMB prefix."
 
   px-rem-converter:
-    title: "px / rem converter"
-    description: "Convert a batch of values between px and rem with a configurable root font size."
+    title: "PX to REM Converter — Batch Conversion with Root Font Size"
+    description: "Convert batches of CSS pixel and rem values in either direction. Set the root font size and decimal precision; values can be separated by spaces, commas or newlines."
 
   text-replacer:
-    title: "Batch text replacer"
-    description: "Find and replace text with plain or regular-expression matching, optional case-insensitive mode and a match counter."
+    title: "Find and Replace Text — Plain Text & Regex Replacer"
+    description: "Paste text, find a phrase or regular expression, replace or remove matches, ignore case and see the replacement count and output length."
 
   json-to-get-params:
-    title: "JSON to GET params"
-    description: "Flatten JSON into a URL query string (a[b][0]=1 style) and rebuild JSON from a query string or a full URL."
+    title: "JSON to Query String Converter"
+    description: "Percent-encode nested JSON as URL query parameters, or rebuild JSON from a query string or full URL. Supports bracketed object keys and indexed arrays."
 
   unit-converter:
     title: "Unit converter"
@@ -770,8 +1152,8 @@ tools:
     title: "JSON to model classes"
     description: "Generate TypeScript, C#, Java or Go model classes from JSON, splitting nested objects into their own classes."
   whois-lookup:
-    title: "WHOIS lookup"
-    description: "Look up domain registration data such as registrar, dates and status. Powered by RDAP, the official successor of WHOIS."
+    title: "Domain WHOIS & RDAP Lookup — Check Registration Details"
+    description: "Look up domain registration data through RDAP, including registrar, registration and expiry dates, status and nameservers when supplied by the registry. Coverage and returned fields vary by domain extension."
 
   http-status-checker:
     title: "HTTP status checker"
@@ -782,16 +1164,90 @@ tools:
     description: "See what happened on this day in history. Events load automatically when the page opens."
 
   htpasswd-generator:
-    title: "htpasswd generator and checker"
-    description: "Generate .htpasswd lines for Apache or Nginx basic auth using bcrypt, apr1, SHA1 or plain text, and verify existing entries."
+    title: "htpasswd Generator & Checker — bcrypt & apr1"
+    description: "Build multi-user Apache/Nginx .htpasswd files with bcrypt or apr1. Copy, download or verify a username:hash line locally. Passwords stay in your browser."
 
   linux-commands:
     title: "Linux commands cheat sheet"
     description: "A searchable cheat sheet of common Linux commands with what they do and ready-to-use examples."
 
   http-headers:
-    title: "HTTP headers & request methods"
-    description: "A searchable reference of common HTTP request and response headers plus the nine standard request methods, covering CORS, caching, security fields and safe/idempotent semantics."
+    title: "HTTP Header Analyzer — HAR Import & Security Score"
+    description: "Import HAR or paste curl/DevTools headers. Check CSP, HSTS, cookies, CORS and indexing; get a score plus copy-ready Nginx, Vercel and Cloudflare fixes locally."
+    analyzer:
+      cardTitle: "HTTP response header analyzer"
+      intro: "Paste response headers from curl or browser DevTools. Parsing and checks run locally in this tab; the pasted headers are not uploaded."
+      inputPlaceholder: "Paste curl -I / -i output or raw Response Headers here…"
+      loadSample: "Load sample"
+      clear: "Clear"
+      supportsFormats: "Supports repeated headers, curl -v response lines and redirect chains from curl -L."
+      harImportLabel: "Import HAR or response-header file"
+      harPrivacyNote: "HAR and header files can contain cookies or tokens. Imported data is read locally and is never uploaded."
+      harTooLarge: "This file is larger than 10 MB. Export a smaller capture and try again."
+      harNoResponses: "No HTTP response entries with valid status codes were found in this HAR file."
+      harInvalid: "Could not read this file. Choose a valid HAR 1.2 file with log.entries."
+      harDropNote: "Drop a .har or .txt response-header file here. Processing stays in this tab."
+      scoreLabel: "Header coverage score"
+      statusLineMissing: "Status line not included"
+      responseBlocks: "{count} response blocks; final block scored"
+      scoreDisclaimer: "This is a transparent header-coverage checklist, not an OWASP rating, penetration test or guarantee that an application is secure. Some policies are optional or can break embeds and third-party resources."
+      checksTitle: "Security header checks"
+      nextStep: "Next step"
+      otherFindings: "Other findings"
+      parsedCsp: "Parsed Content-Security-Policy"
+      noValue: "(no value)"
+      parseEmpty: "No response headers could be parsed. Paste the response header block, including lines in the form"
+      referenceTitle: "HTTP header reference"
+      searchPlaceholder: "Search by header name, e.g. Cookie / CORS / cache…"
+      entriesCount: "{count} entries"
+      noMatches: "No matching header. Try another keyword."
+      methodsTitle: "HTTP request methods"
+      methodsIntro: "The nine standard verbs, with whether each is safe and idempotent."
+      method: "Method"
+      safe: "Safe"
+      idempotent: "Idempotent"
+      description: "Description"
+      yes: "Yes"
+      no: "No"
+      checks:
+        csp: "Content Security Policy"
+        hsts: "Strict Transport Security"
+        frame: "Frame protection"
+        nosniff: "MIME sniffing protection"
+        referrer: "Referrer policy"
+        permissions: "Permissions policy"
+        isolation: "Cross-origin isolation"
+      severity:
+        high: "High"
+        medium: "Medium"
+        info: "Info"
+      direction:
+        request: "Request"
+        response: "Response"
+        both: "Request and response"
+      findings:
+        cookie: "Cookie {name}"
+        serverDisclosure: "Server information disclosure"
+        corsCredentials: "Conflicting CORS credentials configuration"
+        weakCsp: "Weak CSP source expressions"
+        broadCsp: "Broad CSP wildcard source"
+        noindex: "X-Robots-Tag prevents indexing"
+        noCacheControl: "No Cache-Control response policy"
+        redirect: "Redirect response"
+        httpError: "HTTP error response"
+        multipleBlocks: "Multiple response blocks detected"
+      remediation:
+        title: "Copy-ready server configuration"
+        intro: "Choose your server to generate a snippet for clearly missing, low-context headers."
+        copy: "Copy config"
+        copied: "Configuration copied"
+        caution: "Review in staging before deployment. HSTS is only effective over HTTPS. The generator intentionally excludes CSP, frame policy, Permissions-Policy, CORS and cookie changes because their correct settings depend on your application."
+        platforms:
+          nginx: "Nginx"
+          apache: "Apache"
+          caddy: "Caddy"
+          vercel: "Vercel (vercel.json)"
+          cloudflare: "Cloudflare Pages"
 
   ascii-table:
     title: "ASCII table"

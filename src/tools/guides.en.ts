@@ -91,27 +91,38 @@ export const GUIDES: Record<string, ToolGuide> = {
   },
 
   '/basic-auth-generator': {
-    intro: 'Builds the HTTP Basic Authorization header from a username and password, ready to paste into an API request.',
+    intro: 'Generates an HTTP Basic Authorization header from a username and password, and decodes an existing Basic header or Base64 credential token.',
     steps: ['Enter the username', 'Enter the password', 'Copy the generated Authorization header'],
-    notes: ['Basic auth only Base64-encodes the credentials, so it must always be used over HTTPS'],
+    notes: ['Basic auth only Base64-encodes the credentials, so it must always be used over HTTPS', 'A Basic Authentication username cannot contain a colon; colons in the password are preserved.'],
     example: { label: 'Fill in a sample username', text: 'admin' },
-    about: 'Build the Authorization header value for HTTP Basic auth: enter a username and password, get the base64-encoded string ready to paste into curl, an API client or a proxy config. Everything is computed in your browser — the credentials never leave the page.',
+    about: 'Generate the Authorization header value for HTTP Basic auth, or paste an existing Authorization header or Base64 token to decode it. The first colon separates the username from the password, so passwords may contain colons but usernames cannot. Both operations are computed in your browser — credentials are not submitted to an account service. Base64 is reversible, not encryption; use HTTPS and treat the header as a password.',
     faqs: [
       { q: 'Is Basic auth secure?', a: 'Only over HTTPS. The header is trivially reversible — base64 is an encoding, not a lock — so it protects nothing if an attacker can read the traffic. Always pair it with TLS.' },
       { q: 'What exactly goes into the header?', a: 'The literal string "Basic " followed by base64(username:password), so user "api" with password "secret" becomes "Basic YXBpOnNlY3JldA==". This tool produces that value for you.' },
       { q: 'Why does my server reject the generated header?', a: 'Common causes: an extra space or newline copied in, the wrong scheme prefix, or the server expecting a token format instead. Compare the exact bytes you send with what the server documents.' },
+      { q: 'Can I decode an existing Basic header?', a: 'Yes. Paste a complete Authorization header or its Base64 token. The decoder splits at the first colon, so colons in the password are preserved. Only decode credentials you are authorized to inspect.' },
+      { q: 'Can a Basic Authentication username contain a colon?', a: 'No. The first colon separates the username from the password under the Basic scheme. A password may contain additional colons.' },
+    ],
+    relatedNotes: [
+      {
+        slug: 'http-basic-auth-header-guide',
+        title: 'HTTP Basic Authentication Header: Base64 Format, HTTPS & cURL',
+        description: 'Understand how an Authorization: Basic header is formed, why Base64 is not encryption, how to generate or decode it, and how to send credentials safely over HTTPS.',
+        url: 'https://notes.digdevbox.com/posts/http-basic-auth-header-guide',
+        tag: 'HTTP Auth',
+      },
     ],
   },
 
   '/bcrypt': {
-    intro: 'Hashes a password with bcrypt, or verifies that a plaintext password matches an existing hash — the standard approach for storing credentials.',
+    intro: 'Generates bcrypt password hashes and compares a plaintext value with an existing bcrypt hash using the browser-based bcryptjs library.',
     steps: ['Enter the plaintext password', 'Click generate to get the hash', 'To verify, put the hash in its field, enter the plaintext, then compare'],
     notes: [
       'bcrypt is a hash, not encryption: it is irreversible, there is no "decrypt"',
       'A higher cost is slower and more secure; 10–12 is typical in production',
       'The same plaintext produces a different hash every time — that is expected (random salt)',
     ],
-    about: 'bcrypt is a password-specific hash: unlike SHA-256 it is deliberately slow, and the cost factor lets you slow it down further as hardware improves. Every bcrypt output embeds its own random salt and the cost in the string itself ($2b$10$... means cost 10), which is why the same password hashes differently every time and why verification needs no separate salt storage — the algorithm, salt and cost are all read back from the hash. This tool hashes with bcryptjs and verifies by re-hashing the candidate and comparing, exactly how a server does at login. Typical cost is 10–12: each step doubles the work, so cost 12 is roughly four times slower than cost 10 — pick the slowest value your login latency tolerates.',
+    about: 'bcrypt is a password-specific hash: unlike SHA-256 it is deliberately slow, and the cost factor lets you slow it down further as hardware improves. Every bcrypt output embeds its own random salt and the cost in the string itself, which is why the same password hashes differently every time and why verification needs no separate salt storage. This tool hashes with bcryptjs and compares a candidate value with the supplied hash using bcryptjs’s comparison function; it does not connect to an account store or perform a server login. Typical cost is 10–12: each step doubles the work, so cost 12 is roughly four times slower than cost 10 — pick the slowest value your login latency tolerates.',
     faqs: [
       { q: 'Why does the same password produce different bcrypt hashes?', a: 'By design: a fresh random salt is generated for every hash, so identical passwords produce different outputs and rainbow tables are useless. bcrypt verification handles this automatically — it reads the salt back out of the hash before comparing.' },
       { q: 'What cost (salt rounds) should I choose?', a: 'The rule of thumb is "about 250 ms per hash on your production hardware". Cost 10 is a common floor; 11–12 is typical today. Each +1 doubles the time for both you and the attacker, so take the slowest your login path can afford.' },
@@ -421,15 +432,58 @@ export const GUIDES: Record<string, ToolGuide> = {
   },
 
   '/eta-calculator': {
-    intro: 'Estimates when a download, build, batch job or other process will finish from its total workload, start time and observed processing rate.',
-    steps: ['Enter the total amount to process', 'Set the time processing started', 'Enter how many units are processed in a known interval', 'Read the estimated total duration and finish time'],
+    intro: 'Estimate time remaining for a download, build or batch job from a known rate or observed pace, then choose continuous 24/7 time or a Monday-Friday local work schedule.',
+    steps: ['Enter the total amount and how much has already completed', 'Choose a known rate or observed pace from elapsed time', 'For observed pace, enter the time already spent on the completed work', 'Optionally set a buffer for expected pauses or rate variation', 'Choose 24/7 calendar time or configure Monday-Friday local working hours', 'Read the remaining duration, counted work-window time and projected finish time'],
     example: { label: 'Example total workload', text: '500' },
-    about: 'This is a throughput-based ETA calculator, not a route or travel-time planner. Enter the total amount of work, when processing started, and how many units are completed in a measured time interval. The calculator converts that rate into an estimated total duration and adds it to the start time to project the finish. For example, if a batch processes 5 records in 3 minutes and contains 500 records, the estimate is 5 hours from the start. Use a consistent unit such as files, records, pages or requests, and measure a representative interval. If the processing rate changes, update the observed rate; the estimate changes with it.',
+    about: 'This is a throughput-based ETA calculator for task completion, not a route or travel-time planner. Enter the total amount of work, the completed amount, a representative processing rate and the time from which the remaining work is expected to run. The calculator subtracts completed work from the total, divides the remainder by the rate and optionally adds a percentage buffer. For example, a 500-record batch with 200 complete has 300 remaining; at 5 records every 3 minutes, that is 3 hours before a buffer. Use the same unit for total, completed and rate values, such as files, records, pages or requests. Alternatively, choose observed pace and enter elapsed time: if 200 of 500 records finish in 2 hours, the measured average is 100 records per hour and the remaining 300 take about 3 hours before a buffer. The observed mode projects the remaining work from now; it does not track a running process or read telemetry. Both methods assume a representative, steady rate and do not infer network conditions or changing workload complexity.',
     faqs: [
-      { q: 'What does ETA mean for a download or batch job?', a: 'ETA means estimated time of arrival or completion. For a process, it is the projected finish time calculated from the total workload, start time and observed processing rate.' },
-      { q: 'How do I estimate completion time from throughput?', a: 'Divide the total workload by the processing rate. This calculator uses the amount completed per selected time interval to calculate the duration, then adds that duration to the start time.' },
-      { q: 'Which units should I use?', a: 'Use the same unit for the total workload and the observed rate: for example, records and records per minute, files and files per hour, or pages and pages per second.' },
-      { q: 'What if the processing rate changes?', a: 'The result is an estimate based on the rate you enter. If the workload speeds up or slows down, measure a new representative interval and update the rate to refresh the projected finish time.' },
+      { q: 'What does ETA mean for a download or batch job?', a: 'ETA means estimated time of arrival or completion. For a process, it is the projected finish time for the remaining work, based on completed progress, a measured processing rate and the selected start time.' },
+      { q: 'How do I estimate time remaining from completed work?', a: 'Subtract completed units from the total, then divide the remaining units by the amount processed per interval. The calculator multiplies by the interval length and adds the result to the selected remaining-work start time.' },
+      { q: 'What does the time buffer do?', a: 'The buffer adds a percentage to the estimated remaining duration. Use it for expected pauses or uncertainty in the observed rate; it is a planning allowance, not a prediction that the workload will change by exactly that amount.' },
+      { q: 'Which units should I use?', a: 'Use the same unit for total work, completed work and observed rate: for example, records and records per minute, files and files per hour, or pages and pages per second.' },
+      { q: 'What if the processing rate changes?', a: 'The result is based on the rate you enter. Measure a new representative interval and update the rate when throughput changes; the projected finish time will recalculate.' },
+      { q: 'Can I estimate an ETA from elapsed time instead of entering a rate?', a: 'Yes. Choose observed pace, enter how much work is complete and how long that took. The calculator derives the average rate and estimates only the remaining work. For example, 200 of 500 records in 2 hours is 100 records per hour, leaving about 3 hours before a buffer. This is a manual estimate, not live process monitoring.' },
+      { q: 'Can the ETA calculator skip weekends and evenings?', a: 'Yes. Select Monday-Friday working hours and set the local daily opening and closing time. Work outside the window and on weekends is skipped; 24/7 calendar time remains the default for continuous jobs.' },
+      { q: 'Which timezone and holiday calendar does weekday mode use?', a: 'It uses the browser device timezone and keeps the configured local wall-clock hours across daylight-saving transitions. It does not provide a separate timezone selector or automatically exclude public holidays and company closure days.' },
+    ],
+    relatedNotes: [
+      {
+        slug: 'eta-calculator-guide',
+        title: 'How to Calculate Task Completion Time from Processing Rate',
+        description: 'Estimate time remaining for a download, build or batch job from total and completed work, processing rate and an optional buffer — with a worked example and practical limits.',
+        url: 'https://notes.digdevbox.com/posts/eta-calculator-guide',
+        tag: 'ETA',
+      },
+    ],
+    articleOnlySections: [
+      {
+        title: 'Measure throughput before trusting the finish time',
+        text: 'An ETA is only as useful as the rate sample behind it. Measure completed work over a representative interval after startup, rather than timing the first few seconds while caches, warm-up, or connection setup distort throughput. Keep numerator and denominator consistent: 240 records in 8 minutes is 30 records per minute, not 30 percent complete. For a queue, count completed items rather than items merely picked up by a worker; otherwise the estimate can appear faster while unfinished work is still waiting. For parallel workers, measure aggregate completed throughput across the whole job instead of multiplying a per-worker rate unless every worker is continuously busy.',
+      },
+      {
+        title: 'Use completed progress to estimate what is left',
+        text: 'Enter the full workload and the number of units already completed; the calculator subtracts the latter before applying the observed rate. If 200 of 500 records are finished, only 300 remain. This is different from re-running the original total-work estimate, which would count finished work a second time. The start-time field describes when the remaining work is expected to run from, so it can be set to now or to a planned future start.',
+      },
+      {
+        title: 'Add a buffer without hiding the constant-rate assumption',
+        text: 'A percentage buffer extends the remaining duration to allow for expected pauses or uncertainty. It does not model retries, rate limits, variable file sizes, dependencies or traffic conditions. Re-measure throughput after a meaningful interval and compare the new projection with the previous one; a widening gap indicates that the constant-rate assumption is no longer representative. Use a buffer as a transparent planning allowance, not as a replacement for updating the rate.',
+      },
+      {
+        title: 'Choose calendar time or a weekday work schedule',
+        text: 'The default 24/7 calendar mode is appropriate for continuous downloads, servers and automated jobs that can make progress overnight and at weekends. Choose Monday-Friday working hours when the task is only expected to run during a staffed or approved window. The schedule uses the browser device’s local timezone and a same-day opening and closing time; it does not infer a public-holiday calendar, company shutdown days or a different team timezone. For example, a two-hour task started at 4:00 p.m. on Friday with a 9:00 a.m.–5:00 p.m. window uses one hour on Friday and finishes at 10:00 a.m. on Monday.',
+      },
+      {
+        title: 'Understand what happens outside the configured window',
+        text: 'If a weekday estimate starts before opening, the countdown begins at that day’s opening time. A start at or after closing moves to the next weekday opening; Saturdays and Sundays are skipped. The remaining-duration figure still represents the estimated time counted inside the selected work windows, while the projected finish date reflects the intervening evenings and weekends. The displayed work-window total includes the configured buffer and additional planned pause time, so it is the scheduled window occupancy rather than a claim that every minute is active processing.',
+      },
+      {
+        title: 'Use the same work schedule when checking a deadline',
+        text: 'The optional required-pace comparison counts only the configured Monday-Friday overlap between the estimate start and the target deadline. It then accounts for planned pauses and the selected buffer before calculating the units per working hour required. A deadline before the start, entirely outside available work windows, or consumed by pauses and buffer cannot produce a positive required pace; the calculator reports that constraint instead of dividing by zero. Calendar mode continues to use continuous elapsed time, preserving the original 24/7 behavior.',
+      },
+      {
+        title: 'Keep local work hours stable across daylight-saving changes',
+        text: 'Weekdays are advanced as local calendar dates, not as fixed 24-hour blocks. The configured opening and closing times therefore remain the same local wall-clock hours when the device timezone enters or leaves daylight-saving time. A Friday-to-Monday estimate can have a different number of absolute elapsed hours across a DST weekend, but the weekday work-window hours counted remain tied to the configured local schedule. The tool uses the device timezone; it does not offer a separate timezone selector or a regional holiday list.',
+      },
     ],
   },
 
@@ -535,7 +589,7 @@ export const GUIDES: Record<string, ToolGuide> = {
   },
 
   '/iban-validator-and-parser': {
-    intro: 'Validates an IBAN bank account number and breaks it down into country, check digits and BBAN.',
+    intro: 'Validates an IBAN’s country-specific structure and checksum, then extracts its country code, check digits and BBAN.',
     steps: ['Enter the IBAN (spaces are fine)', 'Read the validation result', 'Read the parsed country code and account parts below'],
     notes: ['An IBAN carries its own check digits, so a malformed one is rejected outright — first check you did not mistype it'],
     example: { label: 'Fill in a sample IBAN', text: 'DE89 3704 0044 0532 0130 00' },
@@ -594,37 +648,78 @@ export const GUIDES: Record<string, ToolGuide> = {
   },
 
   '/ipv6-ula-generator': {
-    intro: 'Generates an IPv6 Unique Local Address (ULA) prefix per RFC 4193 for local networks — handy for addressing internal devices.',
-    steps: ['Click generate to get a prefix', 'Combine it with a subnet and interface ID as needed', 'Copy and use it'],
-    notes: ['A ULA is the IPv6 counterpart of a private IPv4 range and must not be routed on the public internet'],
-    example: { label: 'Paste a sample MAC address', text: '00:11:22:33:44:55' },
-    about: 'A ULA (Unique Local Address) is the IPv6 counterpart of the private IPv4 ranges: addresses under fd00::/8 that are free to use inside your organisation but must not be routed on the public internet. RFC 4193 asks for a randomly chosen 40-bit global ID so independently generated prefixes almost never collide, and that is exactly what this tool generates.',
+    intro: 'Generate RFC 4193 IPv6 Unique Local Address prefixes for private networks, with a cryptographically random 40-bit Global ID or a manually supplied ID.',
+    steps: [
+      'Choose Secure random to create one or more prefixes, or Manual Global ID to reproduce a known 10-digit hexadecimal value',
+      'Generate the /48 ULA prefix and review its first and last /64 subnets',
+      'Copy one prefix or copy the whole batch for your network plan',
+    ],
+    notes: [
+      'Locally assigned ULAs use fd00::/8 and a 40-bit Global ID; each /48 contains 65,536 /64 subnets.',
+      'Random Global IDs reduce collision risk but do not guarantee uniqueness; check existing allocations before joining networks.',
+      'ULA prefixes are intended for private routing and should not be advertised on the public internet; they are not a firewall or security boundary.',
+      'Generation happens in your browser using Web Crypto; no MAC address is required or uploaded.',
+    ],
+    example: { label: 'Use a sample 40-bit Global ID in Manual mode', text: '0123456789' },
+    about: 'A Unique Local Address (ULA) is IPv6 private address space for communication inside an organization, lab or VPN. Locally assigned ULAs use fd00::/8: a 40-bit Global ID identifies the site prefix, followed by a 16-bit subnet ID and a 64-bit interface ID. This tool generates one or up to 20 /48 prefixes with the browser cryptographic random generator, or accepts a manually supplied 10-hex-digit Global ID for reproducible plans. No MAC address is needed and generation stays in the browser.',
+    articleOnlySections: [
+      {
+        title: 'Understand the RFC 4193 prefix layout',
+        text: 'A locally assigned ULA begins with fd00::/8. The next 40 bits form the Global ID, and the final 16 bits of a /48 are available for the subnet ID. Each /48 therefore contains 65,536 distinct /64 subnets. Random Global IDs help reduce collisions when networks may later be connected, such as during a site merger or VPN rollout.',
+      },
+      {
+        title: 'Choose random or manual Global ID generation',
+        text: 'Random mode uses Web Crypto to produce five random bytes (40 bits) for each prefix. It can create up to 20 unique prefixes in one batch and avoids asking for a device MAC address. Manual mode accepts exactly 10 hexadecimal characters, optionally preceded by 0x, so an existing network plan can be reproduced. Neither mode proves global uniqueness: compare the generated prefix with existing network allocations before joining sites.',
+      },
+    ],
     faqs: [
-      { q: 'ULA vs public IPv6 — what is the difference?', a: 'Public addresses are globally routable and assigned by your provider. ULAs work only inside your network, never leave your router, and survive provider changes — good for infrastructure that should not be exposed.' },
-      { q: 'Why generate the prefix randomly instead of picking fd00::1?', a: 'RFC 4193 mandates a random global ID precisely so two sites that later merge their networks will not clash. Hand-picked prefixes like fd00::/64 are a common source of hard-to-debug conflicts.' },
-      { q: 'Can a ULA reach the internet?', a: 'No. Routers must not forward fd00::/8 to the public internet. Use it for internal services; hosts still get global addresses from your provider for outbound traffic.' },
+      { q: 'How many /64 subnets fit in a /48 ULA?', a: 'There are 65,536 /64 subnets. The 16 bits between the /48 site prefix and each /64 network ID provide that range.' },
+      { q: 'Does a random Global ID guarantee there will never be a collision?', a: 'No. A random 40-bit Global ID makes accidental collisions unlikely, but it cannot guarantee uniqueness. Check existing prefixes before connecting previously separate sites or VPNs.' },
+      { q: 'ULA vs public IPv6 — what is the difference?', a: 'Public IPv6 addresses are globally routable. ULAs are intended for private internal routing and should not be advertised on the public internet.' },
+      { q: 'Can I reproduce a previously chosen prefix?', a: 'Yes. Switch to Manual Global ID and enter the same 10 hexadecimal characters. The tool rebuilds the corresponding fd00::/8 /48 prefix and its first and last /64 subnet examples.' },
+      { q: 'Does the tool need my MAC address?', a: 'No. Random mode uses Web Crypto in your browser. The manual mode needs only the 40-bit Global ID you choose.' },
+      { q: 'Is a ULA a security boundary?', a: 'No. ULA addressing does not replace firewall rules, access controls or other network security measures.' },
     ],
   },
 
   '/json-diff': {
-    intro: 'Compares two JSON documents and highlights the differences — makes config changes or API response drift obvious.',
-    steps: ['Paste the original JSON on the left', 'Paste the new JSON on the right', 'Review the highlighted additions, removals and changes'],
-    notes: ['Key order does not affect the comparison, but array order does'],
-    about: 'Comparing two JSON documents by eye does not scale: a changed port or a missing comma hides easily among hundreds of lines. A JSON diff parses both sides and reports the differences structurally — values that were added, removed, or changed — instead of diffing raw text lines. That means JSON that was merely reformatted compares as equal, while a real value change stands out.',
-    faqs: [
-      { q: 'Does key order affect the result?', a: 'No. JSON objects are unordered key-value pairs, so { "a": 1, "b": 2 } equals { "b": 2, "a": 1 }. Arrays are ordered by definition — reordering array elements is reported as a change.' },
-      { q: 'Why do two values that look identical show as different?', a: 'Usually the type changed: 1 (number) and "1" (string), or true and "true", render similarly but are different JSON values. A textual diff hides that; a structural diff points at the type mismatch.' },
-      { q: 'Can I compare large documents?', a: 'Everything runs in your browser, so the practical limit is tab memory — documents of a few megabytes are fine.' },
+    intro: 'Compare JSON documents structurally, inspect nested changes by path, import local files and choose how arrays should match.',
+    steps: ['Paste JSON or open a local JSON/JSON5 file on each side', 'Choose index, ignore-order or stable-ID array matching', 'Review changed paths and before/after values, then download a local report'],
+    notes: [
+      'Object key order and whitespace do not matter; arrays use index matching by default.',
+      'Ignore-order mode compares exact values as a multiset, preserving duplicate counts.',
+      'ID mode requires every array item to have a unique, non-empty string or finite numeric ID; invalid IDs fall back to index comparison.',
+      'Ignore exact JSON Pointer paths, one per line, to exclude subtrees from both documents. Escape / as ~1 and ~ as ~0; wildcards are not supported, with a maximum of 100 paths and 8 KB total.',
+      'Files are read locally and are limited to 5 MB each. Combined inputs above 150,000 characters are parsed and compared in a dedicated Web Worker; users can cancel the work, and it times out after 15 seconds.',
     ],
     example: { label: 'Fill in sample JSON', text: '{ "name": "DigDevBox", "version": 1, "tags": ["a", "b"] }' },
-    relatedNotes: [
+    about: 'A structural JSON diff for API responses, configuration files and data snapshots. Compare pasted text or local JSON/JSON5 files, see nested changes as JSONPath-like locations, and download a change report without uploading the input. Object key order is ignored. Arrays compare by index by default, can be compared as an order-independent multiset that preserves duplicates, or can match objects by a stable ID key.',
+    articleOnlySections: [
       {
-        slug: 'json-formatting-guide',
-        title: 'JSON Formatter Guide: Format, Validate and Compare JSON Online',
-        description: 'How to format, validate, minify and compare JSON online — a practical guide to cleaning up API responses, spotting syntax errors and diffing config files.',
-        url: 'https://notes.digdevbox.com/posts/json-formatting-guide',
-        tag: 'JSON',
+        title: 'Choose the right array comparison mode',
+        text: 'Index mode is the default and preserves the meaning of ordered lists: position 0 is compared with position 0. Ignore-order mode is useful for sets or result collections where order is irrelevant; it matches exact values and preserves multiplicity, so [1, 1, 2] is not equal to [1, 2, 2]. ID mode matches objects by a selected stable key such as id, then compares the remaining fields. It is applied only when every item in that array has a unique, non-empty string or finite numeric ID; arrays with missing or duplicate IDs fall back to index mode rather than guessing.',
       },
+      {
+        title: 'Import files and review changes by path',
+        text: 'Open one JSON or JSON5 file on each side, or paste content directly. Each file is limited to 5 MB and is read in the browser tab; no file content is uploaded. The change list reports JSONPath-like locations with before and after values. Select a path to jump to and highlight the corresponding node in the structural comparison; the report download contains the changed paths and values. Small documents are compared on the main thread. When the combined input exceeds 150,000 characters, parsing and comparison move to a dedicated Web Worker; users can cancel the job, and a 15-second timeout stops unresponsive work.',
+      },
+      {
+        title: 'Ignore volatile fields with exact JSON Pointers',
+        text: 'Use one RFC 6901 JSON Pointer per line to ignore a subtree on both sides, such as /meta/requestId or /items/0/updatedAt. A slash inside an object key is escaped as ~1 and a tilde as ~0. Matching is exact: there are no wildcard expressions, and the input is limited to 100 paths and 8 KB. Array-order matching evaluates ignored child paths relative to the original left-side item position.',
+      },
+      {
+        title: 'Structural comparison and data precision',
+        text: 'Object member order and whitespace do not create differences. A missing property is different from an explicit null, and the number 1 is different from the string "1". Parsing uses JSON5, so comments and trailing commas are accepted even though the comparison is performed on parsed values, not source formatting. JavaScript numbers may lose precision for integers above 2^53 - 1; represent long identifiers as strings.',
+      },
+    ],
+    faqs: [
+      { q: 'Does object key order affect the result?', a: 'No. JSON objects are unordered key-value pairs, so changing key order or whitespace does not create a difference.' },
+      { q: 'Which array comparison modes are available?', a: 'Index is the default. Ignore-order matches exact values without relying on position and preserves duplicate counts. ID mode matches objects by the selected key when every item has a unique, non-empty string or finite numeric ID; otherwise that array falls back to index mode.' },
+      { q: 'Can I compare JSON files directly?', a: 'Yes. Open a local JSON or JSON5 file on either side. Files are read in the browser, are limited to 5 MB each and are not uploaded.' },
+      { q: 'Can I compare very large files?', a: 'Small documents are compared on the browser main thread. When the combined input exceeds 150,000 characters, parsing and comparison move to a dedicated Web Worker to keep the interface responsive. You can cancel the job; it also stops automatically after 15 seconds. Each local file is still limited to 5 MB, and very large inputs remain bounded by available browser memory.' },
+      { q: 'Can I ignore timestamps or request IDs?', a: 'Yes. Enter exact JSON Pointer paths, one per line, such as /meta/requestId or /items/0/updatedAt. Escape / as ~1 and ~ as ~0. Wildcards are not supported; up to 100 paths and 8 KB are accepted.' },
+      { q: 'Can I export JSON Patch?', a: 'No. You can download a JSON change report with paths and before/after values. RFC 6902 JSON Patch generation is not currently provided.' },
+      { q: 'Is a missing property the same as null?', a: 'No. Missing properties are added or removed; null is an explicit JSON value. Different types such as number 1 and string "1" are also treated as different.' },
     ],
   },
 
@@ -680,17 +775,41 @@ export const GUIDES: Record<string, ToolGuide> = {
   },
 
   '/api-debugger': {
-    intro: 'Debug an API request end to end in the browser: import a cURL command, send it through a transient edge relay, read status, timing, headers and body, then hand the response straight to the JSON workspace or extract values into variables for the next request.',
+    intro: 'Test and debug REST API requests in one workspace: import cURL, OpenAPI 3.x or a Postman v2.1 collection, send requests through a temporary edge relay, inspect responses, add assertions and run saved requests in sequence.',
     steps: [
-      'Paste a cURL command and parse it (or build method, URL, headers and body by hand), then Send and inspect the response without leaving the page.',
+      'Import a cURL command in Import cURL command and parse it. You can also import an OpenAPI 3.x JSON/YAML spec or a Postman collection v2.1 JSON file when you already have a request definition.',
+      'Review the generated request before sending. Check the method, URL, query parameters, headers, authentication fields and body, then click Send. For a new request, enter these fields manually instead.',
+      'Inspect the response status, timing, headers and body. In Tests, add status, JSONPath, header or response-time assertions; assertions run again after each successful send and their individual results appear with the response.',
+      'Use Variables to define Global, Collection or Environment values. Insert {{name}} in the URL, headers or body; an Environment value overrides a Collection value, which overrides a Global value.',
+      'Extract a response value into a variable with a JSONPath such as $.access_token, then save named requests in Collection. Run collection replays saved requests in order and reports each send and assertion result.',
     ],
     example: { label: 'Fill in sample cURL', text: 'curl https://httpbin.org/get -H \'Accept: application/json\'' },
     notes: [
       'The relay reuses the same SSRF validation chain as the site status checker: private and reserved IPs, internal hostnames and redirects into private networks are rejected; request bodies are capped at 256 KiB and response bodies at 1 MiB.',
-      'Credentials (Authorization, Cookie, API keys, URL passwords) are stripped from shared cURL by default, but the request body is NOT sanitized — review it before sharing. History and saved collections keep raw headers in localStorage so requests can be replayed: a known functional trade-off, not secure storage (no protection against XSS or browser-profile leaks). Credentials leave your browser only when you explicitly send or export a request.',
+      'Credentials (Authorization, Cookie, API keys, URL passwords) are stripped from shared cURL by default, but the request body is NOT sanitized — review it before sharing. History and saved collections keep raw headers in localStorage so requests can be replayed: a known functional trade-off, not secure storage (no protection against XSS or browser-profile leaks). Request credentials are transmitted through the temporary relay only when you click Send. Exports are generated locally and strip common authentication headers and URL user information by default, but the request body is NOT sanitized — inspect it for secrets before sharing.',
       'Variables use {{name}} placeholders in URL, headers and body; "Extract → variable" pulls a JSONPath value from the response so a login token can feed the next request.',
+      'The collection runner does not execute Postman pm.* scripts or data-file iterations. Use Postman/Newman or a CI API client when your tests depend on those features.',
     ],
-    about: 'Most browser API clients stop at the response body, which is exactly where the real work starts: pulling a token out of a login response, reshaping a payload, comparing two environments. This workspace keeps the whole chain in one page — cURL in, request out, response into the JSON pipeline — and keeps the safety boundary explicit: the relay validates every hop against private networks, caps body sizes, logs nothing and stores nothing, and sharing a request never includes your credentials by default.',
+    about: 'Most browser API clients stop at the response body, which is exactly where the real work starts: pulling a token out of a login response, reshaping a payload, comparing two environments. This workspace keeps the whole chain in one page — cURL in, request out, response into the JSON pipeline — and keeps the safety boundary explicit: the relay validates every hop against private networks, caps body sizes, logs nothing and stores nothing, and exports remove common authentication headers and URL user information by default, but do not inspect the request body — review it for secrets before sharing.',
+    articleOnlySections: [
+      {
+        title: 'Worked workflow: authenticate, extract a token and call the next endpoint',
+        text: 'Start with a test API and create a POST request to its login endpoint. Add the JSON body expected by that API, then add a status assertion and a JSONPath assertion for the token field in the response. After the response arrives, enter a path such as $.access_token in Extract → variable and name the value token. Create the next request with a URL such as {{baseUrl}}/profile and an Authorization header such as Bearer {{token}}. Keep baseUrl and token in the narrowest suitable variable scope, and use a separate environment for staging and production. The runner does not automatically extract a response value between requests; extract the token first, then send or run the next request.',
+      },
+      {
+        title: 'Use collection runs for repeatable API checks',
+        text: 'Save each request with a clear name after its method, URL, body and authentication details are correct. Add the assertions that matter for that request before saving; the saved assertions run after a successful send and during collection runs. Run collection processes saved requests sequentially and reports how many requests were sent, how many failed and how many assertions passed. Choose the stop-on-send-error setting when later requests depend on earlier requests succeeding. This runner is for repeatable request checks, not a full Postman runtime: it does not execute pm.* scripts or iterate through data files.',
+      },
+      {
+        title: 'Understand the relay, browser storage and sharing boundary',
+        text: 'A request is not sent directly from the browser to the API origin. When you click Send, DigDevBox forwards it through a temporary edge relay that validates destinations, blocks private and reserved network targets, rejects redirects into private networks and enforces request and response size limits. The relay is not described as a local-only path; request credentials are transmitted when you explicitly send the request. Saved history and collections use browser localStorage and may retain the headers you entered, so they are not an encrypted password vault. Secret variables are masked in the interface and exported as empty strings, but the stored values still substitute into requests. Sharing removes common authentication headers and URL user information, but does not sanitize the request body; inspect it before sharing.',
+      },
+    ],
+    faqs: [
+      { q: 'Are API requests sent directly from my browser to the API?', a: 'No. When you click Send, the request passes through a temporary DigDevBox edge relay. It validates target addresses and applies request/response size limits before forwarding. Treat it as a relayed request, not a direct-to-origin or fully local request.' },
+      { q: 'Are saved credentials protected like a password vault?', a: 'No. History and collections use browser localStorage and can retain the headers you entered. Secret variables are masked in the interface and exported as empty strings, but localStorage is not encrypted storage.' },
+      { q: 'Does the collection runner support Postman pm.* scripts or data-file iterations?', a: 'No. It runs saved requests in order and applies each request’s built-in assertions. It does not execute Postman scripts or iterate over data files.' },
+    ],
   },
 
   '/json-workspace': {
@@ -948,42 +1067,50 @@ export const GUIDES: Record<string, ToolGuide> = {
   },
 
   '/mime-types': {
-    intro: 'Looks up MIME types and file extensions from one another — useful when configuring a server or writing upload validation.',
-    steps: ['Enter a MIME type or an extension', 'Read the corresponding form', 'Copy and use it'],
+    intro: 'Look up MIME types by extension or extension lists by MIME type, then copy ready-to-paste Nginx, Apache or static-hosting header rules.',
+    steps: ['Search for a MIME type such as application/json or choose a file extension such as .woff2', 'Review the matching extensions or MIME type', 'Copy the generated server configuration for Nginx, Apache .htaccess or a static _headers file'],
     notes: [
       'The mapping is the curated mime-types dataset, not the full IANA registry — brand-new or proprietary types may be missing, so confirm official types against the IANA Media Types registry',
+      'Generated snippets use the selected mapping only. Review placement and existing MIME rules in your server configuration before deploying',
       'Rows stay hidden until you type a query or turn on "show all": the full table is hundreds of entries, so the default view is empty by design',
     ],
-    about: 'Look up which MIME type matches a file extension and vice versa. Searchable in both directions, so you can resolve "what Content-Type do I send for .woff2" as easily as "which files does audio/mpeg cover". The mapping matters every time you configure a web server, write an upload handler or debug a file that downloads instead of rendering.',
+    about: 'Look up which MIME type matches a file extension and vice versa, then turn the mapping into server configuration without retyping it. The tool generates Nginx types blocks, Apache AddType directives and static-hosting _headers rules for each mapped extension. It is useful when configuring Content-Type responses, upload handlers or debugging files that download instead of rendering.',
     faqs: [
-      { q: 'Why does one extension map to several MIME types?', a: 'Formats accumulate aliases over time (.mp3 maps to audio/mpeg while older stacks expect audio/mp3). Servers expect the canonical one; this tool shows the common mappings so you can pick what your stack accepts.' },
+      { q: 'Which server formats are generated?', a: 'Nginx types blocks, Apache AddType directives for .htaccess, and static-hosting _headers rules. The snippet reflects the selected mapping; you still need to place it in the correct server context.' },
+      { q: 'Is the result the complete IANA registry?', a: 'No. The tool uses the curated mime-types package dataset. Confirm new, private or security-sensitive media types against the IANA Media Types registry.' },
+      { q: 'Why does one extension map to several MIME types?', a: 'Formats accumulate aliases over time (.mp3 maps to audio/mpeg while older stacks expect audio/mp3). Use the canonical mapping required by your server and application.' },
       { q: 'What happens if I send the wrong Content-Type?', a: 'Browsers may refuse to execute scripts (strict MIME checking), render text as plain text, or trigger a download. API clients also pick their parser from the Content-Type, so wrong types cause silent parse failures.' },
       { q: 'What is the difference between text/plain and application/octet-stream?', a: 'text/plain tells the client the bytes are human-readable text; octet-stream means "opaque binary, save it". Sending octet-stream for something renderable is the classic cause of forced downloads.' },
     ],
   },
 
   '/numeronym-generator': {
-    intro: 'Generates numeronyms such as i18n, a11y and k8s from one word or a batch of words, and looks up established short forms.',
-    steps: ['Enter one English word or known short form per line', 'Use multiple lines to convert a batch at once', 'Copy the generated results or look up established forms such as k8s'],
+    intro: 'Generates numeronyms from words, phrases and pasted lists, counts Unicode letters, and looks up established short forms.',
+    steps: ['Paste one word or known short form; separate multiple items with spaces, commas, semicolons or newlines', 'Review the letter count and generated form for each item', 'Copy all successful results or look up established forms such as i18n, a11y and o11y'],
     example: { label: 'Fill in a sample word', text: 'internationalization' },
-    about: 'A numeronym keeps the first and last letters of a word and replaces the middle letters with their count. Familiar developer examples include i18n (internationalization), l10n (localization), a11y (accessibility), k8s (Kubernetes), g11n (globalization) and t9n (translation). In XML canonicalization, c14n is a specialist abbreviation for canonicalization. This generator applies the literal count rule to plain ASCII English words, accepts one word per line for batch conversion, and only reverse-looks up entries in a curated dictionary. It does not invent meanings for unknown strings. Very short words often produce awkward results, so words of three letters or fewer are returned unchanged.',
+    about: 'A numeronym keeps the first and last letters of a word and replaces the middle letters with their count. This generator counts Unicode letter clusters, normalizes canonically equivalent accented text, preserves the case of the first and last letters, and ignores hyphens or apostrophes inside compounds. Familiar technical forms include i18n (internationalization), l10n (localization), a11y (accessibility), k8s (Kubernetes), g11n (globalization), c14n (canonicalization), t9n (translation), m17n (multilingualization), p13n (personalization) and o11y (observability). It only reverse-looks up entries in a curated reference list and never invents meanings for unknown strings. Words with three letters or fewer are returned unchanged. This is a mechanical letter-count rule, not translation or language-aware word analysis.',
     articleOnlySections: [
       {
-        title: 'Batch mode is line-based, not phrase-based',
-        text: 'Paste one plain-English word or one known numeronym per line. The tool trims leading and trailing spaces and ignores blank lines, but a line containing spaces, punctuation or mixed characters is not treated as a word. Words of three letters or fewer are returned unchanged, so a short token such as API stays API rather than being expanded. In batch mode, each line is evaluated independently; warning rows remain visible, while the copyable batch output contains only successful conversions. Review warning rows before copying if every input line must be accounted for.',
+        title: 'Paste a list or phrase — separators are flexible',
+        text: 'You can paste a space-, comma-, semicolon- or newline-separated list. Each extracted word or numeronym is shown in its own row with the letter count when it is generated. Successful outputs can be copied together; unsupported tokens remain visible in the table and are not silently included in the copied result. Duplicate inputs remain separate rows, so repeated terms are not lost.',
       },
       {
-        title: 'Reverse lookup is deliberately dictionary-bound',
-        text: 'Encoding is mechanical for plain A–Z words, but decoding is not guessed from a numeronym-shaped string. The lookup table recognizes i18n, l10n, a11y, k8s, g11n, c14n, n7m and t9n; a form that looks like a numeronym but is not in that list returns a not-in-dictionary warning. Lookup ignores letter case, so K8S resolves to Kubernetes, but an unknown form such as x11y is not assigned an invented expansion. In external documentation, keep the full term nearby when a short form is not established, and check the supported list before relying on reverse lookup.',
+        title: 'Unicode letters and compounds are counted literally',
+        text: 'The generator counts Unicode letters and attached combining marks, normalizes canonically equivalent text to NFC, and preserves the case of the first and last letters. Hyphens and straight or curly apostrophes are ignored for the letter count, so cross-platform becomes c11m and don\'t becomes d2t. This is a mechanical character rule; it does not transliterate scripts, infer pronunciation or apply language-specific morphology. Words of three letters or fewer remain unchanged.',
+      },
+      {
+        title: 'The reference list is curated, not guessed',
+        text: 'The lookup table includes i18n, l10n, a11y, k8s, g11n, c14n, n7m, t9n, m17n, p13n and o11y with their listed expansions and typical contexts. A numeronym-shaped input that is not in the table displays an explicit not-in-reference-list message. Pattern abbreviations such as e2e and b2b use different conventions and are not treated as generated first-letter / middle-count / last-letter numeronyms.',
       },
     ],
     faqs: [
       { q: 'How is the number in a numeronym calculated?', a: 'It is the number of letters between the first and last letters. Internationalization has 18 middle letters, so it becomes i18n; accessibility has 11, so it becomes a11y.' },
-      { q: 'What does t9n mean?', a: 'T9n is a common numeronym for translation: the first letter is t, the last letter is n, and the nine letters between them are omitted.' },
-      { q: 'Can every numeronym be decoded?', a: 'No. The pattern can generate many possible strings, but the same shape does not prove a meaning. This tool only expands entries in its curated dictionary and does not guess unknown forms.' },
-      { q: 'What is c14n?', a: 'C14N is used in XML canonicalization contexts. It is a specialist abbreviation; in general writing, spell out canonicalization unless the XML context is clear.' },
-      { q: 'Should I invent a new numeronym?', a: 'Usually not. Use a short form only when the intended audience already recognizes it. For a new term, write the full word first and define any shorthand before reusing it.' },
-      { q: 'What happens with very short words?', a: 'Words of three letters or fewer are returned unchanged. A generated form for a very short word can look more like a typo than a useful abbreviation.' },
+      { q: 'Can I paste multiple words at once?', a: 'Yes. Separate words or known short forms with spaces, commas, semicolons or newlines. The result table keeps each input visible and provides a copyable list of successful outputs.' },
+      { q: 'Are accented and Unicode words supported?', a: 'Yes. Unicode letters and combining marks are counted as letter clusters, and the output preserves the case of the first and last letters. The rule is mechanical and does not translate or transliterate the word.' },
+      { q: 'Are hyphenated words supported?', a: 'Yes. Hyphens and straight or curly apostrophes are ignored for counting. For example, cross-platform becomes c11m and don\'t becomes d2t.' },
+      { q: 'Can every numeronym be decoded?', a: 'No. The same letter-number-letter shape can have many possible meanings. This tool only expands entries in its curated reference list and does not guess unknown forms.' },
+      { q: 'Does the tool support e2e or b2b?', a: 'Those are established abbreviations, but they do not follow the first-letter / middle-letter-count / last-letter rule used by this generator. They are not included in its numeronym lookup list.' },
+      { q: 'What happens with very short words?', a: 'Words with three letters or fewer are returned unchanged because a generated abbreviation is usually not useful.' },
     ],
     relatedNotes: [
       {
@@ -997,9 +1124,9 @@ export const GUIDES: Record<string, ToolGuide> = {
   },
 
   '/og-meta-generator': {
-    intro: 'Generates Open Graph and social-platform meta tags for share cards.',
-    steps: ['Enter the title, description, image URL and link', 'Click generate', 'Paste the resulting meta tags into your page head'],
-    notes: ['Platforms cache share cards, so you may need their debug tool to refresh the cache after a change'],
+    intro: 'Generates copyable Open Graph and Twitter Card HTML meta tags for social share metadata.',
+    steps: ['Enter the page title, description, URL and social image details', 'Choose the website, article, book, profile, music or video metadata type and Twitter Card options', 'Copy the generated HTML meta tags into your page head'],
+    notes: ['This tool generates markup only; it does not render a live social-card preview or validate how a platform will display the card', 'Platforms cache share cards, so you may need their debug tool to refresh the cache after a change'],
     example: { label: 'Fill in a sample site title', text: 'My Awesome Site' },
     about: 'Fill in a page title, description, URL and image, and get ready-to-paste Open Graph and Twitter meta tags. Social platforms read these tags to build share cards, so the difference between a bare link and an inviting preview is usually just this handful of meta tags in your page head.',
     faqs: [
@@ -1010,11 +1137,11 @@ export const GUIDES: Record<string, ToolGuide> = {
   },
 
   '/otp-generator': {
-    intro: 'Generates and verifies time-based one-time passwords (TOTP) for two-factor authentication setups.',
-    steps: ['Enter the secret (Base32)', 'Click generate to get the current code', 'To verify, enter the code the other party provided and compare'],
-    notes: ['TOTP depends on the device clock — too large a time difference makes codes fail to match indefinitely'],
+    intro: 'Generates six-digit TOTP codes from a Base32 secret, shows previous/current/next time windows and displays an authenticator setup QR URI.',
+    steps: ['Enter a Base32 secret or refresh to generate a new one', 'Read the current six-digit code and its 30-second countdown', 'Scan the QR code or open the otpauth URI to add the secret to an authenticator app'],
+    notes: ['Generated secrets use the browser Web Crypto API; treat the secret as a credential and never share it', 'This page generates codes but has no submitted-code verification form or account integration', 'TOTP depends on the device clock — too large a time difference makes codes fail to match indefinitely'],
     example: { label: 'Paste a sample Base32 secret', text: 'JBSWY3DPEHPK3PXP' },
-    about: 'Generate and validate time-based one-time passwords (TOTP) from a base32 secret — the same mechanism behind Google Authenticator-style codes. Useful for testing your own MFA implementation, decoding a setup key before scanning it into an app, or verifying that a code is currently valid.',
+    about: 'Generate six-digit TOTP codes from a Base32 secret — the same time-based HMAC-SHA1 scheme used by many authenticator apps. This page shows previous/current/next 30-second codes and creates an otpauth URI QR code for enrollment; it does not connect to accounts or verify a submitted code.',
     faqs: [
       { q: 'How does the 6-digit code get calculated?', a: 'The secret plus the current time (in 30-second steps) go through HMAC, and a slice of the result becomes the code. Same secret + same time window = same code, which is why phone and server agree.' },
       { q: 'Why did my code stop matching?', a: 'Clock drift. TOTP depends on the device clock — too large a difference from the server makes codes fail indefinitely. Re-sync the device time or re-enrol the secret.' },
@@ -1191,9 +1318,9 @@ export const GUIDES: Record<string, ToolGuide> = {
   },
 
   '/pdf-signature-checker': {
-    intro: 'Checks whether a PDF carries a digital signature and reports, for each one, its cryptographic integrity, certificate-chain trust and validity window — a technical check, not a legal opinion.',
+    intro: 'Checks supported PDF digital signatures and reports each signature’s cryptographic integrity, certificate-chain trust and validity window — a technical check, not a legal opinion.',
     steps: ['Choose or drag in a PDF file', 'Wait for it to be parsed', 'Read the number of signatures and the per-signature result'],
-    notes: ['Having a signature only means a signature field exists — trustworthiness also depends on the certificate chain', 'It does not check certificate revocation (CRL / OCSP) or a trusted signing timestamp, and a passing "verified" is never the same as a legally binding signature'],
+    notes: ['Supported signature subfilters are adbe.pkcs7.detached and ETSI.CAdES.detached; other formats are reported as unsupported', 'Having a signature only means a signature field exists — trustworthiness also depends on the certificate chain', 'It does not check certificate revocation (CRL / OCSP) or a trusted signing timestamp, and a passing "verified" is never the same as a legally binding signature'],
     about: 'Verify the digital signatures inside a PDF file: who signed it and whether the content has been altered since signing. The file is processed locally, so confidential contracts can be checked without uploading them to a third party — useful when a counterparty\'s PDF arrives and you need to trust it before acting.',
     faqs: [
       { q: 'What does a valid signature actually prove?', a: 'Two separate things this tool reports independently: cryptographic integrity (the bytes covered by the signature still match the hash embedded in it) and certificate-chain trust (the signer certificate chains to a root the tool trusts). Neither alone means "legally valid", and without a trusted timestamp it cannot confirm the certificate was valid at the moment of signing.' },
@@ -1203,12 +1330,14 @@ export const GUIDES: Record<string, ToolGuide> = {
   },
 
   '/percentage-calculator': {
-    intro: 'Solves four common percentage tasks: find X% of Y, find what percent X is of Y, calculate percentage change, and increase or decrease a value by a percentage.',
+    intro: 'Solves seven common percentage tasks—part-of, part-to-whole, percentage change, applying or reversing a rate, symmetric comparison and percentage-point change—and adds an optional step-by-step workflow for sequential discounts and adjustments.',
     // example 已移除：requires-pair (G-02j): X 单独填入无可见结果，example=死按钮
-    steps: ['Pick the mode matching your question', 'Enter the known values', 'Read the result'],
+    steps: ['Pick the mode matching your question', 'Enter the known values', 'Read the result', 'For repeated discounts or increases, open sequential adjustments to see every intermediate amount', 'For a list, open batch mode and paste one row per line'],
     notes: [
       'When reversing a discount, divide the sale price by 1 minus the discount rate; adding the same percentage back to the sale price is not the inverse.',
       'For percentage change, use the starting value as the denominator. Reversing the direction changes the base and can produce a different rate.',
+      'Batch mode uses two numeric columns per row (or a text label followed by two values); one invalid row does not stop the other calculations.',
+      'Sequential adjustments apply each rate to the previous intermediate amount. Do not add discount percentages together: 20% off followed by 10% off is 28% off overall, not 30%. Displayed values use up to 12 significant digits; no currency-specific rounding is applied.',
     ],
     articleOnlySections: [
       {
@@ -1219,33 +1348,61 @@ export const GUIDES: Record<string, ToolGuide> = {
         title: 'Worked examples: discounts, bills and rates',
         text: 'An item marked $72 after a 10% discount had an original price of $80: $72 ÷ 0.90 = $80. Adding 10% to $72 gives $79.20, not $80, because the discount was taken from the original price. If a monthly bill moves from $48 to $54, the increase is $6 ÷ $48 = 12.5%. If a conversion rate moves from 4% to 5%, it rose by 1 percentage point and by 25% relative to its starting rate. A $120 pre-tax amount with a hypothetical 15% tax adds $18, producing a $138 total.',
       },
+      {
+        title: 'Reverse a change and choose the right comparison',
+        text: 'If a final value is known after a rise, divide it by 1 plus the rate as a decimal; after a discount, divide it by 1 minus the rate. For two values with equal standing, symmetric percentage difference divides the absolute gap by the average of their absolute magnitudes. For two rates, subtract the old rate from the new one to get percentage points; only divide by the old rate when the question asks for relative growth. Keep these answers distinct in a report: a 2-percentage-point move is an absolute rate movement, while 40% is relative growth from 5% to 7%.',
+      },
+      {
+        title: 'Apply stacked discounts to the current price',
+        text: 'A second discount is calculated from the price left after the first discount, not from the original amount. Starting at $100, 20% off gives $80; another 10% off gives $72. The combined reduction is $28, or 28% of the original amount—not 30%. The formula is 100 × 0.80 × 0.90 = 72. The same multiplier method works for sequential increases and mixed increases/decreases.',
+      },
+      {
+        title: 'Understand step order and the final total',
+        text: 'The step list shows the intermediate amount after each adjustment, which is useful for auditing a sequence of promotions or rate changes. For simple percentage multipliers applied without conditional rules or intermediate rounding, in exact arithmetic the final amount is independent of the order because multiplication is commutative; changing the order still changes the intermediate values shown in the breakdown. The effective percentage is calculated by comparing the final amount with the original starting amount.',
+      },
     ],
-    about: 'Percentage mistakes in reports rarely come from arithmetic — they come from mixing up which base you divided by. "Revenue went from 80 to 100, so +25%" and "the new figure is 125% of the old" are the same fact told from two different denominators, and a third phrasing ("100 is 20% more than 80") uses yet another base. This calculator keeps four questions separate — what percent is X of Y, how much is P% of N, the change between two values, and the result after adding or subtracting a percentage — so you never silently swap denominators mid-calculation. For price and salary math, remember the classic trap: a 20% rise followed by a 20% fall leaves you 4% below the start, because the second percentage divides by the raised base. The fields recalculate together, so you can watch that asymmetry happen live.',
+    about: 'Percentage mistakes in reports rarely come from arithmetic — they come from mixing up which base you divided by. Revenue going from 80 to 100 is a 25% increase because the original 80 is the base; comparing 80 and 100 without choosing a starting point is a different question. This calculator keeps seven questions separate: part of a whole, part-to-whole percentage, directional change, applying a rate, reversing a rate, symmetric difference, and percentage-point change. Reverse percentage divides the final value by the multiplier that was applied; symmetric percentage difference uses the average magnitude of both values rather than choosing a starting point. Percentage points subtract one rate from another, while relative percentage change divides by the starting rate. For price and salary math, remember the classic trap: a 20% rise followed by a 20% fall leaves you 4% below the start, because the second percentage divides by the raised base. The fields recalculate together, so you can compare these formulas without silently swapping denominators. For repeated calculations, optional batch mode accepts two values per row (or a label plus two values), shows each substituted formula and result, and lets you copy or download CSV/TSV; recent runs are saved only in this browser and can be cleared. The optional sequential workflow shows every intermediate amount when discounts or increases are applied one after another.',
     faqs: [
       { q: 'Why does a 20% increase then a 20% decrease not return to the original?', a: 'Because the decrease is computed on the larger value. Going from 100 to 120 and back down by 20% gives 96 — a net 4% loss. Percentage changes are not symmetric.' },
       { q: 'What is the difference between percent change and percentage-point change?', a: 'If a rate moves from 5% to 7%, that is a 2-percentage-point change but a 40% relative increase. Reports mix these up constantly; state which one you mean.' },
       { q: 'How do I calculate a percentage off a price or add sales tax?', a: 'For a discount, use the decrease mode: multiply the original price by 1 − (discount ÷ 100). A $80 item with 20% off saves $16 and costs $64. For VAT or sales tax, use the increase mode with the tax rate.' },
       { q: 'How do I increase or decrease a value by a percentage?', a: 'Multiply the starting value by 1 + (rate ÷ 100) to increase it, or by 1 − (rate ÷ 100) to decrease it. For example, increasing 80 by 15% gives 92; decreasing it by 15% gives 68.' },
+      { q: 'How do I find the original value before a percentage increase or discount?', a: 'Divide the final value by 1 plus the increase rate, or by 1 minus the decrease rate. For example, $80 after a 20% discount came from $80 ÷ 0.80 = $100. Adding 20% back to $80 is not the inverse.' },
+      { q: 'How do I calculate percentage difference between two values?', a: 'Divide the absolute gap by the average of the absolute magnitudes of both values, then multiply by 100. This is symmetric, so swapping the two values produces the same percentage difference.' },
       { q: 'Why are there separate fields instead of one formula?', a: 'Each question has a different unknown in a different position. Separating them avoids the most common error: rearranging the formula and dividing by the wrong base.' },
+      { q: 'Can I calculate a list of percentage problems at once?', a: 'Yes. Open optional batch mode, choose one of the seven calculations, and paste one row per case with two tab- or comma-separated values. Add a text label as the first column if useful. Each row shows its substituted formula and result or its own validation error; copy one row or export all rows as CSV. Recent runs stay in this browser and can be cleared.' },
+      { q: 'How do stacked discounts work?', a: 'Each discount applies to the amount remaining after the previous step. Starting at $100, 20% off leaves $80; taking another 10% off leaves $72. That is 28% off overall, not 30%, because the second discount is calculated from $80.' },
+      { q: 'Does changing the order of percentage steps change the final amount?', a: 'Mathematically, the same percentage multipliers produce the same final amount when reordered. The intermediate amounts and step-by-step explanation do change, so keep the displayed order when it represents a real promotion or pricing sequence.' },
+    ],
+    relatedNotes: [
+      {
+        slug: 'percentage-change-vs-percentage-points',
+        title: 'Percentage Change vs Percentage Points: Which Formula Should You Use?',
+        description: 'Learn when to use percent change, percentage points, percent difference and reverse-percentage formulas, with worked examples for rates, prices and discounts.',
+        url: 'https://notes.digdevbox.com/posts/percentage-change-vs-percentage-points',
+        tag: 'Percentages',
+      },
     ],
   },
 
   '/phone-parser-and-formatter': {
-    intro: 'Parses a phone number, identifying the country code, area code and number type, and formats it to a standard form.',
-    steps: ['Enter the phone number (including the country code improves accuracy)', 'Read the parsed details', 'Copy the formatted number'],
-    notes: ['A number without a country code can only be parsed against a default region and is easily misidentified'],
-    example: { label: 'Fill in a sample number', text: '+86 138 0013 8000' },
-    about: 'Parse a phone number into its structured form and reformat it between national, international and E.164 notation. The engine is libphonenumber (the same library behind Android\'s number handling), so you get country code, number type and validity based on real numbering plans rather than a regex guess.',
+    intro: 'Parse, validate and format international phone numbers. Inspect country, number type and E.164 details for one number, or process a list of up to 200 numbers and export a CSV locally.',
+    steps: ['Choose the default country for numbers written without a calling code', 'Enter one phone number for detailed inspection, or paste up to 200 numbers on separate lines in the batch formatter', 'Review valid and possible status, country and number type, then copy a single format or download the batch as CSV'],
+    notes: ['A number without a country code depends on the selected default region', 'Valid means the number matches numbering-plan metadata; it does not prove assignment, reachability or SMS capability'],
+    example: { label: 'Fill in a sample number', text: '+1 650-253-0000' },
+    about: 'The parser uses libphonenumber-js metadata to identify country calling codes, possible and valid number patterns, and number types. The single-number view provides national, international, E.164 and RFC 3966 formats. The batch view applies the same local parsing to up to 200 non-empty lines and exports a CSV for QA, CRM cleanup or migration checks. Phone numbers stay in the browser; validity is a numbering-plan check, not a live carrier or reachability lookup.',
     faqs: [
-      { q: 'What is E.164 and why does everyone ask for it?', a: 'It is the unambiguous international format — plus sign, country code, subscriber number, no spaces (e.g. +442071838750). APIs and databases prefer it because the same number has many human spellings but exactly one E.164 form.' },
-      { q: 'Why does the result change when I add a country code?', a: 'Without one, the parser must assume a default country for local notation; with one, the number is interpreted globally. Ambiguous short numbers can legitimately parse differently — always pass the country you mean.' },
-      { q: 'What does the "type" field mean?', a: 'It classifies the number as mobile, fixed line, toll-free, premium rate and so on, based on the country\'s numbering plan. Useful for filtering out fax lines or blocking premium numbers before dialling.' },
+      { q: 'What is E.164 and why do APIs ask for it?', a: 'E.164 is the international storage and interchange format: a plus sign, country calling code and national number with no formatting spaces, such as +16502530000.' },
+      { q: 'Can I format multiple phone numbers at once?', a: 'Yes. Paste one number per line into the batch formatter. It processes up to 200 non-empty lines in your browser and lets you download the results as CSV.' },
+      { q: 'Does a valid number mean it is active?', a: 'No. The library checks whether the number fits known numbering-plan metadata. It cannot confirm ownership, current service, call reachability or SMS delivery.' },
+      { q: 'Why does the result change when I add a country code?', a: 'Without one, the parser must assume the selected default country for local notation; with one, the number is interpreted using its international calling code.' },
+      { q: 'What does the number type mean?', a: 'It classifies a number using metadata, for example mobile, fixed line, toll-free or premium rate. Not every region exposes every number type.' },
     ],
   },
 
   '/qrcode-generator': {
-    intro: 'Turns text or a link into a QR code, with customisable colours and size, ready to download.',
-    steps: ['Enter what to encode (a URL or any text)', 'Adjust the foreground colour, background colour and size as needed', 'Click download to save the image'],
+    intro: 'Turns a URL or text into a QR code with customisable foreground and background colours and error correction, ready to download as a PNG.',
+    steps: ['Enter the URL or text to encode', 'Choose the foreground and background colours and an error-correction level', 'Download the generated PNG image'],
     notes: ['Longer content makes a denser code; if it will not scan, shorten the content or increase the size'],
     example: { label: 'Fill in a sample link', text: 'https://digdevbox.com' },
     about: 'A QR code is a choice you make three times: what data goes in, how much damage it must survive, and how big it must print. The data determines the version (the 21×21 to 177×177 module grid) — a URL under 100 characters lands in versions 3–5, while pasting a full vCard pushes toward version 10 and denser modules. Error correction is the dial most people never touch: level H survives about 30% of the code area being destroyed, which is exactly what a logo overlay needs, but it costs capacity — the same string at level H can jump two full versions. Print size has a physical floor: roughly 4 pixels per module on the target printer, and a version-4 code at 33 modules needs about 132 pixels minimum before it stops being scannable at arm\'s length. These three choices trade against each other, which is why "just paste a longer link" fails silently on posters. Static codes generated here encode exactly what you type — no redirect layer, no third-party hop. If you need to change the destination later, that is a different product shape (a short redirect URL you control); if you need one code that never breaks, the static one you can print and archive is the right tool.',
@@ -1300,8 +1457,8 @@ export const GUIDES: Record<string, ToolGuide> = {
   },
 
   '/regex-tester': {
-    intro: 'Tests regular expression matches live, so you can verify as you write.',
-    steps: ['Write the pattern in the top field (without the surrounding slashes)', 'Enter the text to match in the bottom field', 'Review the highlighted matches and capture groups'],
+    intro: 'Test JavaScript regular expressions online with live match and capture details, replacement preview, and named positive and negative test cases that report pass or fail.',
+    steps: ['Write the JavaScript pattern in the top field (without the surrounding slashes)', 'Enter text to inspect live matches and capture groups', 'Add named test cases, choose whether each should match, move cases up or down to organize the suite, and review the PASS/FAIL summary with match offsets', 'Use replacement preview to verify JavaScript replacement tokens'],
     notes: ['Add the g flag for global matching, otherwise only the first match is reported'],
     about: 'The single most useful fact about testing regular expressions in a browser: JavaScript regex is not PCRE. Python-flavored constructs like named groups with single quotes, atomic groups or possessive quantifiers either fail to parse or mean something different here. Everything else follows the same engine the browser itself uses at runtime, which is exactly what makes this tester worth using — the match you see is the match your code will get, no translation layer. Two behaviors surprise people: the global flag changes what the result list means (all matches versus the first with capture groups), and an empty capture group and a group that did not participate are different things the plain text view flattens. Catastrophic backtracking is real — a nested-quantifier pattern against long input can hang the tab, which is why input length is bounded here. When a pattern works in another tool but not here, check flavor first, flags second, and escaping inside the character class third.',
     faqs: [
@@ -1309,6 +1466,8 @@ export const GUIDES: Record<string, ToolGuide> = {
       { q: 'What do the flags actually change?', a: 'g collects all matches instead of the first; i ignores case; m makes ^ and $ match line boundaries inside multiline text. The tester shows matches per the flags you set, same as runtime.' },
       { q: 'Can a regex freeze the page?', a: 'Yes — nested quantifiers on long strings cause catastrophic backtracking. If the tester stops responding, simplify the pattern; this is a property of backtracking engines, not a bug.' },
       { q: 'Why does a group match empty?', a: 'A group that participated with zero width and one that did not participate are different. The highlighted match list shows positions; check group capture separately when debugging alternations.' },
+      { q: 'Can I save positive and negative examples as regression tests?', a: 'Yes. Add named test cases, mark each as expected to match or not match, and review an individual PASS/FAIL result plus the aggregate summary. Cases run locally in an isolated Web Worker with the same JavaScript regex flags as the live tester.' },
+      { q: 'Which regex flavors are supported by the test suite?', a: 'The tester and its test cases use the browser JavaScript RegExp engine. PCRE, Python, Go and .NET syntax are not emulated.' },
     ],
     example: { label: 'Fill in a sample pattern', text: '\\d{3}-\\d{4}' },
     relatedNotes: [
@@ -1318,6 +1477,16 @@ export const GUIDES: Record<string, ToolGuide> = {
         description: 'A practical workflow for testing and debugging regular expressions online — live matches, flags, capture groups and a cheat sheet for the syntax you forget.',
         url: 'https://notes.digdevbox.com/posts/regex-testing-guide',
         tag: 'Regex',
+      },
+    ],
+    articleOnlySections: [
+      {
+        title: 'JavaScript replacement tokens, not just match highlighting',
+        text: 'The replacement preview follows JavaScript String.prototype.replace semantics, so it is useful to test the output that browser code will produce rather than only checking whether a pattern matches. The token $& inserts the complete matched substring, while $1 inserts the first numbered capture and $<name> inserts a named capture such as $<word>. Use $$ when the replacement should contain a literal dollar sign. The tokens $` and $\' insert the text before and after the current match respectively; they can repeat large parts of the input and unexpectedly expand the output. Without the global flag g, replacement affects only the first match; with g, it applies to each non-overlapping match.',
+      },
+      {
+        title: 'Read match positions and handle expensive patterns',
+        text: 'The d flag exposes capture indices as zero-based JavaScript string offsets, which count UTF-16 code units rather than user-perceived characters; an emoji can therefore occupy two positions. A global pattern that can match an empty string needs careful advancement, or it can keep finding the same position; this tester advances by one Unicode code point after an empty match. Each evaluation runs in a dedicated Web Worker and is terminated after 300 milliseconds, allowing the interface to recover from catastrophic backtracking and create a fresh worker for the next edit. A timeout is a safety boundary, not proof that a pattern is efficient, so simplify nested quantifiers and test against realistic long inputs before shipping a pattern.',
       },
     ],
   },
@@ -1342,8 +1511,8 @@ export const GUIDES: Record<string, ToolGuide> = {
   },
 
   '/rsa-key-pair-generator': {
-    intro: 'Generates an RSA public/private key pair in PEM format, for encrypted transport or signature verification.',
-    steps: ['Choose the key length (2048 bits and up)', 'Click generate', 'Save the private and public keys separately'],
+    intro: 'Generates an RSA public/private key pair in PEM format, for applications that accept RSA keys.',
+    steps: ['Choose a key length from 256 to 16,384 bits in multiples of 8 (2048 bits is the default)', 'Click refresh key-pair to generate the keys', 'Copy and store the public and private PEM outputs separately'],
     notes: ['A lost private key cannot be recovered, so store it safely — and never commit it to a repository'],
     example: { label: 'Fill in a sample key size', text: '4096' },
     about: 'Generate an RSA key pair — private and public key in PEM format, in the key size you choose — directly in the browser. Useful for SSH keys, TLS client certificates, JWT RS256 signing setups, or anywhere you need a fresh pair without installing OpenSSL.',
@@ -1356,15 +1525,47 @@ export const GUIDES: Record<string, ToolGuide> = {
   },
 
   '/safelink-decoder': {
-    intro: 'Recovers the real link hidden behind an Outlook SafeLink wrapper.',
-    steps: ['Copy the very long SafeLink URL from the email', 'Paste it into the input', 'Click decode to get the original URL'],
-    notes: ['Decoding only reveals the address — you still have to judge for yourself whether it is trustworthy'],
-    example: { label: 'Fill in a sample SafeLink URL', text: 'https://nam.safelinks.protection.outlook.com/?url=https%3A%2F%2Fexample.com%2Fdocs' },
-    about: 'Outlook SafeLink wraps every URL in corporate mail into a long tracking redirect — you click the wrapper, not the destination. Paste a SafeLink URL and this tool extracts the real address encoded inside it, so you can see (and decide about) where a link actually goes before opening it.',
+    intro: 'Decode a list of Microsoft Outlook Safe Links in one pass. Paste one HTTPS wrapper per line; blank lines are ignored, each row succeeds or fails independently, and successful destinations can be copied together.',
+    steps: [
+      'Copy the complete Microsoft Outlook Safe Links URL from the email message. This decoder accepts Outlook Safe Links HTTPS wrappers, not unrelated security-gateway formats.',
+      'Paste one wrapper URL per line. Leave blank lines wherever convenient; the result keeps each non-empty URL’s original line number.',
+      'Choose Decode links. Each row is processed independently, so one malformed wrapper does not block other valid rows.',
+      'Review the destination URL together with its scheme, host and number of Outlook wrapper layers. Copy the successful destinations when you need a plain-text list.',
+      'For a single URL, expand the optional single-link decoder below the batch workflow.',
+    ],
+    notes: [
+      'The parser unwraps up to five nested Microsoft Outlook Safe Links layers and requires the final destination to be an absolute HTTP or HTTPS URL.',
+      'The displayed scheme, host and wrapper depth describe URL structure only. They are not domain reputation, malware scanning or a safety verdict.',
+      'The tool parses pasted text in your browser. It does not fetch or open wrapper URLs or destinations, and it does not replace or bypass Microsoft click-time protection.',
+      'Blank rows are ignored. Invalid rows show their original input line number and an error; successful results are copied without failed rows.',
+      'Do not paste links containing credentials or one-time access tokens into tools unless your organization permits it. Follow your organization’s reporting and security process for suspicious email.',
+    ],
+    example: {
+      label: 'Paste one Outlook Safe Links URL (one per line)',
+      text: 'https://nam.safelinks.protection.outlook.com/?url=https%3A%2F%2Fexample.com%2Fdocs',
+    },
+    about: 'The Outlook Safe Links Batch Decoder extracts the destination embedded in each Microsoft Outlook Safe Links wrapper. Paste one wrapper per line to process a list locally, keep original line numbers, see independent row errors and copy successful destinations together. Each decoded row also shows the destination scheme, host and nested-wrapper depth so you can inspect the address structure before deciding what to do. The parser accepts HTTPS Outlook Safe Links wrappers, unwraps up to five layers and requires a final HTTP or HTTPS URL. It never requests or opens the wrapper or destination, does not assess domain reputation, and does not replace or bypass Microsoft time-of-click protection; follow your organization’s approved security workflow.',
     faqs: [
-      { q: 'What is SafeLink, and why do links look like that?', a: 'It is Microsoft\'s rewriter: mail links are replaced with a URL that routes through Microsoft servers for scanning, then forwards you. The original address is inside the wrapper as a query parameter.' },
-      { q: 'Why decode before clicking?', a: 'Two reasons: transparency (you see the real destination, including any look-alike domains) and convenience — the decoded URL opens directly, without the tracking hop and its privacy implications.' },
-      { q: 'Does decoding bypass any security?', a: 'No. It only reads the wrapped URL; it does not touch attachments or Microsoft\'s scanning. You are simply choosing to visit the destination directly rather than through the redirect.' },
+      { q: 'Can I decode multiple Outlook Safe Links URLs at once?', a: 'Yes. Paste one Microsoft Outlook Safe Links HTTPS wrapper per line. Blank lines are ignored, each non-empty row is processed independently, original line numbers are kept, and successful destinations can be copied together.' },
+      { q: 'What do scheme, host and wrapper depth mean?', a: 'Scheme is the destination protocol, host is the destination hostname and optional port, and wrapper depth is the number of Outlook Safe Links layers removed. These fields describe URL structure; they are not reputation checks or a safety verdict.' },
+      { q: 'How many nested Outlook Safe Links layers are supported?', a: 'The decoder accepts up to five nested Microsoft Outlook Safe Links HTTPS wrappers. It reports an error when the nesting exceeds that limit.' },
+      { q: 'Does the decoder open or scan the destination?', a: 'No. It parses the pasted URL text in your browser and displays the extracted destination as text. It does not fetch, open, scan or certify the destination.' },
+      { q: 'Does decoding bypass Microsoft Safe Links protection?', a: 'No. Microsoft Safe Links can perform click-time checks according to your organization’s configuration. This decoder does not replace, disable or bypass those checks.' },
+      { q: 'Can it decode Proofpoint or other email security gateways?', a: 'No. This version is intentionally limited to Microsoft Outlook Safe Links wrappers. Other security gateways use different URL formats and are not claimed as supported.' },
+    ],
+    articleOnlySections: [
+      {
+        title: 'Read the destination host, not only the visible link text',
+        text: 'An email client can display friendly anchor text that differs from the URL stored in the link target. In the decoded address, inspect the complete hostname between the scheme and the first path, query or fragment delimiter. Do not trust a familiar brand name that appears only inside a subdomain or later path segment. For example, \`microsoft.com.login-check.example\` is a host under \`login-check.example\`, not under \`microsoft.com\`. If a URL contains user information before an at sign, the hostname begins after that separator; text before it is not the destination host. Internationalized domain names can be represented with Unicode characters or punycode, so compare the full hostname against a known-good address using your organization’s approved process.',
+      },
+      {
+        title: 'Troubleshoot malformed or incomplete rows',
+        text: 'A failed row means the pasted text did not match this decoder’s supported Outlook wrapper format or did not contain a valid destination; it does not establish that the destination is malicious. Email clients sometimes copy visible link text instead of the actual hyperlink target, and a copied address can also be truncated. When an HTML source contains the entity \`&amp;\`, the parser normalizes that separator before reading the query parameter. For nested links, every inner layer must itself be a valid HTTPS Outlook Safe Links wrapper, and the total chain cannot exceed five layers. Preserve the original row and message context when investigating a failure instead of editing the URL until it appears to decode.',
+      },
+      {
+        title: 'Make batch results useful for a security handoff',
+        text: 'For an incident queue, paste only the URLs that your organization permits you to process and keep the input list as the source record. The copy action intentionally includes successful destinations only, so it is not a complete audit log of both successes and failures. Compare each extracted hostname with the expected service domain and the message sender context; scheme, host and wrapper depth are descriptive URL fields, not a risk score. Do not automatically open extracted addresses or treat a successful parse as permission to visit them. Route suspicious messages through your organization’s approved reporting or security-analysis process.',
+      },
     ],
     relatedNotes: [
       {
@@ -1374,19 +1575,52 @@ export const GUIDES: Record<string, ToolGuide> = {
         url: 'https://notes.digdevbox.com/posts/url-encoding-guide',
         tag: 'URL',
       },
+      {
+        slug: 'outlook-safelinks-decoder-guide',
+        title: 'Outlook Safe Links Decoder: Reveal the Original URL Without Opening It',
+        description: 'Learn how Outlook Safe Links wraps email URLs, how to reveal a destination without opening it, and what decoding does not verify or replace.',
+        url: 'https://notes.digdevbox.com/posts/outlook-safelinks-decoder-guide',
+        tag: 'Safe Links',
+      },
     ],
   },
 
   '/slugify-string': {
-    intro: 'Turns a title or filename into a slug containing only lowercase letters, digits and hyphens, for URLs and file naming.',
-    steps: ['Enter the original string', 'Read the generated slug', 'Copy and use it'],
-    notes: ['Input longer than 100,000 characters is rejected outright — slug generation is skipped rather than blocking the page', 'Non-ASCII text is transliterated or handled by rule; English words make the best slugs'],
-    example: { label: 'Fill in sample text', text: 'Hello World! 你好 2026' },
-    about: 'Turn any string into a URL-, filename- and ID-safe slug: accents transliterated, spaces and symbols replaced, lowercase throughout. Slugs keep URLs readable and stable, and this tool shows exactly what your title becomes before it hits routing or a filesystem.',
+    intro: 'Turn one title or a whole list of titles into readable, URL-safe slugs. Choose a separator, preserve or lowercase letter case, split camelCase, remove common English stop words, avoid duplicate slugs and preview the final URL.',
+    steps: [
+      'Enter one page title or phrase per line. Blank lines are ignored and each result keeps its original line number.',
+      'Choose hyphens, underscores or dots. Keep lowercase enabled for a consistent URL style, and leave camelCase splitting on when converting developer identifiers.',
+      'Optionally remove a small built-in list of common English stop words. This does not translate Chinese to Pinyin or rewrite the meaning of a title.',
+      'Set a maximum length only when your own CMS or URL policy requires it. Truncation stops at a complete word; if no complete word fits, the row shows an error instead of cutting a word in half.',
+      'Enable duplicate protection when generating a group of pages, then copy all slugs or download TXT/CSV results.',
+    ],
+    notes: [
+      'The current input safety limit is 100,000 characters and the batch limit is 1,000 non-empty lines. Oversized batches are rejected rather than silently dropping rows.',
+      'The optional stop-word list is English-only and can be too aggressive for some phrases. Review the output before publishing.',
+      'A slug is not guaranteed to be unique across your whole website or CMS. The duplicate option only makes entries unique within the current batch.',
+      'Changing an existing URL can break bookmarks and external links. Keep established URLs stable or add a permanent redirect when a route must change.',
+      'There is no universal character count that guarantees a better Google ranking. Prefer concise, descriptive URLs that match your site structure.',
+    ],
+    example: { label: 'Try a small batch', text: 'How to Build a Better API\nThe Complete Guide to URL Slugs\nDéjà Vu and Unicode' },
+    about: 'A URL slug is the readable final part of a web address. This tool turns titles into URL-friendly strings and makes common publishing tasks repeatable across many pages. It uses the project’s pinned slugify library for Unicode transliteration and word normalization, then adds practical batch controls: separator choice, optional English stop-word removal, duplicate handling, whole-word length limits and a base URL preview. It runs in your browser and does not submit your title list to a server.',
+    articleOnlySections: [
+      {
+        title: 'How to choose a URL slug that stays useful',
+        text: 'Start with the words that identify the page topic and remove punctuation that does not help a reader understand the destination. Hyphens are a familiar default, while underscores or dots may be required by an existing publishing convention. A short slug is not automatically better: preserve the important subject words, avoid repeated filler and keep the path consistent with the site hierarchy. Do not change an established URL only to shave off a few characters; update internal links and add a permanent redirect if a route genuinely needs to move.',
+      },
+      {
+        title: 'Should you remove stop words or set a maximum length?',
+        text: 'Treat both as editorial options rather than ranking rules. Removing words such as “the” or “and” can make some English titles cleaner, but it may also change a phrase’s meaning or readability. Maximum length is useful when a CMS or your team has a documented constraint; this generator truncates at a word boundary so it does not cut a word in half. Google does not publish a universal slug character limit that guarantees rankings, so choose clarity and URL stability over an arbitrary number.',
+      },
+    ],
     faqs: [
-      { q: 'Why do URLs use slugs instead of titles?', a: 'Titles contain spaces, punctuation and encodable characters that make URLs long and brittle. A slug is one safe token that still reads — better for users, sharing and SEO than an opaque ID.' },
-      { q: 'What happens to accented characters?', a: 'They are transliterated to their base form (é to e, ü to u) so the slug stays ASCII-safe. If you need to preserve accents in URLs, modern browsers can display them — but ASCII slugs are the portable choice.' },
-      { q: 'Can two different titles produce the same slug?', a: 'Yes — "Café!" and "cafe" both become "cafe". That is why systems append IDs or dates when uniqueness matters; the slug guarantees safety and readability, not uniqueness.' },
+      { q: 'Can I generate slugs for many titles at once?', a: 'Yes. Put one title per line. The tool ignores blank lines, shows each result with its source line number and supports copy-all, TXT and CSV output.' },
+      { q: 'Which separator should I use: hyphen, underscore or dot?', a: 'Hyphens are a familiar, readable default for web paths. Use underscores or dots when your product, router or publishing convention specifically calls for them, and keep the choice consistent across related pages.' },
+      { q: 'Does a shorter slug automatically rank higher?', a: 'No. There is no universal character-count threshold that guarantees a ranking improvement. Use a concise, descriptive path, include the topic naturally and avoid changing URLs without a redirect plan.' },
+      { q: 'What does stop-word removal do?', a: 'It optionally removes a small built-in set of common English words such as “the”, “and” and “to”. It does not remove words from other languages, and if every word would be removed the original generated slug is kept.' },
+      { q: 'Will the duplicate option make every site URL unique?', a: 'No. It adds numeric suffixes to duplicates within the current input batch. A site-wide CMS or database must still enforce uniqueness against existing routes.' },
+      { q: 'Does this tool translate Chinese titles into Pinyin?', a: 'No Pinyin conversion is claimed. The underlying slugify dependency transliterates supported scripts according to its own language rules; review non-Latin output before publishing.' },
+      { q: 'What happens when I set a maximum length?', a: 'The tool keeps complete words up to the selected limit. If even the first word is longer than the limit, it reports that no complete word fits instead of cutting the word in the middle.' },
     ],
   },
 
@@ -1460,26 +1694,64 @@ export const GUIDES: Record<string, ToolGuide> = {
   },
 
   '/text-statistics': {
-    intro: 'Counts characters, words and byte size — useful when writing copy or checking an API limit.',
-    steps: ['Paste the text', 'Read the statistics', 'Cross-check the byte count against the limit where relevant'],
-    notes: ['In UTF-8 a CJK character is about 3 bytes, so the byte count differs from the character count'],
-    example: { label: 'Fill in sample text', text: 'The quick brown fox jumps over the lazy dog.' },
-    about: 'Live statistics for the text you paste: character count, word count, line count and byte size, updating as you type. The byte size accounts for multi-byte characters, which is what actually matters when filling forms with length limits, sizing payloads or estimating storage.',
+    intro: 'Counts Unicode characters, words, sentences, paragraphs and UTF-8 bytes, then adds locale-aware top-term frequency plus reading and speaking-time estimates.',
+    steps: [
+      'Paste or type text into the analyzer',
+      'Choose the language used for word and sentence segmentation',
+      'Review Unicode metrics, reading and speaking time, and the top-term table; optionally exclude common English stop words',
+      'Copy the complete statistics summary',
+    ],
+    notes: [
+      'Grapheme counts follow browser Intl.Segmenter when available; older browsers fall back to code-point counts, which can differ for joined emoji and combining marks.',
+      'Word segmentation in older browsers is approximate and does not provide dictionary-based CJK segmentation.',
+      'Reading and speaking times are estimates using separate user-selected words-per-minute rates; they are not measurements of an individual.',
+      'Top-term shares use the analyzed token count as the denominator. The optional stop-word filter is English-only and does not change the headline word count.',
+      'Term frequency describes this input only. It is not search volume, keyword demand, keyword difficulty or a Google ranking signal.',
+    ],
+    example: { label: 'Fill in sample text', text: 'The quick brown fox jumps over the lazy dog. 👋' },
+    about: 'A browser-based text analyzer with explicit Unicode metrics and text-frequency analysis. It reports visible grapheme clusters, Unicode code points, JavaScript UTF-16 code units, UTF-8 bytes, words, unique words, sentences, paragraphs, lines, non-empty lines and the longest line. Choose a segmentation language, inspect the top ten normalized terms with occurrence counts and token shares, optionally filter common English stop words, and estimate reading and speaking time at separate rates. The input is processed locally in your browser.',
+    articleOnlySections: [
+      {
+        title: 'Visible characters, code points and code units',
+        text: 'These counters answer different questions. A grapheme cluster is what a reader usually perceives as one character: an accented letter may combine a base letter and a mark, and a family emoji can contain several Unicode code points joined together. Code points count Unicode values. UTF-16 code units count the 16-bit units used by JavaScript strings. UTF-8 bytes measure encoded storage size. A single emoji can therefore count as one visible grapheme, multiple code points, multiple UTF-16 units and several UTF-8 bytes.',
+      },
+      {
+        title: 'Word counts and reading-time estimates',
+        text: 'Word and sentence counts use the browser Intl.Segmenter API with the selected language when available. Older browsers use an approximate Unicode-aware fallback; it does not promise dictionary-based word boundaries for Chinese, Japanese or Thai. Reading time is calculated from the current word count and your selected words-per-minute rate, rounded up to a whole minute. Treat it as a planning estimate, not a universal reading-speed benchmark.',
+      },
+      {
+        title: 'How top-term frequency and token shares are calculated',
+        text: 'The top-term table reuses the same locale-selected word segmentation as the headline word count. Terms are normalized to lowercase for counting, ordered by occurrence count and then alphabetically, and limited to the ten most frequent terms. Each share is the term count divided by the analyzed token total shown above the table. When the English stop-word option is enabled, the denominator is the remaining tokens after those common words are removed; the headline word count is not changed. This is a descriptive analysis of the pasted text, not keyword search volume or ranking evidence.',
+      },
+      {
+        title: 'Use the English stop-word filter carefully',
+        text: 'The filter is available only when English is selected. It removes a built-in list of common English function words such as “the”, “and” and “of” from the term-frequency table so repeated content words are easier to inspect. It does not alter the source text, the main word count or the reading/speaking estimates. The filter is not applied to Chinese, Japanese, Thai, Spanish, French or German because an English stop list would distort those languages.',
+      },
+      {
+        title: 'Estimate reading and speaking time separately',
+        text: 'Reading time and speaking time use separate adjustable words-per-minute rates. The default reading rate is 200 words per minute and the default speaking rate is 150 words per minute; both can be changed to better fit a document, presentation or script. Each duration is rounded up to a whole minute and is only a rough planning estimate. Pauses, reading complexity, speaking style and language can make the actual duration different.',
+      },
+    ],
     faqs: [
-      { q: 'Why do character count and byte size differ?', a: 'Characters outside ASCII take multiple bytes in UTF-8 — an emoji is one character but four bytes. Forms and APIs usually enforce byte or UTF-16 limits, so watch the byte counter for anything multilingual.' },
-      { q: 'How are words counted?', a: 'By whitespace separation. "well-known" is one word and punctuation sticks to its word; if you need linguistic word counts (hyphens, contractions) treat this as the fast estimate it is.' },
-      { q: 'What counts as a line?', a: 'Every newline-terminated row, so a trailing newline adds one to the count. Empty lines count too — they are real lines in the text.' },
+      { q: 'Why do visible characters, code points and UTF-16 units differ?', a: 'They count different layers of Unicode text. A joined emoji sequence can be one grapheme cluster but several code points and UTF-16 units. The browser grapheme counter is the closest of these metrics to what a person sees as one character.' },
+      { q: 'Why is UTF-8 byte size larger than the character count?', a: 'UTF-8 uses one to four bytes per Unicode code point. ASCII letters use one byte, many CJK characters use three, and many emoji use four bytes per code point. Joined emoji sequences contain several code points.' },
+      { q: 'How are words counted?', a: 'When supported, Intl.Segmenter uses the selected language for word boundaries. The fallback is an approximation based on Unicode letters and numbers; it may not split languages that do not use spaces between words.' },
+      { q: 'How are top terms and their percentages calculated?', a: 'The tool uses the selected language segmenter, normalizes terms to lowercase, counts occurrences and divides each count by the analyzed token total shown above the table. The English stop-word filter changes only this table denominator.' },
+      { q: 'Does term frequency show which keywords rank in Google?', a: 'No. It describes repeated words in the text you pasted. It does not query search engines and is not search volume, keyword difficulty, intent or ranking data.' },
+      { q: 'How is speaking time estimated?', a: 'The tool divides the word count by your selected speaking rate (150 words per minute by default) and rounds up to a whole minute. It is a planning estimate, not an acoustic measurement.' },
+      { q: 'Why can another website show a different character limit?', a: 'Platforms may count graphemes, code points, UTF-16 units, UTF-8 bytes or weighted units. Use the receiving platform’s documented rule when a limit is important.' },
+      { q: 'Is my text uploaded?', a: 'No. The analyzer runs in your browser and does not send the text to a server.' },
     ],
   },
 
   '/text-to-binary': {
-    intro: 'Converts text to and from ASCII binary — for inspecting low-level representations or teaching.',
+    intro: 'Converts basic ASCII text to and from 8-bit binary groups — for inspecting low-level representations or teaching.',
     steps: ['Enter the text or the binary', 'The other side updates automatically', 'Copy and use it'],
     notes: ['Binary is grouped in 8-bit blocks; spaces between them are tolerated'],
     example: { label: 'Fill in sample text', text: 'Hi' },
     about: 'Convert text into its ASCII binary representation and back — each character becomes one 8-bit byte, so "Hi" is 01001000 01101001. Useful in teaching contexts, protocol debugging, and any moment you want to see what a string really is under the hood.',
     faqs: [
-      { q: 'Why 8 bits per character?', a: 'Extended ASCII and UTF-8 both represent the basic Latin range in single 8-bit bytes. For characters beyond that range, UTF-8 uses multiple bytes — check the Unicode tool for those.' },
+      { q: 'Why 8 bits per character?', a: 'Basic ASCII characters fit in one 8-bit byte. UTF-8 encodes non-ASCII characters as one or more bytes, which this tool does not produce; use the Unicode tool for decimal character references or code-point lists.' },
       { q: 'How do I convert back without losing data?', a: 'Split the binary into groups of 8 bits and map each to its character code. Groups that are not multiples of 8 indicate truncated or corrupted input.' },
       { q: 'Can binary text keep a message secret?', a: 'Not at all — it is a faithful encoding with no key. Anyone can decode it, which makes it great for illustration and useless for secrecy.' },
     ],
@@ -1505,8 +1777,8 @@ export const GUIDES: Record<string, ToolGuide> = {
   },
 
   '/text-to-unicode': {
-    intro: 'Converts text to and from Unicode code points — useful for tracking down mojibake or writing escape sequences.',
-    steps: ['Enter the text or the code point sequence', 'The other side shows the converted result', 'Copy and use it'],
+    intro: 'Converts text to decimal HTML numeric character references and back, and separately converts text to and from decimal Unicode code-point lists.',
+    steps: ['Enter text in the HTML-reference or decimal-code-point section, or paste values into its reverse field', 'Read the corresponding decimal references, code-point list or decoded text', 'Copy the result you need'],
     example: { label: 'Fill in sample text', text: 'Hello 你好' },
     notes: [
       'The numbers are UTF-16 code units, not Unicode code points: characters outside the Basic Multilingual Plane (most emoji) come out as a pair of surrogate references.',
@@ -1516,7 +1788,7 @@ export const GUIDES: Record<string, ToolGuide> = {
     about: 'Turn text into numeric character references and back. Each character becomes &#NN; holding its UTF-16 code-unit value, so “Hello” turns into &#72;&#101;&#108;&#108;&#111;, and the reverse field takes a run of those references and gives the text back. This is the form that survives systems which mangle non-ASCII bytes: paste it into HTML and the browser renders the original characters regardless of the file\'s encoding. Note what it is not — the numbers are code units rather than code points, and the only syntax either direction understands is decimal &#NN;.',
     faqs: [
       { q: 'Why does my "duplicate" username fail a comparison?', a: 'It very likely contains invisible characters — zero-width spaces, joiners or look-alike homoglyphs. Inspecting the code points exposes them; a character that should not be there will stand out immediately.' },
-      { q: 'What is the difference between U+ notation and \\u escapes?', a: 'They are two spellings of the same code point: U+1F600 and \\uD83D\\uDE00 (its surrogate pair in JS/JSON) both denote the same emoji. This tool converts between the views so you can paste whichever your context needs.' },
+      { q: 'What is the difference between U+ notation and \\u escapes?', a: 'This tool does not parse U+ notation or \\uXXXX escapes. Its first mode uses decimal HTML numeric references such as &#128512; (with UTF-16 code-unit behavior), while the separate code-point mode accepts decimal numbers such as 128512. Use a dedicated Unicode escape converter if you need hexadecimal U+ or \\u forms.' },
       { q: 'What are combining characters?', a: 'Accents and marks that attach to the previous character instead of standing alone. "é" can be one code point or "e" plus a combining accent — both display the same but compare differently, and this tool shows which one you have.' },
       { q: 'Why does my emoji turn into two numbers?', a: 'Because it sits outside the Basic Multilingual Plane, so JavaScript stores it as a surrogate pair — two UTF-16 code units. The tool reports both, and reading them back reassembles the emoji correctly. A tool that claims to emit code points would show one larger number instead.' },
       { q: 'Can it read \\u0048 or &#x48; style escapes?', a: 'No. The reverse pass matches decimal references only. Hexadecimal references mean the same character in HTML and \\uXXXX belongs to JavaScript string syntax rather than HTML, but neither is parsed here.' },
@@ -1541,11 +1813,11 @@ export const GUIDES: Record<string, ToolGuide> = {
   },
 
   '/token-generator': {
-    intro: 'Generates a random string from a chosen character set — for temporary passwords and invite codes.',
+    intro: 'Generates a random string from a chosen character set for non-security-sensitive labels, sample data and placeholder values.',
     steps: ['Set the length', 'Tick the character classes you need', 'Click generate and copy'],
-    notes: ['This uses a regular random number generator; for security-sensitive cases use the platform cryptographic source'],
+    notes: ['This uses JavaScript Math.random, not a cryptographic random source; never use its output for passwords, API secrets, session IDs or recovery codes'],
     example: { label: 'Show a sample token', text: 'A1b2C3d4E5f6G7h8I9j0K1l2M3n4O5p6Q7r8S9t0U1v2W3x4Y5z6a7B8c9D0e1F2g3H4i5J6k7' },
-    about: 'A token is only as strong as the randomness behind it, and browsers have exactly one source worth using: the Web Crypto API\'s cryptographically secure generator, which this tool uses, not a predictable state machine — such generators have ended more than one session-handling project. Two properties decide whether a token is fit for its job. Length-times-alphabet gives entropy in bits: 32 characters from a 62-character set carries about 190 bits, far past the 128-bit floor for anything security-relevant; a 6-character password from the same set does not. Character-set choice should match the consumer: URL and cookie values want unreserved sets (letters, digits, dash) so nothing needs escaping; base64 tokens are fine in bodies but their +/= characters break in URLs unless made URL-safe. The subtler property is uniformity: drawing random bytes and mapping them with a modulo introduces bias when the alphabet size does not divide 256 evenly — the standard fix is rejection sampling, which this tool applies, so every character position is exactly uniform. Finally, match the token to its role: opaque session tokens can be raw random; secrets that humans copy should avoid look-alike characters; API keys benefit from a recognizable prefix so scanners can find leaks.',
+    about: 'This generator uses JavaScript Math.random and is intended for non-security-sensitive strings such as test data or temporary labels. It lets you choose a length from 1–512 and character groups; the output is not cryptographically secure and must not be used for passwords, API credentials, session IDs or recovery codes. For secrets, use a cryptographic random source such as Web Crypto.',
     faqs: [
       { q: 'Is this different from just rolling random numbers?', a: 'Yes — it reads from the browser cryptographic RNG (CSPRNG), not a predictable generator. Predictable ones have produced guessable session tokens in real incidents.' },
       { q: 'How long should my token be?', a: 'Count entropy bits: length × log2(alphabet size). Security values want at least 128 bits, which is roughly 22 characters from a 64-set or 32 from lowercase+digits.' },
@@ -1729,9 +2001,9 @@ export const GUIDES: Record<string, ToolGuide> = {
   },
 
   '/wifi-qrcode-generator': {
-    intro: 'Generates a Wi-Fi QR code so guests can join the network by scanning instead of typing the password.',
-    steps: ['Enter the network name (SSID)', 'Enter the password and pick the security type', 'Generate, then scan or download'],
-    notes: ['The QR code contains the password in plain form — be careful about posting it in public places'],
+    intro: 'Generates a scannable WiFi QR code for WPA, WEP, open networks or WPA2-EAP, with optional hidden-network and enterprise EAP settings.',
+    steps: ['Choose the network security mode and enter the SSID', 'Enter the password and, for WPA2-EAP, choose the EAP method and identity or anonymous option', 'Customize the foreground/background colors, then scan or download the PNG'],
+    notes: ['The QR payload contains the WiFi credentials in readable form — only share it with people who should be able to join the network'],
     example: { label: 'Fill in a sample SSID', text: 'Home-WiFi' },
     about: 'Turn your WiFi credentials into a QR code guests can scan to join instantly — no more reading passwords aloud. Fill in the network name (SSID), pick the security mode (WPA by default, or a no-password open network), type the password and optionally mark the SSID as hidden; then download the code as a PNG for printing.',
     faqs: [
@@ -1824,26 +2096,39 @@ export const GUIDES: Record<string, ToolGuide> = {
   },
 
   '/htpasswd-generator': {
-    intro: 'Generates the "username:hash" line for an .htpasswd file to protect Apache / Nginx with Basic authentication, and can verify an existing entry against a password.',
+    intro: 'Build a complete .htpasswd file with one line per user for Apache or Nginx Basic Auth, then verify an existing username:hash line locally.',
     steps: [
-      'Enter the username and password',
-      'Pick a format: bcrypt (recommended since Apache 2.4), Apache MD5 ($apr1$, most compatible), SHA1, or plaintext (debugging only)',
-      'For apr1 you can supply the salt (up to 8 characters) or click for a random one; for bcrypt use cost to control strength',
-      'Click generate and write the whole line into .htpasswd, pointing auth_basic_user_file at it',
-      'To verify: paste an existing line into the content field, enter the password to test, and read the comparison result',
+      'Add one or more users and enter a username and password for each row',
+      'Use Add user or Remove to manage the file entries; duplicate usernames are rejected',
+      'Choose bcrypt, Apache MD5 (apr1), SHA1 or the explicitly unsafe plain-text debug format',
+      'For apr1, each user receives an independent random salt; for bcrypt, choose the cost to control hashing time',
+      'Generate the file, then copy the complete output or download it as .htpasswd',
+      'To verify an existing entry, paste one username:hash line and enter the password to check',
     ],
     notes: [
-      'Both generation and verification happen locally in the browser; the password never leaves the page',
-      'A higher bcrypt cost is slower and harder to brute-force; after raising it, clicking generate involves a noticeable wait',
-      'SHA1 ({SHA}) is barely better than plaintext and is explicitly marked insecure in Apache documentation',
-      'The plaintext format is only supported by Windows / Netware — do not use it in production',
+      'All passwords and hashes are processed locally in this browser; no credentials are uploaded',
+      'Usernames cannot contain colons or line breaks, and duplicate usernames are rejected case-insensitively',
+      'apr1 is the most portable Apache/Nginx choice; Nginx bcrypt support depends on the system crypt() implementation',
+      'A higher bcrypt cost is slower and harder to brute-force, so generation takes longer',
+      'SHA1 ({SHA}) and plain text are legacy/debug formats; do not choose them for a new production setup',
+      'Keep the .htpasswd file outside the public web root and serve Basic Auth over HTTPS',
     ],
     example: { label: 'Fill in a sample username', text: 'admin' },
-    about: 'Generate .htpasswd entries for Apache or Nginx basic auth — bcrypt, apr1, SHA1 or crypt — and verify existing lines. One entry per line in the right hash format is all a server needs to password-protect a directory, and this tool produces exactly that without touching a terminal.',
+    about: 'Create a complete multi-user .htpasswd file without opening a terminal. Add a row for each account, choose bcrypt or Apache MD5 (apr1), and generate one independently salted hash line per user. Copy the complete file or download it as .htpasswd, then use the retained single-line verifier to check an existing credential. The tool runs entirely in your browser, so passwords and hashes stay on your device.',
     faqs: [
-      { q: 'Which hash format should I choose?', a: 'bcrypt for new setups (strongest, slow by design). apr1 is the Apache-legacy default; SHA1 and plain are only for ancient servers that accept nothing else — do not introduce them on purpose.' },
-      { q: 'Where does the .htpasswd file go?', a: 'Outside the web root, referenced from your server config (AuthUserFile in Apache, auth_basic_user_file in Nginx). The file must never be downloadable.' },
-      { q: 'Why does verification fail for a line I know is right?', a: 'Hashes are salted: a password hashes to a different string each generation, and only the stored salt is reused to verify. Mismatch usually means the password differs, not that the tool is broken.' },
+      { q: 'Can I generate a .htpasswd file for multiple users at once?', a: 'Yes. Add a row for each username and password, then generate the file. The output contains one username:hash line per valid user and can be copied or downloaded as .htpasswd. Each apr1 entry gets its own random salt, so identical passwords do not produce identical stored hashes.' },
+      { q: 'Which hash format should I choose?', a: 'Use bcrypt for a new Apache setup when its cost is appropriate. apr1 is the most portable Apache/Nginx choice. Nginx bcrypt support depends on the system crypt() implementation; SHA1 and plain text are legacy/debug formats, not recommended for production.' },
+      { q: 'Where should the .htpasswd file go, and how do I verify a line?', a: 'Keep the file outside the public web root and reference it from your server configuration (AuthUserFile in Apache or auth_basic_user_file in Nginx). Serve Basic Auth over HTTPS. To verify, paste an existing username:hash line and enter the password; verification reuses the salt stored in that line.' },
+    ],
+    articleOnlySections: [
+      {
+        title: 'Connect the generated file to Apache or Nginx',
+        text: 'Apache and Nginx use the same line-oriented username:hash file format, but their server configuration directives differ. In an Apache protected Directory or Location block, Basic authentication is enabled with AuthType Basic, a realm with AuthName, the absolute file path with AuthUserFile, and an access rule such as Require valid-user. In an Nginx location block, use auth_basic for the challenge text and auth_basic_user_file for the absolute path to the credential file. These paths are resolved by the web server on the host; they are not browser download paths, so the service account must be able to read the file. Keep the file outside the public document root and grant only the owner and server group the access they need.',
+      },
+      {
+        title: 'Deploy and rotate credentials without exposing the file',
+        text: 'Before reloading a server, validate its configuration with apachectl configtest or nginx -t, then test the protected URL over HTTPS from a client that has no saved credentials. Keep one username:hash record per line and preserve the other users\' records when rotating a single account. Use the local verifier to check a generated entry before deploying it, but never make the credential file itself publicly downloadable. The bcrypt format emitted here uses the $2a$ prefix accepted by Apache httpd 2.4; Nginx bcrypt support depends on the host\'s system crypt implementation, while apr1 is the more portable Apache/Nginx choice. SHA1 and plain-text entries are legacy/debug formats, not suitable choices for a new production deployment.',
+      },
     ],
   },
 
@@ -1937,18 +2222,19 @@ export const GUIDES: Record<string, ToolGuide> = {
   },
 
   '/json-to-get-params': {
-    intro: 'Converts between JSON and GET query parameters: flatten nested objects into a query string such as a[b][0]=c, or rebuild JSON from it.',
+    intro: 'Convert between JSON and URL query parameters: flatten nested objects and arrays into percent-encoded bracket notation, or rebuild JSON from a query string or full URL.',
     steps: ['Choose the direction: JSON → GET params or GET params → JSON', 'Paste the JSON or the query string', 'Copy the converted result'],
     notes: [
-      'Nesting levels and array indices are both expressed with square brackets, e.g. items[0][name]',
-      'Fields whose value is null, an empty array or an empty object produce an empty value',
+      'Nested object keys and array indices use bracket notation, e.g. a nested path such as a[b][0] is percent-encoded in the generated URL',
+      'Null values, empty arrays and empty objects are emitted as empty values; converting back cannot distinguish these from empty strings',
+      'Repeated query keys are assigned in order, so later values can replace earlier scalar values',
     ],
     example: { label: 'Fill in sample JSON', text: '{"a":1,"b":{"c":2},"list":[1,2]}' },
-    about: 'HTML forms and many server frameworks encode structured data in the query string using bracket notation: a nested object { "b": { "c": 2 } } becomes b[c]=2, and an array { "list": [1, 2] } becomes list[0]=1&list[1]=2. This tool flattens JSON into that exact notation so you can drop a JSON payload straight into a URL, and parses a query string back into nested JSON when you receive one. It is the bridge between a clean JSON body and the bracket-encoded query strings that PHP, Express, Ruby on Rails and others expect.',
+    about: 'HTML forms and many server frameworks encode structured data in query strings using bracket notation. This tool flattens nested JSON objects and arrays into key-value pairs, percent-encoding both keys (including bracket characters) and values with encodeURIComponent. For example, a logical path such as a[b][0] is emitted with its brackets encoded for URL use. It also accepts a query string or full URL and decodes the parameters back into a nested JSON structure. This is useful when moving structured data between a JSON payload and query-string conventions used by web frameworks.',
     faqs: [
-      { q: 'How is nesting expressed in the query string?', a: 'With square brackets, mirroring JavaScript member access: { "a": { "b": [1] } } becomes a[b][0]=1. Each level of object nesting adds a bracketed key, and each array index adds a numeric bracket, so the structure is fully recoverable on the way back.' },
-      { q: 'What happens to null or empty values?', a: 'They produce an empty value in the query string (key= with nothing after). That is the faithful representation — a query string cannot encode "absence" more precisely than an empty field — so when rebuilding JSON the value comes back as an empty string rather than null. Drop such keys before sending if the server is strict.' },
-      { q: 'Is the output URL-encoded?', a: 'The tool shows the logical key=value pairs; special characters in keys or values should be percent-encoded before putting them in a real URL. Encode the values (not the brackets) so the bracket structure stays intact and the server parses it correctly.' },
+      { q: 'How is nesting expressed in the query string?', a: 'Nested object properties and array indices use bracket notation. For example, a logical path a[b][0]=1 represents the first item in the nested array. In the generated output, the key is percent-encoded (including the square brackets), as are values that need encoding.' },
+      { q: 'What happens to null or empty values?', a: 'Null values, empty arrays and empty objects are emitted as an empty value (key=). When converted back, that becomes an empty string, so the original distinction between null, an empty array, an empty object and an empty string is not preserved.' },
+      { q: 'Does the tool encode the output for use in a URL?', a: 'Yes. It applies encodeURIComponent to both each key and each value. That means square brackets in nested keys are percent-encoded too (for example, [ becomes %5B and ] becomes %5D). The reverse direction decodes percent escapes and treats + as a space.' },
     ],
   },
 
@@ -2001,16 +2287,51 @@ export const GUIDES: Record<string, ToolGuide> = {
   },
 
   '/http-headers': {
-    intro: 'A reference for common HTTP request and response headers plus the nine standard request methods — to consult when writing APIs or debugging caching, CORS and method semantics.',
-    steps: ['Type a field name (e.g. Cookie) or a purpose keyword (e.g. cache, CORS) in the search box', 'The header list filters live', 'Each entry shows the field name, direction (request / response) and a short description', 'Below the headers, the request-methods table lists each verb with its safe / idempotent flags'],
-    notes: ['Search matches the field name, the description and the direction', 'The request-methods table is always shown under the header reference'],
-    example: { label: 'Fill in a sample query', text: 'cache' },
-    about: 'A searchable reference of common HTTP request and response headers, joined by a table of the standard request methods. Instead of digging through RFCs to remember what Strict-Transport-Security does, which direction a header travels, or whether PATCH is idempotent, search by name and read a focused description — with CORS, caching and security headers grouped for fast scanning, and GET/POST/PUT/PATCH/DELETE/OPTIONS marked by their safety and idempotency so you pick the right verb, not just the right header.',
+    intro: 'Paste raw HTTP response headers or import a local HAR 1.2 or plain-text capture to check security-policy coverage, cookie flags, CORS configuration, caching and indexing hints. Files are processed in this browser tab and are never uploaded.',
+    steps: [
+      'Capture the response headers for the page you want to inspect. For a GET response, run curl -sS -D - -o /dev/null https://example.com/; in DevTools, open Network, select the document request and copy Response Headers. You can also export a HAR 1.2 capture from the Network panel.',
+      'Import a .har file or a plain-text .txt response-header capture using the file picker or drop zone. HAR files can contain multiple requests; select the response you want to inspect. The file limit is 10 MB.',
+      'For a manual check, paste the raw response block including the HTTP status line. Repeated Set-Cookie lines are supported.',
+      'Review the coverage checks, CSP directives, cookie findings and any CORS or X-Robots-Tag warnings.',
+      'Choose Nginx, Apache, Caddy, Vercel or Cloudflare Pages to copy a configuration snippet for clearly missing, low-context headers.',
+      'Test any proposed policy on staging first. The analyzer does not change your server configuration.',
+    ],
+    notes: [
+      'This page analyzes pasted headers or a local capture; it does not fetch a URL or inspect TLS, application code or server-side behavior.',
+      'HAR files can contain cookies, authorization values and personal information. Review a capture before importing it, do not share it publicly, and keep exports under 10 MB.',
+      'The importer extracts response status and response headers for analysis. Request headers and response bodies are not displayed or sent to a server.',
+      'Generated configuration only adds clearly missing, low-context headers such as X-Content-Type-Options, Referrer-Policy and HSTS. It does not invent CSP, CORS, frame, Permissions-Policy or cookie rules that depend on your application.',
+      'The score is a weighted header-coverage checklist, not an OWASP rating, penetration test or guarantee of application security.',
+      'Send HSTS only over HTTPS. Confirm all covered subdomains support HTTPS before adding includeSubDomains; do not enable preload by default.',
+      'CSP and cross-origin isolation policies can break scripts, embeds or third-party assets. Start CSP with report-only and test policy changes before enforcing them.',
+    ],
+    example: {
+      label: 'Fill in a sample response',
+      text: 'HTTP/2 200 OK\nstrict-transport-security: max-age=31536000\nx-content-type-options: nosniff\nset-cookie: session=abc; Secure; HttpOnly; SameSite=Lax',
+    },
+    about: 'HTTP response headers are metadata a server sends with a response. They influence browser security controls, content handling, caching, cross-origin access and sometimes search indexing. A header reference explains what each field means; an analyzer answers the next practical question: which controls are present in this captured response, which are weak or missing, and what should be checked next? This tool parses the response locally and shows its scoring rules instead of claiming that a single grade proves a site is secure.',
+    articleOnlySections: [
+      {
+        title: 'How to capture and import a HAR file safely',
+        text: 'Open your browser DevTools, select Network, reproduce the page load you want to inspect, then export the request list as a HAR file. HAR exports may include cookies or authorization values, so review the capture before sharing it. Import the file with the local file picker or drop it onto the analyzer; no upload is made. If the file contains several requests, choose the exact document or API response from the selector. The importer reads the response status and headers needed for the report; it does not display or transmit request headers or response bodies.',
+      },
+      {
+        title: 'How the server configuration snippets are scoped',
+        text: 'The generator can format missing X-Content-Type-Options, Referrer-Policy and HSTS values for Nginx, Apache, Caddy, Vercel and Cloudflare Pages. It adds only headers identified as missing and leaves present values untouched. HSTS is shown with an HTTPS warning and without includeSubDomains or preload. CSP, CORS, frame, Permissions-Policy and cookie settings are not generated automatically because their safe values depend on allowed origins, embeds, APIs and authentication behavior. Review every snippet and test it in staging before deployment.',
+      },
+      {
+        title: 'How to capture the headers for the actual page response',
+        text: 'A HEAD request from curl -I is useful for a quick check, but some servers or application routes respond differently to HEAD and GET. To inspect a GET response without printing its body, run curl -sS -D - -o /dev/null https://example.com/. Add -L to follow redirects; the command prints each response block, and this analyzer scores the final block. In browser DevTools, open Network, select the document request, then copy the raw Response Headers. Capture the document response rather than an unrelated image, script or API request when checking page-level indexing or security policy.',
+      },
+    ],
     faqs: [
-      { q: 'Which security headers should every site send?', a: 'The usual baseline is Content-Security-Policy, Strict-Transport-Security, X-Content-Type-Options: nosniff and a frame policy (X-Frame-Options or CSP frame-ancestors). Search each one here for what it does.' },
-      { q: 'Which headers matter for CORS?', a: 'Requests trigger Origin; responses need Access-Control-Allow-Origin (plus Allow-Methods/Allow-Headers for preflights). The reference groups these so you can debug a blocked request quickly.' },
-      { q: 'Which headers control caching?', a: 'Cache-Control is the primary switch, with ETag/If-None-Match and Last-Modified/If-Modified-Since driving conditional revalidation. Note that Cache-Control is sent by the server but also honoured by browsers and CDNs.' },
-      { q: 'What is the difference between PUT and PATCH?', a: 'PUT replaces the whole resource, so it is idempotent — sending the same body again yields the same result. PATCH applies a partial update and is not necessarily idempotent; the server decides. The methods table on this page flags each verb as safe and/or idempotent.' },
+      { q: 'Does the analyzer upload my HAR file or pasted headers?', a: 'No. HAR and text files are read and parsed locally in this browser tab. The report uses response status and headers only; the file, request headers and response bodies are not sent to DigDevBox or added to analytics. HAR files may contain cookies or tokens, so review them before importing.' },
+      { q: 'How do I choose one response from a HAR capture?', a: 'Import the HAR file, then use the response selector to choose the exact request and status you want to inspect. This is useful when one capture contains a document request, API calls, redirects and static assets.' },
+      { q: 'Can the tool scan a URL directly?', a: 'No. A browser page cannot freely read another origin’s response headers because of the same-origin and CORS security model. Paste headers captured with curl or DevTools, or import a HAR; this also works for private staging responses that are not publicly reachable.' },
+      { q: 'Which server configuration formats can I copy?', a: 'The generator supports Nginx, Apache, Caddy, Vercel vercel.json and Cloudflare Pages _headers. It emits only selected low-context additions for missing headers and does not generate app-specific CSP, CORS or cookie policy.' },
+      { q: 'Does an A grade mean my site is secure?', a: 'No. The score measures only the presence and selected characteristics of response headers. It does not test application code, authentication, dependencies, TLS configuration, server-side access control or vulnerabilities.' },
+      { q: 'Should every site enable COEP, COOP and CORP?', a: 'No. These policies are useful for particular cross-origin isolation and resource-protection needs, but can block embeds and third-party resources. Enable them only when the application requires them and after compatibility testing.' },
+      { q: 'Should I copy the suggested HSTS or CSP values directly?', a: 'No. HSTS can affect every subdomain when includeSubDomains is used, and CSP must match the resources an application really loads. Test changes on staging; begin CSP in report-only mode and review violations before enforcement.' },
     ],
   },
 
@@ -2078,6 +2399,81 @@ export const GUIDES: Record<string, ToolGuide> = {
       { q: 'Where does the event data come from?', a: 'From a curated historical-events dataset served through the site\'s own API, so the page shows fresh, structured entries rather than a static list frozen at build time.' },
       { q: 'Why do events not cover every year evenly?', a: 'Coverage reflects the source dataset\'s editorial depth — modern and Western-centric events are denser. Treat it as a browsing delight, not a complete historical index.' },
       { q: 'Does the page need a network connection?', a: 'Yes — events are fetched live when the page opens. If the request fails, the page tells you rather than showing stale data.' },
+    ],
+  },
+  '/redirect-generator': {
+    intro: 'Map old URLs to replacement destinations and generate bulk redirects for Apache, Nginx, Cloudflare, Netlify or Vercel. The validator checks your submitted mapping list before export.',
+    steps: [
+      'Paste a two-column CSV or tab-separated list with the old URL first and the destination second. You can also enter one old URL -> new URL pair per line, or import a CSV/TSV file.',
+      'Choose the response status. Use 301 or 308 for a permanent move, and 302 or 307 for a temporary redirect.',
+      'Choose Apache .htaccess, an Nginx server block, Cloudflare Bulk Redirect CSV, Netlify _redirects or Vercel vercel.json. Cloudflare requires a site origin when your mappings use relative paths.',
+      'For Cloudflare, choose whether to include subdomains, match paths below each source and preserve the unmatched path suffix. Preserving the suffix requires subpath matching.',
+      'Review duplicate sources, invalid paths, self-redirects, loops and redirect-chain warnings. Fix rows marked as errors before exporting.',
+      'Copy the generated rules or download the file, then test the configuration on a staging host before deploying it.',
+    ],
+    notes: [
+      'The analyzer only checks mappings you provide. It does not send requests, verify that destinations return HTTP 200, or inspect redirects already configured on your server.',
+      'Chain detection is limited to paths in the current input. A destination that is redirected by a rule outside this list cannot be detected here.',
+      'Cloudflare Bulk Redirect CSV has seven columns and no header row. Source URLs omit the scheme so a mapping can match both HTTP and HTTPS. Include-subdomains, subpath-matching and preserve-path-suffix are explicit options; preserving the suffix only applies when subpath matching is enabled.',
+      'Netlify uses a plain-text _redirects file with one source, destination and status per line. Netlify documents 301 as the default and 302 as the temporary alternative, and explicitly notes that 307 is unsupported. This generator deliberately limits its Netlify export to 301 and 302; choose another format if you need 307 or 308. The downloaded text file must be renamed exactly to _redirects in the publish directory.',
+      'Vercel output is a vercel.json redirects array with source, destination and statusCode fields. Preserve query parameters is included only when selected. Review exact paths and routing interactions in your project before deploying.',
+      'Changing a permanent redirect after search engines and visitors have seen it can take time to be reflected. Keep mappings stable and avoid redirect chains where possible.',
+    ],
+    example: {
+      label: 'Load a redirect mapping sample',
+      text: 'Source URL,Target URL\n/old-product,https://example.com/products/new-product\n/legacy-guide,/guides/current-guide\n/sale,/offers',
+    },
+    about: 'A redirect map connects an old URL to the page that replaces it. It is commonly used during site redesigns, URL restructuring, content consolidation and domain migrations. This tool turns a batch of source and destination pairs into exact-path rules for Apache mod_alias, Nginx, Cloudflare Bulk Redirect CSV, Netlify _redirects or Vercel vercel.json. Before export it checks the submitted mappings for malformed URLs, duplicate sources, self-redirects, loops and avoidable chains. All parsing and generation run in the browser; your mapping list is not uploaded.',
+    articleOnlySections: [
+      {
+        title: 'Choose a redirect format that matches your host',
+        text: 'Apache mod_alias and Nginx server blocks produce exact-path server rules. Cloudflare Bulk Redirect CSV is a seven-column import format with explicit host and path matching options. Netlify uses a plain-text _redirects file and supports 301 or 302 in that format. Vercel reads a redirects array from vercel.json, where each entry has a source, destination and statusCode. These formats are not interchangeable: place the output in the correct project or server configuration location and verify how your host handles existing files and routes.',
+      },
+      {
+        title: 'Configure Cloudflare matching without broadening rules by accident',
+        text: 'Include subdomains expands the hostnames that a source mapping can match. Subpath matching also catches requests below the source path. Preserve path suffix forwards the remaining unmatched path segments to the destination, and only applies when subpath matching is enabled. Keep these options disabled unless the migration plan intentionally needs the broader match; test representative URLs before importing a large list.',
+      },
+      {
+        title: 'Avoid redirect chains during a site migration',
+        text: 'Point each old URL directly to its final destination rather than sending visitors through several intermediate URLs. Update internal links, canonical references and XML sitemaps to use the destination URL instead of relying on redirects forever. A generated mapping list can reveal chains and loops inside the rows you submit, but it cannot discover rules that live in a CDN, application router or another server configuration.',
+      },
+      {
+        title: 'Build a complete source-to-destination inventory',
+        text: 'Export the URLs that are actually receiving traffic or links before changing the site structure. Group them by page purpose, locale, product or content category, then assign one relevant final destination to every source that should remain useful. Separate removed pages with no replacement from pages that have moved, because a redirect is not always the right response for permanently retired content. Resolve duplicate source paths and conflicting destinations before generating production rules.',
+      },
+      {
+        title: 'Choose a destination that preserves the original intent',
+        text: 'A redirect should take a visitor to the page that best replaces the old resource, not simply to the nearest category or the home page. Google Search Central warns that redirecting many unrelated URLs to one page can confuse users and may be treated as a soft 404. When several pages have genuinely been consolidated into one useful resource, a shared destination can be appropriate. Review the destination content and its status code before approving each mapping.',
+      },
+      {
+        title: 'Select status codes with HTTP method behavior in mind',
+        text: 'Use a permanent status such as 301 or 308 when the resource has moved for good, and a temporary status such as 302 or 307 when the original location may return. The 307 and 308 codes explicitly preserve the request method, while user agents may change a POST request to GET after a 301 or 302 response. For endpoints that accept form submissions or other non-GET requests, choose the method-preserving code deliberately and test the behavior with the actual client. Do not use a permanent redirect as a temporary experiment because browsers and intermediaries may cache it.',
+      },
+      {
+        title: 'Review host matching, path suffixes and query strings',
+        text: 'A rule that matches a whole host or a broad path can affect more URLs than the migration team intended. Start with exact source paths, then enable subdomain or subpath matching only when the source inventory requires it. Decide explicitly whether query parameters should be carried to the destination; campaign tags, search filters and application parameters can have different requirements. When preserving a path suffix, verify several nested examples so that the appended destination path is correct rather than duplicated.',
+      },
+      {
+        title: 'Test a representative migration matrix before rollout',
+        text: 'Test more than the single example shown in the generator. Include the canonical host, alternate hostnames, HTTP and HTTPS variants, trailing-slash variants, nested paths, query strings, and every status code used by the mapping. Check both the response status and the Location header, then follow the chain to confirm that the final page returns the expected content. Test method-preserving redirects with a non-GET request in a staging environment before switching production traffic.',
+      },
+      {
+        title: 'Update canonical URLs, internal links and sitemaps',
+        text: 'After the redirects are active, make the destination page self-canonical and update internal links so visitors do not need to pass through an old URL. Refresh hreflang references when localized pages move, and make the XML sitemap list the new canonical URLs rather than redirecting source URLs. Submit the updated sitemap in Search Console and inspect representative source and destination URLs for indexing or crawl errors. These steps help search engines discover the new locations instead of depending on redirects as the only discovery path.',
+      },
+      {
+        title: 'Monitor the migration and retain redirects',
+        text: 'Keep a dated copy of the source mapping and the deployed configuration so unexpected changes can be traced or rolled back. After launch, monitor server logs, analytics landing pages, Search Console coverage and destination errors for old URLs that still receive meaningful visits. Fix redirect loops, unexpected 404 responses and destinations that have become irrelevant as soon as they appear. Google Search Central recommends keeping redirects in place for as long as possible and generally for at least one year after a site move.',
+      },
+    ],
+    faqs: [
+      { q: 'What input formats does the redirect generator accept?', a: 'Paste comma-separated CSV, tab-separated pairs or one “old URL -> new URL” mapping per line. You can also import a CSV or TSV file. CSV headers such as Source URL and Target URL are recognized.' },
+      { q: 'Which platforms and output formats are supported?', a: 'The generator exports Apache .htaccess RedirectMatch rules, Nginx exact-match locations, seven-column Cloudflare Bulk Redirect CSV, Netlify _redirects lines and a Vercel vercel.json redirects array.' },
+      { q: 'Which status code should I choose: 301, 302, 307 or 308?', a: 'Choose 301 or 308 for a permanent move and 302 or 307 for a temporary one. The 307 and 308 codes preserve the request method; use them when that distinction matters to your application. This generator limits Netlify _redirects output to 301 and 302; choose Apache, Nginx, Cloudflare or Vercel output when you need 307 or 308.' },
+      { q: 'How do the Cloudflare subdomain and path options work?', a: 'Include subdomains lets a source mapping match subdomains. Subpath matching also matches URLs below the source path. Preserve path suffix forwards the remaining path segments to the destination and requires subpath matching. Keep broader matching disabled unless the migration requires it.' },
+      { q: 'Does the tool check whether the new URL exists?', a: 'No. It validates URL syntax and relationships within the mapping list, but it does not make network requests or confirm that a destination responds successfully. Check target URLs separately before deployment.' },
+      { q: 'How are redirect loops and chains detected?', a: 'The analyzer follows path-to-path mappings included in the current batch. It marks loops as errors and warns when one submitted destination continues through another submitted redirect. Rules outside the pasted list are not visible to the analyzer.' },
+      { q: 'Does generating a 301 redirect guarantee better rankings?', a: 'No. A 301 is a technical migration signal, not a ranking guarantee. Use it when a page has permanently moved, point to the most relevant final destination and update internal links and sitemaps.' },
     ],
   },
 };

@@ -65,3 +65,4 @@ _ops/
 
 # API Studio browser E2E screenshot artifacts (local run output, not committed)
 e2e-artifacts/
+/artifacts/homepage-visual/
