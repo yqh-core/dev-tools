@@ -716,6 +716,21 @@ function renameEnvironment() {
   banner.value = 'Renamed "' + oldName + '" to "' + nextName + '".';
 }
 
+function variableExistsInAnyScope(store: EnvStore, name: string): boolean {
+  if (Object.prototype.hasOwnProperty.call(store.global ?? {}, name)
+    || Object.prototype.hasOwnProperty.call(store.collection ?? {}, name)) {
+    return true;
+  }
+  return Object.values(store.envs).some(vars => Object.prototype.hasOwnProperty.call(vars, name));
+}
+
+function clearOrphanedSecretMarkers(store: EnvStore): EnvStore {
+  return (store.secrets ?? []).reduce(
+    (next, name) => variableExistsInAnyScope(next, name) ? next : environmentEngine.setSecret(next, name, false),
+    store,
+  );
+}
+
 function deleteEnvironment() {
   const oldName = selectedEnv.value;
   const current = selectedEnvStore.value;
@@ -724,16 +739,8 @@ function deleteEnvironment() {
     banner.value = 'Keep at least one environment. The last environment cannot be deleted.';
     return;
   }
-  persistEnvStore(next, next.active);
+  persistEnvStore(clearOrphanedSecretMarkers(next), next.active);
   banner.value = 'Deleted environment "' + oldName + '".';
-}
-
-function variableExistsInAnyScope(store: EnvStore, name: string): boolean {
-  if (Object.prototype.hasOwnProperty.call(store.global ?? {}, name)
-    || Object.prototype.hasOwnProperty.call(store.collection ?? {}, name)) {
-    return true;
-  }
-  return Object.values(store.envs).some(vars => Object.prototype.hasOwnProperty.call(vars, name));
 }
 
 function updateScopeVariable(name: string, value: string) {
