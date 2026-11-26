@@ -1050,6 +1050,15 @@ function onMenuSelect(key: string, node: TreeNode) {
           data-test-id="env-select"
           @update:value="onEnvChange"
         />
+        <button
+          class="api-env-manage-toggle"
+          type="button"
+          data-test-id="manage-environments"
+          :aria-expanded="envManagerOpen"
+          @click="envManagerOpen = !envManagerOpen"
+        >
+          {{ envManagerOpen ? 'Close' : 'Manage' }}
+        </button>
         <span class="api-envbar-count" data-test-id="env-count">{{ envVarCount }} var(s)</span>
       </div>
 
@@ -1175,6 +1184,148 @@ function onMenuSelect(key: string, node: TreeNode) {
       <div v-if="banner" class="api-banner" role="status" data-test-id="banner">
         {{ banner }}
       </div>
+
+      <section v-if="envManagerOpen" class="api-env-manager" aria-label="Manage environments and variables" data-test-id="env-manager">
+        <div class="api-env-manager-heading">
+          <div>
+            <h2>Environments &amp; variables</h2>
+            <p>Keep request values organized by where they belong.</p>
+          </div>
+          <button class="api-mini-action" type="button" data-test-id="close-env-manager" @click="envManagerOpen = false">Close</button>
+        </div>
+
+        <div class="api-env-manager-section" data-test-id="environment-management">
+          <div class="api-env-manager-section-title">
+            <strong>Environments</strong>
+            <span class="api-field-hint">Selected in API Studio only</span>
+          </div>
+          <div class="api-env-manager-actions">
+            <input
+              v-model="renameEnvDraft"
+              class="api-env-manager-input"
+              type="text"
+              aria-label="Rename selected environment"
+              data-test-id="env-rename-input"
+              placeholder="Environment name"
+            >
+            <button class="api-mini-action" type="button" data-test-id="rename-environment" @click="renameEnvironment">Rename</button>
+            <input
+              v-model="newEnvName"
+              class="api-env-manager-input"
+              type="text"
+              aria-label="New environment name"
+              data-test-id="new-environment-name"
+              placeholder="New environment"
+              @keyup.enter="createEnvironment"
+            >
+            <button class="api-mini-action" type="button" data-test-id="create-environment" @click="createEnvironment">+ Create</button>
+            <button class="api-mini-action api-env-delete" type="button" data-test-id="delete-environment" :disabled="envOptions.length <= 1" @click="deleteEnvironment">Delete selected</button>
+          </div>
+        </div>
+
+        <div class="api-env-manager-section" data-test-id="variable-management">
+          <div class="api-env-manager-section-title">
+            <strong>Variables</strong>
+            <span class="api-field-hint">Narrower scopes override broader ones</span>
+          </div>
+          <div class="api-env-scope-bar" role="group" aria-label="Variable scope">
+            <button
+              v-for="option in scopeOptions"
+              :key="option.value"
+              class="api-env-scope-button"
+              :class="{ 'is-active': activeScope === option.value }"
+              type="button"
+              :data-test-id="'scope-' + option.value"
+              :aria-pressed="activeScope === option.value"
+              @click="activeScope = option.value"
+            >
+              {{ option.label }}
+            </button>
+            <button class="api-mini-action api-env-export" type="button" data-test-id="export-variables" @click="exportEnvironmentVariables">Export resolved variables</button>
+          </div>
+
+          <div v-if="scopeRows.length" class="api-env-variable-list" data-test-id="variable-list">
+            <div
+              v-for="row in scopeRows"
+              :key="row.name"
+              class="api-env-variable-row"
+              data-test-id="var-row"
+              :data-var-name="row.name"
+            >
+              <input
+                class="api-env-manager-input api-env-variable-name"
+                type="text"
+                :value="row.name"
+                :aria-label="'Variable name ' + row.name"
+                data-test-id="var-name"
+                @change="(event: Event) => renameScopeVariable(row.name, (event.target as HTMLInputElement).value, row.value)"
+              >
+              <div class="api-env-variable-value">
+                <input
+                  class="api-env-manager-input"
+                  :type="row.secret && !isVariableRevealed(row.name) ? 'password' : 'text'"
+                  :value="row.value"
+                  :aria-label="'Variable value ' + row.name"
+                  data-test-id="var-value"
+                  @change="(event: Event) => updateScopeVariable(row.name, (event.target as HTMLInputElement).value)"
+                >
+                <button
+                  v-if="row.secret"
+                  class="api-mini-action"
+                  type="button"
+                  :data-test-id="isVariableRevealed(row.name) ? 'hide-variable' : 'show-variable'"
+                  @click="toggleVariableReveal(row.name)"
+                >
+                  {{ isVariableRevealed(row.name) ? 'Hide' : 'Show' }}
+                </button>
+              </div>
+              <span class="api-env-origin" data-test-id="scope-origin">
+                {{ row.effectiveScope === activeScope ? 'Effective' : 'Overridden by ' + scopeLabel(row.effectiveScope) }}
+              </span>
+              <button
+                class="api-mini-action"
+                :class="{ 'is-secret': row.secret }"
+                type="button"
+                data-test-id="toggle-variable-secret"
+                @click="toggleScopeSecret(row.name)"
+              >
+                {{ row.secret ? 'Secret ✓' : 'Make secret' }}
+              </button>
+              <button class="api-mini-action api-env-remove" type="button" data-test-id="remove-variable" :aria-label="'Remove ' + row.name" @click="removeScopeVariable(row.name)">Remove</button>
+            </div>
+          </div>
+          <p v-else class="api-env-empty" data-test-id="empty-variable-scope">No variables in this scope yet. Add one below.</p>
+
+          <div class="api-env-variable-add" data-test-id="add-variable-row">
+            <input
+              v-model="newVarName"
+              class="api-env-manager-input"
+              type="text"
+              aria-label="New variable name"
+              data-test-id="new-var-name"
+              placeholder="Variable name"
+            >
+            <input
+              v-model="newVarValue"
+              class="api-env-manager-input"
+              :type="newVarSecret ? 'password' : 'text'"
+              aria-label="New variable value"
+              data-test-id="new-var-value"
+              placeholder="Value"
+              @keyup.enter="addScopeVariable"
+            >
+            <label class="api-env-secret-new">
+              <input v-model="newVarSecret" type="checkbox" data-test-id="new-var-secret">
+              Secret
+            </label>
+            <button class="api-mini-action api-env-add" type="button" data-test-id="add-variable" @click="addScopeVariable">+ Add variable</button>
+          </div>
+        </div>
+
+        <p class="api-env-disclosure" data-test-id="environment-disclosure">
+          Saved in this browser's local storage for this website. A Secret marker masks the value here and blanks it in exports; it does not encrypt the value at rest. Collection and Global variables are shared with the legacy API Debugger. Variables are substituted into requests sent through the first-party API relay.
+        </p>
+      </section>
 
       <div v-if="selectedNode" class="api-editor-form">
         <div class="api-field-row">
