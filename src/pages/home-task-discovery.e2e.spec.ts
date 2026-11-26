@@ -153,6 +153,23 @@ test.describe('Homepage task discovery', () => {
     expect(categoryLink?.height).toBeGreaterThanOrEqual(44);
   });
 
+
+  test('features API Studio in the full tools directory', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/tools/');
+
+    const flagship = page.locator('a.catalog-flagship');
+    await expect(flagship).toBeVisible();
+    await expect(flagship).toHaveAttribute('href', '/api-studio/');
+    await expect(flagship).toContainText('API Studio');
+    await expect(flagship).toContainText('创建请求');
+    await flagship.click();
+
+    await expect(page).toHaveURL(/\\/api-studio\\/?$/);
+    await expect(page.getByRole('complementary', { name: 'Collections' })).toBeVisible();
+    await expect(page.getByTestId('add-request')).toBeVisible();
+  });
+
   test('features the GSC priority calculators in the Calculate & Convert task', async ({ page }) => {
     await page.goto('/');
 
