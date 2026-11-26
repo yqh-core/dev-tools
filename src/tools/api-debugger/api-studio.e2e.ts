@@ -195,6 +195,77 @@ test('environment drives {{var}} resolution at run time (selector wired to activ
   await page.screenshot({ path: join(SHOTS, '04-env-resolve.png'), fullPage: true });
 });
 
+test('sends a selected request with edited query params and headers, then inspects the response', async ({ page }) => {
+  const treeSeed = {
+    id: 'send-collection',
+    name: 'Users API',
+    items: [
+      {
+        id: 'get-user',
+        name: 'Get user',
+        request: {
+          method: 'GET',
+          url: 'https://api.test/users/42?active=1',
+          headers: [
+            { name: 'x-api-version', value: 'v1' },
+            { name: 'Authorization', value: 'Bearer local-secret' },
+          ],
+          body: '',
+        },
+      },
+    ],
+  };
+  await page.addInitScript(
+    ([key, val]) => {
+      localStorage.setItem(key, val);
+    },
+    [TREE_KEY, JSON.stringify(treeSeed)] as [string, string],
+  );
+
+  let sentPayload: { url: string; method: string; headers: { name: string; value: string }[]; body: string } | null = null;
+  await page.route(/\/api\/apiproxy/, async (route) => {
+    sentPayload = route.request().postDataJSON() as typeof sentPayload;
+    return route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        url: sentPayload.url,
+        status: 200,
+        statusText: 'OK',
+        headers: { 'content-type': 'application/json' },
+        body: '{"id":42,"active":true}',
+        elapsedMs: 12,
+      }),
+    });
+  });
+
+  await page.goto('/api-studio');
+  await page.getByTestId('tree-method').click();
+
+  await expect(page.getByTestId('query-value')).toHaveCount(1);
+  await page.getByTestId('query-value').fill('2');
+  await page.getByTestId('header-value').nth(0).fill('v2');
+  await expect(page.getByTestId('header-value').nth(1)).toHaveAttribute('type', 'password');
+
+  await page.getByTestId('send-request').click();
+  await expect(page.getByTestId('single-response')).toBeVisible();
+  await expect(page.getByTestId('single-response')).toContainText('200 OK');
+  await expect(page.getByTestId('single-response-body')).toContainText('"active": true');
+
+  expect(sentPayload).not.toBeNull();
+  expect(sentPayload?.method).toBe('GET');
+  expect(sentPayload?.url).toBe('https://api.test/users/42?active=2');
+  expect(sentPayload?.headers).toContainEqual({ name: 'x-api-version', value: 'v2' });
+  expect(sentPayload?.headers).toContainEqual({ name: 'Authorization', value: 'Bearer local-secret' });
+
+  // Editing and sending persists the collection request locally, including headers and query string.
+  await page.reload();
+  await page.getByTestId('tree-method').click();
+  await expect(page.getByTestId('editor-url')).toHaveValue('https://api.test/users/42?active=2');
+  await expect(page.getByTestId('header-value').nth(0)).toHaveValue('v2');
+  await expect(page.getByTestId('header-value').nth(1)).toHaveAttribute('type', 'password');
+});
+
 test('imports a Postman v2.1 collection into the tree and exports it back (round-trip)', async ({ page }) => {
   // 空工作树 → 导入：直接采用集合（保留集合名 + folder 结构 + 请求），所见即所得。
   const postmanFixture = {
