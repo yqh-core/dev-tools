@@ -73,6 +73,7 @@ jobs:
           src/tools/safelink-decoder/safelink-decoder.e2e.spec.ts
           src/pages/home-task-discovery.e2e.spec.ts
           src/pages/homepage-visual-baseline.e2e.spec.ts
+          src/tools/api-debugger/api-studio.e2e.ts
           --project=chromium
 
       - name: Upload homepage visual baseline artifact
