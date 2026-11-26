@@ -31,6 +31,8 @@ import {
 } from '@/tools/api-debugger/collection-tree';
 import type { KV } from '@/tools/api-debugger/engine';
 import { buildProxyPayload } from '@/tools/api-debugger/engine';
+import type { Assertion, AssertionReport, AssertionType } from '@/tools/api-debugger/assertions';
+import { ASSERTIONS_CAP, assertionProblem, makeAssertion, OPS_BY_TYPE, OP_LABELS, runAssertions } from '@/tools/api-debugger/assertions';
 import { buildUrlWithQuery, parseQueryParams } from '@/tools/api-debugger/query';
 import type { CollectionRunSummary, RunnerResponse, SendFn } from '@/tools/api-debugger/runner';
 import { formatCollectionReportText, runCollectionTree } from '@/tools/api-debugger/runner';
@@ -337,8 +339,10 @@ const edUrl = ref('');
 const edBody = ref('');
 const edHeaders = ref<KV[]>([]);
 const edQueryParams = ref<KV[]>([]);
+const edAssertions = ref<Assertion[]>([]);
 const sendingSingle = ref(false);
 const singleResponse = ref<RunnerResponse | null>(null);
+const singleAssertionReport = ref<AssertionReport | null>(null);
 const singleError = ref('');
 const edPre = ref('');
 const edTest = ref('');
@@ -352,7 +356,9 @@ watch(() => selectedNode.value?.id, () => {
   edBody.value = r?.request.body ?? '';
   edHeaders.value = (r?.request.headers ?? []).map(h => ({ ...h }));
   edQueryParams.value = parseQueryParams(r?.request.url ?? '');
+  edAssertions.value = (r?.assertions ?? []).map(assertion => ({ ...assertion }));
   singleResponse.value = null;
+  singleAssertionReport.value = null;
   singleError.value = '';
   edPre.value = n?.scripts?.prerequest ?? '';
   edTest.value = n?.scripts?.test ?? '';
@@ -398,6 +404,65 @@ function commitRequest() {
   }
 }
 
+const assertionTypeOptions = [
+  { label: 'Status code', value: 'status' },
+  { label: 'JSON field', value: 'json' },
+  { label: 'Response header', value: 'header' },
+  { label: 'Response time', value: 'time' },
+];
+function assertionId(): string {
+  return `assertion-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
+}
+function assertionOperatorOptions(type: AssertionType) {
+  return OPS_BY_TYPE[type].map(operator => ({ label: OP_LABELS[operator] ?? operator, value: operator }));
+}
+function assertionNeedsTarget(assertion: Assertion): boolean {
+  return assertion.type === 'json' || assertion.type === 'header';
+}
+function assertionNeedsExpected(assertion: Assertion): boolean {
+  return assertion.operator !== 'exists' && assertion.operator !== 'not_exists';
+}
+function commitAssertions() {
+  const request = selectedRequest.value;
+  if (!request) {
+    return;
+  }
+  singleAssertionReport.value = null;
+  const result = updateRequestNode(tree.value, request.id, { assertions: edAssertions.value });
+  if (result.error) {
+    banner.value = result.error;
+    return;
+  }
+  applyTree(result.tree);
+}
+function addAssertion(type: AssertionType = 'status') {
+  if (edAssertions.value.length >= ASSERTIONS_CAP) {
+    banner.value = `You can add up to ${ASSERTIONS_CAP} assertions to one request.`;
+    return;
+  }
+  edAssertions.value = [...edAssertions.value, makeAssertion(assertionId(), type)];
+  commitAssertions();
+}
+function changeAssertionType(assertion: Assertion, value: unknown) {
+  const type = String(value) as AssertionType;
+  if (!Object.prototype.hasOwnProperty.call(OPS_BY_TYPE, type)) {
+    return;
+  }
+  const fresh = makeAssertion(assertion.id, type);
+  Object.assign(assertion, fresh, { enabled: assertion.enabled });
+  commitAssertions();
+}
+function removeAssertion(index: number) {
+  edAssertions.value = edAssertions.value.filter((_, i) => i !== index);
+  commitAssertions();
+}
+function updateAssertion(assertion: Assertion) {
+  // Incomplete rules remain visible and fail closed when the request is sent.
+  if (assertionProblem(assertion)) {
+    singleAssertionReport.value = null;
+  }
+  commitAssertions();
+}
 function onMethodChange(v: unknown) {
   edMethod.value = String(v);
   commitRequest();
@@ -571,7 +636,7 @@ async function sendSelectedRequest() {
   };
   // Persist the exact request that will be sent; do not rely on a later blur/change event.
   edUrl.value = request.url;
-  const saved = updateRequestNode(tree.value, selected.id, { name: edName.value, request });
+  const saved = updateRequestNode(tree.value, selected.id, { name: edName.value, request, assertions: edAssertions.value });
   if (saved.error) {
     singleResponse.value = null;
     singleError.value = saved.error;
@@ -591,6 +656,12 @@ async function sendSelectedRequest() {
   try {
     const response = await runnerSend(payload);
     singleResponse.value = response;
+    singleAssertionReport.value = runAssertions(edAssertions.value, {
+      status: response.status,
+      headers: response.headers,
+      body: response.body,
+      elapsedMs: response.elapsedMs,
+    });
     banner.value = `Received HTTP ${response.status} in ${response.elapsedMs} ms.`;
   }
   catch (e) {
@@ -929,6 +1000,61 @@ function onMenuSelect(key: string, node: TreeNode) {
           </section>
 
           <textarea v-model="edBody" class="api-body-input" data-test-id="editor-body" placeholder="Request body (raw)" @change="commitRequest" />
+
+          <section class="api-request-section api-assertions" aria-label="Request tests" data-test-id="request-assertions">
+            <div class="api-request-section-head">
+              <span>Tests <span class="api-field-hint">Check the response after Send</span></span>
+              <button class="api-mini-action" type="button" data-test-id="add-assertion" @click="addAssertion()">+ Add test</button>
+            </div>
+            <p v-if="edAssertions.length === 0" class="api-field-hint api-assertions-empty">
+              No tests yet. Add a status, JSON field, response header or response-time check.
+            </p>
+            <div v-for="(assertion, i) in edAssertions" :key="assertion.id" class="api-assertion-row" data-test-id="assertion-row">
+              <label class="api-assertion-enabled">
+                <input v-model="assertion.enabled" type="checkbox" :aria-label="`Enable test ${i + 1}`" @change="updateAssertion(assertion)">
+                On
+              </label>
+              <n-select
+                :value="assertion.type"
+                :options="assertionTypeOptions"
+                size="small"
+                class="api-assertion-select"
+                :aria-label="`Test ${i + 1} type`"
+                data-test-id="assertion-type"
+                @update:value="changeAssertionType(assertion, $event)"
+              />
+              <input
+                v-if="assertionNeedsTarget(assertion)"
+                v-model="assertion.target"
+                class="api-kv-input api-assertion-target"
+                :aria-label="`Test ${i + 1} target`"
+                :placeholder="assertion.type === 'json' ? '$.data.id' : 'Header name'"
+                data-test-id="assertion-target"
+                @change="updateAssertion(assertion)"
+              >
+              <n-select
+                :value="assertion.operator"
+                :options="assertionOperatorOptions(assertion.type)"
+                size="small"
+                class="api-assertion-operator"
+                :aria-label="`Test ${i + 1} operator`"
+                data-test-id="assertion-operator"
+                @update:value="(value) => { assertion.operator = String(value); updateAssertion(assertion); }"
+              />
+              <input
+                v-if="assertionNeedsExpected(assertion)"
+                v-model="assertion.expected"
+                class="api-kv-input api-assertion-expected"
+                :aria-label="`Test ${i + 1} expected value`"
+                placeholder="Expected value"
+                data-test-id="assertion-expected"
+                @change="updateAssertion(assertion)"
+              >
+              <button class="api-mini-action api-assertion-remove" type="button" :aria-label="`Remove test ${i + 1}`" @click="removeAssertion(i)">×</button>
+              <p v-if="assertionProblem(assertion)" class="api-assertion-warning">{{ assertionProblem(assertion) }}</p>
+            </div>
+          </section>
+
           <div v-if="singleError" class="api-response-error" role="alert" data-test-id="single-send-error">
             {{ singleError }}
           </div>
@@ -950,6 +1076,21 @@ function onMenuSelect(key: string, node: TreeNode) {
               <pre>{{ JSON.stringify(singleResponse.headers, null, 2) }}</pre>
             </details>
             <pre class="api-response-body" data-test-id="single-response-body">{{ formatResponseBody(singleResponse.body) }}</pre>
+            <section v-if="singleAssertionReport" class="api-assertion-results" data-test-id="single-assertion-report" aria-label="Test results">
+              <div class="api-assertion-results-head">
+                <strong>{{ singleAssertionReport.total === 0 ? 'Request sent · no enabled tests' : `${singleAssertionReport.passed}/${singleAssertionReport.total} tests passed` }}</strong>
+                <span v-if="singleAssertionReport.failed" class="api-assertion-failed-count">{{ singleAssertionReport.failed }} failed</span>
+              </div>
+              <ul v-if="singleAssertionReport.total" class="api-assertion-result-list">
+                <li v-for="result in singleAssertionReport.results" :key="result.id" :data-passed="result.passed" data-test-id="assertion-result">
+                  <span class="api-assertion-result-state">{{ result.passed ? 'PASS' : 'FAIL' }}</span>
+                  <div class="api-assertion-result-copy">
+                    <strong>{{ result.label }}</strong>
+                    <span>{{ result.message }}</span>
+                  </div>
+                </li>
+              </ul>
+            </section>
           </section>
         </template>
 
@@ -1915,6 +2056,122 @@ function onMenuSelect(key: string, node: TreeNode) {
 
   .api-kv-row {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr) 28px;
+  }
+}
+
+.api-assertions {
+  margin-top: 12px;
+}
+.api-assertions-empty {
+  margin: 2px 0 4px;
+}
+.api-assertion-row {
+  display: grid;
+  grid-template-columns: 48px minmax(112px, 0.9fr) minmax(120px, 1fr) minmax(120px, 1fr) 28px;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+  border-top: 1px solid var(--api-border);
+}
+.api-assertion-enabled {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--api-text-muted);
+  font-size: var(--api-fs-xs);
+}
+.api-assertion-select,
+.api-assertion-operator {
+  min-width: 0;
+}
+.api-assertion-target,
+.api-assertion-expected {
+  width: 100%;
+  min-width: 0;
+  height: 32px;
+}
+.api-assertion-remove {
+  justify-self: end;
+}
+.api-assertion-warning {
+  grid-column: 2 / -1;
+  margin: -2px 0 2px;
+  color: var(--api-warning, #b7791f);
+  font-size: var(--api-fs-xs);
+}
+.api-assertion-results {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--api-border);
+}
+.api-assertion-results-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+  color: var(--api-text);
+  font-size: var(--api-fs-sm);
+}
+.api-assertion-failed-count {
+  color: var(--api-danger, #c44);
+  font-size: var(--api-fs-xs);
+}
+.api-assertion-result-list {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.api-assertion-result-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 7px 9px;
+  border: 1px solid var(--api-border);
+  border-radius: var(--api-radius-sm);
+  background: var(--api-surface-2);
+}
+.api-assertion-result-list li[data-passed="false"] {
+  border-color: var(--api-danger-line, var(--api-border));
+}
+.api-assertion-result-state {
+  flex: 0 0 36px;
+  font-family: var(--api-font-mono);
+  font-size: var(--api-fs-xs);
+  font-weight: 700;
+  color: var(--api-success, #27875d);
+}
+.api-assertion-result-list li[data-passed="false"] .api-assertion-result-state {
+  color: var(--api-danger, #c44);
+}
+.api-assertion-result-copy {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  color: var(--api-text-soft);
+  font-size: var(--api-fs-xs);
+  overflow-wrap: anywhere;
+}
+.api-assertion-result-copy strong {
+  color: var(--api-text);
+  font-weight: 600;
+}
+@media (max-width: 760px) {
+  .api-assertion-row {
+    grid-template-columns: 42px minmax(0, 1fr) 28px;
+    gap: 6px;
+  }
+  .api-assertion-select,
+  .api-assertion-operator,
+  .api-assertion-target,
+  .api-assertion-expected,
+  .api-assertion-warning {
+    grid-column: 2 / 3;
+  }
+  .api-assertion-remove {
+    grid-column: 3;
+    grid-row: 1;
   }
 }
 </style>
