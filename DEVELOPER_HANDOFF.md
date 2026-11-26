@@ -4,7 +4,7 @@
 **Repository:** https://github.com/yqh-core/dev-tools  
 **Portfolio role:** Tier A — second growth entry alongside DigImg.
 
-**API Studio product direction (2026-11-27):** the owner approved evolving API Studio into a distinct first-party product experience under the existing digdevbox.com domain family. This is a product/host separation first, not an immediate repository split or a new registrable domain. The working hostname candidate is studio.digdevbox.com; it is not final and no DNS/Cloudflare custom-domain change has been made. See [Issue #212](https://github.com/yqh-core/dev-tools/issues/212) and the [independent product plan](https://github.com/yqh-core/digdevbox-design-system/blob/main/strategy/API_STUDIO_INDEPENDENT_PRODUCT_PLAN_2026-11-27.md).
+**API Studio product direction (2026-11-27):** the owner approved evolving API Studio into a distinct first-party product experience under the existing digdevbox.com domain family. This is a product/host separation first, not an immediate repository split or a new registrable domain. The working hostname candidate is studio.digdevbox.com; it is not final and no DNS/Cloudflare custom-domain change has been made. See [Issue #212](https://github.com/yqh-core/dev-tools/issues/212), [Issue #213 — complete the workspace workflow](https://github.com/yqh-core/dev-tools/issues/213), [Issue #214 — dedicated Pages build target and homepage](https://github.com/yqh-core/dev-tools/issues/214), and the [independent product plan](https://github.com/yqh-core/digdevbox-design-system/blob/main/strategy/API_STUDIO_INDEPENDENT_PRODUCT_PLAN_2026-11-27.md).
 
 ## Product and architecture
 
