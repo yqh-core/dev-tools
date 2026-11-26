@@ -2,13 +2,25 @@
 
 **Site:** https://digdevbox.com  
 **Repository:** https://github.com/yqh-core/dev-tools  
-**Portfolio role:** Tier A — second growth entry alongside DigImg. API Studio is the main site's flagship capability, not a separate site or repository.
+**Portfolio role:** Tier A — second growth entry alongside DigImg.
+
+**API Studio product direction (2026-11-27):** the owner approved evolving API Studio into a distinct first-party product experience under the existing digdevbox.com domain family. This is a product/host separation first, not an immediate repository split or a new registrable domain. The working hostname candidate is studio.digdevbox.com; it is not final and no DNS/Cloudflare custom-domain change has been made. See [Issue #212](https://github.com/yqh-core/dev-tools/issues/212) and the [independent product plan](https://github.com/yqh-core/digdevbox-design-system/blob/main/strategy/API_STUDIO_INDEPENDENT_PRODUCT_PLAN_2026-11-27.md).
 
 ## Product and architecture
 
 The main site is a Vue/Vite developer-tools directory with task-oriented discovery, categories, tool detail routes and supporting content. The repository README is the product inventory and generated tool-list source. Most utilities process data locally in the browser; a limited number make network requests through first-party or upstream services. Never describe the entire site as local-only.
 
-API Studio lives inside this repository and is the flagship multi-request API testing workspace. Its established scope includes collections, environments, history, request/response editing, import/export, tests and collection runner. Do not reopen deferred Newman ecosystem features without evidence and explicit reprioritization.
+API Studio currently lives inside this repository at /api-studio/ and remains built from the shared application. Its established scope includes collections, environments, request/response editing, Postman v2.1 import/export, scripts/tests and collection runner. The product is planned to gain a dedicated landing page and approved subdomain host while reusing this repository initially; do not treat that future host as already deployed.
+
+Current implementation details:
+- Workspace source: src/pages/ApiStudio.page.vue.
+- Collection tree is stored under the origin-scoped localStorage key api-studio:tree.
+- The environment selector reuses the API Debugger store key api-debugger:env.
+- Outbound requests use the first-party Pages Function /api/apiproxy and shared target validation in functions/api/_ssrf.js. Do not claim the request path is entirely local.
+- A subdomain creates a new browser Origin. Existing local storage will not be readable there. Implement a user-controlled backup/restore and migration path before any forced host transition; never silently move secrets to a remote service.
+- Preserve /api-studio/ on www.digdevbox.com until the new host, migration and rollback are fully verified.
+- Working host candidate studio.digdevbox.com is subject to owner confirmation; no DNS or custom-domain configuration has been performed.
+- Do not add fabricated adoption or usage counters to the product landing page. Clearly label demo fixtures and only publish reproducible real metrics.
 
 ## Environment and package manager
 
@@ -37,7 +49,7 @@ Run additional targeted audits when relevant, including keyword mapping, example
 
 ## Homepage and UX scope
 
-The homepage acceptance for the current redesign is recorded CLOSED in the cross-project handoff snapshot. Do not create another broad homepage redesign project. Continue targeted improvements only when supported by concrete usability, content or competitor evidence. Preserve the main site's own brand identity and its task-first discovery structure.
+The main DigDevBox homepage acceptance remains CLOSED. Do not reopen its broad redesign. API Studio's dedicated product landing page is a separate product deliverable tracked by Issue #212; it must preserve the main site's own identity and must not convert the general homepage into a second marketing microsite.
 
 ## Privacy and network behavior
 
