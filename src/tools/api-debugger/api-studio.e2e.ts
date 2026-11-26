@@ -307,7 +307,12 @@ test('runs saved structured request assertions and shows each pass/fail result',
     }],
   };
   await page.addInitScript(
-    ([key, val]) => localStorage.setItem(key, val),
+    ([key, val]) => {
+      // addInitScript runs again on reload; preserve edits made by the application.
+      if (localStorage.getItem(key) === null) {
+        localStorage.setItem(key, val);
+      }
+    },
     [TREE_KEY, JSON.stringify(treeSeed)] as [string, string],
   );
   await page.route(/\/api\/apiproxy/, route => route.fulfill({
@@ -327,6 +332,8 @@ test('runs saved structured request assertions and shows each pass/fail result',
   await page.getByTestId('tree-method').click();
   await expect(page.getByTestId('request-assertions')).toBeVisible();
   await expect(page.getByTestId('assertion-row')).toHaveCount(5);
+  await expect(page.getByTestId('request-assertions')).toContainText('Assertions');
+  await expect(page.getByTestId('add-assertion')).toHaveText('+ Add assertion');
 
   // Edit a saved rule, blur to persist, then reload before executing the request.
   await page.getByTestId('assertion-expected').nth(0).fill('201');
