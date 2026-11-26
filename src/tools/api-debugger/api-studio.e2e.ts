@@ -163,7 +163,11 @@ test('environment drives {{var}} resolution at run time (selector wired to activ
   };
   await page.addInitScript(
     ([key, val]) => {
-      localStorage.setItem(key, val);
+      // addInitScript runs on every navigation, including reload. Seed only the empty origin
+      // so the reload assertion observes the real persisted collection instead of resetting it.
+      if (localStorage.getItem(key) === null) {
+        localStorage.setItem(key, val);
+      }
     },
     [TREE_KEY, JSON.stringify(treeSeed)] as [string, string],
   );
@@ -268,7 +272,14 @@ test('sends a selected request with edited query params and headers, then inspec
   expect(storedTree?.items[0].request.headers).toContainEqual({ name: 'x-api-version', value: 'v2' });
 
   // Editing and sending persists the collection request locally, including headers and query string.
+  // The seed script above must not overwrite this value during the reload.
   await page.reload();
+  const restoredTree = await page.evaluate((key) => {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) as { items: { request: { url: string; headers: { name: string; value: string }[] } }[] } : null;
+  }, TREE_KEY);
+  expect(restoredTree?.items[0].request.url).toBe('https://api.test/users/42?active=2');
+  expect(restoredTree?.items[0].request.headers).toContainEqual({ name: 'x-api-version', value: 'v2' });
   await page.getByTestId('tree-method').click();
   await expect(page.getByTestId('editor-url')).toHaveValue('https://api.test/users/42?active=2');
   await expect(page.getByTestId('header-value').nth(0)).toHaveValue('v2');
