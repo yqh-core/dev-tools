@@ -221,11 +221,14 @@ test('sends a selected request with edited query params and headers, then inspec
   };
   await page.addInitScript(
     ([key, val]) => {
-      localStorage.setItem(key, val);
+      // Playwright runs this before every navigation, including reload. Never overwrite
+      // the collection saved by the application when the page is refreshed.
+      if (localStorage.getItem(key) === null) {
+        localStorage.setItem(key, val);
+      }
     },
     [TREE_KEY, JSON.stringify(treeSeed)] as [string, string],
   );
-
   let sentPayload: { url: string; method: string; headers: { name: string; value: string }[]; body: string } | null = null;
   await page.route(/\/api\/apiproxy/, async (route) => {
     const payload = route.request().postDataJSON() as { url: string; method: string; headers: { name: string; value: string }[]; body: string };
