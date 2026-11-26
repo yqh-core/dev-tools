@@ -463,7 +463,7 @@ test('manages environments and scoped variables without changing the legacy acti
   expect(store.collection.sharedPath).toBe('/v2');
   await expect(page.getByTestId('environment-disclosure')).toContainText('does not encrypt the value at rest');
 });
- 
+
 test('imports a Postman v2.1 collection into the tree and exports it back (round-trip)', async ({ page }) => {
   // 空工作树 → 导入：直接采用集合（保留集合名 + folder 结构 + 请求），所见即所得。
   const postmanFixture = {
