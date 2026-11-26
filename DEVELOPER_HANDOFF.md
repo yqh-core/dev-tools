@@ -22,6 +22,14 @@ Current implementation details:
 - Working host candidate studio.digdevbox.com is subject to owner confirmation; no DNS or custom-domain configuration has been performed. Current deployment architecture recommendation is a second Cloudflare Pages project connected to this same repository, with a dedicated API Studio build command/output and independent custom subdomain. The existing main Pages project must retain its own root homepage and SEO behavior. See the API Studio independent product plan.
 - Do not add fabricated adoption or usage counters to the product landing page. Clearly label demo fixtures and only publish reproducible real metrics.
 
+## API Studio delivery status — 2026-11-27
+
+- The existing /api-studio/ workspace remains inside this repository and main site. Do not treat it as an independent host or tenth site.
+- [PR #215](https://github.com/yqh-core/dev-tools/pull/215) merged into main as `455fa052f07ae5678728cc29079674c6e6a650b5`. Exact-head SHA `5f06924ec768c4891c29ad812f244cbb43798d41` passed CI (including targeted Chromium E2E), Verify/Build and Cloudflare Pages Preview (`https://ae43e202.coderkit.pages.dev/`). A post-merge main deployment / production interaction has not yet been independently confirmed.
+- [PR #216](https://github.com/yqh-core/dev-tools/pull/216) is the next open P1 slice: structured request assertions and per-response results, using the existing `assertions.ts` evaluator and `RequestNode.assertions` model. Exact-head CI #45909604245 and Verify #45909604242 are in progress at dependency installation; no pass is claimed yet.
+- Issue [#213](https://github.com/yqh-core/dev-tools/issues/213) remains open. After #216, complete an app-native environment/variable editor with explicit scopes/secret masking, then collection-run per-request output/cancel/recovery and mobile/accessibility coverage.
+- Do not market browser-local collection storage as encrypted secret storage. Outbound requests use the first-party `/api/apiproxy` relay; never claim the entire request path is local-only.
+
 ## Environment and package manager
 
 `package.json` pins `pnpm@9.11.0`; `pnpm-lock.yaml` is committed.
