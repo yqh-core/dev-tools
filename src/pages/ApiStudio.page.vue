@@ -2790,4 +2790,57 @@ function onMenuSelect(key: string, node: TreeNode) {
     margin-left: 0;
   }
 }
+
+@media (max-width: 760px) {
+  .api-workspace {
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .api-sidebar {
+    flex: 0 0 auto;
+    width: 100%;
+    height: 32dvh;
+    min-height: 180px;
+    max-height: 280px;
+    border-right: 0;
+    border-bottom: 1px solid var(--api-border);
+  }
+
+  .api-tree {
+    min-height: 56px;
+  }
+
+  .api-row-actions {
+    display: inline-flex;
+  }
+
+  .api-toolbar .api-tool-btn,
+  .api-io-row .api-tool-btn {
+    min-width: 0;
+    min-height: 32px;
+    height: auto;
+    padding: 5px 6px;
+    white-space: nowrap;
+  }
+
+  .api-envbar {
+    gap: 5px;
+    padding: 6px 8px;
+  }
+
+  .api-editor {
+    flex: 1 1 0;
+    min-width: 0;
+    min-height: 0;
+    padding: 10px;
+    overflow: auto;
+  }
+
+  .api-editor-form {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
 </style>
