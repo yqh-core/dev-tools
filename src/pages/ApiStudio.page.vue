@@ -379,6 +379,9 @@ function commitRequest() {
   if (!s) {
     return;
   }
+  // A changed request must not leave an older response looking like the result of the new input.
+  singleResponse.value = null;
+  singleError.value = '';
   const request = {
     ...s.request,
     method: edMethod.value,
@@ -903,9 +906,10 @@ function onMenuSelect(key: string, node: TreeNode) {
               <button class="api-mini-action" type="button" data-test-id="add-header" @click="addHeader">+ Add</button>
             </div>
             <div v-for="(header, i) in edHeaders" :key="`header-${i}`" class="api-kv-row">
-              <input v-model="header.name" class="api-kv-input" :aria-label="`Header ${i + 1} name`" data-test-id="header-name" placeholder="Header name" />
+              <input v-model="header.name" class="api-kv-input" :aria-label="`Header ${i + 1} name`" data-test-id="header-name" placeholder="Header name" @change="commitRequest" />
               <input
                 v-model="header.value"
+                @change="commitRequest"
                 class="api-kv-input"
                 :type="isSensitiveHeader(header.name) ? 'password' : 'text'"
                 :aria-label="`Header ${i + 1} value`"
