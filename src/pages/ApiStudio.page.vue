@@ -444,7 +444,6 @@ function formatResponseBody(body: string): string {
   }
 }
 
-
 function useRedirectTarget() {
   const target = singleResponse.value?.redirect;
   if (!target) {
@@ -595,7 +594,6 @@ async function sendSelectedRequest() {
     sendingSingle.value = false;
   }
 }
-
 
 async function onRun() {
   if (countRequests(tree.value) === 0) {
