@@ -433,7 +433,7 @@ try {
   if (!sourceTemplate.includes(`rel=\"canonical\" href=\"${SITE_ORIGIN}/\"`)) {
     throw new Error(`[build-seo] index.html source canonical 与 SITE_ORIGIN 不一致：${SITE_ORIGIN}/`);
   }
-  const { STATIC_ROUTES } = await vite.ssrLoadModule('/src/seo/routes.ts');
+  const { STATIC_ROUTES, APP_ROUTES } = await vite.ssrLoadModule('/src/seo/routes.ts');
   const { TOOL_SEO_PAGES, auditToolSeoData } = await vite.ssrLoadModule('/src/seo/tool-page.ts');
   // Keyword Map 的已落地 title 与 locales/en.yml 逐字比对：drift 即构建失败。
   // 判据全部在 src/seo/keyword-map.ts（不在本脚本里），⛔ 本脚本不改任何现有判据。
@@ -441,6 +441,7 @@ try {
   const { SITE_FAQ_PATH, getSiteFaqs, fillSiteFaq } = await vite.ssrLoadModule('/src/seo/site-faqs.ts');
   const { GUIDE_ARTICLE_PAGES, auditGuideArticles } = await vite.ssrLoadModule('/src/seo/guide-articles.ts');
   const { scanGuideCrossLinks, scanToolEntryLinks, buildGuideEdgeMap, reachableFrom, guideArticlePath, missingLocaleKeys } = await vite.ssrLoadModule('/src/seo/guide-links.ts');
+  const { buildAlternateLinks, ogLocaleTags } = await vite.ssrLoadModule('/src/i18n/languages.ts');
   const mod = await vite.ssrLoadModule('/src/entry-server.ts');
 
   // —— 数据体检：不通过就让构建失败，而不是少渲染几个页面还说成功 ——
@@ -1090,6 +1091,67 @@ try {
   }
 
   console.log(`[social] ${socialImagesCreated}/${results.length} routes generated unique PNG Open Graph cards (1200×630)`);
+
+  // —— 仅客户端应用路由：产出**空壳** index.html ——
+  // 本站是 SSG：每个路由都必须有静态产物，而 public/_redirects 里唯一的兜底是
+  // /legacy/*，没有 catch-all SPA 兜底 —— 所以「不预渲染」在 Cloudflare Pages 上
+  // 就是 404（实测 /api-studio 返回 404，用户根本进不去）。
+  //
+  // 空壳里 #app 保持为空：正文完全由客户端路由渲染。预渲染内容会被
+  // main.ts 的 createApp().mount('#app') 整体替换，先闪一下别的页面内容反而更差。
+  // 这些路由不进 sitemap、不生成工具页骨架、不做内链扫描 —— 它们是 app 界面，
+  // 不是可索引的落地页（清单见 src/seo/routes.ts 的 APP_ROUTES）。
+  for (const route of APP_ROUTES) {
+    const canonical = canonicalUrl(route.path);
+    const alternates = buildAlternateLinks(canonical)
+      .map(a => `<link rel="alternate" hreflang="${a.hreflang}" href="${a.href}" />`)
+      .join('\n');
+    const ogLocales = ogLocaleTags()
+      .map(t => `<meta property="${t.property}" content="${t.content}" />`)
+      .join('\n');
+    const appHead = [
+      `<title>${route.title}</title>`,
+      `<link rel="canonical" href="${canonical}" />`,
+      alternates,
+      `<meta name="description" content="${route.description}" />`,
+      `<meta itemprop="name" content="${route.title}" />`,
+      `<meta itemprop="description" content="${route.description}" />`,
+      `<meta name="theme-color" content="#0f766e" />`,
+      `<meta property="og:url" content="${canonical}" />`,
+      `<meta property="og:type" content="website" />`,
+      `<meta property="og:title" content="${route.title}" />`,
+      `<meta property="og:description" content="${route.description}" />`,
+      ogLocales,
+      `<meta name="twitter:card" content="summary" />`,
+      `<meta name="twitter:title" content="${route.title}" />`,
+      `<meta name="twitter:description" content="${route.description}" />`,
+    ].filter(Boolean).join('\n');
+
+    const out = replaceOnce(
+      template,
+      pageSeoBlock,
+      `<!-- page-seo:start -->\n${appHead}\n      <!-- page-seo:end -->`,
+    );
+
+    // 自检：title 只能一条、canonical 必须自指、description 必须存在、#app 必须是空壳。
+    // 「#app 非空」这条最关键：一旦模板变更把别的内容灌进去，用户会先看到错的那页。
+    const problems = [];
+    if ((out.match(/<title[\s>]/gi) ?? []).length !== 1) { problems.push('title 数量异常'); }
+    if (!out.includes(`rel="canonical" href="${canonical}"`)) { problems.push('canonical 未自指'); }
+    if (!/<meta[^>]+name=["']description["']/i.test(out)) { problems.push('description 缺失'); }
+    if (!out.includes('<div id="app"></div>')) { problems.push('#app 不是空壳（会闪别的页面内容）'); }
+    if (problems.length > 0) {
+      throw new Error(`[build-seo] ${route.path} 应用空壳自检未通过: ${problems.join(', ')}`);
+    }
+
+    const file = join(root, 'dist', route.path, 'index.html');
+    if (!DRY_RUN) {
+      await mkdir(dirname(file), { recursive: true });
+      await writeFile(file, out, 'utf8');
+    }
+    console.log(`[app-shell] ${route.path.padEnd(42)} 空壳已产出（正文由客户端渲染）canonical=${canonical}`);
+  }
+
   console.log(
     `[build-seo] 完成：${results.length} 个页面（静态 ${STATIC_ROUTES.length} + 工具 ${TOOL_SEO_PAGES.length} + 指南 ${GUIDE_ARTICLE_PAGES.length}）`
     + ` + sitemap（${sitemapEntries.length} 条）。站点源 ${SITE_ORIGIN}`,
