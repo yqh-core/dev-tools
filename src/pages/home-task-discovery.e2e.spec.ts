@@ -11,6 +11,36 @@ test.describe('Homepage task discovery', () => {
     await expect(directoryLink).toBeVisible();
   });
 
+  test('promotes API Studio from the homepage into the full API workspace', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto('/');
+
+    const apiCard = page.locator('#home-featured .featured-task-card').first();
+    const studioLink = apiCard.getByRole('link', { name: 'Open API Studio' });
+    await expect(studioLink).toBeVisible();
+    await expect(studioLink).toHaveAttribute('href', '/api-studio/');
+
+    await studioLink.click();
+    await expect(page).toHaveURL(/\/api-studio\/?$/);
+    await expect(page.getByRole('complementary', { name: 'Collections' })).toBeVisible();
+    await expect(page.getByTestId('add-request')).toBeVisible();
+    await expect(page.getByTestId('import-collection')).toBeVisible();
+  });
+
+  test('keeps the API Studio entry easy to tap on mobile without horizontal overflow', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/');
+
+    const apiCard = page.locator('#home-featured .featured-task-card').first();
+    const studioLink = apiCard.getByRole('link', { name: 'Open API Studio' });
+    await expect(studioLink).toBeVisible();
+
+    const box = await studioLink.boundingBox();
+    expect(box?.height).toBeGreaterThanOrEqual(44);
+    const documentWidth = await page.evaluate(() => document.documentElement.scrollWidth);
+    expect(documentWidth).toBeLessThanOrEqual(390);
+  });
+
   test('shows a concrete JSON workflow preview linked to the real workspace', async ({ page }) => {
     await page.goto('/');
 
