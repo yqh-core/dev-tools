@@ -358,6 +358,46 @@ test('runs saved structured request assertions and shows each pass/fail result',
   await expect(report).toContainText('JSON $.missing exists');
 });
 
+test('keeps the API Studio workbench usable and keyboard accessible at 390px', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/api-studio');
+
+  await page.getByTestId('add-request').click();
+  await expect(page.getByTestId('editor-url')).toBeVisible();
+  await expect(page.getByTestId('send-request')).toBeVisible();
+
+  const noHorizontalOverflow = async () => page.evaluate(() => ({
+    viewport: document.documentElement.clientWidth,
+    document: document.documentElement.scrollWidth,
+  }));
+  let width = await noHorizontalOverflow();
+  expect(width.document).toBeLessThanOrEqual(width.viewport);
+
+  const manage = page.getByTestId('manage-environments');
+  await manage.focus();
+  await expect(manage).toBeFocused();
+  await page.keyboard.press('Enter');
+  await expect(page.getByTestId('env-manager')).toBeVisible();
+
+  const managerWidth = await page.getByTestId('env-manager').evaluate(el => el.getBoundingClientRect().width);
+  expect(managerWidth).toBeLessThanOrEqual(390);
+
+  const collectionScope = page.getByTestId('scope-collection');
+  await collectionScope.focus();
+  await expect(collectionScope).toBeFocused();
+  await page.keyboard.press('Enter');
+  await expect(collectionScope).toHaveAttribute('aria-pressed', 'true');
+
+  await page.getByTestId('new-var-name').fill('mobilePath');
+  await page.getByTestId('new-var-value').fill('/mobile');
+  await page.getByTestId('add-variable').click();
+  await expect(page.locator('[data-test-id="var-row"][data-var-name="mobilePath"]')).toBeVisible();
+
+  width = await noHorizontalOverflow();
+  expect(width.document).toBeLessThanOrEqual(width.viewport);
+  await page.screenshot({ path: join(SHOTS, '06-mobile-environment-manager.png'), fullPage: true });
+});
+
 test('manages environments and scoped variables without changing the legacy active environment', async ({ page }) => {
   const envSeed = {
     active: 'Default',
