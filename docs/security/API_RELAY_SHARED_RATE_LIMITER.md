@@ -27,7 +27,7 @@ The current Pages project is Git-integrated and its existing \`wrangler.toml\` i
 1. Deploy the independent Worker from this directory:
 
    \`\`\`sh
-   npx wrangler deploy --config workers/api-relay-limiter/wrangler.toml
+   pnpm dlx wrangler@4.168.0 deploy --config workers/api-relay-limiter/wrangler.toml
    \`\`\`
 
 2. In Cloudflare Pages > the existing \`coderkit\` project > Settings > Bindings, add a Durable Object binding:
@@ -44,6 +44,10 @@ The current Pages project is Git-integrated and its existing \`wrangler.toml\` i
 5. Keep Preview in local mode unless a separate Preview Worker/namespace and Preview secret are explicitly configured. Do not share the production IP counters with arbitrary PR previews.
 
 6. Verify the binding with a synthetic non-sensitive request, test 429 and Retry-After, prove two separate Pages isolates using the same test IP share the same counter, and confirm a Worker restart preserves the window/leases. Only then mark the production shared limiter as active.
+
+## Worker bundle validation
+
+CI runs a pinned Wrangler 4.168.0 `deploy --dry-run` against this Worker config. It bundles the Worker and validates the Durable Object class/migration without authenticating or deploying to Cloudflare. This build check is distinct from an actual deploy.
 
 ## Local development
 
