@@ -1,9 +1,13 @@
 import { DurableObject } from 'cloudflare:workers';
-import { handleRateLimitRequest } from './limiter.js';
+import { cleanupRateLimitState, handleRateLimitRequest } from './limiter.js';
 
 export class IpRateLimiter extends DurableObject {
   async fetch(request) {
     return handleRateLimitRequest(this.ctx.storage, request);
+  }
+
+  async alarm() {
+    return cleanupRateLimitState(this.ctx.storage);
   }
 }
 
