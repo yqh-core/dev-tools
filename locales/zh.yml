@@ -66,7 +66,8 @@ home:
   privacy:
     title: "隐私说明：你的数据去了哪里"
     local: "多数工具会在浏览器本地处理输入。需要联网的工具会将完成任务所需的数据发送给相应服务或目标地址。可选分享链接可能把输入编码在 URL 中，获得链接的人可能读取其中内容。"
-    relay: "API Debugger 和 API Studio 的 HTTP 请求会经过 DigDevBox 自有 Relay，再转发到你指定的目标服务。请求 URL、请求头和请求体会通过网络发送；请勿向不可信服务发送凭据。"
+    storage: "API Debugger 历史记录以及 API Studio 请求集合和环境变量保存在当前浏览器的 localStorage 中；这不是加密存储，请勿保存长期有效的凭据。"
+    relay: "API Debugger 和 API Studio 的 HTTP 请求会经 DigDevBox 第一方中继转发到你指定的目标。请求 URL、请求头和请求体会通过网络传输；请勿向不可信目标发送凭据。"
     networkIntro: "以下查询工具需要访问外部服务才能返回结果："
   blog:
     title: "来自博客"
