@@ -21,7 +21,7 @@ test.describe('JWT Parser decode-only workflow', () => {
     const input = page.getByTestId('jwt-input');
 
     await input.fill('');
-    await expect(page.getByText('Enter a compact JWT.')).toBeVisible();
+    await expect(page.getByText(/Enter a compact JWT\./)).toBeVisible();
 
     await input.fill('one.two');
     await expect(page.getByText(/Expected a three-part compact JWT\/JWS/)).toBeVisible();
@@ -61,12 +61,15 @@ test.describe('JWT Parser decode-only workflow', () => {
 
   test('localizes the interactive surface in Chinese', async ({ page }) => {
     await page.addInitScript(() => {
-      localStorage.setItem('locale', 'zh');
+      localStorage.removeItem('locale');
+      Object.defineProperty(navigator, 'languages', {
+        get: () => ['zh-CN', 'zh'],
+      });
     });
     await page.goto('/jwt-parser');
 
     await expect(page.getByTestId('jwt-input')).toBeVisible();
-    await expect(page.locator('label').filter({ hasText: '紧凑 JWT / JWS' })).toBeVisible();
+    await expect(page.getByLabel('紧凑 JWT / JWS')).toBeVisible();
     await expect(page.getByTestId('jwt-unverified')).toContainText('不会验证签名');
     await expect(page.getByText('JOSE Header（头部）', { exact: true })).toBeVisible();
     await expect(page.getByTestId('jwt-signature')).toContainText('未验证');
