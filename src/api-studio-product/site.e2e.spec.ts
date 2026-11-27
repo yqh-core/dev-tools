@@ -262,13 +262,20 @@ test('workspace data disclosure preserves first-request priority on a 390px scre
     const target = await page.getByTestId(id).boundingBox();
     expect(target?.height ?? 0).toBeGreaterThanOrEqual(44);
   }
-  const geometry = await page.evaluate(() => ({
-    documentWidth: document.documentElement.scrollWidth,
-    viewportWidth: document.documentElement.clientWidth,
-    sidebarHeight: document.querySelector('.api-sidebar')?.getBoundingClientRect().height ?? 0,
-  }));
+  const geometry = await page.evaluate(() => {
+    const sidebar = document.querySelector('.api-sidebar')?.getBoundingClientRect();
+    const root = document.querySelector('[data-test-id="api-studio-root"]')?.getBoundingClientRect();
+    return {
+      documentWidth: document.documentElement.scrollWidth,
+      viewportWidth: document.documentElement.clientWidth,
+      sidebarHeight: sidebar?.height ?? 0,
+      collectionRootBottom: root?.bottom ?? Number.POSITIVE_INFINITY,
+      sidebarBottom: sidebar?.bottom ?? 0,
+    };
+  });
   expect(geometry.documentWidth).toBeLessThanOrEqual(geometry.viewportWidth);
   expect(geometry.sidebarHeight).toBeLessThanOrEqual(400);
+  expect(geometry.collectionRootBottom).toBeLessThanOrEqual(geometry.sidebarBottom);
   await page.screenshot({ path: testInfo.outputPath('workspace-data-tools-mobile-expanded.png') });
 
   await summary.focus();
