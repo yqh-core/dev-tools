@@ -181,6 +181,8 @@ test.describe('Homepage task discovery', () => {
     await expect(privacy).toBeVisible();
     await expect(privacy.getByTestId('home-privacy-local')).toContainText('Most tools process your input in your browser');
     await expect(privacy.getByTestId('home-privacy-local')).toContainText('network request');
+    await expect(privacy.getByTestId('home-privacy-storage')).toContainText("localStorage");
+    await expect(privacy.getByTestId('home-privacy-storage')).toContainText('not encrypted storage');
     await expect(privacy.getByTestId('home-privacy-relay')).toContainText('API Debugger and API Studio');
     await expect(privacy.getByTestId('home-privacy-relay')).toContainText('first-party relay');
     await expect(privacy.getByText('These lookup tools must query an external service to return a result:')).toBeVisible();
