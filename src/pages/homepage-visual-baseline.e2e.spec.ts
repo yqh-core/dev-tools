@@ -38,6 +38,7 @@ test('captures a non-blocking homepage first fold at mobile and desktop viewport
         ['search', '.hero-search'],
         ['quickSearch', '.hero-quick-search'],
         ['preview', '.home-hero-preview'],
+        ['previewCta', '.hero-preview-link'],
         ['featuredTasks', '#home-featured'],
         ['firstFeaturedCard', '#home-featured .featured-task-card'],
         ['consent', '#digdevbox-analytics-consent'],
@@ -106,6 +107,9 @@ test('captures a non-blocking homepage first fold at mobile and desktop viewport
       expect(metrics.elements.preview).not.toBeNull();
       expect(metrics.elements.preview!.top).toBeLessThanOrEqual(720);
       expect(metrics.elements.preview!.top).toBeLessThan(viewport.height);
+      expect(metrics.elements.previewCta).not.toBeNull();
+      expect(metrics.elements.previewCta!.top).toBeGreaterThanOrEqual(0);
+      expect(metrics.elements.previewCta!.bottom).toBeLessThanOrEqual(viewport.height);
       expect(metrics.elements.consent!.height).toBeLessThanOrEqual(150);
     }
 
