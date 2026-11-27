@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
+
 const workflows = [
   {
     number: '01',
@@ -145,6 +146,7 @@ const currentDemoStep = computed(() => demoSteps[activeDemoStep.value] ?? demoSt
               class="guided-demo-step"
               type="button"
               :aria-pressed="activeDemoStep === index"
+              aria-controls="guided-demo-detail"
               @click="activeDemoStep = index"
             >
               <span class="guided-demo-index">{{ item.number }}</span>
