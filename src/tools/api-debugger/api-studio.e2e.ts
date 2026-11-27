@@ -171,10 +171,18 @@ test('shows live collection progress and structured redacted request outcomes', 
   let finishSecond = () => {};
   let announceFirst = () => {};
   let announceSecond = () => {};
-  const firstGate = new Promise<void>((resolve) => { finishFirst = resolve; });
-  const secondGate = new Promise<void>((resolve) => { finishSecond = resolve; });
-  const firstStarted = new Promise<void>((resolve) => { announceFirst = resolve; });
-  const secondStarted = new Promise<void>((resolve) => { announceSecond = resolve; });
+  const firstGate = new Promise<void>((resolve) => {
+    finishFirst = resolve;
+  });
+  const secondGate = new Promise<void>((resolve) => {
+    finishSecond = resolve;
+  });
+  const firstStarted = new Promise<void>((resolve) => {
+    announceFirst = resolve;
+  });
+  const secondStarted = new Promise<void>((resolve) => {
+    announceSecond = resolve;
+  });
   const sentUrls: string[] = [];
 
   await page.route(/\/api\/apiproxy/, async (route) => {
