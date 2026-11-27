@@ -333,7 +333,7 @@ tools:
         percentagePointsUnit: 个百分点
       hints:
         percentageChange: 百分比变化以原始值作为基数（分母）；原始值为零时，百分比变化没有定义。
-        percentageDifference: 对称比较以 |A| 和 |B| 的平均值为分母；两个数值都不作为起始基数。
+        percentageDifference: 对称比较以 A 和 B 的绝对值平均数为分母；两个数值都不作为起始基数。
         percentagePoints: 示例：比率从 4% 升至 6%，增加了 2 个百分点；相对于旧比率的增长率为 50%。
     resultDetails:
       inWords: 结果说明
