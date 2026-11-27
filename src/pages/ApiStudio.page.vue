@@ -3555,7 +3555,7 @@ function onMenuSelect(key: string, node: TreeNode) {
   .api-toolbar .api-tool-btn,
   .api-io-row .api-tool-btn {
     min-width: 0;
-    min-height: 40px;
+    min-height: 44px;
     height: auto;
     padding: 6px 7px;
     white-space: nowrap;
