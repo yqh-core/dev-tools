@@ -283,3 +283,93 @@ test('workspace data disclosure preserves first-request priority on a 390px scre
   await expect(disclosure).toHaveJSProperty('open', false);
   await expect(page.getByTestId('create-first-request')).toBeVisible();
 });
+
+test('environment selector keeps common names readable and exposes the full active name on desktop', async ({ page }, testInfo) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.addInitScript(() => {
+    localStorage.setItem('api-debugger:env', JSON.stringify({
+      active: 'Default',
+      envs: {
+        'Default': {},
+        'Staging-West-2-Production': {},
+      },
+      collection: {},
+      global: {},
+      secrets: [],
+    }));
+  });
+  await page.goto('/app/');
+
+  const envBar = page.getByTestId('env-bar');
+  const label = envBar.locator('.api-envbar-label');
+  const selector = page.getByTestId('env-select');
+  const selectorWrap = page.getByTestId('env-select-wrap');
+
+  await expect(label).toHaveText('Env');
+  await expect(label).toHaveAttribute('title', 'Environment');
+  await expect(selector).toHaveAttribute('aria-label', 'Environment: Default');
+  await expect(selectorWrap).toHaveAttribute('title', 'Default');
+  await expect(selector).toContainText('Default');
+  await expect(page.getByTestId('manage-environments')).toBeVisible();
+  await expect(page.getByTestId('env-count')).toHaveText('0 var(s)');
+
+  const desktopWidth = await selector.boundingBox();
+  expect(desktopWidth?.width ?? 0).toBeGreaterThanOrEqual(96);
+
+  const trigger = selector.locator('[tabindex="0"]');
+  await expect(trigger).toHaveCount(1);
+  await trigger.focus();
+  await expect(trigger).toBeFocused();
+  await page.keyboard.press('ArrowDown');
+  const longEnvironment = page.locator('.n-base-select-option').filter({ hasText: 'Staging-West-2-Production' });
+  await expect(longEnvironment).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(trigger).toBeFocused();
+
+  await selector.click();
+  await longEnvironment.click();
+  await expect(selector).toHaveAttribute('aria-label', 'Environment: Staging-West-2-Production');
+  await expect(selectorWrap).toHaveAttribute('title', 'Staging-West-2-Production');
+  await expect(page.getByTestId('manage-environments')).toBeVisible();
+  await expect(page.getByTestId('env-count')).toHaveText('0 var(s)');
+  await page.screenshot({ path: testInfo.outputPath('environment-selector-desktop-long-name.png') });
+
+  await page.getByRole('button', { name: 'Switch to light theme' }).click();
+  await expect(page.locator('.api-studio-shell')).toHaveAttribute('data-api-theme', 'light');
+  await expect(selector).toHaveAttribute('aria-label', 'Environment: Staging-West-2-Production');
+});
+
+test('environment selector stays within the mobile workspace width with a long name', async ({ page }, testInfo) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.addInitScript(() => {
+    localStorage.setItem('api-debugger:env', JSON.stringify({
+      active: 'Staging-West-2-Production',
+      envs: {
+        'Default': {},
+        'Staging-West-2-Production': {},
+      },
+      collection: {},
+      global: {},
+      secrets: [],
+    }));
+  });
+  await page.goto('/app/');
+
+  const selector = page.getByTestId('env-select');
+  const selectorWrap = page.getByTestId('env-select-wrap');
+  await expect(selector).toHaveAttribute('aria-label', 'Environment: Staging-West-2-Production');
+  await expect(selectorWrap).toHaveAttribute('title', 'Staging-West-2-Production');
+  await expect(page.getByTestId('manage-environments')).toBeVisible();
+  await expect(page.getByTestId('env-count')).toHaveText('0 var(s)');
+
+  const geometry = await page.evaluate(() => ({
+    documentWidth: document.documentElement.scrollWidth,
+    viewportWidth: document.documentElement.clientWidth,
+    environmentBarWidth: document.querySelector('[data-test-id="env-bar"]')?.getBoundingClientRect().width ?? 0,
+    selectorWidth: document.querySelector('[data-test-id="env-select"]')?.getBoundingClientRect().width ?? 0,
+  }));
+  expect(geometry.documentWidth).toBeLessThanOrEqual(geometry.viewportWidth);
+  expect(geometry.environmentBarWidth).toBeLessThanOrEqual(390);
+  expect(geometry.selectorWidth).toBeGreaterThanOrEqual(96);
+  await page.screenshot({ path: testInfo.outputPath('environment-selector-mobile-long-name.png') });
+});

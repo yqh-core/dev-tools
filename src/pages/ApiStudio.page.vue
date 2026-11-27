@@ -1336,15 +1336,22 @@ function onMenuSelect(key: string, node: TreeNode) {
       </div>
 
       <div class="api-envbar" data-test-id="env-bar">
-        <span class="api-envbar-label">Environment</span>
-        <n-select
-          :value="selectedEnv"
-          :options="envOptions"
-          size="small"
-          class="api-env-select"
-          data-test-id="env-select"
-          @update:value="onEnvChange"
-        />
+        <span class="api-envbar-label" title="Environment">Env</span>
+        <div
+          class="api-env-select-wrap"
+          :title="selectedEnv"
+          data-test-id="env-select-wrap"
+        >
+          <n-select
+            :value="selectedEnv"
+            :options="envOptions"
+            size="small"
+            class="api-env-select"
+            :aria-label="`Environment: ${selectedEnv}`"
+            data-test-id="env-select"
+            @update:value="onEnvChange"
+          />
+        </div>
         <button
           class="api-env-manage-toggle"
           type="button"
@@ -2194,6 +2201,8 @@ function onMenuSelect(key: string, node: TreeNode) {
 }
 
 .api-envbar-label {
+  flex: 0 0 auto;
+  min-width: 24px;
   font-size: var(--api-fs-xs);
   text-transform: uppercase;
   letter-spacing: 0.3px;
@@ -2201,8 +2210,14 @@ function onMenuSelect(key: string, node: TreeNode) {
   white-space: nowrap;
 }
 
+.api-env-select-wrap {
+  flex: 1 1 112px;
+  min-width: 96px;
+  max-width: 100%;
+}
+
 .api-env-select {
-  flex: 1 1 auto;
+  width: 100%;
   min-width: 0;
 }
 
