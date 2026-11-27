@@ -900,7 +900,6 @@ test('portable backup restores the workspace into a separate browser origin', as
   expect(restored.env.collection.token).toBe('');
 });
 
-
 test('offers a keyboard-accessible manual retry only after a relay failure', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   const treeSeed = {
