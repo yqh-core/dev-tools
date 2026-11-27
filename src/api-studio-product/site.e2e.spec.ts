@@ -498,7 +498,7 @@ test('completes a first-request journey from a clean /app origin through manual 
   await page.getByTestId('assertion-expected').first().press('Tab');
   await page.getByTestId('add-assertion').click();
   await page.getByTestId('assertion-type').nth(1).click();
-  await page.getByRole('option', { name: 'JSON field', exact: true }).click();
+  await page.locator('.n-base-select-option').filter({ hasText: /^JSON field$/ }).click();
   await page.getByTestId('assertion-target').fill('$.id');
   await page.getByTestId('assertion-expected').nth(1).fill('42');
   await page.getByTestId('assertion-expected').nth(1).press('Tab');
