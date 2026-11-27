@@ -10,10 +10,20 @@ describe('article-only guide content', () => {
     expect(page?.sections.filter(section => section.id.startsWith('article-only-'))).toHaveLength(3);
 
     const [en, zh] = await Promise.all([loadGuides('en'), loadGuides('zh')]);
-    expect(en['/api-debugger'].steps).toHaveLength(5);
-    expect(zh['/api-debugger'].steps).toHaveLength(en['/api-debugger'].steps.length);
-    expect(en['/api-debugger'].faqs).toHaveLength(3);
-    expect(zh['/api-debugger'].faqs).toHaveLength(en['/api-debugger'].faqs!.length);
+    const englishGuide = en['/api-debugger'];
+    const chineseGuide = zh['/api-debugger'];
+    expect(englishGuide.steps.length).toBeGreaterThanOrEqual(8);
+    expect(chineseGuide.steps).toHaveLength(englishGuide.steps.length);
+    expect(englishGuide.steps.join(' ')).toContain('CSV file');
+    expect(englishGuide.steps.join(' ')).toContain('dedicated Worker');
+    expect(englishGuide.steps.join(' ')).toContain('cycles through the rows');
+    expect(chineseGuide.steps.join(' ')).toContain('CSV 文件');
+    expect(chineseGuide.steps.join(' ')).toContain('独立 Worker');
+    expect(chineseGuide.steps.join(' ')).toContain('循环使用数据行');
+    expect(englishGuide.faqs?.length).toBeGreaterThanOrEqual(4);
+    expect(chineseGuide.faqs).toHaveLength(englishGuide.faqs!.length);
+    expect(englishGuide.faqs?.map(faq => faq.q)).toContain('Does uploading a data file send all of its contents to the API?');
+    expect(chineseGuide.faqs?.map(faq => faq.q)).toContain('上传数据文件会把文件全部发送给 API 吗？');
     expect(en['/api-debugger'].articleOnlySections).toHaveLength(3);
     expect(zh['/api-debugger'].articleOnlySections).toHaveLength(en['/api-debugger'].articleOnlySections!.length);
   });
