@@ -275,15 +275,26 @@ onMounted(() => {
       <n-button size="small" data-test-id="export-state" @click="exportState">
         Export state
       </n-button>
-      <n-button size="small" type="primary" data-test-id="share-link" @click="shareLink">
-        Share link
-      </n-button>
       <n-button size="small" quaternary data-test-id="reset" @click="resetAll">
         Reset
       </n-button>
       <input ref="fileInput" type="file" accept=".json,.json5,.yaml,.yml,.csv,.xml,.toml,.txt,.env" style="display: none" @change="onFilePick">
       <input ref="stateFileInput" type="file" accept=".json" style="display: none" @change="onStateFilePick">
     </div>
+
+    <section class="workflow-disclosure" aria-label="Workflow storage and sharing information">
+      <p class="persistence-disclosure" data-test-id="persistence-disclosure">
+        Workflow steps and inputs are saved in this browser's localStorage. They are not cloud-synced or encrypted.
+      </p>
+      <div class="share-row">
+        <p class="share-warning" role="note" data-test-id="share-link-disclosure">
+          Share links and exported state files include the current input and step settings. A share link puts that data in the URL fragment using reversible Base64URL encoding, not encryption; anyone with the link can read it. The full link is limited to {{ LINK_LIMIT.toLocaleString() }} characters. Do not include credentials or private production data.
+        </p>
+        <n-button size="small" quaternary data-test-id="share-link" @click="shareLink">
+          Share link
+        </n-button>
+      </div>
+    </section>
 
     <n-alert v-if="banner" :type="banner.type" closable style="margin: 10px 0" data-test-id="banner" @close="banner = null">
       {{ banner.text }}
@@ -417,7 +428,7 @@ onMounted(() => {
     </div>
 
     <p class="hint footer-hint">
-      Everything runs in your browser — no upload, no account. Share links carry your data ({{ LINK_LIMIT }}-byte limit); do not share secrets.
+      Pipeline steps process the current data in this browser tab. Workflow persistence is local to this site and browser; there is no cloud sync.
     </p>
   </div>
 </template>
@@ -425,6 +436,12 @@ onMounted(() => {
 <style lang="less" scoped>
 .json-workspace { width: 100%; }
 .toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.workflow-disclosure { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; padding: 10px 12px; border: 1px solid rgba(127, 127, 127, 0.25); border-radius: 8px; }
+.persistence-disclosure, .share-warning { margin: 0; font-size: 12px; line-height: 1.5; }
+.persistence-disclosure { opacity: 0.72; }
+.share-row { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 10px 16px; }
+.share-warning { flex: 1 1 280px; min-width: 0; }
+.share-row :deep(.n-button) { flex: 0 0 auto; }
 .input-zone { margin-top: 12px; border-radius: 8px; &.dragging { outline: 2px dashed rgba(127, 127, 127, 0.6); outline-offset: 4px; } }
 .step-card { margin-top: 12px; padding: 12px; border: 1px solid rgba(127, 127, 127, 0.25); border-radius: 8px; }
 .step-head { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
