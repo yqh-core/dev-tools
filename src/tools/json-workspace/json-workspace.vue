@@ -282,7 +282,7 @@ onMounted(() => {
       <input ref="stateFileInput" type="file" accept=".json" style="display: none" @change="onStateFilePick">
     </div>
 
-    <section class="workflow-disclosure" aria-label="Workflow storage and sharing information">
+    <section class="workflow-disclosure" aria-label="Workflow storage and sharing information" data-test-id="workflow-disclosure">
       <p class="persistence-disclosure" data-test-id="persistence-disclosure">
         Workflow steps and inputs are saved in this browser's localStorage. They are not cloud-synced or encrypted.
       </p>
@@ -316,7 +316,7 @@ onMounted(() => {
       <n-form-item label="Input (paste, or drop a file anywhere)" :show-feedback="false">
         <c-input-text
           v-model:value="rootInput"
-          data-test-id="json-input"
+          test-id="json-input"
           placeholder="Paste JSON, YAML, CSV, XML, TOML or .env here..."
           rows="10"
           multiline
