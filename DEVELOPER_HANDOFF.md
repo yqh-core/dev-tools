@@ -22,16 +22,45 @@ Current implementation details:
 - The final independent brand and separate registrable primary domain remain subject to naming/domain/trademark-conflict screening and explicit owner selection; no DNS or custom-domain configuration has been performed. The deployment recommendation is a second Cloudflare Pages project connected to this same repository, with a dedicated API Studio build command/output and its own independent primary domain. Earlier DigDevBox-subdomain candidates are superseded. The existing main Pages project must retain its own root homepage and SEO behavior. See the API Studio independent product plan.
 - Do not add fabricated adoption or usage counters to the product landing page. Clearly label demo fixtures and only publish reproducible real metrics.
 
-## API Studio delivery status — 2026-11-27
+## API Studio delivery status — reconciled 2026-11-27
 
-- The existing `/api-studio/` workspace remains the transitional implementation/discovery route in DigDevBox Main. The long-term target is the tenth independent product with its own brand and separate primary domain; the shared repository is an interim engineering choice, not a product-boundary decision.
-- [PR #215](https://github.com/yqh-core/dev-tools/pull/215) merged as `455fa052`; exact CI/E2E (132 assertions), Verify/Build and Pages Preview passed.
-- [PR #216](https://github.com/yqh-core/dev-tools/pull/216) merged as `e09522ae`; exact full CI/E2E, Verify/Build and Preview https://18c81e16.coderkit.pages.dev/ passed. Adds structured request assertions and per-rule PASS/FAIL.
-- [PR #217](https://github.com/yqh-core/dev-tools/pull/217) merged as `d41c874722a875efe02e38f16bdad271c001dffe`; exact CI/E2E, Verify/Build and Preview https://e7eb264f.coderkit.pages.dev/ passed. It adds a Studio-native Environment / Collection / Global variable manager, environment CRUD, variable CRUD, secret masking/reveal, secret-safe export and clear localStorage/shared-relay disclosure.
-- [PR #218](https://github.com/yqh-core/dev-tools/pull/218) merged as `3804421137f24efe21a41c48c64979e1cd8c1c94` from exact HEAD `02cd77b6d6076509344c07e80afa973d0a6eabbd`. Exact-head CI #45913352898, Verify/Build #45913352875 and Cloudflare Preview #140226641947 all succeeded. The 390×844 E2E covers no horizontal overflow and keyboard use of the environment manager. Post-merge mainline Verify/Build #45914284289 succeeded; mainline CI #45914284421 had reached the Chromium E2E step and was still in progress at the latest check. No production browser interaction is claimed.
-- PR #218 stacks collections/editor at <=760px, exposes row actions for touch, compacts topbar at <=520px, and adds a 390×844 no-horizontal-overflow/keyboard E2E.
-- Environment manager reuses `EnvStore`; values remain in origin-scoped `api-debugger:env` localStorage, shared with legacy API Debugger. Studio preserves legacy `active` by default. Secret masking/redaction is not encryption at rest; outbound requests still use `/api/apiproxy`.
-- Issue #213 remains open. After #218, finish collection-run per-request details, cancellation/stop/retry and any remaining focus/accessibility items; then proceed to #214 dedicated build/landing page work.
+API Studio is the tenth independent DigDevBox product line, in addition to the original nine-site portfolio. The working product name is not yet cleared as the final brand. The target is a separate registrable primary domain; “by DigDevBox” may be used as parent endorsement. Continue using this repository initially; independent product identity/deployment does not require an immediate repository split.
+
+### Implemented and merged
+
+- **Single-request workflow, response inspection and request editor:** PR #215 merged.
+- **Structured response assertions:** PR #216 merged.
+- **Studio-native environments and scoped variables:** PR #217 merged. Environment / Collection / Global scope, secret markers and masking are in the shared origin-scoped store; secret masking is not encryption.
+- **Responsive workspace:** PR #218 merged. Desktop and 390×844 mobile behavior received exact-head E2E/Preview acceptance.
+- **Collection runner:** PR #223 merged as `d0855a11eee3d1e69f16acc189245adaaaa40e9f`. Live current-request/progress events, cancellation before scheduling the next request, expandable PASS/FAIL/NOT SENT outcomes, assertion/script details, safe rerun and redacted report copy/download. An in-flight request is allowed to finish or time out; cancellation is not represented as immediate network abort. Child #222 is CLOSED.
+- **Portable backup / restore:** PR #224 merged as `1cd5058c5b6dab67ff2c5d228e5f24fcca734327`; child #220 CLOSED. Versioned archive, strict validation, content preview and explicit replace/merge restore. Default redaction is best effort and cannot identify every unmarked credential in arbitrary payloads.
+- **Independent product site:** PR #226 merged as `30760f03a3c5c208e09c18562fafe7c33708a3b5`. Product homepage, actual `/app/` workspace, `/docs/` index plus four task guides, isolated `pnpm run build:api-studio` → `dist-api-studio/`, route metadata and guarded branch Preview output. This is a product build/Preview path, not a second Production Pages project.
+- **First-request onboarding:** PR #228 merged; empty workspace shows a user-triggered blank-request action and does not auto-send.
+- **Relay hardening:** PR #225 merged (2 MiB inbound JSON envelope cap); PR #229 merged (SQLite-backed Durable Object shared limiter implementation); PR #230 merged (8 KiB UTF-8 header, response-header count and upstream-timeout regression tests).
+
+### Current mainline and active homepage work
+
+- Current mainline snapshot when reconciled: `de02191e35e87c584bc4c949f73417ea206afe72`; the preceding relay test merge is `187ca67d0175e7fd3154457ba25398a2bb68ed9f`.
+- **PR #232 is OPEN**: https://github.com/yqh-core/dev-tools/pull/232 — `feat/api-studio-guided-walkthrough-20261127`, latest recorded head `cbd0ea135e15a0d935a2f087e6ea5b2cb8eee60e`. Adds a four-step Request → Response → Assertions → Collection run explanation, keyboard-operable buttons, `aria-live` detail, responsive two-column mobile steps, and desktop/mobile E2E. The walkthrough sends no request and is labelled as illustrative sample guidance. Do not call it a live demo.
+- The PR Preview bot reported **Build in progress** on head prefix `cbd0ea1`. The GitHub connector did not return an exact-head PR CI/E2E run identifier at record time. Merge only after exact-head CI, Verify/Build, product-site Chromium E2E and Cloudflare Preview pass, with screenshots reviewed at 1440×900 and 390×844.
+- Mainline CI #45952236229 was still at broad Chromium E2E; mainline Verify/Build #45952236277 was SUCCESS for its mainline snapshot. Those are not PR #232 checks. The post-PR #230 Production deployment SHA was not verified in this work unit.
+
+### Remaining launch gates
+
+- **Issue #221 OPEN — shared relay limiter Production rollout.** Production still uses `API_RELAY_RATE_LIMIT_MODE=local`. The separate Worker at `workers/api-relay-limiter/wrangler.toml` has not been deployed and bound to Production. Required: `API_RELAY_LIMITER` binding to `IpRateLimiter`, `API_RELAY_RATE_LIMIT_HMAC_KEY` (32+ characters), account plan/spend/WAF review, Pages redeploy, and deployed cross-isolate, restart-persistence, 429/Retry-After and fail-closed verification. Do not claim shared enforcement or broadly promote the relay before this gate.
+- **Issue #214 OPEN — independent product Production launch.** The product homepage/build/docs and branch Preview code are merged, but no second Production Cloudflare Pages project, approved primary host, canonical/sitemap production configuration, old/new URL map or migration/rollback acceptance exists. Keep `https://www.digdevbox.com/api-studio/` as a transition/fallback. The second Pages project must use `pnpm run build:api-studio`, output `dist-api-studio`, and retain the Pages Functions needed by `/api/apiproxy`.
+- **Issue #219 OPEN — brand/domain selection.** “API Studio” is a working name only. Complete sourced collision/domain screening and obtain the owner's explicit final selection. No domain purchase, DNS, custom-host binding, canonical change or redirect before that decision.
+- **Issue #213 remains OPEN** as the workspace parent; reconcile all acceptance against current tests and child closure before closing it.
+- **Issue #231 is the separate DigDevBox Main mobile/consent overlay refinement.** It does not reopen the Main homepage's closed broad redesign and is not the current API Studio task.
+
+### Current evidence and product truth
+
+- The last verified historical API Studio product-site Preview from PR #226 was https://62809fd5.coderkit.pages.dev/ for the old exact head `50755caa`. Do not call that the latest PR #232 Preview. The new PR #232 exact-head Preview was still building at the latest recorded check.
+- The standalone product build intentionally omits production canonical URLs and sitemap until an approved HTTPS origin is configured. `/app/` stays noindex and out of the public sitemap.
+- Collections/environment values persist in this browser's origin-scoped storage. Outbound request URL, headers and body pass through the first-party relay. Secret masking is not encryption at rest. Do not claim that requests are fully local or never leave the browser.
+- No final brand/domain, second Production Pages project, DNS, production canonical, redirect or independent-origin user migration has been completed.
+
+Details for cross-conversation continuation: [API Studio guided walkthrough work log in the design-system control repository](https://github.com/yqh-core/digdevbox-design-system/blob/main/ops/automation-runs/2026-11-27-api-studio-guided-walkthrough.md), [Issue #214](https://github.com/yqh-core/dev-tools/issues/214), [Issue #221](https://github.com/yqh-core/dev-tools/issues/221), [Issue #219](https://github.com/yqh-core/dev-tools/issues/219).
 
 ## Environment and package manager
 
