@@ -40,8 +40,13 @@ describe('JWT decode-only contract', () => {
   });
 
   it('reports invalid Base64URL JSON as a decode error', () => {
-    expect(() => decodeJwt({ jwt: 'bm90LWpzb24.eyJzdWIiOiIxMjMifQ.signature' })).toThrowError(
-      expect.objectContaining({ code: 'decode' }),
-    );
+    try {
+      decodeJwt({ jwt: 'bm90LWpzb24.eyJzdWIiOiIxMjMifQ.signature' });
+      throw new Error('Expected decodeJwt to reject invalid JSON');
+    }
+    catch (error) {
+      expect(error).toBeInstanceOf(JwtDecodeError);
+      expect((error as JwtDecodeError).code).toBe('decode');
+    }
   });
 });
