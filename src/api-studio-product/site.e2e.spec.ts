@@ -397,13 +397,19 @@ test('completes a first-request journey from a clean /app origin through manual 
   const relayPayloads: RelayPayload[] = [];
   let relayAttempts = 0;
   const relayRequests: string[] = [];
+  const analyticsRequests: string[] = [];
 
-  // Synthetic responses stay inside the Playwright mock. No live upstream API is called.
+  // The standalone product HTML deliberately does not load the Main site's consent
+  // banner or analytics bootstrap. Verify that privacy boundary instead of waiting
+  // for a Reject button that this independent noindex workspace does not render.
   page.on('request', (request) => {
-    if (new URL(request.url()).pathname === '/api/apiproxy') {
-      relayRequests.push(request.url());
+    const requestUrl = new URL(request.url());
+    if (requestUrl.pathname === '/api/apiproxy') relayRequests.push(request.url());
+    if (/google-analytics|googletagmanager|plausible\.io/i.test(requestUrl.hostname)) {
+      analyticsRequests.push(request.url());
     }
   });
+  // Synthetic responses stay inside the Playwright mock. No live upstream API is called.
   await page.route('**/api/apiproxy', async (route) => {
     const payload = route.request().postDataJSON() as RelayPayload;
     relayPayloads.push(payload);
@@ -425,16 +431,17 @@ test('completes a first-request journey from a clean /app origin through manual 
 
   await page.goto('/app/');
 
-  // Start with a genuinely fresh origin. The user makes an explicit consent choice;
-  // no collection, environment or consent preference is pre-seeded by the test.
-  const rejectAnalytics = page.getByRole('button', { name: 'Reject analytics' });
-  await expect(rejectAnalytics).toBeVisible();
-  await rejectAnalytics.click();
+  // Start with a genuinely fresh product origin. The standalone workspace is noindex
+  // and intentionally does not load the Main site's analytics-consent.js; assert that
+  // no analytics bootstrap/request or consent state is introduced here.
   const freshStorage = await page.evaluate(() => ({
     tree: localStorage.getItem('api-studio:tree'),
     environment: localStorage.getItem('api-debugger:env'),
+    consent: localStorage.getItem('digdevbox.analytics-consent.v1'),
+    consentUi: Boolean(document.querySelector('#digdevbox-analytics-consent')),
   }));
-  expect(freshStorage).toEqual({ tree: null, environment: null });
+  expect(freshStorage).toEqual({ tree: null, environment: null, consent: null, consentUi: false });
+  expect(analyticsRequests).toEqual([]);
   await expect(page.getByText('No requests yet')).toBeVisible();
 
   await page.getByTestId('create-first-request').click();
