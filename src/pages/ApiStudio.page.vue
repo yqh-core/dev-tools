@@ -1347,7 +1347,7 @@ function onMenuSelect(key: string, node: TreeNode) {
             :options="envOptions"
             size="small"
             class="api-env-select"
-            :aria-label="'Environment: ' + selectedEnv"
+            :aria-label="`Environment: ${selectedEnv}`"
             data-test-id="env-select"
             @update:value="onEnvChange"
           />
