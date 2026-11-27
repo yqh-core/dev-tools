@@ -1259,39 +1259,42 @@ function onMenuSelect(key: string, node: TreeNode) {
         </button>
       </div>
 
-      <div class="api-io-row">
-        <button class="api-tool-btn" type="button" title="Download a portable API Studio backup with marked secrets removed" data-test-id="backup-safe" @click="exportWorkspaceBackup(false)">
-          Backup
-        </button>
-        <button class="api-tool-btn" type="button" title="Download a full backup with credentials after confirmation" data-test-id="backup-with-secrets" @click="exportWorkspaceBackup(true)">
-          Backup with secrets
-        </button>
-        <button class="api-tool-btn" type="button" title="Restore a backup file from this device" data-test-id="restore-backup" @click="openBackupRestorePicker">
-          Restore
-        </button>
-        <button class="api-tool-btn" type="button" title="Import a Postman v2.1 collection" data-test-id="import-collection" @click="openImportPicker">
-          Import Postman
-        </button>
-        <button class="api-tool-btn" type="button" title="Export this collection as Postman v2.1" data-test-id="export-collection" @click="exportPostman">
-          Export Postman
-        </button>
-        <input
-          ref="filePicker"
-          type="file"
-          accept=".json,application/json"
-          class="api-file-input"
-          data-test-id="import-file"
-          @change="onImportFilePicked"
-        >
-        <input
-          ref="backupFilePicker"
-          type="file"
-          accept=".json,application/json"
-          class="api-file-input"
-          data-test-id="backup-file"
-          @change="onBackupRestoreFilePicked"
-        >
-      </div>
+      <details class="api-data-actions" data-test-id="data-actions">
+        <summary>Import, export &amp; backup</summary>
+        <div class="api-io-row">
+          <button class="api-tool-btn" type="button" title="Download a portable API Studio backup with marked secrets removed" data-test-id="backup-safe" @click="exportWorkspaceBackup(false)">
+            Backup
+          </button>
+          <button class="api-tool-btn" type="button" title="Download a full backup with credentials after confirmation" data-test-id="backup-with-secrets" @click="exportWorkspaceBackup(true)">
+            Backup with secrets
+          </button>
+          <button class="api-tool-btn" type="button" title="Restore a backup file from this device" data-test-id="restore-backup" @click="openBackupRestorePicker">
+            Restore
+          </button>
+          <button class="api-tool-btn" type="button" title="Import a Postman v2.1 collection" data-test-id="import-collection" @click="openImportPicker">
+            Import Postman
+          </button>
+          <button class="api-tool-btn" type="button" title="Export this collection as Postman v2.1" data-test-id="export-collection" @click="exportPostman">
+            Export Postman
+          </button>
+        </div>
+      </details>
+      <input
+        ref="filePicker"
+        type="file"
+        accept=".json,application/json"
+        class="api-file-input"
+        data-test-id="import-file"
+        @change="onImportFilePicked"
+      >
+      <input
+        ref="backupFilePicker"
+        type="file"
+        accept=".json,application/json"
+        class="api-file-input"
+        data-test-id="backup-file"
+        @change="onBackupRestoreFilePicked"
+      >
 
       <section v-if="backupRestore" class="api-import-notes api-backup-preview" data-test-id="backup-restore-preview" aria-label="Backup restore preview">
         <div class="api-import-notes-head">Backup restore preview</div>
@@ -2036,6 +2039,53 @@ function onMenuSelect(key: string, node: TreeNode) {
   gap: 6px;
   padding: var(--api-gap-sm) var(--api-gap);
   border-bottom: 1px solid var(--api-border);
+}
+
+.api-data-actions {
+  flex: 0 0 auto;
+  margin: 0 var(--api-gap) var(--api-gap-sm);
+}
+
+.api-data-actions summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 38px;
+  padding: 0 9px;
+  border: 1px solid var(--api-border);
+  border-radius: var(--api-radius-sm);
+  background: var(--api-surface);
+  color: var(--api-text-soft);
+  font-size: var(--api-fs-xs);
+  font-weight: 600;
+  cursor: pointer;
+  list-style: none;
+}
+
+.api-data-actions summary::-webkit-details-marker {
+  display: none;
+}
+
+.api-data-actions summary::after {
+  content: '+';
+  color: var(--api-primary);
+  font-family: var(--api-font-mono);
+  font-size: var(--api-fs-md);
+  line-height: 1;
+}
+
+.api-data-actions[open] summary::after {
+  content: '−';
+}
+
+.api-data-actions summary:focus-visible {
+  outline: 2px solid var(--api-primary);
+  outline-offset: 2px;
+}
+
+.api-data-actions .api-io-row {
+  padding: 8px 0 0;
+  border-bottom: 0;
 }
 
 .api-tool-btn {
@@ -3462,9 +3512,7 @@ function onMenuSelect(key: string, node: TreeNode) {
   .api-sidebar {
     flex: 0 0 auto;
     width: 100%;
-    height: 32dvh;
-    min-height: 180px;
-    max-height: 280px;
+    height: clamp(184px, 28dvh, 236px);
     overflow: hidden;
     border-right: 0;
     border-bottom: 1px solid var(--api-border);
@@ -3475,7 +3523,7 @@ function onMenuSelect(key: string, node: TreeNode) {
      request editor or intercept its progress/cancel controls. */
   .api-sidebar-head,
   .api-toolbar,
-  .api-io-row,
+  .api-data-actions,
   .api-envbar {
     flex: 0 0 auto;
   }
