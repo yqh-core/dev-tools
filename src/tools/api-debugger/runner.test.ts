@@ -213,6 +213,24 @@ describe('formatCollectionReportText', () => {
     expect(text).not.toContain('content-type');
   });
 
+  it('labels the marked-secret redaction boundary even when the secret is not otherwise present in report fields', async () => {
+    const sum = await runCollection([saved('safe', { url: 'https://x.test/safe' })], {}, async () => resp(), { now: tick() });
+    const report = formatCollectionReportText(sum, { secretValues: ['marked-secret-value'] });
+
+    expect(report).toContain('[REDACTED-Secret]');
+    expect(report).not.toContain('marked-secret-value');
+    expect(report).toContain('matching text is replaced');
+  });
+
+  it('replaces a marked secret when it appears in a reported URL', async () => {
+    const secret = 'marked-secret-value';
+    const sum = await runCollection([saved('secret', { url: `https://x.test/items?token=${secret}` })], {}, async (payload) => resp({ url: payload.url }), { now: tick() });
+    const report = formatCollectionReportText(sum, { secretValues: [secret] });
+
+    expect(report).not.toContain(secret);
+    expect(report).toContain('[REDACTED-Secret]');
+  });
+
   it('empty collection report says so', async () => {
     const sum = await runCollection([], {}, async () => resp(), { now: tick() });
     expect(formatCollectionReportText(sum)).toContain('(collection is empty)');
