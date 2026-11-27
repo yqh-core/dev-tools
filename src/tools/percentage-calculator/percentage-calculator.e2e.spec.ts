@@ -115,6 +115,12 @@ test.describe('Tool - Percentage calculator', () => {
     await page.getByTestId('numberFrom').locator('input').fill('80');
     await page.getByTestId('numberTo').locator('input').fill('92');
     await expect(page.getByTestId('percentage-details-change')).toContainText('(92 − 80) ÷ 80 × 100 = 15%');
+    await page.getByTestId('numberFrom').locator('input').fill('-100');
+    await page.getByTestId('numberTo').locator('input').fill('-90');
+    await expect(page.getByTestId('percentageIncreaseDecrease').locator('input')).toHaveValue('-10');
+    await expect(page.getByTestId('percentage-hint-change')).toContainText('negative baseline');
+    await page.getByTestId('numberTo').locator('input').fill('-110');
+    await expect(page.getByTestId('percentageIncreaseDecrease').locator('input')).toHaveValue('10');
 
     await page.getByRole('button', { name: 'Symmetric percentage difference', exact: true }).click();
     await expect(page.getByTestId('percentage-difference-card')).toBeVisible();
@@ -437,6 +443,12 @@ test.describe('Percentage calculator primary UI Chinese localization', () => {
     await page.getByTestId('numberFrom').locator('input').fill('80');
     await page.getByTestId('numberTo').locator('input').fill('92');
     await expect(page.getByTestId('percentage-details-change')).toContainText('百分比变化为 15%');
+    await page.getByTestId('numberFrom').locator('input').fill('-100');
+    await page.getByTestId('numberTo').locator('input').fill('-90');
+    await expect(page.getByTestId('percentageIncreaseDecrease').locator('input')).toHaveValue('-10');
+    await expect(page.getByTestId('percentage-hint-change')).toContainText('原始值为负数');
+    await page.getByTestId('numberTo').locator('input').fill('-110');
+    await expect(page.getByTestId('percentageIncreaseDecrease').locator('input')).toHaveValue('10');
 
     await page.getByRole('button', { name: '对称百分比差异', exact: true }).click();
     await expect(page.getByTestId('percentage-hint-difference')).toContainText('两个数值都不作为起始基数');

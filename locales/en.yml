@@ -334,7 +334,7 @@ tools:
         percentagePointChange: Rate difference
         percentagePointsUnit: percentage points
       hints:
-        percentageChange: "Percentage change uses the old value as its baseline (denominator). It is undefined when the old value is zero."
+        percentageChange: "Percentage change uses the old value as its signed baseline (denominator) and is undefined when it is zero. With a negative baseline, compare the values directly; the result sign may not match the direction of numeric movement."
         percentageDifference: "Symmetric comparison uses the average of the absolute values of A and B as its denominator; neither value is treated as the baseline."
         percentagePoints: "Example: a rate moving from 4% to 6% changes by +2 percentage points, or +50% relative to the old rate."
     resultDetails:
@@ -454,10 +454,10 @@ tools:
         percentageChange: "Percentage change: ((new value − baseline) ÷ baseline) × 100. Example: 80 → 92 = +15%."
         adjustment: "Increase or decrease: starting value × (1 ± rate ÷ 100). Example: decrease 80 by 15% = 68."
         reverse: "Reverse percentage: final value ÷ (1 ± rate ÷ 100). Example: 120 after a 20% increase means 100 before the increase."
-        percentageDifference: "Symmetric percentage difference: |A − B| ÷ ((|A| + |B|) ÷ 2) × 100. Example: 100 and 150 = 40%."
+        percentageDifference: "Symmetric percentage difference: abs(A − B) ÷ ((abs(A) + abs(B)) ÷ 2) × 100. Example: 100 and 150 = 40%."
         percentagePoints: "Percentage-point change: new rate − old rate. Example: 4% → 6% = +2 percentage points; the relative increase is +50%."
       distinctionsTitle: "Choose the right comparison"
-      changeVsDifference: "Percentage change is directional and uses the original value as its baseline. Symmetric percentage difference compares two values without treating either as the baseline."
+      changeVsDifference: "Percentage change uses the original value as its signed baseline. With a negative baseline, the result sign may not match numeric movement: −100 → −90 = −10%. Compare the values themselves. Symmetric percentage difference compares two values without choosing either as the baseline."
       percentagePointsNote: "Percentage points measure the absolute difference between two rates. Relative percentage change divides that difference by the old rate."
       edgeCasesTitle: "Limits and sequential calculations"
       denominatorLimits: "A zero whole value or zero percentage-change baseline makes that calculation undefined. Reverse percentage is undefined when its adjustment multiplier is zero; symmetric difference is undefined when both inputs are zero."
