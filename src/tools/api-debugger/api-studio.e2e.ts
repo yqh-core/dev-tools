@@ -248,10 +248,16 @@ test('shows live collection progress and structured redacted request outcomes', 
   expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.width);
   await expect(page.locator('.api-editor-empty')).toHaveCount(0);
 
-  await page.getByText('Text report · redacted').click();
+  const textReport = page.locator('.api-run-text-report');
+  await textReport.locator('summary').click();
+  await expect(textReport).toHaveAttribute('open', '');
+  const downloadButton = page.getByTestId('download-run-report');
+  await expect(downloadButton).toBeVisible();
+  await downloadButton.scrollIntoViewIfNeeded();
+  await expect(downloadButton).toBeInViewport();
   const [download] = await Promise.all([
-    page.waitForEvent('download'),
-    page.getByTestId('download-run-report').click(),
+    page.waitForEvent('download', { timeout: 10000 }),
+    downloadButton.click({ timeout: 10000 }),
   ]);
   const reportPath = await download.path();
   expect(reportPath).not.toBeNull();
