@@ -82,6 +82,7 @@ const importWarnings = ref<string[]>([]);
 const backupFilePicker = ref<HTMLInputElement | null>(null);
 const backupRestore = ref<{ backup: ApiStudioBackupV1; preview: ApiStudioBackupPreview } | null>(null);
 const backupRestoreStrategy = ref<BackupRestoreStrategy>('replace');
+const revealedVars = ref<Set<string>>(new Set());
 
 // 拖拽状态：dragId=正在拖的节点；dragOverId+dropPos=当前放置指示（before/after 同级排序，inside 移入 folder）
 const dragId = ref<string | null>(null);
@@ -770,7 +771,6 @@ const newEnvName = ref('');
 const newVarName = ref('');
 const newVarValue = ref('');
 const newVarSecret = ref(false);
-const revealedVars = ref<Set<string>>(new Set());
 
 const selectedEnvStore = computed<EnvStore>(() => ({
   ...envStore.value,
