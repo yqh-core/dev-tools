@@ -28,7 +28,7 @@ test('homepage remains usable at 390px without horizontal overflow', async ({ pa
   await page.screenshot({ path: testInfo.outputPath('homepage-mobile-first-fold.png') });
 });
 
-test('workspace opens at /app and keeps the app shell out of search indexing', async ({ page }) => {
+test('workspace opens at /app and keeps the app shell out of search indexing', async ({ page }, testInfo) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto('/app/');
 
@@ -38,6 +38,12 @@ test('workspace opens at /app and keeps the app shell out of search indexing', a
 
   const robots = await page.locator('meta[name="robots"]').getAttribute('content');
   expect(robots).toBe('noindex,nofollow');
+  const dimensions = await page.evaluate(() => ({
+    documentWidth: document.documentElement.scrollWidth,
+    viewportWidth: document.documentElement.clientWidth,
+  }));
+  expect(dimensions.documentWidth).toBeLessThanOrEqual(dimensions.viewportWidth);
+  await page.screenshot({ path: testInfo.outputPath('workspace-desktop-first-fold.png') });
 });
 
 test('task guides are directly addressable and link back to the workspace', async ({ page }) => {
@@ -46,6 +52,23 @@ test('task guides are directly addressable and link back to the workspace', asyn
   await expect(page.getByRole('heading', { level: 1, name: 'Send your first request' })).toBeVisible();
   await expect(page.getByRole('link', { name: /workspace/i })).toHaveAttribute('href', '/app/');
   await expect(page.getByRole('link', { name: /All guides/i })).toHaveAttribute('href', '/docs/');
+});
+
+
+test('all task guides are directly addressable and have a clear task heading', async ({ page }) => {
+  const guides = [
+    ['/docs/', 'Get from first request to repeatable tests.'],
+    ['/docs/first-request/', 'Send your first request'],
+    ['/docs/collections/', 'Organize requests and environments'],
+    ['/docs/scripts-and-assertions/', 'Turn a response into a test'],
+    ['/docs/privacy/', 'Know where your API data goes'],
+  ] as const;
+
+  for (const [route, heading] of guides) {
+    await page.goto(route);
+    await expect(page.getByRole('heading', { level: 1, name: heading })).toBeVisible();
+    await expect(page.getByRole('link', { name: /API Studio/i }).first()).toHaveAttribute('href', '/');
+  }
 });
 
 test('workspace remains within the mobile viewport and theme control works', async ({ page }, testInfo) => {
