@@ -219,10 +219,16 @@ test('workspace data tools stay secondary behind a keyboard-accessible disclosur
   await summary.focus();
   await page.keyboard.press('Enter');
   await expect(disclosure).toHaveJSProperty('open', true);
+  const dataControls = page.getByRole('group', { name: 'Backup and collection transfer' });
+  await expect(dataControls).toBeVisible();
   for (const id of ['backup-safe', 'backup-with-secrets', 'restore-backup', 'import-collection', 'export-collection']) {
     await expect(page.getByTestId(id)).toBeVisible();
   }
   await page.screenshot({ path: testInfo.outputPath('workspace-data-tools-desktop-expanded.png') });
+
+  await page.getByRole('button', { name: 'Switch to light theme' }).click();
+  await expect(page.locator('.api-studio-shell')).toHaveAttribute('data-api-theme', 'light');
+  await expect(dataControls).toBeVisible();
 
   await summary.focus();
   await page.keyboard.press('Enter');
@@ -239,6 +245,10 @@ test('workspace data disclosure preserves first-request priority on a 390px scre
   await expect(summary).toBeVisible();
   await expect(page.getByTestId('create-first-request')).toBeVisible();
   await expect(page.getByTestId('env-bar')).toBeVisible();
+  for (const id of ['add-request', 'add-folder', 'run-collection']) {
+    const target = await page.getByTestId(id).boundingBox();
+    expect(target?.height ?? 0).toBeGreaterThanOrEqual(44);
+  }
   await page.screenshot({ path: testInfo.outputPath('workspace-data-tools-mobile-collapsed.png') });
 
   await summary.focus();
@@ -247,6 +257,10 @@ test('workspace data disclosure preserves first-request priority on a 390px scre
   await expect(page.getByTestId('backup-safe')).toBeVisible();
   await expect(page.getByTestId('import-collection')).toBeVisible();
   await expect(page.getByTestId('create-first-request')).toBeVisible();
+  for (const id of ['backup-safe', 'backup-with-secrets', 'restore-backup', 'import-collection', 'export-collection']) {
+    const target = await page.getByTestId(id).boundingBox();
+    expect(target?.height ?? 0).toBeGreaterThanOrEqual(44);
+  }
   const geometry = await page.evaluate(() => ({
     documentWidth: document.documentElement.scrollWidth,
     viewportWidth: document.documentElement.clientWidth,
