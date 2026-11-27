@@ -930,16 +930,30 @@ test('offers a keyboard-accessible manual retry only after a relay failure', asy
     attempts += 1;
     if (attempts === 1) {
       return route.fulfill({
-        status: 400,
+        status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({ error: 'Invalid request configuration.' }),
+        body: JSON.stringify({
+          url: 'https://api.test/retry?force400=1',
+          status: 400,
+          statusText: 'Bad Request',
+          headers: { 'content-type': 'application/json' },
+          body: '{"error":"Invalid request configuration."}',
+          elapsedMs: 9,
+        }),
       });
     }
     if (attempts === 2) {
       return route.fulfill({
-        status: 503,
+        status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({ error: 'Upstream service temporarily unavailable.' }),
+        body: JSON.stringify({
+          url: 'https://api.test/retry',
+          status: 503,
+          statusText: 'Service Unavailable',
+          headers: { 'content-type': 'application/json' },
+          body: '{"error":"Upstream service temporarily unavailable."}',
+          elapsedMs: 11,
+        }),
       });
     }
     return route.fulfill({
@@ -969,8 +983,9 @@ test('offers a keyboard-accessible manual retry only after a relay failure', asy
   await page.getByTestId('editor-url').press('Tab');
   await page.getByTestId('send-request').click();
 
-  // A non-transient 4xx needs input correction, not a repeated request.
-  await expect(page.getByTestId('single-send-error')).toContainText('Invalid request configuration.');
+  // The relay wraps the upstream 400 in a 200 JSON envelope. It is visible,
+  // but repeating a non-transient 4xx cannot fix the request.
+  await expect(page.getByTestId('single-response')).toContainText('400 Bad Request');
   await expect(page.getByTestId('retry-send')).toHaveCount(0);
   expect(attempts).toBe(1);
 
@@ -978,7 +993,8 @@ test('offers a keyboard-accessible manual retry only after a relay failure', asy
   await page.getByTestId('editor-url').press('Tab');
   await page.getByTestId('send-request').click();
 
-  await expect(page.getByTestId('single-send-error')).toContainText('Upstream service temporarily unavailable.');
+  // The actual relay returns HTTP 200 with the upstream 503 in the JSON payload.
+  await expect(page.getByTestId('single-response')).toContainText('503 Service Unavailable');
   const retry = page.getByTestId('retry-send');
   await expect(retry).toBeVisible();
   await expect(retry).toHaveText('Retry request');
