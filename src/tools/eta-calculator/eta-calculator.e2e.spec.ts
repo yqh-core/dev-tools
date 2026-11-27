@@ -176,6 +176,8 @@ test.describe('ETA Calculator observed pace Chinese localization', () => {
     await fill('eta-total', '500');
     await fill('eta-completed', '200');
     await fill('eta-elapsed-hours', '2');
+    await fill('eta-elapsed-minutes', '0');
+    await fill('eta-elapsed-seconds', '0');
 
     await expect(page.getByTestId('eta-observed-rate')).toContainText('100');
     await expect(page.getByTestId('eta-observed-rate')).toContainText('\u6761\u8BB0\u5F55/\u5C0F\u65F6');
@@ -190,7 +192,7 @@ test('ETA Calculator uses one explicit work unit across inputs, progress and res
 
   const unit = page.getByTestId('eta-unit-name');
   await expect(unit).toHaveValue('records');
-  await expect(page.getByTestId('eta-total')).toContainText('12000');
+  await expect(page.getByTestId('eta-total').locator('input')).toHaveValue('12000');
   await expect(page.getByTestId('eta-remaining')).toContainText('records');
   await expect(page.getByTestId('eta-observed-rate')).toContainText('records/hour');
 
@@ -331,7 +333,7 @@ test.describe('ETA Calculator weekday schedule in the device timezone', () => {
     await fill('eta-completed', '0');
     await page.getByTestId('eta-schedule-weekdays').click();
     await expect(page.getByTestId('eta-finish-local')).toContainText('Nov 24, 2026');
-    await expect(page.getByTestId('eta-finish-local')).toContainText('09:10');
+    await expect(page.getByTestId('eta-finish-local')).toContainText('9:10 AM');
 
     await page.getByTestId('eta-schedule-calendar').click();
     await expect(page.getByTestId('eta-finish-local')).toContainText('Nov 23, 2026');
