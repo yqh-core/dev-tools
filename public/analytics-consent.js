@@ -145,6 +145,20 @@
     root.appendChild(message);
     root.appendChild(actions);
   }
+  function observeHomePlacement() {
+    if (typeof MutationObserver === 'undefined' || !document.body) return;
+    var observer = new MutationObserver(function () {
+      var current = readConsent();
+      if (current === 'accepted' || current === 'rejected') return;
+      var root = document.getElementById('digdevbox-analytics-consent');
+      var homeHero = document.querySelector('.home-hero');
+      if (!root || !homeHero) return;
+      if (root.dataset.placement !== 'home-inline' || root.previousElementSibling !== homeHero) {
+        renderPrompt(root, false);
+      }
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+  }
   function trackRoute() { window.setTimeout(function () { pageView(); render(); }, 0); }
   ['pushState', 'replaceState'].forEach(function (method) {
     var original = history[method];
