@@ -34,7 +34,7 @@ function retryAfter(seconds, reason) {
 async function ensureCleanupAlarm(storage, now) {
   const existing = await storage.getAlarm();
   if (existing === null || existing <= now) {
-    await storage.setAlarm(now + WINDOW_MS);
+    await storage.setAlarm(now + LEASE_TTL_MS);
   }
 }
 
@@ -184,7 +184,7 @@ export async function cleanupRateLimitState(storage) {
     const now = Date.now();
 
     if (!stored) {
-      await storage.setAlarm(now + WINDOW_MS);
+      await storage.deleteAll();
       return;
     }
 
@@ -203,6 +203,6 @@ export async function cleanupRateLimitState(storage) {
       ...timestamps.map(timestamp => timestamp + WINDOW_MS),
       ...leases.map(lease => lease.expiresAt),
     ];
-    await storage.setAlarm(Math.max(now + 1_000, ...expirations));
+    await storage.setAlarm(Math.max(now + 1_000, Math.min(...expirations)));
   });
 }
