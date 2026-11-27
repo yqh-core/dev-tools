@@ -26,7 +26,7 @@ The Git-connected Cloudflare project uses the regular `pnpm run build` command. 
 
 All routes on this branch Preview are forced to `noindex,nofollow`; robots.txt disallows the whole Preview; no production canonical URLs or sitemap are emitted. When the branch is merged, `CF_PAGES_BRANCH=main` selects the original DigDevBox Main build, so the Main production output stays unchanged.
 
-This branch Preview is a rendered product preview only. It does not create the final separate Pages project, choose the registrable domain or change production DNS.
+This branch Preview is a rendered product preview only. It does not create the final separate Pages project, choose the registrable domain or change production DNS. The branch selector relies on Cloudflare's documented `CF_PAGES=1` and `CF_PAGES_BRANCH` variables: https://developers.cloudflare.com/pages/configuration/build-configuration/.
 
 ## Independent Cloudflare Pages project
 
