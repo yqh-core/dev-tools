@@ -16,10 +16,8 @@ site:
 home:
   hero:
     title: "Free Online Developer Tools"
-    # S2 裁定：不笼统宣称 browser-only（whois/http-status-checker/today-in-history 需联网）。
-    # browser 能力表述只允许带限定语（by default / a few require a network query），
-    # 与首页 Privacy 区块的分层声明同口径。
-    subtitle: "Format JSON, decode JWTs, test regex, convert data and debug HTTP — {count} developer tools for real workflows. Tools run locally in your browser by default; a few require a network query."
+    # Describe local execution and network-backed tasks separately; avoid blanket browser-only claims.
+    subtitle: "Format JSON, decode JWTs, test regex and debug HTTP — {count} developer tools for real workflows. Most tasks run in your browser; network-backed tasks use the required service or relay."
     badgeFree: "Free"
     badgeNoSignup: "No signup"
     badgeTools: "{count} tools"
@@ -61,7 +59,7 @@ home:
         description: "Check a URL's HTTP response, review header references, calculate IPv4 subnets and query domain records."
   why:
     title: "Why DigDevBox"
-    point1: "Fast: tools load in your browser with no round trip to a server."
+    point1: "Fast: local tasks run in your browser without a server round trip; network-backed tasks connect only when needed."
     point2: "Private: your input stays on your machine for every tool that can work locally."
     point3: "No signup: no account, no email, no paywall — open a tool and use it."
     point4: "Browser based: nothing to install, nothing to configure."
