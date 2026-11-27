@@ -102,6 +102,7 @@ test.describe('Tool - Percentage calculator', () => {
     await expect(guide).toContainText('Percentage formulas and common pitfalls');
     await expect(guide).toContainText('Results use up to 12 significant digits. This is display precision, not currency-specific rounding.');
     await expect(guide).toContainText('28% off overall, not 30%');
+    await expect(guide).toContainText('the result sign may not match whether the new value is numerically higher or lower');
     await expect(page.locator('.percentage-mode-button')).toHaveCount(7);
 
     await page.getByRole('button', { name: 'Percentage change from old to new', exact: true }).click();
@@ -433,6 +434,7 @@ test.describe('Percentage calculator primary UI Chinese localization', () => {
     await expect(guide).toContainText('百分比公式与常见误区');
     await expect(guide).toContainText('最多显示 12 位有效数字');
     await expect(guide).toContainText('百分点');
+    await expect(guide).toContainText('结果的正负号不一定对应数值实际升高或降低');
     await expect(guide).not.toContainText('How to calculate a percentage');
 
     await page.getByRole('button', { name: '计算从原始值到新值的百分比变化', exact: true }).click();
