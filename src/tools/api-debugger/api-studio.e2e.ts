@@ -87,8 +87,7 @@ test('creates a blank first request from the empty state without sending it', as
     await page.goto(new URL('/api-studio', baseUrl).toString());
     const emptyState = page.locator('.api-editor-empty');
     await expect(emptyState).toBeVisible();
-    const createButton = page.getByTestId('create-first-request');
-    await expect(createButton).toHaveRole('button');
+    const createButton = page.getByRole('button', { name: 'Create your first request' });
     await expect(createButton).toHaveText('Create your first request');
     await expect(createButton).toBeEnabled();
     await expect(page.locator('.api-editor-note')).toHaveText(
