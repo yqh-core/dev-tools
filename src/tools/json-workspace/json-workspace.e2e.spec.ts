@@ -2,8 +2,9 @@ import { expect, test } from '@playwright/test';
 
 test.describe('JSON Workspace first-use privacy and hierarchy', () => {
   test.beforeEach(async ({ page }) => {
-    await page.addInitScript(() => localStorage.clear());
     await page.goto('/json-workspace');
+    await page.evaluate(() => localStorage.clear());
+    await page.reload();
   });
 
   test('discloses local persistence and share-link contents before the action', async ({ page }) => {
@@ -18,6 +19,8 @@ test.describe('JSON Workspace first-use privacy and hierarchy', () => {
     await expect(shareWarning).toContainText('anyone with the link can read it');
     await expect(shareWarning).toContainText('8,192 characters');
     await expect(shareButton).toBeVisible();
+    await shareButton.focus();
+    await expect(shareButton).toBeFocused();
 
     const warningAppearsBeforeAction = await shareWarning.evaluate((element) => {
       const button = document.querySelector('[data-test-id="share-link"]');
@@ -63,6 +66,10 @@ test.describe('JSON Workspace first-use privacy and hierarchy', () => {
     const input = page.getByTestId('json-input');
     await input.fill('{"user":"Ada","active":true}');
     await expect(input).toHaveValue('{"user":"Ada","active":true}');
+    await expect.poll(async () => page.evaluate(() => {
+      const raw = localStorage.getItem('json-workspace:pipeline-v1');
+      return raw ? JSON.parse(raw)[0]?.inputOverride : null;
+    })).toBe('{"user":"Ada","active":true}');
 
     await page.reload();
 
