@@ -394,13 +394,11 @@ const displayedObservedRate = computed(() => {
       </n-button>
     </div>
 
-
     <template v-if="calculationMode === 'rate'">
       <div flex gap-2>
-        <div flex-1>
-          <p mb-1 text-sm>{{ $t('tools.eta-calculator.remainingWorkStartTime') }}</p>
+        <n-form-item :label="$t('tools.eta-calculator.remainingWorkStartTime')" flex-1>
           <n-date-picker v-model:value="startedAt" type="datetime" data-test-id="eta-start-time" />
-        </div>
+        </n-form-item>
         <n-form-item :label="$t('tools.eta-calculator.bufferLabel')" flex-1>
           <n-input-number
             v-model:value="bufferPercent"
