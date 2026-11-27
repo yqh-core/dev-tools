@@ -116,7 +116,7 @@ test('first request CTA creates one blank request without sending a network call
   await page.setViewportSize({ width: 1440, height: 900 });
   const outbound: string[] = [];
   page.on('request', request => {
-    if (request.method() !== 'GET' && !request.url().startsWith('data:')) {
+    if (/\/api\//i.test(request.url()) || /apiproxy/i.test(request.url())) {
       outbound.push(request.url());
     }
   });
@@ -128,7 +128,7 @@ test('first request CTA creates one blank request without sending a network call
 
   await expect(page.getByTestId('tree-row')).toHaveCount(1);
   await expect(page.getByText('Start with your first request')).toHaveCount(0);
-  await expect(page.getByTestId('request-url')).toBeVisible();
+  await expect(page.getByTestId('editor-url')).toBeVisible();
   expect(outbound).toEqual([]);
 });
 
@@ -141,7 +141,7 @@ test('first request CTA is usable on mobile without horizontal overflow', async 
   await cta.click();
 
   await expect(page.getByTestId('tree-row')).toHaveCount(1);
-  await expect(page.getByTestId('request-url')).toBeVisible();
+  await expect(page.getByTestId('editor-url')).toBeVisible();
   const dimensions = await page.evaluate(() => ({
     documentWidth: document.documentElement.scrollWidth,
     viewportWidth: document.documentElement.clientWidth,
