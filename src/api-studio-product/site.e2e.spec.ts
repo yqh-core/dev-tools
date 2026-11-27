@@ -8,7 +8,7 @@ test('product homepage explains the task and shows one primary workspace action'
   await expect(page.getByRole('link', { name: /Open API Studio/i }).first()).toHaveAttribute('href', '/app/');
   await expect(page.getByText(/GUIDED PREVIEW · SAMPLE DATA/i)).toBeVisible();
   await expect(page.getByText(/not a live API call/i)).toBeVisible();
-  await expect(page.getByRole('link', { name: 'Guides' })).toHaveAttribute('href', '/docs/');
+  await expect(page.getByRole('navigation', { name: 'Main navigation' }).getByRole('link', { name: 'Guides' })).toHaveAttribute('href', '/docs/');
 });
 
 test('homepage remains usable at 390px without horizontal overflow', async ({ page }) => {
