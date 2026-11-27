@@ -1,6 +1,6 @@
 import type { Assertion } from './assertions';
 import type { RequestNode } from './collection-tree';
-import { AUTH_HEADER_NAMES, type ApiRequestState, sanitizeForShare } from './engine';
+import { type ApiRequestState, sanitizeForShare } from './engine';
 import { mergeImportedTree, parseCollectionTree, type CollectionNode, type TreeNode, isFolderNode } from './collection-tree';
 import { collectSecretValues, type EnvStore } from './environments';
 
@@ -192,6 +192,17 @@ function validateEnvironments(value: unknown): EnvStore {
     throw new Error('environments.secrets must be a unique array of variable names.');
   }
   return JSON.parse(JSON.stringify(value)) as EnvStore;
+}
+
+
+function urlHasCredentials(raw: string): boolean {
+  try {
+    const url = new URL(raw);
+    return !!url.username || !!url.password;
+  }
+  catch {
+    return false;
+  }
 }
 
 function redactText(input: string, secrets: string[]): { value: string; redacted: number } {
