@@ -430,6 +430,12 @@ export function formatCollectionReportText(summary: CollectionRunSummary, opts: 
     : 'Data file: none (single iteration)';
   lines.push(`Requests: ${summary.sent}/${summary.total} sent, ${summary.failed} failed · Assertions: ${summary.assertionsPassed}/${summary.assertionsTotal} passed · pm.test ${summary.scriptTestsPassed}/${summary.scriptTestsTotal} passed${summary.scriptErrors ? ` · ${summary.scriptErrors} script error(s)` : ''} · Duration ${summary.totalDurationMs} ms${summary.avgResponseMs === null ? '' : ` · Avg ${summary.avgResponseMs} ms`}`);
   lines.push(dataLine);
+  if (sv?.some(value => typeof value === 'string' && value.length > 3)) {
+    lines.push('Security: marked secret values are checked before export; matching text is replaced with [REDACTED-Secret].');
+  }
+  else {
+    lines.push('Security: environment values, response bodies and header values are excluded from this report.');
+  }
   if (summary.cancelled) {
     lines.push('Run cancelled by user.');
   }
