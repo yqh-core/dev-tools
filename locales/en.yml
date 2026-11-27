@@ -715,7 +715,7 @@ tools:
     additionalPauseHelp: Add expected pauses to the finish-time estimate after applying the rate and buffer.
     additionalPauseResult: Additional planned pause time
     deadlineLabel: Target deadline (local time)
-    deadlineHelp: Optional. Compare your current pace with the pace needed to finish by this date and time. Planned pauses and your buffer are included; weekday mode counts only configured Monday-Friday working hours.
+    deadlineHelp: Counts only Monday-Friday time inside your configured local work window between the estimate start and deadline. Planned pauses are subtracted, then the remaining window is divided by (1 + buffer % / 100) to calculate required units/hour.
     requiredPace: Required pace
     currentPace: Current pace
     deadlineOnTrack: Your current pace is sufficient to meet this deadline.
