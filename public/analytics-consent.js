@@ -94,14 +94,14 @@
       manage.type = 'button';
       manage.textContent = 'Privacy choices';
       manage.style.cssText = 'position:fixed;right:12px;bottom:12px;z-index:2147482999;border:1px solid #4b7773;border-radius:999px;padding:8px 12px;background:#102a2a;color:#fff;font:12px system-ui,sans-serif;cursor:pointer';
-      manage.addEventListener('click', function () { renderPrompt(); });
+      manage.addEventListener('click', function () { renderPrompt(root, true); });
       root.appendChild(manage);
       document.body.appendChild(root);
       return;
     }
-    renderPrompt(root);
+    renderPrompt(root, false);
   }
-  function renderPrompt(existing) {
+  function renderPrompt(existing, forceOverlay) {
     var root = existing || document.getElementById('digdevbox-analytics-consent');
     if (!root) {
       root = document.createElement('section');
@@ -109,29 +109,43 @@
       root.setAttribute('aria-label', 'Analytics privacy choices');
     }
     var compact = !!(window.matchMedia && window.matchMedia('(max-width: 600px)').matches);
-    root.style.cssText = compact
-      ? 'position:fixed;z-index:2147483000;left:10px;right:10px;bottom:10px;max-width:720px;margin:0 auto;padding:10px 12px;box-sizing:border-box;background:#102a2a;color:#fff;border:1px solid #4b7773;border-radius:10px;box-shadow:0 8px 28px #0004;font:12px/1.35 system-ui,sans-serif'
-      : 'position:fixed;z-index:2147483000;left:16px;right:16px;bottom:16px;max-width:720px;margin:0 auto;padding:16px 18px;background:#102a2a;color:#fff;border:1px solid #4b7773;border-radius:12px;box-shadow:0 8px 32px #0004;font:14px/1.5 system-ui,sans-serif';
-    if (!root.isConnected) document.body.appendChild(root);
+    var homeHero = forceOverlay ? null : document.querySelector('.home-hero');
+    var inlineHome = !!homeHero;
+    root.dataset.placement = inlineHome ? 'home-inline' : 'fixed-overlay';
+    root.style.cssText = inlineHome
+      ? 'position:relative;z-index:1;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px 16px;width:100%;max-width:720px;margin:16px auto 28px;padding:12px 16px;box-sizing:border-box;background:#102a2a;color:#fff;border:1px solid #4b7773;border-radius:12px;box-shadow:none;font:13px/1.45 system-ui,sans-serif'
+      : compact
+        ? 'position:fixed;z-index:2147483000;left:10px;right:10px;bottom:10px;max-width:720px;margin:0 auto;padding:10px 12px;box-sizing:border-box;background:#102a2a;color:#fff;border:1px solid #4b7773;border-radius:10px;box-shadow:0 8px 28px #0004;font:12px/1.35 system-ui,sans-serif'
+        : 'position:fixed;z-index:2147483000;left:16px;right:16px;bottom:16px;max-width:720px;margin:0 auto;padding:16px 18px;box-sizing:border-box;background:#102a2a;color:#fff;border:1px solid #4b7773;border-radius:12px;box-shadow:0 8px 32px #0004;font:14px/1.5 system-ui,sans-serif';
+    if (inlineHome && homeHero) {
+      homeHero.insertAdjacentElement('afterend', root);
+    } else if (!root.isConnected || root.parentElement !== document.body) {
+      document.body.appendChild(root);
+    }
     root.replaceChildren();
     var message = document.createElement('p');
     message.textContent = 'Optional analytics measures visits and page usage. Tool inputs, files and form contents are never sent. You can reject and keep using the site.';
-    message.style.cssText = compact ? 'margin:0 0 8px' : 'margin:0 0 12px';
+    message.style.cssText = inlineHome
+      ? (compact ? 'flex:1 1 100%;max-width:none;margin:0' : 'flex:1 1 280px;max-width:72ch;margin:0')
+      : (compact ? 'margin:0 0 8px' : 'margin:0 0 12px');
     var actions = document.createElement('div');
-    actions.style.cssText = 'display:flex;gap:8px;flex-wrap:wrap';
+    actions.style.cssText = inlineHome
+      ? (compact ? 'display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%;gap:8px' : 'display:flex;flex:0 0 auto;align-items:center;gap:8px;flex-wrap:wrap')
+      : 'display:flex;gap:8px;flex-wrap:wrap';
     [['Accept analytics','accepted'],['Reject analytics','rejected']].forEach(function (item) {
       var button = document.createElement('button');
       button.type = 'button';
       button.textContent = item[0];
-      button.style.cssText = compact ? 'min-height:44px;border:1px solid #9bc5bf;border-radius:7px;padding:6px 10px;background:transparent;color:#fff;font:12px/1.3 system-ui,sans-serif;cursor:pointer' : 'border:1px solid #9bc5bf;border-radius:7px;padding:8px 12px;background:transparent;color:#fff;font:inherit;cursor:pointer';
+      button.style.cssText = inlineHome
+        ? 'min-height:44px;border:1px solid #9bc5bf;border-radius:7px;padding:8px 12px;background:transparent;color:#fff;font:600 12px/1.3 system-ui,sans-serif;cursor:pointer'
+        : (compact ? 'min-height:44px;border:1px solid #9bc5bf;border-radius:7px;padding:6px 10px;background:transparent;color:#fff;font:12px/1.3 system-ui,sans-serif;cursor:pointer' : 'min-height:44px;border:1px solid #9bc5bf;border-radius:7px;padding:8px 12px;background:transparent;color:#fff;font:inherit;cursor:pointer');
       button.addEventListener('click', function () { saveConsent(item[1]); });
       actions.appendChild(button);
     });
     root.appendChild(message);
     root.appendChild(actions);
-    if (!root.isConnected) document.body.appendChild(root);
   }
-  function trackRoute() { window.setTimeout(pageView, 0); }
+  function trackRoute() { window.setTimeout(function () { pageView(); render(); }, 0); }
   ['pushState', 'replaceState'].forEach(function (method) {
     var original = history[method];
     history[method] = function () { var result = original.apply(this, arguments); trackRoute(); return result; };
@@ -144,4 +158,6 @@
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true });
   else init();
+  if (document.body) observeHomePlacement();
+  else document.addEventListener('DOMContentLoaded', observeHomePlacement, { once: true });
 })();
