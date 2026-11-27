@@ -1059,3 +1059,72 @@ test('offers a keyboard-accessible manual retry only after a relay failure', asy
   await expect(page.getByTestId('retry-send')).toHaveCount(0);
   expect(attempts).toBe(3);
 });
+
+test('offers a manual retry when the API relay connection fails', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  const treeSeed = {
+    id: 'network-retry-collection',
+    name: 'Network Retry Demo',
+    items: [{
+      id: 'network-retry-request',
+      name: 'Network retry request',
+      request: {
+        method: 'GET',
+        url: 'https://api.test/network-retry',
+        headers: [],
+        body: '',
+      },
+    }],
+  };
+  await page.addInitScript(
+    ([key, value]) => {
+      if (localStorage.getItem(key) === null) {
+        localStorage.setItem(key, value);
+      }
+    },
+    [TREE_KEY, JSON.stringify(treeSeed)] as [string, string],
+  );
+
+  let attempts = 0;
+  await page.route(/\\/api\\/apiproxy/, async (route) => {
+    attempts += 1;
+    if (attempts === 1) {
+      return route.abort('failed');
+    }
+    return route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        url: 'https://api.test/network-retry',
+        status: 200,
+        statusText: 'OK',
+        headers: { 'content-type': 'application/json' },
+        body: '{"networkRecovered":true}',
+        elapsedMs: 13,
+      }),
+    });
+  });
+
+  await page.goto('/api-studio');
+  await page.getByRole('button', { name: 'Reject analytics' }).click();
+  await page.getByTestId('tree-method').click();
+  await page.getByTestId('send-request').click();
+
+  await expect(page.getByTestId('single-send-error')).toContainText(
+    'Could not reach the API relay. Check your connection and try again.',
+  );
+  const retry = page.getByTestId('retry-send');
+  await expect(retry).toBeVisible();
+  await expect(retry).toHaveText('Retry request');
+  expect(attempts).toBe(1);
+
+  await retry.focus();
+  await expect(retry).toBeFocused();
+  await page.keyboard.press('Enter');
+
+  await expect(page.getByTestId('single-response')).toContainText('200 OK');
+  await expect(page.getByTestId('single-response-body')).toContainText('"networkRecovered": true');
+  await expect(page.getByTestId('single-send-error')).toHaveCount(0);
+  await expect(retry).toHaveCount(0);
+  expect(attempts).toBe(2);
+});

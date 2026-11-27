@@ -1030,7 +1030,7 @@ const runnerSend: SendFn = async (payload) => {
     });
   }
   catch (cause) {
-    const error = new Error(cause instanceof Error ? cause.message : 'The relay connection failed.') as Error & { retryable?: boolean };
+    const error = new Error('Could not reach the API relay. Check your connection and try again.') as Error & { retryable?: boolean };
     error.name = 'RetryableNetworkError';
     error.retryable = true;
     throw error;
