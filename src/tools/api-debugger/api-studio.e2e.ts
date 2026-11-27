@@ -139,6 +139,7 @@ test('runs the nested collection through the relay and reports results', async (
 });
 
 test('shows live collection progress and structured redacted request outcomes', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
   const tree = {
     id: 'runner-progress',
     name: 'Progress Demo',
@@ -211,9 +212,25 @@ test('shows live collection progress and structured redacted request outcomes', 
   await expect(page.getByTestId('run-request-result')).toHaveCount(2);
   await expect(page.getByTestId('run-request-result').nth(0)).toContainText('PASS');
   await expect(page.getByTestId('run-request-result').nth(1)).toContainText('FAIL');
-  await page.getByTestId('run-request-result').nth(1).locator('summary').click();
+  const secondResult = page.getByTestId('run-request-result').nth(1);
+  await secondResult.locator('summary').focus();
+  await page.keyboard.press('Enter');
+  await expect(secondResult).toHaveAttribute('open', '');
   await expect(page.getByTestId('run-result')).not.toContainText('marked-secret-value');
   await expect(page.getByTestId('run-result')).toContainText('[REDACTED-Secret]');
+  const dimensions = await page.evaluate(() => ({ width: window.innerWidth, scrollWidth: document.documentElement.scrollWidth }));
+  expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.width);
+
+  await page.getByText('Text report · redacted').click();
+  const [download] = await Promise.all([
+    page.waitForEvent('download'),
+    page.getByTestId('download-run-report').click(),
+  ]);
+  const reportPath = await download.path();
+  expect(reportPath).not.toBeNull();
+  const downloadedReport = readFileSync(reportPath!, 'utf8');
+  expect(downloadedReport).not.toContain('marked-secret-value');
+  expect(downloadedReport).toContain('[REDACTED-Secret]');
   expect(sentUrls).toEqual([
     'https://api.test/first',
     'https://api.test/second?token=marked-secret-value',
