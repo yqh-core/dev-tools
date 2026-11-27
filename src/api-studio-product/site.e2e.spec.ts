@@ -515,6 +515,9 @@ test('completes the first-request journey from a clean /app origin on desktop an
     // Select "equals" first so the expected value editor is visible.
     await page.getByTestId('assertion-operator').nth(1).click();
     await page.locator('.n-base-select-option').filter({ hasText: /^equals$/ }).click();
+    // A teleported Naive UI menu can remain in its leave transition for one frame.
+    // Ensure no stale popup can cover the later Retry hit target.
+    await expect(page.locator('.n-base-select-menu:visible')).toHaveCount(0);
     await page.getByTestId('assertion-expected').nth(1).fill('42');
     await page.getByTestId('assertion-expected').nth(1).press('Tab');
     await expect(page.getByTestId('assertion-row')).toHaveCount(2);
@@ -543,18 +546,44 @@ test('completes the first-request journey from a clean /app origin on desktop an
     const retryBox = await retry.boundingBox();
     expect(retryBox).not.toBeNull();
     if (viewport.name === 'mobile') {
+      await expect(retry).toHaveCSS('min-height', '44px');
       expect(retryBox!.height).toBeGreaterThanOrEqual(44);
-      const retryReceivesPointer = await retry.evaluate((element) => {
-        // elementFromPoint expects viewport coordinates. Read the DOM rect after
-        // scrolling instead of mixing it with Playwright's frame-relative box.
+      await page.screenshot({ path: testInfo.outputPath('first-request-mobile-503-before-retry.png') });
+      const retryHitTest = await retry.evaluate((element) => {
+        // Read a viewport-relative DOM rect after scroll. Return the hit element
+        // details so a failure identifies an actual overlapping surface.
         const rect = element.getBoundingClientRect();
-        const hitTarget = document.elementFromPoint(
-          rect.left + rect.width / 2,
-          rect.top + rect.height / 2,
-        );
-        return hitTarget === element || Boolean(hitTarget && element.contains(hitTarget));
+        const x = rect.left + rect.width / 2;
+        const y = rect.top + rect.height / 2;
+        const hitTarget = document.elementFromPoint(x, y);
+        return {
+          receivesPointer: hitTarget === element || Boolean(hitTarget && element.contains(hitTarget)),
+          hitTag: hitTarget?.tagName ?? null,
+          hitClass: typeof hitTarget?.className === 'string' ? hitTarget.className : '',
+          hitTestId: hitTarget?.getAttribute('data-test-id') ?? null,
+          hitText: hitTarget?.textContent?.trim().slice(0, 100) ?? '',
+          rect: { left: rect.left, top: rect.top, width: rect.width, height: rect.height },
+          viewport: { width: window.innerWidth, height: window.innerHeight },
+          scroll: { x: window.scrollX, y: window.scrollY },
+          openMenus: Array.from(document.querySelectorAll('.n-base-select-menu'))
+            .filter(menu => {
+              const style = getComputedStyle(menu);
+              return style.display !== 'none' && style.visibility !== 'hidden' && Number(style.opacity) > 0;
+            })
+            .map(menu => ({
+              className: menu.className,
+              rect: (() => {
+                const box = menu.getBoundingClientRect();
+                return { left: box.left, top: box.top, width: box.width, height: box.height };
+              })(),
+            })),
+        };
       });
-      expect(retryReceivesPointer).toBe(true);
+      await testInfo.attach('retry-pointer-hit-test.json', {
+        body: JSON.stringify(retryHitTest, null, 2),
+        contentType: 'application/json',
+      });
+      expect(retryHitTest.receivesPointer, JSON.stringify(retryHitTest)).toBe(true);
     }
     const retryViewportGeometry = await page.evaluate(() => ({
       documentWidth: document.documentElement.scrollWidth,
