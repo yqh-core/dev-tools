@@ -2538,6 +2538,12 @@ function onMenuSelect(key: string, node: TreeNode) {
   color: var(--api-text);
 }
 
+/* Retry is a high-consequence action on a mobile request editor: keep a 44px touch target. */
+.api-error-retry {
+  min-height: 44px;
+  padding-inline: 12px;
+}
+
 .api-field-hint {
   color: var(--api-text-faint);
   font-size: var(--api-fs-xs);
