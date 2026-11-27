@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { IpRateLimiter } from '../../workers/api-relay-limiter/src/index.js';
+import { handleRateLimitRequest } from '../../workers/api-relay-limiter/src/limiter.js';
 
 class MemoryStorage {
   constructor() {
@@ -37,6 +37,9 @@ function request(path, leaseId) {
 
 let storage;
 let limiter;
+function createLimiter() {
+  return { fetch: request => handleRateLimitRequest(storage, request) };
+}
 let sequence;
 
 async function acquire() {
@@ -54,7 +57,7 @@ beforeEach(() => {
   vi.useFakeTimers();
   vi.setSystemTime(new Date('2026-11-27T06:00:00.000Z'));
   storage = new MemoryStorage();
-  limiter = new IpRateLimiter({ storage });
+  limiter = createLimiter();
   sequence = 0;
 });
 
@@ -142,7 +145,7 @@ describe('API relay Durable Object rate limiter', () => {
       await release(result.leaseId);
     }
 
-    limiter = new IpRateLimiter({ storage });
+    limiter = createLimiter();
     const blocked = await acquire();
     expect(blocked.response.status).toBe(429);
     expect(blocked.body.reason).toBe('burst');
