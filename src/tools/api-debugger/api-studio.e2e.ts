@@ -315,7 +315,19 @@ test('cancels a collection after the in-flight request finishes and does not sen
   await page.getByTestId('run-collection').click();
   await firstStarted;
   await expect(page.getByTestId('run-current-request')).toContainText('Slow first');
-  await page.getByTestId('cancel-run').click();
+  const cancelRun = page.getByTestId('cancel-run');
+  await expect(cancelRun).toBeVisible();
+  await expect(cancelRun).toBeInViewport();
+  const cancelBounds = await cancelRun.boundingBox();
+  expect(cancelBounds).not.toBeNull();
+  const cancelReceivesPointer = await page.evaluate(({ x, y }) => {
+    return Boolean(document.elementFromPoint(x, y)?.closest('[data-test-id="cancel-run"]'));
+  }, {
+    x: cancelBounds!.x + cancelBounds!.width / 2,
+    y: cancelBounds!.y + cancelBounds!.height / 2,
+  });
+  expect(cancelReceivesPointer, 'The mobile sidebar must not cover the collection cancel control.').toBe(true);
+  await cancelRun.click();
   await expect(page.getByTestId('run-cancel-note')).toContainText('current request or script will finish or time out');
   finishFirst();
 
