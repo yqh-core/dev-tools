@@ -97,7 +97,7 @@ describe('API Debugger collection runner guide accuracy', () => {
     expect(guide.steps.join(' ')).toContain('独立 Worker');
     expect(guide.steps.join(' ')).toContain('CSV 文件');
     expect(notes).toContain('5,000 条数据行');
-    expect(notes).toContain('不是完整 Postman/Newman 兼容');
+    expect(notes).toContain('不能称为完整 Postman/Newman 兼容');
     expect(notes).toContain('经中继发送到所选目标');
     expect(article).toContain('大于行数时循环使用数据行');
     expect(faq).toContain('经过测试的 pm.* API 子集');
