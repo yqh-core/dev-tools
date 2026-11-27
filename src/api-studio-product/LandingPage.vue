@@ -156,7 +156,7 @@ const currentDemoStep = computed(() => demoSteps[activeDemoStep.value] ?? demoSt
           <div id="guided-demo-detail" class="guided-demo-detail" aria-live="polite" aria-atomic="true">
             <div class="guided-demo-detail-meta">
               <span>STEP {{ currentDemoStep.number }}</span>
-              <span>GUIDED PREVIEW · SAMPLE DATA</span>
+              <span>ILLUSTRATIVE · NO LIVE REQUEST</span>
             </div>
             <h3>{{ currentDemoStep.title }}</h3>
             <p>{{ currentDemoStep.description }}</p>
