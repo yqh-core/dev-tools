@@ -148,7 +148,6 @@ test('first request CTA is usable on mobile without horizontal overflow', async 
   expect(dimensions.documentWidth).toBeLessThanOrEqual(dimensions.viewportWidth);
 });
 
-
 test('homepage guided walkthrough is keyboard-operable and updates its step copy', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto('/');
