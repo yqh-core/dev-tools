@@ -3530,8 +3530,8 @@ function onMenuSelect(key: string, node: TreeNode) {
 
   .api-sidebar:has(.api-data-disclosure[open]) {
     box-sizing: border-box;
-    height: min(50dvh, 400px);
-    max-height: 400px;
+    height: min(50dvh, 399px);
+    max-height: 399px;
   }
 
   /* Keep high-frequency request/environment controls visible while the tree
