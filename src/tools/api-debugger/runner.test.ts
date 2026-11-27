@@ -163,6 +163,26 @@ describe('runCollection control flow', () => {
     expect(seen).toEqual([[0, 2], [1, 2]]);
   });
 
+  it('announces each request after substitution and before sending it', async () => {
+    const events: string[] = [];
+    const send: SendFn = async (payload) => {
+      events.push(`send:${payload.method}:${payload.url}`);
+      return resp({ url: payload.url });
+    };
+    await runCollection([saved('first'), saved('second')], {}, send, {
+      now: tick(),
+      onRequestStart: (request, index, total) => {
+        events.push(`start:${index + 1}/${total}:${request.name}:${request.method}:${request.url}`);
+      },
+    });
+    expect(events).toEqual([
+      'start:1/2:first:GET:https://x.test/first',
+      'send:GET:https://x.test/first',
+      'start:2/2:second:GET:https://x.test/second',
+      'send:GET:https://x.test/second',
+    ]);
+  });
+
   it('computes duration and average response time', async () => {
     let t = 1000;
     const now = () => t;
