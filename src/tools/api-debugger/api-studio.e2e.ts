@@ -1006,15 +1006,24 @@ test('offers a keyboard-accessible manual retry only after a relay failure', asy
   // The request is never replayed automatically. At mobile width, the editor
   // must retain real viewport height and the retry action must be visible and reachable.
   await page.setViewportSize({ width: 390, height: 844 });
-  const dimensions = await page.evaluate(() => ({
-    viewport: document.documentElement.clientWidth,
-    document: document.documentElement.scrollWidth,
-  }));
+  const dimensions = await page.evaluate(() => {
+    const workspace = document.querySelector('.api-workspace')?.getBoundingClientRect();
+    const editor = document.querySelector('.api-editor')?.getBoundingClientRect();
+    return {
+      viewport: document.documentElement.clientWidth,
+      document: document.documentElement.scrollWidth,
+      viewportHeight: window.innerHeight,
+      workspaceBottom: workspace?.bottom ?? 0,
+      editorBottom: editor?.bottom ?? 0,
+      editorHeight: editor?.height ?? 0,
+    };
+  });
   expect(dimensions.document).toBeLessThanOrEqual(dimensions.viewport);
+  expect(dimensions.editorHeight).toBeGreaterThan(300);
+  expect(dimensions.workspaceBottom).toBeGreaterThanOrEqual(dimensions.viewportHeight - 1);
+  expect(dimensions.editorBottom).toBeGreaterThanOrEqual(dimensions.viewportHeight - 1);
 
   const editor = page.locator('.api-editor');
-  const editorBounds = await editor.boundingBox();
-  expect(editorBounds?.height ?? 0).toBeGreaterThan(300);
   await expect(page.getByTestId('single-response')).toBeVisible();
   await retry.scrollIntoViewIfNeeded();
   await expect(retry).toBeVisible();
