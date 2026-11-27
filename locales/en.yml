@@ -781,6 +781,7 @@ tools:
       segments: "Expected a three-part compact JWT/JWS: Header.Payload.Signature. Five-part encrypted JWE tokens are not supported."
       base64url: "The compact segments must use the Base64URL alphabet without spaces or padding."
       decode: "The Header and Payload must each be a valid Base64URL-encoded JSON object."
+      decodeFallback: "The token could not be decoded. Check its compact JWT/JWS structure and the Base64URL JSON objects in the Header and Payload."
 
   date-converter:
     title: Date Converter — Formats, Time Zones and ISO 8601
