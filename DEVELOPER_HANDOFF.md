@@ -179,3 +179,10 @@ Older #241 failure/IN_PROGRESS notes above are historical and superseded by this
 - PR #244 changes mobile hero spacing and preview density; only undecided Main homepage consent is in-flow after hero. Other routes keep fixed consent. Accept/Reject, `digdevbox.analytics-consent.v1`, default-denied GA behavior and Privacy choices reopening remain. No relay/Worker/Cloudflare account changes.
 - Issue #231 comment #7217588490 has measurements and scope; comment #7217856270 has implementation detail. Do not merge until exact-head CI/Verify/Preview and visual screenshot acceptance all pass.
 - Issue #221 remains OPEN; shared production limiter not enabled. API Studio brand/domain #219 and separate Pages host/migration #214 remain separate gates.
+### Current Main homepage PR — 2026-11-27 (latest exact head)
+
+- Draft PR #244 / Issue #231 current head `6553b4160a5ed8e9236d44a82c5c097b4dd5ae45`.
+- Earlier head `110745c` reached browser E2E; one test measured the mobile inline consent panel at 157px vs the ≤150px acceptance cap. The rest of that browser suite passed. Unit tests also reported queued observer callbacks against disposed jsdom state.
+- Current head reduces inline mobile consent copy size, padding, gaps and margins while keeping both buttons at 44px; observer now disconnects when its captured document/window is disposed/replaced. It also adds a SPA navigation home→tools placement test.
+- CI #45998083617 and Verify/Build #45998083508 are pending/in progress; exact-head Preview pending. Earlier SHA preview/status must not be substituted. Do not merge until exact-head browser tests, all workflows, preview, and screenshots pass.
+- API Studio PR #241 and Main nav PR #243 remain merged and verified as recorded above.
