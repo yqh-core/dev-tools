@@ -566,11 +566,11 @@ test('completes the first-request journey from a clean /app origin on desktop an
           viewport: { width: window.innerWidth, height: window.innerHeight },
           scroll: { x: window.scrollX, y: window.scrollY },
           openMenus: Array.from(document.querySelectorAll('.n-base-select-menu'))
-            .filter(menu => {
+            .filter((menu) => {
               const style = getComputedStyle(menu);
               return style.display !== 'none' && style.visibility !== 'hidden' && Number(style.opacity) > 0;
             })
-            .map(menu => ({
+            .map((menu) => ({
               className: menu.className,
               rect: (() => {
                 const box = menu.getBoundingClientRect();
