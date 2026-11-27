@@ -61,8 +61,9 @@ const methods = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'];
   display: flex;
   flex-direction: column;
   width: 100%;
-  height: 100%;
-  min-height: 0;
+  height: 100vh;
+  height: 100dvh;
+  min-height: 100dvh;
   overflow: hidden;
 }
 .api-topbar {
