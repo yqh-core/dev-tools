@@ -238,6 +238,7 @@ test('shows live collection progress and structured redacted request outcomes', 
   // carries the explicit [REDACTED-Secret] marker for copied/exported diagnostics.
   const dimensions = await page.evaluate(() => ({ width: window.innerWidth, scrollWidth: document.documentElement.scrollWidth }));
   expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.width);
+  await expect(page.locator('.api-editor-empty')).toHaveCount(0);
 
   await page.getByText('Text report · redacted').click();
   const [download] = await Promise.all([
