@@ -234,6 +234,13 @@ describe('API relay Durable Object rate limiter', () => {
     expect(results.filter(result => result.body.reason === 'concurrency')).toHaveLength(6);
   });
 
+  it('fails closed if stored limiter state has an invalid shape', async () => {
+    await storage.put('rate-limit-state', { timestamps: ['not-a-timestamp'], leases: [] });
+    const blocked = await acquire();
+    expect(blocked.response.status).toBe(503);
+    expect(blocked.body).toEqual({ allowed: false, reason: 'state_unavailable' });
+  });
+
   it('rejects methods, routes, oversized and malformed internal messages', async () => {
     const get = await limiter.fetch(new Request('https://limiter.internal/acquire'));
     expect(get.status).toBe(405);
