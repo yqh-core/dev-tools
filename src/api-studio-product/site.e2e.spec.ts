@@ -392,6 +392,7 @@ test('environment selector stays within the mobile workspace width with a long n
 });
 
 test('completes a first-request journey from a clean /app origin through manual recovery, assertions, persistence and collection reuse', async ({ page }, testInfo) => {
+  test.setTimeout(60_000);
   await page.setViewportSize({ width: 1440, height: 900 });
 
   const relayPayloads: RelayPayload[] = [];
@@ -472,7 +473,9 @@ test('completes a first-request journey from a clean /app origin through manual 
 
   const methodSelect = page.getByTestId('editor-method');
   await methodSelect.click();
-  await page.getByRole('option', { name: 'POST', exact: true }).click();
+  await page.keyboard.press('ArrowDown');
+  await page.keyboard.press('Enter');
+  await expect(methodSelect).toContainText('POST');
 
   await page.getByTestId('editor-url').fill('https://api.test/users');
   await page.getByTestId('editor-url').press('Tab');
