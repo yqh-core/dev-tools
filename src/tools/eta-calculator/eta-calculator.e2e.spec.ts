@@ -37,6 +37,20 @@ test('ETA Calculator leads with task samples and loads the matching inputs', asy
   await expect(page.getByTestId('eta-duration')).toBeVisible();
 });
 
+test('ETA Calculator scenario controls are keyboard-operable and expose focus', async ({ page }) => {
+  await page.goto('/eta-calculator');
+  const build = page.getByTestId('eta-scenario-build');
+  await build.focus();
+  await expect(build).toBeFocused();
+  await page.keyboard.press('Enter');
+  await expect(page.getByTestId('eta-total').locator('input')).toHaveValue('240');
+  await page.keyboard.press('Tab');
+  await expect(page.getByTestId('eta-scenario-migration')).toBeFocused();
+  const total = page.getByTestId('eta-total').locator('input');
+  await total.focus();
+  await expect(total).toBeFocused();
+});
+
 test('ETA Calculator projects remaining work and adds an optional buffer', async ({ page }) => {
   await page.goto('/eta-calculator');
   const fill = async (id: string, value: string) => {
@@ -258,6 +272,7 @@ test('ETA Calculator captures readable mobile and desktop task layouts', async (
     content: document.documentElement.scrollWidth,
   }));
   expect(dimensions.content).toBeLessThanOrEqual(dimensions.viewport + 1);
+  await page.mouse.move(0, 0);
   await page.screenshot({ path: testInfo.outputPath('eta-calculator-mobile.png'), fullPage: true });
 
   await page.setViewportSize({ width: 1440, height: 900 });
@@ -267,6 +282,7 @@ test('ETA Calculator captures readable mobile and desktop task layouts', async (
     content: document.documentElement.scrollWidth,
   }));
   expect(dimensions.content).toBeLessThanOrEqual(dimensions.viewport + 1);
+  await page.mouse.move(0, 0);
   await page.screenshot({ path: testInfo.outputPath('eta-calculator-desktop.png'), fullPage: true });
 });
 
