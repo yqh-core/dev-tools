@@ -131,7 +131,7 @@ test('keeps analytics denied after Reject and allows users to reopen privacy cho
       analyticsRequests.push(request.url());
     }
   });
-  await page.route('https://www.googletagmanager.com/**', (route) => route.abort());
+  await page.route('https://www.googletagmanager.com/**', route => route.abort());
 
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto('/');
@@ -139,7 +139,7 @@ test('keeps analytics denied after Reject and allows users to reopen privacy cho
   await expect(consent).toHaveAttribute('data-placement', 'home-inline');
   await consent.getByRole('button', { name: 'Reject analytics' }).click();
 
-  await expect.poll(() => page.evaluate((key) => localStorage.getItem(key), CONSENT_KEY)).toBe('rejected');
+  await expect.poll(() => page.evaluate(key => localStorage.getItem(key), CONSENT_KEY)).toBe('rejected');
   await expect(consent.getByRole('button', { name: 'Privacy choices' })).toBeVisible();
   await page.reload();
 
@@ -160,7 +160,7 @@ test('loads analytics only after explicit Accept and persists the choice', async
       analyticsRequests.push(request.url());
     }
   });
-  await page.route('https://www.googletagmanager.com/**', (route) => route.abort());
+  await page.route('https://www.googletagmanager.com/**', route => route.abort());
 
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto('/');
@@ -168,14 +168,14 @@ test('loads analytics only after explicit Accept and persists the choice', async
   await expect(consent).toHaveAttribute('data-placement', 'home-inline');
   await consent.getByRole('button', { name: 'Accept analytics' }).click();
 
-  await expect.poll(() => page.evaluate((key) => localStorage.getItem(key), CONSENT_KEY)).toBe('accepted');
+  await expect.poll(() => page.evaluate(key => localStorage.getItem(key), CONSENT_KEY)).toBe('accepted');
   await expect.poll(() => page.locator('script[src*="googletagmanager.com/gtag/js"]').count()).toBe(1);
   await expect.poll(() => analyticsRequests.length).toBeGreaterThan(0);
 
   await page.reload();
   const savedChoices = page.locator('#digdevbox-analytics-consent');
   await expect(savedChoices.getByRole('button', { name: 'Privacy choices' })).toBeVisible();
-  await expect.poll(() => page.evaluate((key) => localStorage.getItem(key), CONSENT_KEY)).toBe('accepted');
+  await expect.poll(() => page.evaluate(key => localStorage.getItem(key), CONSENT_KEY)).toBe('accepted');
 });
 
 test('keeps the undecided consent prompt fixed on non-home tool routes', async ({ page }) => {
