@@ -49,9 +49,10 @@ test.describe('Tool - Percentage calculator', () => {
   test('shows one focused task at a time and switches between all seven workflows', async ({ page }) => {
     const modeButtons = page.locator('.percentage-mode-button');
     await expect(modeButtons).toHaveCount(7);
-    await expect(page.getByLabel('Percentage (%)')).toBeVisible();
-    await expect(page.getByLabel('Whole value')).toBeVisible();
-    await expect(page.getByLabel('Result').first()).toBeVisible();
+    const percentOfMode = page.getByTestId('percentage-mode-percent-of');
+    await expect(percentOfMode.getByLabel('Percentage (%)')).toBeVisible();
+    await expect(percentOfMode.getByLabel('Whole value')).toBeVisible();
+    await expect(percentOfMode.getByLabel('Result')).toBeVisible();
     await expect(page.getByTestId('percentageX')).toBeVisible();
     await expect(page.getByTestId('numberX')).toBeHidden();
 
@@ -431,9 +432,10 @@ test.describe('Percentage calculator primary UI Chinese localization', () => {
     await page.goto('/percentage-calculator');
     await expect(page.getByRole('group', { name: '选择百分比计算方式' })).toBeVisible();
     await expect(page.locator('.percentage-mode-button')).toHaveCount(7);
-    await expect(page.getByLabel('百分比 (%)')).toBeVisible();
-    await expect(page.getByLabel('整体数值').first()).toBeVisible();
-    await expect(page.getByLabel('结果').first()).toBeVisible();
+    const percentOfMode = page.getByTestId('percentage-mode-percent-of');
+    await expect(percentOfMode.getByLabel('百分比 (%)')).toBeVisible();
+    await expect(percentOfMode.getByLabel('整体数值')).toBeVisible();
+    await expect(percentOfMode.getByLabel('结果')).toBeVisible();
     const guide = page.getByTestId('percentage-calculator-guide');
     await expect(guide).toContainText('百分比公式与常见误区');
     await expect(guide).toContainText('最多显示 12 位有效数字');
