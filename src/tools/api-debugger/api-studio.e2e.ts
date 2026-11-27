@@ -766,6 +766,7 @@ test('imports a Postman v2.1 collection into the tree and exports it back (round
   };
 
   await page.goto('/api-studio');
+  await page.getByTestId('data-tools-disclosure').locator('summary').click();
   // 隐藏文件选择器：setInputFiles 直接喂 buffer，触发 @change → onImportFilePicked → importCollectionTree
   await page.getByTestId('import-file').setInputFiles({
     name: 'petstore_collection.json',
@@ -843,6 +844,7 @@ test('portable backup restores the workspace into a separate browser origin', as
 
   await page.goto('/api-studio');
   await expect(page.locator('[data-test-id="tree-row"]', { hasText: 'Token request' })).toBeVisible();
+  await page.getByTestId('data-tools-disclosure').locator('summary').click();
 
   const [download] = await Promise.all([
     page.waitForEvent('download'),
