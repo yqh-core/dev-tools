@@ -743,8 +743,39 @@ tools:
     title: "JSON 差异比较器 — 在线比较 JSON"
     description: "在线比较粘贴内容或本地 JSON/JSON5 文件，按路径查看嵌套变化并导出报告。数组支持按索引、忽略顺序或稳定 ID 匹配；大文档使用可取消的后台 Worker 比较。"
   jwt-parser:
-    title: JWT 解码器与解析器 — 在线解析 JSON Web Token
-    description: 在线解码并解析 JSON Web Token（JWT）— 一目了然查看 Header、Payload 与标准声明。
+    title: JWT 解码器 — 检查 Header、声明与签名段
+    description: "在浏览器本地解码三段式紧凑 JWT/JWS，查看 JOSE Header、Claims Set Payload 和编码后的签名段。本工具不验证签名。"
+    inputLabel: "紧凑 JWT / JWS"
+    inputPlaceholder: "粘贴三段式紧凑 JWT..."
+    decodeNotice: "此处仅在当前浏览器中解码以供检查，不会验证签名，也不会按应用的信任策略校验声明。"
+    privacyNote: "Token 只在当前浏览器标签页内解码，不会发送到验签服务。尤其在共用设备上，请使用测试或脱敏 Token。"
+    headerTitle: "JOSE Header（头部）"
+    payloadTitle: "Claims Set Payload（声明载荷）"
+    signatureTitle: "编码后的 Signature 段"
+    signatureDescription: "这里显示原始的第三段 Base64URL 文本，不会解码为 JSON，也不会执行密码学验签。"
+    notVerified: "未验证"
+    emptySignature: "签名段为空"
+    copySignature: "复制签名段"
+    copied: "已复制签名段。"
+    clipboardError: "当前浏览器无法访问剪贴板，请手动选择签名文本并复制。"
+    timestampNote: "exp、nbf 和 iat 是 NumericDate，单位为 Unix Epoch 秒。友好日期按浏览器本地时区显示；这只是显示转换，不代表声明已通过校验或被执行。"
+    claims:
+      algorithm: "签名算法"
+      type: "令牌类型"
+      issuer: "签发方"
+      subject: "主体"
+      audience: "受众"
+      expiration: "过期时间"
+      notBefore: "生效时间"
+      issuedAt: "签发时间"
+      jwtId: "JWT 标识"
+    errors:
+      invalidWithReason: "无法解码此 Token：{0}"
+      empty: "请输入紧凑格式 JWT。"
+      whitespace: "请删除空格和换行；紧凑 JWT 必须是连续的一行文本。"
+      segments: "需要三段式紧凑 JWT/JWS：Header.Payload.Signature。不支持五段式加密 JWE Token。"
+      base64url: "各段必须使用 Base64URL 字符集，不能包含空格或填充符。"
+      decode: "Header 或 Payload 不是有效的 Base64URL 编码 JSON。"
 
   date-converter:
     title: 日期格式转换 — 在线日期格式互转
