@@ -85,6 +85,25 @@ test('creates a blank first request from the empty state without sending it', as
     });
 
     await page.goto(new URL('/api-studio', baseUrl).toString());
+
+    // The nested Naive UI provider must not insert a wrapper around the shell's
+    // flex children, otherwise the header/body height chain collapses.
+    const shellLayout = await page.evaluate(() => {
+      const shell = document.querySelector('.api-studio-shell');
+      const topbar = shell?.querySelector(':scope > .api-topbar');
+      const body = shell?.querySelector(':scope > .api-shell-body');
+      return {
+        display: shell ? getComputedStyle(shell).display : '',
+        topbarIsDirectChild: topbar?.parentElement === shell,
+        bodyIsDirectChild: body?.parentElement === shell,
+        bodyHeight: body?.getBoundingClientRect().height ?? 0,
+      };
+    });
+    expect(shellLayout.display).toBe('flex');
+    expect(shellLayout.topbarIsDirectChild).toBe(true);
+    expect(shellLayout.bodyIsDirectChild).toBe(true);
+    expect(shellLayout.bodyHeight).toBeGreaterThan(600);
+
     const emptyState = page.locator('.api-editor-empty');
     await expect(emptyState).toBeVisible();
     const createButton = page.getByRole('button', { name: 'Create your first request' });
@@ -219,6 +238,9 @@ test('shows live collection progress and structured redacted request outcomes', 
     ([treeKey, treeValue, envKey, envValue]) => {
       localStorage.setItem(treeKey, treeValue);
       localStorage.setItem(envKey, envValue);
+      // Keep the global consent prompt out of this workspace-flow test. This is
+      // an isolated browser context; production consent defaults are untouched.
+      localStorage.setItem('digdevbox.analytics-consent.v1', 'rejected');
     },
     [TREE_KEY, JSON.stringify(tree), 'api-debugger:env', JSON.stringify(env)] as [string, string, string, string],
   );
@@ -898,4 +920,233 @@ test('portable backup restores the workspace into a separate browser origin', as
   expect(restored.env.envs.Production.token).toBe('');
   expect(restored.env.global.token).toBe('');
   expect(restored.env.collection.token).toBe('');
+});
+
+test('offers a keyboard-accessible manual retry only after a relay failure', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  const treeSeed = {
+    id: 'retry-collection',
+    name: 'Retry Demo',
+    items: [{
+      id: 'retry-request',
+      name: 'Retry request',
+      request: {
+        method: 'GET',
+        url: '{{missingBaseUrl}}/retry',
+        headers: [],
+        body: '',
+      },
+    }],
+  };
+  await page.addInitScript(
+    ([key, value]) => {
+      if (localStorage.getItem(key) === null) {
+        localStorage.setItem(key, value);
+      }
+    },
+    [TREE_KEY, JSON.stringify(treeSeed)] as [string, string],
+  );
+
+  let attempts = 0;
+  await page.route(/\/api\/apiproxy/, async (route) => {
+    attempts += 1;
+    if (attempts === 1) {
+      return route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          url: 'https://api.test/retry?force400=1',
+          status: 400,
+          statusText: 'Bad Request',
+          headers: { 'content-type': 'application/json' },
+          body: '{"error":"Invalid request configuration."}',
+          elapsedMs: 9,
+        }),
+      });
+    }
+    if (attempts === 2) {
+      return route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          url: 'https://api.test/retry',
+          status: 503,
+          statusText: 'Service Unavailable',
+          headers: { 'content-type': 'application/json' },
+          body: '{"error":"Upstream service temporarily unavailable."}',
+          elapsedMs: 11,
+        }),
+      });
+    }
+    return route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        url: 'https://api.test/retry',
+        status: 200,
+        statusText: 'OK',
+        headers: { 'content-type': 'application/json' },
+        body: '{"recovered":true}',
+        elapsedMs: 14,
+      }),
+    });
+  });
+
+  await page.goto('/api-studio');
+  // Make the consent choice explicit so the screenshot reviews the workbench, not its first-visit overlay.
+  await page.getByRole('button', { name: 'Reject analytics' }).click();
+  await page.getByTestId('tree-method').click();
+
+  // Local configuration errors need a fix, not a retry button that would repeat the same failure.
+  await page.getByTestId('send-request').click();
+  await expect(page.getByTestId('single-send-error')).toContainText('Missing variables: missingBaseUrl');
+  await expect(page.getByTestId('retry-send')).toHaveCount(0);
+  expect(attempts).toBe(0);
+
+  await page.getByTestId('editor-url').fill('https://api.test/retry?force400=1');
+  await page.getByTestId('editor-url').press('Tab');
+  await page.getByTestId('send-request').click();
+
+  // The relay wraps the upstream 400 in a 200 JSON envelope. It is visible,
+  // but repeating a non-transient 4xx cannot fix the request.
+  await expect(page.getByTestId('single-response')).toContainText('400 Bad Request');
+  await expect(page.getByTestId('retry-send')).toHaveCount(0);
+  expect(attempts).toBe(1);
+
+  await page.getByTestId('editor-url').fill('https://api.test/retry');
+  await page.getByTestId('editor-url').press('Tab');
+  await page.getByTestId('send-request').click();
+
+  // The actual relay returns HTTP 200 with the upstream 503 in the JSON payload.
+  await expect(page.getByTestId('single-response')).toContainText('503 Service Unavailable');
+  const retry = page.getByTestId('retry-send');
+  await expect(retry).toBeVisible();
+  await expect(retry).toHaveText('Retry request');
+  expect(attempts).toBe(2);
+  await page.screenshot({ path: join(SHOTS, '07-single-request-retry-desktop.png'), fullPage: true });
+
+  // The request is never replayed automatically. At mobile width, the editor
+  // must retain real viewport height and the retry action must be visible and reachable.
+  await page.setViewportSize({ width: 390, height: 844 });
+  const dimensions = await page.evaluate(() => {
+    const shellBody = document.querySelector('.api-shell-body')?.getBoundingClientRect();
+    const main = document.querySelector('#main-content')?.getBoundingClientRect();
+    const workspace = document.querySelector('.api-workspace')?.getBoundingClientRect();
+    const editor = document.querySelector('.api-editor')?.getBoundingClientRect();
+    return {
+      viewport: document.documentElement.clientWidth,
+      document: document.documentElement.scrollWidth,
+      viewportHeight: window.innerHeight,
+      shellBodyHeight: shellBody?.height ?? 0,
+      mainHeight: main?.height ?? 0,
+      workspaceHeight: workspace?.height ?? 0,
+      workspaceBottom: workspace?.bottom ?? 0,
+      editorBottom: editor?.bottom ?? 0,
+      editorHeight: editor?.height ?? 0,
+    };
+  });
+  expect(dimensions.document).toBeLessThanOrEqual(dimensions.viewport);
+  expect(dimensions.shellBodyHeight).toBeGreaterThan(700);
+  expect(dimensions.mainHeight).toBeGreaterThan(700);
+  expect(dimensions.workspaceHeight).toBeGreaterThan(700);
+  expect(dimensions.editorHeight).toBeGreaterThan(300);
+  expect(dimensions.workspaceBottom).toBeGreaterThanOrEqual(dimensions.viewportHeight - 1);
+  expect(dimensions.editorBottom).toBeGreaterThanOrEqual(dimensions.viewportHeight - 1);
+
+  const editor = page.locator('.api-editor');
+  await expect(page.getByTestId('single-response')).toBeVisible();
+  await retry.scrollIntoViewIfNeeded();
+  await expect(retry).toBeVisible();
+  await expect(retry).toBeInViewport();
+
+  const retryBounds = await retry.boundingBox();
+  expect(retryBounds).not.toBeNull();
+  const retryReceivesPointer = await page.evaluate(({ x, y }) => {
+    return Boolean(document.elementFromPoint(x, y)?.closest('[data-test-id="retry-send"]'));
+  }, {
+    x: retryBounds!.x + retryBounds!.width / 2,
+    y: retryBounds!.y + retryBounds!.height / 2,
+  });
+  expect(retryReceivesPointer, 'The mobile retry action must not be covered by another layer.').toBe(true);
+  await page.screenshot({ path: join(SHOTS, '08-single-request-retry-mobile.png'), fullPage: true });
+
+  await retry.focus();
+  await expect(retry).toBeFocused();
+  await page.keyboard.press('Enter');
+
+  await expect(page.getByTestId('single-response')).toBeVisible();
+  await expect(page.getByTestId('single-response')).toContainText('200 OK');
+  await expect(page.getByTestId('single-response-body')).toContainText('"recovered": true');
+  await expect(page.getByTestId('single-send-error')).toHaveCount(0);
+  await expect(page.getByTestId('retry-send')).toHaveCount(0);
+  expect(attempts).toBe(3);
+});
+
+test('offers a manual retry when the API relay connection fails', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  const treeSeed = {
+    id: 'network-retry-collection',
+    name: 'Network Retry Demo',
+    items: [{
+      id: 'network-retry-request',
+      name: 'Network retry request',
+      request: {
+        method: 'GET',
+        url: 'https://api.test/network-retry',
+        headers: [],
+        body: '',
+      },
+    }],
+  };
+  await page.addInitScript(
+    ([key, value]) => {
+      if (localStorage.getItem(key) === null) {
+        localStorage.setItem(key, value);
+      }
+    },
+    [TREE_KEY, JSON.stringify(treeSeed)] as [string, string],
+  );
+
+  let attempts = 0;
+  await page.route(/\/api\/apiproxy/, async (route) => {
+    attempts += 1;
+    if (attempts === 1) {
+      return route.abort('failed');
+    }
+    return route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        url: 'https://api.test/network-retry',
+        status: 200,
+        statusText: 'OK',
+        headers: { 'content-type': 'application/json' },
+        body: '{"networkRecovered":true}',
+        elapsedMs: 13,
+      }),
+    });
+  });
+
+  await page.goto('/api-studio');
+  await page.getByRole('button', { name: 'Reject analytics' }).click();
+  await page.getByTestId('tree-method').click();
+  await page.getByTestId('send-request').click();
+
+  await expect(page.getByTestId('single-send-error')).toContainText(
+    'Could not reach the API relay. Check your connection and try again.',
+  );
+  const retry = page.getByTestId('retry-send');
+  await expect(retry).toBeVisible();
+  await expect(retry).toHaveText('Retry request');
+  expect(attempts).toBe(1);
+
+  await retry.focus();
+  await expect(retry).toBeFocused();
+  await page.keyboard.press('Enter');
+
+  await expect(page.getByTestId('single-response')).toContainText('200 OK');
+  await expect(page.getByTestId('single-response-body')).toContainText('"networkRecovered": true');
+  await expect(page.getByTestId('single-send-error')).toHaveCount(0);
+  await expect(retry).toHaveCount(0);
+  expect(attempts).toBe(2);
 });

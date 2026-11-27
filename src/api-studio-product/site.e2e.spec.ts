@@ -64,6 +64,9 @@ test('task guides are directly addressable and link back to the workspace', asyn
   await expect(page.getByRole('heading', { level: 1, name: 'Send your first request' })).toBeVisible();
   await expect(page.getByRole('link', { name: /workspace/i })).toHaveAttribute('href', '/app/');
   await expect(page.getByRole('link', { name: /All guides/i })).toHaveAttribute('href', '/docs/');
+  await expect(page.getByTestId('retry-guidance')).toContainText('400 or 401');
+  await expect(page.getByTestId('retry-guidance')).toContainText('408, 425, 429 or 5xx');
+  await expect(page.getByTestId('retry-guidance')).toContainText('Retry is manual');
 });
 
 test('all task guides are directly addressable and have a clear task heading', async ({ page }) => {
@@ -85,6 +88,8 @@ test('all task guides are directly addressable and have a clear task heading', a
 test('workspace remains within the mobile viewport and theme control works', async ({ page }, testInfo) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/app/');
+  await expect(page.locator('.api-studio-shell')).toBeVisible();
+  await expect(page.getByText('No requests yet')).toBeVisible();
 
   const dimensions = await page.evaluate(() => {
     const shell = document.querySelector('.api-studio-shell')?.getBoundingClientRect();

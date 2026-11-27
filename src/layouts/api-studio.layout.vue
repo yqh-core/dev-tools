@@ -30,7 +30,8 @@ const methodLegend = [
 
 <template>
   <div class="api-studio-shell" :data-api-theme="apiTheme">
-    <n-config-provider :theme="theme" :theme-overrides="themeOverrides">
+    <!-- Keep the local theme context without inserting a wrapper between the flex shell and its header/body. -->
+    <n-config-provider abstract :theme="theme" :theme-overrides="themeOverrides">
       <header class="api-topbar">
         <RouterLink to="/api-studio" class="api-brand" aria-label="API Studio home">
           <span class="api-brand-mark" aria-hidden="true">
@@ -74,9 +75,9 @@ const methodLegend = [
         </div>
       </header>
 
-      <main class="api-shell-body">
+      <div class="api-shell-body">
         <slot />
-      </main>
+      </div>
     </n-config-provider>
   </div>
 </template>
@@ -202,10 +203,29 @@ const methodLegend = [
 }
 
 .api-shell-body {
+  display: flex;
   flex: 1 1 auto;
+  flex-direction: column;
   min-height: 0;
   overflow: hidden;
   background: var(--api-bg);
+}
+
+/* App.vue supplies #main-content through this slot. Make each level an explicit
+   flex item/container so the workspace receives the shell's remaining height;
+   percentage heights alone can resolve against the content-sized slot on mobile. */
+.api-shell-body :deep(#main-content) {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+}
+
+.api-shell-body :deep(.api-workspace) {
+  flex: 1 1 0;
+  height: auto;
+  min-height: 0;
 }
 
 @media (max-width: 760px) {

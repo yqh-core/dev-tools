@@ -515,6 +515,7 @@ const sendingSingle = ref(false);
 const singleResponse = ref<RunnerResponse | null>(null);
 const singleAssertionReport = ref<AssertionReport | null>(null);
 const singleError = ref('');
+const singleCanRetry = ref(false);
 const edPre = ref('');
 const edTest = ref('');
 // 仅在切换选中节点（id 变化）时回填，避免每次提交后 clobber 用户正在编辑的内容。
@@ -531,6 +532,7 @@ watch(() => selectedNode.value?.id, () => {
   singleResponse.value = null;
   singleAssertionReport.value = null;
   singleError.value = '';
+  singleCanRetry.value = false;
   edPre.value = n?.scripts?.prerequest ?? '';
   edTest.value = n?.scripts?.test ?? '';
 }, { immediate: true });
@@ -559,6 +561,7 @@ function commitRequest() {
   // A changed request must not leave an older response looking like the result of the new input.
   singleResponse.value = null;
   singleError.value = '';
+  singleCanRetry.value = false;
   const request = {
     ...s.request,
     method: edMethod.value,
@@ -1013,15 +1016,34 @@ function exportEnvironmentVariables() {
 }
 
 // ── 运行 ────────────────────────────────────────────────────────────
+function isRetryableHttpStatus(status: number): boolean {
+  return [408, 425, 429].includes(status) || (status >= 500 && status < 600);
+}
+
 const runnerSend: SendFn = async (payload) => {
-  const res = await fetch('/api/apiproxy', {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify(payload),
-  });
+  let res: Response;
+  try {
+    res = await fetch('/api/apiproxy', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+  }
+  catch (cause) {
+    const error = new Error('Could not reach the API relay. Check your connection and try again.') as Error & { retryable?: boolean };
+    error.name = 'RetryableNetworkError';
+    error.retryable = true;
+    throw error;
+  }
+
   const j = await res.json().catch(() => null);
   if (!res.ok) {
-    throw new Error((j && j.error) || `Proxy returned HTTP ${res.status}.`);
+    const error = new Error((j && j.error) || `Proxy returned HTTP ${res.status}.`) as Error & { retryable?: boolean };
+    error.retryable = isRetryableHttpStatus(res.status);
+    throw error;
+  }
+  if (!j || typeof j !== 'object') {
+    throw new Error('The relay returned an unreadable response. Check the connection and try again.');
   }
   return j as RunnerResponse;
 };
@@ -1044,6 +1066,7 @@ async function sendSelectedRequest() {
   if (saved.error) {
     singleResponse.value = null;
     singleError.value = saved.error;
+    singleCanRetry.value = false;
     return;
   }
   applyTree(saved.tree);
@@ -1051,15 +1074,20 @@ async function sendSelectedRequest() {
   if (missing.length) {
     singleResponse.value = null;
     singleError.value = `Missing variables: ${missing.join(', ')}. Define them in the selected environment.`;
+    singleCanRetry.value = false;
     return;
   }
 
+  singleCanRetry.value = false;
   sendingSingle.value = true;
   singleError.value = '';
   singleResponse.value = null;
   try {
     const response = await runnerSend(payload);
     singleResponse.value = response;
+    // The relay wraps upstream HTTP statuses in a 200 JSON envelope; classify the
+    // upstream status too so a returned 503 has a nearby manual retry action.
+    singleCanRetry.value = isRetryableHttpStatus(response.status);
     singleAssertionReport.value = assertionEngine.runAssertions(edAssertions.value, {
       status: response.status,
       headers: response.headers,
@@ -1070,6 +1098,8 @@ async function sendSelectedRequest() {
   }
   catch (e) {
     singleError.value = e instanceof Error ? e.message : String(e);
+    singleCanRetry.value = e instanceof Error
+      && (e as Error & { retryable?: boolean }).retryable === true;
     banner.value = 'Request could not be completed. Review the error and try again.';
   }
   finally {
@@ -1759,7 +1789,17 @@ function onMenuSelect(key: string, node: TreeNode) {
           </section>
 
           <div v-if="singleError" class="api-response-error" role="alert" data-test-id="single-send-error">
-            {{ singleError }}
+            <span>{{ singleError }}</span>
+            <button
+              v-if="singleCanRetry"
+              class="api-mini-action api-error-retry"
+              type="button"
+              data-test-id="retry-send"
+              :disabled="sendingSingle"
+              @click="sendSelectedRequest"
+            >
+              Retry request
+            </button>
           </div>
           <section v-if="singleResponse" class="api-response-panel" data-test-id="single-response" aria-label="Response">
             <div class="api-response-head">
@@ -1767,7 +1807,19 @@ function onMenuSelect(key: string, node: TreeNode) {
                 <span class="api-response-code" :data-ok="singleResponse.status >= 200 && singleResponse.status < 400">{{ singleResponse.status }} {{ singleResponse.statusText }}</span>
                 <span class="api-field-hint">{{ singleResponse.elapsedMs }} ms · {{ singleResponse.url }}</span>
               </div>
-              <button class="api-mini-action" type="button" data-test-id="clear-response" @click="singleResponse = null">Clear</button>
+              <div class="api-response-head-actions">
+                <button
+                  v-if="singleCanRetry"
+                  class="api-mini-action api-error-retry"
+                  type="button"
+                  data-test-id="retry-send"
+                  :disabled="sendingSingle"
+                  @click="sendSelectedRequest"
+                >
+                  Retry request
+                </button>
+                <button class="api-mini-action" type="button" data-test-id="clear-response" @click="singleResponse = null; singleCanRetry = false">Clear</button>
+              </div>
             </div>
             <p v-if="singleResponse.note" class="api-response-note">{{ singleResponse.note }}</p>
             <div v-if="singleResponse.redirect" class="api-response-redirect">
@@ -2526,6 +2578,11 @@ function onMenuSelect(key: string, node: TreeNode) {
 }
 
 .api-response-error {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
   padding: 9px 12px;
   border: 1px solid var(--api-danger, #d45b5b);
   border-radius: var(--api-radius-sm);
@@ -2533,6 +2590,16 @@ function onMenuSelect(key: string, node: TreeNode) {
   color: var(--api-danger, #d45b5b);
   font-size: var(--api-fs-sm);
   overflow-wrap: anywhere;
+}
+
+.api-response-error > span {
+  flex: 1 1 16rem;
+  min-width: 0;
+}
+
+.api-error-retry {
+  flex: 0 0 auto;
+  white-space: nowrap;
 }
 
 .api-response-panel {
@@ -2550,6 +2617,15 @@ function onMenuSelect(key: string, node: TreeNode) {
   align-items: flex-start;
   justify-content: space-between;
   gap: 8px;
+}
+
+.api-response-head-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+  flex: 0 0 auto;
 }
 
 .api-response-status {
