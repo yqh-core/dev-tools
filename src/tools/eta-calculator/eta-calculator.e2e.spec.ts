@@ -166,17 +166,21 @@ test.describe('ETA Calculator observed pace Chinese localization', () => {
   test('renders the observed-pace controls and derived rate in Chinese', async ({ page }) => {
     await page.goto('/eta-calculator');
     await expect(page.getByTestId('eta-mode-observed')).toContainText('\u6839\u636E\u5DF2\u8017\u65F6\u95F4\u8BA1\u7B97');
-    await page.getByTestId('eta-mode-observed').click();
+    await page.getByTestId('eta-scenario-migration').click();
 
     const fill = async (id: string, value: string) => {
       await page.getByTestId(id).locator('input').fill(value);
     };
+    const unit = page.getByTestId('eta-unit-name').locator('input');
+    await expect(unit).toHaveValue('\u6761\u8BB0\u5F55');
     await fill('eta-total', '500');
     await fill('eta-completed', '200');
     await fill('eta-elapsed-hours', '2');
 
     await expect(page.getByTestId('eta-observed-rate')).toContainText('100');
-    await expect(page.getByTestId('eta-observed-rate')).toContainText('\u5355\u4F4D/\u5C0F\u65F6');
+    await expect(page.getByTestId('eta-observed-rate')).toContainText('\u6761\u8BB0\u5F55/\u5C0F\u65F6');
+    await expect(page.getByTestId('eta-remaining')).toContainText('300 \u6761\u8BB0\u5F55');
+    await expect(page.getByTestId('eta-duration')).toContainText('\u5C0F\u65F6');
   });
 });
 
