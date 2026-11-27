@@ -132,7 +132,7 @@ test('a first-time user can create, send, validate and restore one request witho
       status: 200,
       contentType: 'application/json',
       body: JSON.stringify({
-        url: relayPayloads.at(-1)?.url ?? '',
+        url: relayPayloads[relayPayloads.length - 1]?.url ?? '',
         status,
         statusText: status === 503 ? 'Service Unavailable' : 'Created',
         headers: { 'content-type': 'application/json', 'x-request-id': 'first-use-test' },
@@ -202,7 +202,7 @@ test('a first-time user can create, send, validate and restore one request witho
   await page.locator('.n-base-select-option').filter({ hasText: 'JSON field' }).click();
   const jsonOperator = page.getByTestId('assertion-operator').nth(1);
   await jsonOperator.click();
-  await page.locator('.n-base-select-option').filter({ hasText: 'equals' }).click();
+  await page.locator('.n-base-select-option').filter({ hasText: /^equals$/ }).click();
   await page.getByTestId('assertion-target').fill('$.id');
   await page.getByTestId('assertion-target').press('Tab');
   await page.getByTestId('assertion-expected').nth(1).fill('42');
