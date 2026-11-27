@@ -74,9 +74,9 @@ const methodLegend = [
         </div>
       </header>
 
-      <main class="api-shell-body">
+      <div class="api-shell-body">
         <slot />
-      </main>
+      </div>
     </n-config-provider>
   </div>
 </template>
@@ -206,6 +206,14 @@ const methodLegend = [
   min-height: 0;
   overflow: hidden;
   background: var(--api-bg);
+}
+
+/* App.vue supplies the named <main id="main-content"> through this layout slot.
+   Give that nested route container a definite height so the mobile column layout
+   can allocate the remaining viewport to the request editor instead of collapsing it. */
+.api-shell-body :deep(#main-content) {
+  height: 100%;
+  min-height: 0;
 }
 
 @media (max-width: 760px) {
