@@ -1,8 +1,6 @@
 <script setup lang="ts">
 // Duplicate issue with sub directory
 
-import { formatRelative } from 'date-fns';
-import { enGB } from 'date-fns/locale';
 import { useI18n } from 'vue-i18n';
 
 import {
@@ -20,6 +18,8 @@ type EtaScheduleMode = 'calendar' | 'weekdays';
 
 const { t } = useI18n();
 const { copy } = useCopy({ text: t('tools.eta-calculator.copySuccess') });
+const workUnit = ref('');
+const displayedWorkUnit = computed(() => workUnit.value.trim() || t('tools.eta-calculator.defaultUnit'));
 const localTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'local time';
 const scheduleMode = ref<EtaScheduleMode>('calendar');
 const workingDayStart = ref('09:00');
@@ -115,16 +115,6 @@ const progressPercent = computed(() => Math.round(
   estimate.value?.completionPercent
     ?? (unitCount.value > 0 ? (completedUnitCount.value / unitCount.value) * 100 : 0),
 ));
-const endAt = computed(() => {
-  if (projectedFinishAt.value === null) {
-    return '';
-  }
-  return formatRelative(
-    new Date(projectedFinishAt.value),
-    Date.now(),
-    { locale: enGB },
-  );
-});
 const displayedDuration = computed(() => {
   if (!estimate.value) {
     return '—';
@@ -276,6 +266,7 @@ const etaScenarios: Record<EtaScenarioId, {
 function loadScenario(scenario: EtaScenarioId) {
   const sample = etaScenarios[scenario];
   activeScenario.value = scenario;
+  workUnit.value = t(`tools.eta-calculator.scenarioUnit.${scenario}`);
   calculationMode.value = sample.mode;
   scheduleMode.value = sample.schedule;
   unitCount.value = sample.total;
@@ -335,6 +326,38 @@ const displayedObservedRate = computed(() => {
       </div>
     </section>
 
+    <div flex flex-col gap-2 md:flex-row>
+      <n-form-item :label="$t('tools.eta-calculator.totalAmountLabel', { unit: displayedWorkUnit })" flex-1>
+        <n-input-number
+          v-model:value="unitCount"
+          :min="Math.max(1, completedUnitCount)"
+          data-test-id="eta-total"
+        />
+      </n-form-item>
+      <n-form-item :label="$t('tools.eta-calculator.completedAmountLabel', { unit: displayedWorkUnit })" flex-1>
+        <n-input-number
+          v-model:value="completedUnitCount"
+          :min="0"
+          :max="unitCount"
+          data-test-id="eta-completed"
+        />
+      </n-form-item>
+      <label flex flex-1 flex-col gap-1 text-sm>
+        {{ $t('tools.eta-calculator.workUnitLabel') }}
+        <input
+          v-model.trim="workUnit"
+          type="text"
+          maxlength="24"
+          :placeholder="$t('tools.eta-calculator.workUnitPlaceholder')"
+          data-test-id="eta-unit-name"
+          class="w-full rounded border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
+        >
+      </label>
+    </div>
+    <p text-xs opacity-70 data-test-id="eta-unit-help">
+      {{ $t('tools.eta-calculator.workUnitHelp') }}
+    </p>
+
     <div role="group" aria-label="ETA estimation method" flex flex-wrap gap-2>
       <n-button
         data-test-id="eta-mode-rate"
@@ -351,6 +374,109 @@ const displayedObservedRate = computed(() => {
         {{ $t('tools.eta-calculator.observedMode') }}
       </n-button>
     </div>
+
+
+    <template v-if="calculationMode === 'rate'">
+      <div flex gap-2>
+        <div flex-1>
+          <p mb-1 text-sm>{{ $t('tools.eta-calculator.remainingWorkStartTime') }}</p>
+          <n-date-picker v-model:value="startedAt" type="datetime" data-test-id="eta-start-time" />
+        </div>
+        <n-form-item :label="$t('tools.eta-calculator.bufferLabel')" flex-1>
+          <n-input-number
+            v-model:value="bufferPercent"
+            :min="0"
+            :max="100"
+            :step="5"
+            data-test-id="eta-buffer"
+          />
+        </n-form-item>
+      </div>
+
+      <p text-sm>{{ $t('tools.eta-calculator.processingRateLabel') }}</p>
+      <div flex flex-col items-baseline gap-y-2 md:flex-row>
+        <n-input-number v-model:value="unitPerTimeSpan" :min="1" :aria-label="$t('tools.eta-calculator.rateValueLabel')" data-test-id="eta-rate" />
+        <span text-sm>{{ displayedWorkUnit }}</span>
+        <div flex items-baseline gap-2>
+          <span ml-2 text-sm>{{ $t('tools.eta-calculator.ratePer') }}</span>
+          <n-input-number v-model:value="timeSpan" min-w-130px :min="1" :aria-label="$t('tools.eta-calculator.rateIntervalLabel')" data-test-id="eta-interval" />
+          <c-select
+            v-model:value="timeSpanUnitMultiplier"
+            min-w-130px
+            :options="[
+              { label: $t('tools.eta-calculator.milliseconds'), value: 1 },
+              { label: $t('tools.eta-calculator.seconds'), value: 1000 },
+              { label: $t('tools.eta-calculator.minutes'), value: 1000 * 60 },
+              { label: $t('tools.eta-calculator.hours'), value: 1000 * 60 * 60 },
+              { label: $t('tools.eta-calculator.days'), value: 1000 * 60 * 60 * 24 },
+            ]"
+          />
+        </div>
+      </div>
+    </template>
+
+    <template v-else>
+      <p text-sm>{{ $t('tools.eta-calculator.elapsedTitle') }}</p>
+      <div flex flex-col gap-2 md:flex-row>
+        <n-form-item :label="$t('tools.eta-calculator.elapsedHours')" flex-1>
+          <n-input-number
+            v-model:value="elapsedHours"
+            :min="0"
+            :precision="0"
+            data-test-id="eta-elapsed-hours"
+          />
+        </n-form-item>
+        <n-form-item :label="$t('tools.eta-calculator.elapsedMinutes')" flex-1>
+          <n-input-number
+            v-model:value="elapsedMinutes"
+            :min="0"
+            :max="59"
+            :precision="0"
+            data-test-id="eta-elapsed-minutes"
+          />
+        </n-form-item>
+        <n-form-item :label="$t('tools.eta-calculator.elapsedSeconds')" flex-1>
+          <n-input-number
+            v-model:value="elapsedSeconds"
+            :min="0"
+            :max="59"
+            :precision="0"
+            data-test-id="eta-elapsed-seconds"
+          />
+        </n-form-item>
+      </div>
+      <div flex flex-col gap-2 md:flex-row>
+        <p flex-1 text-xs opacity-70>
+          {{ $t('tools.eta-calculator.observedModeHelp', { unit: displayedWorkUnit }) }}
+        </p>
+        <n-form-item :label="$t('tools.eta-calculator.bufferLabel')" flex-1>
+          <n-input-number
+            v-model:value="bufferPercent"
+            :min="0"
+            :max="100"
+            :step="5"
+            data-test-id="eta-buffer"
+          />
+        </n-form-item>
+      </div>
+    </template>
+    <p text-xs opacity-70 data-test-id="eta-buffer-help">{{ $t('tools.eta-calculator.bufferHelp') }}</p>
+
+    <n-form-item
+      :label="$t('tools.eta-calculator.additionalPauseMinutes')"
+      :show-feedback="false"
+    >
+      <n-input-number
+        v-model:value="additionalPauseMinutes"
+        :min="0"
+        :max="10080"
+        :step="5"
+        data-test-id="eta-pause-minutes"
+      />
+      <p ml-2 text-xs opacity-65>
+        {{ $t('tools.eta-calculator.additionalPauseHelp') }}
+      </p>
+    </n-form-item>
 
     <c-card data-test-id="eta-schedule-card">
       <div flex flex-col gap-2>
@@ -411,124 +537,6 @@ const displayedObservedRate = computed(() => {
       </div>
     </c-card>
 
-    <div flex flex-col gap-2 md:flex-row>
-      <n-form-item label="Total amount to process" flex-1>
-        <n-input-number
-          v-model:value="unitCount"
-          :min="Math.max(1, completedUnitCount)"
-          data-test-id="eta-total"
-        />
-      </n-form-item>
-      <n-form-item label="Already completed" flex-1>
-        <n-input-number
-          v-model:value="completedUnitCount"
-          :min="0"
-          :max="unitCount"
-          data-test-id="eta-completed"
-        />
-      </n-form-item>
-    </div>
-
-    <template v-if="calculationMode === 'rate'">
-      <div flex gap-2>
-        <div flex-1>
-          <p mb-1 text-sm>Remaining work start time</p>
-          <n-date-picker v-model:value="startedAt" type="datetime" data-test-id="eta-start-time" />
-        </div>
-        <n-form-item label="Extra time buffer (%)" flex-1>
-          <n-input-number
-            v-model:value="bufferPercent"
-            :min="0"
-            :max="100"
-            :step="5"
-            data-test-id="eta-buffer"
-          />
-        </n-form-item>
-      </div>
-
-      <p>Processing rate</p>
-      <div flex flex-col items-baseline gap-y-2 md:flex-row>
-        <n-input-number v-model:value="unitPerTimeSpan" :min="1" data-test-id="eta-rate" />
-        <div flex items-baseline gap-2>
-          <span ml-2>in</span>
-          <n-input-number v-model:value="timeSpan" min-w-130px :min="1" data-test-id="eta-interval" />
-          <c-select
-            v-model:value="timeSpanUnitMultiplier"
-            min-w-130px
-            :options="[
-              { label: 'milliseconds', value: 1 },
-              { label: 'seconds', value: 1000 },
-              { label: 'minutes', value: 1000 * 60 },
-              { label: 'hours', value: 1000 * 60 * 60 },
-              { label: 'days', value: 1000 * 60 * 60 * 24 },
-            ]"
-          />
-        </div>
-      </div>
-    </template>
-
-    <template v-else>
-      <p text-sm>{{ $t('tools.eta-calculator.elapsedTitle') }}</p>
-      <div flex flex-col gap-2 md:flex-row>
-        <n-form-item :label="$t('tools.eta-calculator.elapsedHours')" flex-1>
-          <n-input-number
-            v-model:value="elapsedHours"
-            :min="0"
-            :precision="0"
-            data-test-id="eta-elapsed-hours"
-          />
-        </n-form-item>
-        <n-form-item :label="$t('tools.eta-calculator.elapsedMinutes')" flex-1>
-          <n-input-number
-            v-model:value="elapsedMinutes"
-            :min="0"
-            :max="59"
-            :precision="0"
-            data-test-id="eta-elapsed-minutes"
-          />
-        </n-form-item>
-        <n-form-item :label="$t('tools.eta-calculator.elapsedSeconds')" flex-1>
-          <n-input-number
-            v-model:value="elapsedSeconds"
-            :min="0"
-            :max="59"
-            :precision="0"
-            data-test-id="eta-elapsed-seconds"
-          />
-        </n-form-item>
-      </div>
-      <div flex flex-col gap-2 md:flex-row>
-        <p flex-1 text-xs opacity-70>
-          {{ $t('tools.eta-calculator.observedModeHelp') }}
-        </p>
-        <n-form-item label="Extra time buffer (%)" flex-1>
-          <n-input-number
-            v-model:value="bufferPercent"
-            :min="0"
-            :max="100"
-            :step="5"
-            data-test-id="eta-buffer"
-          />
-        </n-form-item>
-      </div>
-    </template>
-
-    <n-form-item
-      :label="$t('tools.eta-calculator.additionalPauseMinutes')"
-      :show-feedback="false"
-    >
-      <n-input-number
-        v-model:value="additionalPauseMinutes"
-        :min="0"
-        :max="10080"
-        :step="5"
-        data-test-id="eta-pause-minutes"
-      />
-      <p ml-2 text-xs opacity-65>
-        {{ $t('tools.eta-calculator.additionalPauseHelp') }}
-      </p>
-    </n-form-item>
-
     <c-card data-test-id="eta-deadline-card">
       <div flex flex-col gap-2>
         <label flex flex-col gap-1 text-sm>
@@ -584,7 +592,7 @@ const displayedObservedRate = computed(() => {
     </c-card>
     <div
       role="progressbar"
-      aria-label="Work completed"
+      :aria-label="$t('tools.eta-calculator.progressAriaLabel')"
       :aria-valuenow="progressPercent"
       aria-valuemin="0"
       aria-valuemax="100"
@@ -604,7 +612,7 @@ const displayedObservedRate = computed(() => {
       />
     </div>
     <p text-xs opacity-70 data-test-id="eta-progress-label">
-      {{ completedUnitCount }} of {{ unitCount }} completed ({{ progressPercent }}%)
+      {{ $t('tools.eta-calculator.progressSummary', { completed: completedUnitCount, total: unitCount, unit: displayedWorkUnit, percent: progressPercent }) }}
     </p>
 
     <n-divider />
@@ -612,20 +620,27 @@ const displayedObservedRate = computed(() => {
       <div flex flex-col gap-3>
         <n-statistic
           v-if="calculationMode === 'observed' && estimate && estimate.remainingUnits > 0"
-          label="Observed processing rate"
+          :label="$t('tools.eta-calculator.observedRateLabel')"
           data-test-id="eta-observed-rate"
         >
-          {{ displayedObservedRate }} {{ $t('tools.eta-calculator.unitsPerHour') }}
+          {{ displayedObservedRate }} {{ $t('tools.eta-calculator.unitPerHour', { unit: displayedWorkUnit }) }}
         </n-statistic>
-        <n-statistic v-if="estimate" label="Remaining amount" data-test-id="eta-remaining">
-          {{ estimate.remainingUnits }}
+        <n-statistic v-if="estimate" :label="$t('tools.eta-calculator.remainingWorkLabel')" data-test-id="eta-remaining">
+          {{ estimate.remainingUnits }} {{ displayedWorkUnit }}
         </n-statistic>
-        <n-statistic v-if="estimate" label="Estimated remaining duration" data-test-id="eta-duration">
+        <n-statistic v-if="estimate && estimate.remainingUnits > 0" :label="$t('tools.eta-calculator.baseProcessingDurationLabel')" data-test-id="eta-base-duration">
+          {{ formatMsDuration(estimate.baseDurationMs) }}
+        </n-statistic>
+        <n-statistic
+          v-if="estimate && estimate.remainingUnits > 0"
+          :label="$t(scheduleMode === 'weekdays' ? 'tools.eta-calculator.workWindowDurationLabel' : 'tools.eta-calculator.calendarDurationLabel')"
+          data-test-id="eta-duration"
+        >
           {{ displayedDuration }}
         </n-statistic>
         <n-statistic
           v-if="estimate && bufferPercent > 0 && estimate.remainingUnits > 0"
-          label="Buffer included"
+          :label="$t('tools.eta-calculator.bufferAllowanceLabel')"
           data-test-id="eta-buffer-time"
         >
           {{ formatMsDuration(estimate.bufferDurationMs) }}
@@ -637,17 +652,9 @@ const displayedObservedRate = computed(() => {
         >
           {{ formatMsDuration(additionalPauseMs) }}
         </n-statistic>
-        <n-statistic v-if="estimate && estimate.remainingUnits > 0" label="Estimated finish time" data-test-id="eta-finish">
-          {{ endAt }}
+        <n-statistic v-if="estimate && estimate.remainingUnits > 0" :label="$t('tools.eta-calculator.projectedCompletionLabel')" data-test-id="eta-finish">
+          <span data-test-id="eta-finish-local">{{ formattedEndAt }}</span>
         </n-statistic>
-        <p
-          v-if="estimate && estimate.remainingUnits > 0"
-          text-xs
-          opacity-70
-          data-test-id="eta-finish-local"
-        >
-          {{ $t('tools.eta-calculator.localFinishTime') }}: {{ formattedEndAt }}
-        </p>
         <div v-if="estimate && estimate.remainingUnits > 0" flex flex-wrap gap-2>
           <n-button
             secondary
@@ -665,7 +672,7 @@ const displayedObservedRate = computed(() => {
           </n-button>
         </div>
         <p v-if="estimate && estimate.remainingUnits === 0" text-sm font-semibold data-test-id="eta-complete">
-          All work items are complete.
+          {{ $t('tools.eta-calculator.completeMessage') }}
         </p>
         <p
           v-if="calculationMode === 'observed' && !estimate && completedUnitCount < unitCount"
@@ -678,15 +685,13 @@ const displayedObservedRate = computed(() => {
       </div>
     </c-card>
 
-    <c-card title="How the estimate works" data-test-id="eta-calculator-example">
-      <p>
-        Remaining duration = (total amount − completed amount) ÷ processing rate × interval length × (1 + buffer).
-      </p>
+    <c-card :title="$t('tools.eta-calculator.formulaTitle')" data-test-id="eta-calculator-example">
+      <p>{{ $t('tools.eta-calculator.formulaBase') }}</p>
       <p mt-2>
-        Example: 500 records − 200 completed = 300 remaining. At 5 records per 3 minutes, that is 180 minutes (3 hours) before any buffer.
+        {{ $t('tools.eta-calculator.formulaExample') }}
       </p>
-      <p mt-2 text-xs opacity-60>
-        The estimate assumes a steady processing rate. A buffer can account for expected pauses or rate variation; it is not a prediction of network traffic or changing workloads.
+      <p mt-2 text-xs opacity-70>
+        {{ $t('tools.eta-calculator.formulaAssumption') }}
       </p>
     </c-card>
   </div>
