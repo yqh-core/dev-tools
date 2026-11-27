@@ -483,7 +483,7 @@ export const GUIDES: Record<string, ToolGuide> = {
       },
       {
         title: 'Use the same work schedule when checking a deadline',
-        text: 'The optional required-pace comparison counts only the configured Monday-Friday overlap between the estimate start and the target deadline. It then accounts for planned pauses and the selected buffer before calculating the units per working hour required. A deadline before the start, entirely outside available work windows, or consumed by pauses and buffer cannot produce a positive required pace; the calculator reports that constraint instead of dividing by zero. Calendar mode continues to use continuous elapsed time, preserving the original 24/7 behavior.',
+        text: 'The optional required-pace comparison counts only the overlap between the estimate start and target deadline that falls Monday-Friday inside the configured local opening and closing times. It subtracts planned pauses, then divides that remaining window by (1 + buffer percent / 100) to get the usable denominator for required units per working hour. A deadline before the start, entirely outside available work windows, or consumed by pauses and buffer cannot produce a positive required pace; the calculator reports that constraint instead of dividing by zero. Calendar mode continues to use continuous elapsed time, preserving the original 24/7 behavior.',
       },
       {
         title: 'Keep local work hours stable across daylight-saving changes',
