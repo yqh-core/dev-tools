@@ -132,6 +132,15 @@ jobs:
           if-no-files-found: warn
           retention-days: 3
 
+      - name: Upload ETA Calculator responsive screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: eta-calculator-responsive-${{ github.sha }}
+          path: test-results/**/eta-calculator-*.png
+          if-no-files-found: warn
+          retention-days: 3
+
       - name: Upload JWT Parser responsive screenshots
         if: always()
         uses: actions/upload-artifact@v4
