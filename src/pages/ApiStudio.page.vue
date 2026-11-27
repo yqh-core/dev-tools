@@ -1745,7 +1745,7 @@ function onMenuSelect(key: string, node: TreeNode) {
           a folder's scripts apply to everything inside it, and the whole collection runs in order.
         </p>
         <p class="api-editor-note">
-          Your data stays on this machine. Requests run through the same trusted relay the API tool uses.
+          Saved collections and environment values stay in this browser. Requests pass through our first-party API relay.
         </p>
       </div>
 
