@@ -823,7 +823,7 @@ export const GUIDES: Record<string, ToolGuide> = {
       '复制或下载步骤结果。Import state / Export state 用于在文件间迁移整个工作流；Reset 会恢复默认流程。',
     ],
     notes: [
-      'JSON 处理步骤接受 JSON5 语法，例如注释和尾随逗号；适用步骤会将解析后的数据输出为标准 JSON，而不是保留 JSON5 注释。',
+      '格式化/校验、压缩、树形、Query、Transform、Schema 推断和 Diff 在解析 JSON 时接受 JSON5 语法（例如注释和尾随逗号）。Generate Types 使用严格的 JSON.parse，输入必须是标准 JSON。',
       'Query 支持 $、.key、[\'key\']、[n]（负下标从末尾计）、[start:end:step] 切片、.* 与 [*] 通配、..key 递归下降。不支持 ?(@.price) 等过滤表达式或脚本表达式；遇到不支持的语法会明确报错。',
       'Parse 支持 YAML、CSV、XML、TOML 和 .env 转 JSON；Transform 支持 JSON 转 YAML、CSV、XML 和 TOML。CSV 输出要求对象数组；XML 顶层必须是对象或数组；TOML 顶层必须是对象。',
       'Schema 是根据当前样本推断出的 JSON Schema Draft 7 初稿，不是已验证的 API 契约。正式使用前请核对必填字段、可选属性和数据类型。',
