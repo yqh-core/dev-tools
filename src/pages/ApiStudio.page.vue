@@ -3441,12 +3441,25 @@ function onMenuSelect(key: string, node: TreeNode) {
     height: 32dvh;
     min-height: 180px;
     max-height: 280px;
+    overflow: hidden;
     border-right: 0;
     border-bottom: 1px solid var(--api-border);
   }
 
+  /* Keep collection controls inside the bounded mobile sidebar. The tree must
+     use only the remaining height and scroll internally, never paint over the
+     request editor or intercept its progress/cancel controls. */
+  .api-sidebar-head,
+  .api-toolbar,
+  .api-io-row,
+  .api-envbar {
+    flex: 0 0 auto;
+  }
+
   .api-tree {
-    min-height: 56px;
+    flex: 1 1 0;
+    min-height: 0;
+    overflow: auto;
   }
 
   .api-row-actions {
