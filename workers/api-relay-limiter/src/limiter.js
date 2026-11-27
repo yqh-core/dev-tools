@@ -31,6 +31,13 @@ function retryAfter(seconds, reason) {
   };
 }
 
+async function ensureCleanupAlarm(storage, now) {
+  const existing = await storage.getAlarm();
+  if (existing === null || existing <= now) {
+    await storage.setAlarm(now + WINDOW_MS);
+  }
+}
+
 function readState(value) {
   if (value === undefined) {
     return { timestamps: [], leases: [] };
@@ -127,6 +134,7 @@ export async function handleRateLimitRequest(storage, request) {
       if (timestamps.length >= WINDOW_LIMIT) {
         const retry = (timestamps[0] + WINDOW_MS - now) / 1000;
         await storage.put(STATE_KEY, { timestamps, leases });
+        await ensureCleanupAlarm(storage, now);
         return { status: 429, body: retryAfter(retry, 'window') };
       }
 
@@ -160,4 +168,38 @@ export async function handleRateLimitRequest(storage, request) {
   catch {
     return json({ allowed: false, reason: 'limiter_unavailable' }, 503);
   }
+}
+
+/**
+ * Remove dormant per-IP state once its rate window and all concurrency leases
+ * have expired. One alarm is armed when a DO first becomes active and then
+ * rescheduled only by alarm execution, not by each incoming request.
+ */
+export async function cleanupRateLimitState(storage) {
+  await storage.transaction(async () => {
+    const stored = readState(await storage.get(STATE_KEY));
+    const now = Date.now();
+
+    if (!stored) {
+      await storage.setAlarm(now + WINDOW_MS);
+      return;
+    }
+
+    const timestamps = stored.timestamps.filter(timestamp =>
+      timestamp > now - WINDOW_MS && timestamp <= now,
+    );
+    const leases = stored.leases.filter(lease => lease.expiresAt > now);
+
+    if (timestamps.length === 0 && leases.length === 0) {
+      await storage.deleteAll();
+      return;
+    }
+
+    await storage.put(STATE_KEY, { timestamps, leases });
+    const expirations = [
+      ...timestamps.map(timestamp => timestamp + WINDOW_MS),
+      ...leases.map(lease => lease.expiresAt),
+    ];
+    await storage.setAlarm(Math.max(now + 1_000, ...expirations));
+  });
 }
