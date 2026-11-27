@@ -1016,6 +1016,10 @@ function exportEnvironmentVariables() {
 }
 
 // ── 运行 ────────────────────────────────────────────────────────────
+function isRetryableHttpStatus(status: number): boolean {
+  return [408, 425, 429].includes(status) || (status >= 500 && status < 600);
+}
+
 const runnerSend: SendFn = async (payload) => {
   let res: Response;
   try {
@@ -1035,7 +1039,7 @@ const runnerSend: SendFn = async (payload) => {
   const j = await res.json().catch(() => null);
   if (!res.ok) {
     const error = new Error((j && j.error) || `Proxy returned HTTP ${res.status}.`) as Error & { retryable?: boolean };
-    error.retryable = [408, 425, 429].includes(res.status) || res.status >= 500;
+    error.retryable = isRetryableHttpStatus(res.status);
     throw error;
   }
   if (!j || typeof j !== 'object') {
@@ -1081,6 +1085,9 @@ async function sendSelectedRequest() {
   try {
     const response = await runnerSend(payload);
     singleResponse.value = response;
+    // The relay wraps upstream HTTP statuses in a 200 JSON envelope; classify the
+    // upstream status too so a returned 503 has a nearby manual retry action.
+    singleCanRetry.value = isRetryableHttpStatus(response.status);
     singleAssertionReport.value = assertionEngine.runAssertions(edAssertions.value, {
       status: response.status,
       headers: response.headers,
@@ -1800,7 +1807,19 @@ function onMenuSelect(key: string, node: TreeNode) {
                 <span class="api-response-code" :data-ok="singleResponse.status >= 200 && singleResponse.status < 400">{{ singleResponse.status }} {{ singleResponse.statusText }}</span>
                 <span class="api-field-hint">{{ singleResponse.elapsedMs }} ms · {{ singleResponse.url }}</span>
               </div>
-              <button class="api-mini-action" type="button" data-test-id="clear-response" @click="singleResponse = null">Clear</button>
+              <div class="api-response-head-actions">
+                <button
+                  v-if="singleCanRetry"
+                  class="api-mini-action api-error-retry"
+                  type="button"
+                  data-test-id="retry-send"
+                  :disabled="sendingSingle"
+                  @click="sendSelectedRequest"
+                >
+                  Retry request
+                </button>
+                <button class="api-mini-action" type="button" data-test-id="clear-response" @click="singleResponse = null; singleCanRetry = false">Clear</button>
+              </div>
             </div>
             <p v-if="singleResponse.note" class="api-response-note">{{ singleResponse.note }}</p>
             <div v-if="singleResponse.redirect" class="api-response-redirect">
