@@ -8,7 +8,7 @@ async function startWithFreshMainPreferences(page: import('@playwright/test').Pa
 }
 
 test.describe('Main sidebar tool-category disclosures', () => {
-  test('starts every tool category collapsed on a fresh desktop visit without hiding homepage entry points', async ({ page }) => {
+  test('starts every tool category collapsed on a fresh desktop visit without hiding homepage entry points', async ({ page }, testInfo) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await startWithFreshMainPreferences(page);
     await page.goto('/');
@@ -28,9 +28,10 @@ test.describe('Main sidebar tool-category disclosures', () => {
 
     await expect(page.getByRole('searchbox')).toBeVisible();
     await expect(page.locator('#home-featured .featured-task-card').first()).toBeVisible();
+    await page.screenshot({ path: testInfo.outputPath('tool-category-desktop-collapsed.png') });
   });
 
-  test('supports Enter and Space and preserves an explicit expanded preference after reload', async ({ page }) => {
+  test('supports Enter and Space and preserves an explicit expanded preference after reload', async ({ page }, testInfo) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await startWithFreshMainPreferences(page);
     await page.goto('/');
@@ -46,6 +47,7 @@ test.describe('Main sidebar tool-category disclosures', () => {
 
     await page.keyboard.press('Enter');
     await expect(firstToggle).toHaveAttribute('aria-expanded', 'true');
+    await page.screenshot({ path: testInfo.outputPath('tool-category-desktop-expanded.png') });
     await page.keyboard.press('Space');
     await expect(firstToggle).toHaveAttribute('aria-expanded', 'false');
     await page.keyboard.press('Enter');
@@ -82,7 +84,7 @@ test.describe('Main sidebar tool-category disclosures', () => {
     await expect(page.locator('[data-test-id="tool-category-toggle"][aria-expanded="true"]')).toHaveCount(0);
   });
 
-  test('keeps the mobile disclosure usable with a 44px touch target and no horizontal overflow', async ({ page }) => {
+  test('keeps the mobile disclosure usable with a 44px touch target and no horizontal overflow', async ({ page }, testInfo) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await startWithFreshMainPreferences(page);
     await page.goto('/');
@@ -95,6 +97,7 @@ test.describe('Main sidebar tool-category disclosures', () => {
     expect(box?.height).toBeGreaterThanOrEqual(44);
     await firstToggle.tap();
     await expect(firstToggle).toHaveAttribute('aria-expanded', 'true');
+    await page.screenshot({ path: testInfo.outputPath('tool-category-mobile-expanded.png') });
 
     const geometry = await page.evaluate(() => ({
       documentWidth: document.documentElement.scrollWidth,
