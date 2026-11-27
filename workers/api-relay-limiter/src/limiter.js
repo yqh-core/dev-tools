@@ -100,8 +100,8 @@ export async function handleRateLimitRequest(storage, request) {
   }
 
   try {
-    const decision = await storage.transaction(async (txn) => {
-      const stored = readState(await txn.get(STATE_KEY));
+    const decision = await storage.transaction(async () => {
+      const stored = readState(await storage.get(STATE_KEY));
       if (!stored) {
         return { status: 503, body: { allowed: false, reason: 'state_unavailable' } };
       }
@@ -115,7 +115,7 @@ export async function handleRateLimitRequest(storage, request) {
       if (path === '/release') {
         const nextLeases = leases.filter(lease => lease.id !== payload.leaseId);
         if (timestamps.length !== stored.timestamps.length || nextLeases.length !== stored.leases.length) {
-          await txn.put(STATE_KEY, { timestamps, leases: nextLeases });
+          await storage.put(STATE_KEY, { timestamps, leases: nextLeases });
         }
         return { status: 200, body: { released: true } };
       }
@@ -126,7 +126,7 @@ export async function handleRateLimitRequest(storage, request) {
 
       if (timestamps.length >= WINDOW_LIMIT) {
         const retry = (timestamps[0] + WINDOW_MS - now) / 1000;
-        await txn.put(STATE_KEY, { timestamps, leases });
+        await storage.put(STATE_KEY, { timestamps, leases });
         return { status: 429, body: retryAfter(retry, 'window') };
       }
 
