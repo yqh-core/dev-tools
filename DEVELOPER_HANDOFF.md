@@ -202,3 +202,11 @@ Older #241 failure/IN_PROGRESS notes above are historical and superseded by this
 - `3fbcafe` CI was blocked only by a single double-quoted `localStorage` string in `src/pages/home-task-discovery.e2e.spec.ts`; `09a229f` fixes the quote style.
 - Current branch now also clarifies hero/speed claims around local vs network-backed tasks, and adds an explicit browser `localStorage` (not encrypted storage) disclosure for API Debugger history and API Studio collections/environment values. EN/ZH copy and Playwright assertions are updated.
 - Predecessor head `ab141fa` CI/Verify/Preview were all successful; visual artifact #15198632896 inspected. Current head requires new exact-head tests and screenshots.
+
+### Latest continuation state — 2026-11-27 ~13:31 UTC
+
+- Main homepage PR #244 MERGED as `6e09284c776c5fc4092a4965208824c6f1054ed9`; #231 closed. Main CI #46006150244 and Verify #46006150115 PASS; post-deploy smoke #46006594441 PASS. Exact production homepage visual run #140534778835 still running; all-site crawl #46006594388 deployment wait passed, DigImg done, Main/IP crawling, lower-priority site crawls queued.
+- Active PR #245 draft head `79249126892be5db4661dfa7cf465da28f32b6e1`. Verify/Build #46007145754 SUCCESS. CI #46007145620 Lint/Worker/unit tests/typecheck PASS; main build running. Unit test failures from previous head `3b30b26` have been fixed by updating Chinese wording assertion and replacing brittle hard-coded API guide step/FAQ counts with capability and EN/ZH parity checks. No merge until CI success.
+- PR #245 guide corrects supported `pm.*` subset, CSV/JSON data file semantics, data sent through relay when used in requests, storage/secret limits and unsupported methods. No runtime feature changes.
+- After #245: audit Main's five existing flagship groups and target pages, starting with JSON/structured data, then JWT, calculations, HTTP/network.
+- Scheduler remains enabled; last actual run records still Nov26 at 13:26 live peek; no Nov27 execution claimed.
