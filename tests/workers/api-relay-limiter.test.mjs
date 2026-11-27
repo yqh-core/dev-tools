@@ -23,14 +23,22 @@ class MemoryStorage {
   }
 
   async setAlarm(timestamp) {
-    if (this.activeAlarm !== undefined) this.activeAlarm = timestamp;
-    else this.alarm = timestamp;
+    if (this.activeAlarm !== undefined) {
+      this.activeAlarm = timestamp;
+    }
+    else {
+      this.alarm = timestamp;
+    }
   }
 
   async deleteAll() {
     (this.activeValues ?? this.values).clear();
-    if (this.activeAlarm !== undefined) this.activeAlarm = null;
-    else this.alarm = null;
+    if (this.activeAlarm !== undefined) {
+      this.activeAlarm = null;
+    }
+    else {
+      this.alarm = null;
+    }
   }
 
   async transaction(callback) {
