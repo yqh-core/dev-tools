@@ -1007,18 +1007,26 @@ test('offers a keyboard-accessible manual retry only after a relay failure', asy
   // must retain real viewport height and the retry action must be visible and reachable.
   await page.setViewportSize({ width: 390, height: 844 });
   const dimensions = await page.evaluate(() => {
+    const shellBody = document.querySelector('.api-shell-body')?.getBoundingClientRect();
+    const main = document.querySelector('#main-content')?.getBoundingClientRect();
     const workspace = document.querySelector('.api-workspace')?.getBoundingClientRect();
     const editor = document.querySelector('.api-editor')?.getBoundingClientRect();
     return {
       viewport: document.documentElement.clientWidth,
       document: document.documentElement.scrollWidth,
       viewportHeight: window.innerHeight,
+      shellBodyHeight: shellBody?.height ?? 0,
+      mainHeight: main?.height ?? 0,
+      workspaceHeight: workspace?.height ?? 0,
       workspaceBottom: workspace?.bottom ?? 0,
       editorBottom: editor?.bottom ?? 0,
       editorHeight: editor?.height ?? 0,
     };
   });
   expect(dimensions.document).toBeLessThanOrEqual(dimensions.viewport);
+  expect(dimensions.shellBodyHeight).toBeGreaterThan(700);
+  expect(dimensions.mainHeight).toBeGreaterThan(700);
+  expect(dimensions.workspaceHeight).toBeGreaterThan(700);
   expect(dimensions.editorHeight).toBeGreaterThan(300);
   expect(dimensions.workspaceBottom).toBeGreaterThanOrEqual(dimensions.viewportHeight - 1);
   expect(dimensions.editorBottom).toBeGreaterThanOrEqual(dimensions.viewportHeight - 1);
