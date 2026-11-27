@@ -1636,7 +1636,7 @@ function onMenuSelect(key: string, node: TreeNode) {
         </div>
       </div>
 
-      <div v-else class="api-editor-empty">
+      <div v-else-if="!running && !runSummary" class="api-editor-empty">
         <div class="api-editor-mark" aria-hidden="true">
           <span class="api-method-badge static" style="color: var(--api-method-get); border-color: var(--api-method-get)">GET</span>
           <span class="api-url-ghost">https://api.example.com/…</span>
