@@ -1259,39 +1259,48 @@ function onMenuSelect(key: string, node: TreeNode) {
         </button>
       </div>
 
-      <div class="api-io-row">
-        <button class="api-tool-btn" type="button" title="Download a portable API Studio backup with marked secrets removed" data-test-id="backup-safe" @click="exportWorkspaceBackup(false)">
-          Backup
-        </button>
-        <button class="api-tool-btn" type="button" title="Download a full backup with credentials after confirmation" data-test-id="backup-with-secrets" @click="exportWorkspaceBackup(true)">
-          Backup with secrets
-        </button>
-        <button class="api-tool-btn" type="button" title="Restore a backup file from this device" data-test-id="restore-backup" @click="openBackupRestorePicker">
-          Restore
-        </button>
-        <button class="api-tool-btn" type="button" title="Import a Postman v2.1 collection" data-test-id="import-collection" @click="openImportPicker">
-          Import Postman
-        </button>
-        <button class="api-tool-btn" type="button" title="Export this collection as Postman v2.1" data-test-id="export-collection" @click="exportPostman">
-          Export Postman
-        </button>
-        <input
-          ref="filePicker"
-          type="file"
-          accept=".json,application/json"
-          class="api-file-input"
-          data-test-id="import-file"
-          @change="onImportFilePicked"
-        >
-        <input
-          ref="backupFilePicker"
-          type="file"
-          accept=".json,application/json"
-          class="api-file-input"
-          data-test-id="backup-file"
-          @change="onBackupRestoreFilePicked"
-        >
-      </div>
+      <details class="api-data-disclosure" data-test-id="data-tools-disclosure">
+        <summary class="api-data-summary">
+          <span class="api-data-summary-copy">
+            <strong>Data tools</strong>
+            <span>Backup · restore · Postman import/export</span>
+          </span>
+          <span class="api-data-chevron" aria-hidden="true">⌄</span>
+        </summary>
+        <div class="api-io-row" role="group" aria-label="Backup and collection transfer">
+          <button class="api-tool-btn" type="button" title="Download a portable API Studio backup with marked secrets removed" data-test-id="backup-safe" @click="exportWorkspaceBackup(false)">
+            Backup
+          </button>
+          <button class="api-tool-btn" type="button" title="Download a full backup with credentials after confirmation" data-test-id="backup-with-secrets" @click="exportWorkspaceBackup(true)">
+            Backup with secrets
+          </button>
+          <button class="api-tool-btn" type="button" title="Restore a backup file from this device" data-test-id="restore-backup" @click="openBackupRestorePicker">
+            Restore
+          </button>
+          <button class="api-tool-btn" type="button" title="Import a Postman v2.1 collection" data-test-id="import-collection" @click="openImportPicker">
+            Import Postman
+          </button>
+          <button class="api-tool-btn" type="button" title="Export this collection as Postman v2.1" data-test-id="export-collection" @click="exportPostman">
+            Export Postman
+          </button>
+        </div>
+      </details>
+      <input
+        ref="filePicker"
+        type="file"
+        accept=".json,application/json"
+        class="api-file-input"
+        data-test-id="import-file"
+        @change="onImportFilePicked"
+      >
+      <input
+        ref="backupFilePicker"
+        type="file"
+        accept=".json,application/json"
+        class="api-file-input"
+        data-test-id="backup-file"
+        @change="onBackupRestoreFilePicked"
+      >
 
       <section v-if="backupRestore" class="api-import-notes api-backup-preview" data-test-id="backup-restore-preview" aria-label="Backup restore preview">
         <div class="api-import-notes-head">Backup restore preview</div>
@@ -2068,20 +2077,69 @@ function onMenuSelect(key: string, node: TreeNode) {
   font-weight: 600;
 }
 
-.api-io-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  padding: 0 var(--api-gap) var(--api-gap-sm);
+.api-data-disclosure {
+  flex: 0 0 auto;
+  min-width: 0;
   border-bottom: 1px solid var(--api-border);
 }
 
-.api-io-row > .api-tool-btn {
-  flex: 1 1 calc(50% - 6px);
+.api-data-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 44px;
+  padding: 6px var(--api-gap);
+  color: var(--api-text-soft);
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+.api-data-summary::-webkit-details-marker { display: none; }
+.api-data-summary:focus-visible {
+  outline: 2px solid var(--api-primary);
+  outline-offset: -2px;
+}
+.api-data-summary-copy {
+  display: grid;
+  gap: 2px;
   min-width: 0;
-  min-height: 32px;
+}
+.api-data-summary-copy strong {
+  color: var(--api-text);
+  font-size: var(--api-fs-sm);
+  font-weight: 600;
+}
+.api-data-summary-copy span {
+  overflow: hidden;
+  color: var(--api-text-muted);
+  font-size: var(--api-fs-xs);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.api-data-chevron {
+  flex: 0 0 auto;
+  color: var(--api-text-muted);
+  font-size: 18px;
+  line-height: 1;
+  transition: transform .15s ease;
+}
+.api-data-disclosure[open] .api-data-chevron {
+  transform: rotate(180deg);
+}
+
+.api-io-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  padding: 0 var(--api-gap) var(--api-gap-sm);
+}
+
+.api-io-row > .api-tool-btn {
+  min-width: 0;
+  min-height: 36px;
   height: auto;
-  padding: 5px 6px;
+  padding: 6px 8px;
   line-height: 1.25;
   white-space: normal;
 }
@@ -3470,12 +3528,17 @@ function onMenuSelect(key: string, node: TreeNode) {
     border-bottom: 1px solid var(--api-border);
   }
 
-  /* Keep collection controls inside the bounded mobile sidebar. The tree must
-     use only the remaining height and scroll internally, never paint over the
-     request editor or intercept its progress/cancel controls. */
+  .api-sidebar:has(.api-data-disclosure[open]) {
+    box-sizing: border-box;
+    height: min(50dvh, 399px);
+    max-height: 399px;
+  }
+
+  /* Keep high-frequency request/environment controls visible while the tree
+     scrolls in its own region. Import/export actions expand only on demand. */
   .api-sidebar-head,
   .api-toolbar,
-  .api-io-row,
+  .api-data-disclosure,
   .api-envbar {
     flex: 0 0 auto;
   }
@@ -3493,9 +3556,9 @@ function onMenuSelect(key: string, node: TreeNode) {
   .api-toolbar .api-tool-btn,
   .api-io-row .api-tool-btn {
     min-width: 0;
-    min-height: 32px;
+    min-height: 44px;
     height: auto;
-    padding: 5px 6px;
+    padding: 6px 7px;
     white-space: nowrap;
   }
 
