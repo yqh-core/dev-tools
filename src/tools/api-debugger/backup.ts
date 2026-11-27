@@ -1,8 +1,14 @@
 import type { Assertion } from './assertions';
-import type { RequestNode } from './collection-tree';
+import {
+  type CollectionNode,
+  isFolderNode,
+  mergeImportedTree,
+  parseCollectionTree,
+  type RequestNode,
+  type TreeNode,
+} from './collection-tree';
 import { type ApiRequestState, sanitizeForShare } from './engine';
-import { mergeImportedTree, parseCollectionTree, type CollectionNode, type TreeNode, isFolderNode } from './collection-tree';
-import { collectSecretValues, type EnvStore } from './environments';
+import { type EnvStore, collectSecretValues } from './environments';
 
 export const API_STUDIO_BACKUP_FORMAT = 'digdevbox-api-studio-backup';
 export const API_STUDIO_BACKUP_VERSION = 1;
@@ -58,13 +64,13 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 function assertOnlyKeys(value: Record<string, unknown>, allowed: string[], where: string): void {
   const unknown = Object.keys(value).filter(key => !allowed.includes(key));
   if (unknown.length) {
-    throw new Error(`Unsupported field(s) in ${where}: ${unknown.join(', ')}.`);
+    throw new TypeError(`Unsupported field(s) in ${where}: ${unknown.join(', ')}.`);
   }
 }
 
 function assertStringMap(value: unknown, where: string): asserts value is Record<string, string> {
   if (!isRecord(value) || Object.values(value).some(item => typeof item !== 'string')) {
-    throw new Error(`${where} must be an object containing only string values.`);
+    throw new TypeError(`${where} must be an object containing only string values.`);
   }
 }
 
@@ -73,17 +79,17 @@ function validateScripts(value: unknown, where: string): void {
     return;
   }
   if (!isRecord(value)) {
-    throw new Error(`${where} must be an object.`);
+    throw new TypeError(`${where} must be an object.`);
   }
   assertOnlyKeys(value, ['prerequest', 'test'], where);
   if (Object.values(value).some(item => typeof item !== 'string')) {
-    throw new Error(`${where} fields must be strings.`);
+    throw new TypeError(`${where} fields must be strings.`);
   }
 }
 
 function validateAssertion(value: unknown, where: string): void {
   if (!isRecord(value)) {
-    throw new Error(`${where} must be an object.`);
+    throw new TypeError(`${where} must be an object.`);
   }
   assertOnlyKeys(value, ['id', 'enabled', 'type', 'target', 'operator', 'expected'], where);
   if (
@@ -94,13 +100,13 @@ function validateAssertion(value: unknown, where: string): void {
     || typeof value.operator !== 'string'
     || typeof value.expected !== 'string'
   ) {
-    throw new Error(`${where} has an invalid assertion shape.`);
+    throw new TypeError(`${where} has an invalid assertion shape.`);
   }
 }
 
 function validateRequest(value: unknown, where: string): void {
   if (!isRecord(value)) {
-    throw new Error(`${where} must be an object.`);
+    throw new TypeError(`${where} must be an object.`);
   }
   assertOnlyKeys(value, ['method', 'url', 'headers', 'body'], where);
   if (
@@ -109,25 +115,25 @@ function validateRequest(value: unknown, where: string): void {
     || typeof value.body !== 'string'
     || !Array.isArray(value.headers)
   ) {
-    throw new Error(`${where} has an invalid request shape.`);
+    throw new TypeError(`${where} has an invalid request shape.`);
   }
   value.headers.forEach((header, index) => {
     if (!isRecord(header)) {
-      throw new Error(`${where}.headers[${index}] must be an object.`);
+      throw new TypeError(`${where}.headers[${index}] must be an object.`);
     }
     assertOnlyKeys(header, ['name', 'value'], `${where}.headers[${index}]`);
     if (typeof header.name !== 'string' || typeof header.value !== 'string') {
-      throw new Error(`${where}.headers[${index}] has an invalid header shape.`);
+      throw new TypeError(`${where}.headers[${index}] has an invalid header shape.`);
     }
   });
 }
 
 function validateTreeNode(value: unknown, ids: Set<string>, where: string): void {
   if (!isRecord(value) || typeof value.id !== 'string' || !value.id.trim() || typeof value.name !== 'string') {
-    throw new Error(`${where} has an invalid node identity.`);
+    throw new TypeError(`${where} has an invalid node identity.`);
   }
   if (ids.has(value.id)) {
-    throw new Error(`Duplicate collection node ID "${value.id}".`);
+    throw new TypeError(`Duplicate collection node ID "${value.id}".`);
   }
   ids.add(value.id);
   validateScripts(value.scripts, `${where}.scripts`);
@@ -135,7 +141,7 @@ function validateTreeNode(value: unknown, ids: Set<string>, where: string): void
   if ('items' in value) {
     assertOnlyKeys(value, ['id', 'name', 'items', 'scripts'], where);
     if (!Array.isArray(value.items)) {
-      throw new Error(`${where}.items must be an array.`);
+      throw new TypeError(`${where}.items must be an array.`);
     }
     value.items.forEach((item, index) => validateTreeNode(item, ids, `${where}.items[${index}]`));
     return;
@@ -145,7 +151,7 @@ function validateTreeNode(value: unknown, ids: Set<string>, where: string): void
   validateRequest(value.request, `${where}.request`);
   if (value.assertions !== undefined) {
     if (!Array.isArray(value.assertions)) {
-      throw new Error(`${where}.assertions must be an array.`);
+      throw new TypeError(`${where}.assertions must be an array.`);
     }
     value.assertions.forEach((assertion, index) => validateAssertion(assertion, `${where}.assertions[${index}]`));
   }
@@ -153,30 +159,30 @@ function validateTreeNode(value: unknown, ids: Set<string>, where: string): void
 
 function validateCollection(value: unknown): CollectionNode {
   if (!isRecord(value) || !Array.isArray(value.items) || typeof value.id !== 'string' || typeof value.name !== 'string') {
-    throw new Error('The backup does not contain a valid collection tree.');
+    throw new TypeError('The backup does not contain a valid collection tree.');
   }
   const ids = new Set<string>();
   validateTreeNode(value, ids, 'collection');
   const parsed = parseCollectionTree(value);
   if (!parsed) {
-    throw new Error('The backup collection tree could not be parsed.');
+    throw new TypeError('The backup collection tree could not be parsed.');
   }
   return parsed;
 }
 
 function validateEnvironments(value: unknown): EnvStore {
   if (!isRecord(value)) {
-    throw new Error('The backup environments field must be an object.');
+    throw new TypeError('The backup environments field must be an object.');
   }
   assertOnlyKeys(value, ['active', 'envs', 'global', 'collection', 'secrets'], 'environments');
   if (typeof value.active !== 'string' || !isRecord(value.envs)) {
-    throw new Error('The backup environments field has an invalid shape.');
+    throw new TypeError('The backup environments field has an invalid shape.');
   }
   for (const [name, vars] of Object.entries(value.envs)) {
     assertStringMap(vars, `environments.envs["${name}"]`);
   }
   if (!Object.prototype.hasOwnProperty.call(value.envs, value.active)) {
-    throw new Error('The active environment is missing from the environment list.');
+    throw new TypeError('The active environment is missing from the environment list.');
   }
   if (value.global !== undefined) {
     assertStringMap(value.global, 'environments.global');
@@ -189,11 +195,10 @@ function validateEnvironments(value: unknown): EnvStore {
     || value.secrets.some(name => typeof name !== 'string')
     || new Set(value.secrets).size !== value.secrets.length
   )) {
-    throw new Error('environments.secrets must be a unique array of variable names.');
+    throw new TypeError('environments.secrets must be a unique array of variable names.');
   }
   return JSON.parse(JSON.stringify(value)) as EnvStore;
 }
-
 
 function urlHasCredentials(raw: string): boolean {
   try {
@@ -268,7 +273,6 @@ function collectNodeIds(node: CollectionNode, ids = new Set<string>()): Set<stri
   }
   return ids;
 }
-
 
 function collectRequestIds(node: CollectionNode, ids = new Set<string>()): Set<string> {
   for (const item of node.items) {
@@ -354,7 +358,9 @@ export function createApiStudioBackup(
         ...(environments.collection ? { collection: Object.fromEntries(Object.entries(environments.collection).map(([key, value]) => [key, secretNames.includes(key) ? '' : value])) } : {}),
       };
   const omittedSecretVariables = includeSecrets ? [] : secretNames;
-  const shortSecretNames = includeSecrets ? [] : secretNames.filter((name) => {
+  const shortSecretNames = includeSecrets
+    ? []
+    : secretNames.filter((name) => {
     const values = [environments.global?.[name], environments.collection?.[name], ...Object.values(environments.envs).map(vars => vars[name])];
     return values.some(value => typeof value === 'string' && value.length > 0 && value.length <= 3);
   });
@@ -390,30 +396,30 @@ export function serializeApiStudioBackup(backup: ApiStudioBackupV1): string {
 
 export function parseApiStudioBackup(text: string): ApiStudioBackupV1 {
   if (typeof text !== 'string') {
-    throw new Error('Choose a backup file to restore.');
+    throw new TypeError('Choose a backup file to restore.');
   }
   if (new TextEncoder().encode(text).byteLength > API_STUDIO_BACKUP_MAX_BYTES) {
-    throw new Error('Backup file is too large (maximum 10 MB).');
+    throw new TypeError('Backup file is too large (maximum 10 MB).');
   }
   let raw: unknown;
   try {
     raw = JSON.parse(text);
   }
   catch {
-    throw new Error('The selected file is not valid JSON.');
+    throw new TypeError('The selected file is not valid JSON.');
   }
   if (!isRecord(raw)) {
-    throw new Error('The selected file is not an API Studio backup.');
+    throw new TypeError('The selected file is not an API Studio backup.');
   }
   assertOnlyKeys(raw, ['format', 'version', 'exportedAt', 'collection', 'environments', 'security'], 'backup');
   if (raw.format !== API_STUDIO_BACKUP_FORMAT || raw.version !== API_STUDIO_BACKUP_VERSION) {
-    throw new Error('Unsupported API Studio backup format or version.');
+    throw new TypeError('Unsupported API Studio backup format or version.');
   }
   if (typeof raw.exportedAt !== 'string' || Number.isNaN(Date.parse(raw.exportedAt))) {
-    throw new Error('The backup export timestamp is invalid.');
+    throw new TypeError('The backup export timestamp is invalid.');
   }
   if (!isRecord(raw.security)) {
-    throw new Error('The backup security summary is missing.');
+    throw new TypeError('The backup security summary is missing.');
   }
   assertOnlyKeys(raw.security, [
     'secretsIncluded',
@@ -433,7 +439,7 @@ export function parseApiStudioBackup(text: string): ApiStudioBackupV1 {
     || !Array.isArray(raw.security.notes)
     || raw.security.notes.some(value => typeof value !== 'string')
   ) {
-    throw new Error('The backup security summary has an invalid shape.');
+    throw new TypeError('The backup security summary has an invalid shape.');
   }
   return {
     format: API_STUDIO_BACKUP_FORMAT,
