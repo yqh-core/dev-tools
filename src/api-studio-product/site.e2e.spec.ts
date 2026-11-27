@@ -195,3 +195,65 @@ test('homepage guided walkthrough stays usable on a 390px screen', async ({ page
   }));
   expect(dimensions.documentWidth).toBeLessThanOrEqual(dimensions.viewportWidth);
 });
+
+
+test('workspace data tools stay secondary behind a keyboard-accessible disclosure on desktop', async ({ page }, testInfo) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/app/');
+
+  const disclosure = page.getByTestId('data-tools-disclosure');
+  const summary = disclosure.locator('summary');
+  await expect(disclosure).toHaveJSProperty('open', false);
+  await expect(summary).toBeVisible();
+  await expect(page.getByTestId('add-request')).toBeVisible();
+  await expect(page.getByTestId('add-folder')).toBeVisible();
+  await expect(page.getByTestId('run-collection')).toBeVisible();
+  await expect(page.getByTestId('env-bar')).toBeVisible();
+  for (const id of ['backup-safe', 'backup-with-secrets', 'restore-backup', 'import-collection', 'export-collection']) {
+    await expect(page.getByTestId(id)).toBeHidden();
+  }
+
+  await summary.focus();
+  await page.keyboard.press('Enter');
+  await expect(disclosure).toHaveJSProperty('open', true);
+  for (const id of ['backup-safe', 'backup-with-secrets', 'restore-backup', 'import-collection', 'export-collection']) {
+    await expect(page.getByTestId(id)).toBeVisible();
+  }
+  await page.screenshot({ path: testInfo.outputPath('workspace-data-tools-desktop-expanded.png') });
+
+  await summary.focus();
+  await page.keyboard.press('Enter');
+  await expect(disclosure).toHaveJSProperty('open', false);
+});
+
+test('workspace data disclosure preserves first-request priority on a 390px screen', async ({ page }, testInfo) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/app/');
+
+  const disclosure = page.getByTestId('data-tools-disclosure');
+  const summary = disclosure.locator('summary');
+  await expect(disclosure).toHaveJSProperty('open', false);
+  await expect(summary).toBeVisible();
+  await expect(page.getByTestId('create-first-request')).toBeVisible();
+  await expect(page.getByTestId('env-bar')).toBeVisible();
+  await page.screenshot({ path: testInfo.outputPath('workspace-data-tools-mobile-collapsed.png') });
+
+  await summary.focus();
+  await page.keyboard.press('Space');
+  await expect(disclosure).toHaveJSProperty('open', true);
+  await expect(page.getByTestId('backup-safe')).toBeVisible();
+  await expect(page.getByTestId('import-collection')).toBeVisible();
+  const geometry = await page.evaluate(() => ({
+    documentWidth: document.documentElement.scrollWidth,
+    viewportWidth: document.documentElement.clientWidth,
+    sidebarHeight: document.querySelector('.api-sidebar')?.getBoundingClientRect().height ?? 0,
+  }));
+  expect(geometry.documentWidth).toBeLessThanOrEqual(geometry.viewportWidth);
+  expect(geometry.sidebarHeight).toBeLessThanOrEqual(360);
+  await page.screenshot({ path: testInfo.outputPath('workspace-data-tools-mobile-expanded.png') });
+
+  await summary.focus();
+  await page.keyboard.press('Space');
+  await expect(disclosure).toHaveJSProperty('open', false);
+  await expect(page.getByTestId('create-first-request')).toBeVisible();
+});
