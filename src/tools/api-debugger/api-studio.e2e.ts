@@ -232,6 +232,7 @@ test('shows live collection progress and structured redacted request outcomes', 
   await expect(page.getByTestId('run-current-request')).not.toContainText('marked-secret-value');
   finishSecond();
 
+  await expect(page.getByTestId('banner')).toContainText('Run finished with failures');
   await expect(page.getByTestId('run-result')).toContainText('2/2 requests');
   await expect(page.getByTestId('run-request-result')).toHaveCount(2);
   await expect(page.getByTestId('run-request-result').nth(0)).toContainText('PASS');
@@ -252,14 +253,21 @@ test('shows live collection progress and structured redacted request outcomes', 
   const textReport = page.locator('.api-run-text-report');
   await textReport.locator('summary').click();
   await expect(textReport).toHaveAttribute('open', '');
+  const reportText = page.getByTestId('run-text-report');
+  await expect(reportText).toContainText('API Studio collection run report');
+  await expect(reportText).toContainText('[REDACTED-Secret]');
   const downloadButton = page.getByTestId('download-run-report');
   await expect(downloadButton).toBeVisible();
   await downloadButton.scrollIntoViewIfNeeded();
   await expect(downloadButton).toBeInViewport();
-  const [download] = await Promise.all([
-    page.waitForEvent('download', { timeout: 10000 }),
-    downloadButton.click({ timeout: 10000 }),
-  ]);
+  const downloadOutcome = page.waitForEvent('download', { timeout: 10000 })
+    .then(download => ({ download, error: '' }))
+    .catch(error => ({ download: null, error: String(error) }));
+  await downloadButton.click({ timeout: 10000 });
+  await expect(page.getByTestId('banner')).toContainText('Redacted collection report downloaded.');
+  const outcome = await downloadOutcome;
+  expect(outcome.download, outcome.error || 'The report button did not start a browser download.').not.toBeNull();
+  const download = outcome.download!;
   const reportPath = await download.path();
   expect(reportPath).not.toBeNull();
   const downloadedReport = readFileSync(reportPath!, 'utf8');
