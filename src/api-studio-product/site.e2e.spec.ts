@@ -530,6 +530,7 @@ test('completes a first-request journey from a clean /app origin through manual 
   const persisted = await page.evaluate(() => ({
     tree: JSON.parse(localStorage.getItem('api-studio:tree') || 'null'),
     environment: JSON.parse(localStorage.getItem('api-debugger:env') || 'null'),
+    selectedEnvironment: localStorage.getItem('api-studio:selected-environment'),
   }));
   const savedRequest = persisted.tree?.items?.find((item: { name?: string }) => item.name === 'Create user');
   expect(savedRequest?.request).toMatchObject({
@@ -539,8 +540,10 @@ test('completes a first-request journey from a clean /app origin through manual 
     headers: [{ name: 'x-api-version', value: '{{apiVersion}}' }],
   });
   expect(savedRequest?.assertions).toHaveLength(2);
-  expect(persisted.environment?.active).toBe('QA');
+  // API Studio keeps its own selection without mutating the legacy API Debugger default.
+  expect(persisted.environment?.active).toBe('Default');
   expect(persisted.environment?.envs?.QA?.apiVersion).toBe('v2');
+  expect(persisted.selectedEnvironment).toBe('QA');
   await page.screenshot({ path: testInfo.outputPath('first-request-desktop-after-retry.png') });
 
   // Reload without a seed script: the request and active environment must survive.
