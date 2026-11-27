@@ -284,6 +284,57 @@ tools:
   percentage-calculator:
     title: 百分比计算器 — 百分比计算、增减幅与折扣
     description: 免费计算百分比、折扣、百分比变化、反向百分比和百分点。支持七种计算模式、批量 CSV/TSV 导出及逐步公式说明。
+    ui:
+      intro: 选择与你要解决的问题对应的计算方式。输入数值后，结果和代入公式会实时更新。
+      chooseMode: 选择百分比计算方式
+      tryExample: 快速示例
+      modes:
+        percent-of: 求一个数值的百分之几
+        part-to-whole: 计算部分占整体的百分比
+        percentage-change: 计算从原始值到新值的百分比变化
+        adjustment: 按百分比增加或减少数值
+        reverse: 反推百分比变化前的原值
+        percentage-difference: 对称百分比差异
+        percentage-points: 比率的百分点变化
+      fields:
+        percentage: 百分比 (%)
+        percentagePlaceholder: 百分比
+        whole: 整体数值
+        wholePlaceholder: 整体
+        part: 部分数值
+        partPlaceholder: 部分
+        result: 结果
+        resultPlaceholder: 结果
+        changeResult: 百分比变化 (%)
+        oldValue: 原始值（基数）
+        oldValuePlaceholder: 原始值
+        newValue: 新值
+        newValuePlaceholder: 新值
+        baseValue: 调整前数值
+        baseValuePlaceholder: 起始值
+        rate: 百分比 (%)
+        ratePlaceholder: 百分比
+        afterIncrease: 增加后的数值
+        afterDecrease: 减少后的数值
+        finalValue: 变化后数值
+        finalValuePlaceholder: 变化后数值
+        beforeIncrease: 增加前原值
+        beforeDecrease: 减少前原值
+        valueA: 数值 A
+        valueAPlaceholder: 数值 A
+        valueB: 数值 B
+        valueBPlaceholder: 数值 B
+        symmetricDifference: 对称百分比差异 (%)
+        oldRate: 旧比率 (%)
+        oldRatePlaceholder: 旧比率
+        newRate: 新比率 (%)
+        newRatePlaceholder: 新比率
+        percentagePointChange: 比率差值
+        percentagePointsUnit: 个百分点
+      hints:
+        percentageChange: 百分比变化以原始值作为基数（分母）；原始值为零时，百分比变化没有定义。
+        percentageDifference: 对称比较以 |A| 和 |B| 的平均值为分母；两个数值都不作为起始基数。
+        percentagePoints: 示例：比率从 4% 升至 6%，增加了 2 个百分点；相对于旧比率的增长率为 50%。
     resultDetails:
       inWords: 结果说明
       formula: 计算公式
