@@ -509,16 +509,38 @@ test('completes a first-request journey from a clean /app origin through manual 
   await send.click();
 
   await expect(page.getByTestId('single-response')).toContainText('503 Service Unavailable');
-  await expect(page.getByTestId('retry-send')).toBeVisible();
+  const retry = page.getByTestId('retry-send');
+  await expect(retry).toBeVisible();
   expect(relayAttempts).toBe(1);
   expect(relayPayloads[0].method).toBe('POST');
   expect(relayPayloads[0].url).toBe('https://api.test/users?active=true');
   expect(relayPayloads[0].headers).toContainEqual({ name: 'x-api-version', value: 'v2' });
   expect(relayPayloads[0].body).toBe('{"name":"Ada"}');
 
-  // A recoverable response never replays by itself; the next request requires a click.
+  // A recoverable response never replays by itself. Check the actual mobile target,
+  // then require deliberate keyboard activation to send the second attempt.
   expect(relayAttempts).toBe(1);
-  await page.getByTestId('retry-send').click();
+  await page.setViewportSize({ width: 390, height: 844 });
+  await retry.scrollIntoViewIfNeeded();
+  await expect(retry).toBeInViewport();
+  const retryBox = await retry.boundingBox();
+  expect(retryBox).not.toBeNull();
+  expect(retryBox!.height).toBeGreaterThanOrEqual(44);
+  const retryReceivesPointer = await page.evaluate(({ x, y }) => {
+    return Boolean(document.elementFromPoint(x, y)?.closest('[data-test-id="retry-send"]'));
+  }, {
+    x: retryBox!.x + retryBox!.width / 2,
+    y: retryBox!.y + retryBox!.height / 2,
+  });
+  expect(retryReceivesPointer).toBe(true);
+  const mobileWidth = await page.evaluate(() => ({
+    documentWidth: document.documentElement.scrollWidth,
+    viewportWidth: document.documentElement.clientWidth,
+  }));
+  expect(mobileWidth.documentWidth).toBeLessThanOrEqual(mobileWidth.viewportWidth);
+  await retry.focus();
+  await expect(retry).toBeFocused();
+  await page.keyboard.press('Enter');
   await expect(page.getByTestId('single-response')).toContainText('200 OK');
   await expect(page.getByTestId('single-response')).toContainText('14 ms');
   await expect(page.getByTestId('single-response-body')).toContainText('"id": 42');
@@ -527,6 +549,8 @@ test('completes a first-request journey from a clean /app origin through manual 
   await expect(assertionReport.locator('[data-passed="true"]')).toHaveCount(2);
   expect(relayAttempts).toBe(2);
 
+  // Capture the success state at desktop size; mobile retry geometry was tested above.
+  await page.setViewportSize({ width: 1440, height: 900 });
   const persisted = await page.evaluate(() => ({
     tree: JSON.parse(localStorage.getItem('api-studio:tree') || 'null'),
     environment: JSON.parse(localStorage.getItem('api-debugger:env') || 'null'),
