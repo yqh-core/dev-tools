@@ -36,6 +36,10 @@ test.describe('JSON Workspace first-use privacy and hierarchy', () => {
 
   test('keeps the workflow and disclosure readable at mobile and desktop sizes', async ({ page }, testInfo) => {
     const disclosure = page.getByTestId('workflow-disclosure');
+    const rejectAnalytics = page.getByRole('button', { name: 'Reject analytics' });
+    if (await rejectAnalytics.isVisible()) {
+      await rejectAnalytics.click();
+    }
 
     await page.setViewportSize({ width: 390, height: 844 });
     await expect(disclosure).toBeVisible();
