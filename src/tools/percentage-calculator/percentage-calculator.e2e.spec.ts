@@ -95,6 +95,9 @@ test.describe('Tool - Percentage calculator', () => {
 
   test('labels primary workflows with explicit input roles and denominator guidance', async ({ page }) => {
     await expect(page.getByRole('group', { name: 'Choose a percentage calculation' })).toBeVisible();
+    const guide = page.getByTestId('percentage-calculator-guide');
+    await expect(guide).toContainText('Percentage formulas and common pitfalls');
+    await expect(guide).toContainText('28% off overall, not 30%');
     await expect(page.locator('.percentage-mode-button')).toHaveCount(7);
 
     await page.getByRole('button', { name: 'Percentage change from old to new', exact: true }).click();
@@ -410,6 +413,10 @@ test.describe('Percentage calculator primary UI Chinese localization', () => {
     await page.goto('/percentage-calculator');
     await expect(page.getByRole('group', { name: '选择百分比计算方式' })).toBeVisible();
     await expect(page.locator('.percentage-mode-button')).toHaveCount(7);
+    const guide = page.getByTestId('percentage-calculator-guide');
+    await expect(guide).toContainText('百分比公式与常见误区');
+    await expect(guide).toContainText('百分点');
+    await expect(guide).not.toContainText('How to calculate a percentage');
 
     await page.getByRole('button', { name: '计算从原始值到新值的百分比变化', exact: true }).click();
     const change = page.getByTestId('percentage-mode-percentage-change');

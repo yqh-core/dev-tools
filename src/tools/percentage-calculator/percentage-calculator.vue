@@ -1193,98 +1193,31 @@ async function copySequentialSummary(): Promise<void> {
       </div>
     </details>
 
-    <section class="mx-auto mt-8 max-w-800px px-4" data-test-id="percentage-calculator-guide">
-      <h2 class="mb-3 text-xl font-semibold">How to calculate a percentage</h2>
-      <p class="mb-4">
-        Use the calculator above for seven common percentage problems: finding a percent of a number,
-        expressing one number as a percent of another, measuring percentage change, applying an
-        increase or decrease, reversing a percentage change, comparing two values symmetrically, and
-        measuring percentage-point change between rates.
-      </p>
+        <section class="mx-auto mt-8 max-w-800px px-4" data-test-id="percentage-calculator-guide">
+      <h2 class="mb-3 text-xl font-semibold">{{ $t('tools.percentage-calculator.guide.title') }}</h2>
+      <p class="mb-4">{{ $t('tools.percentage-calculator.guide.intro') }}</p>
 
-      <h3 class="mb-2 text-lg font-semibold">Percentage formulas and examples</h3>
-      <ul class="mb-4 list-disc pl-6">
-        <li><strong>What is X% of Y?</strong> Calculate (X ÷ 100) × Y. Example: 15% of 80 is 12.</li>
-        <li><strong>X is what percent of Y?</strong> Calculate (X ÷ Y) × 100. Example: 30 is 25% of 120.</li>
-        <li><strong>Percentage change:</strong> Calculate ((new value − original value) ÷ original value) × 100. Example: a price rising from 80 to 92 is a 15% increase.</li>
-        <li><strong>Increase or decrease by a percent:</strong> Multiply the starting value by (1 + p ÷ 100) to increase, or (1 − p ÷ 100) to decrease. Example: reducing 80 by 15% gives 68.</li>
-        <li><strong>Reverse percentage:</strong> Divide a final value by (1 + p ÷ 100) to find the value before an increase, or by (1 − p ÷ 100) to reverse a decrease. For example, 120 after a 20% increase came from 120 ÷ 1.20 = 100.</li>
-        <li><strong>Percentage difference:</strong> Divide the absolute difference by the average of the two values' absolute magnitudes, then multiply by 100. For 100 and 150, the symmetric difference is 40%.</li>
-        <li><strong>Percentage points:</strong> Subtract the old rate from the new rate. A move from 5% to 7% is +2 percentage points, or +40% relative change.</li>
+      <h3 class="mb-2 text-lg font-semibold">{{ $t('tools.percentage-calculator.guide.formulasTitle') }}</h3>
+      <ul class="mb-4 list-disc space-y-2 pl-6">
+        <li>{{ $t('tools.percentage-calculator.guide.formulas.percentOf') }}</li>
+        <li>{{ $t('tools.percentage-calculator.guide.formulas.partToWhole') }}</li>
+        <li>{{ $t('tools.percentage-calculator.guide.formulas.percentageChange') }}</li>
+        <li>{{ $t('tools.percentage-calculator.guide.formulas.adjustment') }}</li>
+        <li>{{ $t('tools.percentage-calculator.guide.formulas.reverse') }}</li>
+        <li>{{ $t('tools.percentage-calculator.guide.formulas.percentageDifference') }}</li>
+        <li>{{ $t('tools.percentage-calculator.guide.formulas.percentagePoints') }}</li>
       </ul>
 
-      <h3 class="mb-2 text-lg font-semibold">Discounts, sales tax and percentage change</h3>
-      <p class="mb-4">
-        For a discount, use the decrease calculation: subtract the discount percentage from the original
-        price. To recover the pre-discount price from a sale price, use reverse percentage instead.
-        For sales tax, use the increase calculation: add the tax percentage to the pre-tax price.
-        For example, a 10% discount on 50 gives 45 before any additional taxes or fees; reversing that
-        discount divides 45 by 0.90 to recover 50.
-      </p>
+      <h3 class="mb-2 text-lg font-semibold">{{ $t('tools.percentage-calculator.guide.distinctionsTitle') }}</h3>
+      <p class="mb-3">{{ $t('tools.percentage-calculator.guide.changeVsDifference') }}</p>
+      <p class="mb-4">{{ $t('tools.percentage-calculator.guide.percentagePointsNote') }}</p>
 
-      <h3 class="mb-2 text-lg font-semibold">Common percentage calculation mistakes</h3>
-      <ul class="list-disc pl-6">
-        <li>Percentage change uses the original value as its denominator, not the new value.</li>
-        <li>Percentage difference uses the average magnitude of both values, not the original value as a baseline.</li>
-        <li>A percentage change from an original value of zero is undefined; choose a non-zero starting value.</li>
-        <li>A 15% increase followed by a 15% decrease does not return to the starting value, because the second change uses a different base.</li>
-        <li>A percentage-point change is an absolute difference between rates, not the same as relative percentage change.</li>
+      <h3 class="mb-2 text-lg font-semibold">{{ $t('tools.percentage-calculator.guide.edgeCasesTitle') }}</h3>
+      <ul class="mb-4 list-disc space-y-2 pl-6">
+        <li>{{ $t('tools.percentage-calculator.guide.denominatorLimits') }}</li>
+        <li>{{ $t('tools.percentage-calculator.guide.sequentialAdjustments') }}</li>
+        <li>{{ $t('tools.percentage-calculator.guide.displayPrecision') }}</li>
       </ul>
-
-      <h3 class="mb-2 text-lg font-semibold">Common percentage questions</h3>
-      <div class="mb-4">
-        <h4 class="mb-1 font-semibold">How do I calculate a percentage of a number?</h4>
-        <p>
-          Divide the percentage by 100, then multiply by the number. For example, 18% of 250 is
-          (18 ÷ 100) × 250 = 45.
-        </p>
-      </div>
-      <div class="mb-4">
-        <h4 class="mb-1 font-semibold">How do I find what percentage one number is of another?</h4>
-        <p>
-          Divide the first number by the total, then multiply by 100. For example, 45 out of 250 is
-          (45 ÷ 250) × 100 = 18%. The total cannot be zero.
-        </p>
-      </div>
-      <div class="mb-4">
-        <h4 class="mb-1 font-semibold">How do I calculate percentage increase or decrease?</h4>
-        <p>
-          Subtract the original value from the new value, divide by the original value, and multiply
-          by 100. A positive result is an increase; a negative result is a decrease. An original
-          value of zero makes percentage change undefined.
-        </p>
-      </div>
-      <div class="mb-4">
-        <h4 class="mb-1 font-semibold">How do I find the original value before a discount or increase?</h4>
-        <p>
-          Divide the final value by one plus the increase rate, or one minus the decrease rate. A
-          $80 item after a 20% discount had an original price of 80 ÷ 0.80 = $100; adding 20% to $80
-          would not reverse the discount.
-        </p>
-      </div>
-      <div class="mb-4">
-        <h4 class="mb-1 font-semibold">What is the difference between percentage change and percentage difference?</h4>
-        <p>
-          Percentage change is directional and uses the starting value as its base. Percentage
-          difference is symmetric: it divides the absolute gap by the average magnitude of both
-          values, so swapping A and B does not change the result.
-        </p>
-      </div>
-      <div class="mb-4">
-        <h4 class="mb-1 font-semibold">What is a percentage-point change?</h4>
-        <p>
-          It is the new rate minus the old rate. A move from 5% to 7% is +2 percentage points and
-          +40% relative change; the two measurements answer different questions.
-        </p>
-      </div>
-      <div class="mb-4">
-        <h4 class="mb-1 font-semibold">How do I calculate a discount or add sales tax?</h4>
-        <p>
-          Apply a discount with the decrease calculator and add a tax rate with the increase
-          calculator. If both apply, calculate each step using the updated amount; actual tax rules
-          depend on the product and location.
-        </p>
-      </div>
     </section>
   </div>
 </template>

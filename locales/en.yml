@@ -444,6 +444,26 @@ tools:
         startZero: The starting value cannot be zero for percentage change.
         differenceZero: Percentage difference is undefined when both values are zero.
 
+    guide:
+      title: "Percentage formulas and common pitfalls"
+      intro: "Choose a task above. The result details show the formula with your entered values substituted."
+      formulasTitle: "Formula quick reference"
+      formulas:
+        percentOf: "Percent of a value: (percentage ÷ 100) × whole. Example: 15% of 80 = 12."
+        partToWhole: "Part as a percentage of a whole: (part ÷ whole) × 100. Example: 30 of 120 = 25%."
+        percentageChange: "Percentage change: ((new value − baseline) ÷ baseline) × 100. Example: 80 → 92 = +15%."
+        adjustment: "Increase or decrease: starting value × (1 ± rate ÷ 100). Example: decrease 80 by 15% = 68."
+        reverse: "Reverse percentage: final value ÷ (1 ± rate ÷ 100). Example: 120 after a 20% increase means 100 before the increase."
+        percentageDifference: "Symmetric percentage difference: |A − B| ÷ ((|A| + |B|) ÷ 2) × 100. Example: 100 and 150 = 40%."
+        percentagePoints: "Percentage-point change: new rate − old rate. Example: 4% → 6% = +2 percentage points; the relative increase is +50%."
+      distinctionsTitle: "Choose the right comparison"
+      changeVsDifference: "Percentage change is directional and uses the original value as its baseline. Symmetric percentage difference compares two values without treating either as the baseline."
+      percentagePointsNote: "Percentage points measure the absolute difference between two rates. Relative percentage change divides that difference by the old rate."
+      edgeCasesTitle: "Limits and sequential calculations"
+      denominatorLimits: "A zero whole value or zero percentage-change baseline makes that calculation undefined. Reverse percentage is undefined when its adjustment multiplier is zero; symmetric difference is undefined when both inputs are zero."
+      sequentialAdjustments: "In a sequence, each rate applies to the current intermediate value. A 20% decrease followed by a 10% decrease leaves 72 from 100: 28% off overall, not 30%."
+      displayPrecision: "Results use up to 12 significant digits. This is display precision, not currency-specific rounding."
+
   svg-placeholder-generator:
     title: SVG placeholder generator
     description: Generate svg images to use as a placeholder in your applications.
