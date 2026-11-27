@@ -35,6 +35,7 @@ test('workspace opens at /app and keeps the app shell out of search indexing', a
   await expect(page.getByRole('link', { name: 'API Studio overview' })).toHaveAttribute('href', '/');
   await expect(page.getByRole('link', { name: 'Guides' })).toHaveAttribute('href', '/docs/');
   await expect(page.getByText('No requests yet')).toBeVisible();
+  await expect(page.locator('.api-editor-note')).toHaveText('Saved collections and environment values stay in this browser. Requests pass through our first-party API relay.');
 
   const robots = await page.locator('meta[name="robots"]').getAttribute('content');
   expect(robots).toBe('noindex,nofollow');
