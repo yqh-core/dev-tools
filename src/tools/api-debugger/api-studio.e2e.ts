@@ -967,6 +967,7 @@ test('offers a keyboard-accessible manual retry only after a relay failure', asy
   await expect(retry).toBeVisible();
   await expect(retry).toHaveText('Retry request');
   expect(attempts).toBe(1);
+  await page.screenshot({ path: join(SHOTS, '07-single-request-retry-desktop.png'), fullPage: true });
 
   // The request is never replayed automatically; the explicit keyboard action starts it.
   await page.setViewportSize({ width: 390, height: 844 });
@@ -975,6 +976,7 @@ test('offers a keyboard-accessible manual retry only after a relay failure', asy
     document: document.documentElement.scrollWidth,
   }));
   expect(dimensions.document).toBeLessThanOrEqual(dimensions.viewport);
+  await page.screenshot({ path: join(SHOTS, '08-single-request-retry-mobile.png'), fullPage: true });
   await retry.focus();
   await expect(retry).toBeFocused();
   await page.keyboard.press('Enter');
