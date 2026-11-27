@@ -54,7 +54,6 @@ test('task guides are directly addressable and link back to the workspace', asyn
   await expect(page.getByRole('link', { name: /All guides/i })).toHaveAttribute('href', '/docs/');
 });
 
-
 test('all task guides are directly addressable and have a clear task heading', async ({ page }) => {
   const guides = [
     ['/docs/', 'Get from first request to repeatable tests.'],
