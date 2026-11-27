@@ -68,6 +68,54 @@ test.beforeAll(() => {
   mkdirSync(SHOTS, { recursive: true });
 });
 
+test('creates a blank first request from the empty state without sending it', async ({ browser }, testInfo) => {
+  const baseUrl = String(testInfo.project.use.baseURL ?? process.env.BASE_URL ?? 'http://127.0.0.1:5050');
+
+  for (const viewport of [
+    { name: 'desktop', width: 1440, height: 900 },
+    { name: 'mobile', width: 390, height: 844 },
+  ]) {
+    const context = await browser.newContext({ viewport: { width: viewport.width, height: viewport.height } });
+    const page = await context.newPage();
+    const relayRequests: string[] = [];
+    page.on('request', (request) => {
+      if (new URL(request.url()).pathname === '/api/apiproxy') {
+        relayRequests.push(request.url());
+      }
+    });
+
+    await page.goto(new URL('/api-studio', baseUrl).toString());
+    const emptyState = page.locator('.api-editor-empty');
+    await expect(emptyState).toBeVisible();
+    const createButton = page.getByTestId('create-first-request');
+    await expect(createButton).toHaveRole('button');
+    await expect(createButton).toHaveText('Create your first request');
+    await expect(createButton).toBeEnabled();
+    await expect(page.locator('.api-editor-note')).toHaveText(
+      'Saved collections and environment values stay in this browser. Requests pass through our first-party API relay.',
+    );
+
+    const beforeCreate = await page.evaluate(() => ({
+      width: window.innerWidth,
+      scrollWidth: document.documentElement.scrollWidth,
+    }));
+    expect(beforeCreate.scrollWidth).toBeLessThanOrEqual(beforeCreate.width);
+    await page.screenshot({ path: join(SHOTS, `03-first-request-empty-${viewport.name}.png`), fullPage: true });
+
+    await createButton.click();
+
+    await expect(page.getByTestId('tree-row')).toHaveCount(1);
+    await expect(page.locator('.api-editor-empty')).toHaveCount(0);
+    await expect(page.getByTestId('editor-url')).toBeVisible();
+    await expect(page.getByTestId('editor-url')).toHaveValue('');
+    await expect(page.getByTestId('send-request')).toBeEnabled();
+    expect(relayRequests).toEqual([]);
+
+    await page.screenshot({ path: join(SHOTS, `04-first-request-created-${viewport.name}.png`), fullPage: true });
+    await context.close();
+  }
+});
+
 test('empty state clearly separates browser storage from request relay traffic', async ({ page }) => {
   await page.goto('/api-studio');
 
