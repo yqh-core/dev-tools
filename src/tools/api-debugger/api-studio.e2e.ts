@@ -608,6 +608,28 @@ test('keeps the API Studio workbench usable and keyboard accessible at 390px', a
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/api-studio');
 
+  const dataActions = page.getByTestId('data-actions');
+  const dataSummary = dataActions.locator('summary');
+  await expect(dataActions).not.toHaveAttribute('open', '');
+  await expect(dataSummary).toHaveText('Import, export & backup');
+  await expect(page.getByTestId('add-request')).toBeVisible();
+  await expect(page.getByTestId('add-folder')).toBeVisible();
+  await expect(page.getByTestId('run-collection')).toBeVisible();
+  await expect(page.getByTestId('env-bar')).toBeVisible();
+
+  await dataSummary.focus();
+  await expect(dataSummary).toBeFocused();
+  await page.keyboard.press('Enter');
+  await expect(dataActions).toHaveAttribute('open', '');
+  await expect(page.getByTestId('backup-safe')).toBeVisible();
+  await expect(page.getByTestId('backup-with-secrets')).toBeVisible();
+  await expect(page.getByTestId('restore-backup')).toBeVisible();
+  await expect(page.getByTestId('import-collection')).toBeVisible();
+  await expect(page.getByTestId('export-collection')).toBeVisible();
+
+  await page.keyboard.press('Enter');
+  await expect(dataActions).not.toHaveAttribute('open', '');
+
   await page.getByTestId('add-request').click();
   await expect(page.getByTestId('editor-url')).toBeVisible();
   await expect(page.getByTestId('send-request')).toBeVisible();
@@ -766,7 +788,12 @@ test('imports a Postman v2.1 collection into the tree and exports it back (round
   };
 
   await page.goto('/api-studio');
-  // 隐藏文件选择器：setInputFiles 直接喂 buffer，触发 @change → onImportFilePicked → importCollectionTree
+  const dataActions = page.getByTestId('data-actions');
+  await expect(dataActions).not.toHaveAttribute('open', '');
+  await dataActions.locator('summary').click();
+  await expect(page.getByTestId('import-collection')).toBeVisible();
+  // Hidden file pickers stay outside the collapsed disclosure so uploads still work.
+  // setInputFiles triggers @change → onImportFilePicked → importCollectionTree.
   await page.getByTestId('import-file').setInputFiles({
     name: 'petstore_collection.json',
     mimeType: 'application/json',
@@ -843,6 +870,8 @@ test('portable backup restores the workspace into a separate browser origin', as
 
   await page.goto('/api-studio');
   await expect(page.locator('[data-test-id="tree-row"]', { hasText: 'Token request' })).toBeVisible();
+  await page.getByTestId('data-actions').locator('summary').click();
+  await expect(page.getByTestId('backup-safe')).toBeVisible();
 
   const [download] = await Promise.all([
     page.waitForEvent('download'),
