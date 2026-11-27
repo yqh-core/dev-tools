@@ -175,12 +175,13 @@ describe('API relay Durable Object rate limiter', () => {
   it('arms one cleanup alarm and keeps the original deadline on repeat requests', async () => {
     const first = await acquire();
     expect(first.response.status).toBe(200);
-    expect(storage.alarm).toBe(Date.now() + 60_000);
+    const firstDeadline = Date.now() + 20_000;
+    expect(storage.alarm).toBe(firstDeadline);
 
     await vi.advanceTimersByTimeAsync(5_000);
     const second = await acquire();
     expect(second.response.status).toBe(200);
-    expect(storage.alarm).toBe(Date.now() + 55_000 + 5_000);
+    expect(storage.alarm).toBe(firstDeadline);
   });
 
   it('cleans expired per-IP state and removes its alarm', async () => {
@@ -204,14 +205,14 @@ describe('API relay Durable Object rate limiter', () => {
       expect(result.response.status).toBe(200);
       leases.push(result.leaseId);
     }
-    expect(storage.alarm).toBe(Date.now() + 60_000);
+    expect(storage.alarm).toBe(Date.now() + 20_000);
 
-    await vi.advanceTimersByTimeAsync(60_001);
+    await vi.advanceTimersByTimeAsync(5_000);
     await limiter.alarm();
 
     expect(storage.values.size).toBe(1);
-    expect(storage.alarm).toBe(Date.now() + 20_000 - 60_001 + 60_001);
-    // The alarm is now driven by the remaining lease expiry, not abandoned data.
+    expect(storage.alarm).toBe(Date.now() + 15_000);
+    // The cleanup alarm follows the earliest active lease expiry.
   });
 
   it('keeps counters when the Durable Object is reconstructed', async () => {
