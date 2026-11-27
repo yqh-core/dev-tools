@@ -16,6 +16,7 @@ import { expect, test } from '@playwright/test';
  */
 
 const TREE_KEY = ['api-studio', 'tree'].join(':');
+const ENV_KEY = ['api-debugger', 'env'].join(':');
 const SHOTS = join(process.cwd(), 'e2e-artifacts');
 
 function seedTree() {
@@ -548,4 +549,106 @@ test('imports a Postman v2.1 collection into the tree and exports it back (round
   const auth = (exported.item as any[]).find(it => it.name === 'Auth');
   expect(Array.isArray(auth?.item)).toBe(true);
   expect((auth.item as any[])[0].name).toBe('Login');
+});
+
+test('portable backup restores the workspace into a separate browser origin', async ({ page }, testInfo) => {
+  const baseUrl = new URL(String(testInfo.project.use.baseURL ?? process.env.BASE_URL ?? 'http://127.0.0.1:5173'));
+  const sourceOrigin = baseUrl.origin;
+  const destinationOrigin = 'https://api-studio-migration.test';
+  const tree = {
+    id: 'migration-root',
+    name: 'Cross Origin Workspace',
+    items: [{
+      id: 'auth-folder',
+      name: 'Auth',
+      items: [{
+        id: 'token-request',
+        name: 'Token request',
+        request: {
+          method: 'GET',
+          url: 'https://api.example.test/me?token={{token}}',
+          headers: [
+            { name: 'Accept', value: 'application/json' },
+            { name: 'X-API-Key', value: 'hard-coded-key-secret' },
+          ],
+          body: '{"note":"env-secret-value"}',
+        },
+      }],
+    }],
+  };
+  const env = {
+    active: 'Development',
+    envs: {
+      Development: { baseUrl: 'https://api.example.test', token: 'env-secret-value' },
+      Production: { baseUrl: 'https://prod.example.test', token: 'prod-secret-value' },
+    },
+    global: { shared: 'shared-value', token: 'global-secret-value' },
+    collection: { scopeName: 'workspace', token: 'collection-secret-value' },
+    secrets: ['token'],
+  };
+  await page.addInitScript(
+    ([origin, treeKey, treeValue, envKey, envValue]) => {
+      if (location.origin === origin) {
+        localStorage.setItem(treeKey, treeValue);
+        localStorage.setItem(envKey, envValue);
+      }
+    },
+    [sourceOrigin, TREE_KEY, JSON.stringify(tree), ENV_KEY, JSON.stringify(env)] as [string, string, string, string, string],
+  );
+
+  await page.goto('/api-studio');
+  await expect(page.locator('[data-test-id="tree-row"]', { hasText: 'Token request' })).toBeVisible();
+
+  const [download] = await Promise.all([
+    page.waitForEvent('download'),
+    page.getByTestId('backup-safe').click(),
+  ]);
+  const downloadPath = await download.path();
+  expect(downloadPath).not.toBeNull();
+  if (!downloadPath) {
+    throw new TypeError('The backup download did not produce a file.');
+  }
+  const backupText = readFileSync(downloadPath, 'utf8');
+  expect(backupText).not.toContain('env-secret-value');
+  expect(backupText).not.toContain('prod-secret-value');
+  expect(backupText).not.toContain('global-secret-value');
+  expect(backupText).not.toContain('collection-secret-value');
+  expect(backupText).not.toContain('hard-coded-key-secret');
+
+  // Route a second, distinct origin to the same built app while retaining its
+  // own localStorage origin. This exercises the actual file-based hand-off.
+  await page.route(`${destinationOrigin}/**`, async (route) => {
+    const requested = new URL(route.request().url());
+    const upstream = new URL(`${requested.pathname}${requested.search}`, baseUrl).toString();
+    const response = await route.fetch({ url: upstream });
+    await route.fulfill({ response });
+  });
+  await page.goto(`${destinationOrigin}/api-studio`);
+  expect(new URL(page.url()).origin).toBe(destinationOrigin);
+  const freshStorage = await page.evaluate(([treeKey, envKey]) => ({
+    tree: localStorage.getItem(treeKey),
+    env: localStorage.getItem(envKey),
+  }), [TREE_KEY, ENV_KEY] as [string, string]);
+  expect(freshStorage.tree).toBeNull();
+  expect(freshStorage.env).toBeNull();
+
+  await page.getByTestId('backup-file').setInputFiles(downloadPath);
+  await expect(page.getByTestId('backup-restore-preview')).toContainText('Cross Origin Workspace');
+  await expect(page.getByTestId('backup-restore-preview')).toContainText('1 request(s)');
+  await expect(page.getByTestId('backup-restore-preview')).toContainText('Development, Production');
+  page.once('dialog', dialog => dialog.accept());
+  await page.getByTestId('apply-backup-restore').click();
+
+  await expect(page.locator('[data-test-id="tree-row"]', { hasText: 'Token request' })).toBeVisible();
+  await expect(page.getByTestId('env-select')).toContainText('Development');
+  const restored = await page.evaluate(([treeKey, envKey]) => ({
+    tree: JSON.parse(localStorage.getItem(treeKey) ?? 'null'),
+    env: JSON.parse(localStorage.getItem(envKey) ?? 'null'),
+  }), [TREE_KEY, ENV_KEY] as [string, string]);
+  expect(restored.tree.name).toBe('Cross Origin Workspace');
+  expect(restored.tree.items[0].items[0].request.headers.some((header: { name: string }) => header.name.toLowerCase() === 'x-api-key')).toBe(false);
+  expect(restored.env.envs.Development.token).toBe('');
+  expect(restored.env.envs.Production.token).toBe('');
+  expect(restored.env.global.token).toBe('');
+  expect(restored.env.collection.token).toBe('');
 });
