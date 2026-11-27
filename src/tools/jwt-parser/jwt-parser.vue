@@ -64,9 +64,8 @@ function getJwtDecodeErrorMessage(error: unknown): string {
     return localizedMessage;
   }
 
-  return locale.value.startsWith('zh')
-    ? '无法解码此 Token。请检查三段式 JWT/JWS 格式及 Header、Payload 的 Base64URL JSON 对象。'
-    : 'This token could not be decoded. Check the three-part JWT/JWS format and the Base64URL JSON objects in its Header and Payload.';
+  return messages.decode
+    || 'The Header and Payload could not be decoded. Check the compact JWT/JWS input format.';
 }
 
 const validationRules = computed(() => [
