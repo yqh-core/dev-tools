@@ -404,7 +404,9 @@ test('completes a first-request journey from a clean /app origin through manual 
   // for a Reject button that this independent noindex workspace does not render.
   page.on('request', (request) => {
     const requestUrl = new URL(request.url());
-    if (requestUrl.pathname === '/api/apiproxy') relayRequests.push(request.url());
+    if (requestUrl.pathname === '/api/apiproxy') {
+      relayRequests.push(request.url());
+    }
     if (/google-analytics|googletagmanager|plausible\.io/i.test(requestUrl.hostname)) {
       analyticsRequests.push(request.url());
     }
