@@ -1086,7 +1086,7 @@ test('offers a manual retry when the API relay connection fails', async ({ page 
   );
 
   let attempts = 0;
-  await page.route(/\\/api\\/apiproxy/, async (route) => {
+  await page.route(/\/api\/apiproxy/, async (route) => {
     attempts += 1;
     if (attempts === 1) {
       return route.abort('failed');
