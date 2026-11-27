@@ -199,7 +199,14 @@ test('shows live collection progress and structured redacted request outcomes', 
     return route.fulfill({
       status: 200,
       contentType: 'application/json',
-      body: JSON.stringify({ url: payload.url, status: 200, statusText: 'OK', headers: {}, body: '{"ok":true}', elapsedMs: 8 }),
+      body: JSON.stringify({
+        url: payload.url,
+        status: 200,
+        statusText: 'OK',
+        headers: {},
+        body: payload.url.includes('/second') ? JSON.stringify({ token: 'marked-secret-value' }) : '{"ok":true}',
+        elapsedMs: 8,
+      }),
     });
   });
 
@@ -224,8 +231,9 @@ test('shows live collection progress and structured redacted request outcomes', 
   await secondResult.locator('summary').focus();
   await page.keyboard.press('Enter');
   await expect(secondResult).toHaveAttribute('open', '');
-  await expect(page.getByTestId('run-result')).not.toContainText('marked-secret-value');
-  await expect(page.getByTestId('run-result')).toContainText('[REDACTED-Secret]');
+  const secondResultText = secondResult;
+  await expect(secondResultText).not.toContainText('marked-secret-value');
+  await expect(secondResultText).toContainText('[REDACTED-Secret]');
   const dimensions = await page.evaluate(() => ({ width: window.innerWidth, scrollWidth: document.documentElement.scrollWidth }));
   expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.width);
 
