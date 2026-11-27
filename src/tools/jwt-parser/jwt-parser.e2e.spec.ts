@@ -52,13 +52,22 @@ test.describe('JWT Parser decode-only workflow', () => {
       const tools = localeMessages?.tools as Record<string, unknown> | undefined;
       const jwt = tools?.['jwt-parser'] as Record<string, unknown> | undefined;
       const errors = jwt?.errors as Record<string, unknown> | undefined;
+      const emptyKey = 'tools.jwt-parser.errors.empty';
+      const segmentsKey = 'tools.jwt-parser.errors.segments';
+      const fallbackKey = 'tools.jwt-parser.errors.decodeFallback';
       return {
         hasVueApp: Boolean(root?.__vue_app__),
         locale: composer?.locale.value ?? null,
-        hasEmptyKey: composer?.te('tools.jwt-parser.errors.empty', 'en') ?? null,
-        composerTranslation: composer?.t('tools.jwt-parser.errors.empty') ?? null,
-        globalTranslation: globals?.$t?.('tools.jwt-parser.errors.empty') ?? null,
+        hasEmptyKey: composer?.te(emptyKey, 'en') ?? null,
+        composerTranslation: composer?.t(emptyKey) ?? null,
+        globalTranslation: globals?.$t?.(emptyKey) ?? null,
         rawEmptyMessage: errors?.empty ?? null,
+        hasSegmentsKey: composer?.te(segmentsKey, 'en') ?? null,
+        composerSegmentsTranslation: composer?.t(segmentsKey) ?? null,
+        rawSegmentsMessage: errors?.segments ?? null,
+        hasFallbackKey: composer?.te(fallbackKey, 'en') ?? null,
+        composerFallbackTranslation: composer?.t(fallbackKey) ?? null,
+        rawFallbackMessage: errors?.decodeFallback ?? null,
         rawErrorKeys: errors ? Object.keys(errors) : [],
       };
     });
@@ -69,6 +78,10 @@ test.describe('JWT Parser decode-only workflow', () => {
     expect(translationProbe.hasVueApp, 'Vue app must be mounted for the runtime probe').toBe(true);
     expect(translationProbe.hasEmptyKey, JSON.stringify(translationProbe)).toBe(true);
     expect(translationProbe.composerTranslation, JSON.stringify(translationProbe)).toBe('Enter a compact JWT.');
+    expect(translationProbe.hasSegmentsKey, JSON.stringify(translationProbe)).toBe(true);
+    expect(translationProbe.composerSegmentsTranslation, JSON.stringify(translationProbe)).toMatch(/^Expected a three-part compact JWT\/JWS/);
+    expect(translationProbe.hasFallbackKey, JSON.stringify(translationProbe)).toBe(true);
+    expect(translationProbe.composerFallbackTranslation, JSON.stringify(translationProbe)).not.toBe('');
 
     const input = page.getByTestId('jwt-input');
     await input.fill('');
