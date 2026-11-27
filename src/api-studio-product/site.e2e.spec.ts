@@ -570,7 +570,7 @@ test('completes the first-request journey from a clean /app origin on desktop an
               const style = getComputedStyle(menu);
               return style.display !== 'none' && style.visibility !== 'hidden' && Number(style.opacity) > 0;
             })
-            .map((menu) => ({
+            .map(menu => ({
               className: menu.className,
               rect: (() => {
                 const box = menu.getBoundingClientRect();
