@@ -3263,6 +3263,12 @@ function onMenuSelect(key: string, node: TreeNode) {
     grid-template-columns: 1fr;
   }
 
+  /* Retry is a primary recovery action on touch devices, not a tiny utility chip. */
+  .api-error-retry {
+    min-height: 44px;
+    padding: 8px 12px;
+  }
+
   .api-field-row {
     flex-wrap: wrap;
   }
