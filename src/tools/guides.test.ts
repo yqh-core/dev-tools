@@ -105,6 +105,56 @@ describe('API Debugger collection runner guide accuracy', () => {
   });
 });
 
+describe('JSON Workspace bilingual guide accuracy', () => {
+  it('explains the live nine-step pipeline and data boundaries in English', async () => {
+    const guide = (await loadGuides('en'))['/json-workspace'];
+    const text = [
+      guide.intro,
+      ...guide.steps,
+      ...(guide.notes ?? []),
+      guide.about ?? '',
+      ...(guide.faqs ?? []).map(item => `${item.q} ${item.a}`),
+    ].join(' ');
+
+    expect(text).toContain('Minify');
+    expect(text).toContain('Generate Types');
+    expect(text).toContain('Parse to JSON');
+    expect(text).toContain('TypeScript, C#, Java or Go');
+    expect(text).toContain('no separate Run button');
+    expect(text).toContain('localStorage');
+    expect(text).toContain('not cloud sync');
+    expect(text).toContain('Base64URL encoding, not encryption');
+    expect(text).toContain('8,192 characters');
+    expect(text).toContain('5 MiB');
+    expect(text).toContain('Filter expressions');
+    expect(text).not.toContain('overwhelming majority of real extraction tasks');
+  });
+
+  it('explains the live nine-step pipeline and data boundaries in Chinese', async () => {
+    const guide = (await loadGuides('zh'))['/json-workspace'];
+    const text = [
+      guide.intro,
+      ...guide.steps,
+      ...(guide.notes ?? []),
+      guide.about ?? '',
+      ...(guide.faqs ?? []).map(item => `${item.q} ${item.a}`),
+    ].join(' ');
+
+    expect(text).toContain('Minify');
+    expect(text).toContain('Generate Types');
+    expect(text).toContain('Parse to JSON');
+    expect(text).toContain('TypeScript、C#、Java 和 Go');
+    expect(text).toContain('无需单独点击 Run');
+    expect(text).toContain('localStorage');
+    expect(text).toContain('不会同步到云端');
+    expect(text).toContain('Base64URL 编码而非加密');
+    expect(text).toContain('8,192 个字符');
+    expect(text).toContain('5 MiB');
+    expect(text).toContain('不支持 ?(@.price) 等过滤表达式');
+    expect(text).not.toContain('足以处理绝大多数真实提取任务');
+  });
+});
+
 describe('G4: assertGuideCoverage 自检', () => {
   it('当前所有已启用语言都有 importer → 返回空数组', () => {
     expect(assertGuideCoverage()).toEqual([]);
