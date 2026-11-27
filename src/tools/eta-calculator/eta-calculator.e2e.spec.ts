@@ -169,7 +169,9 @@ test.describe('ETA Calculator observed pace Chinese localization', () => {
     await page.getByTestId('eta-scenario-migration').click();
 
     const fill = async (id: string, value: string) => {
-      await page.getByTestId(id).locator('input').fill(value);
+      const input = page.getByTestId(id).locator('input');
+      await input.fill(value);
+      await input.press('Tab');
     };
     const unit = page.getByTestId('eta-unit-name');
     await expect(unit).toHaveValue('\u6761\u8BB0\u5F55');
@@ -199,10 +201,13 @@ test('ETA Calculator uses one explicit work unit across inputs, progress and res
 
   await unit.fill('database rows');
   const fill = async (id: string, value: string) => {
-    await page.getByTestId(id).locator('input').fill(value);
+    const input = page.getByTestId(id).locator('input');
+    await input.fill(value);
+    await input.press('Tab');
   };
   await fill('eta-total', '500');
   await fill('eta-completed', '200');
+  await page.getByTestId('eta-mode-rate').click();
   await fill('eta-rate', '5');
   await fill('eta-interval', '3');
   await expect(page.getByTestId('eta-remaining')).toContainText('300 database rows');
@@ -323,7 +328,7 @@ test.describe('ETA Calculator weekday schedule in the device timezone', () => {
 
     await expect(page.getByTestId('eta-working-window-counted')).toContainText('10 minutes');
     await expect(page.getByTestId('eta-finish-local')).toContainText('Nov 23, 2026');
-    await expect(page.getByTestId('eta-finish-local')).toContainText('10:10');
+    await expect(page.getByTestId('eta-finish-local')).toContainText('10:10 AM');
     await expect(page.getByTestId('eta-working-schedule-help')).toContainText('America/New_York');
 
     await page.addInitScript((fixedNow) => {
@@ -338,7 +343,7 @@ test.describe('ETA Calculator weekday schedule in the device timezone', () => {
 
     await page.getByTestId('eta-schedule-calendar').click();
     await expect(page.getByTestId('eta-finish-local')).toContainText('Nov 23, 2026');
-    await expect(page.getByTestId('eta-finish-local')).toContainText('18:10');
+    await expect(page.getByTestId('eta-finish-local')).toContainText('6:10 PM');
   });
 
   test('carries Friday work over a DST weekend while keeping local work hours stable', async ({ page }) => {
