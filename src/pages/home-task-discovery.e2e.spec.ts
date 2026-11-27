@@ -174,6 +174,19 @@ test.describe('Homepage task discovery', () => {
     expect(categoryLink?.height).toBeGreaterThanOrEqual(44);
   });
 
+  test('explains browser-local processing, API relay traffic and external lookups accurately', async ({ page }) => {
+    await page.goto('/');
+    const privacy = page.locator('#home-privacy');
+
+    await expect(privacy).toBeVisible();
+    await expect(privacy.getByTestId('home-privacy-local')).toContainText('Most tools process your input in your browser');
+    await expect(privacy.getByTestId('home-privacy-local')).toContainText('network request');
+    await expect(privacy.getByTestId('home-privacy-relay')).toContainText('API Debugger and API Studio');
+    await expect(privacy.getByTestId('home-privacy-relay')).toContainText('first-party relay');
+    await expect(privacy.getByText('These lookup tools must query an external service to return a result:')).toBeVisible();
+    await expect(privacy.getByRole('link', { name: 'HTTP Status Checker' })).toBeVisible();
+  });
+
   test('features API Studio in the full tools directory', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('/tools/');
