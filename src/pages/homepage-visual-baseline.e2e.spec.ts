@@ -29,6 +29,7 @@ test('captures a non-blocking homepage first fold at mobile and desktop viewport
     await expect(consent).toHaveAttribute('data-placement', 'home-inline');
     await expect(consent.getByRole('button', { name: 'Accept analytics' })).toBeVisible();
     await expect(consent.getByRole('button', { name: 'Reject analytics' })).toBeVisible();
+    await expect(page.locator('#home-featured .featured-task-card').first()).toBeVisible();
 
     const metrics = await page.evaluate(() => {
       const selectors = [
@@ -70,6 +71,8 @@ test('captures a non-blocking homepage first fold at mobile and desktop viewport
 
       const elements = Object.fromEntries(selectors.map(([name, selector]) => [name, rect(selector)]));
       const consentElement = document.querySelector('#digdevbox-analytics-consent');
+      const acceptButton = consentElement?.querySelector('button');
+      const rejectButton = consentElement?.querySelectorAll('button')[1];
       const hero = elements.hero;
       const consentRect = elements.consent;
       const previewRect = elements.preview;
@@ -80,6 +83,8 @@ test('captures a non-blocking homepage first fold at mobile and desktop viewport
         documentWidth: document.documentElement.scrollWidth,
         consentPlacement: consentElement?.getAttribute('data-placement') ?? null,
         consentPosition: consentElement ? getComputedStyle(consentElement).position : null,
+        consentAcceptHeight: acceptButton ? Math.round(acceptButton.getBoundingClientRect().height) : 0,
+        consentRejectHeight: rejectButton ? Math.round(rejectButton.getBoundingClientRect().height) : 0,
         consentOverlapsPreview: overlaps(consentRect, previewRect),
         consentOverlapsFirstFeaturedCard: overlaps(consentRect, firstCardRect),
         consentFollowsHero: Boolean(hero && consentRect && consentRect.top >= hero.bottom),
@@ -92,6 +97,8 @@ test('captures a non-blocking homepage first fold at mobile and desktop viewport
     expect(metrics.consentPlacement).toBe('home-inline');
     expect(metrics.consentPosition).toBe('relative');
     expect(metrics.consentFollowsHero).toBe(true);
+    expect(metrics.consentAcceptHeight).toBeGreaterThanOrEqual(44);
+    expect(metrics.consentRejectHeight).toBeGreaterThanOrEqual(44);
     expect(metrics.consentOverlapsPreview).toBe(false);
     expect(metrics.consentOverlapsFirstFeaturedCard).toBe(false);
 
