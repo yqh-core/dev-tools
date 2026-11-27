@@ -132,7 +132,7 @@ export async function handleRateLimitRequest(storage, request) {
       }
 
       if (timestamps.length >= WINDOW_LIMIT) {
-        const retry = (timestamps[0] + WINDOW_MS - now) / 1000;
+        const retry = (Math.min(...timestamps) + WINDOW_MS - now) / 1000;
         await storage.put(STATE_KEY, { timestamps, leases });
         await ensureCleanupAlarm(storage, now);
         return { status: 429, body: retryAfter(retry, 'window') };
@@ -140,7 +140,7 @@ export async function handleRateLimitRequest(storage, request) {
 
       const burstTimestamps = timestamps.filter(timestamp => timestamp > now - BURST_WINDOW_MS);
       if (burstTimestamps.length >= BURST_LIMIT) {
-        const retry = (burstTimestamps[0] + BURST_WINDOW_MS - now) / 1000;
+        const retry = (Math.min(...burstTimestamps) + BURST_WINDOW_MS - now) / 1000;
         await storage.put(STATE_KEY, { timestamps, leases });
         await ensureCleanupAlarm(storage, now);
         return { status: 429, body: retryAfter(retry, 'burst') };
