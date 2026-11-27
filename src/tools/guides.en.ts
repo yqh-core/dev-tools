@@ -831,7 +831,7 @@ export const GUIDES: Record<string, ToolGuide> = {
       'Copy or download a step result. Import state and Export state move the whole workflow between files; Reset restores the default pipeline.',
     ],
     notes: [
-      'JSON steps accept JSON5 syntax, including comments and trailing commas, then produce normalized JSON output where applicable. This does not make the exported result JSON5.',
+      'Formatting, Minify, Tree, Query, Transform, Schema inference and Diff accept JSON5 syntax (including comments and trailing commas) where those steps parse JSON. Generate Types uses strict JSON.parse and requires standard JSON input.',
       'Query supports $, .key, [\'key\'], [n] (negative indices count from the end), [start:end:step] slices, .* and [*] wildcards, and ..key recursive descent. Filter expressions such as ?(@.price) and script expressions are not supported; the step reports an error for unsupported syntax.',
       'Parse converts YAML, CSV, XML, TOML or .env text to JSON. Transform converts JSON to YAML, CSV, XML or TOML. CSV output requires an array of objects; XML output requires an object or array at the top level, and TOML output requires a top-level object.',
       'The schema is inferred from the supplied sample. It is a JSON Schema Draft 7 starting point, not a verified API contract; review required fields, optional properties and inferred types before using it.',
