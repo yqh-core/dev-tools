@@ -179,6 +179,8 @@ test.describe('ETA Calculator observed pace Chinese localization', () => {
 
   test('renders the observed-pace controls and derived rate in Chinese', async ({ page }) => {
     await page.goto('/eta-calculator');
+    await expect(page.getByTestId('eta-deadline-help')).toContainText('周一至周五');
+    await expect(page.getByTestId('eta-deadline-help')).toContainText('缓冲百分比 / 100');
     await expect(page.getByTestId('eta-mode-observed')).toContainText('\u6839\u636E\u5DF2\u8017\u65F6\u95F4\u8BA1\u7B97');
     await page.getByTestId('eta-scenario-migration').click();
 
@@ -288,6 +290,10 @@ test('ETA Calculator captures readable mobile and desktop task layouts', async (
 
 test('ETA Calculator compares the current pace with the rate needed for a deadline', async ({ page }) => {
   await page.goto('/eta-calculator');
+  await expect(page.getByTestId('eta-deadline-help'))
+    .toContainText('between the estimate start and deadline');
+  await expect(page.getByTestId('eta-deadline-help'))
+    .toContainText('(1 + buffer % / 100)');
   const fill = async (id: string, value: string) => {
     await page.getByTestId(id).locator('input').fill(value);
   };
@@ -366,6 +372,29 @@ test.describe('ETA Calculator weekday schedule in the device timezone', () => {
     await page.getByTestId('eta-schedule-calendar').click();
     await expect(page.getByTestId('eta-finish-local')).toContainText('Nov 23, 2026');
     await expect(page.getByTestId('eta-finish-local')).toContainText('6:10 PM');
+  });
+
+  test('calculates required pace from weekday work-window time after pauses and buffer', async ({ page }) => {
+    await page.addInitScript((fixedNow) => {
+      Date.now = () => fixedNow;
+    }, Date.parse('2026-11-23T15:00:00Z'));
+    await page.goto('/eta-calculator');
+
+    const fill = async (id: string, value: string) => {
+      await page.getByTestId(id).locator('input').fill(value);
+    };
+    await fill('eta-total', '180');
+    await fill('eta-completed', '60');
+    await fill('eta-rate', '3');
+    await fill('eta-interval', '5');
+    await page.getByTestId('eta-schedule-weekdays').click();
+    await fill('eta-buffer', '20');
+    await fill('eta-pause-minutes', '60');
+    await page.getByTestId('eta-deadline-input').fill('2026-11-23T17:00');
+
+    // 10:00–17:00 local = 7h; minus 1h pause = 6h;
+    // 6h / 1.2 buffer factor = 5h; 120 remaining / 5h = 24 units/hour.
+    await expect(page.getByTestId('eta-required-pace')).toContainText('24 units/hour');
   });
 
   test('carries Friday work over a DST weekend while keeping local work hours stable', async ({ page }) => {
