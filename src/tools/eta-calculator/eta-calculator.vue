@@ -127,11 +127,21 @@ function formatEtaDuration(durationMs: number): string {
     return t(`tools.eta-calculator.duration.${unit}${singular ? 'Singular' : 'Plural'}`, { count });
   };
 
-  if (hours > 0) parts.push(unitText('hour', hours));
-  if (minutes > 0) parts.push(unitText('minute', minutes));
-  if (seconds > 0) parts.push(unitText('second', seconds));
-  if (milliseconds > 0 && parts.length === 0) parts.push(unitText('millisecond', milliseconds));
-  if (parts.length === 0) parts.push(unitText('second', 0));
+  if (hours > 0) {
+    parts.push(unitText('hour', hours));
+  }
+  if (minutes > 0) {
+    parts.push(unitText('minute', minutes));
+  }
+  if (seconds > 0) {
+    parts.push(unitText('second', seconds));
+  }
+  if (milliseconds > 0 && parts.length === 0) {
+    parts.push(unitText('millisecond', milliseconds));
+  }
+  if (parts.length === 0) {
+    parts.push(unitText('second', 0));
+  }
 
   return parts.join(locale.value.startsWith('zh') ? '' : ' ');
 }
