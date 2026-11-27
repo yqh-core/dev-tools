@@ -4,7 +4,7 @@
 // 安全边界（yqh 裁定 + advisor 边界清单）：
 //   · 复用 _ssrf.js 整套校验链（与 webstatus 同一套，不写第二套更弱的）：协议白名单 /
 //     主机名策略 / 字面量 IP 多写法 / DoH 全公网 / 重定向逐跳重校 / 超时 / 不透出上游错误原文。
-//   · 方法白名单；请求体 256 KiB、响应体 1 MiB、头数 60、单头值 8 KiB 上限（超限明确拒绝，不截断）。
+//   · 入站 JSON 包络 2 MiB；请求体 256 KiB、响应体 1 MiB、头数 60、单头值 8 KiB 上限（超限明确拒绝，不截断）。
 //   · 按 IP 限流 30 req/min。**isolate 本地内存滑窗**：isolate 回收即重置、多 isolate 不共享——
 //     这是 v1 的诚实边界；部署时应叠加 CF 平台级 rate limiting 规则（属部署裁定内容）。
 //   · 不记录日志、不存储请求/响应体（仅瞬时转发）；不转发 set-cookie。
@@ -16,6 +16,7 @@
 import { MAX_HEADER_COUNT, MAX_HOPS, TIMEOUT_MS, abortLike, guardTarget, isRedirect, parseTarget } from './_ssrf.js';
 
 const ALLOWED_METHODS = new Set(['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS']);
+const MAX_INBOUND_BODY = 2 * 1024 * 1024;
 const MAX_REQ_BODY = 256 * 1024;
 const MAX_RESP_BODY = 1024 * 1024;
 const MAX_HEADER_VALUE = 8 * 1024;
@@ -48,19 +49,74 @@ function rateLimited(ip) {
   return false;
 }
 
+async function readJsonPayload(request) {
+  const contentLength = request.headers.get('content-length');
+  if (contentLength !== null) {
+    if (!/^\\d+$/.test(contentLength)) {
+      return { error: 'Invalid Content-Length header.', status: 400 };
+    }
+    if (Number(contentLength) > MAX_INBOUND_BODY) {
+      return { error: `Request JSON exceeds the ${MAX_INBOUND_BODY} byte limit.`, status: 413 };
+    }
+  }
+
+  if (!request.body) {
+    return { error: 'Request body must be JSON.', status: 400 };
+  }
+
+  const reader = request.body.getReader();
+  const chunks = [];
+  let received = 0;
+  try {
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) {
+        break;
+      }
+      received += value.byteLength;
+      if (received > MAX_INBOUND_BODY) {
+        try {
+          await reader.cancel();
+        }
+        catch {
+          // The request is already rejected; cancellation is best-effort.
+        }
+        return { error: `Request JSON exceeds the ${MAX_INBOUND_BODY} byte limit.`, status: 413 };
+      }
+      chunks.push(value);
+    }
+  }
+  catch {
+    return { error: 'Request body could not be read.', status: 400 };
+  }
+
+  const bytes = new Uint8Array(received);
+  let offset = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+
+  try {
+    const text = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+    return { payload: JSON.parse(text) };
+  }
+  catch {
+    return { error: 'Request body must be valid UTF-8 JSON.', status: 400 };
+  }
+}
+
 export async function onRequestPost({ request }) {
   const ip = request.headers.get('cf-connecting-ip') || 'unknown';
   if (rateLimited(ip)) {
     return fail('Rate limit exceeded (30 requests per minute per IP). Try again later.', 429);
   }
 
-  let payload;
-  try {
-    payload = await request.json();
+  const parsedPayload = await readJsonPayload(request);
+  if (parsedPayload.error) {
+    return fail(parsedPayload.error, parsedPayload.status);
   }
-  catch {
-    return fail('Request body must be JSON.', 400);
-  }
+  const payload = parsedPayload.payload;
   if (payload === null || typeof payload !== 'object') {
     return fail('Request body must be a JSON object.', 400);
   }
