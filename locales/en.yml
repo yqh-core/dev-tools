@@ -335,7 +335,7 @@ tools:
         percentagePointsUnit: percentage points
       hints:
         percentageChange: "Percentage change uses the old value as its baseline (denominator). It is undefined when the old value is zero."
-        percentageDifference: "Symmetric comparison uses the average of |A| and |B| as its denominator; neither value is treated as the baseline."
+        percentageDifference: "Symmetric comparison uses the average of the absolute values of A and B as its denominator; neither value is treated as the baseline."
         percentagePoints: "Example: a rate moving from 4% to 6% changes by +2 percentage points, or +50% relative to the old rate."
     resultDetails:
       inWords: In words
