@@ -76,7 +76,7 @@ test.describe('JWT Parser decode-only workflow', () => {
   test('does not send the pasted token in a request URL or request body', async ({ page }) => {
     const observedRequests: string[] = [];
     page.on('request', (request) => {
-      const candidate = request.url() + '\n' + (request.postData() ?? '');
+      const candidate = `${request.url()}\n${request.postData() ?? ''}`;
       if (candidate.includes(sampleToken)) {
         observedRequests.push(candidate);
       }
