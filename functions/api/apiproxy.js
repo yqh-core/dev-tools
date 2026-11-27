@@ -52,7 +52,7 @@ function rateLimited(ip) {
 async function readJsonPayload(request) {
   const contentLength = request.headers.get('content-length');
   if (contentLength !== null) {
-    if (!/^\\d+$/.test(contentLength)) {
+    if (!/^\d+$/.test(contentLength)) {
       return { error: 'Invalid Content-Length header.', status: 400 };
     }
     if (Number(contentLength) > MAX_INBOUND_BODY) {
