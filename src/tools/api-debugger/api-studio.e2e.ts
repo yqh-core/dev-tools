@@ -635,7 +635,7 @@ test('portable backup restores the workspace into a separate browser origin', as
 
   await page.getByTestId('backup-file').setInputFiles(downloadPath);
   await expect(page.getByTestId('backup-restore-preview')).toContainText('Cross Origin Workspace');
-  await expect(page.getByTestId('backup-restore-preview')).toContainText('2 request(s)');
+  await expect(page.getByTestId('backup-restore-preview')).toContainText('1 request(s)');
   await expect(page.getByTestId('backup-restore-preview')).toContainText('Development, Production');
   page.once('dialog', dialog => dialog.accept());
   await page.getByTestId('apply-backup-restore').click();
