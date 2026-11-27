@@ -290,7 +290,7 @@ test('environment selector keeps common names readable and exposes the full acti
     localStorage.setItem('api-debugger:env', JSON.stringify({
       active: 'Default',
       envs: {
-        Default: {},
+        'Default': {},
         'Staging-West-2-Production': {},
       },
       collection: {},
@@ -345,7 +345,7 @@ test('environment selector stays within the mobile workspace width with a long n
     localStorage.setItem('api-debugger:env', JSON.stringify({
       active: 'Staging-West-2-Production',
       envs: {
-        Default: {},
+        'Default': {},
         'Staging-West-2-Production': {},
       },
       collection: {},
