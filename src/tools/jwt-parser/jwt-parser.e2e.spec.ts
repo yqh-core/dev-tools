@@ -16,12 +16,25 @@ test.describe('JWT Parser decode-only workflow', () => {
     await expect(page.getByTestId('jwt-copy-signature')).toBeEnabled();
   });
 
-  test('shows a specific recovery message for malformed compact input', async ({ page }) => {
+  test('shows a specific recovery message for malformed compact input', async ({ page }, testInfo) => {
+    // This case asserts the English copy. The separate Chinese case below verifies
+    // first-visit language detection from navigator.languages.
+    await page.addInitScript(() => {
+      localStorage.setItem('locale', 'en');
+    });
     await page.goto('/jwt-parser');
     const input = page.getByTestId('jwt-input');
 
     await input.fill('');
-    await expect(page.getByText(/Enter a compact JWT\./)).toBeVisible();
+    await expect(input).toHaveValue('');
+    const feedback = page.locator('.c-input-text .feedback');
+    const emptyFeedback = await feedback.textContent();
+    console.info(`[JWT empty-input validation] input=${JSON.stringify(await input.inputValue())}; feedback=${JSON.stringify(emptyFeedback)}`);
+    await page.screenshot({
+      path: testInfo.outputPath('jwt-parser-empty-validation.png'),
+      fullPage: true,
+    });
+    await expect(feedback).toContainText(/Enter a compact JWT\./);
 
     await input.fill('one.two');
     await expect(page.getByText(/Expected a three-part compact JWT\/JWS/)).toBeVisible();
