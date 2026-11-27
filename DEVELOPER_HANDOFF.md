@@ -186,3 +186,12 @@ Older #241 failure/IN_PROGRESS notes above are historical and superseded by this
 - Current head reduces inline mobile consent copy size, padding, gaps and margins while keeping both buttons at 44px; observer now disconnects when its captured document/window is disposed/replaced. It also adds a SPA navigation home→tools placement test.
 - CI #45998083617 and Verify/Build #45998083508 are pending/in progress; exact-head Preview pending. Earlier SHA preview/status must not be substituted. Do not merge until exact-head browser tests, all workflows, preview, and screenshots pass.
 - API Studio PR #241 and Main nav PR #243 remain merged and verified as recorded above.
+
+### Latest PR #244 status — 2026-11-27 ~12:38 UTC
+
+- Current exact branch head `7d431b414a8d92bb113eb455c600796533ec4a80`; PR #244 draft/open. CI #46000300303, Verify #46000300487 and Cloudflare Pages Preview are IN_PROGRESS. Latest CI Lint, relay/DO lint, worker dry-run and unit tests passed; typecheck in progress. Verify example coverage/crawler self-check passed; typecheck/build in progress. Do not merge until exact-head gates and final screenshots pass.
+- Latest branch includes: mobile hero density/fully-visible preview CTA geometry test; inline homepage consent with SPA route transitions and preserved Reject/Accept behavior; privacy disclosure correction in EN/ZH differentiating local processing, API relay and external lookups. E2E checks privacy statements.
+- PR #244 comment #7218518644 records the privacy copy correction.
+- Long-term content/copy standard: `PRODUCT_UX_EXECUTION_PLAYBOOK.md` v1.6 (ten-product terminology/tutorial/blog voice); API Studio delivery roadmap reconciled and competitive review updated so shipped PR #223 Runner is not misrepresented as pending.
+- Current homepage recommendations already comprise five task groups (API, JSON/Data, JWT/Auth, Calculate/Convert, Network). Next task after merge: audit these and the actual tool pages for technical accuracy, short useful instructions, examples and caveats; no duplicate recommendation section.
+- PRs #223, #241, #243 merged; related #222/#240/#237 closed. #221/#214/#219 remain owner/production gates.
