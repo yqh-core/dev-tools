@@ -1,3 +1,4 @@
+import { injectApiStudioSeo } from './api-studio-seo.mjs';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -29,5 +30,7 @@ await build({
     },
   },
 });
+
+await injectApiStudioSeo();
 
 console.log('API Studio product site built to dist-api-studio/.');
