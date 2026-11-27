@@ -96,7 +96,7 @@ test('ETA Calculator clearly reports a completed workload', async ({ page }) => 
   await fill('eta-total', '500');
   await fill('eta-completed', '500');
   await expect(page.getByTestId('eta-remaining')).toContainText('0');
-  await expect(page.getByTestId('eta-duration')).toContainText('0 seconds');
+  await expect(page.getByTestId('eta-duration')).toHaveCount(0);
   await expect(page.getByTestId('eta-observed-rate')).toHaveCount(0);
   await expect(page.getByTestId('eta-complete')).toContainText('All work items are complete');
   await expect(page.getByTestId('eta-finish')).toHaveCount(0);
@@ -154,7 +154,7 @@ test('ETA Calculator reports missing progress and invalid elapsed pace, then han
 
   await fill('eta-completed', '500');
   await expect(page.getByTestId('eta-remaining')).toContainText('0');
-  await expect(page.getByTestId('eta-duration')).toContainText('0 seconds');
+  await expect(page.getByTestId('eta-duration')).toHaveCount(0);
   await expect(page.getByTestId('eta-complete')).toContainText('All work items are complete');
   await expect(page.getByTestId('eta-observed-error')).toHaveCount(0);
   await expect(page.getByTestId('eta-finish')).toHaveCount(0);
@@ -171,7 +171,7 @@ test.describe('ETA Calculator observed pace Chinese localization', () => {
     const fill = async (id: string, value: string) => {
       await page.getByTestId(id).locator('input').fill(value);
     };
-    const unit = page.getByTestId('eta-unit-name').locator('input');
+    const unit = page.getByTestId('eta-unit-name');
     await expect(unit).toHaveValue('\u6761\u8BB0\u5F55');
     await fill('eta-total', '500');
     await fill('eta-completed', '200');
@@ -188,7 +188,7 @@ test('ETA Calculator uses one explicit work unit across inputs, progress and res
   await page.goto('/eta-calculator');
   await page.getByTestId('eta-scenario-migration').click();
 
-  const unit = page.getByTestId('eta-unit-name').locator('input');
+  const unit = page.getByTestId('eta-unit-name');
   await expect(unit).toHaveValue('records');
   await expect(page.getByTestId('eta-total')).toContainText('12000');
   await expect(page.getByTestId('eta-remaining')).toContainText('records');
@@ -236,7 +236,7 @@ test('ETA Calculator captures readable mobile and desktop task layouts', async (
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/eta-calculator');
   await page.getByTestId('eta-scenario-migration').click();
-  await expect(page.getByTestId('eta-unit-name').locator('input')).toHaveValue('records');
+  await expect(page.getByTestId('eta-unit-name')).toHaveValue('records');
   await expect(page.getByTestId('eta-result')).toBeVisible();
 
   let dimensions = await page.evaluate(() => ({
@@ -319,7 +319,7 @@ test.describe('ETA Calculator weekday schedule in the device timezone', () => {
     await page.getByTestId('eta-schedule-weekdays').click();
 
     await expect(page.getByTestId('eta-working-window-counted')).toContainText('10 minutes');
-    await expect(page.getByTestId('eta-finish-local')).toContainText('23 Nov 2026');
+    await expect(page.getByTestId('eta-finish-local')).toContainText('Nov 23, 2026');
     await expect(page.getByTestId('eta-finish-local')).toContainText('10:10');
     await expect(page.getByTestId('eta-working-schedule-help')).toContainText('America/New_York');
 
@@ -330,11 +330,11 @@ test.describe('ETA Calculator weekday schedule in the device timezone', () => {
     await fill('eta-total', '6');
     await fill('eta-completed', '0');
     await page.getByTestId('eta-schedule-weekdays').click();
-    await expect(page.getByTestId('eta-finish-local')).toContainText('24 Nov 2026');
+    await expect(page.getByTestId('eta-finish-local')).toContainText('Nov 24, 2026');
     await expect(page.getByTestId('eta-finish-local')).toContainText('09:10');
 
     await page.getByTestId('eta-schedule-calendar').click();
-    await expect(page.getByTestId('eta-finish-local')).toContainText('23 Nov 2026');
+    await expect(page.getByTestId('eta-finish-local')).toContainText('Nov 23, 2026');
     await expect(page.getByTestId('eta-finish-local')).toContainText('18:10');
   });
 
@@ -352,7 +352,7 @@ test.describe('ETA Calculator weekday schedule in the device timezone', () => {
     await page.getByTestId('eta-schedule-weekdays').click();
 
     await expect(page.getByTestId('eta-working-window-counted')).toContainText('2 hours');
-    await expect(page.getByTestId('eta-finish-local')).toContainText('9 Mar 2026');
+    await expect(page.getByTestId('eta-finish-local')).toContainText('Mar 9, 2026');
     await expect(page.getByTestId('eta-finish-local')).toContainText('10:00');
     await expect(page.getByTestId('eta-finish-local')).toContainText('America/New_York');
   });
