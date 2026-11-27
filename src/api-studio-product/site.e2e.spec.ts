@@ -321,7 +321,7 @@ test('environment selector keeps common names readable and exposes the full acti
   await trigger.focus();
   await expect(trigger).toBeFocused();
   await page.keyboard.press('ArrowDown');
-  const longEnvironment = page.getByRole('option', { name: 'Staging-West-2-Production' });
+  const longEnvironment = page.locator('.n-base-select-option').filter({ hasText: 'Staging-West-2-Production' });
   await expect(longEnvironment).toBeVisible();
   await page.keyboard.press('Escape');
   await expect(trigger).toBeFocused();
