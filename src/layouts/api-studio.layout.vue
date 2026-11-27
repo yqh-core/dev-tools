@@ -202,17 +202,28 @@ const methodLegend = [
 }
 
 .api-shell-body {
+  display: flex;
   flex: 1 1 auto;
+  flex-direction: column;
   min-height: 0;
   overflow: hidden;
   background: var(--api-bg);
 }
 
-/* App.vue supplies the named <main id="main-content"> through this layout slot.
-   Give that nested route container a definite height so the mobile column layout
-   can allocate the remaining viewport to the request editor instead of collapsing it. */
+/* App.vue supplies #main-content through this slot. Make each level an explicit
+   flex item/container so the workspace receives the shell's remaining height;
+   percentage heights alone can resolve against the content-sized slot on mobile. */
 .api-shell-body :deep(#main-content) {
-  height: 100%;
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+}
+
+.api-shell-body :deep(.api-workspace) {
+  flex: 1 1 0;
+  height: auto;
   min-height: 0;
 }
 
