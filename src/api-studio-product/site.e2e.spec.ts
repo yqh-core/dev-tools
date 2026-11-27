@@ -163,7 +163,7 @@ test('homepage guided walkthrough is keyboard-operable and updates its step copy
 
   await expect(assertions).toHaveAttribute('aria-pressed', 'true');
   await expect(page.locator('#guided-demo-detail')).toContainText('Check the response');
-  await expect(page.locator('#guided-demo-detail')).toContainText('does not send a request').not.toBeVisible();
+  await expect(page.locator('#guided-demo-detail')).not.toContainText('does not send a request');
   await expect(page.locator('#guided-demo-detail')).toContainText('review which checks passed');
 });
 
