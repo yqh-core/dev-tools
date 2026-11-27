@@ -544,11 +544,15 @@ test('completes the first-request journey from a clean /app origin on desktop an
     expect(retryBox).not.toBeNull();
     if (viewport.name === 'mobile') {
       expect(retryBox!.height).toBeGreaterThanOrEqual(44);
-      const retryReceivesPointer = await page.evaluate(({ x, y }) => {
-        return Boolean(document.elementFromPoint(x, y)?.closest('[data-test-id="retry-send"]'));
-      }, {
-        x: retryBox!.x + retryBox!.width / 2,
-        y: retryBox!.y + retryBox!.height / 2,
+      const retryReceivesPointer = await retry.evaluate((element) => {
+        // elementFromPoint expects viewport coordinates. Read the DOM rect after
+        // scrolling instead of mixing it with Playwright's frame-relative box.
+        const rect = element.getBoundingClientRect();
+        const hitTarget = document.elementFromPoint(
+          rect.left + rect.width / 2,
+          rect.top + rect.height / 2,
+        );
+        return hitTarget === element || Boolean(hitTarget && element.contains(hitTarget));
       });
       expect(retryReceivesPointer).toBe(true);
     }
