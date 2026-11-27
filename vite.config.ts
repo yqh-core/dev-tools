@@ -18,6 +18,7 @@ import svgLoader from 'vite-svg-loader';
 import { configDefaults } from 'vitest/config';
 
 const baseUrl = process.env.BASE_URL ?? '/';
+const isApiStudioProductBuild = process.env.API_STUDIO_PRODUCT_BUILD === '1';
 
 // [B3-experiment E1] lodash(CJS) 与 lodash-es(ESM) 同时进包：src 41 处 `import _ from 'lodash'`
 // 带全量 CJS lodash（主 chunk 544,098 B 源），naive-ui 走 lodash-es 再带 118,144 B 重叠模块。
@@ -82,6 +83,9 @@ export default defineConfig({
     markdown(),
     svgLoader(),
     VitePWA({
+      // The independent API Studio build has its own browser origin and product identity.
+      // Keep the parent-site PWA manifest/service worker out until that identity is approved.
+      disable: isApiStudioProductBuild,
       registerType: 'autoUpdate',
       strategies: 'generateSW',
       // 经典版静态站（public/legacy/）必须**同时**从两处排除，缺一不可：
@@ -162,7 +166,7 @@ export default defineConfig({
     }),
     Unocss(),
   ],
-  base: baseUrl,
+  base: isApiStudioProductBuild ? '/' : baseUrl,
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
