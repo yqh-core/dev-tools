@@ -798,7 +798,7 @@ async function copySequentialSummary(): Promise<void> {
             <n-input-number v-model:value="rateTo" data-test-id="rateTo" :placeholder="$t('tools.percentage-calculator.ui.fields.newRatePlaceholder')" class="w-full" />
           </label>
           <div class="col-span-2 min-w-0">
-            
+
             <div class="flex items-center gap-2">
               <input-copyable id="percentage-points-result-output" :label="$t('tools.percentage-calculator.ui.fields.percentagePointChange')" v-model:value="percentagePointChange" data-test-id="percentagePointChange" readonly :placeholder="$t('tools.percentage-calculator.ui.fields.resultPlaceholder')" class="w-full" />
               <span class="shrink-0 text-sm text-slate-600 dark:text-slate-300">{{ $t('tools.percentage-calculator.ui.fields.percentagePointsUnit') }}</span>
