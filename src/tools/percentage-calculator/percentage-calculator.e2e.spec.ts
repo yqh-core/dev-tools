@@ -49,6 +49,9 @@ test.describe('Tool - Percentage calculator', () => {
   test('shows one focused task at a time and switches between all seven workflows', async ({ page }) => {
     const modeButtons = page.locator('.percentage-mode-button');
     await expect(modeButtons).toHaveCount(7);
+    await expect(page.getByLabel('Percentage (%)')).toBeVisible();
+    await expect(page.getByLabel('Whole value')).toBeVisible();
+    await expect(page.getByLabel('Result').first()).toBeVisible();
     await expect(page.getByTestId('percentageX')).toBeVisible();
     await expect(page.getByTestId('numberX')).toBeHidden();
 
@@ -97,6 +100,7 @@ test.describe('Tool - Percentage calculator', () => {
     await expect(page.getByRole('group', { name: 'Choose a percentage calculation' })).toBeVisible();
     const guide = page.getByTestId('percentage-calculator-guide');
     await expect(guide).toContainText('Percentage formulas and common pitfalls');
+    await expect(guide).toContainText('Results use up to 12 significant digits. This is display precision, not currency-specific rounding.');
     await expect(guide).toContainText('28% off overall, not 30%');
     await expect(page.locator('.percentage-mode-button')).toHaveCount(7);
 
@@ -104,6 +108,9 @@ test.describe('Tool - Percentage calculator', () => {
     const change = page.getByTestId('percentage-mode-percentage-change');
     await expect(change).toContainText('Old value (baseline)');
     await expect(change).toContainText('New value');
+    await expect(page.getByLabel('Old value (baseline)')).toBeVisible();
+    await expect(page.getByLabel('New value')).toBeVisible();
+    await expect(page.getByLabel('Percentage change (%)')).toBeVisible();
     await expect(page.getByTestId('percentage-hint-change')).toContainText('baseline (denominator)');
     await page.getByTestId('numberFrom').locator('input').fill('80');
     await page.getByTestId('numberTo').locator('input').fill('92');
@@ -413,8 +420,12 @@ test.describe('Percentage calculator primary UI Chinese localization', () => {
     await page.goto('/percentage-calculator');
     await expect(page.getByRole('group', { name: '选择百分比计算方式' })).toBeVisible();
     await expect(page.locator('.percentage-mode-button')).toHaveCount(7);
+    await expect(page.getByLabel('百分比 (%)')).toBeVisible();
+    await expect(page.getByLabel('整体数值').first()).toBeVisible();
+    await expect(page.getByLabel('结果').first()).toBeVisible();
     const guide = page.getByTestId('percentage-calculator-guide');
     await expect(guide).toContainText('百分比公式与常见误区');
+    await expect(guide).toContainText('最多显示 12 位有效数字');
     await expect(guide).toContainText('百分点');
     await expect(guide).not.toContainText('How to calculate a percentage');
 

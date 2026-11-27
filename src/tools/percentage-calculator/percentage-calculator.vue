@@ -627,33 +627,32 @@ async function copySequentialSummary(): Promise<void> {
       </div>
       <div class="percentage-example-strip" data-test-id="percentage-quick-examples">
         <button type="button" class="percentage-example-button" data-test-id="percentage-example-percent-of"
-          :aria-label="`${$t('tools.percentage-calculator.ui.modes.percent-of')}: 15% of 80, result 12`"
+          :aria-label="`${$t('tools.percentage-calculator.ui.modes.percent-of')}: 15% × 80 = 12`"
           @click="loadPercentageQuickExample('percent-of')">15% × 80 = 12</button>
         <button type="button" class="percentage-example-button" data-test-id="percentage-example-part-to-whole"
-          :aria-label="`${$t('tools.percentage-calculator.ui.modes.part-to-whole')}: 30 of 120, result 25 percent`"
+          :aria-label="`${$t('tools.percentage-calculator.ui.modes.part-to-whole')}: 30 ÷ 120 = 25%`"
           @click="loadPercentageQuickExample('part-to-whole')">30 ÷ 120 = 25%</button>
         <button type="button" class="percentage-example-button" data-test-id="percentage-example-percentage-change"
-          :aria-label="`${$t('tools.percentage-calculator.ui.modes.percentage-change')}: 80 to 92, a 15 percent increase`"
+          :aria-label="`${$t('tools.percentage-calculator.ui.modes.percentage-change')}: 80 → 92 = +15%`"
           @click="loadPercentageQuickExample('percentage-change')">80 → 92 = +15%</button>
         <button type="button" class="percentage-example-button" data-test-id="percentage-example-adjustment"
-          :aria-label="`${$t('tools.percentage-calculator.ui.modes.adjustment')}: increase or decrease 80 by 15 percent`"
+          :aria-label="`${$t('tools.percentage-calculator.ui.modes.adjustment')}: 80 ± 15% = 92 / 68`"
           @click="loadPercentageQuickExample('adjustment')">80 ± 15% = 92 / 68</button>
       </div>
 
       <c-card mb-3 v-show="activeCalculationMode === 'percent-of'" data-test-id="percentage-mode-percent-of">
         <h3 class="mb-3 text-sm font-semibold">{{ $t('tools.percentage-calculator.ui.modes.percent-of') }}</h3>
         <div class="grid grid-cols-2 gap-3">
-          <div class="min-w-0">
-            <label for="percentage-x" class="mb-1 block text-sm font-medium">{{ $t('tools.percentage-calculator.ui.fields.percentage') }}</label>
-            <n-input-number id="percentage-x" v-model:value="percentageX" data-test-id="percentageX" :placeholder="$t('tools.percentage-calculator.ui.fields.percentagePlaceholder')" class="w-full" />
-          </div>
-          <div class="min-w-0">
-            <label for="percentage-y" class="mb-1 block text-sm font-medium">{{ $t('tools.percentage-calculator.ui.fields.whole') }}</label>
-            <n-input-number id="percentage-y" v-model:value="percentageY" data-test-id="percentageY" :placeholder="$t('tools.percentage-calculator.ui.fields.wholePlaceholder')" class="w-full" />
-          </div>
+          <label class="min-w-0 block">
+            <span class="mb-1 block text-sm font-medium">{{ $t('tools.percentage-calculator.ui.fields.percentage') }}</span>
+            <n-input-number v-model:value="percentageX" data-test-id="percentageX" :placeholder="$t('tools.percentage-calculator.ui.fields.percentagePlaceholder')" class="w-full" />
+          </label>
+          <label class="min-w-0 block">
+            <span class="mb-1 block text-sm font-medium">{{ $t('tools.percentage-calculator.ui.fields.whole') }}</span>
+            <n-input-number v-model:value="percentageY" data-test-id="percentageY" :placeholder="$t('tools.percentage-calculator.ui.fields.wholePlaceholder')" class="w-full" />
+          </label>
           <div class="col-span-2 min-w-0">
-            <div class="mb-1 text-sm font-medium">{{ $t('tools.percentage-calculator.ui.fields.result') }}</div>
-            <input-copyable v-model:value="percentageResult" data-test-id="percentageResult" readonly :placeholder="$t('tools.percentage-calculator.ui.fields.resultPlaceholder')" class="w-full" />
+            <input-copyable id="percentage-result-output" :label="$t('tools.percentage-calculator.ui.fields.result')" v-model:value="percentageResult" data-test-id="percentageResult" readonly :placeholder="$t('tools.percentage-calculator.ui.fields.resultPlaceholder')" class="w-full" />
           </div>
         </div>
         <div v-if="percentageResultDetails" class="mt-3 rounded border border-gray-200 p-3 text-xs dark:border-gray-700" data-test-id="percentage-details-percent-of">
@@ -665,17 +664,16 @@ async function copySequentialSummary(): Promise<void> {
       <c-card mb-3 v-show="activeCalculationMode === 'part-to-whole'" data-test-id="percentage-mode-part-to-whole">
         <h3 class="mb-3 text-sm font-semibold">{{ $t('tools.percentage-calculator.ui.modes.part-to-whole') }}</h3>
         <div class="grid grid-cols-2 gap-3">
-          <div class="min-w-0">
-            <label for="part-to-whole-part" class="mb-1 block text-sm font-medium">{{ $t('tools.percentage-calculator.ui.fields.part') }}</label>
-            <n-input-number id="part-to-whole-part" v-model:value="numberX" data-test-id="numberX" :placeholder="$t('tools.percentage-calculator.ui.fields.partPlaceholder')" class="w-full" />
-          </div>
-          <div class="min-w-0">
-            <label for="part-to-whole-whole" class="mb-1 block text-sm font-medium">{{ $t('tools.percentage-calculator.ui.fields.whole') }}</label>
-            <n-input-number id="part-to-whole-whole" v-model:value="numberY" data-test-id="numberY" :placeholder="$t('tools.percentage-calculator.ui.fields.wholePlaceholder')" class="w-full" />
-          </div>
+          <label class="min-w-0 block">
+            <span class="mb-1 block text-sm font-medium">{{ $t('tools.percentage-calculator.ui.fields.part') }}</span>
+            <n-input-number v-model:value="numberX" data-test-id="numberX" :placeholder="$t('tools.percentage-calculator.ui.fields.partPlaceholder')" class="w-full" />
+          </label>
+          <label class="min-w-0 block">
+            <span class="mb-1 block text-sm font-medium">{{ $t('tools.percentage-calculator.ui.fields.whole') }}</span>
+            <n-input-number v-model:value="numberY" data-test-id="numberY" :placeholder="$t('tools.percentage-calculator.ui.fields.wholePlaceholder')" class="w-full" />
+          </label>
           <div class="col-span-2 min-w-0">
-            <div class="mb-1 text-sm font-medium">{{ $t('tools.percentage-calculator.ui.fields.result') }}</div>
-            <input-copyable v-model:value="numberResult" data-test-id="numberResult" readonly :placeholder="$t('tools.percentage-calculator.ui.fields.resultPlaceholder')" class="w-full" />
+            <input-copyable id="part-to-whole-result-output" :label="$t('tools.percentage-calculator.ui.fields.result')" v-model:value="numberResult" data-test-id="numberResult" readonly :placeholder="$t('tools.percentage-calculator.ui.fields.resultPlaceholder')" class="w-full" />
           </div>
         </div>
         <div v-if="partToWholeDetails" class="mt-3 rounded border border-gray-200 p-3 text-xs dark:border-gray-700" data-test-id="percentage-details-part-to-whole">
@@ -687,17 +685,16 @@ async function copySequentialSummary(): Promise<void> {
       <c-card mb-3 v-show="activeCalculationMode === 'percentage-change'" data-test-id="percentage-mode-percentage-change">
         <h3 class="mb-3 text-sm font-semibold">{{ $t('tools.percentage-calculator.ui.modes.percentage-change') }}</h3>
         <div class="grid grid-cols-2 gap-3">
-          <div class="min-w-0">
-            <label for="percentage-old-value" class="mb-1 block text-sm font-medium">{{ $t('tools.percentage-calculator.ui.fields.oldValue') }}</label>
-            <n-input-number id="percentage-old-value" v-model:value="numberFrom" data-test-id="numberFrom" :placeholder="$t('tools.percentage-calculator.ui.fields.oldValuePlaceholder')" class="w-full" />
-          </div>
-          <div class="min-w-0">
-            <label for="percentage-new-value" class="mb-1 block text-sm font-medium">{{ $t('tools.percentage-calculator.ui.fields.newValue') }}</label>
-            <n-input-number id="percentage-new-value" v-model:value="numberTo" data-test-id="numberTo" :placeholder="$t('tools.percentage-calculator.ui.fields.newValuePlaceholder')" class="w-full" />
-          </div>
+          <label class="min-w-0 block">
+            <span class="mb-1 block text-sm font-medium">{{ $t('tools.percentage-calculator.ui.fields.oldValue') }}</span>
+            <n-input-number v-model:value="numberFrom" data-test-id="numberFrom" :placeholder="$t('tools.percentage-calculator.ui.fields.oldValuePlaceholder')" class="w-full" />
+          </label>
+          <label class="min-w-0 block">
+            <span class="mb-1 block text-sm font-medium">{{ $t('tools.percentage-calculator.ui.fields.newValue') }}</span>
+            <n-input-number v-model:value="numberTo" data-test-id="numberTo" :placeholder="$t('tools.percentage-calculator.ui.fields.newValuePlaceholder')" class="w-full" />
+          </label>
           <div class="col-span-2 min-w-0">
-            <div class="mb-1 text-sm font-medium">{{ $t('tools.percentage-calculator.ui.fields.changeResult') }}</div>
-            <input-copyable v-model:value="percentageIncreaseDecrease" data-test-id="percentageIncreaseDecrease" readonly :placeholder="$t('tools.percentage-calculator.ui.fields.resultPlaceholder')" class="w-full" />
+            <input-copyable id="percentage-change-result-output" :label="$t('tools.percentage-calculator.ui.fields.changeResult')" v-model:value="percentageIncreaseDecrease" data-test-id="percentageIncreaseDecrease" readonly :placeholder="$t('tools.percentage-calculator.ui.fields.resultPlaceholder')" class="w-full" />
           </div>
         </div>
         <p class="mt-3 text-xs text-slate-600 dark:text-slate-300" data-test-id="percentage-hint-change">{{ $t('tools.percentage-calculator.ui.hints.percentageChange') }}</p>
@@ -710,23 +707,21 @@ async function copySequentialSummary(): Promise<void> {
       <c-card mb-3 v-show="activeCalculationMode === 'adjustment'" data-test-id="percentage-mode-adjustment">
         <h3 class="mb-3 text-sm font-semibold">{{ $t('tools.percentage-calculator.ui.modes.adjustment') }}</h3>
         <div class="grid grid-cols-2 gap-3">
-          <div class="min-w-0">
-            <label for="percentage-adjustment-value" class="mb-1 block text-sm font-medium">{{ $t('tools.percentage-calculator.ui.fields.baseValue') }}</label>
-            <n-input-number id="percentage-adjustment-value" v-model:value="adjustmentValue" data-test-id="adjustmentValue" :placeholder="$t('tools.percentage-calculator.ui.fields.baseValuePlaceholder')" class="w-full" />
-          </div>
-          <div class="min-w-0">
-            <label for="percentage-adjustment-rate" class="mb-1 block text-sm font-medium">{{ $t('tools.percentage-calculator.ui.fields.rate') }}</label>
-            <n-input-number id="percentage-adjustment-rate" v-model:value="adjustmentPercent" data-test-id="adjustmentPercent" :placeholder="$t('tools.percentage-calculator.ui.fields.ratePlaceholder')" class="w-full" />
-          </div>
+          <label class="min-w-0 block">
+            <span class="mb-1 block text-sm font-medium">{{ $t('tools.percentage-calculator.ui.fields.baseValue') }}</span>
+            <n-input-number v-model:value="adjustmentValue" data-test-id="adjustmentValue" :placeholder="$t('tools.percentage-calculator.ui.fields.baseValuePlaceholder')" class="w-full" />
+          </label>
+          <label class="min-w-0 block">
+            <span class="mb-1 block text-sm font-medium">{{ $t('tools.percentage-calculator.ui.fields.rate') }}</span>
+            <n-input-number v-model:value="adjustmentPercent" data-test-id="adjustmentPercent" :placeholder="$t('tools.percentage-calculator.ui.fields.ratePlaceholder')" class="w-full" />
+          </label>
         </div>
         <div class="mt-3 grid grid-cols-2 gap-3">
           <div class="min-w-0">
-            <div class="mb-1 text-sm font-medium">{{ $t('tools.percentage-calculator.ui.fields.afterIncrease') }}</div>
-            <input-copyable v-model:value="increasedValue" data-test-id="increasedValue" readonly :placeholder="$t('tools.percentage-calculator.ui.fields.resultPlaceholder')" class="w-full" />
+            <input-copyable id="percentage-increase-result-output" :label="$t('tools.percentage-calculator.ui.fields.afterIncrease')" v-model:value="increasedValue" data-test-id="increasedValue" readonly :placeholder="$t('tools.percentage-calculator.ui.fields.resultPlaceholder')" class="w-full" />
           </div>
           <div class="min-w-0">
-            <div class="mb-1 text-sm font-medium">{{ $t('tools.percentage-calculator.ui.fields.afterDecrease') }}</div>
-            <input-copyable v-model:value="decreasedValue" data-test-id="decreasedValue" readonly :placeholder="$t('tools.percentage-calculator.ui.fields.resultPlaceholder')" class="w-full" />
+            <input-copyable id="percentage-decrease-result-output" :label="$t('tools.percentage-calculator.ui.fields.afterDecrease')" v-model:value="decreasedValue" data-test-id="decreasedValue" readonly :placeholder="$t('tools.percentage-calculator.ui.fields.resultPlaceholder')" class="w-full" />
           </div>
         </div>
         <div v-if="adjustmentDetails" class="mt-3 rounded border border-gray-200 p-3 text-xs dark:border-gray-700" data-test-id="percentage-details-adjustment">
@@ -740,23 +735,21 @@ async function copySequentialSummary(): Promise<void> {
       <c-card mb-3 data-test-id="reverse-percentage-card" v-show="activeCalculationMode === 'reverse'">
         <h3 class="mb-3 text-sm font-semibold">{{ $t('tools.percentage-calculator.ui.modes.reverse') }}</h3>
         <div class="grid grid-cols-2 gap-3">
-          <div class="min-w-0">
-            <label for="percentage-reverse-final" class="mb-1 block text-sm font-medium">{{ $t('tools.percentage-calculator.ui.fields.finalValue') }}</label>
-            <n-input-number id="percentage-reverse-final" v-model:value="reverseFinalValue" data-test-id="reverseFinalValue" :placeholder="$t('tools.percentage-calculator.ui.fields.finalValuePlaceholder')" class="w-full" />
-          </div>
-          <div class="min-w-0">
-            <label for="percentage-reverse-rate" class="mb-1 block text-sm font-medium">{{ $t('tools.percentage-calculator.ui.fields.rate') }}</label>
-            <n-input-number id="percentage-reverse-rate" v-model:value="reversePercent" data-test-id="reversePercent" :placeholder="$t('tools.percentage-calculator.ui.fields.ratePlaceholder')" class="w-full" />
-          </div>
+          <label class="min-w-0 block">
+            <span class="mb-1 block text-sm font-medium">{{ $t('tools.percentage-calculator.ui.fields.finalValue') }}</span>
+            <n-input-number v-model:value="reverseFinalValue" data-test-id="reverseFinalValue" :placeholder="$t('tools.percentage-calculator.ui.fields.finalValuePlaceholder')" class="w-full" />
+          </label>
+          <label class="min-w-0 block">
+            <span class="mb-1 block text-sm font-medium">{{ $t('tools.percentage-calculator.ui.fields.rate') }}</span>
+            <n-input-number v-model:value="reversePercent" data-test-id="reversePercent" :placeholder="$t('tools.percentage-calculator.ui.fields.ratePlaceholder')" class="w-full" />
+          </label>
         </div>
         <div class="mt-3 grid grid-cols-2 gap-3">
           <div class="min-w-0">
-            <div class="mb-1 text-sm font-medium">{{ $t('tools.percentage-calculator.ui.fields.beforeIncrease') }}</div>
-            <input-copyable v-model:value="originalBeforeIncrease" data-test-id="originalBeforeIncrease" readonly :placeholder="$t('tools.percentage-calculator.ui.fields.resultPlaceholder')" class="w-full" />
+            <input-copyable id="reverse-increase-result-output" :label="$t('tools.percentage-calculator.ui.fields.beforeIncrease')" v-model:value="originalBeforeIncrease" data-test-id="originalBeforeIncrease" readonly :placeholder="$t('tools.percentage-calculator.ui.fields.resultPlaceholder')" class="w-full" />
           </div>
           <div class="min-w-0">
-            <div class="mb-1 text-sm font-medium">{{ $t('tools.percentage-calculator.ui.fields.beforeDecrease') }}</div>
-            <input-copyable v-model:value="originalBeforeDecrease" data-test-id="originalBeforeDecrease" readonly :placeholder="$t('tools.percentage-calculator.ui.fields.resultPlaceholder')" class="w-full" />
+            <input-copyable id="reverse-decrease-result-output" :label="$t('tools.percentage-calculator.ui.fields.beforeDecrease')" v-model:value="originalBeforeDecrease" data-test-id="originalBeforeDecrease" readonly :placeholder="$t('tools.percentage-calculator.ui.fields.resultPlaceholder')" class="w-full" />
           </div>
         </div>
         <div v-if="reverseDetails" class="mt-3 rounded border border-gray-200 p-3 text-xs dark:border-gray-700" data-test-id="percentage-details-reverse">
@@ -774,17 +767,16 @@ async function copySequentialSummary(): Promise<void> {
       <c-card mb-3 data-test-id="percentage-difference-card" v-show="activeCalculationMode === 'percentage-difference'">
         <h3 class="mb-3 text-sm font-semibold">{{ $t('tools.percentage-calculator.ui.modes.percentage-difference') }}</h3>
         <div class="grid grid-cols-2 gap-3">
-          <div class="min-w-0">
-            <label for="percentage-difference-a" class="mb-1 block text-sm font-medium">{{ $t('tools.percentage-calculator.ui.fields.valueA') }}</label>
-            <n-input-number id="percentage-difference-a" v-model:value="differenceA" data-test-id="differenceA" :placeholder="$t('tools.percentage-calculator.ui.fields.valueAPlaceholder')" class="w-full" />
-          </div>
-          <div class="min-w-0">
-            <label for="percentage-difference-b" class="mb-1 block text-sm font-medium">{{ $t('tools.percentage-calculator.ui.fields.valueB') }}</label>
-            <n-input-number id="percentage-difference-b" v-model:value="differenceB" data-test-id="differenceB" :placeholder="$t('tools.percentage-calculator.ui.fields.valueBPlaceholder')" class="w-full" />
-          </div>
+          <label class="min-w-0 block">
+            <span class="mb-1 block text-sm font-medium">{{ $t('tools.percentage-calculator.ui.fields.valueA') }}</span>
+            <n-input-number v-model:value="differenceA" data-test-id="differenceA" :placeholder="$t('tools.percentage-calculator.ui.fields.valueAPlaceholder')" class="w-full" />
+          </label>
+          <label class="min-w-0 block">
+            <span class="mb-1 block text-sm font-medium">{{ $t('tools.percentage-calculator.ui.fields.valueB') }}</span>
+            <n-input-number v-model:value="differenceB" data-test-id="differenceB" :placeholder="$t('tools.percentage-calculator.ui.fields.valueBPlaceholder')" class="w-full" />
+          </label>
           <div class="col-span-2 min-w-0">
-            <div class="mb-1 text-sm font-medium">{{ $t('tools.percentage-calculator.ui.fields.symmetricDifference') }}</div>
-            <input-copyable v-model:value="percentageDifference" data-test-id="percentageDifference" readonly :placeholder="$t('tools.percentage-calculator.ui.fields.resultPlaceholder')" class="w-full" />
+            <input-copyable id="symmetric-difference-result-output" :label="$t('tools.percentage-calculator.ui.fields.symmetricDifference')" v-model:value="percentageDifference" data-test-id="percentageDifference" readonly :placeholder="$t('tools.percentage-calculator.ui.fields.resultPlaceholder')" class="w-full" />
           </div>
         </div>
         <p class="mt-3 text-xs text-slate-600 dark:text-slate-300" data-test-id="percentage-hint-difference">{{ $t('tools.percentage-calculator.ui.hints.percentageDifference') }}</p>
@@ -797,18 +789,18 @@ async function copySequentialSummary(): Promise<void> {
       <c-card mb-3 data-test-id="percentage-points-card" v-show="activeCalculationMode === 'percentage-points'">
         <h3 class="mb-3 text-sm font-semibold">{{ $t('tools.percentage-calculator.ui.modes.percentage-points') }}</h3>
         <div class="grid grid-cols-2 gap-3">
-          <div class="min-w-0">
-            <label for="percentage-rate-from" class="mb-1 block text-sm font-medium">{{ $t('tools.percentage-calculator.ui.fields.oldRate') }}</label>
-            <n-input-number id="percentage-rate-from" v-model:value="rateFrom" data-test-id="rateFrom" :placeholder="$t('tools.percentage-calculator.ui.fields.oldRatePlaceholder')" class="w-full" />
-          </div>
-          <div class="min-w-0">
-            <label for="percentage-rate-to" class="mb-1 block text-sm font-medium">{{ $t('tools.percentage-calculator.ui.fields.newRate') }}</label>
-            <n-input-number id="percentage-rate-to" v-model:value="rateTo" data-test-id="rateTo" :placeholder="$t('tools.percentage-calculator.ui.fields.newRatePlaceholder')" class="w-full" />
-          </div>
+          <label class="min-w-0 block">
+            <span class="mb-1 block text-sm font-medium">{{ $t('tools.percentage-calculator.ui.fields.oldRate') }}</span>
+            <n-input-number v-model:value="rateFrom" data-test-id="rateFrom" :placeholder="$t('tools.percentage-calculator.ui.fields.oldRatePlaceholder')" class="w-full" />
+          </label>
+          <label class="min-w-0 block">
+            <span class="mb-1 block text-sm font-medium">{{ $t('tools.percentage-calculator.ui.fields.newRate') }}</span>
+            <n-input-number v-model:value="rateTo" data-test-id="rateTo" :placeholder="$t('tools.percentage-calculator.ui.fields.newRatePlaceholder')" class="w-full" />
+          </label>
           <div class="col-span-2 min-w-0">
-            <div class="mb-1 text-sm font-medium">{{ $t('tools.percentage-calculator.ui.fields.percentagePointChange') }}</div>
+            
             <div class="flex items-center gap-2">
-              <input-copyable v-model:value="percentagePointChange" data-test-id="percentagePointChange" readonly :placeholder="$t('tools.percentage-calculator.ui.fields.resultPlaceholder')" class="w-full" />
+              <input-copyable id="percentage-points-result-output" :label="$t('tools.percentage-calculator.ui.fields.percentagePointChange')" v-model:value="percentagePointChange" data-test-id="percentagePointChange" readonly :placeholder="$t('tools.percentage-calculator.ui.fields.resultPlaceholder')" class="w-full" />
               <span class="shrink-0 text-sm text-slate-600 dark:text-slate-300">{{ $t('tools.percentage-calculator.ui.fields.percentagePointsUnit') }}</span>
             </div>
           </div>
