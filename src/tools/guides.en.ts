@@ -1366,6 +1366,7 @@ export const GUIDES: Record<string, ToolGuide> = {
     notes: [
       'When reversing a discount, divide the sale price by 1 minus the discount rate; adding the same percentage back to the sale price is not the inverse.',
       'For percentage change, use the starting value as the denominator. Reversing the direction changes the base and can produce a different rate.',
+      'Percentage change uses the signed starting value as its denominator. If that starting value is negative, the result sign may not match whether the new value is numerically higher or lower; compare the two values directly.',
       'Batch mode uses two numeric columns per row (or a text label followed by two values); one invalid row does not stop the other calculations.',
       'Sequential adjustments apply each rate to the previous intermediate amount. Do not add discount percentages together: 20% off followed by 10% off is 28% off overall, not 30%. Displayed values use up to 12 significant digits; no currency-specific rounding is applied.',
     ],
