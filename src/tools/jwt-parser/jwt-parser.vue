@@ -44,6 +44,17 @@ function isJwtDecodeErrorCode(value: unknown): value is JwtDecodeErrorCode {
     || value === 'decode';
 }
 
+function localizedJwtError(key: string, english: string, chinese: string): string {
+  const translated = t(key);
+  if (translated && translated !== key) {
+    return translated;
+  }
+
+  // Some locale builds can omit script-only message references. Keep the
+  // validation path actionable rather than showing an empty interpolation.
+  return locale.value.toLowerCase().startsWith('zh') ? chinese : english;
+}
+
 function getJwtDecodeErrorMessage(error: unknown): string {
   // Use the stable error code rather than instanceof: validation may receive an
   // error object across Vue/component boundaries where constructor identity differs.
@@ -52,20 +63,24 @@ function getJwtDecodeErrorMessage(error: unknown): string {
     : undefined;
 
   if (!isJwtDecodeErrorCode(code)) {
-    return t('tools.jwt-parser.errors.decode');
+    return localizedJwtError(
+      'tools.jwt-parser.errors.decode',
+      'The Header and Payload must each be a valid Base64URL-encoded JSON object.',
+      'Header 和 Payload 都必须是有效的 Base64URL 编码 JSON 对象。',
+    );
   }
 
   switch (code) {
     case 'empty':
-      return t('tools.jwt-parser.errors.empty');
+      return localizedJwtError('tools.jwt-parser.errors.empty', 'Enter a compact JWT.', '请输入紧凑格式 JWT。');
     case 'whitespace':
-      return t('tools.jwt-parser.errors.whitespace');
+      return localizedJwtError('tools.jwt-parser.errors.whitespace', 'Remove spaces or line breaks; compact JWTs must be a single uninterrupted string.', '请移除空格或换行符；紧凑格式 JWT 必须是连续的一行字符串。');
     case 'segments':
-      return t('tools.jwt-parser.errors.segments');
+      return localizedJwtError('tools.jwt-parser.errors.segments', 'Expected a three-part compact JWT/JWS: Header.Payload.Signature. Five-part encrypted JWE tokens are not supported.', '需要三段式紧凑 JWT/JWS：Header.Payload.Signature。不支持五段式加密 JWE Token。');
     case 'base64url':
-      return t('tools.jwt-parser.errors.base64url');
+      return localizedJwtError('tools.jwt-parser.errors.base64url', 'The compact segments must use the Base64URL alphabet without spaces or padding.', '各段必须使用 Base64URL 字符集，不能包含空格或填充符。');
     case 'decode':
-      return t('tools.jwt-parser.errors.decode');
+      return localizedJwtError('tools.jwt-parser.errors.decode', 'The Header and Payload must each be a valid Base64URL-encoded JSON object.', 'Header 和 Payload 都必须是有效的 Base64URL 编码 JSON 对象。');
   }
 }
 
