@@ -37,29 +37,28 @@ function htmlEscape(value) {
   return value.replaceAll('&', '&amp;').replaceAll('"', '&quot;').replaceAll('<', '&lt;');
 }
 
-function insertOrReplaceMeta(html, attribute, key, content) {
-  const escaped = htmlEscape(content);
-  const expression = new RegExp(`<meta\\s+${attribute}=["']${key}["']\\s+content=["'][^"']*["']\\s*\\/? >?`, 'i');
-  if (expression.test(html)) {
-    return html.replace(expression, `<meta ${attribute}="${key}" content="${escaped}" />`);
-  }
-
-  return html.replace('</head>', `    <meta ${attribute}="${key}" content="${escaped}" />\\n  </head>`);
+function insertOrReplaceMeta(html, attribute, key, value) {
+  const escaped = htmlEscape(value);
+  const expression = new RegExp('<meta\\s+' + attribute + '="' + key + '"[^>]*>', 'i');
+  const replacement = '<meta ' + attribute + '="' + key + '" content="' + escaped + '" />';
+  return expression.test(html)
+    ? html.replace(expression, replacement)
+    : html.replace('</head>', '    ' + replacement + '\\n  </head>');
 }
 
 function routeToFile(route) {
-  return resolve(output, route === '/' ? 'index.html' : `${route.replace(/^\\//, '')}index.html`);
+  return resolve(output, route === '/' ? 'index.html' : route.slice(1) + 'index.html');
 }
 
 const siteUrl = normalizeSiteUrl(siteUrlValue);
 for (const route of pageRoutes) {
   const file = routeToFile(route);
   let html = await readFile(file, 'utf8');
-  const title = html.match(/<title>([\\s\\S]*?)<\\/title>/i)?.[1]?.trim();
-  const description = html.match(/<meta\\s+name="description"\\s+content="([^"]+)"/i)?.[1]?.trim();
+  const title = html.match(new RegExp('<title>([\\s\\S]*?)</title>', 'i'))?.[1]?.trim();
+  const description = html.match(new RegExp('<meta\\s+name="description"\\s+content="([^"]+)"', 'i'))?.[1]?.trim();
 
   if (!title || !description) {
-    throw new Error(`Every API Studio route needs a title and meta description: ${route}`);
+    throw new Error('Every API Studio route needs a title and meta description: ' + route);
   }
 
   html = insertOrReplaceMeta(html, 'property', 'og:type', route.startsWith('/docs/') ? 'article' : 'website');
@@ -70,13 +69,14 @@ for (const route of pageRoutes) {
   html = insertOrReplaceMeta(html, 'name', 'twitter:title', title);
   html = insertOrReplaceMeta(html, 'name', 'twitter:description', description);
 
-  const canonical = siteUrl && !/noindex/i.test(html.match(/<meta\\s+name="robots"\\s+content="([^"]+)"/i)?.[1] || '')
-    ? new URL(route, `${siteUrl}/`).href
+  const robots = html.match(new RegExp('<meta\\s+name="robots"\\s+content="([^"]+)"', 'i'))?.[1] || '';
+  const canonical = siteUrl && !/noindex/i.test(robots)
+    ? new URL(route, siteUrl + '/').href
     : null;
 
-  html = html.replace(/\\s*<link\\s+rel="canonical"[^>]*>/gi, '');
+  html = html.replace(new RegExp('<link\\s+rel="canonical"[^>]*>', 'gi'), '');
   if (canonical) {
-    html = html.replace('</head>', `    <link rel="canonical" href="${canonical}" />\\n  </head>`);
+    html = html.replace('</head>', '    <link rel="canonical" href="' + canonical + '" />\\n  </head>');
     html = insertOrReplaceMeta(html, 'property', 'og:url', canonical);
   }
 
@@ -100,30 +100,31 @@ for (const route of pageRoutes) {
         isPartOf: { '@type': 'WebSite', name: 'API Studio by DigDevBox', ...(siteUrl ? { url: siteUrl } : {}) },
       };
 
-  html = html.replace(/\\s*<script\\s+type="application\\/ld\\+json">[\\s\\S]*?<\\/script>/gi, '');
-  html = html.replace('</head>', `    <script type="application/ld+json">${JSON.stringify(structuredData).replaceAll('<', '\\u003c')}</script>\\n  </head>`);
+  html = html.replace(new RegExp('<script\\s+type="application/ld\\+json">[\\s\\S]*?</script>', 'gi'), '');
+  const json = JSON.stringify(structuredData).replaceAll('<', '\\\\u003c');
+  html = html.replace('</head>', '    <script type="application/ld+json">' + json + '</script>\\n  </head>');
   await mkdir(dirname(file), { recursive: true });
   await writeFile(file, html);
 }
 
-const robots = [
+const robotsTxt = [
   'User-agent: *',
   'Allow: /',
   'Disallow: /app/',
-  ...(siteUrl ? [`Sitemap: ${new URL('/sitemap.xml', siteUrl).href}`] : []),
+  ...(siteUrl ? ['Sitemap: ' + new URL('/sitemap.xml', siteUrl).href] : []),
   '',
 ].join('\\n');
-await writeFile(resolve(output, 'robots.txt'), robots);
+await writeFile(resolve(output, 'robots.txt'), robotsTxt);
 
 if (siteUrl) {
   const sitemap = [
     '<?xml version="1.0" encoding="UTF-8"?>',
     '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
-    ...publicRoutes.map(route => `  <url><loc>${new URL(route, `${siteUrl}/`).href}</loc></url>`),
+    ...publicRoutes.map(route => '  <url><loc>' + new URL(route, siteUrl + '/').href + '</loc></url>'),
     '</urlset>',
     '',
   ].join('\\n');
   await writeFile(resolve(output, 'sitemap.xml'), sitemap);
 }
 
-console.log(`API Studio metadata injected for ${pageRoutes.length} routes${siteUrl ? ' with canonical URLs and sitemap' : ' (canonical/sitemap deferred until the final domain is selected)'}.`);
+console.log('API Studio metadata injected for ' + pageRoutes.length + ' routes' + (siteUrl ? ' with canonical URLs and sitemap' : ' (canonical/sitemap deferred until the final domain is selected)') + '.');
