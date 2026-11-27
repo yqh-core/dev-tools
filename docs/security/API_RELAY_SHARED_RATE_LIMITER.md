@@ -1,6 +1,14 @@
 # API relay shared rate limiting
 
-Status: implementation is proposed; production enforcement is **not enabled** until the separate Worker, Pages binding and secrets have been provisioned and verified.
+Status: implementation is merged into main; production enforcement is **not enabled**. The existing Pages app has been redeployed with the compatibility default `API_RELAY_RATE_LIMIT_MODE=local`. The separate Worker, Production Pages binding and HMAC secret have not yet been provisioned.
+
+## Verified implementation state — 2026-11-27
+
+- PR [#229](https://github.com/yqh-core/dev-tools/pull/229) merged as `520b0c590e4db63644e46c58c4048059bfb17ddc`; exact tested PR head `4196d4539689420aad09a9bf5c4f9137235a4e7`.
+- Exact-head CI #45949337463, Verify/Build #45949337404 and Cloudflare Pages Preview #140344298121 passed. The Verify/Build run includes the API Studio browser suite (8/8).
+- Post-merge Verify/Build #45951010154, Pages Production deployment #140347925376, production smoke #45951299616/job #140347565639 and production homepage visual #140348009009 passed. Mainline CI #45951010048 also completed success. This verifies the existing Pages product deployment path; it does **not** verify or activate the separate Durable Object Worker.
+- Production remains in local limiter mode. No Worker deployment, Durable Object binding, HMAC secret, WAF rule, or shared-mode activation is recorded.
+- PR [#230](https://github.com/yqh-core/dev-tools/pull/230) is a test-only follow-up for UTF-8 request-header limits, returned response-header count, and timeout abort behavior. It must pass exact-head CI/Verify/Preview before merge.
 
 ## Exact limits in shared mode
 
