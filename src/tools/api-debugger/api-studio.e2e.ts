@@ -138,6 +138,130 @@ test('runs the nested collection through the relay and reports results', async (
   await page.screenshot({ path: join(SHOTS, '02-run-pass.png'), fullPage: true });
 });
 
+test('shows live collection progress and structured redacted request outcomes', async ({ page }) => {
+  const tree = {
+    id: 'runner-progress',
+    name: 'Progress Demo',
+    items: [
+      {
+        id: 'first',
+        name: 'First request',
+        request: { method: 'GET', url: 'https://api.test/first', headers: [], body: '' },
+        assertions: [{ id: 'first-status', enabled: true, type: 'status', target: '', operator: 'eq', expected: '200' }],
+      },
+      {
+        id: 'second',
+        name: 'Second request',
+        request: { method: 'GET', url: 'https://api.test/second?token={{token}}', headers: [], body: '' },
+        assertions: [{ id: 'secret-assertion', enabled: true, type: 'json', target: '$.token', operator: 'eq', expected: 'marked-secret-value' }],
+      },
+    ],
+  };
+  const env = { active: 'Default', envs: { Default: { token: 'marked-secret-value' } }, secrets: ['token'] };
+  await page.addInitScript(
+    ([treeKey, treeValue, envKey, envValue]) => {
+      localStorage.setItem(treeKey, treeValue);
+      localStorage.setItem(envKey, envValue);
+    },
+    [TREE_KEY, JSON.stringify(tree), 'api-debugger:env', JSON.stringify(env)] as [string, string, string, string],
+  );
+
+  let finishFirst = () => {};
+  let finishSecond = () => {};
+  let announceFirst = () => {};
+  let announceSecond = () => {};
+  const firstGate = new Promise<void>((resolve) => { finishFirst = resolve; });
+  const secondGate = new Promise<void>((resolve) => { finishSecond = resolve; });
+  const firstStarted = new Promise<void>((resolve) => { announceFirst = resolve; });
+  const secondStarted = new Promise<void>((resolve) => { announceSecond = resolve; });
+  const sentUrls: string[] = [];
+
+  await page.route(/\\/api\\/apiproxy/, async (route) => {
+    const payload = route.request().postDataJSON() as { url: string };
+    sentUrls.push(payload.url);
+    if (payload.url.includes('/first')) {
+      announceFirst();
+      await firstGate;
+    }
+    else {
+      announceSecond();
+      await secondGate;
+    }
+    return route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ url: payload.url, status: 200, statusText: 'OK', headers: {}, body: '{"ok":true}', elapsedMs: 8 }),
+    });
+  });
+
+  await page.goto('/api-studio');
+  await page.getByTestId('run-collection').click();
+  await firstStarted;
+  await expect(page.getByTestId('run-current-request')).toContainText('First request');
+  await expect(page.getByTestId('run-current-request')).toContainText('GET https://api.test/first');
+
+  finishFirst();
+  await secondStarted;
+  await expect(page.getByTestId('run-progress')).toHaveText('1/2 completed');
+  await expect(page.getByTestId('run-current-request')).toContainText('Second request');
+  await expect(page.getByTestId('run-current-request')).not.toContainText('marked-secret-value');
+  finishSecond();
+
+  await expect(page.getByTestId('run-result')).toContainText('2/2 requests');
+  await expect(page.getByTestId('run-request-result')).toHaveCount(2);
+  await expect(page.getByTestId('run-request-result').nth(0)).toContainText('PASS');
+  await expect(page.getByTestId('run-request-result').nth(1)).toContainText('FAIL');
+  await page.getByTestId('run-request-result').nth(1).locator('summary').click();
+  await expect(page.getByTestId('run-result')).not.toContainText('marked-secret-value');
+  await expect(page.getByTestId('run-result')).toContainText('[REDACTED-Secret]');
+  expect(sentUrls).toEqual([
+    'https://api.test/first',
+    'https://api.test/second?token=marked-secret-value',
+  ]);
+});
+
+test('cancels a collection after the in-flight request finishes and does not send the next request', async ({ page }) => {
+  const tree = {
+    id: 'runner-cancel',
+    name: 'Cancel Demo',
+    items: [
+      { id: 'first', name: 'Slow first', request: { method: 'GET', url: 'https://api.test/slow', headers: [], body: '' } },
+      { id: 'second', name: 'Must not run', request: { method: 'GET', url: 'https://api.test/never', headers: [], body: '' } },
+    ],
+  };
+  await page.addInitScript(([key, value]) => localStorage.setItem(key, value), [TREE_KEY, JSON.stringify(tree)] as [string, string]);
+
+  let finishFirst = () => {};
+  let announceFirst = () => {};
+  const firstGate = new Promise<void>((resolve) => { finishFirst = resolve; });
+  const firstStarted = new Promise<void>((resolve) => { announceFirst = resolve; });
+  const sentUrls: string[] = [];
+  await page.route(/\\/api\\/apiproxy/, async (route) => {
+    const payload = route.request().postDataJSON() as { url: string };
+    sentUrls.push(payload.url);
+    announceFirst();
+    await firstGate;
+    return route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ url: payload.url, status: 200, statusText: 'OK', headers: {}, body: '{}', elapsedMs: 10 }),
+    });
+  });
+
+  await page.goto('/api-studio');
+  await page.getByTestId('run-collection').click();
+  await firstStarted;
+  await expect(page.getByTestId('run-current-request')).toContainText('Slow first');
+  await page.getByTestId('cancel-run').click();
+  await expect(page.getByTestId('run-cancel-note')).toContainText('current request or script will finish or time out');
+  finishFirst();
+
+  await expect(page.getByTestId('run-result-status')).toHaveText('Cancelled');
+  await expect(page.getByTestId('run-result')).toContainText('1/2 requests');
+  await expect(page.getByTestId('run-request-result')).toHaveCount(1);
+  expect(sentUrls).toEqual(['https://api.test/slow']);
+});
+  
 test('creating and renaming a folder via the UI persists across reload', async ({ page }) => {
   await page.goto('/api-studio');
 
