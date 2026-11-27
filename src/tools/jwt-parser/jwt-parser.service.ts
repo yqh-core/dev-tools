@@ -1,5 +1,5 @@
 import jwtDecode, { type JwtHeader, type JwtPayload } from 'jwt-decode';
-import { isArray, isNil, isPlainObject, isString, map, toString } from 'lodash';
+import { isArray, isPlainObject, isString, map, toString } from 'lodash';
 import { ALGORITHM_DESCRIPTIONS, CLAIM_DESCRIPTIONS } from './jwt-parser.constants';
 
 export { decodeJwt };
