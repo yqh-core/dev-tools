@@ -61,9 +61,10 @@ jobs:
       - name: Install Chromium for targeted E2E
         run: pnpm exec playwright install chromium
 
-      - name: E2E — JSON Diff, percentage, numeronym, ETA, IPv6 ULA, text statistics, HTTP Headers, Slugify, Basic Auth and Safe Links
+      - name: E2E — JSON Workspace privacy, JSON Diff, percentage, numeronym, ETA, IPv6 ULA, text statistics, HTTP Headers, Slugify, Basic Auth and Safe Links
         run: >-
           pnpm exec playwright test
+          src/tools/json-workspace/json-workspace.e2e.spec.ts
           src/tools/json-diff/json-diff.e2e.spec.ts
           src/tools/percentage-calculator/percentage-calculator.e2e.spec.ts
           src/tools/numeronym-generator/numeronym-generator.e2e.spec.ts
@@ -109,5 +110,14 @@ jobs:
         with:
           name: homepage-first-fold-${{ github.sha }}
           path: artifacts/homepage-visual/
+          if-no-files-found: warn
+          retention-days: 3
+
+      - name: Upload JSON Workspace responsive screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: json-workspace-responsive-${{ github.sha }}
+          path: test-results/**/json-workspace-*.png
           if-no-files-found: warn
           retention-days: 3
