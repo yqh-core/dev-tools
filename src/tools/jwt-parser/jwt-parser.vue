@@ -64,8 +64,7 @@ function getJwtDecodeErrorMessage(error: unknown): string {
     return localizedMessage;
   }
 
-  return messages.decode
-    || 'The Header and Payload could not be decoded. Check the compact JWT/JWS input format.';
+  return messages.decode || t('tools.jwt-parser.errors.decodeFallback');
 }
 
 const validationRules = computed(() => [
