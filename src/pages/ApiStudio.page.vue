@@ -71,6 +71,13 @@ const runProgress = ref<{
   total: number
   current: { id: string; name: string; method: string; url: string } | null
 }>({ completed: 0, total: 0, current: null });
+const runResultStatus = computed(() => {
+  const summary = runSummary.value;
+  if (!summary) {
+    return '';
+  }
+  return summary.cancelled ? 'Cancelled' : summary.stoppedEarly ? 'Stopped early' : summary.allPassed ? 'All checks passed' : 'Completed with failures';
+});
 
 // Postman 导入/导出：filePicker=隐藏文件选择器；importWarnings=上次导入的兼容性提示（UI 可见，不静默丢弃）
 const filePicker = ref<HTMLInputElement | null>(null);
@@ -995,20 +1002,20 @@ async function onRun() {
     runSummary.value = summary;
     runOutput.value = formatCollectionReportText(summary, { secretValues: runSecretValues.value });
     if (summary.cancelled) {
-      banner.value = 'Run cancelled — ' + summary.results.length + ' of ' + summary.total + ' planned request(s) completed.';
+      banner.value = `Run cancelled — ${summary.results.length} of ${summary.total} planned request(s) completed.`;
     }
     else if (summary.stoppedEarly) {
-      banner.value = 'Run stopped early — ' + summary.results.length + ' of ' + summary.total + ' planned request(s) completed.';
+      banner.value = `Run stopped early — ${summary.results.length} of ${summary.total} planned request(s) completed.`;
     }
     else if (summary.allPassed) {
-      banner.value = 'Run finished — all ' + summary.results.length + ' request(s) passed.';
+      banner.value = `Run finished — all ${summary.results.length} request(s) passed.`;
     }
     else {
-      banner.value = 'Run finished with failures — ' + summary.failed + ' request(s) failed.';
+      banner.value = `Run finished with failures — ${summary.failed} request(s) failed.`;
     }
   }
   catch (e) {
-    banner.value = 'Run could not start: ' + (e instanceof Error ? e.message : String(e));
+    banner.value = `Run could not start: ${e instanceof Error ? e.message : String(e)}`;
   }
   finally {
     running.value = false;
@@ -1652,7 +1659,7 @@ function onMenuSelect(key: string, node: TreeNode) {
           <div class="api-run-summary-copy">
             <strong v-if="running">Collection run in progress</strong>
             <strong v-else data-test-id="run-result-status">
-              {{ runSummary.cancelled ? 'Cancelled' : runSummary.stoppedEarly ? 'Stopped early' : runSummary.allPassed ? 'All checks passed' : 'Completed with failures' }}
+              {{ runResultStatus }}
             </strong>
             <span v-if="runSummary" class="api-run-line">
               {{ runSummary.results.length }}/{{ runSummary.total }} requests ·
@@ -1698,7 +1705,7 @@ function onMenuSelect(key: string, node: TreeNode) {
             class="api-run-progress-bar"
             :value="runProgress.completed"
             :max="runProgress.total || 1"
-            :aria-label="'Collection run progress: ' + runProgress.completed + ' of ' + runProgress.total + ' requests completed'"
+            :aria-label="`Collection run progress: ${runProgress.completed} of ${runProgress.total} requests completed`"
           />
           <p v-if="cancelRequested" class="api-run-cancel-note" data-test-id="run-cancel-note">
             Cancellation requested. The current request or script will finish or time out; no next request will start.
@@ -1707,7 +1714,7 @@ function onMenuSelect(key: string, node: TreeNode) {
 
         <div v-if="runSummary" class="api-run-finished">
           <ol class="api-run-request-list" data-test-id="run-result-list">
-            <li v-for="(result, index) in runSummary.results" :key="index + '-' + result.id">
+            <li v-for="(result, index) in runSummary.results" :key="`${index}-${result.id}`">
               <details
                 class="api-run-request"
                 data-test-id="run-request-result"
@@ -1740,7 +1747,7 @@ function onMenuSelect(key: string, node: TreeNode) {
                   <section v-if="result.scriptTests?.length" class="api-run-checks" aria-label="Script tests">
                     <h4>Script tests</h4>
                     <ul>
-                      <li v-for="(scriptTest, testIndex) in result.scriptTests" :key="testIndex + '-' + scriptTest.name">
+                      <li v-for="(scriptTest, testIndex) in result.scriptTests" :key="`${testIndex}-${scriptTest.name}`">
                         <span class="api-run-outcome" :data-outcome="scriptTest.passed ? 'passed' : 'failed'">
                           {{ scriptTest.passed ? 'PASS' : 'FAIL' }}
                         </span>
