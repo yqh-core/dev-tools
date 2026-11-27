@@ -28,21 +28,23 @@ test.describe('JWT Parser decode-only workflow', () => {
     // runs validation. This distinguishes missing locale resources from a
     // component-scoped composer/lookup issue.
     const translationProbe = await page.evaluate(() => {
-      type Composer = {
+      interface Composer {
         locale: { value: string }
         te: (key: string, locale?: string) => boolean
         t: (key: string) => string
         getLocaleMessage: (locale: string) => unknown
-      };
-      type VueApp = {
+      }
+      interface VueApp {
         config?: {
           globalProperties?: {
             $i18n?: Composer
             $t?: (key: string) => string
           }
         }
-      };
-      type VueMountElement = HTMLElement & { __vue_app__?: VueApp };
+      }
+      interface VueMountElement extends HTMLElement {
+        __vue_app__?: VueApp
+      }
       const root = document.querySelector('#app') as VueMountElement | null;
       const globals = root?.__vue_app__?.config?.globalProperties;
       const composer = globals?.$i18n;
