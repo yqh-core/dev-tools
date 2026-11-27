@@ -600,8 +600,12 @@ test('completes a first-request journey from a clean /app origin through manual 
   // Mobile acceptance uses the same saved task, with no horizontal overflow and a
   // keyboard-operable Send action. The mock still prevents a live upstream request.
   await page.setViewportSize({ width: 390, height: 844 });
-  // Wait for the app shell's responsive layout/resize observers to settle, then
-  // enforce the real document-width constraint (persistent overflow still fails).
+  // Reload at the mobile viewport so the app shell mounts in its target geometry,
+  // rather than sampling an intermediate desktop-to-mobile resize frame.
+  await page.reload();
+  await expect(page.getByTestId('editor-url')).toHaveValue('https://api.test/users?active=true');
+  await expect(page.getByTestId('env-select')).toContainText('QA');
+  // Wait for the responsive layout to settle, then enforce the actual document width.
   await expect.poll(
     () => page.evaluate(() => document.documentElement.clientWidth),
     { message: 'mobile viewport should be applied before the overflow check', timeout: 5000 },
