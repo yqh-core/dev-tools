@@ -45,21 +45,21 @@ API Studio is the tenth independent DigDevBox product line, in addition to the o
 
 #### P0 — API Studio Issue #240 / PR #241
 
-- [PR #241](https://github.com/yqh-core/dev-tools/pull/241) OPEN; branch `test/api-studio-first-request-journey-20261127`; current exact HEAD `5b3002defec6c4a274abcb8f082fcd2f2353d4d0`.
+- [PR #241](https://github.com/yqh-core/dev-tools/pull/241) OPEN; branch `test/api-studio-first-request-journey-20261127`; current exact HEAD `464eab30057d7460942378ae49aecd1d066c3f9c`.
 - Product change `src/pages/ApiStudio.page.vue`: persists API Studio's selected environment in `api-studio:selected-environment`. On reload, restores QA if the environment still exists; legacy `api-debugger:env.active` stays Default. This preserves `{{apiVersion}}` variable substitution across reload without mutating API Debugger defaults.
 - Continuous E2E `src/api-studio-product/site.e2e.spec.ts`: clean standalone noindex `/app/`, no seeded request/environment, zero Relay calls before explicit Send, UI-based request and QA variable creation, POST/query/header/body, status + JSON assertion, mock Relay 503 then manual Retry to 200, inspect status/body/timing/assertions, reload persistence, Collection Runner and QA variable reuse.
 - Retry button 44px minimum with mobile tap/bounding-box/keyboard Enter; guide uses real empty-state CTA and subsequent `+ Request`. The independent app HTML does not load Main consent/GA bootstrap; test asserts no Main consent key/UI and no GA/Tag Manager/Plausible network request.
 - Previous head `b7937f` journey failed because the JSON assertion's default operator is `exists`, which correctly hides the Expected field. Current head `5b3002` explicitly changes operator to `equals` before filling `$.id = 42`; product assertion logic was correct. The earlier 1e6abea run passed the continuous journey on retry, but its first attempt sampled document width 1132px immediately after switching to 390px. Current head 5b3002 polls until clientWidth=390 and scrollWidth<=390 (5s) before the final no-overflow assertion; persistent overflow still fails.
-- Exact-current-head CI [#45985375844](https://github.com/yqh-core/dev-tools/actions/runs/45985375844), Verify/Build [#45985375889](https://github.com/yqh-core/dev-tools/actions/runs/45985375889), Pages check #140459491172 were IN_PROGRESS at 10:47 UTC (Preview only). Earlier CI #45983612029 on b793 passed but Verify failed; don't use superseded head evidence. Require all same-head checks, complete browser journey and inspect desktop/mobile artifacts before merge.
+- Exact-current-head CI [#45986376590](https://github.com/yqh-core/dev-tools/actions/runs/45986376590), Verify/Build [#45986376634](https://github.com/yqh-core/dev-tools/actions/runs/45986376634), Pages check #latest PR #241 Preview status must be refreshed were IN_PROGRESS at 10:47 UTC (Preview only). Earlier CI #45983612029 on b793 passed but Verify failed; don't use superseded head evidence. Require all same-head checks, complete browser journey and inspect desktop/mobile artifacts before merge.
 
 #### Parallel bounded Main tool-category navigation — Issue #237 / PR #243
 
-- [PR #243](https://github.com/yqh-core/dev-tools/pull/243) OPEN; branch `fix/main-tool-category-first-visit-20261127`; exact current HEAD `c8d269cae70d03d2e3a30d42ae95bdb5810a3f39`.
+- [PR #243](https://github.com/yqh-core/dev-tools/pull/243) OPEN; branch `fix/main-tool-category-first-visit-20261127`; exact current HEAD `3ca77bf82eff9486674fc83b5c5461453fd73f8a`.
 - New visitors start with all tool categories collapsed; existing `menu-tool-option:collapsed-categories` preferences remain unchanged; unknown/new category keys default collapsed. Direct tool URL temporarily reveals only its active category, without persisting the route override.
 - Native button category control with `aria-expanded`, `aria-controls`, labelled region, visible keyboard focus and 44px min touch target. Main's existing visual style, homepage search, cards and task navigation are preserved.
 - `src/components/CollapsibleToolMenu.e2e.spec.ts` covers fresh desktop, ARIA relation, pointer + Enter/Space, saved preference after reload, direct JSON/JWT deep links and home reset, 390×844 touch + no overflow, and captures collapsed/expanded desktop + expanded mobile screenshots.
 - **CI coverage correction:** PR #243 CI #45983829533 passed 142 existing tests, but the workflow used an explicit test-file list and did not include the new sidebar spec. Current PR head adds `src/components/CollapsibleToolMenu.e2e.spec.ts` to `.github/workflows/ci.yml` and uploads its `test-results/**/tool-category-*.png` screenshots. The previous 142-pass run is not evidence for #237; only current-head run can validate it.
-- Exact current-head CI [#45984888192](https://github.com/yqh-core/dev-tools/actions/runs/45984888192), Verify/Build [#45984888254](https://github.com/yqh-core/dev-tools/actions/runs/45984888254), Pages #140457805779 were IN_PROGRESS at 10:47 UTC (Preview only). Older Verify #45983829639 is superseded by changed workflow; wait for current CI and inspect sidebar screenshots.
+- Exact current-head CI [#45986226735](https://github.com/yqh-core/dev-tools/actions/runs/45986226735), Verify/Build [#45986226704](https://github.com/yqh-core/dev-tools/actions/runs/45986226704), Pages #latest PR #243 Preview status must be refreshed were IN_PROGRESS at 10:47 UTC (Preview only). Older Verify #45983829639 is superseded by changed workflow; wait for current CI and inspect sidebar screenshots.
 
 #### Homepage / next priorities / safeguards
 
@@ -151,3 +151,10 @@ API Studio is an additional tenth independent product line, not one of the nine 
 The old www.digdevbox.com/api-studio/ route is retained as a transition and fallback only. No new brand or domain is selected yet. Do not register a domain, configure DNS or force redirects before explicit owner selection. Do not force migration before complete user-controlled backup/restore and tested import on the new origin.
 
 Current implementation remains in this repository initially. Dedicated product build/Pages project is the planned deployment separation; repository split is not an immediate prerequisite.
+
+
+### Exact-head recheck note — 2026-11-27 (after responsive and disclosure fixes)
+
+- API Studio PR #241 current head: `464eab30057d7460942378ae49aecd1d066c3f9c`. CI run #45986376590 and Verify/Build #45986376634 were the new exact-head runs. The Verify browser acceptance remained failing on its first journey attempt at the last readable poll; no merge. The test now reloads `/app/` after setting 390×844 before testing persisted request/environment state and overflow, then checks `clientWidth` and `scrollWidth`. Refresh the exact run logs and Pages Preview before next action.
+- Main navigation PR #243 current head: `3ca77bf82eff9486674fc83b5c5461453fd73f8a`. CI run #45986226735 and Verify/Build #45986226704 are the exact-head runs after moving ARIA region semantics to a stable wrapper and enabling `isMobile`/`hasTouch` for the mobile `.tap()` test. Confirm current job conclusions and inspect `tool-category-disclosures-<sha>` artifact. Older head 258bbd's 142-test pass excluded this new spec and is not proof.
+- Both branches remain separate and unmerged. Do not treat Preview as Production or merge on stale-head checks.
