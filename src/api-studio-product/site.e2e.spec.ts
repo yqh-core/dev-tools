@@ -45,3 +45,20 @@ test('task guides are directly addressable and link back to the workspace', asyn
   await expect(page.getByRole('link', { name: /workspace/i })).toHaveAttribute('href', '/app/');
   await expect(page.getByRole('link', { name: /All guides/i })).toHaveAttribute('href', '/docs/');
 });
+
+test('workspace remains within the mobile viewport and theme control works', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/app/');
+
+  const dimensions = await page.evaluate(() => ({
+    documentWidth: document.documentElement.scrollWidth,
+    viewportWidth: document.documentElement.clientWidth,
+  }));
+  expect(dimensions.documentWidth).toBeLessThanOrEqual(dimensions.viewportWidth);
+
+  const themeToggle = page.getByRole('button', { name: 'Switch to light theme' });
+  await expect(themeToggle).toBeVisible();
+  await themeToggle.click();
+  await expect(page.getByRole('button', { name: 'Switch to dark theme' })).toBeVisible();
+  await expect(page.locator('.api-studio-shell')).toHaveAttribute('data-api-theme', 'light');
+});
