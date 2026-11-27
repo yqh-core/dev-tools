@@ -37,6 +37,10 @@ test.describe('Main sidebar tool-category disclosures', () => {
 
     const firstToggle = page.getByTestId('tool-category-toggle').first();
     await expect(firstToggle).toHaveAttribute('aria-expanded', 'false');
+    await firstToggle.click();
+    await expect(firstToggle).toHaveAttribute('aria-expanded', 'true');
+    await firstToggle.click();
+    await expect(firstToggle).toHaveAttribute('aria-expanded', 'false');
     await firstToggle.focus();
     await expect(firstToggle).toBeFocused();
 
