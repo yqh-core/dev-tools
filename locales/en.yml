@@ -749,7 +749,39 @@ tools:
 
   jwt-parser:
     title: "JWT Decoder & Parser — Claims & Expiration"
-    description: Decode JWTs online — inspect header, payload, claims and expiration (exp/iat) as readable dates. Your token never leaves your browser. Free, no signup.
+    description: "Decode a three-part compact JWT/JWS locally. Inspect the JOSE Header, Claims Set Payload and encoded signature segment; this tool does not verify signatures."
+    inputLabel: "Compact JWT / JWS"
+    inputPlaceholder: "Paste a three-part compact JWT..."
+    decodeNotice: "Decoded in this browser for inspection only. The signature is not verified, and claims are not validated against your application's trust policy."
+    privacyNote: "The token is decoded in this browser tab and is not sent to a verification service. Use a test or sanitized token, especially on a shared device."
+    headerTitle: "JOSE Header"
+    payloadTitle: "Claims Set Payload"
+    signatureTitle: "Encoded Signature Segment"
+    signatureDescription: "This is the original third Base64URL segment. It is shown as encoded text only; no cryptographic verification is performed."
+    notVerified: "Not verified"
+    emptySignature: "Empty signature segment"
+    copySignature: "Copy signature segment"
+    copied: "Signature segment copied."
+    clipboardError: "Clipboard access is unavailable. Select the signature text and copy it manually."
+    timestampNote: "exp, nbf and iat are NumericDate values in seconds since the Unix epoch. The friendly date is shown in your browser's local time zone; this display does not check whether the claim is valid or enforced."
+    claims:
+      algorithm: "Algorithm"
+      type: "Token type"
+      issuer: "Issuer"
+      subject: "Subject"
+      audience: "Audience"
+      expiration: "Expiration time"
+      notBefore: "Not before"
+      issuedAt: "Issued at"
+      jwtId: "JWT ID"
+    errors:
+      invalidWithReason: "This token could not be decoded: {0}"
+      empty: "Enter a compact JWT."
+      whitespace: "Remove spaces or line breaks; compact JWTs must be a single uninterrupted string."
+      segments: "Expected a three-part compact JWT/JWS: Header.Payload.Signature. Five-part encrypted JWE tokens are not supported."
+      base64url: "The compact segments must use the Base64URL alphabet without spaces or padding."
+      decode: "The Header and Payload must each be a valid Base64URL-encoded JSON object."
+      decodeFallback: "The token could not be decoded. Check its compact JWT/JWS structure and the Base64URL JSON objects in the Header and Payload."
 
   date-converter:
     title: Date Converter — Formats, Time Zones and ISO 8601
