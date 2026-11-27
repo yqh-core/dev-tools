@@ -4,21 +4,31 @@ import { handleRateLimitRequest } from '../../workers/api-relay-limiter/src/limi
 class MemoryStorage {
   constructor() {
     this.values = new Map();
+    this.activeValues = null;
     this.tail = Promise.resolve();
+  }
+
+  async get(key) {
+    return (this.activeValues ?? this.values).get(key);
+  }
+
+  async put(key, value) {
+    (this.activeValues ?? this.values).set(key, structuredClone(value));
   }
 
   async transaction(callback) {
     const run = async () => {
       const working = new Map(this.values);
-      const clone = value => value === undefined ? undefined : structuredClone(value);
-      const txn = {
-        get: async key => clone(working.get(key)),
-        put: async (key, value) => { working.set(key, clone(value)); },
-        delete: async key => working.delete(key),
-      };
-      const result = await callback(txn);
-      this.values = working;
-      return result;
+      const previous = this.activeValues;
+      this.activeValues = working;
+      try {
+        const result = await callback();
+        this.values = working;
+        return result;
+      }
+      finally {
+        this.activeValues = previous;
+      }
     };
 
     const pending = this.tail.then(run, run);
