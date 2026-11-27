@@ -391,11 +391,22 @@ test('environment selector stays within the mobile workspace width with a long n
   await page.screenshot({ path: testInfo.outputPath('environment-selector-mobile-long-name.png') });
 });
 
-test('completes a first-request journey from a clean /app origin through manual recovery, assertions, persistence and collection reuse', async ({ page }, testInfo) => {
-  test.setTimeout(60_000);
-  await page.setViewportSize({ width: 1440, height: 900 });
+test('completes the first-request journey from a clean /app origin on desktop and mobile', async ({ browser }, testInfo) => {
+  test.setTimeout(120_000);
+  const baseURL = String(testInfo.project.use.baseURL ?? 'http://127.0.0.1:5050');
 
-  const relayPayloads: RelayPayload[] = [];
+  for (const viewport of [
+    { name: 'desktop', width: 1440, height: 900 },
+    { name: 'mobile', width: 390, height: 844 },
+  ]) {
+    // Each journey starts at its target viewport. Resizing a live app shell from
+    // desktop to mobile can preserve transient desktop intrinsic widths.
+    const context = await browser.newContext({
+      baseURL,
+      viewport: { width: viewport.width, height: viewport.height },
+    });
+    const page = await context.newPage();
+    const relayPayloads: RelayPayload[] = [];
   let relayAttempts = 0;
   const relayRequests: string[] = [];
   const analyticsRequests: string[] = [];
@@ -527,7 +538,6 @@ test('completes a first-request journey from a clean /app origin through manual 
   // A recoverable response never replays by itself. Check the actual mobile target,
   // then require deliberate keyboard activation to send the second attempt.
   expect(relayAttempts).toBe(1);
-  await page.setViewportSize({ width: 390, height: 844 });
   await retry.scrollIntoViewIfNeeded();
   await expect(retry).toBeInViewport();
   const retryBox = await retry.boundingBox();
@@ -556,8 +566,7 @@ test('completes a first-request journey from a clean /app origin through manual 
   await expect(assertionReport.locator('[data-passed="true"]')).toHaveCount(2);
   expect(relayAttempts).toBe(2);
 
-  // Capture the success state at desktop size; mobile retry geometry was tested above.
-  await page.setViewportSize({ width: 1440, height: 900 });
+  // Persisted request and environment state is checked at the target viewport.
   const persisted = await page.evaluate(() => ({
     tree: JSON.parse(localStorage.getItem('api-studio:tree') || 'null'),
     environment: JSON.parse(localStorage.getItem('api-debugger:env') || 'null'),
@@ -575,7 +584,7 @@ test('completes a first-request journey from a clean /app origin through manual 
   expect(persisted.environment?.active).toBe('Default');
   expect(persisted.environment?.envs?.QA?.apiVersion).toBe('v2');
   expect(persisted.selectedEnvironment).toBe('QA');
-  await page.screenshot({ path: testInfo.outputPath('first-request-desktop-after-retry.png') });
+  await page.screenshot({ path: testInfo.outputPath(`first-request-${viewport.name}-after-retry.png`) });
 
   // Reload without a seed script: the request and active environment must survive.
   await page.reload();
@@ -597,28 +606,12 @@ test('completes a first-request journey from a clean /app origin through manual 
   expect(relayPayloads[2].url).toBe('https://api.test/users?active=true');
   expect(relayPayloads[2].headers).toContainEqual({ name: 'x-api-version', value: 'v2' });
 
-  // Mobile acceptance uses the same saved task, with no horizontal overflow and a
-  // keyboard-operable Send action. The mock still prevents a live upstream request.
-  await page.setViewportSize({ width: 390, height: 844 });
-  // Reload at the mobile viewport so the app shell mounts in its target geometry,
-  // rather than sampling an intermediate desktop-to-mobile resize frame.
-  await page.reload();
-  await expect(page.getByTestId('editor-url')).toHaveValue('https://api.test/users?active=true');
-  await expect(page.getByTestId('env-select')).toContainText('QA');
-  // Wait for the responsive layout to settle, then enforce the actual document width.
-  await expect.poll(
-    () => page.evaluate(() => document.documentElement.clientWidth),
-    { message: 'mobile viewport should be applied before the overflow check', timeout: 5000 },
-  ).toBe(390);
-  await expect.poll(
-    () => page.evaluate(() => document.documentElement.scrollWidth),
-    { message: 'mobile workspace should settle without horizontal overflow', timeout: 5000 },
-  ).toBeLessThanOrEqual(390);
-  const mobileGeometry = await page.evaluate(() => ({
+  // The full journey stays at its target viewport from first visit through reuse.
+  const finalGeometry = await page.evaluate(() => ({
     documentWidth: document.documentElement.scrollWidth,
     viewportWidth: document.documentElement.clientWidth,
   }));
-  expect(mobileGeometry.documentWidth).toBeLessThanOrEqual(mobileGeometry.viewportWidth);
+  expect(finalGeometry.documentWidth).toBeLessThanOrEqual(finalGeometry.viewportWidth);
   await expect(page.getByTestId('editor-url')).toHaveValue('https://api.test/users?active=true');
   await send.focus();
   await expect(send).toBeFocused();
@@ -626,5 +619,7 @@ test('completes a first-request journey from a clean /app origin through manual 
   await page.keyboard.press('Enter');
   await expect(page.getByTestId('single-response')).toContainText('200 OK');
   expect(relayAttempts).toBe(4);
-  await page.screenshot({ path: testInfo.outputPath('first-request-mobile-keyboard-send.png'), fullPage: true });
+  await page.screenshot({ path: testInfo.outputPath(`first-request-${viewport.name}-keyboard-send.png`), fullPage: true });
+    await context.close();
+  }
 });
