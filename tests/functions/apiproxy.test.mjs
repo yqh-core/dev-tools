@@ -70,6 +70,22 @@ describe('apiproxy request validation', () => {
     const many = await onRequestPost({ request: mkReq({ url: 'https://example.com', headers: Array.from({ length: 61 }, (_, i) => ({ name: `x-${i}`, value: 'v' })) }) });
     expect(many.status).toBe(400);
   });
+
+  it('rejects a request header whose UTF-8 value exceeds 8 KiB', async () => {
+    const upstream = okFetch();
+    vi.stubGlobal('fetch', upstream);
+
+    const response = await onRequestPost({
+      request: mkReq({
+        url: 'https://example.com/',
+        headers: [{ name: 'x-large', value: 'é'.repeat(4097) }],
+      }),
+    });
+
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({ error: 'Header x-large exceeds the 8192 byte limit.' });
+    expect(upstream).not.toHaveBeenCalled();
+  });
 });
 
 describe('apiproxy forwarding', () => {
@@ -83,6 +99,50 @@ describe('apiproxy forwarding', () => {
     expect(j.headers['x-t']).toBe('1');
     expect(j.headers['set-cookie']).toBeUndefined();
     expect(typeof j.elapsedMs).toBe('number');
+  });
+
+  it('caps returned upstream headers at the shared header-count limit', async () => {
+    const headers = Object.fromEntries(
+      Array.from({ length: 65 }, (_, index) => [`x-upstream-${String(index).padStart(2, '0')}`, 'value']),
+    );
+    vi.stubGlobal('fetch', dohAware(async () => new Response('ok', { status: 200, headers })));
+
+    const response = await onRequestPost({ request: mkReq({ url: 'https://example.com/' }) });
+    expect(response.status).toBe(200);
+
+    const payload = await response.json();
+    expect(Object.keys(payload.headers)).toHaveLength(60);
+  });
+
+  it('aborts a stalled upstream request at the 12-second timeout', async () => {
+    vi.useFakeTimers();
+    try {
+      let startTargetFetch;
+      const targetFetchStarted = new Promise((resolve) => {
+        startTargetFetch = resolve;
+      });
+      const upstream = dohAware((_url, init) => new Promise((_resolve, reject) => {
+        init.signal.addEventListener('abort', () => {
+          reject(new DOMException('The operation was aborted.', 'AbortError'));
+        }, { once: true });
+        startTargetFetch(init);
+      }));
+      vi.stubGlobal('fetch', upstream);
+
+      const pending = onRequestPost({ request: mkReq({ url: 'https://example.com/' }) });
+      const targetInit = await targetFetchStarted;
+      expect(targetInit.signal.aborted).toBe(false);
+
+      await vi.advanceTimersByTimeAsync(12_000);
+      const response = await pending;
+
+      expect(targetInit.signal.aborted).toBe(true);
+      expect(response.status).toBe(502);
+      expect(await response.json()).toEqual({ error: 'The target site timed out. Try again later.' });
+    }
+    finally {
+      vi.useRealTimers();
+    }
   });
 
   it('same-host redirect with DNS rebinding to private IP blocked per-hop (403)', async () => {
