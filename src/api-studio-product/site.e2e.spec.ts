@@ -124,7 +124,7 @@ test('a first-time user can create, send, validate and restore one request witho
 
   const relayPayloads: { url: string; method: string; headers: { name: string; value: string }[]; body: string }[] = [];
   let relayAttempts = 0;
-  await page.route(/\\/api\\/apiproxy/, async (route) => {
+  await page.route('**/api/apiproxy', async (route) => {
     relayAttempts += 1;
     relayPayloads.push(route.request().postDataJSON() as typeof relayPayloads[number]);
     const status = relayAttempts === 2 ? 503 : 201;
