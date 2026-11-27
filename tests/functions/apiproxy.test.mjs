@@ -1,3 +1,4 @@
+import { webcrypto } from 'node:crypto';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { onRequestPost } from '../../functions/api/apiproxy.js';
 
@@ -290,3 +291,199 @@ describe('apiproxy S1 redirect credential policy', () => {
     expect(r.status).toBe(413);
   });
 });
+
+describe('apiproxy shared Durable Object rate limiter', () => {
+  const secret = 'test-only-hmac-secret-with-more-than-32-bytes';
+  const ip = '198.51.100.42';
+
+  function sharedRequest(payload, address = ip) {
+    return new Request('https://digdevbox.com/api/apiproxy', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'cf-connecting-ip': address },
+      body: JSON.stringify(payload),
+    });
+  }
+
+  function makeBinding({
+    acquireStatus = 200,
+    acquireBody = { allowed: true },
+    releaseStatus = 200,
+    throwOnAcquire = false,
+  } = {}) {
+    const identities = [];
+    const calls = [];
+    return {
+      identities,
+      calls,
+      idFromName(name) {
+        identities.push(name);
+        return { name };
+      },
+      get(id) {
+        return {
+          async fetch(input, init) {
+            const request = new Request(input, init);
+            const path = new URL(request.url).pathname;
+            const body = await request.json();
+            calls.push({ identity: id.name, path, body });
+            if (path === '/acquire') {
+              if (throwOnAcquire) {
+                throw new Error('synthetic DO backend failure');
+              }
+              return Response.json(acquireBody, { status: acquireStatus });
+            }
+            return Response.json({ released: true }, { status: releaseStatus });
+          },
+        };
+      },
+    };
+  }
+
+  const sharedEnv = namespace => ({
+    API_RELAY_RATE_LIMIT_MODE: 'shared',
+    API_RELAY_LIMITER: namespace,
+    API_RELAY_RATE_LIMIT_HMAC_KEY: secret,
+  });
+
+  it('HMACs the Cloudflare client IP and sends only an opaque lease ID to the DO', async () => {
+    vi.stubGlobal('crypto', webcrypto);
+    const binding = makeBinding();
+    vi.stubGlobal('fetch', dohAware(okFetch()));
+
+    const payload = {
+      url: 'https://example.com/private',
+      method: 'POST',
+      headers: [{ name: 'Authorization', value: 'Bearer TOP_SECRET_VALUE' }],
+      body: 'REQUEST_BODY_SECRET',
+    };
+    const first = await onRequestPost({ request: sharedRequest(payload), env: sharedEnv(binding) });
+    const second = await onRequestPost({ request: sharedRequest(payload), env: sharedEnv(binding) });
+
+    expect(first.status).toBe(200);
+    expect(second.status).toBe(200);
+    expect(binding.identities).toHaveLength(2);
+    expect(binding.identities[0]).toMatch(/^[a-f0-9]{64}$/);
+    expect(binding.identities[0]).toBe(binding.identities[1]);
+    expect(binding.identities[0]).not.toContain(ip);
+    expect(binding.calls.map(call => call.path)).toEqual(['/acquire', '/release', '/acquire', '/release']);
+    expect(binding.calls.every(call => Object.keys(call.body).length === 1 && typeof call.body.leaseId === 'string')).toBe(true);
+    expect(JSON.stringify(binding.calls)).not.toContain(ip);
+    expect(JSON.stringify(binding.calls)).not.toContain('TOP_SECRET_VALUE');
+    expect(JSON.stringify(binding.calls)).not.toContain('REQUEST_BODY_SECRET');
+  });
+
+  it('uses different Durable Object identities for different client IPs', async () => {
+    vi.stubGlobal('crypto', webcrypto);
+    const binding = makeBinding();
+    vi.stubGlobal('fetch', dohAware(okFetch()));
+
+    await onRequestPost({ request: sharedRequest({ url: 'https://example.com/a' }, '198.51.100.10'), env: sharedEnv(binding) });
+    await onRequestPost({ request: sharedRequest({ url: 'https://example.com/b' }, '198.51.100.11'), env: sharedEnv(binding) });
+
+    expect(binding.identities).toHaveLength(2);
+    expect(binding.identities[0]).not.toBe(binding.identities[1]);
+  });
+
+  it('fails closed before the upstream fetch when the shared binding is missing', async () => {
+    vi.stubGlobal('crypto', webcrypto);
+    const upstream = vi.fn();
+    vi.stubGlobal('fetch', upstream);
+
+    const response = await onRequestPost({
+      request: sharedRequest({ url: 'https://example.com/' }),
+      env: { API_RELAY_RATE_LIMIT_MODE: 'shared', API_RELAY_RATE_LIMIT_HMAC_KEY: secret },
+    });
+
+    expect(response.status).toBe(503);
+    expect(upstream).not.toHaveBeenCalled();
+  });
+
+  it('fails closed before the upstream fetch when the shared limiter backend throws', async () => {
+    vi.stubGlobal('crypto', webcrypto);
+    const binding = makeBinding({ throwOnAcquire: true });
+    const upstream = vi.fn();
+    vi.stubGlobal('fetch', upstream);
+
+    const response = await onRequestPost({
+      request: sharedRequest({ url: 'https://example.com/' }),
+      env: sharedEnv(binding),
+    });
+
+    expect(response.status).toBe(503);
+    expect(binding.calls.map(call => call.path)).toEqual(['/acquire']);
+    expect(upstream).not.toHaveBeenCalled();
+  });
+
+  it('passes a shared 429 and Retry-After through without reaching the upstream target', async () => {
+    vi.stubGlobal('crypto', webcrypto);
+    const binding = makeBinding({
+      acquireStatus: 429,
+      acquireBody: { allowed: false, reason: 'window', retryAfterSeconds: 17 },
+    });
+    const upstream = vi.fn();
+    vi.stubGlobal('fetch', upstream);
+
+    const response = await onRequestPost({
+      request: sharedRequest({ url: 'https://example.com/' }),
+      env: sharedEnv(binding),
+    });
+
+    expect(response.status).toBe(429);
+    expect(response.headers.get('retry-after')).toBe('17');
+    expect(await response.json()).toEqual({
+      error: 'API request rate limit reached (30 per minute and 10 per 10-second burst per IP). Try again later.',
+    });
+    expect(binding.calls.map(call => call.path)).toEqual(['/acquire']);
+    expect(upstream).not.toHaveBeenCalled();
+  });
+
+  it('requires a strong HMAC secret in shared mode', async () => {
+    vi.stubGlobal('crypto', webcrypto);
+    const binding = makeBinding();
+    const upstream = vi.fn();
+    vi.stubGlobal('fetch', upstream);
+
+    const response = await onRequestPost({
+      request: sharedRequest({ url: 'https://example.com/' }),
+      env: {
+        API_RELAY_RATE_LIMIT_MODE: 'shared',
+        API_RELAY_LIMITER: binding,
+        API_RELAY_RATE_LIMIT_HMAC_KEY: 'too-short',
+      },
+    });
+
+    expect(response.status).toBe(503);
+    expect(binding.calls).toHaveLength(0);
+    expect(upstream).not.toHaveBeenCalled();
+  });
+
+  it('releases an acquired lease even when the request envelope is invalid', async () => {
+    vi.stubGlobal('crypto', webcrypto);
+    const binding = makeBinding();
+    const request = new Request('https://digdevbox.com/api/apiproxy', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'cf-connecting-ip': ip },
+      body: 'not json',
+    });
+
+    const response = await onRequestPost({ request, env: sharedEnv(binding) });
+
+    expect(response.status).toBe(400);
+    expect(binding.calls.map(call => call.path)).toEqual(['/acquire', '/release']);
+  });
+
+  it('does not replace an upstream result when lease release fails', async () => {
+    vi.stubGlobal('crypto', webcrypto);
+    const binding = makeBinding({ releaseStatus: 503 });
+    vi.stubGlobal('fetch', dohAware(okFetch()));
+
+    const response = await onRequestPost({
+      request: sharedRequest({ url: 'https://example.com/' }),
+      env: sharedEnv(binding),
+    });
+
+    expect(response.status).toBe(200);
+    expect(binding.calls.map(call => call.path)).toEqual(['/acquire', '/release']);
+  });
+});
+
