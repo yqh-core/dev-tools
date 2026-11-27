@@ -575,7 +575,7 @@ const displayedObservedRate = computed(() => {
             class="w-full rounded border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
           >
         </label>
-        <p text-xs opacity-70>
+        <p text-xs opacity-70 data-test-id="eta-deadline-help">
           {{ $t('tools.eta-calculator.deadlineHelp') }}
         </p>
         <div
