@@ -930,6 +930,13 @@ test('offers a keyboard-accessible manual retry only after a relay failure', asy
     attempts += 1;
     if (attempts === 1) {
       return route.fulfill({
+        status: 400,
+        contentType: 'application/json',
+        body: JSON.stringify({ error: 'Invalid request configuration.' }),
+      });
+    }
+    if (attempts === 2) {
+      return route.fulfill({
         status: 503,
         contentType: 'application/json',
         body: JSON.stringify({ error: 'Upstream service temporarily unavailable.' }),
@@ -958,6 +965,15 @@ test('offers a keyboard-accessible manual retry only after a relay failure', asy
   await expect(page.getByTestId('retry-send')).toHaveCount(0);
   expect(attempts).toBe(0);
 
+  await page.getByTestId('editor-url').fill('https://api.test/retry?force400=1');
+  await page.getByTestId('editor-url').press('Tab');
+  await page.getByTestId('send-request').click();
+
+  // A non-transient 4xx needs input correction, not a repeated request.
+  await expect(page.getByTestId('single-send-error')).toContainText('Invalid request configuration.');
+  await expect(page.getByTestId('retry-send')).toHaveCount(0);
+  expect(attempts).toBe(1);
+
   await page.getByTestId('editor-url').fill('https://api.test/retry');
   await page.getByTestId('editor-url').press('Tab');
   await page.getByTestId('send-request').click();
@@ -966,7 +982,7 @@ test('offers a keyboard-accessible manual retry only after a relay failure', asy
   const retry = page.getByTestId('retry-send');
   await expect(retry).toBeVisible();
   await expect(retry).toHaveText('Retry request');
-  expect(attempts).toBe(1);
+  expect(attempts).toBe(2);
   await page.screenshot({ path: join(SHOTS, '07-single-request-retry-desktop.png'), fullPage: true });
 
   // The request is never replayed automatically; the explicit keyboard action starts it.
@@ -986,5 +1002,5 @@ test('offers a keyboard-accessible manual retry only after a relay failure', asy
   await expect(page.getByTestId('single-response-body')).toContainText('"recovered": true');
   await expect(page.getByTestId('single-send-error')).toHaveCount(0);
   await expect(page.getByTestId('retry-send')).toHaveCount(0);
-  expect(attempts).toBe(2);
+  expect(attempts).toBe(3);
 });
