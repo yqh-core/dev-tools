@@ -289,7 +289,7 @@ function exportWorkspaceBackup(includeSecrets = false) {
   banner.value = ok
     ? (includeSecrets
         ? 'Full backup exported. It includes secrets and credentials; store it securely.'
-        : 'Safe backup exported. Marked secrets and common authentication fields were removed; review the backup notes before sharing.')
+        : 'Redacted backup exported. Marked secrets and standard authentication fields were removed; unmarked credentials in free-form text may remain.')
     : 'Could not start the backup download. Check browser download permissions.';
 }
 
@@ -342,28 +342,44 @@ function applyBackupRestore() {
   const next = planApiStudioRestore(tree.value, envStore.value, pending.backup, backupRestoreStrategy.value);
   const nextTree = serializeCollectionTree(next.collection);
   const nextEnv = JSON.stringify(next.environments);
-  let oldTree: string | null = null;
-  let oldEnv: string | null = null;
+  let oldTree: string | null;
+  let oldEnv: string | null;
   try {
+    // Read both previous values before the first write. A read failure must never
+    // trigger rollback code that could remove an existing key we did not inspect.
     oldTree = localStorage.getItem(TREE_KEY);
     oldEnv = localStorage.getItem(ENV_KEY);
-    localStorage.setItem(TREE_KEY, nextTree);
-    localStorage.setItem(ENV_KEY, nextEnv);
   }
-  catch (error) {
+  catch {
+    banner.value = 'Browser storage is unavailable. Your current workspace was not changed.';
+    return;
+  }
+  let treeWritten = false;
+  let envWritten = false;
+  try {
+    localStorage.setItem(TREE_KEY, nextTree);
+    treeWritten = true;
+    localStorage.setItem(ENV_KEY, nextEnv);
+    envWritten = true;
+  }
+  catch {
     let rolledBack = true;
     try {
-      if (oldTree === null) {
-        localStorage.removeItem(TREE_KEY);
+      if (treeWritten) {
+        if (oldTree === null) {
+          localStorage.removeItem(TREE_KEY);
+        }
+        else {
+          localStorage.setItem(TREE_KEY, oldTree);
+        }
       }
-      else {
-        localStorage.setItem(TREE_KEY, oldTree);
-      }
-      if (oldEnv === null) {
-        localStorage.removeItem(ENV_KEY);
-      }
-      else {
-        localStorage.setItem(ENV_KEY, oldEnv);
+      if (envWritten) {
+        if (oldEnv === null) {
+          localStorage.removeItem(ENV_KEY);
+        }
+        else {
+          localStorage.setItem(ENV_KEY, oldEnv);
+        }
       }
     }
     catch {
