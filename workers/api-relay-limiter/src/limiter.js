@@ -141,7 +141,8 @@ export async function handleRateLimitRequest(storage, request) {
       const burstTimestamps = timestamps.filter(timestamp => timestamp > now - BURST_WINDOW_MS);
       if (burstTimestamps.length >= BURST_LIMIT) {
         const retry = (burstTimestamps[0] + BURST_WINDOW_MS - now) / 1000;
-        await txn.put(STATE_KEY, { timestamps, leases });
+        await storage.put(STATE_KEY, { timestamps, leases });
+        await ensureCleanupAlarm(storage, now);
         return { status: 429, body: retryAfter(retry, 'burst') };
       }
 
@@ -149,7 +150,8 @@ export async function handleRateLimitRequest(storage, request) {
 
       if (leases.length >= MAX_IN_FLIGHT) {
         const earliestExpiry = Math.min(...leases.map(lease => lease.expiresAt));
-        await txn.put(STATE_KEY, { timestamps, leases });
+        await storage.put(STATE_KEY, { timestamps, leases });
+        await ensureCleanupAlarm(storage, now);
         return {
           status: 429,
           body: retryAfter((earliestExpiry - now) / 1000, 'concurrency'),
@@ -157,7 +159,8 @@ export async function handleRateLimitRequest(storage, request) {
       }
 
       leases.push({ id: payload.leaseId, expiresAt: now + LEASE_TTL_MS });
-      await txn.put(STATE_KEY, { timestamps, leases });
+      await storage.put(STATE_KEY, { timestamps, leases });
+      await ensureCleanupAlarm(storage, now);
       return { status: 200, body: { allowed: true } };
     });
 
