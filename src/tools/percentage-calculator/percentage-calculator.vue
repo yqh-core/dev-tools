@@ -618,7 +618,7 @@ async function copySequentialSummary(): Promise<void> {
           :aria-pressed="activeCalculationMode === mode"
           @click="activeCalculationMode = mode"
         >
-          {{ $t('tools.percentage-calculator.ui.modes.' + mode) }}
+          {{ $t(`tools.percentage-calculator.ui.modes.${mode}`) }}
         </button>
       </div>
 
@@ -627,16 +627,16 @@ async function copySequentialSummary(): Promise<void> {
       </div>
       <div class="percentage-example-strip" data-test-id="percentage-quick-examples">
         <button type="button" class="percentage-example-button" data-test-id="percentage-example-percent-of"
-          :aria-label="$t('tools.percentage-calculator.ui.modes.percent-of') + ': 15% of 80, result 12'"
+          :aria-label="`${$t('tools.percentage-calculator.ui.modes.percent-of')}: 15% of 80, result 12`"
           @click="loadPercentageQuickExample('percent-of')">15% × 80 = 12</button>
         <button type="button" class="percentage-example-button" data-test-id="percentage-example-part-to-whole"
-          :aria-label="$t('tools.percentage-calculator.ui.modes.part-to-whole') + ': 30 of 120, result 25 percent'"
+          :aria-label="`${$t('tools.percentage-calculator.ui.modes.part-to-whole')}: 30 of 120, result 25 percent`"
           @click="loadPercentageQuickExample('part-to-whole')">30 ÷ 120 = 25%</button>
         <button type="button" class="percentage-example-button" data-test-id="percentage-example-percentage-change"
-          :aria-label="$t('tools.percentage-calculator.ui.modes.percentage-change') + ': 80 to 92, a 15 percent increase'"
+          :aria-label="`${$t('tools.percentage-calculator.ui.modes.percentage-change')}: 80 to 92, a 15 percent increase`"
           @click="loadPercentageQuickExample('percentage-change')">80 → 92 = +15%</button>
         <button type="button" class="percentage-example-button" data-test-id="percentage-example-adjustment"
-          :aria-label="$t('tools.percentage-calculator.ui.modes.adjustment') + ': increase or decrease 80 by 15 percent'"
+          :aria-label="`${$t('tools.percentage-calculator.ui.modes.adjustment')}: increase or decrease 80 by 15 percent`"
           @click="loadPercentageQuickExample('adjustment')">80 ± 15% = 92 / 68</button>
       </div>
 
