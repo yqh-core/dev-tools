@@ -28,7 +28,7 @@ class MemoryStorage {
 }
 
 function request(path, leaseId) {
-  return new Request(\`https://limiter.internal\${path}\`, {
+  return new Request(`https://limiter.internal${path}`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ leaseId }),
@@ -44,7 +44,7 @@ let sequence;
 
 async function acquire() {
   sequence += 1;
-  const leaseId = \`lease_\${String(sequence).padStart(20, '0')}\`;
+  const leaseId = `lease_${String(sequence).padStart(20, '0')}`;
   const response = await limiter.fetch(request('/acquire', leaseId));
   return { leaseId, response, body: await response.json() };
 }
