@@ -286,6 +286,57 @@ tools:
   percentage-calculator:
     title: "Percentage Calculator — 7 Modes"
     description: "Calculate percentages, discounts, percentage change, reverse percentages and percentage points. Seven modes plus batch CSV/TSV export and worked formulas."
+    ui:
+      intro: "Choose the calculation that matches your task. Enter the values to see the result and substituted formula update as you type."
+      chooseMode: Choose a percentage calculation
+      tryExample: Try a worked example
+      modes:
+        percent-of: Calculate a percentage of a value
+        part-to-whole: Part as a percentage of a whole
+        percentage-change: Percentage change from old to new
+        adjustment: Increase or decrease a value
+        reverse: Find the value before a percentage change
+        percentage-difference: Symmetric percentage difference
+        percentage-points: Percentage-point change
+      fields:
+        percentage: Percentage (%)
+        percentagePlaceholder: Percentage
+        whole: Whole value
+        wholePlaceholder: Whole
+        part: Part value
+        partPlaceholder: Part
+        result: Result
+        resultPlaceholder: Result
+        changeResult: Percentage change (%)
+        oldValue: Old value (baseline)
+        oldValuePlaceholder: Old value
+        newValue: New value
+        newValuePlaceholder: New value
+        baseValue: Starting value
+        baseValuePlaceholder: Starting value
+        rate: Rate (%)
+        ratePlaceholder: Rate
+        afterIncrease: After increase
+        afterDecrease: After decrease
+        finalValue: Final value
+        finalValuePlaceholder: Final value
+        beforeIncrease: Value before increase
+        beforeDecrease: Value before decrease
+        valueA: Value A
+        valueAPlaceholder: Value A
+        valueB: Value B
+        valueBPlaceholder: Value B
+        symmetricDifference: Symmetric percentage difference (%)
+        oldRate: Old rate (%)
+        oldRatePlaceholder: Old rate
+        newRate: New rate (%)
+        newRatePlaceholder: New rate
+        percentagePointChange: Rate difference
+        percentagePointsUnit: percentage points
+      hints:
+        percentageChange: "Percentage change uses the old value as its baseline (denominator). It is undefined when the old value is zero."
+        percentageDifference: "Symmetric comparison uses the average of |A| and |B| as its denominator; neither value is treated as the baseline."
+        percentagePoints: "Example: a rate moving from 4% to 6% changes by +2 percentage points, or +50% relative to the old rate."
     resultDetails:
       inWords: In words
       formula: Formula
