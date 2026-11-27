@@ -116,24 +116,180 @@ test('workspace remains within the mobile viewport and theme control works', asy
   await expect(page.locator('.api-studio-shell')).toHaveAttribute('data-api-theme', 'light');
 });
 
-test('first request CTA creates one blank request without sending a network call on desktop', async ({ page }) => {
+test('a first-time user can create, send, validate and restore one request without automatic traffic', async ({ page }, testInfo) => {
   await page.setViewportSize({ width: 1440, height: 900 });
-  const outbound: string[] = [];
-  page.on('request', (request) => {
-    if (/\/api\//i.test(request.url()) || /apiproxy/i.test(request.url())) {
-      outbound.push(request.url());
-    }
+  await page.addInitScript(() => {
+    localStorage.setItem('digdevbox.analytics-consent.v1', 'rejected');
+  });
+
+  const relayPayloads: { url: string; method: string; headers: { name: string; value: string }[]; body: string }[] = [];
+  let relayAttempts = 0;
+  await page.route(/\\/api\\/apiproxy/, async (route) => {
+    relayAttempts += 1;
+    relayPayloads.push(route.request().postDataJSON() as typeof relayPayloads[number]);
+    const status = relayAttempts === 2 ? 503 : 201;
+    return route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        url: relayPayloads.at(-1)?.url ?? '',
+        status,
+        statusText: status === 503 ? 'Service Unavailable' : 'Created',
+        headers: { 'content-type': 'application/json', 'x-request-id': 'first-use-test' },
+        body: JSON.stringify(status === 503
+          ? { error: 'Temporary upstream failure' }
+          : { id: 42, name: 'Sample widget', active: true }),
+        elapsedMs: status === 503 ? 180 : 24,
+      }),
+    });
   });
 
   await page.goto('/app/');
-  const cta = page.getByTestId('create-first-request');
-  await expect(cta).toBeVisible();
-  await cta.click();
+  await expect(page.getByText('No requests yet')).toBeVisible();
+  const emptyStorage = await page.evaluate(() => ({
+    tree: localStorage.getItem('api-studio:tree'),
+    environment: localStorage.getItem('api-debugger:env'),
+    analyticsConsent: localStorage.getItem('digdevbox.analytics-consent.v1'),
+  }));
+  expect(emptyStorage.tree).toBeNull();
+  expect(emptyStorage.environment).toBeNull();
+  expect(emptyStorage.analyticsConsent).toBe('rejected');
+  expect(relayAttempts).toBe(0);
 
+  await page.getByTestId('create-first-request').click();
   await expect(page.getByTestId('tree-row')).toHaveCount(1);
-  await expect(page.getByText('Start with your first request')).toHaveCount(0);
   await expect(page.getByTestId('editor-url')).toBeVisible();
-  expect(outbound).toEqual([]);
+  expect(relayAttempts).toBe(0);
+
+  await page.getByTestId('editor-name').fill('Create widget');
+  await page.getByTestId('editor-name').press('Tab');
+
+  await page.getByTestId('manage-environments').click();
+  await page.getByTestId('new-environment-name').fill('Staging');
+  await page.getByTestId('create-environment').click();
+  await expect(page.getByTestId('env-select')).toHaveAttribute('aria-label', 'Environment: Staging');
+  await page.getByTestId('new-var-name').fill('apiBase');
+  await page.getByTestId('new-var-value').fill('https://api.example.test');
+  await page.getByTestId('add-variable').click();
+  await expect(page.locator('[data-test-id="var-row"][data-var-name="apiBase"]')).toBeVisible();
+  await expect(page.getByTestId('env-count')).toHaveText('1 var(s)');
+  await page.getByTestId('close-env-manager').click();
+
+  await page.getByTestId('editor-method').click();
+  await page.locator('.n-base-select-option').filter({ hasText: 'POST' }).click();
+
+  await page.getByTestId('editor-url').fill('https://api.example.test/v1/widgets');
+  await page.getByTestId('editor-url').press('Tab');
+  await page.getByTestId('add-query-param').click();
+  await page.getByTestId('query-name').fill('limit');
+  await page.getByTestId('query-value').fill('2');
+  await page.getByTestId('apply-query-params').click();
+
+  await page.getByTestId('add-header').click();
+  await page.getByTestId('header-name').fill('content-type');
+  await page.getByTestId('header-value').fill('application/json');
+  await page.getByTestId('header-value').press('Tab');
+  await page.getByTestId('editor-body').fill(JSON.stringify({ name: 'Sample widget', active: true }));
+  await page.getByTestId('editor-body').press('Tab');
+
+  await page.getByTestId('add-assertion').click();
+  await page.getByTestId('assertion-expected').first().fill('201');
+  await page.getByTestId('assertion-expected').first().press('Tab');
+  await page.getByTestId('add-assertion').click();
+
+  const jsonType = page.getByTestId('assertion-type').nth(1);
+  await jsonType.click();
+  await page.locator('.n-base-select-option').filter({ hasText: 'JSON field' }).click();
+  const jsonOperator = page.getByTestId('assertion-operator').nth(1);
+  await jsonOperator.click();
+  await page.locator('.n-base-select-option').filter({ hasText: 'equals' }).click();
+  await page.getByTestId('assertion-target').fill('$.id');
+  await page.getByTestId('assertion-target').press('Tab');
+  await page.getByTestId('assertion-expected').nth(1).fill('42');
+  await page.getByTestId('assertion-expected').nth(1).press('Tab');
+
+  expect(relayAttempts).toBe(0);
+  await page.getByTestId('send-request').click();
+
+  await expect(page.getByTestId('single-response')).toContainText('201 Created');
+  await expect(page.getByTestId('single-response')).toContainText('24 ms');
+  await expect(page.getByTestId('single-response-body')).toContainText('"name": "Sample widget"');
+  const report = page.getByTestId('single-assertion-report');
+  await expect(report).toContainText('2/2 assertions passed');
+  await expect(report.getByTestId('assertion-result')).toHaveCount(2);
+  await expect(report.locator('[data-passed="true"]')).toHaveCount(2);
+  await page.locator('.api-response-headers summary').click();
+  await expect(page.locator('.api-response-headers pre')).toContainText('x-request-id');
+  expect(relayAttempts).toBe(1);
+  expect(relayPayloads[0].method).toBe('POST');
+  expect(relayPayloads[0].url).toBe('https://api.example.test/v1/widgets?limit=2');
+  expect(relayPayloads[0].headers).toContainEqual({ name: 'content-type', value: 'application/json' });
+  expect(relayPayloads[0].body).toBe(JSON.stringify({ name: 'Sample widget', active: true }));
+  await page.screenshot({ path: testInfo.outputPath('first-request-success-desktop.png'), fullPage: true });
+
+  await page.getByTestId('send-request').click();
+  await expect(page.getByTestId('single-response')).toContainText('503 Service Unavailable');
+  const retry = page.getByTestId('retry-send');
+  await expect(retry).toBeVisible();
+  expect(relayAttempts).toBe(2);
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await retry.scrollIntoViewIfNeeded();
+  await expect(retry).toBeInViewport();
+  const retryBox = await retry.boundingBox();
+  expect(retryBox).not.toBeNull();
+  expect(retryBox!.height).toBeGreaterThanOrEqual(44);
+  const receivesPointer = await page.evaluate(({ x, y }) => {
+    return Boolean(document.elementFromPoint(x, y)?.closest('[data-test-id="retry-send"]'));
+  }, {
+    x: retryBox!.x + retryBox!.width / 2,
+    y: retryBox!.y + retryBox!.height / 2,
+  });
+  expect(receivesPointer).toBe(true);
+  const mobileWidth = await page.evaluate(() => ({
+    document: document.documentElement.scrollWidth,
+    viewport: document.documentElement.clientWidth,
+  }));
+  expect(mobileWidth.document).toBeLessThanOrEqual(mobileWidth.viewport);
+  await page.screenshot({ path: testInfo.outputPath('first-request-retry-mobile.png'), fullPage: true });
+
+  await retry.focus();
+  await expect(retry).toBeFocused();
+  await page.keyboard.press('Enter');
+  await expect(page.getByTestId('single-response')).toContainText('201 Created');
+  await expect(page.getByTestId('single-assertion-report')).toContainText('2/2 assertions passed');
+  expect(relayAttempts).toBe(3);
+
+  await page.reload();
+  await expect(page.getByTestId('tree-row')).toHaveCount(1);
+  await page.getByTestId('tree-method').click();
+  await expect(page.getByTestId('editor-name')).toHaveValue('Create widget');
+  await expect(page.getByTestId('editor-url')).toHaveValue('https://api.example.test/v1/widgets?limit=2');
+  await expect(page.getByTestId('header-value')).toHaveValue('application/json');
+  await expect(page.getByTestId('editor-body')).toHaveValue(JSON.stringify({ name: 'Sample widget', active: true }));
+  await expect(page.getByTestId('assertion-row')).toHaveCount(2);
+  await expect(page.getByTestId('run-collection')).toBeEnabled();
+  await expect(page.getByTestId('manage-environments')).toBeVisible();
+
+  const envSelect = page.getByTestId('env-select');
+  await envSelect.click();
+  const stagingOption = page.locator('.n-base-select-option').filter({ hasText: 'Staging' });
+  await expect(stagingOption).toBeVisible();
+  await stagingOption.click();
+  await expect(envSelect).toHaveAttribute('aria-label', 'Environment: Staging');
+  await expect(page.getByTestId('env-count')).toHaveText('1 var(s)');
+  const stored = await page.evaluate(() => {
+    const raw = localStorage.getItem('api-studio:tree');
+    const envRaw = localStorage.getItem('api-debugger:env');
+    return {
+      tree: raw ? JSON.parse(raw) as { items: { request: { url: string; body: string }; assertions: unknown[] }[] } : null,
+      env: envRaw ? JSON.parse(envRaw) as { envs: Record<string, Record<string, string>> } : null,
+    };
+  });
+  expect(stored.tree?.items[0].request.url).toBe('https://api.example.test/v1/widgets?limit=2');
+  expect(stored.tree?.items[0].assertions).toHaveLength(2);
+  expect(stored.env?.envs.Staging.apiBase).toBe('https://api.example.test');
+  expect(relayAttempts).toBe(3);
 });
 
 test('first request CTA is usable on mobile without horizontal overflow', async ({ page }) => {
