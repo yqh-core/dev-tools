@@ -258,8 +258,12 @@ test('cancels a collection after the in-flight request finishes and does not sen
 
   let finishFirst = () => {};
   let announceFirst = () => {};
-  const firstGate = new Promise<void>((resolve) => { finishFirst = resolve; });
-  const firstStarted = new Promise<void>((resolve) => { announceFirst = resolve; });
+  const firstGate = new Promise<void>((resolve) => {
+    finishFirst = resolve;
+  });
+  const firstStarted = new Promise<void>((resolve) => {
+    announceFirst = resolve;
+  });
   const sentUrls: string[] = [];
   await page.route(/\/api\/apiproxy/, async (route) => {
     const payload = route.request().postDataJSON() as { url: string };
@@ -286,7 +290,7 @@ test('cancels a collection after the in-flight request finishes and does not sen
   await expect(page.getByTestId('run-request-result')).toHaveCount(1);
   expect(sentUrls).toEqual(['https://api.test/slow']);
 });
-  
+
 test('creating and renaming a folder via the UI persists across reload', async ({ page }) => {
   await page.goto('/api-studio');
 
