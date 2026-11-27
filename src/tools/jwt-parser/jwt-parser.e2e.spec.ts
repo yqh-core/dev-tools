@@ -28,8 +28,6 @@ test.describe('JWT Parser decode-only workflow', () => {
     await input.fill('');
     await expect(input).toHaveValue('');
     const feedback = page.locator('.c-input-text .feedback');
-    const emptyFeedback = await feedback.textContent();
-    console.info(`[JWT empty-input validation] input=${JSON.stringify(await input.inputValue())}; feedback=${JSON.stringify(emptyFeedback)}`);
     await page.screenshot({
       path: testInfo.outputPath('jwt-parser-empty-validation.png'),
       fullPage: true,
