@@ -77,6 +77,8 @@ export interface RunnerOptions {
   collectionScripts?: { prerequest?: string; test?: string }
   delayMs?: number
   signal?: { aborted: boolean }
+  /** Called after pre-request scripts/variable substitution, before each request is evaluated or sent. */
+  onRequestStart?: (request: { id: string; name: string; method: string; url: string }, index: number, total: number) => void
   onProgress?: (result: RequestRunResult, index: number, total: number) => void
   now?: () => number
   sleep?: (ms: number) => Promise<void>
@@ -248,6 +250,7 @@ async function executeSequence(
       }
 
       const { payload, missing } = buildProxyPayload(workingReq, mergedForSubstitution());
+      opts.onRequestStart?.({ id: e.id, name: e.name, method: payload.method, url: payload.url }, globalIdx, totalRequests);
       let result: RequestRunResult;
       if (missing.length) {
         result = { ...base, sent: false, status: null, elapsedMs: null, error: `Missing variables: ${missing.join(', ')}. Define them in the Variables panel.`, report: null, passed: false };
