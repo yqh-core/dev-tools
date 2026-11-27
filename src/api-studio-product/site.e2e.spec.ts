@@ -1,5 +1,17 @@
 import { expect, test } from '@playwright/test';
 
+interface RelayHeader {
+  name: string
+  value: string
+}
+
+interface RelayPayload {
+  url: string
+  method: string
+  headers: RelayHeader[]
+  body: string
+}
+
 test('product homepage explains the task and shows one primary workspace action', async ({ page }, testInfo) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto('/');
@@ -382,12 +394,6 @@ test('environment selector stays within the mobile workspace width with a long n
 test('completes a first-request journey from a clean /app origin through manual recovery, assertions, persistence and collection reuse', async ({ page }, testInfo) => {
   await page.setViewportSize({ width: 1440, height: 900 });
 
-  type RelayPayload = {
-    url: string;
-    method: string;
-    headers: { name: string; value: string }[];
-    body: string;
-  };
   const relayPayloads: RelayPayload[] = [];
   let relayAttempts = 0;
   const relayRequests: string[] = [];
@@ -398,7 +404,7 @@ test('completes a first-request journey from a clean /app origin through manual 
       relayRequests.push(request.url());
     }
   });
-  await page.route(/\/api\/apiproxy/, async (route) => {
+  await page.route('**/api/apiproxy', async (route) => {
     const payload = route.request().postDataJSON() as RelayPayload;
     relayPayloads.push(payload);
     relayAttempts += 1;
