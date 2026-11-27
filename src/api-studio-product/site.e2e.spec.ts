@@ -600,6 +600,16 @@ test('completes a first-request journey from a clean /app origin through manual 
   // Mobile acceptance uses the same saved task, with no horizontal overflow and a
   // keyboard-operable Send action. The mock still prevents a live upstream request.
   await page.setViewportSize({ width: 390, height: 844 });
+  // Wait for the app shell's responsive layout/resize observers to settle, then
+  // enforce the real document-width constraint (persistent overflow still fails).
+  await expect.poll(
+    () => page.evaluate(() => document.documentElement.clientWidth),
+    { message: 'mobile viewport should be applied before the overflow check', timeout: 5000 },
+  ).toBe(390);
+  await expect.poll(
+    () => page.evaluate(() => document.documentElement.scrollWidth),
+    { message: 'mobile workspace should settle without horizontal overflow', timeout: 5000 },
+  ).toBeLessThanOrEqual(390);
   const mobileGeometry = await page.evaluate(() => ({
     documentWidth: document.documentElement.scrollWidth,
     viewportWidth: document.documentElement.clientWidth,
