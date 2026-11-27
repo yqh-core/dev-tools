@@ -1003,14 +1003,34 @@ test('offers a keyboard-accessible manual retry only after a relay failure', asy
   expect(attempts).toBe(2);
   await page.screenshot({ path: join(SHOTS, '07-single-request-retry-desktop.png'), fullPage: true });
 
-  // The request is never replayed automatically; the explicit keyboard action starts it.
+  // The request is never replayed automatically. At mobile width, the editor
+  // must retain real viewport height and the retry action must be visible and reachable.
   await page.setViewportSize({ width: 390, height: 844 });
   const dimensions = await page.evaluate(() => ({
     viewport: document.documentElement.clientWidth,
     document: document.documentElement.scrollWidth,
   }));
   expect(dimensions.document).toBeLessThanOrEqual(dimensions.viewport);
+
+  const editor = page.locator('.api-editor');
+  const editorBounds = await editor.boundingBox();
+  expect(editorBounds?.height ?? 0).toBeGreaterThan(300);
+  await expect(page.getByTestId('single-response')).toBeVisible();
+  await retry.scrollIntoViewIfNeeded();
+  await expect(retry).toBeVisible();
+  await expect(retry).toBeInViewport();
+
+  const retryBounds = await retry.boundingBox();
+  expect(retryBounds).not.toBeNull();
+  const retryReceivesPointer = await page.evaluate(({ x, y }) => {
+    return Boolean(document.elementFromPoint(x, y)?.closest('[data-test-id="retry-send"]'));
+  }, {
+    x: retryBounds!.x + retryBounds!.width / 2,
+    y: retryBounds!.y + retryBounds!.height / 2,
+  });
+  expect(retryReceivesPointer, 'The mobile retry action must not be covered by another layer.').toBe(true);
   await page.screenshot({ path: join(SHOTS, '08-single-request-retry-mobile.png'), fullPage: true });
+
   await retry.focus();
   await expect(retry).toBeFocused();
   await page.keyboard.press('Enter');
