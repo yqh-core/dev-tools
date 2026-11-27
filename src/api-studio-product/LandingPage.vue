@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { computed, ref } from 'vue';
+
 const workflows = [
   {
     number: '01',
@@ -19,6 +21,36 @@ const workflows = [
     tags: ['Assertions', 'Scripts', 'Runner'],
   },
 ];
+
+const demoSteps = [
+  {
+    number: '01',
+    label: 'Request',
+    title: 'Shape the request',
+    description: 'Choose an HTTP method, endpoint, query parameters and headers. Start with one clear request before adding more moving parts.',
+  },
+  {
+    number: '02',
+    label: 'Response',
+    title: 'Read what came back',
+    description: 'Send through the first-party relay, then inspect the upstream status, response headers and formatted body in one place.',
+  },
+  {
+    number: '03',
+    label: 'Assertions',
+    title: 'Check the response',
+    description: 'Add response assertions and scripts, then review which checks passed and which need attention.',
+  },
+  {
+    number: '04',
+    label: 'Collection run',
+    title: 'Repeat the whole flow',
+    description: 'Run saved requests in order, follow per-request progress, cancel safely and export a redacted run report.',
+  },
+];
+
+const activeDemoStep = ref(0);
+const currentDemoStep = computed(() => demoSteps[activeDemoStep.value] ?? demoSteps[0]);
 </script>
 
 <template>
@@ -31,7 +63,7 @@ const workflows = [
         <span class="site-brand-copy"><strong>API Studio</strong><small>by DigDevBox</small></span>
       </a>
       <nav class="site-nav-links" aria-label="Main navigation">
-        <a href="#workflow">How it works</a>
+        <a href="#guided-demo">How it works</a>
         <a href="#features">What you can do</a>
         <a href="/docs/">Guides</a>
       </nav>
@@ -46,7 +78,7 @@ const workflows = [
           <p class="hero-lede">Send a request. See what came back. Keep the next run ready. API Studio brings everyday API testing into one clear browser workspace.</p>
           <div class="hero-actions">
             <a class="button-primary" href="/app/">Open API Studio <span aria-hidden="true">→</span></a>
-            <a class="button-secondary" href="#workflow">See how it works</a>
+            <a class="button-secondary" href="#guided-demo">See how it works</a>
           </div>
           <div class="hero-assurances" aria-label="Getting started">
             <span><i aria-hidden="true">✓</i> No install</span>
@@ -98,6 +130,39 @@ const workflows = [
       <section class="trust-strip" aria-label="Product approach">
         <span>Made for the whole request journey</span>
         <b>Request</b><i>→</i><b>Response</b><i>→</i><b>Assertion</b><i>→</i><b>Repeat</b>
+      </section>
+
+      <section id="guided-demo" class="guided-demo-section section-wrap" aria-labelledby="guided-demo-title">
+        <div class="guided-demo-heading">
+          <p class="eyebrow">A FOUR-STEP WALKTHROUGH</p>
+          <h2 id="guided-demo-title">One request.<br/><span>A repeatable result.</span></h2>
+          <p>Choose a step to see how a simple API check grows into a repeatable workflow. This walkthrough is illustrative; it does not send a request.</p>
+        </div>
+        <div class="guided-demo-panel">
+          <div class="guided-demo-steps" role="group" aria-label="Guided demo steps">
+            <button
+              v-for="(item, index) in demoSteps"
+              :key="item.number"
+              class="guided-demo-step"
+              type="button"
+              :aria-pressed="activeDemoStep === index"
+              aria-controls="guided-demo-detail"
+              @click="activeDemoStep = index"
+            >
+              <span class="guided-demo-index">{{ item.number }}</span>
+              <span class="guided-demo-label">{{ item.label }}</span>
+            </button>
+          </div>
+          <div id="guided-demo-detail" class="guided-demo-detail" aria-live="polite" aria-atomic="true">
+            <div class="guided-demo-detail-meta">
+              <span>STEP {{ currentDemoStep.number }}</span>
+              <span>ILLUSTRATIVE · NO LIVE REQUEST</span>
+            </div>
+            <h3>{{ currentDemoStep.title }}</h3>
+            <p>{{ currentDemoStep.description }}</p>
+            <a class="guided-demo-link" href="/app/">Open the real workspace <span aria-hidden="true">→</span></a>
+          </div>
+        </div>
       </section>
 
       <section id="workflow" class="workflow-section section-wrap">
