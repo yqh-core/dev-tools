@@ -146,7 +146,7 @@ const formattedEndAt = computed(() => {
   if (projectedFinishAt.value === null) {
     return '';
   }
-  const formatted = new Intl.DateTimeFormat(undefined, {
+  const formatted = new Intl.DateTimeFormat(locale.value || undefined, {
     dateStyle: 'medium',
     timeStyle: 'short',
   }).format(projectedFinishAt.value);
@@ -395,7 +395,7 @@ const displayedObservedRate = computed(() => {
     </div>
 
     <template v-if="calculationMode === 'rate'">
-      <div flex gap-2>
+      <div flex flex-col gap-2 sm:flex-row>
         <n-form-item :label="$t('tools.eta-calculator.remainingWorkStartTime')" flex-1>
           <n-date-picker v-model:value="startedAt" type="datetime" data-test-id="eta-start-time" />
         </n-form-item>
