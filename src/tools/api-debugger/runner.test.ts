@@ -224,7 +224,7 @@ describe('formatCollectionReportText', () => {
 
   it('replaces a marked secret when it appears in a reported URL', async () => {
     const secret = 'marked-secret-value';
-    const sum = await runCollection([saved('secret', { url: `https://x.test/items?token=${secret}` })], {}, async (payload) => resp({ url: payload.url }), { now: tick() });
+    const sum = await runCollection([saved('secret', { url: `https://x.test/items?token=${secret}` })], {}, async payload => resp({ url: payload.url }), { now: tick() });
     const report = formatCollectionReportText(sum, { secretValues: [secret] });
 
     expect(report).not.toContain(secret);
