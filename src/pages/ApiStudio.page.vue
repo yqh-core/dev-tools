@@ -3529,6 +3529,7 @@ function onMenuSelect(key: string, node: TreeNode) {
   }
 
   .api-sidebar:has(.api-data-disclosure[open]) {
+    box-sizing: border-box;
     height: min(50dvh, 400px);
     max-height: 400px;
   }
