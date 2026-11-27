@@ -551,7 +551,6 @@ test('imports a Postman v2.1 collection into the tree and exports it back (round
   expect((auth.item as any[])[0].name).toBe('Login');
 });
 
-
 test('portable backup restores the workspace into a separate browser origin', async ({ page }, testInfo) => {
   const baseUrl = new URL(String(testInfo.project.use.baseURL ?? process.env.BASE_URL ?? 'http://127.0.0.1:5173'));
   const sourceOrigin = baseUrl.origin;
