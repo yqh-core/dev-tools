@@ -13,49 +13,49 @@ import {
 } from './backup';
 
 function tree(secret = 'env-secret-value'): CollectionNode {
-  return ({
-  id: 'root',
-  name: 'Workspace',
-  scripts: { prerequest: `const token = "${secret}";` },
-  items: [
-    {
-      id: 'folder-1',
-      name: 'Authentication',
-      scripts: { test: `pm.test("token", () => pm.expect("${secret}").to.exist);` },
-      items: [
-        {
-          id: 'request-1',
-          name: 'Login',
-          request: {
-            method: 'POST',
-            url: `https://user:password@api.example.test/login?token=${secret}`,
-            headers: [
-              { name: 'Content-Type', value: 'application/json' },
-              { name: 'Authorization', value: 'Bearer header-secret-value' },
-              { name: 'X-Workspace-Key', value: secret },
-            ],
-            body: `{"token":"${secret}"}`,
+  return {
+    id: 'root',
+    name: 'Workspace',
+    scripts: { prerequest: `const token = "${secret}";` },
+    items: [
+      {
+        id: 'folder-1',
+        name: 'Authentication',
+        scripts: { test: `pm.test("token", () => pm.expect("${secret}").to.exist);` },
+        items: [
+          {
+            id: 'request-1',
+            name: 'Login',
+            request: {
+              method: 'POST',
+              url: `https://user:password@api.example.test/login?token=${secret}`,
+              headers: [
+                { name: 'Content-Type', value: 'application/json' },
+                { name: 'Authorization', value: 'Bearer header-secret-value' },
+                { name: 'X-Workspace-Key', value: secret },
+              ],
+              body: `{"token":"${secret}"}`,
+            },
+            assertions: [{ id: 'assert-1', enabled: true, type: 'json', target: '$.token', operator: 'exists', expected: '' }],
+            scripts: { test: `pm.test("login", () => pm.expect("${secret}").to.exist);` },
           },
-          assertions: [{ id: 'assert-1', enabled: true, type: 'json', target: '$.token', operator: 'exists', expected: '' }],
-          scripts: { test: `pm.test("login", () => pm.expect("${secret}").to.exist);` },
-        },
-      ],
-    },
-  ],
-  });
+        ],
+      },
+    ],
+  };
 }
 
 function envs(): EnvStore {
-  return ({
-  active: 'Development',
-  envs: {
-    Development: { baseUrl: 'https://dev.example.test', token: 'env-secret-value' },
-    Production: { baseUrl: 'https://api.example.test', token: 'prod-secret-value' },
-  },
-  global: { shared: 'global-value', token: 'global-secret-value' },
-  collection: { collectionId: 'orders', token: 'collection-secret-value' },
-  secrets: ['token'],
-  });
+  return {
+    active: 'Development',
+    envs: {
+      Development: { baseUrl: 'https://dev.example.test', token: 'env-secret-value' },
+      Production: { baseUrl: 'https://api.example.test', token: 'prod-secret-value' },
+    },
+    global: { shared: 'global-value', token: 'global-secret-value' },
+    collection: { collectionId: 'orders', token: 'collection-secret-value' },
+    secrets: ['token'],
+  };
 }
 
 describe('API Studio portable backup', () => {
