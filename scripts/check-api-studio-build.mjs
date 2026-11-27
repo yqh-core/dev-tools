@@ -2,7 +2,8 @@ import assert from 'node:assert/strict';
 import { readFile, stat } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
-const output = resolve('dist-api-studio');
+const output = resolve(process.env.API_STUDIO_PRODUCT_OUTPUT || 'dist-api-studio');
+const isPreview = process.env.API_STUDIO_PREVIEW === '1';
 const required = [
   'index.html',
   'app/index.html',
@@ -43,6 +44,9 @@ const landing = await readFile(resolve(output, 'index.html'), 'utf8');
 const app = await readFile(resolve(output, 'app/index.html'), 'utf8');
 const docs = await readFile(resolve(output, 'docs/index.html'), 'utf8');
 const robots = await readFile(resolve(output, 'robots.txt'), 'utf8');
+const siteUrl = process.env.API_STUDIO_SITE_URL?.trim();
+const sitemapPath = resolve(output, 'sitemap.xml');
+const sitemapInfo = await stat(sitemapPath).catch(() => null);
 
 assert.ok(landing.includes('API Studio'));
 assert.ok(landing.includes('A clearer way to test APIs') || landing.includes('API work'));
@@ -50,12 +54,18 @@ assert.ok(!landing.includes('google-adsense-account') && !landing.includes('adsb
 assert.ok(app.includes('noindex,nofollow'));
 assert.ok(!app.includes('rel="canonical"'));
 assert.ok(docs.includes('Send your first request'));
-assert.ok(robots.includes('Disallow: /app/'));
 
-const siteUrl = process.env.API_STUDIO_SITE_URL?.trim();
-const sitemapPath = resolve(output, 'sitemap.xml');
-const sitemapInfo = await stat(sitemapPath).catch(() => null);
-if (siteUrl) {
+if (isPreview) {
+  assert.ok(!siteUrl, 'A PR Preview must not receive a production canonical origin.');
+  for (const [route, file] of routes) {
+    const html = await readFile(resolve(output, file), 'utf8');
+    assert.ok(html.includes('name="robots" content="noindex,nofollow"'), 'Preview route must be noindex: ' + route);
+    assert.ok(!html.includes('rel="canonical"'), 'Preview routes must not emit canonicals: ' + route);
+  }
+  assert.ok(robots.includes('Disallow: /'), 'Preview robots.txt must block indexing.');
+  assert.ok(!sitemapInfo, 'A PR Preview must not publish a sitemap.');
+}
+else if (siteUrl) {
   assert.ok(sitemapInfo?.isFile(), 'A configured product origin must emit sitemap.xml');
   const origin = new URL(siteUrl).origin;
   for (const [route, file] of routes.filter(([route]) => route !== '/app/')) {
@@ -65,10 +75,12 @@ if (siteUrl) {
   }
   const sitemap = await readFile(sitemapPath, 'utf8');
   assert.ok(!sitemap.includes('/app/'), 'The noindex workspace must not enter sitemap.xml');
+  assert.ok(robots.includes('Disallow: /app/'));
 }
 else {
   assert.ok(!sitemapInfo, 'Do not emit a sitemap with an unselected placeholder domain');
   assert.ok(!landing.includes('rel="canonical"'));
+  assert.ok(robots.includes('Disallow: /app/'));
 }
 
 console.log('API Studio output contract: ' + (required.length + routes.length * 5 + 8) + ' checks passed.');
