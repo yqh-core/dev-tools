@@ -1110,6 +1110,7 @@ async function copyRunReport() {
 
 function downloadRunReport() {
   if (!runOutput.value) {
+    banner.value = 'No report is available yet. Run the collection to generate one.';
     return;
   }
   const ok = downloadTextFile({
