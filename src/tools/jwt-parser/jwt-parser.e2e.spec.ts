@@ -28,16 +28,16 @@ test.describe('JWT Parser decode-only workflow', () => {
     // runs validation. This distinguishes missing locale resources from a
     // component-scoped composer/lookup issue.
     const translationProbe = await page.evaluate(() => {
-      interface Composer {
-        locale: { value: string }
-        te: (key: string, locale?: string) => boolean
-        t: (key: string) => string
-        getLocaleMessage: (locale: string) => unknown
+      interface TranslationApi {
+        locale?: { value?: string } | string
+        te?: (key: string, locale?: string) => boolean
+        t?: (key: string) => string
+        getLocaleMessage?: (locale: string) => unknown
       }
       interface VueApp {
         config?: {
           globalProperties?: {
-            $i18n?: Composer
+            $i18n?: TranslationApi
             $t?: (key: string) => string
           }
         }
@@ -47,8 +47,29 @@ test.describe('JWT Parser decode-only workflow', () => {
       }
       const root = document.querySelector('#app') as VueMountElement | null;
       const globals = root?.__vue_app__?.config?.globalProperties;
-      const composer = globals?.$i18n;
-      const localeMessages = composer?.getLocaleMessage('en') as Record<string, unknown> | undefined;
+      const i18n = globals?.$i18n;
+      const translate = (key: string): string | null => {
+        if (typeof i18n?.t === 'function') {
+          return i18n.t(key);
+        }
+        if (typeof globals?.$t === 'function') {
+          return globals.$t(key);
+        }
+        return null;
+      };
+      const exists = (key: string): boolean | null => {
+        if (typeof i18n?.te === 'function') {
+          return i18n.te(key, 'en');
+        }
+        const translated = translate(key);
+        return translated === null ? null : translated !== key;
+      };
+      const locale = typeof i18n?.locale === 'object'
+        ? i18n.locale?.value ?? null
+        : i18n?.locale ?? null;
+      const localeMessages = typeof i18n?.getLocaleMessage === 'function'
+        ? i18n.getLocaleMessage('en') as Record<string, unknown> | undefined
+        : undefined;
       const tools = localeMessages?.tools as Record<string, unknown> | undefined;
       const jwt = tools?.['jwt-parser'] as Record<string, unknown> | undefined;
       const errors = jwt?.errors as Record<string, unknown> | undefined;
@@ -57,16 +78,20 @@ test.describe('JWT Parser decode-only workflow', () => {
       const fallbackKey = 'tools.jwt-parser.errors.decodeFallback';
       return {
         hasVueApp: Boolean(root?.__vue_app__),
-        locale: composer?.locale.value ?? null,
-        hasEmptyKey: composer?.te(emptyKey, 'en') ?? null,
-        composerTranslation: composer?.t(emptyKey) ?? null,
-        globalTranslation: globals?.$t?.(emptyKey) ?? null,
+        globalPropertyKeys: globals ? Object.keys(globals) : [],
+        i18nPropertyKeys: i18n ? Object.keys(i18n) : [],
+        locale,
+        hasComposerTranslate: typeof i18n?.t === 'function',
+        hasComposerKeyCheck: typeof i18n?.te === 'function',
+        hasGlobalTranslate: typeof globals?.$t === 'function',
+        hasEmptyKey: exists(emptyKey),
+        composerTranslation: translate(emptyKey),
         rawEmptyMessage: errors?.empty ?? null,
-        hasSegmentsKey: composer?.te(segmentsKey, 'en') ?? null,
-        composerSegmentsTranslation: composer?.t(segmentsKey) ?? null,
+        hasSegmentsKey: exists(segmentsKey),
+        composerSegmentsTranslation: translate(segmentsKey),
         rawSegmentsMessage: errors?.segments ?? null,
-        hasFallbackKey: composer?.te(fallbackKey, 'en') ?? null,
-        composerFallbackTranslation: composer?.t(fallbackKey) ?? null,
+        hasFallbackKey: exists(fallbackKey),
+        composerFallbackTranslation: translate(fallbackKey),
         rawFallbackMessage: errors?.decodeFallback ?? null,
         rawErrorKeys: errors ? Object.keys(errors) : [],
       };
