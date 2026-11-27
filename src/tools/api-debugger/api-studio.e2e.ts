@@ -233,7 +233,9 @@ test('shows live collection progress and structured redacted request outcomes', 
   await expect(secondResult).toHaveAttribute('open', '');
   const secondResultText = secondResult;
   await expect(secondResultText).not.toContainText('marked-secret-value');
-  await expect(secondResultText).toContainText('[REDACTED-Secret]');
+  await expect(secondResultText).toContainText('Raw values are not printed by default');
+  // The result row deliberately omits raw values; the downloadable report below
+  // carries the explicit [REDACTED-Secret] marker for copied/exported diagnostics.
   const dimensions = await page.evaluate(() => ({ width: window.innerWidth, scrollWidth: document.documentElement.scrollWidth }));
   expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.width);
 
