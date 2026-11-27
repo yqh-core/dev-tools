@@ -701,7 +701,7 @@ tools:
     elapsedSeconds: 秒
     unitsPerHour: 单位/小时
     unitPerHour: '{unit}/小时'
-    observedModeHelp: 根据你手动输入的已完成数量和已耗时间计算平均速率。这是静态估算，不是实时进程监控。
+    observedModeHelp: 根据你手动输入的已完成 {unit} 数量和已耗时间推导每小时平均处理速率。这是静态估算，不是实时进程监控。
     observedModeHint: 请填写大于零的已完成数量和已耗时间，才能推导处理速率。若任务已全部完成，则无需提供耗时样本。
     localFinishTime: 本地完成时间
     copyFinishTime: 复制完成时间
@@ -728,8 +728,8 @@ tools:
     workingScheduleError: 请输入有效的 24 小时制时间；同一天的下班时间必须晚于上班时间。
     remainingWorkLabel: 剩余工作量
     baseProcessingDurationLabel: 基础处理时间（不含缓冲和计划暂停）
-    calendarDurationLabel: 总耗时（含缓冲和计划暂停）
-    workWindowDurationLabel: 工作窗口内所需时长（含缓冲和计划暂停）
+    calendarDurationLabel: 预计总耗时（含缓冲和计划暂停）
+    workWindowDurationLabel: 配置工作时段内所需时长（含缓冲和计划暂停）
     bufferAllowanceLabel: 时间缓冲
     projectedCompletionLabel: 预计完成时间
     progressAriaLabel: 任务完成进度
@@ -739,6 +739,15 @@ tools:
     formulaBase: 基础处理时间 =（任务总量 − 已完成数量）÷ 处理速率 × 速率对应的时间区间。
     formulaExample: '例如：500 条记录 − 已完成 200 条 = 剩余 300 条。按每 3 分钟处理 5 条计算，基础处理时间为 180 分钟（3 小时），尚未计入缓冲。'
     formulaAssumption: 估算假设后续处理速率与输入的代表性速率大致稳定。观测速率来自手动输入的数据；本工具不会读取进程遥测或自动跟踪任务。
+    duration:
+      hourSingular: '{count} 小时'
+      hourPlural: '{count} 小时'
+      minuteSingular: '{count} 分钟'
+      minutePlural: '{count} 分钟'
+      secondSingular: '{count} 秒'
+      secondPlural: '{count} 秒'
+      millisecondSingular: '{count} 毫秒'
+      millisecondPlural: '{count} 毫秒'
 
   roman-numeral-converter:
     title: 罗马数字转换器
