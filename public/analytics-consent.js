@@ -113,7 +113,7 @@
     var inlineHome = !!homeHero;
     root.dataset.placement = inlineHome ? 'home-inline' : 'fixed-overlay';
     root.style.cssText = inlineHome
-      ? 'position:relative;z-index:1;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px 16px;width:100%;max-width:720px;margin:16px auto 28px;padding:12px 16px;box-sizing:border-box;background:#102a2a;color:#fff;border:1px solid #4b7773;border-radius:12px;box-shadow:none;font:13px/1.45 system-ui,sans-serif'
+      ? 'position:relative;z-index:1;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 12px;width:100%;max-width:720px;margin:12px auto 20px;padding:8px 12px;box-sizing:border-box;background:#102a2a;color:#fff;border:1px solid #4b7773;border-radius:12px;box-shadow:none;font:13px/1.4 system-ui,sans-serif'
       : compact
         ? 'position:fixed;z-index:2147483000;left:10px;right:10px;bottom:10px;max-width:720px;margin:0 auto;padding:10px 12px;box-sizing:border-box;background:#102a2a;color:#fff;border:1px solid #4b7773;border-radius:10px;box-shadow:0 8px 28px #0004;font:12px/1.35 system-ui,sans-serif'
         : 'position:fixed;z-index:2147483000;left:16px;right:16px;bottom:16px;max-width:720px;margin:0 auto;padding:16px 18px;box-sizing:border-box;background:#102a2a;color:#fff;border:1px solid #4b7773;border-radius:12px;box-shadow:0 8px 32px #0004;font:14px/1.5 system-ui,sans-serif';
@@ -124,9 +124,9 @@
     }
     root.replaceChildren();
     var message = document.createElement('p');
-    message.textContent = 'Optional analytics measures visits and page usage. Tool inputs, files and form contents are never sent. You can reject and keep using the site.';
+    message.textContent = 'Optional analytics measures visits and page use only. Tool inputs, files and form contents are never sent. Rejecting does not limit site use.';
     message.style.cssText = inlineHome
-      ? (compact ? 'flex:1 1 100%;max-width:none;margin:0' : 'flex:1 1 280px;max-width:72ch;margin:0')
+      ? (compact ? 'flex:1 1 100%;max-width:none;margin:0;font:12px/1.35 system-ui,sans-serif' : 'flex:1 1 280px;max-width:72ch;margin:0')
       : (compact ? 'margin:0 0 8px' : 'margin:0 0 12px');
     var actions = document.createElement('div');
     actions.style.cssText = inlineHome
@@ -146,24 +146,36 @@
     root.appendChild(actions);
   }
   function observeHomePlacement() {
-    if (typeof MutationObserver === 'undefined' || !document.body) return;
-    var observer = new MutationObserver(function () {
+    var activeWindow = window;
+    var activeDocument = document;
+    if (typeof activeWindow.MutationObserver === 'undefined' || !activeDocument.body) return;
+    var observer = new activeWindow.MutationObserver(function () {
+      // Vitest/jsdom may dispose a document while its queued observer callback
+      // is still pending. Never let a stale document touch the next test's globals.
+      if (!activeDocument.defaultView
+        || typeof document === 'undefined'
+        || document !== activeDocument
+        || typeof window === 'undefined'
+        || window !== activeWindow) {
+        observer.disconnect();
+        return;
+      }
       var current = readConsent();
       if (current === 'accepted' || current === 'rejected') return;
-      var root = document.getElementById('digdevbox-analytics-consent');
+      var root = activeDocument.getElementById('digdevbox-analytics-consent');
       if (!root) return;
-      var homeHero = document.querySelector('.home-hero');
+      var homeHero = activeDocument.querySelector('.home-hero');
       if (homeHero) {
         if (root.dataset.placement !== 'home-inline' || root.previousElementSibling !== homeHero) {
           renderPrompt(root, false);
         }
         return;
       }
-      if (root.dataset.placement !== 'fixed-overlay' || root.parentElement !== document.body) {
+      if (root.dataset.placement !== 'fixed-overlay' || root.parentElement !== activeDocument.body) {
         renderPrompt(root, false);
       }
     });
-    observer.observe(document.body, { childList: true, subtree: true });
+    observer.observe(activeDocument.body, { childList: true, subtree: true });
   }
   function trackRoute() { window.setTimeout(function () { pageView(); render(); }, 0); }
   ['pushState', 'replaceState'].forEach(function (method) {
