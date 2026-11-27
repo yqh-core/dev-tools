@@ -208,6 +208,10 @@ test('workspace data tools stay secondary behind a keyboard-accessible disclosur
   await expect(page.getByTestId('add-folder')).toBeVisible();
   await expect(page.getByTestId('run-collection')).toBeVisible();
   await expect(page.getByTestId('env-bar')).toBeVisible();
+  await expect(page.getByTestId('create-first-request')).toBeVisible();
+  await expect(page.getByTestId('import-file')).toBeAttached();
+  await expect(page.getByTestId('backup-file')).toBeAttached();
+  await page.screenshot({ path: testInfo.outputPath('workspace-data-tools-desktop-collapsed.png') });
   for (const id of ['backup-safe', 'backup-with-secrets', 'restore-backup', 'import-collection', 'export-collection']) {
     await expect(page.getByTestId(id)).toBeHidden();
   }
@@ -242,6 +246,7 @@ test('workspace data disclosure preserves first-request priority on a 390px scre
   await expect(disclosure).toHaveJSProperty('open', true);
   await expect(page.getByTestId('backup-safe')).toBeVisible();
   await expect(page.getByTestId('import-collection')).toBeVisible();
+  await expect(page.getByTestId('create-first-request')).toBeVisible();
   const geometry = await page.evaluate(() => ({
     documentWidth: document.documentElement.scrollWidth,
     viewportWidth: document.documentElement.clientWidth,
