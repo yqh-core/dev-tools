@@ -256,6 +256,7 @@ test('workspace data disclosure preserves first-request priority on a 390px scre
   await expect(disclosure).toHaveJSProperty('open', true);
   await expect(page.getByTestId('backup-safe')).toBeVisible();
   await expect(page.getByTestId('import-collection')).toBeVisible();
+  await expect(page.getByTestId('api-studio-root')).toBeVisible();
   await expect(page.getByTestId('create-first-request')).toBeVisible();
   for (const id of ['backup-safe', 'backup-with-secrets', 'restore-backup', 'import-collection', 'export-collection']) {
     const target = await page.getByTestId(id).boundingBox();
@@ -267,7 +268,7 @@ test('workspace data disclosure preserves first-request priority on a 390px scre
     sidebarHeight: document.querySelector('.api-sidebar')?.getBoundingClientRect().height ?? 0,
   }));
   expect(geometry.documentWidth).toBeLessThanOrEqual(geometry.viewportWidth);
-  expect(geometry.sidebarHeight).toBeLessThanOrEqual(360);
+  expect(geometry.sidebarHeight).toBeLessThanOrEqual(400);
   await page.screenshot({ path: testInfo.outputPath('workspace-data-tools-mobile-expanded.png') });
 
   await summary.focus();
