@@ -702,6 +702,9 @@ function onUpdateFavoriteTools() {
           <p class="home-block-text" data-test-id="home-privacy-local">
             {{ $t('home.privacy.local') }}
           </p>
+          <p class="home-block-text" data-test-id="home-privacy-storage">
+            {{ $t('home.privacy.storage') }}
+          </p>
           <p class="home-block-text" data-test-id="home-privacy-relay">
             {{ $t('home.privacy.relay') }}
           </p>
