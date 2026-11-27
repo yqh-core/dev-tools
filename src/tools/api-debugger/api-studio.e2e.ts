@@ -154,7 +154,7 @@ test('shows live collection progress and structured redacted request outcomes', 
         id: 'second',
         name: 'Second request',
         request: { method: 'GET', url: 'https://api.test/second?token={{token}}', headers: [], body: '' },
-        assertions: [{ id: 'secret-assertion', enabled: true, type: 'json', target: '$.token', operator: 'eq', expected: 'marked-secret-value' }],
+        assertions: [{ id: 'secret-assertion', enabled: true, type: 'json', target: '$.token', operator: 'eq', expected: 'expected-different-value' }],
       },
     ],
   };
