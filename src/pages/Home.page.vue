@@ -1879,7 +1879,7 @@ function onUpdateFavoriteTools() {
   }
 
   .home-hero-layout {
-    gap: 12px;
+    gap: 8px;
   }
 
   .hero-badges {
@@ -1937,11 +1937,11 @@ function onUpdateFavoriteTools() {
   }
 
   .home-hero-preview {
-    padding: 14px;
+    padding: 12px;
   }
 
   .hero-preview-copy {
-    margin-top: 10px;
+    margin-top: 6px;
 
     h2 {
       font-size: 18px;
@@ -1949,28 +1949,28 @@ function onUpdateFavoriteTools() {
     }
 
     .hero-preview-description {
-      margin-top: 6px;
+      margin-top: 4px;
       font-size: 12px;
-      line-height: 1.45;
+      line-height: 1.35;
     }
   }
 
   .hero-preview-code {
-    margin-top: 10px;
+    margin-top: 6px;
 
     .hero-preview-codebar {
       padding: 6px 9px;
     }
 
     pre {
-      padding: 8px 10px;
+      padding: 6px 8px;
       font-size: 11px;
       line-height: 1.45;
     }
   }
 
   .hero-preview-link {
-    margin-top: 10px;
+    margin-top: 6px;
   }
 }
 </style>
