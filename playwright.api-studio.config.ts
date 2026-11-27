@@ -3,6 +3,7 @@ import { defineConfig, devices } from '@playwright/test';
 const isCI = !!process.env.CI;
 
 export default defineConfig({
+  outputDir: 'test-results/api-studio-product',
   testDir: './src/api-studio-product',
   testMatch: /site\.e2e\.spec\.ts$/,
   fullyParallel: true,
