@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest';
 import type { CollectionNode } from './collection-tree';
 import type { EnvStore } from './environments';
 import {
-  API_STUDIO_BACKUP_MAX_BYTES,
   API_STUDIO_BACKUP_FORMAT,
+  API_STUDIO_BACKUP_MAX_BYTES,
   API_STUDIO_BACKUP_VERSION,
   createApiStudioBackup,
   parseApiStudioBackup,
