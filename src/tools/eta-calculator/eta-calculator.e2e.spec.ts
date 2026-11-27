@@ -179,6 +179,7 @@ test.describe('ETA Calculator observed pace Chinese localization', () => {
     await fill('eta-elapsed-minutes', '0');
     await fill('eta-elapsed-seconds', '0');
 
+    await expect(page.getByTestId('eta-observed-rate')).toContainText('\u5B9E\u6D4B\u5904\u7406\u901F\u7387');
     await expect(page.getByTestId('eta-observed-rate')).toContainText('100');
     await expect(page.getByTestId('eta-observed-rate')).toContainText('\u6761\u8BB0\u5F55/\u5C0F\u65F6');
     await expect(page.getByTestId('eta-remaining')).toContainText('300 \u6761\u8BB0\u5F55');
