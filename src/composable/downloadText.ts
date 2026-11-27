@@ -97,7 +97,9 @@ function downloadTextFile({
   document.body.appendChild(anchor);
   anchor.click();
   document.body.removeChild(anchor);
-  URL.revokeObjectURL(url);
+  // Browser download dispatch is asynchronous. Revoking synchronously can invalidate the
+  // blob URL before Chromium (and some other engines) has consumed it for the download.
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
 
   return true;
 }

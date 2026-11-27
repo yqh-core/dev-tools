@@ -70,6 +70,7 @@ describe('downloadText', () => {
     });
 
     afterEach(() => {
+      vi.useRealTimers();
       vi.restoreAllMocks();
     });
 
@@ -82,7 +83,8 @@ describe('downloadText', () => {
       expect(clickedAnchor).toBeNull();
     });
 
-    it('streams the exact text as a typed blob and revokes the object URL afterwards', () => {
+    it('keeps the object URL alive until the browser has started the download, then revokes it', () => {
+      vi.useFakeTimers();
       const content = 'a,b\n1,2';
       const ok = downloadTextFile({ content, filename: 'out.csv', mimeType: 'text/csv' });
 
@@ -97,7 +99,10 @@ describe('downloadText', () => {
       expect(clickedAnchor!.download).toBe('out.csv');
       expect(clickedAnchor!.href).toContain('blob:mock-url');
 
-      // 关键：用完必须 revoke，否则每次点下载都会漏一个 Blob 引用
+      // The anchor click queues a browser download; keep the object URL alive briefly
+      // so the browser can consume it before releasing the Blob reference.
+      expect(revokeSpy).not.toHaveBeenCalled();
+      vi.advanceTimersByTime(1000);
       expect(revokeSpy).toHaveBeenCalledTimes(1);
       expect(revokeSpy).toHaveBeenCalledWith('blob:mock-url');
     });

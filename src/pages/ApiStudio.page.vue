@@ -35,6 +35,7 @@ import * as assertionEngine from '@/tools/api-debugger/assertions';
 import { buildUrlWithQuery, parseQueryParams } from '@/tools/api-debugger/query';
 import type { CollectionRunSummary, RunnerResponse, SendFn } from '@/tools/api-debugger/runner';
 import { formatCollectionReportText, runCollectionTree } from '@/tools/api-debugger/runner';
+import { redactText } from '@/tools/api-debugger/report';
 import { runScriptIsolated } from '@/tools/api-debugger/script-sandbox';
 import * as environmentEngine from '@/tools/api-debugger/environments';
 import { exportCollectionTree, importCollectionTree } from '@/tools/api-debugger/collection';
@@ -75,6 +76,21 @@ const delTarget = ref<TreeNode | null>(null);
 const running = ref(false);
 const runOutput = ref('');
 const runSummary = ref<CollectionRunSummary | null>(null);
+const runSignal = ref<{ aborted: boolean } | null>(null);
+const cancelRequested = ref(false);
+const runSecretValues = ref<string[]>([]);
+const runProgress = ref<{
+  completed: number
+  total: number
+  current: { id: string; name: string; method: string; url: string } | null
+}>({ completed: 0, total: 0, current: null });
+const runResultStatus = computed(() => {
+  const summary = runSummary.value;
+  if (!summary) {
+    return '';
+  }
+  return summary.cancelled ? 'Cancelled' : summary.stoppedEarly ? 'Stopped early' : summary.allPassed ? 'All checks passed' : 'Completed with failures';
+});
 
 // Postman 导入/导出：filePicker=隐藏文件选择器；importWarnings=上次导入的兼容性提示（UI 可见，不静默丢弃）
 const filePicker = ref<HTMLInputElement | null>(null);
@@ -1061,33 +1077,109 @@ async function sendSelectedRequest() {
   }
 }
 
+function redactRunText(value: string): string {
+  return redactText(value, runSecretValues.value);
+}
+
+function cancelRun() {
+  const signal = runSignal.value;
+  if (!running.value || !signal || signal.aborted || cancelRequested.value) {
+    return;
+  }
+  signal.aborted = true;
+  cancelRequested.value = true;
+  banner.value = 'Cancellation requested. The current request or script will finish or time out; no further requests will start.';
+}
+
+async function copyRunReport() {
+  if (!runOutput.value) {
+    return;
+  }
+  if (!navigator.clipboard?.writeText) {
+    banner.value = 'Clipboard access is unavailable in this browser context. Use Download report instead.';
+    return;
+  }
+  try {
+    await navigator.clipboard.writeText(runOutput.value);
+    banner.value = 'Redacted collection report copied.';
+  }
+  catch {
+    banner.value = 'Could not copy the report. Check clipboard permissions or use Download report.';
+  }
+}
+
+function downloadRunReport() {
+  if (!runOutput.value) {
+    banner.value = 'No report is available yet. Run the collection to generate one.';
+    return;
+  }
+  const ok = downloadTextFile({
+    content: runOutput.value,
+    filename: buildDownloadFilename('api-studio', 'collection-run.txt'),
+    mimeType: 'text/plain',
+  });
+  banner.value = ok ? 'Redacted collection report downloaded.' : 'Could not download the collection report.';
+}
+
 async function onRun() {
+  if (running.value) {
+    return;
+  }
   if (countRequests(tree.value) === 0) {
     banner.value = 'Nothing to run yet — add a request first.';
     return;
   }
+  const signal = { aborted: false };
+  runSignal.value = signal;
+  cancelRequested.value = false;
+  runSecretValues.value = environmentEngine.collectSecretValues(envStore.value);
+  runProgress.value = { completed: 0, total: countRequests(tree.value), current: null };
   running.value = true;
   runOutput.value = '';
   runSummary.value = null;
   try {
     const summary = await runCollectionTree(tree.value, env.value, runnerSend, {
       runScript: (code, snapshot) => runScriptIsolated(code, snapshot, runnerSend),
+      signal,
+      onRequestStart: (request, _index, total) => {
+        runProgress.value = { ...runProgress.value, total, current: request };
+      },
+      onProgress: (_result, index, total) => {
+        runProgress.value = { ...runProgress.value, total, completed: index + 1 };
+      },
     });
     runSummary.value = summary;
-    runOutput.value = formatCollectionReportText(summary);
-    banner.value = `Run finished — ${summary.total - summary.failed} of ${summary.total} request(s) ok.`;
+    runOutput.value = formatCollectionReportText(summary, { secretValues: runSecretValues.value });
+    if (summary.cancelled) {
+      banner.value = `Run cancelled — ${summary.results.length} of ${summary.total} planned request(s) completed.`;
+    }
+    else if (summary.stoppedEarly) {
+      banner.value = `Run stopped early — ${summary.results.length} of ${summary.total} planned request(s) completed.`;
+    }
+    else if (summary.allPassed) {
+      banner.value = `Run finished — all ${summary.results.length} request(s) passed.`;
+    }
+    else {
+      banner.value = `Run finished with failures — ${summary.failed} request(s) failed.`;
+    }
   }
   catch (e) {
     banner.value = `Run could not start: ${e instanceof Error ? e.message : String(e)}`;
   }
   finally {
     running.value = false;
+    runSignal.value = null;
   }
 }
 
 function dismissRun() {
+  if (running.value) {
+    return;
+  }
   runSummary.value = null;
   runOutput.value = '';
+  runProgress.value = { completed: 0, total: 0, current: null };
+  cancelRequested.value = false;
 }
 
 // ── 视图辅助 ────────────────────────────────────────────────────────
@@ -1732,7 +1824,7 @@ function onMenuSelect(key: string, node: TreeNode) {
         </div>
       </div>
 
-      <div v-else class="api-editor-empty">
+      <div v-else-if="!running && !runSummary" class="api-editor-empty">
         <div class="api-editor-mark" aria-hidden="true">
           <span class="api-method-badge static" style="color: var(--api-method-get); border-color: var(--api-method-get)">GET</span>
           <span class="api-url-ghost">https://api.example.com/…</span>
@@ -1749,19 +1841,125 @@ function onMenuSelect(key: string, node: TreeNode) {
         </p>
       </div>
 
-      <!-- 运行结果：无论是否选中节点都展示（Run 之后总该看得到报告）。 -->
-      <div v-if="runSummary" class="api-run-result" data-test-id="run-result">
+      <!-- Collection run: show progress first, then safe per-request outcomes and the shareable report. -->
+      <div v-if="running || runSummary" class="api-run-result" data-test-id="run-result">
         <div class="api-run-summary">
-          <span class="api-run-line">
-            {{ runSummary.total - runSummary.failed }}/{{ runSummary.total }} requests ·
-            {{ runSummary.assertionsPassed }}/{{ runSummary.assertionsTotal }} assertions ·
-            {{ runSummary.scriptTestsPassed }}/{{ runSummary.scriptTestsTotal }} script tests
-          </span>
-          <button class="api-tool-btn" type="button" @click="dismissRun">
-            Dismiss
-          </button>
+          <div class="api-run-summary-copy">
+            <strong v-if="running">Collection run in progress</strong>
+            <strong v-else data-test-id="run-result-status">
+              {{ runResultStatus }}
+            </strong>
+            <span v-if="runSummary" class="api-run-line">
+              {{ runSummary.results.length }}/{{ runSummary.total }} requests ·
+              {{ runSummary.results.filter(result => result.passed).length }} passed ·
+              {{ runSummary.results.filter(result => !result.passed).length }} failed ·
+              {{ runSummary.assertionsPassed }}/{{ runSummary.assertionsTotal }} assertions ·
+              {{ runSummary.scriptTestsPassed }}/{{ runSummary.scriptTestsTotal }} script tests
+              <span v-if="runSummary.total > runSummary.results.length"> · {{ runSummary.total - runSummary.results.length }} not run</span>
+            </span>
+            <span v-else class="api-run-line">
+              {{ runProgress.completed }}/{{ runProgress.total }} requests completed
+            </span>
+          </div>
+          <div class="api-run-summary-actions">
+            <button
+              v-if="running"
+              class="api-tool-btn"
+              type="button"
+              data-test-id="cancel-run"
+              :disabled="cancelRequested"
+              @click="cancelRun"
+            >
+              {{ cancelRequested ? 'Cancelling…' : 'Cancel run' }}
+            </button>
+            <button v-if="runSummary" class="api-tool-btn" type="button" data-test-id="run-again" @click="onRun">
+              Run again
+            </button>
+            <button v-if="runSummary" class="api-tool-btn" type="button" data-test-id="dismiss-run" @click="dismissRun">
+              Dismiss
+            </button>
+          </div>
         </div>
-        <pre class="api-run-output">{{ runOutput }}</pre>
+
+        <div v-if="running" class="api-run-progress">
+          <div class="api-run-progress-copy" role="status" aria-live="polite">
+            <span data-test-id="run-progress">{{ runProgress.completed }}/{{ runProgress.total }} completed</span>
+            <span v-if="runProgress.current" class="api-run-current" data-test-id="run-current-request">
+              Now processing: {{ runProgress.current.name }} · {{ runProgress.current.method }} {{ redactRunText(runProgress.current.url) }}
+            </span>
+            <span v-else>Preparing the first request…</span>
+          </div>
+          <progress
+            class="api-run-progress-bar"
+            :value="runProgress.completed"
+            :max="runProgress.total || 1"
+            :aria-label="`Collection run progress: ${runProgress.completed} of ${runProgress.total} requests completed`"
+          />
+          <p v-if="cancelRequested" class="api-run-cancel-note" data-test-id="run-cancel-note">
+            Cancellation requested. The current request or script will finish or time out; no next request will start.
+          </p>
+        </div>
+
+        <div v-if="runSummary" class="api-run-finished">
+          <ol class="api-run-request-list" data-test-id="run-result-list">
+            <li v-for="(result, index) in runSummary.results" :key="`${index}-${result.id}`">
+              <details
+                class="api-run-request"
+                data-test-id="run-request-result"
+                :data-outcome="!result.sent ? 'not-sent' : result.passed ? 'passed' : 'failed'"
+              >
+                <summary class="api-run-request-summary">
+                  <span class="api-run-outcome" :data-outcome="!result.sent ? 'not-sent' : result.passed ? 'passed' : 'failed'">
+                    {{ !result.sent ? 'NOT SENT' : result.passed ? 'PASS' : 'FAIL' }}
+                  </span>
+                  <strong>{{ result.name }}</strong>
+                  <code>{{ result.method }} {{ redactRunText(result.url) }}</code>
+                  <span v-if="result.sent" class="api-run-request-meta">
+                    {{ result.status }} · {{ result.elapsedMs }} ms
+                  </span>
+                </summary>
+                <div class="api-run-request-detail">
+                  <p v-if="result.error" class="api-run-detail-error">{{ redactRunText(result.error) }}</p>
+                  <p v-if="result.scriptError" class="api-run-detail-error">{{ redactRunText(result.scriptError) }}</p>
+                  <section v-if="result.report?.results.length" class="api-run-checks" aria-label="Request assertions">
+                    <h4>Assertions</h4>
+                    <ul>
+                      <li v-for="assertion in result.report.results" :key="assertion.id">
+                        <span class="api-run-outcome" :data-outcome="assertion.passed ? 'passed' : 'failed'">
+                          {{ assertion.passed ? 'PASS' : 'FAIL' }}
+                        </span>
+                        <span>{{ redactRunText(assertion.label) }} — {{ redactRunText(assertion.message) }}</span>
+                      </li>
+                    </ul>
+                  </section>
+                  <section v-if="result.scriptTests?.length" class="api-run-checks" aria-label="Script tests">
+                    <h4>Script tests</h4>
+                    <ul>
+                      <li v-for="(scriptTest, testIndex) in result.scriptTests" :key="`${testIndex}-${scriptTest.name}`">
+                        <span class="api-run-outcome" :data-outcome="scriptTest.passed ? 'passed' : 'failed'">
+                          {{ scriptTest.passed ? 'PASS' : 'FAIL' }}
+                        </span>
+                        <span>{{ redactRunText(scriptTest.name) }}<span v-if="scriptTest.error"> — {{ redactRunText(scriptTest.error) }}</span></span>
+                      </li>
+                    </ul>
+                  </section>
+                  <p v-if="!result.error && !result.scriptError && !result.report?.results.length && !result.scriptTests?.length" class="api-run-detail-muted">
+                    No assertion or script-test details for this request.
+                  </p>
+                </div>
+              </details>
+            </li>
+          </ol>
+
+          <details class="api-run-text-report">
+            <summary>Text report · redacted</summary>
+            <div class="api-run-report-actions">
+              <button class="api-tool-btn" type="button" data-test-id="copy-run-report" @click="copyRunReport">Copy report</button>
+              <button class="api-tool-btn" type="button" data-test-id="download-run-report" @click="downloadRunReport">Download report</button>
+            </div>
+            <pre class="api-run-output" data-test-id="run-text-report">{{ runOutput }}</pre>
+          </details>
+        </div>
       </div>
     </section>
 
@@ -2384,6 +2582,9 @@ function onMenuSelect(key: string, node: TreeNode) {
 }
 
 .api-run-result {
+  /* Keep the report at its full intrinsic height inside the scrolling editor.
+     A shrinking flex item clipped the disclosure summary on long request editors. */
+  flex: 0 0 auto;
   border: 1px solid var(--api-border);
   border-radius: var(--api-radius);
   background: var(--api-surface);
@@ -2415,6 +2616,198 @@ function onMenuSelect(key: string, node: TreeNode) {
   line-height: 1.5;
   color: var(--api-text-soft);
   white-space: pre-wrap;
+}
+
+.api-run-summary-copy {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.api-run-summary-copy strong {
+  color: var(--api-text);
+}
+
+.api-run-summary-actions,
+.api-run-report-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  flex: 0 0 auto;
+}
+
+.api-run-progress,
+.api-run-finished {
+  padding: 10px 12px;
+}
+
+.api-run-progress {
+  display: grid;
+  gap: 8px;
+  border-bottom: 1px solid var(--api-border);
+}
+
+.api-run-progress-copy {
+  display: grid;
+  gap: 4px;
+  color: var(--api-text-soft);
+  font-size: var(--api-fs-sm);
+}
+
+.api-run-current {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: var(--api-text);
+}
+
+.api-run-progress-bar {
+  display: block;
+  width: 100%;
+  height: 8px;
+  accent-color: var(--api-primary);
+}
+
+.api-run-cancel-note,
+.api-run-detail-error,
+.api-run-detail-muted {
+  margin: 0;
+  color: var(--api-text-soft);
+  font-size: var(--api-fs-sm);
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.api-run-cancel-note,
+.api-run-detail-error {
+  padding: 8px 10px;
+  border-radius: var(--api-radius-sm);
+  background: var(--api-surface-2);
+}
+
+.api-run-request-list {
+  display: grid;
+  gap: 7px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.api-run-request {
+  min-width: 0;
+  border: 1px solid var(--api-border);
+  border-radius: var(--api-radius-sm);
+  background: var(--api-surface);
+}
+
+.api-run-request-summary {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+  padding: 9px 10px;
+  cursor: pointer;
+}
+
+.api-run-request-summary strong {
+  color: var(--api-text);
+}
+
+.api-run-request-summary code {
+  min-width: 0;
+  flex: 1 1 220px;
+  overflow-wrap: anywhere;
+  color: var(--api-text-soft);
+  font-size: var(--api-fs-xs);
+}
+
+.api-run-request-meta {
+  color: var(--api-text-muted);
+  font-size: var(--api-fs-xs);
+  white-space: nowrap;
+}
+
+.api-run-outcome {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  min-width: 58px;
+  padding: 3px 6px;
+  border: 1px solid var(--api-border);
+  border-radius: var(--api-radius-sm);
+  color: var(--api-text);
+  font-size: var(--api-fs-xs);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.api-run-outcome[data-outcome="passed"] {
+  border-color: var(--api-success);
+}
+
+.api-run-outcome[data-outcome="failed"],
+.api-run-outcome[data-outcome="not-sent"] {
+  border-color: var(--api-danger);
+}
+
+.api-run-request-detail {
+  display: grid;
+  gap: 9px;
+  padding: 0 10px 10px;
+  color: var(--api-text-soft);
+  font-size: var(--api-fs-sm);
+  overflow-wrap: anywhere;
+}
+
+.api-run-checks {
+  display: grid;
+  gap: 6px;
+}
+
+.api-run-checks h4 {
+  margin: 0;
+  color: var(--api-text);
+  font-size: var(--api-fs-sm);
+}
+
+.api-run-checks ul {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.api-run-checks li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.api-run-text-report {
+  margin-top: 10px;
+  border-top: 1px solid var(--api-border);
+  padding-top: 9px;
+}
+
+.api-run-text-report > summary {
+  display: block;
+  position: relative;
+  z-index: 1;
+  min-height: 28px;
+  padding: 4px 0;
+  pointer-events: auto;
+  color: var(--api-text);
+  font-size: var(--api-fs-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.api-run-report-actions {
+  margin: 9px 0;
 }
 
 .api-editor-empty {
@@ -3023,6 +3416,20 @@ function onMenuSelect(key: string, node: TreeNode) {
 }
 
 @media (max-width: 760px) {
+  .api-run-summary {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .api-run-summary-actions {
+    width: 100%;
+  }
+  .api-run-request-summary {
+    align-items: flex-start;
+  }
+  .api-run-request-summary code {
+    flex-basis: 100%;
+  }
+
   .api-workspace {
     flex-direction: column;
     min-width: 0;
@@ -3034,12 +3441,25 @@ function onMenuSelect(key: string, node: TreeNode) {
     height: 32dvh;
     min-height: 180px;
     max-height: 280px;
+    overflow: hidden;
     border-right: 0;
     border-bottom: 1px solid var(--api-border);
   }
 
+  /* Keep collection controls inside the bounded mobile sidebar. The tree must
+     use only the remaining height and scroll internally, never paint over the
+     request editor or intercept its progress/cancel controls. */
+  .api-sidebar-head,
+  .api-toolbar,
+  .api-io-row,
+  .api-envbar {
+    flex: 0 0 auto;
+  }
+
   .api-tree {
-    min-height: 56px;
+    flex: 1 1 0;
+    min-height: 0;
+    overflow: auto;
   }
 
   .api-row-actions {

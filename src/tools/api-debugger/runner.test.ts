@@ -163,6 +163,26 @@ describe('runCollection control flow', () => {
     expect(seen).toEqual([[0, 2], [1, 2]]);
   });
 
+  it('announces each request after substitution and before sending it', async () => {
+    const events: string[] = [];
+    const send: SendFn = async (payload) => {
+      events.push(`send:${payload.method}:${payload.url}`);
+      return resp({ url: payload.url });
+    };
+    await runCollection([saved('first'), saved('second')], {}, send, {
+      now: tick(),
+      onRequestStart: (request, index, total) => {
+        events.push(`start:${index + 1}/${total}:${request.name}:${request.method}:${request.url}`);
+      },
+    });
+    expect(events).toEqual([
+      'start:1/2:first:GET:https://x.test/first',
+      'send:GET:https://x.test/first',
+      'start:2/2:second:GET:https://x.test/second',
+      'send:GET:https://x.test/second',
+    ]);
+  });
+
   it('computes duration and average response time', async () => {
     let t = 1000;
     const now = () => t;
@@ -191,6 +211,24 @@ describe('formatCollectionReportText', () => {
     expect(text).toContain('[2] FAIL bad');
     expect(text).toContain('[FAIL] Status equals 500');
     expect(text).not.toContain('content-type');
+  });
+
+  it('labels the marked-secret redaction boundary even when the secret is not otherwise present in report fields', async () => {
+    const sum = await runCollection([saved('safe', { url: 'https://x.test/safe' })], {}, async () => resp(), { now: tick() });
+    const report = formatCollectionReportText(sum, { secretValues: ['marked-secret-value'] });
+
+    expect(report).toContain('[REDACTED-Secret]');
+    expect(report).not.toContain('marked-secret-value');
+    expect(report).toContain('matching text is replaced');
+  });
+
+  it('replaces a marked secret when it appears in a reported URL', async () => {
+    const secret = 'marked-secret-value';
+    const sum = await runCollection([saved('secret', { url: `https://x.test/items?token=${secret}` })], {}, async payload => resp({ url: payload.url }), { now: tick() });
+    const report = formatCollectionReportText(sum, { secretValues: [secret] });
+
+    expect(report).not.toContain(secret);
+    expect(report).toContain('[REDACTED-Secret]');
   });
 
   it('empty collection report says so', async () => {
