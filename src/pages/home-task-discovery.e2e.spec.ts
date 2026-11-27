@@ -43,6 +43,8 @@ test.describe('Homepage task discovery', () => {
     await expect(page).toHaveURL(/api-studio/);
     await expect(page.getByRole('complementary', { name: 'Collections' })).toBeVisible();
     await expect(page.getByTestId('add-request')).toBeVisible();
+    await expect(page.getByTestId('import-collection')).toBeHidden();
+    await page.getByTestId('data-tools-disclosure').locator('summary').click();
     await expect(page.getByTestId('import-collection')).toBeVisible();
   });
 
