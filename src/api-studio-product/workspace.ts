@@ -1,6 +1,6 @@
 import { createApp, h } from 'vue';
-import ApiStudioPage from '@/pages/ApiStudio.page.vue';
 import WorkspaceShell from './WorkspaceShell.vue';
+import ApiStudioPage from '@/pages/ApiStudio.page.vue';
 import { naive } from '@/plugins/naive.plugin';
 import '@/styles/api-studio-tokens.css';
 
