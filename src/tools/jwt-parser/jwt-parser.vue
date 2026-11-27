@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { decodeJwt, type JwtDecodeErrorCode } from './jwt-parser.service';
+import { type JwtDecodeErrorCode, decodeJwt } from './jwt-parser.service';
 import { useValidation } from '@/composable/validation';
 
 const { t, locale } = useI18n();
