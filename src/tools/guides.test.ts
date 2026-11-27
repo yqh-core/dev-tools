@@ -71,6 +71,41 @@ describe('G4: JSON Diff large-input guide accuracy', () => {
   });
 });
 
+
+describe('API Debugger collection runner guide accuracy', () => {
+  it('explains the tested pm.* subset and CSV/JSON iteration behavior in English', async () => {
+    const guide = (await loadGuides('en'))['/api-debugger'];
+    const notes = guide.notes?.join(' ') ?? '';
+    const article = guide.articleOnlySections?.map(s => s.text).join(' ') ?? '';
+    const faq = guide.faqs?.map(f => f.a).join(' ') ?? '';
+
+    expect(guide.steps.join(' ')).toContain('dedicated Worker');
+    expect(guide.steps.join(' ')).toContain('CSV file or a JSON file');
+    expect(notes).toContain('5,000 data rows');
+    expect(notes).toContain('not complete Postman or Newman compatibility');
+    expect(notes).toContain('sent through the relay');
+    expect(article).toContain('a count above the row count cycles through the rows');
+    expect(faq).toContain('not a full Postman/Newman runtime');
+    expect(notes).not.toContain('does not execute Postman pm.* scripts or data-file iterations');
+  });
+
+  it('explains the tested pm.* subset and CSV/JSON iteration behavior in Chinese', async () => {
+    const guide = (await loadGuides('zh'))['/api-debugger'];
+    const notes = guide.notes?.join(' ') ?? '';
+    const article = guide.articleOnlySections?.map(s => s.text).join(' ') ?? '';
+    const faq = guide.faqs?.map(f => f.a).join(' ') ?? '';
+
+    expect(guide.steps.join(' ')).toContain('独立 Worker');
+    expect(guide.steps.join(' ')).toContain('CSV 文件');
+    expect(notes).toContain('5,000 条数据行');
+    expect(notes).toContain('不是完整 Postman/Newman 兼容');
+    expect(notes).toContain('经中继发送到所选目标');
+    expect(article).toContain('大于行数时循环使用数据行');
+    expect(faq).toContain('经过测试的 pm.* API 子集');
+    expect(notes).not.toContain('集合运行器不执行 Postman pm.* 脚本');
+  });
+});
+
 describe('G4: assertGuideCoverage 自检', () => {
   it('当前所有已启用语言都有 importer → 返回空数组', () => {
     expect(assertGuideCoverage()).toEqual([]);
