@@ -4,9 +4,50 @@ import { ALGORITHM_DESCRIPTIONS, CLAIM_DESCRIPTIONS } from './jwt-parser.constan
 
 export { decodeJwt };
 
+export type JwtDecodeErrorCode = 'empty' | 'whitespace' | 'segments' | 'base64url' | 'decode';
+
+export class JwtDecodeError extends Error {
+  readonly code: JwtDecodeErrorCode;
+
+  constructor(code: JwtDecodeErrorCode) {
+    super(code);
+    this.name = 'JwtDecodeError';
+    this.code = code;
+  }
+}
+
+/**
+ * Decode the JOSE Header and Claims Set Payload from a three-part compact JWS.
+ * The third segment is returned unchanged: it is not decoded or cryptographically verified.
+ */
 function decodeJwt({ jwt }: { jwt: string }) {
-  const rawHeader = jwtDecode<JwtHeader>(jwt, { header: true });
-  const rawPayload = jwtDecode<JwtPayload>(jwt);
+  if (!jwt) {
+    throw new JwtDecodeError('empty');
+  }
+
+  if (/\s/.test(jwt)) {
+    throw new JwtDecodeError('whitespace');
+  }
+
+  const parts = jwt.split('.');
+  if (parts.length !== 3 || !parts[0] || !parts[1]) {
+    throw new JwtDecodeError('segments');
+  }
+
+  if (parts.some(part => !/^[A-Za-z0-9_-]*$/.test(part))) {
+    throw new JwtDecodeError('base64url');
+  }
+
+  let rawHeader: JwtHeader;
+  let rawPayload: JwtPayload;
+
+  try {
+    rawHeader = jwtDecode<JwtHeader>(jwt, { header: true });
+    rawPayload = jwtDecode<JwtPayload>(jwt);
+  }
+  catch {
+    throw new JwtDecodeError('decode');
+  }
 
   const header = map(rawHeader, (value, claim) => parseClaims({ claim, value }));
   const payload = map(rawPayload, (value, claim) => parseClaims({ claim, value }));
@@ -14,6 +55,7 @@ function decodeJwt({ jwt }: { jwt: string }) {
   return {
     header,
     payload,
+    signatureSegment: parts[2],
   };
 }
 
@@ -43,10 +85,15 @@ function getFriendlyValue({ claim, value }: { claim: string; value: unknown }) {
 }
 
 function dateFormatter(value: unknown) {
-  if (isNil(value)) {
+  // JWT NumericDate claims are numeric seconds, not milliseconds or validated dates.
+  if (typeof value !== 'number' || !Number.isFinite(value)) {
     return undefined;
   }
 
-  const date = new Date(Number(value) * 1000);
-  return `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
+  const date = new Date(value * 1000);
+  if (Number.isNaN(date.getTime())) {
+    return undefined;
+  }
+
+  return date.toLocaleString();
 }
