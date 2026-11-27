@@ -9,14 +9,13 @@ import {
   calculateRequiredPaceForDeadline,
   calculateWorkingHoursFinishAt,
   calculateWorkingWindowDurationMs,
-  formatMsDuration,
 } from './eta-calculator.service';
 import { useCopy } from '@/composable/copy';
 
 type EtaMode = 'rate' | 'observed';
 type EtaScheduleMode = 'calendar' | 'weekdays';
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
 const { copy } = useCopy({ text: t('tools.eta-calculator.copySuccess') });
 const workUnit = ref('');
 const displayedWorkUnit = computed(() => workUnit.value.trim() || t('tools.eta-calculator.defaultUnit'));
@@ -115,13 +114,33 @@ const progressPercent = computed(() => Math.round(
   estimate.value?.completionPercent
     ?? (unitCount.value > 0 ? (completedUnitCount.value / unitCount.value) * 100 : 0),
 ));
+function formatEtaDuration(durationMs: number): string {
+  const totalMs = Math.max(0, Math.floor(durationMs));
+  const totalSeconds = Math.floor(totalMs / 1000);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  const milliseconds = totalMs % 1000;
+  const parts: string[] = [];
+  const unitText = (unit: 'hour' | 'minute' | 'second' | 'millisecond', count: number) => {
+    const singular = count === 1;
+    return t(`tools.eta-calculator.duration.${unit}${singular ? 'Singular' : 'Plural'}`, { count });
+  };
+
+  if (hours > 0) parts.push(unitText('hour', hours));
+  if (minutes > 0) parts.push(unitText('minute', minutes));
+  if (seconds > 0) parts.push(unitText('second', seconds));
+  if (milliseconds > 0 && parts.length === 0) parts.push(unitText('millisecond', milliseconds));
+  if (parts.length === 0) parts.push(unitText('second', 0));
+
+  return parts.join(locale.value.startsWith('zh') ? '' : ' ');
+}
+
 const displayedDuration = computed(() => {
   if (!estimate.value) {
     return '—';
   }
-  return estimate.value.remainingUnits === 0
-    ? '0 seconds'
-    : formatMsDuration(projectedDurationMs.value);
+  return formatEtaDuration(projectedDurationMs.value);
 });
 const formattedEndAt = computed(() => {
   if (projectedFinishAt.value === null) {
@@ -358,7 +377,7 @@ const displayedObservedRate = computed(() => {
       {{ $t('tools.eta-calculator.workUnitHelp') }}
     </p>
 
-    <div role="group" aria-label="ETA estimation method" flex flex-wrap gap-2>
+    <div role="group" :aria-label="$t('tools.eta-calculator.methodLabel')" flex flex-wrap gap-2>
       <n-button
         data-test-id="eta-mode-rate"
         :type="calculationMode === 'rate' ? 'primary' : 'default'"
@@ -531,7 +550,7 @@ const displayedObservedRate = computed(() => {
           </p>
           <p v-if="estimate && estimate.remainingUnits > 0" text-sm data-test-id="eta-working-window-counted">
             {{ $t('tools.eta-calculator.workingWindowCounted') }}:
-            <strong tabular-nums>{{ formatMsDuration(projectedDurationMs) }}</strong>
+            <strong tabular-nums>{{ formatEtaDuration(projectedDurationMs) }}</strong>
           </p>
         </template>
       </div>
@@ -567,11 +586,11 @@ const displayedObservedRate = computed(() => {
         >
           <strong tabular-nums data-test-id="eta-required-pace">
             {{ $t('tools.eta-calculator.requiredPace') }}:
-            {{ formatUnitsPerHour(deadlineAnalysis.requiredUnitsPerHour) }} {{ $t('tools.eta-calculator.unitsPerHour') }}
+            {{ formatUnitsPerHour(deadlineAnalysis.requiredUnitsPerHour) }} {{ $t('tools.eta-calculator.unitPerHour', { unit: displayedWorkUnit }) }}
           </strong>
           <span tabular-nums>
             {{ $t('tools.eta-calculator.currentPace') }}:
-            {{ formatUnitsPerHour(deadlineAnalysis.currentUnitsPerHour) }} {{ $t('tools.eta-calculator.unitsPerHour') }}
+            {{ formatUnitsPerHour(deadlineAnalysis.currentUnitsPerHour) }} {{ $t('tools.eta-calculator.unitPerHour', { unit: displayedWorkUnit }) }}
           </span>
           <p v-if="deadlineAnalysis.onTrack" text-sm>
             {{ $t('tools.eta-calculator.deadlineOnTrack') }}
@@ -629,7 +648,7 @@ const displayedObservedRate = computed(() => {
           {{ estimate.remainingUnits }} {{ displayedWorkUnit }}
         </n-statistic>
         <n-statistic v-if="estimate && estimate.remainingUnits > 0" :label="$t('tools.eta-calculator.baseProcessingDurationLabel')" data-test-id="eta-base-duration">
-          {{ formatMsDuration(estimate.baseDurationMs) }}
+          {{ formatEtaDuration(estimate.baseDurationMs) }}
         </n-statistic>
         <n-statistic
           v-if="estimate && estimate.remainingUnits > 0"
@@ -643,14 +662,14 @@ const displayedObservedRate = computed(() => {
           :label="$t('tools.eta-calculator.bufferAllowanceLabel')"
           data-test-id="eta-buffer-time"
         >
-          {{ formatMsDuration(estimate.bufferDurationMs) }}
+          {{ formatEtaDuration(estimate.bufferDurationMs) }}
         </n-statistic>
         <n-statistic
           v-if="estimate && additionalPauseMinutes > 0 && estimate.remainingUnits > 0"
           :label="$t('tools.eta-calculator.additionalPauseResult')"
           data-test-id="eta-pause-time"
         >
-          {{ formatMsDuration(additionalPauseMs) }}
+          {{ formatEtaDuration(additionalPauseMs) }}
         </n-statistic>
         <n-statistic v-if="estimate && estimate.remainingUnits > 0" :label="$t('tools.eta-calculator.projectedCompletionLabel')" data-test-id="eta-finish">
           <span data-test-id="eta-finish-local">{{ formattedEndAt }}</span>
