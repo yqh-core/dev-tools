@@ -197,3 +197,15 @@ test('keeps the undecided consent prompt fixed on non-home tool routes', async (
   await expect(consent.getByRole('button', { name: 'Accept analytics' })).toBeVisible();
   await expect(consent.getByRole('button', { name: 'Reject analytics' })).toBeVisible();
 });
+
+test('moves the undecided consent prompt back to a fixed overlay during SPA navigation', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/');
+  const consent = page.locator('#digdevbox-analytics-consent');
+  await expect(consent).toHaveAttribute('data-placement', 'home-inline');
+  await page.locator('#home-tasks > a.home-blog-more[href="/tools/"]').click();
+  await expect(page).toHaveURL(/\/tools\/?$/);
+  await expect(page.locator('.home-hero')).toHaveCount(0);
+  await expect(consent).toHaveAttribute('data-placement', 'fixed-overlay');
+  await expect(consent).toHaveCSS('position', 'fixed');
+});
