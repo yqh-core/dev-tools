@@ -34,8 +34,16 @@ const claimDescriptionKeys: Record<string, string> = {
   jti: 'claims.jwtId',
 };
 
-// Keep every locale key explicit. Dynamically assembled Vue I18n paths are not
-// reliably included by the locale build transform and can render an empty reason.
+// Resolve all localized recovery messages together. This keeps the complete
+// message table in the compiled locale bundle and updates it when the UI locale changes.
+const jwtDecodeErrorMessages = computed<Record<JwtDecodeErrorCode, string>>(() => ({
+  empty: t('tools.jwt-parser.errors.empty'),
+  whitespace: t('tools.jwt-parser.errors.whitespace'),
+  segments: t('tools.jwt-parser.errors.segments'),
+  base64url: t('tools.jwt-parser.errors.base64url'),
+  decode: t('tools.jwt-parser.errors.decode'),
+}));
+
 function isJwtDecodeErrorCode(value: unknown): value is JwtDecodeErrorCode {
   return value === 'empty'
     || value === 'whitespace'
@@ -44,44 +52,21 @@ function isJwtDecodeErrorCode(value: unknown): value is JwtDecodeErrorCode {
     || value === 'decode';
 }
 
-function localizedJwtError(key: string, english: string, chinese: string): string {
-  const translated = t(key);
-  if (translated && translated !== key) {
-    return translated;
-  }
-
-  // Some locale builds can omit script-only message references. Keep the
-  // validation path actionable rather than showing an empty interpolation.
-  return locale.value.toLowerCase().startsWith('zh') ? chinese : english;
-}
-
 function getJwtDecodeErrorMessage(error: unknown): string {
-  // Use the stable error code rather than instanceof: validation may receive an
-  // error object across Vue/component boundaries where constructor identity differs.
   const code = typeof error === 'object' && error !== null && 'code' in error
     ? error.code
     : undefined;
+  const messages = jwtDecodeErrorMessages.value;
+  const localizedMessage = isJwtDecodeErrorCode(code) ? messages[code] : messages.decode;
 
-  if (!isJwtDecodeErrorCode(code)) {
-    return localizedJwtError(
-      'tools.jwt-parser.errors.decode',
-      'The Header and Payload must each be a valid Base64URL-encoded JSON object.',
-      'Header 和 Payload 都必须是有效的 Base64URL 编码 JSON 对象。',
-    );
+  // A recovery explanation must never degrade to an empty suffix in the input control.
+  if (localizedMessage) {
+    return localizedMessage;
   }
 
-  switch (code) {
-    case 'empty':
-      return localizedJwtError('tools.jwt-parser.errors.empty', 'Enter a compact JWT.', '请输入紧凑格式 JWT。');
-    case 'whitespace':
-      return localizedJwtError('tools.jwt-parser.errors.whitespace', 'Remove spaces or line breaks; compact JWTs must be a single uninterrupted string.', '请移除空格或换行符；紧凑格式 JWT 必须是连续的一行字符串。');
-    case 'segments':
-      return localizedJwtError('tools.jwt-parser.errors.segments', 'Expected a three-part compact JWT/JWS: Header.Payload.Signature. Five-part encrypted JWE tokens are not supported.', '需要三段式紧凑 JWT/JWS：Header.Payload.Signature。不支持五段式加密 JWE Token。');
-    case 'base64url':
-      return localizedJwtError('tools.jwt-parser.errors.base64url', 'The compact segments must use the Base64URL alphabet without spaces or padding.', '各段必须使用 Base64URL 字符集，不能包含空格或填充符。');
-    case 'decode':
-      return localizedJwtError('tools.jwt-parser.errors.decode', 'The Header and Payload must each be a valid Base64URL-encoded JSON object.', 'Header 和 Payload 都必须是有效的 Base64URL 编码 JSON 对象。');
-  }
+  return locale.value.startsWith('zh')
+    ? '无法解码此 Token。请检查三段式 JWT/JWS 格式及 Header、Payload 的 Base64URL JSON 对象。'
+    : 'This token could not be decoded. Check the three-part JWT/JWS format and the Base64URL JSON objects in its Header and Payload.';
 }
 
 const validationRules = computed(() => [
@@ -95,7 +80,7 @@ const validationRules = computed(() => [
         return false;
       }
     },
-    message: t('tools.jwt-parser.errors.invalidWithReason'),
+    message: '{0}',
     getErrorMessage: (value: string) => {
       try {
         decodeJwt({ jwt: value });
