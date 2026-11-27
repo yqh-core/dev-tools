@@ -1,7 +1,7 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 
-const output = resolve('dist-api-studio');
+const output = resolve(process.env.API_STUDIO_PRODUCT_OUTPUT || 'dist-api-studio');
 const publicRoutes = [
   '/',
   '/docs/',
@@ -44,7 +44,8 @@ function routeToFile(route) {
 }
 
 export async function injectApiStudioSeo() {
-  const siteUrlValue = process.env.API_STUDIO_SITE_URL?.trim();
+  const isPreview = process.env.API_STUDIO_PREVIEW === '1';
+  const siteUrlValue = isPreview ? undefined : process.env.API_STUDIO_SITE_URL?.trim();
   const siteUrl = normalizeSiteUrl(siteUrlValue);
 
   for (const route of pageRoutes) {
@@ -65,6 +66,9 @@ export async function injectApiStudioSeo() {
     html = insertOrReplaceMeta(html, 'name', 'twitter:title', title);
     html = insertOrReplaceMeta(html, 'name', 'twitter:description', description);
 
+    if (isPreview) {
+      html = insertOrReplaceMeta(html, 'name', 'robots', 'noindex,nofollow');
+    }
     const robots = html.match(new RegExp('<meta\\s+name="robots"\\s+content="([^"]+)"', 'i'))?.[1] || '';
     const canonical = siteUrl && !/noindex/i.test(robots)
       ? new URL(route, siteUrl + '/').href
@@ -106,8 +110,7 @@ export async function injectApiStudioSeo() {
   const sitemapUrl = siteUrl ? new URL('/sitemap.xml', siteUrl).href : null;
   const robotsTxt = [
     'User-agent: *',
-    'Allow: /',
-    'Disallow: /app/',
+    ...(isPreview ? ['Disallow: /'] : ['Allow: /', 'Disallow: /app/']),
     ...(sitemapUrl ? ['Sitemap: ' + sitemapUrl] : []),
     '',
   ].join(String.fromCharCode(10));
