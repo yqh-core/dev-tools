@@ -1858,4 +1858,120 @@ function onUpdateFavoriteTools() {
 }
 
 /* .classic-card 样式随首页经典入口一并摘除（见模板注释）。 */
+
+
+/* Compact the Main hero on narrow screens without removing its task shortcuts,
+   preview context or 44px primary touch targets. */
+@media (max-width: 600px) {
+  .home-hero {
+    margin-bottom: 18px;
+    padding: 18px 16px 16px;
+
+    .home-hero-title {
+      margin-bottom: 6px;
+      font-size: 26px;
+      line-height: 1.14;
+    }
+
+    .home-hero-subtitle {
+      font-size: 13px;
+      line-height: 1.48;
+    }
+  }
+
+  .home-hero-layout {
+    gap: 12px;
+  }
+
+  .hero-badges {
+    gap: 6px;
+    margin-top: 8px;
+  }
+
+  .hero-badge {
+    padding: 3px 9px;
+    font-size: 11px;
+  }
+
+  .hero-search {
+    margin-top: 10px;
+  }
+
+  .search-bar {
+    padding: 10px 13px;
+  }
+
+  .hero-quick-search {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+    margin-top: 6px;
+  }
+
+  .hero-quick-search-label {
+    grid-column: 1 / -1;
+  }
+
+  .hero-quick-search-button {
+    width: 100%;
+    min-width: 0;
+    min-height: 44px;
+    padding: 6px 4px;
+    font-size: 11px;
+    white-space: nowrap;
+  }
+
+  .hero-cta-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    margin-top: 8px;
+  }
+
+  .hero-cta {
+    width: 100%;
+    min-height: 44px;
+    justify-content: center;
+    padding: 6px 8px;
+    font-size: 12px;
+    text-align: center;
+  }
+
+  .home-hero-preview {
+    padding: 14px;
+  }
+
+  .hero-preview-copy {
+    margin-top: 10px;
+
+    h2 {
+      font-size: 18px;
+      line-height: 1.25;
+    }
+
+    .hero-preview-description {
+      margin-top: 6px;
+      font-size: 12px;
+      line-height: 1.45;
+    }
+  }
+
+  .hero-preview-code {
+    margin-top: 10px;
+
+    .hero-preview-codebar {
+      padding: 6px 9px;
+    }
+
+    pre {
+      padding: 8px 10px;
+      font-size: 11px;
+      line-height: 1.45;
+    }
+  }
+
+  .hero-preview-link {
+    margin-top: 10px;
+  }
+}
 </style>
