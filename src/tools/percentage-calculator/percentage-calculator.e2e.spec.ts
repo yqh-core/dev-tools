@@ -49,44 +49,113 @@ test.describe('Tool - Percentage calculator', () => {
   test('shows one focused task at a time and switches between all seven workflows', async ({ page }) => {
     const modeButtons = page.locator('.percentage-mode-button');
     await expect(modeButtons).toHaveCount(7);
+    const percentOfMode = page.getByTestId('percentage-mode-percent-of');
+    await expect(percentOfMode.getByLabel('Percentage (%)')).toBeVisible();
+    await expect(percentOfMode.getByLabel('Whole value')).toBeVisible();
+    await expect(percentOfMode.getByLabel('Result')).toBeVisible();
     await expect(page.getByTestId('percentageX')).toBeVisible();
     await expect(page.getByTestId('numberX')).toBeHidden();
 
-    await page.getByRole('button', { name: 'X is what percent of Y?', exact: true }).click();
+    await page.getByRole('button', { name: 'Part as a percentage of a whole', exact: true }).click();
     await expect(page.getByTestId('numberX')).toBeVisible();
     await expect(page.getByTestId('percentageX')).toBeHidden();
 
-    await page.getByRole('button', { name: 'Percentage increase or decrease', exact: true }).click();
+    await page.getByRole('button', { name: 'Percentage change from old to new', exact: true }).click();
     await expect(page.getByTestId('numberFrom')).toBeVisible();
     await expect(page.getByTestId('numberX')).toBeHidden();
 
-    await page.getByRole('button', { name: 'Add or subtract a percentage', exact: true }).click();
+    await page.getByRole('button', { name: 'Increase or decrease a value', exact: true }).click();
     await expect(page.getByTestId('adjustmentValue')).toBeVisible();
 
-    await page.getByRole('button', { name: 'Reverse a percentage increase or decrease', exact: true }).click();
+    await page.getByRole('button', { name: 'Find the value before a percentage change', exact: true }).click();
     await expect(page.getByTestId('reverseFinalValue')).toBeVisible();
 
-    await page.getByRole('button', { name: 'Percentage difference between two values', exact: true }).click();
+    await page.getByRole('button', { name: 'Symmetric percentage difference', exact: true }).click();
     await expect(page.getByTestId('differenceA')).toBeVisible();
 
-    await page.getByRole('button', { name: 'Percentage-point change between two rates', exact: true }).click();
+    await page.getByRole('button', { name: 'Percentage-point change', exact: true }).click();
     await expect(page.getByTestId('rateFrom')).toBeVisible();
     await expect(page.getByTestId('percentageX')).toBeHidden();
 
-    await expect(page.getByRole('button', { name: 'Percentage-point change between two rates', exact: true })).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.getByRole('button', { name: 'Percentage-point change', exact: true })).toHaveAttribute('aria-pressed', 'true');
   });
 
-  test('Explains all seven supported percentage tasks with correct formulas', async ({ page }) => {
+  test('captures responsive percentage calculator first-fold layouts', async ({ page }, testInfo) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/percentage-calculator');
+    await expect(page.locator('.percentage-mode-switcher')).toBeVisible();
+    await expect(page.getByTestId('percentage-mode-percent-of')).toBeVisible();
+    await page.screenshot({
+      path: testInfo.outputPath('percentage-calculator-mobile.png'),
+      fullPage: false,
+    });
+
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.screenshot({
+      path: testInfo.outputPath('percentage-calculator-desktop.png'),
+      fullPage: false,
+    });
+  });
+
+  test('labels primary workflows with explicit input roles and denominator guidance', async ({ page }) => {
+    await expect(page.getByRole('group', { name: 'Choose a percentage calculation' })).toBeVisible();
     const guide = page.getByTestId('percentage-calculator-guide');
-    await expect(guide).toContainText('seven common percentage problems');
-    await expect(guide).toContainText('15% of 80 is 12');
-    await expect(guide).toContainText('30 is 25% of 120');
-    await expect(guide).toContainText('a 15% increase');
-    await expect(guide).toContainText('reducing 80 by 15% gives 68');
-    await expect(guide).toContainText('120 after a 20% increase came from 120 ÷ 1.20 = 100');
-    await expect(guide).toContainText('the symmetric difference is 40%');
-    await expect(guide).toContainText('5% to 7% is +2 percentage points');
-    await expect(guide).toContainText('An original value of zero makes percentage change undefined');
+    await expect(guide).toContainText('Percentage formulas and common pitfalls');
+    await expect(guide).toContainText('Results use up to 12 significant digits. This is display precision, not currency-specific rounding.');
+    await expect(guide).toContainText('28% off overall, not 30%');
+    await expect(guide).toContainText('the result sign may not match whether the new value is numerically higher or lower');
+    await expect(page.locator('.percentage-mode-button')).toHaveCount(7);
+
+    await page.getByRole('button', { name: 'Percentage change from old to new', exact: true }).click();
+    const change = page.getByTestId('percentage-mode-percentage-change');
+    await expect(change).toContainText('Old value (baseline)');
+    await expect(change).toContainText('New value');
+    await expect(page.getByLabel('Old value (baseline)')).toBeVisible();
+    await expect(page.getByLabel('New value')).toBeVisible();
+    await expect(page.getByLabel('Percentage change (%)')).toBeVisible();
+    await expect(page.getByTestId('percentage-hint-change')).toContainText('baseline (denominator)');
+    await page.getByTestId('numberFrom').locator('input').fill('80');
+    await page.getByTestId('numberTo').locator('input').fill('92');
+    await expect(page.getByTestId('percentage-details-change')).toContainText('(92 − 80) ÷ 80 × 100 = 15%');
+    await page.getByTestId('numberFrom').locator('input').fill('-100');
+    await page.getByTestId('numberTo').locator('input').fill('-90');
+    await expect(page.getByTestId('percentageIncreaseDecrease').locator('input')).toHaveValue('-10');
+    await expect(page.getByTestId('percentage-hint-change')).toContainText('negative baseline');
+    await page.getByTestId('numberTo').locator('input').fill('-110');
+    await expect(page.getByTestId('percentageIncreaseDecrease').locator('input')).toHaveValue('10');
+
+    await page.getByRole('button', { name: 'Symmetric percentage difference', exact: true }).click();
+    await expect(page.getByTestId('percentage-difference-card')).toBeVisible();
+    await expect(page.getByTestId('percentage-hint-difference')).toContainText('neither value is treated as the baseline');
+    await page.getByTestId('differenceA').locator('input').fill('100');
+    await page.getByTestId('differenceB').locator('input').fill('150');
+    await expect(page.getByTestId('percentageDifference').locator('input')).toHaveValue('40');
+
+    await page.getByRole('button', { name: 'Percentage-point change', exact: true }).click();
+    await page.getByTestId('rateFrom').locator('input').fill('4');
+    await page.getByTestId('rateTo').locator('input').fill('6');
+    await expect(page.getByTestId('percentage-hint-points')).toContainText('+2 percentage points');
+    await expect(page.getByTestId('percentage-hint-points')).toContainText('+50% relative to the old rate');
+  });
+
+  test('keeps the first guide concise and provides all seven worked examples on demand', async ({ page }) => {
+    const quickGuide = page.getByTestId('percentage-calculator-guide');
+    await expect(quickGuide).toContainText('Percentage formulas and common pitfalls');
+    await expect(quickGuide).toContainText('Formula quick reference');
+    await expect(quickGuide).toContainText('12 significant digits');
+
+    const detailedGuide = page.getByTestId('percentage-calculator-detailed-guide');
+    await expect(detailedGuide).not.toHaveAttribute('open', '');
+    await detailedGuide.locator('summary').click();
+    await expect(detailedGuide).toContainText('Detailed examples and common questions');
+    await expect(detailedGuide).toContainText('18% of 250');
+    await expect(detailedGuide).toContainText('45 out of 250');
+    await expect(detailedGuide).toContainText('From 80 to 92');
+    await expect(detailedGuide).toContainText('Increase 80 by 15%');
+    await expect(detailedGuide).toContainText('120 ÷ 1.20 = 100');
+    await expect(detailedGuide).toContainText('abs(100 − 150)');
+    await expect(detailedGuide).toContainText('5% to 7%');
+    await expect(detailedGuide).toContainText('negative baseline');
   });
 
   test('shows live in-words explanations and substituted formulas for all seven operations', async ({ page }) => {
@@ -95,36 +164,36 @@ test.describe('Tool - Percentage calculator', () => {
     await expect(page.getByTestId('percentage-details-percent-of')).toContainText('15% of 80 is 12.');
     await expect(page.getByTestId('percentage-details-percent-of')).toContainText('(15 ÷ 100) × 80 = 12');
 
-    await page.getByRole('button', { name: 'X is what percent of Y?', exact: true }).click();
+    await page.getByRole('button', { name: 'Part as a percentage of a whole', exact: true }).click();
     await page.getByTestId('numberX').locator('input').fill('30');
     await page.getByTestId('numberY').locator('input').fill('120');
     await expect(page.getByTestId('percentage-details-part-to-whole')).toContainText('30 is 25% of 120.');
     await expect(page.getByTestId('percentage-details-part-to-whole')).toContainText('(30 ÷ 120) × 100 = 25%');
 
-    await page.getByRole('button', { name: 'Percentage increase or decrease', exact: true }).click();
+    await page.getByRole('button', { name: 'Percentage change from old to new', exact: true }).click();
     await page.getByTestId('numberFrom').locator('input').fill('80');
     await page.getByTestId('numberTo').locator('input').fill('92');
     await expect(page.getByTestId('percentage-details-change')).toContainText('The percentage change from 80 to 92 is 15%.');
     await expect(page.getByTestId('percentage-details-change')).toContainText('(92 − 80) ÷ 80 × 100 = 15%');
 
-    await page.getByRole('button', { name: 'Add or subtract a percentage', exact: true }).click();
+    await page.getByRole('button', { name: 'Increase or decrease a value', exact: true }).click();
     await page.getByTestId('adjustmentValue').locator('input').fill('80');
     await page.getByTestId('adjustmentPercent').locator('input').fill('15');
     await expect(page.getByTestId('percentage-details-adjustment')).toContainText('Increasing 80 by 15% gives 92.');
     await expect(page.getByTestId('percentage-details-adjustment')).toContainText('Decreasing 80 by 15% gives 68.');
 
-    await page.getByRole('button', { name: 'Reverse a percentage increase or decrease', exact: true }).click();
+    await page.getByRole('button', { name: 'Find the value before a percentage change', exact: true }).click();
     await page.getByTestId('reverseFinalValue').locator('input').fill('120');
     await page.getByTestId('reversePercent').locator('input').fill('20');
     await expect(page.getByTestId('percentage-details-reverse')).toContainText('Before a 20% increase, 120 was 100.');
     await expect(page.getByTestId('percentage-details-reverse')).toContainText('Before a 20% decrease, 120 was 150.');
 
-    await page.getByRole('button', { name: 'Percentage difference between two values', exact: true }).click();
+    await page.getByRole('button', { name: 'Symmetric percentage difference', exact: true }).click();
     await page.getByTestId('differenceA').locator('input').fill('100');
     await page.getByTestId('differenceB').locator('input').fill('150');
     await expect(page.getByTestId('percentage-details-difference')).toContainText('The symmetric percentage difference between 100 and 150 is 40%.');
 
-    await page.getByRole('button', { name: 'Percentage-point change between two rates', exact: true }).click();
+    await page.getByRole('button', { name: 'Percentage-point change', exact: true }).click();
     await page.getByTestId('rateFrom').locator('input').fill('5');
     await page.getByTestId('rateTo').locator('input').fill('7');
     await expect(page.getByTestId('percentage-details-points')).toContainText('The change from 5% to 7% is 2 percentage points.');
@@ -150,19 +219,16 @@ test.describe('Tool - Percentage calculator', () => {
       await expect(details).toContainText('计算公式');
     });
   });
-  test('Answers common percentage questions with supported formulas', async ({ page }) => {
-    const guide = page.getByTestId('percentage-calculator-guide');
-    await expect(guide).toContainText('How do I calculate a percentage of a number?');
-    await expect(guide).toContainText('18% of 250 is');
-    await expect(guide).toContainText('How do I find what percentage one number is of another?');
-    await expect(guide).toContainText('The total cannot be zero');
-    await expect(guide).toContainText('How do I calculate percentage increase or decrease?');
-    await expect(guide).toContainText('An original value of zero makes percentage change undefined');
-    await expect(guide).toContainText('How do I find the original value before a discount or increase?');
-    await expect(guide).toContainText('What is the difference between percentage change and percentage difference?');
-    await expect(guide).toContainText('What is a percentage-point change?');
-    await expect(guide).toContainText('How do I calculate a discount or add sales tax?');
-    await expect(guide).toContainText('actual tax rules depend on the product and location');
+  test('covers discounts, common mistakes and frequent questions in the detailed guide', async ({ page }) => {
+    const detailedGuide = page.getByTestId('percentage-calculator-detailed-guide');
+    await detailedGuide.locator('summary').click();
+    await expect(detailedGuide).toContainText('Discounts and sales tax');
+    await expect(detailedGuide).toContainText('Common calculation mistakes');
+    await expect(detailedGuide).toContainText('Common questions');
+    await expect(detailedGuide).toContainText('Why can an increase from a negative value show a negative percentage?');
+    await expect(detailedGuide).toContainText('Are percentage points the same as percent change?');
+    await expect(detailedGuide).toContainText('Why do two successive percentage changes not simply add?');
+    await expect(detailedGuide).not.toContainText('How do I calculate a percentage of a number?');
   });
 
   test('Correctly works out all seven percentage calculations', async ({ page }) => {
@@ -170,23 +236,23 @@ test.describe('Tool - Percentage calculator', () => {
     await page.getByTestId('percentageY').locator('input').fill('456');
     await expect(page.getByTestId('percentageResult').locator('input')).toHaveValue('560.88');
 
-    await page.getByRole('button', { name: 'X is what percent of Y?', exact: true }).click();
+    await page.getByRole('button', { name: 'Part as a percentage of a whole', exact: true }).click();
     await page.getByTestId('numberX').locator('input').fill('123');
     await page.getByTestId('numberY').locator('input').fill('456');
     await expect(page.getByTestId('numberResult').locator('input')).toHaveValue('26.973684210526315');
 
-    await page.getByRole('button', { name: 'Percentage increase or decrease', exact: true }).click();
+    await page.getByRole('button', { name: 'Percentage change from old to new', exact: true }).click();
     await page.getByTestId('numberFrom').locator('input').fill('123');
     await page.getByTestId('numberTo').locator('input').fill('456');
     await expect(page.getByTestId('percentageIncreaseDecrease').locator('input')).toHaveValue('270.7317073170732');
 
-    await page.getByRole('button', { name: 'Add or subtract a percentage', exact: true }).click();
+    await page.getByRole('button', { name: 'Increase or decrease a value', exact: true }).click();
     await page.getByTestId('adjustmentValue').locator('input').fill('80');
     await page.getByTestId('adjustmentPercent').locator('input').fill('15');
     await expect(page.getByTestId('increasedValue').locator('input')).toHaveValue('92');
     await expect(page.getByTestId('decreasedValue').locator('input')).toHaveValue('68');
 
-    await page.getByRole('button', { name: 'Reverse a percentage increase or decrease', exact: true }).click();
+    await page.getByRole('button', { name: 'Find the value before a percentage change', exact: true }).click();
     await page.getByTestId('reverseFinalValue').locator('input').fill('120');
     await page.getByTestId('reversePercent').locator('input').fill('20');
     await expect(page.getByTestId('originalBeforeIncrease').locator('input')).toHaveValue('100');
@@ -195,7 +261,7 @@ test.describe('Tool - Percentage calculator', () => {
     await page.getByTestId('reverseFinalValue').locator('input').fill('80');
     await expect(page.getByTestId('originalBeforeDecrease').locator('input')).toHaveValue('100');
 
-    await page.getByRole('button', { name: 'Percentage difference between two values', exact: true }).click();
+    await page.getByRole('button', { name: 'Symmetric percentage difference', exact: true }).click();
     await page.getByTestId('differenceA').locator('input').fill('100');
     await page.getByTestId('differenceB').locator('input').fill('150');
     await expect(page.getByTestId('percentageDifference').locator('input')).toHaveValue('40');
@@ -204,7 +270,7 @@ test.describe('Tool - Percentage calculator', () => {
     await page.getByTestId('differenceB').locator('input').fill('100');
     await expect(page.getByTestId('percentageDifference').locator('input')).toHaveValue('40');
 
-    await page.getByRole('button', { name: 'Percentage-point change between two rates', exact: true }).click();
+    await page.getByRole('button', { name: 'Percentage-point change', exact: true }).click();
     await page.getByTestId('rateFrom').locator('input').fill('5');
     await page.getByTestId('rateTo').locator('input').fill('7');
     await expect(page.getByTestId('percentagePointChange').locator('input')).toHaveValue('2');
@@ -217,17 +283,17 @@ test.describe('Tool - Percentage calculator', () => {
     await page.getByTestId('percentageX').locator('input').fill('123');
     await expect(page.getByTestId('percentageResult').locator('input')).toHaveValue('');
 
-    await page.getByRole('button', { name: 'X is what percent of Y?', exact: true }).click();
+    await page.getByRole('button', { name: 'Part as a percentage of a whole', exact: true }).click();
     await page.getByTestId('numberX').locator('input').fill('45');
     await page.getByTestId('numberY').locator('input').fill('0');
     await expect(page.getByTestId('numberResult').locator('input')).toHaveValue('');
 
-    await page.getByRole('button', { name: 'Percentage increase or decrease', exact: true }).click();
+    await page.getByRole('button', { name: 'Percentage change from old to new', exact: true }).click();
     await page.getByTestId('numberFrom').locator('input').fill('0');
     await page.getByTestId('numberTo').locator('input').fill('100');
     await expect(page.getByTestId('percentageIncreaseDecrease').locator('input')).toHaveValue('');
 
-    await page.getByRole('button', { name: 'Reverse a percentage increase or decrease', exact: true }).click();
+    await page.getByRole('button', { name: 'Find the value before a percentage change', exact: true }).click();
     await page.getByTestId('reverseFinalValue').locator('input').fill('120');
     await page.getByTestId('reversePercent').locator('input').fill('-100');
     await expect(page.getByTestId('originalBeforeIncrease').locator('input')).toHaveValue('');
@@ -236,12 +302,12 @@ test.describe('Tool - Percentage calculator', () => {
     await page.getByTestId('reversePercent').locator('input').fill('100');
     await expect(page.getByTestId('originalBeforeDecrease').locator('input')).toHaveValue('');
 
-    await page.getByRole('button', { name: 'Percentage difference between two values', exact: true }).click();
+    await page.getByRole('button', { name: 'Symmetric percentage difference', exact: true }).click();
     await page.getByTestId('differenceA').locator('input').fill('0');
     await page.getByTestId('differenceB').locator('input').fill('0');
     await expect(page.getByTestId('percentageDifference').locator('input')).toHaveValue('');
 
-    await page.getByRole('button', { name: 'Percentage-point change between two rates', exact: true }).click();
+    await page.getByRole('button', { name: 'Percentage-point change', exact: true }).click();
     await page.getByTestId('rateFrom').locator('input').fill('5');
     await expect(page.getByTestId('percentagePointChange').locator('input')).toHaveValue('');
   });
@@ -356,6 +422,57 @@ test.describe('Tool - Percentage calculator', () => {
     await expect(page.locator('html')).toHaveAttribute('data-test-clipboard', /Starting amount: 100/);
     await expect(page.locator('html')).toHaveAttribute('data-test-clipboard', /Final amount: 72/);
     await expect(page.locator('html')).toHaveAttribute('data-test-clipboard', /-28%/);
+  });
+});
+
+test.describe('Percentage calculator primary UI Chinese localization', () => {
+  test.use({ locale: 'zh-CN' });
+
+  test('localizes task selection, baseline labels and rate-change guidance', async ({ page }) => {
+    await page.goto('/percentage-calculator');
+    await expect(page.getByRole('group', { name: '选择百分比计算方式' })).toBeVisible();
+    await expect(page.locator('.percentage-mode-button')).toHaveCount(7);
+    const percentOfMode = page.getByTestId('percentage-mode-percent-of');
+    await expect(percentOfMode.getByLabel('百分比 (%)')).toBeVisible();
+    await expect(percentOfMode.getByLabel('整体数值')).toBeVisible();
+    await expect(percentOfMode.getByLabel('结果')).toBeVisible();
+    const guide = page.getByTestId('percentage-calculator-guide');
+    await expect(guide).toContainText('百分比公式与常见误区');
+    await expect(guide).toContainText('最多显示 12 位有效数字');
+    await expect(guide).toContainText('百分点');
+    await expect(guide).toContainText('结果的正负号不一定对应数值实际升高或降低');
+    await expect(guide).not.toContainText('How to calculate a percentage');
+    const detailedGuide = page.getByTestId('percentage-calculator-detailed-guide');
+    await detailedGuide.locator('summary').click();
+    await expect(detailedGuide).toContainText('详细示例与常见问题');
+    await expect(detailedGuide).toContainText('从 −100 变为 −90');
+    await expect(detailedGuide).toContainText('百分点与百分比变化相同吗？');
+
+    await page.getByRole('button', { name: '计算从原始值到新值的百分比变化', exact: true }).click();
+    const change = page.getByTestId('percentage-mode-percentage-change');
+    await expect(change).toContainText('原始值（基数）');
+    await expect(change).toContainText('新值');
+    await expect(page.getByTestId('percentage-hint-change')).toContainText('分母');
+    await page.getByTestId('numberFrom').locator('input').fill('80');
+    await page.getByTestId('numberTo').locator('input').fill('92');
+    await expect(page.getByTestId('percentage-details-change')).toContainText('百分比变化为 15%');
+    await page.getByTestId('numberFrom').locator('input').fill('-100');
+    await page.getByTestId('numberTo').locator('input').fill('-90');
+    await expect(page.getByTestId('percentageIncreaseDecrease').locator('input')).toHaveValue('-10');
+    await expect(page.getByTestId('percentage-hint-change')).toContainText('原始值为负数');
+    await page.getByTestId('numberTo').locator('input').fill('-110');
+    await expect(page.getByTestId('percentageIncreaseDecrease').locator('input')).toHaveValue('10');
+
+    await page.getByRole('button', { name: '对称百分比差异', exact: true }).click();
+    await expect(page.getByTestId('percentage-hint-difference')).toContainText('两个数值都不作为起始基数');
+
+    await page.getByRole('button', { name: '比率的百分点变化', exact: true }).click();
+    await expect(page.getByTestId('percentage-points-card')).toContainText('旧比率 (%)');
+    await expect(page.getByTestId('percentage-points-card')).toContainText('新比率 (%)');
+    await page.getByTestId('rateFrom').locator('input').fill('4');
+    await page.getByTestId('rateTo').locator('input').fill('6');
+    await expect(page.getByTestId('percentage-hint-points')).toContainText('增加了 2 个百分点');
+    await expect(page.getByTestId('percentage-hint-points')).toContainText('增长率为 50%');
   });
 });
 

@@ -284,6 +284,57 @@ tools:
   percentage-calculator:
     title: 百分比计算器 — 百分比计算、增减幅与折扣
     description: 免费计算百分比、折扣、百分比变化、反向百分比和百分点。支持七种计算模式、批量 CSV/TSV 导出及逐步公式说明。
+    ui:
+      intro: 选择与你要解决的问题对应的计算方式。输入数值后，结果和代入公式会实时更新。
+      chooseMode: 选择百分比计算方式
+      tryExample: 快速示例
+      modes:
+        percent-of: 求一个数值的百分之几
+        part-to-whole: 计算部分占整体的百分比
+        percentage-change: 计算从原始值到新值的百分比变化
+        adjustment: 按百分比增加或减少数值
+        reverse: 反推百分比变化前的原值
+        percentage-difference: 对称百分比差异
+        percentage-points: 比率的百分点变化
+      fields:
+        percentage: 百分比 (%)
+        percentagePlaceholder: 百分比
+        whole: 整体数值
+        wholePlaceholder: 整体
+        part: 部分数值
+        partPlaceholder: 部分
+        result: 结果
+        resultPlaceholder: 结果
+        changeResult: 百分比变化 (%)
+        oldValue: 原始值（基数）
+        oldValuePlaceholder: 原始值
+        newValue: 新值
+        newValuePlaceholder: 新值
+        baseValue: 调整前数值
+        baseValuePlaceholder: 起始值
+        rate: 百分比 (%)
+        ratePlaceholder: 百分比
+        afterIncrease: 增加后的数值
+        afterDecrease: 减少后的数值
+        finalValue: 变化后数值
+        finalValuePlaceholder: 变化后数值
+        beforeIncrease: 增加前原值
+        beforeDecrease: 减少前原值
+        valueA: 数值 A
+        valueAPlaceholder: 数值 A
+        valueB: 数值 B
+        valueBPlaceholder: 数值 B
+        symmetricDifference: 对称百分比差异 (%)
+        oldRate: 旧比率 (%)
+        oldRatePlaceholder: 旧比率
+        newRate: 新比率 (%)
+        newRatePlaceholder: 新比率
+        percentagePointChange: 比率差值
+        percentagePointsUnit: 个百分点
+      hints:
+        percentageChange: 百分比变化以原始值（含正负号）作为基数（分母），原始值为零时没有定义。原始值为负数时，请直接比较两个数值；结果正负号可能与数值实际增减方向不同。
+        percentageDifference: 对称比较以 A 和 B 的绝对值平均数为分母；两个数值都不作为起始基数。
+        percentagePoints: 示例：比率从 4% 升至 6%，增加了 2 个百分点；相对于旧比率的增长率为 50%。
     resultDetails:
       inWords: 结果说明
       formula: 计算公式
@@ -390,6 +441,55 @@ tools:
         wholeZero: 整体数值不能为零。
         startZero: 计算百分比变化时，起始值不能为零。
         differenceZero: 两个数值都为零时，百分比差异没有定义。
+
+    guide:
+      title: "百分比公式与常见误区"
+      intro: "先选择上方的计算任务并输入数值。结果说明会显示代入实际数值后的计算公式。"
+      formulasTitle: "常用公式"
+      formulas:
+        percentOf: "求一个数值的百分之几：(百分比 ÷ 100) × 整体数值。示例：80 的 15% = 12。"
+        partToWhole: "计算部分占整体的百分比：(部分 ÷ 整体) × 100。示例：30 占 120 的 25%。"
+        percentageChange: "百分比变化：((新值 − 原始值) ÷ 原始值) × 100。示例：80 增至 92，变化为 +15%。"
+        adjustment: "按百分比增加或减少：起始值 × (1 ± 比率 ÷ 100)。示例：80 减少 15% 后为 68。"
+        reverse: "反向百分比：变化后数值 ÷ (1 ± 比率 ÷ 100)。示例：增加 20% 后为 120，增加前为 100。"
+        percentageDifference: "对称百分比差异：abs(A − B) ÷ ((abs(A) + abs(B)) ÷ 2) × 100。abs 表示绝对值。示例：100 与 150 的差异为 40%。"
+        percentagePoints: "百分点变化：新比率 − 旧比率。示例：4% 升至 6%，增加 2 个百分点；相对增长率为 50%。"
+      distinctionsTitle: "区分不同的比较方式"
+      changeVsDifference: "百分比变化以原始值（含正负号）作为分母。原始值为负数时，结果的正负号不一定对应数值实际升高或降低：−100 → −90 = −10%，应直接比较原始值与新值。对称百分比差异不选定起始基数，而是使用两个数值绝对值的平均值作为分母。"
+      percentagePointsNote: "百分点衡量两个比率之间的绝对差值；相对百分比变化则用该差值除以旧比率。"
+      edgeCasesTitle: "计算边界与连续调整"
+      denominatorLimits: "整体数值或百分比变化的原始值为零时，对应计算没有定义。反向计算的调整乘数为零时无解；两个比较值都为零时，对称百分比差异没有定义。"
+      sequentialAdjustments: "连续调整时，每一步都作用于上一步的中间值。100 先减少 20%，再减少 10%，最终为 72；总降幅是 28%，不是 30%。"
+      displayPrecision: "结果最多显示 12 位有效数字。这是显示精度，不代表按货币最小单位舍入。"
+
+    detailedGuide:
+      summary: "详细示例与常见问题"
+      intro: "上方速查已列出各模式公式。展开本节可查看代入示例和常见计算边界。"
+      examplesTitle: "计算示例"
+      examples:
+        percentOf: "计算 250 的 18%：(18 ÷ 100) × 250 = 45。"
+        partToWhole: "45 占 250 的比例：(45 ÷ 250) × 100 = 18%。整体数值不能为零。"
+        percentageChange: "从 80 变为 92：((92 − 80) ÷ 80) × 100 = 15%。原始值为零时无法定义百分比变化。原始值为负数时，结果的正负号不一定对应数值实际升高或降低，应直接比较两个数值。"
+        adjustment: "80 增加 15% 得到 92；减少 15% 得到 68。"
+        reverse: "若增加 20% 后为 120，原始值为 120 ÷ 1.20 = 100。若减少 20% 后为 80，原始值为 80 ÷ 0.80 = 100。"
+        percentageDifference: "比较 100 和 150：abs(100 − 150) ÷ ((abs(100) + abs(150)) ÷ 2) × 100 = 40%。交换两个数值不会改变结果。"
+        percentagePoints: "比率从 5% 升至 7%，增加 2 个百分点；相对于原来的 5%，增长率为 40%。"
+      discountsTitle: "折扣与销售税"
+      discounts: "折扣使用减少模式，税费使用增加模式。连续计算时，每一步都作用于更新后的金额。例如，50 打九折后为 45，尚未计入其他税费。实际税务规则取决于商品和所在地。"
+      mistakesTitle: "常见计算误区"
+      mistakes:
+        baseline: "百分比变化以原始值作为分母，而不是新值。原始值为零时，结果没有定义。"
+        symmetric: "对称百分比差异以两个数值绝对值的平均数为分母；任一数值都不是固定基数。"
+        points: "百分点衡量两个比率的绝对差值；相对百分比变化则用该差值除以旧比率。"
+        compounding: "连续百分比变化会逐步复合。100 先减少 20%，再减少 10%，最终为 72，总降幅是 28%，不是 30%。"
+      questionsTitle: "常见问题"
+      questions:
+        negativeBaselineTitle: "为什么负数原始值增加后，百分比可能仍为负数？"
+        negativeBaselineAnswer: "因为公式使用带符号的原始值作分母。从 −100 变为 −90，结果是 −10%，但新值在数值上更高。请直接比较两个数值。"
+        pointsTitle: "百分点与百分比变化相同吗？"
+        pointsAnswer: "不同。百分点表示比率的绝对差值（例如 5% 到 7% 增加 2 个百分点）；相对百分比变化则以旧比率为基数，本例增长 40%。"
+        compoundingTitle: "为什么连续两次百分比调整不能直接相加？"
+        compoundingAnswer: "每一步都作用于当前金额。先减少 20%，再减少 10%，相当于 100 先乘以 0.80，再乘以 0.90，最终为 72。"
 
   svg-placeholder-generator:
     title: SVG 占位符生成器

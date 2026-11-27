@@ -123,6 +123,15 @@ jobs:
           if-no-files-found: warn
           retention-days: 3
 
+      - name: Upload Percentage Calculator responsive screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: percentage-calculator-responsive-${{ github.sha }}
+          path: test-results/**/percentage-calculator-*.png
+          if-no-files-found: warn
+          retention-days: 3
+
       - name: Upload JWT Parser responsive screenshots
         if: always()
         uses: actions/upload-artifact@v4

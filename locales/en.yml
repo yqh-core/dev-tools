@@ -286,6 +286,57 @@ tools:
   percentage-calculator:
     title: "Percentage Calculator — 7 Modes"
     description: "Calculate percentages, discounts, percentage change, reverse percentages and percentage points. Seven modes plus batch CSV/TSV export and worked formulas."
+    ui:
+      intro: "Choose the calculation that matches your task. Enter the values to see the result and substituted formula update as you type."
+      chooseMode: Choose a percentage calculation
+      tryExample: Try a worked example
+      modes:
+        percent-of: Calculate a percentage of a value
+        part-to-whole: Part as a percentage of a whole
+        percentage-change: Percentage change from old to new
+        adjustment: Increase or decrease a value
+        reverse: Find the value before a percentage change
+        percentage-difference: Symmetric percentage difference
+        percentage-points: Percentage-point change
+      fields:
+        percentage: Percentage (%)
+        percentagePlaceholder: Percentage
+        whole: Whole value
+        wholePlaceholder: Whole
+        part: Part value
+        partPlaceholder: Part
+        result: Result
+        resultPlaceholder: Result
+        changeResult: Percentage change (%)
+        oldValue: Old value (baseline)
+        oldValuePlaceholder: Old value
+        newValue: New value
+        newValuePlaceholder: New value
+        baseValue: Starting value
+        baseValuePlaceholder: Starting value
+        rate: Rate (%)
+        ratePlaceholder: Rate
+        afterIncrease: After increase
+        afterDecrease: After decrease
+        finalValue: Final value
+        finalValuePlaceholder: Final value
+        beforeIncrease: Value before increase
+        beforeDecrease: Value before decrease
+        valueA: Value A
+        valueAPlaceholder: Value A
+        valueB: Value B
+        valueBPlaceholder: Value B
+        symmetricDifference: Symmetric percentage difference (%)
+        oldRate: Old rate (%)
+        oldRatePlaceholder: Old rate
+        newRate: New rate (%)
+        newRatePlaceholder: New rate
+        percentagePointChange: Rate difference
+        percentagePointsUnit: percentage points
+      hints:
+        percentageChange: "Percentage change uses the old value as its signed baseline (denominator) and is undefined when it is zero. With a negative baseline, compare the values directly; the result sign may not match the direction of numeric movement."
+        percentageDifference: "Symmetric comparison uses the average of the absolute values of A and B as its denominator; neither value is treated as the baseline."
+        percentagePoints: "Example: a rate moving from 4% to 6% changes by +2 percentage points, or +50% relative to the old rate."
     resultDetails:
       inWords: In words
       formula: Formula
@@ -392,6 +443,55 @@ tools:
         wholeZero: The whole value cannot be zero.
         startZero: The starting value cannot be zero for percentage change.
         differenceZero: Percentage difference is undefined when both values are zero.
+
+    guide:
+      title: "Percentage formulas and common pitfalls"
+      intro: "Choose a task above. The result details show the formula with your entered values substituted."
+      formulasTitle: "Formula quick reference"
+      formulas:
+        percentOf: "Percent of a value: (percentage ÷ 100) × whole. Example: 15% of 80 = 12."
+        partToWhole: "Part as a percentage of a whole: (part ÷ whole) × 100. Example: 30 of 120 = 25%."
+        percentageChange: "Percentage change: ((new value − baseline) ÷ baseline) × 100. Example: 80 → 92 = +15%."
+        adjustment: "Increase or decrease: starting value × (1 ± rate ÷ 100). Example: decrease 80 by 15% = 68."
+        reverse: "Reverse percentage: final value ÷ (1 ± rate ÷ 100). Example: 120 after a 20% increase means 100 before the increase."
+        percentageDifference: "Symmetric percentage difference: abs(A − B) ÷ ((abs(A) + abs(B)) ÷ 2) × 100. Example: 100 and 150 = 40%."
+        percentagePoints: "Percentage-point change: new rate − old rate. Example: 4% → 6% = +2 percentage points; the relative increase is +50%."
+      distinctionsTitle: "Choose the right comparison"
+      changeVsDifference: "Percentage change uses the original value as its signed baseline. With a negative baseline, the result sign may not match whether the new value is numerically higher or lower: −100 → −90 = −10%. Compare the values themselves. Symmetric percentage difference compares two values without choosing either as the baseline."
+      percentagePointsNote: "Percentage points measure the absolute difference between two rates. Relative percentage change divides that difference by the old rate."
+      edgeCasesTitle: "Limits and sequential calculations"
+      denominatorLimits: "A zero whole value or zero percentage-change baseline makes that calculation undefined. Reverse percentage is undefined when its adjustment multiplier is zero; symmetric difference is undefined when both inputs are zero."
+      sequentialAdjustments: "In a sequence, each rate applies to the current intermediate value. A 20% decrease followed by a 10% decrease leaves 72 from 100: 28% off overall, not 30%."
+      displayPrecision: "Results use up to 12 significant digits. This is display precision, not currency-specific rounding."
+
+    detailedGuide:
+      summary: "Detailed examples and common questions"
+      intro: "The quick reference above covers each mode. Expand this section for worked examples and practical edge cases."
+      examplesTitle: "Worked examples"
+      examples:
+        percentOf: "Find 18% of 250: (18 ÷ 100) × 250 = 45."
+        partToWhole: "45 out of 250: (45 ÷ 250) × 100 = 18%. The whole cannot be zero."
+        percentageChange: "From 80 to 92: ((92 − 80) ÷ 80) × 100 = 15%. A zero original value makes this undefined. With a negative baseline, the result sign may not match whether the new value is numerically higher or lower; compare the values directly."
+        adjustment: "Increase 80 by 15% to get 92, or decrease it by 15% to get 68."
+        reverse: "If 120 is the result after a 20% increase, the original value was 120 ÷ 1.20 = 100. If 80 remains after a 20% decrease, the original value was 80 ÷ 0.80 = 100."
+        percentageDifference: "For 100 and 150: abs(100 − 150) ÷ ((abs(100) + abs(150)) ÷ 2) × 100 = 40%. Swapping the two values does not change the result."
+        percentagePoints: "A rate moving from 5% to 7% changes by +2 percentage points. Relative to the old 5% rate, that is a 40% increase."
+      discountsTitle: "Discounts and sales tax"
+      discounts: "Use the decrease mode for a discount and the increase mode for tax. Apply each step to the updated amount. For example, a 10% discount on 50 gives 45 before any added taxes or fees. Actual tax rules depend on the product and location."
+      mistakesTitle: "Common calculation mistakes"
+      mistakes:
+        baseline: "Percentage change uses the original value as its denominator, not the new value. A zero original value makes the result undefined."
+        symmetric: "Symmetric percentage difference uses the average magnitude of both values as its denominator; neither value is the baseline."
+        points: "Percentage points are the absolute difference between two rates. Relative percentage change divides that difference by the old rate."
+        compounding: "Sequential changes compound. A 20% decrease followed by a 10% decrease leaves 72 from 100: 28% off overall, not 30%."
+      questionsTitle: "Common questions"
+      questions:
+        negativeBaselineTitle: "Why can an increase from a negative value show a negative percentage?"
+        negativeBaselineAnswer: "The formula divides by the signed original value. For −100 to −90, the result is −10% even though the new value is numerically higher. Compare the two values directly."
+        pointsTitle: "Are percentage points the same as percent change?"
+        pointsAnswer: "No. Percentage points measure the difference between rates (for example, 5% to 7% is +2 points). Relative percent change measures that difference against the old rate (+40% in this example)."
+        compoundingTitle: "Why do two successive percentage changes not simply add?"
+        compoundingAnswer: "Each change applies to the current amount. A 20% decrease followed by a 10% decrease multiplies 100 by 0.80 and then 0.90, leaving 72."
 
   svg-placeholder-generator:
     title: SVG placeholder generator
