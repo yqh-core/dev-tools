@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { JwtDecodeError, decodeJwt, type JwtDecodeErrorCode } from './jwt-parser.service';
+import { decodeJwt, type JwtDecodeErrorCode } from './jwt-parser.service';
 import { useValidation } from '@/composable/validation';
 
 const { t, locale } = useI18n();
@@ -36,12 +36,25 @@ const claimDescriptionKeys: Record<string, string> = {
 
 // Keep every locale key explicit. Dynamically assembled Vue I18n paths are not
 // reliably included by the locale build transform and can render an empty reason.
+function isJwtDecodeErrorCode(value: unknown): value is JwtDecodeErrorCode {
+  return value === 'empty'
+    || value === 'whitespace'
+    || value === 'segments'
+    || value === 'base64url'
+    || value === 'decode';
+}
+
 function getJwtDecodeErrorMessage(error: unknown): string {
-  if (!(error instanceof JwtDecodeError)) {
+  // Use the stable error code rather than instanceof: validation may receive an
+  // error object across Vue/component boundaries where constructor identity differs.
+  const code = typeof error === 'object' && error !== null && 'code' in error
+    ? error.code
+    : undefined;
+
+  if (!isJwtDecodeErrorCode(code)) {
     return t('tools.jwt-parser.errors.decode');
   }
 
-  const code: JwtDecodeErrorCode = error.code;
   switch (code) {
     case 'empty':
       return t('tools.jwt-parser.errors.empty');
