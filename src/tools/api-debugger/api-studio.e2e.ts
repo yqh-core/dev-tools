@@ -927,7 +927,7 @@ test('offers a keyboard-accessible manual retry only after a relay failure', asy
   );
 
   let attempts = 0;
-  await page.route(/\\/api\\/apiproxy/, async (route) => {
+  await page.route(/\/api\/apiproxy/, async (route) => {
     attempts += 1;
     if (attempts === 1) {
       return route.fulfill({
