@@ -178,7 +178,7 @@ test('a first-time user can create, send, validate and restore one request witho
   await page.getByTestId('editor-method').click();
   await page.locator('.n-base-select-option').filter({ hasText: 'POST' }).click();
 
-  await page.getByTestId('editor-url').fill('https://api.example.test/v1/widgets');
+  await page.getByTestId('editor-url').fill('{{apiBase}}/v1/widgets');
   await page.getByTestId('editor-url').press('Tab');
   await page.getByTestId('add-query-param').click();
   await page.getByTestId('query-name').fill('limit');
@@ -264,7 +264,7 @@ test('a first-time user can create, send, validate and restore one request witho
   await expect(page.getByTestId('tree-row')).toHaveCount(1);
   await page.getByTestId('tree-method').click();
   await expect(page.getByTestId('editor-name')).toHaveValue('Create widget');
-  await expect(page.getByTestId('editor-url')).toHaveValue('https://api.example.test/v1/widgets?limit=2');
+  await expect(page.getByTestId('editor-url')).toHaveValue('{{apiBase}}/v1/widgets?limit=2');
   await expect(page.getByTestId('header-value')).toHaveValue('application/json');
   await expect(page.getByTestId('editor-body')).toHaveValue(JSON.stringify({ name: 'Sample widget', active: true }));
   await expect(page.getByTestId('assertion-row')).toHaveCount(2);
@@ -286,7 +286,7 @@ test('a first-time user can create, send, validate and restore one request witho
       env: envRaw ? JSON.parse(envRaw) as { envs: Record<string, Record<string, string>> } : null,
     };
   });
-  expect(stored.tree?.items[0].request.url).toBe('https://api.example.test/v1/widgets?limit=2');
+  expect(stored.tree?.items[0].request.url).toBe('{{apiBase}}/v1/widgets?limit=2');
   expect(stored.tree?.items[0].assertions).toHaveLength(2);
   expect(stored.env?.envs.Staging.apiBase).toBe('https://api.example.test');
   expect(relayAttempts).toBe(3);
