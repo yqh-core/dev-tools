@@ -185,6 +185,8 @@ test.describe('Homepage task discovery', () => {
     await expect(privacy.getByTestId('home-privacy-relay')).toContainText('first-party relay');
     await expect(privacy.getByText('These lookup tools must query an external service to return a result:')).toBeVisible();
     await expect(privacy.getByRole('link', { name: 'HTTP Status Checker' })).toBeVisible();
+    await expect(page.locator('.home-hero-subtitle')).toContainText('Most tasks run in your browser; network-backed tasks use the required service or relay.');
+    await expect(page.locator('.home-why-list')).toContainText('Fast: local tasks run in your browser without a server round trip; network-backed tasks connect only when needed.');
   });
 
   test('features API Studio in the full tools directory', async ({ page }) => {
