@@ -2619,6 +2619,15 @@ function onMenuSelect(key: string, node: TreeNode) {
   gap: 8px;
 }
 
+.api-response-head-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
 .api-response-status {
   display: flex;
   flex-direction: column;
