@@ -175,8 +175,11 @@ test.describe('ETA Calculator observed pace Chinese localization', () => {
     };
     const unit = page.getByTestId('eta-unit-name');
     await expect(unit).toHaveValue('\u6761\u8BB0\u5F55');
-    await fill('eta-total', '500');
+    // Total is constrained to be no lower than completed work, so reduce completed first.
     await fill('eta-completed', '200');
+    await fill('eta-total', '500');
+    await expect(page.getByTestId('eta-total').locator('input')).toHaveValue('500');
+    await expect(page.getByTestId('eta-completed').locator('input')).toHaveValue('200');
     await fill('eta-elapsed-hours', '2');
     await fill('eta-elapsed-minutes', '0');
     await fill('eta-elapsed-seconds', '0');
@@ -205,8 +208,11 @@ test('ETA Calculator uses one explicit work unit across inputs, progress and res
     await input.fill(value);
     await input.press('Tab');
   };
-  await fill('eta-total', '500');
+  // Total is constrained to be no lower than completed work, so reduce completed first.
   await fill('eta-completed', '200');
+  await fill('eta-total', '500');
+  await expect(page.getByTestId('eta-total').locator('input')).toHaveValue('500');
+  await expect(page.getByTestId('eta-completed').locator('input')).toHaveValue('200');
   await page.getByTestId('eta-mode-rate').click();
   await fill('eta-rate', '5');
   await fill('eta-interval', '3');
