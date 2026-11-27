@@ -1017,14 +1017,29 @@ function exportEnvironmentVariables() {
 
 // ── 运行 ────────────────────────────────────────────────────────────
 const runnerSend: SendFn = async (payload) => {
-  const res = await fetch('/api/apiproxy', {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify(payload),
-  });
+  let res: Response;
+  try {
+    res = await fetch('/api/apiproxy', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+  }
+  catch (cause) {
+    const error = new Error(cause instanceof Error ? cause.message : 'The relay connection failed.') as Error & { retryable?: boolean };
+    error.name = 'RetryableNetworkError';
+    error.retryable = true;
+    throw error;
+  }
+
   const j = await res.json().catch(() => null);
   if (!res.ok) {
-    throw new Error((j && j.error) || `Proxy returned HTTP ${res.status}.`);
+    const error = new Error((j && j.error) || `Proxy returned HTTP ${res.status}.`) as Error & { retryable?: boolean };
+    error.retryable = [408, 425, 429].includes(res.status) || res.status >= 500;
+    throw error;
+  }
+  if (!j || typeof j !== 'object') {
+    throw new Error('The relay returned an unreadable response. Check the connection and try again.');
   }
   return j as RunnerResponse;
 };
@@ -1076,7 +1091,8 @@ async function sendSelectedRequest() {
   }
   catch (e) {
     singleError.value = e instanceof Error ? e.message : String(e);
-    singleCanRetry.value = true;
+    singleCanRetry.value = e instanceof Error
+      && (e as Error & { retryable?: boolean }).retryable === true;
     banner.value = 'Request could not be completed. Review the error and try again.';
   }
   finally {
