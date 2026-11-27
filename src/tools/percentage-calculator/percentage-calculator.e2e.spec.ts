@@ -90,7 +90,7 @@ test.describe('Tool - Percentage calculator', () => {
     await expect(page.getByTestId('percentage-details-change')).toContainText('(92 − 80) ÷ 80 × 100 = 15%');
 
     await page.getByRole('button', { name: 'Symmetric percentage difference', exact: true }).click();
-    await expect(page.getByTestId('percentage-mode-difference-card')).toBeVisible();
+    await expect(page.getByTestId('percentage-difference-card')).toBeVisible();
     await expect(page.getByTestId('percentage-hint-difference')).toContainText('neither value is treated as the baseline');
     await page.getByTestId('differenceA').locator('input').fill('100');
     await page.getByTestId('differenceB').locator('input').fill('150');
