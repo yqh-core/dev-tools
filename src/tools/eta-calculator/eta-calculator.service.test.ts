@@ -236,6 +236,12 @@ describe('weekday working-hours schedule', () => {
       .toBe(local(2026, 11, 30, 10));
   });
 
+  it('moves a Saturday start to the next Monday opening', () => {
+    const saturday = local(2026, 11, 28, 12);
+    expect(calculateWorkingHoursFinishAt(saturday, 60 * 60 * 1000, schedule))
+      .toBe(local(2026, 11, 30, 10));
+  });
+
   it('returns the original start for zero remaining work', () => {
     const saturday = local(2026, 11, 28, 12);
     expect(calculateWorkingHoursFinishAt(saturday, 0, schedule)).toBe(saturday);
