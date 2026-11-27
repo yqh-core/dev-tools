@@ -10,16 +10,18 @@ const props = withDefaults(defineProps<{ toolsByCategory?: ToolCategory[] }>(), 
 const { toolsByCategory } = toRefs(props);
 const route = useRoute();
 
-// 与 tool.layout.vue 同理：规范 URL 带尾斜杠（CF Pages 目录型路由 308），
-// 而菜单项的 key 是工具注册表里的 path（不带斜杠）。不归一化 ⇒ 当前工具项永远不高亮。
+// Menu item keys are tool registry paths without a trailing slash; Pages URLs are normalized here.
 const currentPath = computed<string>(() => route.path.replace(/\/+$/, '') || '/');
 
 const makeLabel = (tool: Tool) => () => h(RouterLink, { to: normalizePath(tool.path) }, { default: () => tool.name });
 const makeIcon = (tool: Tool) => () => h(MenuIconItem, { tool });
 
+const defaultCollapsedCategories = Object.fromEntries(
+  toolsByCategory.value.map(({ name }) => [name, true]),
+);
 const collapsedCategories = useStorage<Record<string, boolean>>(
   'menu-tool-option:collapsed-categories',
-  {},
+  defaultCollapsedCategories,
   undefined,
   {
     deep: true,
@@ -30,40 +32,79 @@ const collapsedCategories = useStorage<Record<string, boolean>>(
   },
 );
 
+// Unknown/new groups are collapsed by default; explicit stored choices always win.
+const activeCategoryName = computed(() =>
+  toolsByCategory.value.find(({ components }) => components.some(tool => tool.path === currentPath.value))?.name ?? null,
+);
+
+// A deep-linked tool reveals only its own group. The override is route-scoped and is not
+// persisted, so it does not silently rewrite a user's saved expand/collapse preferences.
+const routeExpandedCategory = ref<string | null>(activeCategoryName.value);
+watch(currentPath, () => {
+  routeExpandedCategory.value = activeCategoryName.value;
+});
+
+function isCategoryCollapsed(name: string) {
+  if (routeExpandedCategory.value === name) {
+    return false;
+  }
+  return collapsedCategories.value[name] ?? true;
+}
+
 function toggleCategoryCollapse({ name }: { name: string }) {
-  collapsedCategories.value[name] = !collapsedCategories.value[name];
+  const currentlyCollapsed = isCategoryCollapsed(name);
+  collapsedCategories.value[name] = !currentlyCollapsed;
+  if (routeExpandedCategory.value === name) {
+    routeExpandedCategory.value = null;
+  }
 }
 
 const menuOptions = computed(() =>
-  toolsByCategory.value.map(({ name, components }) => ({
-    name,
-    isCollapsed: collapsedCategories.value[name],
-    tools: components.map(tool => ({
-      label: makeLabel(tool),
-      icon: makeIcon(tool),
-      key: tool.path,
-    })),
-  })),
+  toolsByCategory.value.map(({ name, components }, index) => {
+    const firstPath = components[0]?.path ?? String(index);
+    const panelId = `tool-category-panel-${index}-${firstPath.replace(/^\/+|\/+$/g, '').replace(/[^a-z0-9_-]/gi, '-')}`;
+    return {
+      name,
+      panelId,
+      toggleId: `tool-category-toggle-${index}`,
+      isCollapsed: isCategoryCollapsed(name),
+      tools: components.map(tool => ({
+        label: makeLabel(tool),
+        icon: makeIcon(tool),
+        key: tool.path,
+      })),
+    };
+  }),
 );
 
 const themeVars = useThemeVars();
 </script>
 
 <template>
-  <div v-for="{ name, tools, isCollapsed } of menuOptions" :key="name">
-    <div ml-6px mt-12px flex cursor-pointer items-center op-60 @click="toggleCategoryCollapse({ name })">
-      <span :class="{ 'rotate-0': isCollapsed, 'rotate-90': !isCollapsed }" text-16px lh-1 op-50 transition-transform>
+  <div v-for="{ name, tools, isCollapsed, panelId, toggleId } of menuOptions" :key="name">
+    <button
+      :id="toggleId"
+      type="button"
+      class="category-toggle"
+      data-test-id="tool-category-toggle"
+      :data-category-name="name"
+      :aria-expanded="!isCollapsed"
+      :aria-controls="panelId"
+      @click="toggleCategoryCollapse({ name })"
+    >
+      <span
+        class="category-toggle-chevron"
+        :class="{ 'is-expanded': !isCollapsed }"
+        aria-hidden="true"
+      >
         <icon-mdi-chevron-right />
       </span>
-
-      <span ml-8px text-13px>
-        {{ name }}
-      </span>
-    </div>
+      <span class="category-toggle-label">{{ name }}</span>
+    </button>
 
     <n-collapse-transition :show="!isCollapsed">
-      <div class="menu-wrapper">
-        <div class="toggle-bar" @click="toggleCategoryCollapse({ name })" />
+      <div :id="panelId" class="menu-wrapper" role="region" :aria-labelledby="toggleId">
+        <div class="toggle-bar" aria-hidden="true" />
 
         <n-menu
           class="menu"
@@ -80,9 +121,60 @@ const themeVars = useThemeVars();
 </template>
 
 <style scoped lang="less">
+.category-toggle {
+  display: flex;
+  align-items: center;
+  width: calc(100% - 12px);
+  min-height: 44px;
+  margin: 12px 6px 0;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  opacity: 0.72;
+  transition: background-color ease 0.16s, opacity ease 0.16s;
+
+  &:hover {
+    opacity: 1;
+    background-color: v-bind('themeVars.actionColor');
+  }
+
+  &:focus-visible {
+    outline: 2px solid v-bind('themeVars.primaryColor');
+    outline-offset: 2px;
+  }
+
+  .category-toggle-chevron {
+    display: inline-flex;
+    flex: 0 0 16px;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    line-height: 1;
+    opacity: 0.56;
+    transition: transform ease 0.16s;
+
+    &.is-expanded {
+      transform: rotate(90deg);
+    }
+  }
+
+  .category-toggle-label {
+    margin-left: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.3;
+  }
+}
+
 .menu-wrapper {
   display: flex;
   flex-direction: row;
+
   .menu {
     flex: 1;
     margin-bottom: 5px;
@@ -94,25 +186,19 @@ const themeVars = useThemeVars();
   }
 
   .toggle-bar {
+    position: relative;
     width: 24px;
     opacity: 0.1;
-    transition: opacity ease 0.2s;
-    position: relative;
-    cursor: pointer;
 
     &::before {
-      width: 2px;
-      height: 100%;
-      content: ' ';
-      background-color: v-bind('themeVars.textColor3');
-      border-radius: 2px;
       position: absolute;
       top: 0;
       left: 14px;
-    }
-
-    &:hover {
-      opacity: 0.5;
+      width: 2px;
+      height: 100%;
+      border-radius: 2px;
+      background-color: v-bind('themeVars.textColor3');
+      content: '';
     }
   }
 }
