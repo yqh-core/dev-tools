@@ -1862,9 +1862,20 @@ function onMenuSelect(key: string, node: TreeNode) {
 
 .api-io-row {
   display: flex;
+  flex-wrap: wrap;
   gap: 6px;
   padding: 0 var(--api-gap) var(--api-gap-sm);
   border-bottom: 1px solid var(--api-border);
+}
+
+.api-io-row > .api-tool-btn {
+  flex: 1 1 calc(50% - 6px);
+  min-width: 0;
+  min-height: 32px;
+  height: auto;
+  padding: 5px 6px;
+  line-height: 1.25;
+  white-space: normal;
 }
 
 /* 隐藏文件选择器：仅由 Import 按钮以编程方式触发，不进布局 */
