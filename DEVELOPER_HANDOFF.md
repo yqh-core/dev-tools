@@ -51,7 +51,7 @@ API Studio is the tenth independent DigDevBox product line, in addition to the o
 - **Issue #214 OPEN — independent product Production launch.** The product homepage/build/docs and branch Preview code are merged, but no second Production Cloudflare Pages project, approved primary host, canonical/sitemap production configuration, old/new URL map or migration/rollback acceptance exists. Keep `https://www.digdevbox.com/api-studio/` as a transition/fallback. The second Pages project must use `pnpm run build:api-studio`, output `dist-api-studio`, and retain the Pages Functions needed by `/api/apiproxy`.
 - **Issue #219 OPEN — brand/domain selection.** “API Studio” is a working name only. Complete sourced collision/domain screening and obtain the owner's explicit final selection. No domain purchase, DNS, custom-host binding, canonical change or redirect before that decision.
 - **Issue #213 is CLOSED / completed** after reconciliation of core workspace PRs #215–#218, #223 and child issues #220/#222. Request-history/data-file iteration remains a separate evidence-led product decision.
-- **Issue #231 is the separate DigDevBox Main mobile/consent overlay refinement.** It does not reopen the Main homepage's closed broad redesign and is not the current API Studio task.
+- **Issue #233 is next:** a screenshot-based API Studio workspace first-request/mobile toolbar hierarchy improvement. It is ready to start after PR #232 is merged; do not undo the accepted homepage walkthrough. **Issue #231** is a separate DigDevBox Main mobile/consent overlay refinement and does not reopen the closed broad redesign.
 
 ### Current evidence and product truth
 
