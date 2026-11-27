@@ -699,6 +699,7 @@ tools:
     elapsedHours: 小时
     elapsedMinutes: 分钟
     elapsedSeconds: 秒
+    observedRateLabel: 实测处理速率
     unitsPerHour: 单位/小时
     unitPerHour: '{unit}/小时'
     observedModeHelp: 根据你手动输入的已完成 {unit} 数量和已耗时间推导每小时平均处理速率。这是静态估算，不是实时进程监控。
