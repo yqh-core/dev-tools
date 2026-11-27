@@ -702,6 +702,7 @@ tools:
     elapsedHours: Hours
     elapsedMinutes: Minutes
     elapsedSeconds: Seconds
+    observedRateLabel: Observed processing rate
     unitsPerHour: units/hour
     unitPerHour: '{unit}/hour'
     observedModeHelp: Derive the average {unit} per hour from the completed work and elapsed time you enter manually. This is a snapshot estimate, not live process monitoring.
