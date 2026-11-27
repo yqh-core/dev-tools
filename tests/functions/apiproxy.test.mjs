@@ -486,4 +486,3 @@ describe('apiproxy shared Durable Object rate limiter', () => {
     expect(binding.calls.map(call => call.path)).toEqual(['/acquire', '/release']);
   });
 });
-
