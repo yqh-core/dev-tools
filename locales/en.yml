@@ -464,6 +464,35 @@ tools:
       sequentialAdjustments: "In a sequence, each rate applies to the current intermediate value. A 20% decrease followed by a 10% decrease leaves 72 from 100: 28% off overall, not 30%."
       displayPrecision: "Results use up to 12 significant digits. This is display precision, not currency-specific rounding."
 
+    detailedGuide:
+      summary: "Detailed examples and common questions"
+      intro: "The quick reference above covers each mode. Expand this section for worked examples and practical edge cases."
+      examplesTitle: "Worked examples"
+      examples:
+        percentOf: "Find 18% of 250: (18 ÷ 100) × 250 = 45."
+        partToWhole: "45 out of 250: (45 ÷ 250) × 100 = 18%. The whole cannot be zero."
+        percentageChange: "From 80 to 92: ((92 − 80) ÷ 80) × 100 = 15%. A zero original value makes this undefined. With a negative baseline, the result sign may not match whether the new value is numerically higher or lower; compare the values directly."
+        adjustment: "Increase 80 by 15% to get 92, or decrease it by 15% to get 68."
+        reverse: "If 120 is the result after a 20% increase, the original value was 120 ÷ 1.20 = 100. If 80 remains after a 20% decrease, the original value was 80 ÷ 0.80 = 100."
+        percentageDifference: "For 100 and 150: abs(100 − 150) ÷ ((abs(100) + abs(150)) ÷ 2) × 100 = 40%. Swapping the two values does not change the result."
+        percentagePoints: "A rate moving from 5% to 7% changes by +2 percentage points. Relative to the old 5% rate, that is a 40% increase."
+      discountsTitle: "Discounts and sales tax"
+      discounts: "Use the decrease mode for a discount and the increase mode for tax. Apply each step to the updated amount. For example, a 10% discount on 50 gives 45 before any added taxes or fees. Actual tax rules depend on the product and location."
+      mistakesTitle: "Common calculation mistakes"
+      mistakes:
+        baseline: "Percentage change uses the original value as its denominator, not the new value. A zero original value makes the result undefined."
+        symmetric: "Symmetric percentage difference uses the average magnitude of both values as its denominator; neither value is the baseline."
+        points: "Percentage points are the absolute difference between two rates. Relative percentage change divides that difference by the old rate."
+        compounding: "Sequential changes compound. A 20% decrease followed by a 10% decrease leaves 72 from 100: 28% off overall, not 30%."
+      questionsTitle: "Common questions"
+      questions:
+        negativeBaselineTitle: "Why can an increase from a negative value show a negative percentage?"
+        negativeBaselineAnswer: "The formula divides by the signed original value. For −100 to −90, the result is −10% even though the new value is numerically higher. Compare the two values directly."
+        pointsTitle: "Are percentage points the same as percent change?"
+        pointsAnswer: "No. Percentage points measure the difference between rates (for example, 5% to 7% is +2 points). Relative percent change measures that difference against the old rate (+40% in this example)."
+        compoundingTitle: "Why do two successive percentage changes not simply add?"
+        compoundingAnswer: "Each change applies to the current amount. A 20% decrease followed by a 10% decrease multiplies 100 by 0.80 and then 0.90, leaving 72."
+
   svg-placeholder-generator:
     title: SVG placeholder generator
     description: Generate svg images to use as a placeholder in your applications.

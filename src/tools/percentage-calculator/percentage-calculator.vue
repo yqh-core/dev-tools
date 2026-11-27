@@ -1211,6 +1211,64 @@ async function copySequentialSummary(): Promise<void> {
         <li>{{ $t('tools.percentage-calculator.guide.displayPrecision') }}</li>
       </ul>
     </section>
+
+    <details
+      class="mx-auto mt-4 max-w-800px rounded-lg border border-gray-200 px-4 py-3 dark:border-gray-700"
+      data-test-id="percentage-calculator-detailed-guide"
+    >
+      <summary class="cursor-pointer text-base font-semibold">
+        {{ $t('tools.percentage-calculator.detailedGuide.summary') }}
+      </summary>
+      <div class="space-y-4 pt-4">
+        <p>{{ $t('tools.percentage-calculator.detailedGuide.intro') }}</p>
+
+        <section>
+          <h3 class="mb-2 text-lg font-semibold">{{ $t('tools.percentage-calculator.detailedGuide.examplesTitle') }}</h3>
+          <ul class="list-disc space-y-2 pl-6">
+            <li>{{ $t('tools.percentage-calculator.detailedGuide.examples.percentOf') }}</li>
+            <li>{{ $t('tools.percentage-calculator.detailedGuide.examples.partToWhole') }}</li>
+            <li>{{ $t('tools.percentage-calculator.detailedGuide.examples.percentageChange') }}</li>
+            <li>{{ $t('tools.percentage-calculator.detailedGuide.examples.adjustment') }}</li>
+            <li>{{ $t('tools.percentage-calculator.detailedGuide.examples.reverse') }}</li>
+            <li>{{ $t('tools.percentage-calculator.detailedGuide.examples.percentageDifference') }}</li>
+            <li>{{ $t('tools.percentage-calculator.detailedGuide.examples.percentagePoints') }}</li>
+          </ul>
+        </section>
+
+        <section>
+          <h3 class="mb-2 text-lg font-semibold">{{ $t('tools.percentage-calculator.detailedGuide.discountsTitle') }}</h3>
+          <p>{{ $t('tools.percentage-calculator.detailedGuide.discounts') }}</p>
+        </section>
+
+        <section>
+          <h3 class="mb-2 text-lg font-semibold">{{ $t('tools.percentage-calculator.detailedGuide.mistakesTitle') }}</h3>
+          <ul class="list-disc space-y-2 pl-6">
+            <li>{{ $t('tools.percentage-calculator.detailedGuide.mistakes.baseline') }}</li>
+            <li>{{ $t('tools.percentage-calculator.detailedGuide.mistakes.symmetric') }}</li>
+            <li>{{ $t('tools.percentage-calculator.detailedGuide.mistakes.points') }}</li>
+            <li>{{ $t('tools.percentage-calculator.detailedGuide.mistakes.compounding') }}</li>
+          </ul>
+        </section>
+
+        <section>
+          <h3 class="mb-2 text-lg font-semibold">{{ $t('tools.percentage-calculator.detailedGuide.questionsTitle') }}</h3>
+          <div class="space-y-3">
+            <div>
+              <h4 class="mb-1 font-semibold">{{ $t('tools.percentage-calculator.detailedGuide.questions.negativeBaselineTitle') }}</h4>
+              <p>{{ $t('tools.percentage-calculator.detailedGuide.questions.negativeBaselineAnswer') }}</p>
+            </div>
+            <div>
+              <h4 class="mb-1 font-semibold">{{ $t('tools.percentage-calculator.detailedGuide.questions.pointsTitle') }}</h4>
+              <p>{{ $t('tools.percentage-calculator.detailedGuide.questions.pointsAnswer') }}</p>
+            </div>
+            <div>
+              <h4 class="mb-1 font-semibold">{{ $t('tools.percentage-calculator.detailedGuide.questions.compoundingTitle') }}</h4>
+              <p>{{ $t('tools.percentage-calculator.detailedGuide.questions.compoundingAnswer') }}</p>
+            </div>
+          </div>
+        </section>
+      </div>
+    </details>
   </div>
 </template>
 

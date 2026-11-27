@@ -137,17 +137,24 @@ test.describe('Tool - Percentage calculator', () => {
     await expect(page.getByTestId('percentage-hint-points')).toContainText('+50% relative to the old rate');
   });
 
-  test('Explains all seven supported percentage tasks with correct formulas', async ({ page }) => {
-    const guide = page.getByTestId('percentage-calculator-guide');
-    await expect(guide).toContainText('seven common percentage problems');
-    await expect(guide).toContainText('15% of 80 is 12');
-    await expect(guide).toContainText('30 is 25% of 120');
-    await expect(guide).toContainText('a 15% increase');
-    await expect(guide).toContainText('reducing 80 by 15% gives 68');
-    await expect(guide).toContainText('120 after a 20% increase came from 120 ÷ 1.20 = 100');
-    await expect(guide).toContainText('the symmetric difference is 40%');
-    await expect(guide).toContainText('5% to 7% is +2 percentage points');
-    await expect(guide).toContainText('An original value of zero makes percentage change undefined');
+  test('keeps the first guide concise and provides all seven worked examples on demand', async ({ page }) => {
+    const quickGuide = page.getByTestId('percentage-calculator-guide');
+    await expect(quickGuide).toContainText('Percentage formulas and common pitfalls');
+    await expect(quickGuide).toContainText('Formula quick reference');
+    await expect(quickGuide).toContainText('12 significant digits');
+
+    const detailedGuide = page.getByTestId('percentage-calculator-detailed-guide');
+    await expect(detailedGuide).not.toHaveAttribute('open', '');
+    await detailedGuide.locator('summary').click();
+    await expect(detailedGuide).toContainText('Detailed examples and common questions');
+    await expect(detailedGuide).toContainText('18% of 250');
+    await expect(detailedGuide).toContainText('45 out of 250');
+    await expect(detailedGuide).toContainText('From 80 to 92');
+    await expect(detailedGuide).toContainText('Increase 80 by 15%');
+    await expect(detailedGuide).toContainText('120 ÷ 1.20 = 100');
+    await expect(detailedGuide).toContainText('abs(100 − 150)');
+    await expect(detailedGuide).toContainText('5% to 7%');
+    await expect(detailedGuide).toContainText('negative baseline');
   });
 
   test('shows live in-words explanations and substituted formulas for all seven operations', async ({ page }) => {
@@ -211,19 +218,16 @@ test.describe('Tool - Percentage calculator', () => {
       await expect(details).toContainText('计算公式');
     });
   });
-  test('Answers common percentage questions with supported formulas', async ({ page }) => {
-    const guide = page.getByTestId('percentage-calculator-guide');
-    await expect(guide).toContainText('How do I calculate a percentage of a number?');
-    await expect(guide).toContainText('18% of 250 is');
-    await expect(guide).toContainText('How do I find what percentage one number is of another?');
-    await expect(guide).toContainText('The total cannot be zero');
-    await expect(guide).toContainText('How do I calculate percentage increase or decrease?');
-    await expect(guide).toContainText('An original value of zero makes percentage change undefined');
-    await expect(guide).toContainText('How do I find the original value before a discount or increase?');
-    await expect(guide).toContainText('What is the difference between percentage change and percentage difference?');
-    await expect(guide).toContainText('What is a percentage-point change?');
-    await expect(guide).toContainText('How do I calculate a discount or add sales tax?');
-    await expect(guide).toContainText('actual tax rules depend on the product and location');
+  test('covers discounts, common mistakes and frequent questions in the detailed guide', async ({ page }) => {
+    const detailedGuide = page.getByTestId('percentage-calculator-detailed-guide');
+    await detailedGuide.locator('summary').click();
+    await expect(detailedGuide).toContainText('Discounts and sales tax');
+    await expect(detailedGuide).toContainText('Common calculation mistakes');
+    await expect(detailedGuide).toContainText('Common questions');
+    await expect(detailedGuide).toContainText('Why can an increase from a negative value show a negative percentage?');
+    await expect(detailedGuide).toContainText('Are percentage points the same as percent change?');
+    await expect(detailedGuide).toContainText('Why do two successive percentage changes not simply add?');
+    await expect(detailedGuide).not.toContainText('How do I calculate a percentage of a number?');
   });
 
   test('Correctly works out all seven percentage calculations', async ({ page }) => {
@@ -436,6 +440,12 @@ test.describe('Percentage calculator primary UI Chinese localization', () => {
     await expect(guide).toContainText('百分点');
     await expect(guide).toContainText('结果的正负号不一定对应数值实际升高或降低');
     await expect(guide).not.toContainText('How to calculate a percentage');
+    const detailedGuide = page.getByTestId('percentage-calculator-detailed-guide');
+    await detailedGuide.locator('summary').click();
+    await expect(detailedGuide).toContainText('详细示例与常见问题');
+    await expect(detailedGuide).toContainText('从 −100 变为 −90');
+    await expect(detailedGuide).toContainText('百分点与百分比变化相同吗？');
+
 
     await page.getByRole('button', { name: '计算从原始值到新值的百分比变化', exact: true }).click();
     const change = page.getByTestId('percentage-mode-percentage-change');
