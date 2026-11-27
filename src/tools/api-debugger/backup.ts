@@ -1,11 +1,11 @@
 import type { Assertion } from './assertions';
 import {
   type CollectionNode,
+  type RequestNode,
+  type TreeNode,
   isFolderNode,
   mergeImportedTree,
   parseCollectionTree,
-  type RequestNode,
-  type TreeNode,
 } from './collection-tree';
 import { type ApiRequestState, sanitizeForShare } from './engine';
 import { type EnvStore, collectSecretValues } from './environments';
@@ -361,9 +361,9 @@ export function createApiStudioBackup(
   const shortSecretNames = includeSecrets
     ? []
     : secretNames.filter((name) => {
-    const values = [environments.global?.[name], environments.collection?.[name], ...Object.values(environments.envs).map(vars => vars[name])];
-    return values.some(value => typeof value === 'string' && value.length > 0 && value.length <= 3);
-  });
+      const values = [environments.global?.[name], environments.collection?.[name], ...Object.values(environments.envs).map(vars => vars[name])];
+      return values.some(value => typeof value === 'string' && value.length > 0 && value.length <= 3);
+    });
 
   return {
     format: API_STUDIO_BACKUP_FORMAT,
