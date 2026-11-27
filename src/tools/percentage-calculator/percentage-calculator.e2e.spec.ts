@@ -446,7 +446,6 @@ test.describe('Percentage calculator primary UI Chinese localization', () => {
     await expect(detailedGuide).toContainText('从 −100 变为 −90');
     await expect(detailedGuide).toContainText('百分点与百分比变化相同吗？');
 
-
     await page.getByRole('button', { name: '计算从原始值到新值的百分比变化', exact: true }).click();
     const change = page.getByTestId('percentage-mode-percentage-change');
     await expect(change).toContainText('原始值（基数）');
