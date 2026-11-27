@@ -1,11 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { handleRateLimitRequest } from '../../workers/api-relay-limiter/src/limiter.js';
+import { cleanupRateLimitState, handleRateLimitRequest } from '../../workers/api-relay-limiter/src/limiter.js';
 
 class MemoryStorage {
   constructor() {
     this.values = new Map();
     this.activeValues = null;
     this.tail = Promise.resolve();
+    this.alarm = null;
+    this.activeAlarm = undefined;
   }
 
   async get(key) {
@@ -16,18 +18,37 @@ class MemoryStorage {
     (this.activeValues ?? this.values).set(key, structuredClone(value));
   }
 
+  async getAlarm() {
+    return this.activeAlarm !== undefined ? this.activeAlarm : this.alarm;
+  }
+
+  async setAlarm(timestamp) {
+    if (this.activeAlarm !== undefined) this.activeAlarm = timestamp;
+    else this.alarm = timestamp;
+  }
+
+  async deleteAll() {
+    (this.activeValues ?? this.values).clear();
+    if (this.activeAlarm !== undefined) this.activeAlarm = null;
+    else this.alarm = null;
+  }
+
   async transaction(callback) {
     const run = async () => {
       const working = new Map(this.values);
-      const previous = this.activeValues;
+      const previousValues = this.activeValues;
+      const previousAlarm = this.activeAlarm;
       this.activeValues = working;
+      this.activeAlarm = this.alarm;
       try {
         const result = await callback();
         this.values = working;
+        this.alarm = this.activeAlarm;
         return result;
       }
       finally {
-        this.activeValues = previous;
+        this.activeValues = previousValues;
+        this.activeAlarm = previousAlarm;
       }
     };
 
@@ -48,7 +69,10 @@ function request(path, leaseId) {
 let storage;
 let limiter;
 function createLimiter() {
-  return { fetch: request => handleRateLimitRequest(storage, request) };
+  return {
+    fetch: request => handleRateLimitRequest(storage, request),
+    alarm: () => cleanupRateLimitState(storage),
+  };
 }
 let sequence;
 
@@ -146,6 +170,48 @@ describe('API relay Durable Object rate limiter', () => {
     await vi.advanceTimersByTimeAsync(20_000);
     const allowed = await acquire();
     expect(allowed.response.status).toBe(200);
+  });
+
+  it('arms one cleanup alarm and keeps the original deadline on repeat requests', async () => {
+    const first = await acquire();
+    expect(first.response.status).toBe(200);
+    expect(storage.alarm).toBe(Date.now() + 60_000);
+
+    await vi.advanceTimersByTimeAsync(5_000);
+    const second = await acquire();
+    expect(second.response.status).toBe(200);
+    expect(storage.alarm).toBe(Date.now() + 55_000 + 5_000);
+  });
+
+  it('cleans expired per-IP state and removes its alarm', async () => {
+    const first = await acquire();
+    expect(first.response.status).toBe(200);
+    await release(first.leaseId);
+    expect(storage.values.size).toBe(1);
+    expect(storage.alarm).not.toBeNull();
+
+    await vi.advanceTimersByTimeAsync(60_001);
+    await limiter.alarm();
+
+    expect(storage.values.size).toBe(0);
+    expect(storage.alarm).toBeNull();
+  });
+
+  it('reschedules cleanup while a concurrency lease is still active', async () => {
+    const leases = [];
+    for (let index = 0; index < 4; index += 1) {
+      const result = await acquire();
+      expect(result.response.status).toBe(200);
+      leases.push(result.leaseId);
+    }
+    expect(storage.alarm).toBe(Date.now() + 60_000);
+
+    await vi.advanceTimersByTimeAsync(60_001);
+    await limiter.alarm();
+
+    expect(storage.values.size).toBe(1);
+    expect(storage.alarm).toBe(Date.now() + 20_000 - 60_001 + 60_001);
+    // The alarm is now driven by the remaining lease expiry, not abandoned data.
   });
 
   it('keeps counters when the Durable Object is reconstructed', async () => {
