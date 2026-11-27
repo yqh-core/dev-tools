@@ -71,7 +71,6 @@ describe('G4: JSON Diff large-input guide accuracy', () => {
   });
 });
 
-
 describe('API Debugger collection runner guide accuracy', () => {
   it('explains the tested pm.* subset and CSV/JSON iteration behavior in English', async () => {
     const guide = (await loadGuides('en'))['/api-debugger'];
