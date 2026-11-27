@@ -238,6 +238,9 @@ test('shows live collection progress and structured redacted request outcomes', 
     ([treeKey, treeValue, envKey, envValue]) => {
       localStorage.setItem(treeKey, treeValue);
       localStorage.setItem(envKey, envValue);
+      // Keep the global consent prompt out of this workspace-flow test. This is
+      // an isolated browser context; production consent defaults are untouched.
+      localStorage.setItem('digdevbox.analytics-consent.v1', 'rejected');
     },
     [TREE_KEY, JSON.stringify(tree), 'api-debugger:env', JSON.stringify(env)] as [string, string, string, string],
   );
