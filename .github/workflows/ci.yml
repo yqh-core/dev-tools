@@ -82,6 +82,7 @@ jobs:
           src/pages/homepage-visual-baseline.e2e.spec.ts
           src/components/CollapsibleToolMenu.e2e.spec.ts
           src/tools/api-debugger/api-studio.e2e.ts
+          src/tools/jwt-parser/jwt-parser.e2e.spec.ts
           --project=chromium
 
       - name: Upload API Studio retry-state screenshots
@@ -119,5 +120,14 @@ jobs:
         with:
           name: json-workspace-responsive-${{ github.sha }}
           path: test-results/**/json-workspace-*.png
+          if-no-files-found: warn
+          retention-days: 3
+
+      - name: Upload JWT Parser responsive screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jwt-parser-responsive-${{ github.sha }}
+          path: test-results/**/jwt-parser-*.png
           if-no-files-found: warn
           retention-days: 3
