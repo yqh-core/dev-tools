@@ -10,6 +10,25 @@
   var loaded = false;
   var lastPage = '';
 
+  function copyForLanguage() {
+    var isChinese = /^zh(?:[-_]|$)/i.test(document.documentElement.lang || '');
+    return isChinese
+      ? {
+          ariaLabel: '分析与隐私选项',
+          manage: '隐私选项',
+          message: '分析服务仅记录页面访问，不读取工具输入、文件内容或表单值。使用部分工具时仍会向 DigDevBox Relay 或外部服务发送请求，详见工具隐私说明。拒绝分析不影响使用。',
+          accept: '接受分析',
+          reject: '拒绝分析'
+        }
+      : {
+          ariaLabel: 'Analytics privacy choices',
+          manage: 'Privacy choices',
+          message: "Analytics records page views only—not tool inputs, files or form values. Some tools send requests to DigDevBox Relay or external services when used; see each tool's privacy note. Rejecting analytics does not affect site use.",
+          accept: 'Accept analytics',
+          reject: 'Reject analytics'
+        };
+  }
+
   function readConsent() {
     try { return localStorage.getItem(CONSENT_KEY); } catch (_) { return null; }
   }
@@ -88,11 +107,11 @@
     var current = readConsent();
     var root = document.createElement('section');
     root.id = 'digdevbox-analytics-consent';
-    root.setAttribute('aria-label', 'Analytics privacy choices');
+    root.setAttribute('aria-label', copyForLanguage().ariaLabel);
     if (current === 'accepted' || current === 'rejected') {
       var manage = document.createElement('button');
       manage.type = 'button';
-      manage.textContent = 'Privacy choices';
+      manage.textContent = copyForLanguage().manage;
       manage.style.cssText = 'position:fixed;right:12px;bottom:12px;z-index:2147482999;border:1px solid #4b7773;border-radius:999px;padding:8px 12px;background:#102a2a;color:#fff;font:12px system-ui,sans-serif;cursor:pointer';
       manage.addEventListener('click', function () { renderPrompt(root, true); });
       root.appendChild(manage);
@@ -106,7 +125,7 @@
     if (!root) {
       root = document.createElement('section');
       root.id = 'digdevbox-analytics-consent';
-      root.setAttribute('aria-label', 'Analytics privacy choices');
+      root.setAttribute('aria-label', copyForLanguage().ariaLabel);
     }
     var compact = !!(window.matchMedia && window.matchMedia('(max-width: 600px)').matches);
     var homeHero = forceOverlay ? null : document.querySelector('.home-hero');
@@ -123,8 +142,10 @@
       document.body.appendChild(root);
     }
     root.replaceChildren();
+    var copy = copyForLanguage();
+    root.setAttribute('aria-label', copy.ariaLabel);
     var message = document.createElement('p');
-    message.textContent = 'Optional analytics measures visits and page use only. Tool inputs, files and form contents are never sent. Rejecting does not limit site use.';
+    message.textContent = copy.message;
     message.style.cssText = inlineHome
       ? (compact ? 'flex:1 1 100%;max-width:none;margin:0;font:12px/1.35 system-ui,sans-serif' : 'flex:1 1 280px;max-width:72ch;margin:0')
       : (compact ? 'margin:0 0 8px' : 'margin:0 0 12px');
@@ -132,7 +153,7 @@
     actions.style.cssText = inlineHome
       ? (compact ? 'display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%;gap:8px' : 'display:flex;flex:0 0 auto;align-items:center;gap:8px;flex-wrap:wrap')
       : 'display:flex;gap:8px;flex-wrap:wrap';
-    [['Accept analytics','accepted'],['Reject analytics','rejected']].forEach(function (item) {
+    [[copy.accept,'accepted'],[copy.reject,'rejected']].forEach(function (item) {
       var button = document.createElement('button');
       button.type = 'button';
       button.textContent = item[0];

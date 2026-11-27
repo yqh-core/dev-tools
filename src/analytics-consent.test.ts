@@ -57,6 +57,23 @@ describe('shared GA4 consent gate', () => {
     expect(prompt?.style.bottom).toBe('16px');
     expect(dom.window.document.querySelector('script[src*="googletagmanager.com"]')).toBeNull();
     expect((dom.window as unknown as { dataLayer?: unknown }).dataLayer).toBeUndefined();
+    const message = prompt?.textContent ?? '';
+    expect(message).toContain('Analytics records page views only—not tool inputs, files or form values.');
+    expect(message).toContain('Some tools send requests to DigDevBox Relay or external services when used;');
+    expect(message).not.toContain('Tool inputs, files and form contents are never sent.');
+  });
+
+  it('localizes the analytics privacy explanation and choices for Chinese pages', () => {
+    clickButton('Accept analytics');
+    dom.window.document.documentElement.lang = 'zh-CN';
+    clickButton('Privacy choices');
+
+    const prompt = dom.window.document.getElementById('digdevbox-analytics-consent');
+    expect(prompt?.getAttribute('aria-label')).toBe('分析与隐私选项');
+    expect(prompt?.textContent).toContain('分析服务仅记录页面访问');
+    expect(prompt?.textContent).toContain('DigDevBox Relay 或外部服务');
+    const choices = Array.from(prompt?.querySelectorAll('button') ?? []);
+    expect(choices.map(button => button.textContent)).toEqual(['接受分析', '拒绝分析']);
   });
 
   it('uses a compact mobile prompt while keeping both choices comfortably tappable', () => {
@@ -86,7 +103,7 @@ describe('shared GA4 consent gate', () => {
     expect(choices).toHaveLength(2);
     expect(choices.map(button => button.textContent)).toEqual(['Accept analytics', 'Reject analytics']);
     choices.forEach(button => expect(button.style.minHeight).toBe('44px'));
-    expect(prompt?.textContent).toContain('Tool inputs, files and form contents are never sent.');
+    expect(prompt?.textContent).toContain('Analytics records page views only—not tool inputs, files or form values.');
   });
 
   it('does not load GA4 or emit page views when analytics is rejected', async () => {
