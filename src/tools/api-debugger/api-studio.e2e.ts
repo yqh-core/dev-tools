@@ -67,6 +67,14 @@ test.beforeAll(() => {
   mkdirSync(SHOTS, { recursive: true });
 });
 
+test('empty state clearly separates browser storage from request relay traffic', async ({ page }) => {
+  await page.goto('/api-studio');
+
+  await expect(page.locator('.api-editor-note')).toHaveText(
+    'Saved collections and environment values stay in this browser. Requests pass through our first-party API relay.',
+  );
+});
+
 test('three-level nested tree renders with correct script inheritance chain', async ({ page }) => {
   await seedStorage(page);
   await page.goto('/api-studio');
