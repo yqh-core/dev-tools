@@ -51,6 +51,16 @@ describe('apiproxy request validation', () => {
     expect(r.status).toBe(413);
   });
 
+  it('rejects an oversized outer JSON envelope before parsing or forwarding it', async () => {
+    const spy = okFetch();
+    vi.stubGlobal('fetch', spy);
+    const raw = JSON.stringify({ url: 'https://example.com/', padding: 'x'.repeat(2 * 1024 * 1024) });
+    const r = await onRequestPost({ request: mkReq(null, raw) });
+    expect(r.status).toBe(413);
+    expect(await r.json()).toEqual({ error: 'Request JSON exceeds the 2097152 byte limit.' });
+    expect(spy).not.toHaveBeenCalled();
+  });
+
   it('rejects CRLF header injection and forbidden headers', async () => {
     const crlf = await onRequestPost({ request: mkReq({ url: 'https://example.com', headers: [{ name: 'x-a', value: 'a\r\nb' }] }) });
     expect(crlf.status).toBe(400);

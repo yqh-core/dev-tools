@@ -40,6 +40,19 @@ import { runScriptIsolated } from '@/tools/api-debugger/script-sandbox';
 import * as environmentEngine from '@/tools/api-debugger/environments';
 import { exportCollectionTree, importCollectionTree } from '@/tools/api-debugger/collection';
 import { buildDownloadFilename, downloadTextFile } from '@/composable/downloadText';
+import {
+  API_STUDIO_BACKUP_MAX_BYTES,
+  createApiStudioBackup,
+  parseApiStudioBackup,
+  planApiStudioRestore,
+  previewApiStudioBackup,
+  serializeApiStudioBackup,
+} from '@/tools/api-debugger/backup';
+import type {
+  ApiStudioBackupPreview,
+  ApiStudioBackupV1,
+  BackupRestoreStrategy,
+} from '@/tools/api-debugger/backup';
 
 type Assertion = assertionEngine.Assertion;
 type AssertionReport = assertionEngine.AssertionReport;
@@ -82,6 +95,10 @@ const runResultStatus = computed(() => {
 // Postman 导入/导出：filePicker=隐藏文件选择器；importWarnings=上次导入的兼容性提示（UI 可见，不静默丢弃）
 const filePicker = ref<HTMLInputElement | null>(null);
 const importWarnings = ref<string[]>([]);
+const backupFilePicker = ref<HTMLInputElement | null>(null);
+const backupRestore = ref<{ backup: ApiStudioBackupV1; preview: ApiStudioBackupPreview } | null>(null);
+const backupRestoreStrategy = ref<BackupRestoreStrategy>('replace');
+const revealedVars = ref<Set<string>>(new Set());
 
 // 拖拽状态：dragId=正在拖的节点；dragOverId+dropPos=当前放置指示（before/after 同级排序，inside 移入 folder）
 const dragId = ref<string | null>(null);
@@ -270,6 +287,138 @@ function exportPostman() {
   banner.value = ok
     ? 'Exported a Postman v2.1 collection — folders and scripts kept as a tree. Auth headers were stripped for safe sharing; re-add them in Postman.'
     : 'Export failed: the collection was empty (no file written).';
+}
+
+function openBackupRestorePicker() {
+  backupFilePicker.value?.click();
+}
+
+function exportWorkspaceBackup(includeSecrets = false) {
+  if (includeSecrets && !window.confirm('This backup will contain marked secret values, authentication headers and URL credentials. Anyone with the file may be able to use those credentials. Continue?')) {
+    return;
+  }
+  const archive = createApiStudioBackup(tree.value, envStore.value, { includeSecrets });
+  const ok = downloadTextFile({
+    content: serializeApiStudioBackup(archive),
+    filename: buildDownloadFilename('api-studio', 'backup.json'),
+    mimeType: 'application/json',
+  });
+  banner.value = ok
+    ? (includeSecrets
+        ? 'Full backup exported. It includes secrets and credentials; store it securely.'
+        : 'Redacted backup exported. Marked secrets and standard authentication fields were removed; unmarked credentials in free-form text may remain.')
+    : 'Could not start the backup download. Check browser download permissions.';
+}
+
+function onBackupRestoreFilePicked(e: Event) {
+  const input = e.target as HTMLInputElement;
+  const file = input.files?.[0];
+  input.value = '';
+  if (!file) {
+    return;
+  }
+  if (file.size > API_STUDIO_BACKUP_MAX_BYTES) {
+    banner.value = 'Backup file is too large (maximum 10 MB). Your current workspace was not changed.';
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const backup = parseApiStudioBackup(String(reader.result ?? ''));
+      const preview = previewApiStudioBackup(backup, tree.value, envStore.value);
+      backupRestore.value = { backup, preview };
+      backupRestoreStrategy.value = 'replace';
+      banner.value = 'Backup validated. Review the contents and choose how to restore it.';
+    }
+    catch (error) {
+      backupRestore.value = null;
+      banner.value = `Backup rejected: ${error instanceof Error ? error.message : String(error)} Your current workspace was not changed.`;
+    }
+  };
+  reader.onerror = () => {
+    banner.value = 'Could not read the backup file. Your current workspace was not changed.';
+  };
+  reader.readAsText(file);
+}
+
+function cancelBackupRestore() {
+  backupRestore.value = null;
+}
+
+function applyBackupRestore() {
+  const pending = backupRestore.value;
+  if (!pending) {
+    return;
+  }
+  if (pending.backup.security.secretsIncluded && !window.confirm('This archive includes secret values and request credentials. Restoring it will put those credentials into this browser origin. Continue?')) {
+    return;
+  }
+  if (backupRestoreStrategy.value === 'replace' && !window.confirm('Replace the current API Studio collection and environments with this backup? This overwrites the current workspace data.')) {
+    return;
+  }
+  const next = planApiStudioRestore(tree.value, envStore.value, pending.backup, backupRestoreStrategy.value);
+  const nextTree = serializeCollectionTree(next.collection);
+  const nextEnv = JSON.stringify(next.environments);
+  let oldTree: string | null;
+  let oldEnv: string | null;
+  try {
+    // Read both previous values before the first write. A read failure must never
+    // trigger rollback code that could remove an existing key we did not inspect.
+    oldTree = localStorage.getItem(TREE_KEY);
+    oldEnv = localStorage.getItem(ENV_KEY);
+  }
+  catch {
+    banner.value = 'Browser storage is unavailable. Your current workspace was not changed.';
+    return;
+  }
+  let treeWritten = false;
+  let envWritten = false;
+  try {
+    localStorage.setItem(TREE_KEY, nextTree);
+    treeWritten = true;
+    localStorage.setItem(ENV_KEY, nextEnv);
+    envWritten = true;
+  }
+  catch {
+    let rolledBack = true;
+    try {
+      if (treeWritten) {
+        if (oldTree === null) {
+          localStorage.removeItem(TREE_KEY);
+        }
+        else {
+          localStorage.setItem(TREE_KEY, oldTree);
+        }
+      }
+      if (envWritten) {
+        if (oldEnv === null) {
+          localStorage.removeItem(ENV_KEY);
+        }
+        else {
+          localStorage.setItem(ENV_KEY, oldEnv);
+        }
+      }
+    }
+    catch {
+      rolledBack = false;
+    }
+    banner.value = rolledBack
+      ? 'Restore could not be saved. The previous browser data was restored; free up browser storage and try again.'
+      : 'Restore and automatic rollback both encountered a browser-storage error. Do not refresh this tab until you have exported or copied any unsaved workspace data.';
+    return;
+  }
+  tree.value = next.collection;
+  envStore.value = next.environments;
+  selectedEnv.value = next.environments.active;
+  renameEnvDraft.value = next.environments.active;
+  revealedVars.value = new Set();
+  selectedId.value = null;
+  runSummary.value = null;
+  runOutput.value = '';
+  backupRestore.value = null;
+  banner.value = backupRestoreStrategy.value === 'replace'
+    ? `Restored ${next.addedRequests} request(s) and ${next.addedEnvironments} environment(s). Existing workspace data was replaced.`
+    : `Merged backup: ${next.addedRequests} new request(s), ${next.replacedNodes} existing node(s) updated, ${next.addedEnvironments} environment(s) added. Existing environment values were kept on conflicts.`;
 }
 
 function startRename(id: string) {
@@ -638,7 +787,6 @@ const newEnvName = ref('');
 const newVarName = ref('');
 const newVarValue = ref('');
 const newVarSecret = ref(false);
-const revealedVars = ref<Set<string>>(new Set());
 
 const selectedEnvStore = computed<EnvStore>(() => ({
   ...envStore.value,
@@ -1111,11 +1259,20 @@ function onMenuSelect(key: string, node: TreeNode) {
       </div>
 
       <div class="api-io-row">
+        <button class="api-tool-btn" type="button" title="Download a portable API Studio backup with marked secrets removed" data-test-id="backup-safe" @click="exportWorkspaceBackup(false)">
+          Backup
+        </button>
+        <button class="api-tool-btn" type="button" title="Download a full backup with credentials after confirmation" data-test-id="backup-with-secrets" @click="exportWorkspaceBackup(true)">
+          Backup with secrets
+        </button>
+        <button class="api-tool-btn" type="button" title="Restore a backup file from this device" data-test-id="restore-backup" @click="openBackupRestorePicker">
+          Restore
+        </button>
         <button class="api-tool-btn" type="button" title="Import a Postman v2.1 collection" data-test-id="import-collection" @click="openImportPicker">
           Import Postman
         </button>
         <button class="api-tool-btn" type="button" title="Export this collection as Postman v2.1" data-test-id="export-collection" @click="exportPostman">
-          Export
+          Export Postman
         </button>
         <input
           ref="filePicker"
@@ -1125,7 +1282,37 @@ function onMenuSelect(key: string, node: TreeNode) {
           data-test-id="import-file"
           @change="onImportFilePicked"
         >
+        <input
+          ref="backupFilePicker"
+          type="file"
+          accept=".json,application/json"
+          class="api-file-input"
+          data-test-id="backup-file"
+          @change="onBackupRestoreFilePicked"
+        >
       </div>
+
+      <section v-if="backupRestore" class="api-import-notes api-backup-preview" data-test-id="backup-restore-preview" aria-label="Backup restore preview">
+        <div class="api-import-notes-head">Backup restore preview</div>
+        <p><strong>{{ backupRestore.preview.collectionName }}</strong> · {{ backupRestore.preview.requestCount }} request(s) · {{ backupRestore.preview.folderCount }} folder(s)</p>
+        <p>Environments: {{ backupRestore.preview.environmentNames.join(', ') || 'None' }}</p>
+        <p>{{ backupRestore.preview.secretValuesIncluded ? 'This file includes secret values and request credentials.' : 'This file has secret-marked environment values removed.' }}</p>
+        <p v-if="backupRestore.preview.existingNodeConflicts.length">Collection ID conflicts: {{ backupRestore.preview.existingNodeConflicts.length }}. Matching nodes will be replaced at their current position when merging.</p>
+        <p v-if="backupRestore.preview.existingEnvironmentNames.length">Existing environments: {{ backupRestore.preview.existingEnvironmentNames.join(', ') }}. Existing variable values take priority in merge mode.</p>
+        <ul class="api-import-notes-list">
+          <li v-for="(note, i) in backupRestore.preview.notes" :key="i">{{ note }}</li>
+        </ul>
+        <fieldset class="api-backup-restore-modes">
+          <legend>Restore mode</legend>
+          <label><input v-model="backupRestoreStrategy" type="radio" value="replace" data-test-id="backup-mode-replace"> Replace current workspace</label>
+          <label><input v-model="backupRestoreStrategy" type="radio" value="merge" data-test-id="backup-mode-merge"> Merge into current workspace</label>
+        </fieldset>
+        <p class="api-field-hint">The file is read locally. Its contents are not uploaded. Use the downloaded file to move data manually between website origins.</p>
+        <div class="api-backup-restore-actions">
+          <button class="api-tool-btn api-run-btn" type="button" data-test-id="apply-backup-restore" @click="applyBackupRestore">Restore backup</button>
+          <button class="api-tool-btn" type="button" data-test-id="cancel-backup-restore" @click="cancelBackupRestore">Cancel</button>
+        </div>
+      </section>
 
       <div v-if="importWarnings.length" class="api-import-notes" data-test-id="import-warnings">
         <div class="api-import-notes-head">
@@ -1872,9 +2059,20 @@ function onMenuSelect(key: string, node: TreeNode) {
 
 .api-io-row {
   display: flex;
+  flex-wrap: wrap;
   gap: 6px;
   padding: 0 var(--api-gap) var(--api-gap-sm);
   border-bottom: 1px solid var(--api-border);
+}
+
+.api-io-row > .api-tool-btn {
+  flex: 1 1 calc(50% - 6px);
+  min-width: 0;
+  min-height: 32px;
+  height: auto;
+  padding: 5px 6px;
+  line-height: 1.25;
+  white-space: normal;
 }
 
 /* 隐藏文件选择器：仅由 Import 按钮以编程方式触发，不进布局 */
@@ -2208,6 +2406,39 @@ function onMenuSelect(key: string, node: TreeNode) {
   color: var(--api-text-faint);
   font-size: var(--api-fs-xs);
   font-weight: 400;
+}
+
+.api-backup-preview {
+  margin-top: 10px;
+}
+
+.api-backup-restore-modes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin: 10px 0;
+  padding: 8px 10px;
+  border: 1px solid var(--api-border);
+  border-radius: var(--api-radius-sm);
+}
+
+.api-backup-restore-modes legend {
+  padding: 0 4px;
+  color: var(--api-text-soft);
+  font-size: var(--api-fs-xs);
+}
+
+.api-backup-restore-modes label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--api-fs-sm);
+}
+
+.api-backup-restore-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .api-response-error {
