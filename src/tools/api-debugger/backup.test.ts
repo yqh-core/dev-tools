@@ -2,9 +2,9 @@ import { describe, expect, it } from 'vitest';
 import type { CollectionNode } from './collection-tree';
 import type { EnvStore } from './environments';
 import {
+  API_STUDIO_BACKUP_MAX_BYTES,
   API_STUDIO_BACKUP_FORMAT,
   API_STUDIO_BACKUP_VERSION,
-  API_STUDIO_BACKUP_MAX_BYTES,
   createApiStudioBackup,
   parseApiStudioBackup,
   planApiStudioRestore,
@@ -12,7 +12,8 @@ import {
   serializeApiStudioBackup,
 } from './backup';
 
-const tree = (secret = 'env-secret-value'): CollectionNode => ({
+function tree(secret = 'env-secret-value'): CollectionNode {
+  return ({
   id: 'root',
   name: 'Workspace',
   scripts: { prerequest: `const token = "${secret}";` },
@@ -41,9 +42,11 @@ const tree = (secret = 'env-secret-value'): CollectionNode => ({
       ],
     },
   ],
-});
+  });
+}
 
-const envs = (): EnvStore => ({
+function envs(): EnvStore {
+  return ({
   active: 'Development',
   envs: {
     Development: { baseUrl: 'https://dev.example.test', token: 'env-secret-value' },
@@ -52,7 +55,8 @@ const envs = (): EnvStore => ({
   global: { shared: 'global-value', token: 'global-secret-value' },
   collection: { collectionId: 'orders', token: 'collection-secret-value' },
   secrets: ['token'],
-});
+  });
+}
 
 describe('API Studio portable backup', () => {
   it('creates a versioned portable archive and redacts marked secrets and credential fields by default', () => {
