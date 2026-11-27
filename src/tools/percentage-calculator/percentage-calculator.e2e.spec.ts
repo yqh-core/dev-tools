@@ -76,6 +76,23 @@ test.describe('Tool - Percentage calculator', () => {
     await expect(page.getByRole('button', { name: 'Percentage-point change', exact: true })).toHaveAttribute('aria-pressed', 'true');
   });
 
+  test('captures responsive percentage calculator first-fold layouts', async ({ page }, testInfo) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/percentage-calculator');
+    await expect(page.locator('.percentage-mode-switcher')).toBeVisible();
+    await expect(page.getByTestId('percentage-mode-percent-of')).toBeVisible();
+    await page.screenshot({
+      path: testInfo.outputPath('percentage-calculator-mobile.png'),
+      fullPage: false,
+    });
+
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.screenshot({
+      path: testInfo.outputPath('percentage-calculator-desktop.png'),
+      fullPage: false,
+    });
+  });
+
   test('labels primary workflows with explicit input roles and denominator guidance', async ({ page }) => {
     await expect(page.getByRole('group', { name: 'Choose a percentage calculation' })).toBeVisible();
     await expect(page.locator('.percentage-mode-button')).toHaveCount(7);
