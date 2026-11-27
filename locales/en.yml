@@ -66,7 +66,8 @@ home:
   privacy:
     title: "Privacy: where your data goes"
     local: "Most tools process your input in your browser. Tools that need a network request send the relevant data to the service or destination required for the task. Optional share links may encode input in the URL, so anyone with the link may be able to read it."
-    relay: "API Debugger and API Studio send HTTP requests through DigDevBox's first-party relay to the destination you specify. Request URLs, headers and bodies are sent over the network; do not include credentials for services you do not trust."
+    storage: "API Debugger history and API Studio collections and environment values are saved in this browser's localStorage. It is not encrypted storage; avoid saving long-lived credentials."
+    relay: "API Debugger and API Studio send HTTP requests through DigDevBox's first-party relay to your chosen destination. Request URLs, headers and bodies travel over the network; do not send credentials to untrusted destinations."
     networkIntro: "These lookup tools must query an external service to return a result:"
   blog:
     title: "From the blog"
