@@ -132,7 +132,7 @@
     var inlineHome = !!homeHero;
     root.dataset.placement = inlineHome ? 'home-inline' : 'fixed-overlay';
     root.style.cssText = inlineHome
-      ? 'position:relative;z-index:1;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 12px;width:100%;max-width:720px;margin:12px auto 20px;padding:8px 12px;box-sizing:border-box;background:#102a2a;color:#fff;border:1px solid #4b7773;border-radius:12px;box-shadow:none;font:13px/1.4 system-ui,sans-serif'
+      ? 'position:relative;z-index:1;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px 12px;width:100%;max-width:720px;margin:12px auto 20px;padding:8px 12px;box-sizing:border-box;background:#102a2a;color:#fff;border:1px solid #4b7773;border-radius:12px;box-shadow:none;font:13px/1.4 system-ui,sans-serif'
       : compact
         ? 'position:fixed;z-index:2147483000;left:10px;right:10px;bottom:10px;max-width:720px;margin:0 auto;padding:10px 12px;box-sizing:border-box;background:#102a2a;color:#fff;border:1px solid #4b7773;border-radius:10px;box-shadow:0 8px 28px #0004;font:12px/1.35 system-ui,sans-serif'
         : 'position:fixed;z-index:2147483000;left:16px;right:16px;bottom:16px;max-width:720px;margin:0 auto;padding:16px 18px;box-sizing:border-box;background:#102a2a;color:#fff;border:1px solid #4b7773;border-radius:12px;box-shadow:0 8px 32px #0004;font:14px/1.5 system-ui,sans-serif';
