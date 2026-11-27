@@ -151,9 +151,15 @@
       var current = readConsent();
       if (current === 'accepted' || current === 'rejected') return;
       var root = document.getElementById('digdevbox-analytics-consent');
+      if (!root) return;
       var homeHero = document.querySelector('.home-hero');
-      if (!root || !homeHero) return;
-      if (root.dataset.placement !== 'home-inline' || root.previousElementSibling !== homeHero) {
+      if (homeHero) {
+        if (root.dataset.placement !== 'home-inline' || root.previousElementSibling !== homeHero) {
+          renderPrompt(root, false);
+        }
+        return;
+      }
+      if (root.dataset.placement !== 'fixed-overlay' || root.parentElement !== document.body) {
         renderPrompt(root, false);
       }
     });
