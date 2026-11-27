@@ -2,7 +2,13 @@ import { expect, test } from '@playwright/test';
 
 async function startWithFreshMainPreferences(page: import('@playwright/test').Page) {
   await page.addInitScript(() => {
-    localStorage.removeItem('menu-tool-option:collapsed-categories');
+    // addInitScript runs again on reload and same-origin navigation. Reset only
+    // once per isolated test tab so explicit disclosure choices survive refresh.
+    const resetKey = '__e2e_main_preferences_reset';
+    if (sessionStorage.getItem(resetKey) !== 'done') {
+      localStorage.removeItem('menu-tool-option:collapsed-categories');
+      sessionStorage.setItem(resetKey, 'done');
+    }
     localStorage.setItem('digdevbox.analytics-consent.v1', 'rejected');
   });
 }
@@ -55,6 +61,12 @@ test.describe('Main sidebar tool-category disclosures', () => {
 
     const box = await firstToggle.boundingBox();
     expect(box?.height).toBeGreaterThanOrEqual(44);
+    const categoryName = await firstToggle.getAttribute('data-category-name');
+    expect(categoryName).toBeTruthy();
+    const savedPreferences = await page.evaluate(() => JSON.parse(
+      localStorage.getItem('menu-tool-option:collapsed-categories') || '{}',
+    ) as Record<string, boolean>);
+    expect(savedPreferences[categoryName!]).toBe(false);
 
     await page.reload();
     const restoredToggle = page.getByTestId('tool-category-toggle').first();
