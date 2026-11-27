@@ -155,6 +155,50 @@ describe('JSON Workspace bilingual guide accuracy', () => {
   });
 });
 
+describe('JWT Parser bilingual guide accuracy', () => {
+  it('describes the decode-only JWS workflow accurately in English', async () => {
+    const guide = (await loadGuides('en'))['/jwt-parser'];
+    const text = [
+      guide.intro,
+      ...guide.steps,
+      ...(guide.notes ?? []),
+      guide.about ?? '',
+      ...(guide.faqs ?? []).map(item => `${item.q} ${item.a}`),
+    ].join(' ');
+
+    expect(text).toContain('JOSE Header');
+    expect(text).toContain('Claims Set Payload');
+    expect(text).toContain('Base64URL');
+    expect(text).toContain('does not verify');
+    expect(text).toContain('NumericDate');
+    expect(text).toContain('browser local time zone');
+    expect(text).toContain('Five-part compact JWE');
+    expect(text).not.toContain('three decoded sections');
+    expect(text).not.toContain('plain Base64');
+  });
+
+  it('describes the decode-only JWS workflow accurately in Chinese', async () => {
+    const guide = (await loadGuides('zh'))['/jwt-parser'];
+    const text = [
+      guide.intro,
+      ...guide.steps,
+      ...(guide.notes ?? []),
+      guide.about ?? '',
+      ...(guide.faqs ?? []).map(item => `${item.q} ${item.a}`),
+    ].join(' ');
+
+    expect(text).toContain('JOSE Header');
+    expect(text).toContain('Claims Set Payload');
+    expect(text).toContain('Base64URL');
+    expect(text).toContain('不执行验签');
+    expect(text).toContain('NumericDate');
+    expect(text).toContain('浏览器本地时区');
+    expect(text).toContain('五段式紧凑 JWE');
+    expect(text).not.toContain('解码出的三段内容');
+    expect(text).not.toContain('明文 Base64');
+  });
+});
+
 describe('G4: assertGuideCoverage 自检', () => {
   it('当前所有已启用语言都有 importer → 返回空数组', () => {
     expect(assertGuideCoverage()).toEqual([]);
