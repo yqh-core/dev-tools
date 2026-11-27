@@ -398,7 +398,7 @@ test('completes a first-request journey from a clean /app origin through manual 
       relayRequests.push(request.url());
     }
   });
-  await page.route(/\\/api\\/apiproxy/, async (route) => {
+  await page.route(/\/api\/apiproxy/, async (route) => {
     const payload = route.request().postDataJSON() as RelayPayload;
     relayPayloads.push(payload);
     relayAttempts += 1;
