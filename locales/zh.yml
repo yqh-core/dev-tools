@@ -775,7 +775,7 @@ tools:
       whitespace: "请删除空格和换行；紧凑 JWT 必须是连续的一行文本。"
       segments: "需要三段式紧凑 JWT/JWS：Header.Payload.Signature。不支持五段式加密 JWE Token。"
       base64url: "各段必须使用 Base64URL 字符集，不能包含空格或填充符。"
-      decode: "Header 或 Payload 不是有效的 Base64URL 编码 JSON。"
+      decode: "Header 和 Payload 都必须是有效的 Base64URL 编码 JSON 对象。"
 
   date-converter:
     title: 日期格式转换 — 在线日期格式互转

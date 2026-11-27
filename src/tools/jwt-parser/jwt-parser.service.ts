@@ -49,6 +49,11 @@ function decodeJwt({ jwt }: { jwt: string }) {
     throw new JwtDecodeError('decode');
   }
 
+  // JWT Claims Set and JOSE Header are JSON objects, not arbitrary JSON values.
+  if (!isPlainObject(rawHeader) || !isPlainObject(rawPayload)) {
+    throw new JwtDecodeError('decode');
+  }
+
   const header = map(rawHeader, (value, claim) => parseClaims({ claim, value }));
   const payload = map(rawPayload, (value, claim) => parseClaims({ claim, value }));
 

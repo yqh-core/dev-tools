@@ -49,4 +49,30 @@ describe('JWT decode-only contract', () => {
       expect((error as JwtDecodeError).code).toBe('decode');
     }
   });
+
+  it('rejects a JOSE Header that is valid JSON but not an object', () => {
+    const [, payload] = validToken.split('.');
+
+    try {
+      decodeJwt({ jwt: `W10.${payload}.signature` }); // Base64URL([]).
+      throw new Error('Expected decodeJwt to reject an array Header');
+    }
+    catch (error) {
+      expect(error).toBeInstanceOf(JwtDecodeError);
+      expect((error as JwtDecodeError).code).toBe('decode');
+    }
+  });
+
+  it('rejects a Claims Set Payload that is valid JSON but not an object', () => {
+    const [header] = validToken.split('.');
+
+    try {
+      decodeJwt({ jwt: `${header}.bnVsbA.signature` }); // Base64URL(null).
+      throw new Error('Expected decodeJwt to reject a null Payload');
+    }
+    catch (error) {
+      expect(error).toBeInstanceOf(JwtDecodeError);
+      expect((error as JwtDecodeError).code).toBe('decode');
+    }
+  });
 });

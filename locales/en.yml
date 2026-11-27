@@ -780,7 +780,7 @@ tools:
       whitespace: "Remove spaces or line breaks; compact JWTs must be a single uninterrupted string."
       segments: "Expected a three-part compact JWT/JWS: Header.Payload.Signature. Five-part encrypted JWE tokens are not supported."
       base64url: "The compact segments must use the Base64URL alphabet without spaces or padding."
-      decode: "The Header or Payload is not valid Base64URL-encoded JSON."
+      decode: "The Header and Payload must each be a valid Base64URL-encoded JSON object."
 
   date-converter:
     title: Date Converter — Formats, Time Zones and ISO 8601
