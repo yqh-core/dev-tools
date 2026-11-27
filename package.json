@@ -47,7 +47,8 @@
     "build:api-studio": "node scripts/build-api-studio.mjs && node scripts/check-api-studio-build.mjs",
     "test:e2e:api-studio": "playwright test --config playwright.api-studio.config.ts",
     "build:main": "node scripts/check-locale-registry.mjs && node scripts/build-dd-tokens.mjs && node scripts/legacy-canonical.mjs && node scripts/legacy-noindex.mjs && vue-tsc --noEmit -p tsconfig.app.json --composite false && vite build && node scripts/build-cli.mjs && node scripts/build-seo.mjs && node scripts/check-internal-canonical-links.mjs && node scripts/sync-readme.mjs --check",
-    "test:relay-limiter": "vitest run --environment node tests/workers/api-relay-limiter.test.mjs tests/functions/apiproxy.test.mjs"
+    "test:relay-limiter": "vitest run --environment node tests/workers/api-relay-limiter.test.mjs tests/functions/apiproxy.test.mjs",
+    "lint:relay-limiter": "eslint functions/api/apiproxy.js workers/api-relay-limiter/src/*.js tests/workers/api-relay-limiter.test.mjs tests/functions/apiproxy.test.mjs --ignore-path .gitignore"
   },
   "dependencies": {
     "@it-tools/bip39": "^0.0.4",
