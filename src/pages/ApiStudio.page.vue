@@ -2350,6 +2350,9 @@ function onMenuSelect(key: string, node: TreeNode) {
 }
 
 .api-run-result {
+  /* Keep the report at its full intrinsic height inside the scrolling editor.
+     A shrinking flex item clipped the disclosure summary on long request editors. */
+  flex: 0 0 auto;
   border: 1px solid var(--api-border);
   border-radius: var(--api-radius);
   background: var(--api-surface);
@@ -2559,6 +2562,12 @@ function onMenuSelect(key: string, node: TreeNode) {
 }
 
 .api-run-text-report > summary {
+  display: block;
+  position: relative;
+  z-index: 1;
+  min-height: 28px;
+  padding: 4px 0;
+  pointer-events: auto;
   color: var(--api-text);
   font-size: var(--api-fs-sm);
   font-weight: 600;
