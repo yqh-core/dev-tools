@@ -102,21 +102,29 @@ const themeVars = useThemeVars();
       <span class="category-toggle-label">{{ name }}</span>
     </button>
 
-    <n-collapse-transition :show="!isCollapsed">
-      <div :id="panelId" class="menu-wrapper" role="region" :aria-labelledby="toggleId">
-        <div class="toggle-bar" aria-hidden="true" />
+    <div
+      :id="panelId"
+      class="menu-region"
+      role="region"
+      :aria-labelledby="toggleId"
+      :aria-hidden="isCollapsed"
+    >
+      <n-collapse-transition :show="!isCollapsed">
+        <div class="menu-wrapper">
+          <div class="toggle-bar" aria-hidden="true" />
 
-        <n-menu
-          class="menu"
-          :value="currentPath"
-          :collapsed-width="64"
-          :collapsed-icon-size="22"
-          :options="tools"
-          :indent="8"
-          :default-expand-all="true"
-        />
-      </div>
-    </n-collapse-transition>
+          <n-menu
+            class="menu"
+            :value="currentPath"
+            :collapsed-width="64"
+            :collapsed-icon-size="22"
+            :options="tools"
+            :indent="8"
+            :default-expand-all="true"
+          />
+        </div>
+      </n-collapse-transition>
+    </div>
   </div>
 </template>
 
