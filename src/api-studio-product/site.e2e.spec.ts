@@ -209,8 +209,8 @@ test('workspace data tools stay secondary behind a keyboard-accessible disclosur
   await expect(page.getByTestId('run-collection')).toBeVisible();
   await expect(page.getByTestId('env-bar')).toBeVisible();
   await expect(page.getByTestId('create-first-request')).toBeVisible();
-  await expect(page.getByTestId('import-file')).toBeAttached();
-  await expect(page.getByTestId('backup-file')).toBeAttached();
+  await expect(page.getByTestId('import-file')).toHaveCount(1);
+  await expect(page.getByTestId('backup-file')).toHaveCount(1);
   await page.screenshot({ path: testInfo.outputPath('workspace-data-tools-desktop-collapsed.png') });
   for (const id of ['backup-safe', 'backup-with-secrets', 'restore-backup', 'import-collection', 'export-collection']) {
     await expect(page.getByTestId(id)).toBeHidden();
