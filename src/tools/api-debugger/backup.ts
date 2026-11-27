@@ -1,4 +1,5 @@
 import type { Assertion } from './assertions';
+import type { RequestNode } from './collection-tree';
 import { AUTH_HEADER_NAMES, type ApiRequestState, sanitizeForShare } from './engine';
 import { mergeImportedTree, parseCollectionTree, type CollectionNode, type TreeNode, isFolderNode } from './collection-tree';
 import { collectSecretValues, type EnvStore } from './environments';
@@ -257,6 +258,23 @@ function collectNodeIds(node: CollectionNode, ids = new Set<string>()): Set<stri
   return ids;
 }
 
+
+function collectRequestIds(node: CollectionNode, ids = new Set<string>()): Set<string> {
+  for (const item of node.items) {
+    if (isFolderNode(item)) {
+      collectRequestIds(item, ids);
+    }
+    else {
+      ids.add(item.id);
+    }
+  }
+  return ids;
+}
+
+function countNodes(node: CollectionNode): number {
+  return node.items.reduce((count, item) => count + (isFolderNode(item) ? 1 + countNodes(item) : 1), 0);
+}
+
 export function createApiStudioBackup(
   collection: CollectionNode,
   environments: EnvStore,
@@ -279,7 +297,7 @@ export function createApiStudioBackup(
         redactedValues += scrubbed.redacted;
         return {
           ...node,
-          ...(node.scripts ? { scripts: scrubbed.value as TreeNode extends never ? never : typeof node.scripts } : {}),
+          ...(node.scripts ? { scripts: scrubbed.value as typeof node.scripts } : {}),
           items: node.items.map(scrubNode),
         };
       }
@@ -295,7 +313,7 @@ export function createApiStudioBackup(
         assertions: node.assertions,
       }, secretValues);
       redactedValues += scrubbed.redacted;
-      const safe = scrubbed.value as { request: ApiRequestState; scripts?: RequestNodeScripts; assertions?: Assertion[] };
+      const safe = scrubbed.value as { request: ApiRequestState; scripts?: RequestNode['scripts']; assertions?: Assertion[] };
       return {
         ...node,
         request: safe.request,
@@ -354,8 +372,6 @@ export function createApiStudioBackup(
     },
   };
 }
-
-type RequestNodeScripts = { prerequest?: string; test?: string };
 
 export function serializeApiStudioBackup(backup: ApiStudioBackupV1): string {
   return JSON.stringify(backup, null, 2);
@@ -503,17 +519,20 @@ export function planApiStudioRestore(
       collection: JSON.parse(JSON.stringify(backup.collection)) as CollectionNode,
       environments: JSON.parse(JSON.stringify(backup.environments)) as EnvStore,
       addedRequests: countRequests(backup.collection),
-      replacedNodes: countRequests(currentCollection),
+      replacedNodes: countNodes(currentCollection),
       addedEnvironments: Object.keys(backup.environments.envs).length,
       preservedEnvironmentValues: 0,
     };
   }
   const mergedTree = mergeImportedTree(currentCollection, backup.collection);
   const mergedEnvironments = mergeEnvironmentStores(currentEnvironments, backup.environments);
+  const currentRequestIds = collectRequestIds(currentCollection);
+  const incomingRequestIds = collectRequestIds(backup.collection);
+  const addedRequests = [...incomingRequestIds].filter(id => !currentRequestIds.has(id)).length;
   return {
     collection: mergedTree.tree,
     environments: mergedEnvironments.environments,
-    addedRequests: mergedTree.added,
+    addedRequests,
     replacedNodes: mergedTree.replaced,
     addedEnvironments: mergedEnvironments.addedEnvironments,
     preservedEnvironmentValues: mergedEnvironments.preservedEnvironmentValues,
