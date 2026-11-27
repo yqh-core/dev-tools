@@ -108,9 +108,19 @@ const dropPos = ref<'before' | 'after' | 'inside'>('inside');
 // 环境变量：复用工具页同一份 api-debugger:env（单一事实源）。selectedEnv 只是本壳运行时的本地选择覆盖，
 // 不写回共享 store 的 active（避免在 API-Studio 切环境时意外改掉工具页的当前环境）。
 const ENV_KEY = ['api-debugger', 'env'].join(':');
+const STUDIO_SELECTED_ENV_KEY = ['api-studio', 'selected-environment'].join(':');
 const envStore = ref<EnvStore>(environmentEngine.migrateEnv(null));
 const selectedEnv = ref<string>('Default');
 const renameEnvDraft = ref('Default');
+
+function persistSelectedEnvironment(name = selectedEnv.value) {
+  try {
+    localStorage.setItem(STUDIO_SELECTED_ENV_KEY, name);
+  }
+  catch {
+    // The active choice still works in memory when optional preference storage is unavailable.
+  }
+}
 
 function emptyRoot(): CollectionNode {
   return { id: 'root', name: 'Collection', items: [] };
@@ -159,7 +169,10 @@ onMounted(() => {
   try {
     const rawEnv = localStorage.getItem(ENV_KEY);
     envStore.value = environmentEngine.migrateEnv(rawEnv ? JSON.parse(rawEnv) : null);
-    selectedEnv.value = envStore.value.active;
+    const savedSelection = localStorage.getItem(STUDIO_SELECTED_ENV_KEY);
+    selectedEnv.value = savedSelection && Object.prototype.hasOwnProperty.call(envStore.value.envs, savedSelection)
+      ? savedSelection
+      : envStore.value.active;
   }
   catch {
     envStore.value = environmentEngine.migrateEnv(null);
@@ -411,6 +424,7 @@ function applyBackupRestore() {
   envStore.value = next.environments;
   selectedEnv.value = next.environments.active;
   renameEnvDraft.value = next.environments.active;
+  persistSelectedEnvironment(next.environments.active);
   revealedVars.value = new Set();
   selectedId.value = null;
   runSummary.value = null;
@@ -834,6 +848,7 @@ function persistEnvStore(next: EnvStore, preferredEnvironment = selectedEnv.valu
   catch {
     banner.value = 'Changes are active in this tab but could not be saved to browser storage. Keep this tab open and check the browser storage settings.';
   }
+  persistSelectedEnvironment();
 }
 
 function onEnvChange(v: unknown) {
@@ -843,6 +858,7 @@ function onEnvChange(v: unknown) {
   }
   selectedEnv.value = name;
   renameEnvDraft.value = name;
+  persistSelectedEnvironment(name);
   revealedVars.value = new Set();
 }
 
@@ -2538,6 +2554,12 @@ function onMenuSelect(key: string, node: TreeNode) {
   color: var(--api-text);
 }
 
+/* Manual recovery is a high-consequence action; keep a comfortable mobile touch target. */
+.api-error-retry {
+  min-height: 44px;
+  padding-inline: 12px;
+}
+
 .api-field-hint {
   color: var(--api-text-faint);
   font-size: var(--api-fs-xs);
@@ -3239,6 +3261,12 @@ function onMenuSelect(key: string, node: TreeNode) {
 @media (max-width: 720px) {
   .api-chain-cols {
     grid-template-columns: 1fr;
+  }
+
+  /* Retry is a primary recovery action on touch devices, not a tiny utility chip. */
+  .api-error-retry {
+    min-height: 44px;
+    padding: 8px 12px;
   }
 
   .api-field-row {
