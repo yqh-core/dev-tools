@@ -5,8 +5,8 @@
 //   · 复用 _ssrf.js 整套校验链（与 webstatus 同一套，不写第二套更弱的）：协议白名单 /
 //     主机名策略 / 字面量 IP 多写法 / DoH 全公网 / 重定向逐跳重校 / 超时 / 不透出上游错误原文。
 //   · 入站 JSON 包络 2 MiB；请求体 256 KiB、响应体 1 MiB、头数 60、单头值 8 KiB 上限（超限明确拒绝，不截断）。
-//   · 按 IP 限流 30 req/min。**isolate 本地内存滑窗**：isolate 回收即重置、多 isolate 不共享——
-//     这是 v1 的诚实边界；部署时应叠加 CF 平台级 rate limiting 规则（属部署裁定内容）。
+//   · 默认保留 v1 isolate 本地 30 req/min 限流，保证向后兼容。API_RELAY_RATE_LIMIT_MODE=shared
+//     时通过独立 Durable Object 强制 per-IP 30/min、10/10s burst、4 concurrent；缺绑定/secret/DO故障时 fail-closed。
 //   · 不记录日志、不存储请求/响应体（仅瞬时转发）；不转发 set-cookie。
 //   · 拒绝用户自带 host / connection / transfer-encoding / content-length（由 fetch 管理）。
 //   · 已知残余风险（DNS rebinding 理论窗口 + 平台连接层缓解实测）见 _ssrf.js 头部，不得删除。
@@ -106,12 +106,118 @@ async function readJsonPayload(request) {
   }
 }
 
-export async function onRequestPost({ request }) {
+// A successful shared-mode acquire holds a short lease until the relay handler
+// finishes. Local mode remains the backward-compatible rollout default until
+// the external Worker, Pages binding and secret are configured in Cloudflare.
+async function sharedRateLimitIdentity(ip, secret) {
+  if (typeof secret !== 'string' || secret.length < 32) {
+    throw new Error('Shared limiter HMAC key is missing or too short.');
+  }
+  const key = await crypto.subtle.importKey(
+    'raw',
+    new TextEncoder().encode(secret),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign'],
+  );
+  const signature = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(ip));
+  return Array.from(new Uint8Array(signature), byte => byte.toString(16).padStart(2, '0')).join('');
+}
+
+async function acquireRateLimit(request, env) {
+  const mode = env?.API_RELAY_RATE_LIMIT_MODE || 'local';
   const ip = request.headers.get('cf-connecting-ip') || 'unknown';
-  if (rateLimited(ip)) {
-    return fail('Rate limit exceeded (30 requests per minute per IP). Try again later.', 429);
+
+  if (mode === 'local') {
+    if (rateLimited(ip)) {
+      return { response: fail('Rate limit exceeded (30 requests per minute per IP). Try again later.', 429) };
+    }
+    return { release: null };
   }
 
+  if (mode !== 'shared') {
+    return { response: fail('The API relay rate-limit configuration is invalid. Please try again later.', 503) };
+  }
+
+  const namespace = env?.API_RELAY_LIMITER;
+  const secret = env?.API_RELAY_RATE_LIMIT_HMAC_KEY;
+  if (!namespace || typeof namespace.idFromName !== 'function' || typeof namespace.get !== 'function' || ip === 'unknown' || !ip || /[\r\n]/.test(ip)) {
+    return { response: fail('The API relay is temporarily unavailable because shared abuse protection is not configured.', 503) };
+  }
+
+  let stub;
+  let leaseId;
+  try {
+    const identity = await sharedRateLimitIdentity(ip, secret);
+    stub = namespace.get(namespace.idFromName(identity));
+    leaseId = crypto.randomUUID();
+    const response = await stub.fetch('https://limiter.internal/acquire', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ leaseId }),
+    });
+    const decision = await response.json().catch(() => null);
+
+    if (response.status === 429 && decision?.allowed === false) {
+      const retryAfter = Math.max(1, Math.min(3600, Math.ceil(Number(decision.retryAfterSeconds) || 1)));
+      const message = decision.reason === 'concurrency'
+        ? 'Too many API requests are already running for this IP. Wait for one to finish and retry.'
+        : 'API request rate limit reached (30 per minute and 10 per 10-second burst per IP). Try again later.';
+      return { response: fail(message, 429, { 'retry-after': String(retryAfter) }) };
+    }
+
+    if (!response.ok || decision?.allowed !== true) {
+      return { response: fail('The API relay is temporarily unavailable because shared abuse protection could not be reached.', 503) };
+    }
+  }
+  catch {
+    return { response: fail('The API relay is temporarily unavailable because shared abuse protection could not be reached.', 503) };
+  }
+
+  return {
+    release: async () => {
+      const response = await stub.fetch('https://limiter.internal/release', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ leaseId }),
+      });
+      if (!response.ok) {
+        throw new Error('Shared limiter lease release failed.');
+      }
+    },
+  };
+}
+
+export async function onRequestPost({ request, env }) {
+  let admission;
+  try {
+    admission = await acquireRateLimit(request, env);
+  }
+  catch {
+    return fail('The API relay is temporarily unavailable because shared abuse protection could not be reached.', 503);
+  }
+
+  if (admission.response) {
+    return admission.response;
+  }
+
+  try {
+    return await proxyRequest(request);
+  }
+  finally {
+    if (admission.release) {
+      try {
+        await admission.release();
+      }
+      catch {
+        // A failed release is bounded by the Durable Object's 20-second lease.
+        // Do not replace a response after the upstream request may have run.
+      }
+    }
+  }
+}
+
+async function proxyRequest(request) {
   const parsedPayload = await readJsonPayload(request);
   if (parsedPayload.error) {
     return fail(parsedPayload.error, parsedPayload.status);
@@ -309,8 +415,8 @@ function collectHeaders(resp) {
   return outHeaders;
 }
 
-function fail(message, status) {
-  return Response.json({ error: message }, { status });
+function fail(message, status, headers = {}) {
+  return Response.json({ error: message }, { status, headers });
 }
 
 function upstreamFail(e) {

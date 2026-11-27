@@ -1,0 +1,11 @@
+name = "digdevbox-api-relay-limiter"
+main = "src/index.js"
+compatibility_date = "2026-11-27"
+
+# SQLite-backed Durable Objects are required for new namespaces on Workers Free.
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["IpRateLimiter"]
+
+[observability]
+enabled = false
