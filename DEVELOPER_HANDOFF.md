@@ -40,19 +40,18 @@ API Studio is the tenth independent DigDevBox product line, in addition to the o
 
 ### Current mainline and active API Studio UX work
 
-- **Main branch:** latest docs-only head 4ce3677093eb57595b6ee39d15343b2ddef3466d. Main Verify #45962600592 SUCCESS; Main CI #45962600526 still running at last refresh. Earlier app merge SHA 34f1b424fddf934397e43dee9a15a4a9bb33ecf7 has CI #45960958458 and Verify #45960958401 SUCCESS; Main Pages #140378387490 https://0874d945.coderkit.pages.dev/. Not independent API Studio Production.
-- **PR #236 MERGED**, Issue #235 CLOSED. Merge 34f1b424fddf934397e43dee9a15a4a9bb33ecf7; tested head f29b597b415705252a9f4f8d74234abe69b903b7; exact CI #45960165602, Verify #45960165612 and Preview #140375840120 passed. Preview https://470b5b66.coderkit.pages.dev/ (Preview only). Environment selector readability fixed at desktop/mobile.
-- **PR #239 OPEN**, Issue #238 OPEN: https://github.com/yqh-core/dev-tools/pull/239. Branch feat/api-studio-single-request-retry-20261127; current head 1f6c20fdd628971bf57d1722e60c1a41c1bd0089.
-- **Real relay contract:** functions/api/apiproxy.js returns outer HTTP 200 JSON for upstream API responses, with upstream status in response.status. A test that mocks outer 503 is not representative. Code now classifies transient outer relay/network failures and the wrapped upstream 408/425/429/5xx. Retry is placed beside the displayed response status for wrapped upstream failures; nontransient 4xx and local validation do not expose Retry. No automatic replays. This preserves body/headers and assertion inspection.
-- **Current exact-head test:** clean local missing variable → 0 network/no Retry; mocked outer HTTP 200 with inner 400 → visible response, no Retry; edit request and outer 200 with inner 503 → Retry beside response status with no automatic second call; keyboard Enter → exactly one further outer-200/inner-200 response, retry affordance cleared; mobile 390×844 no overflow. CI uploads focused desktop/mobile retry screenshots.
-- **Current exact-head checks (1f6c20f):**
-  - CI [#45963128624](https://github.com/yqh-core/dev-tools/actions/runs/45963128624), job #140385384784: Lint passed; relay Worker lint/bundle passed; unit tests active at last poll.
-  - Verify/Build [#45963128616](https://github.com/yqh-core/dev-tools/actions/runs/45963128616), job #140385384414: example/SEO self-check passed; typecheck/build active.
-  - Cloudflare Pages Preview: BUILD IN PROGRESS, exact head 1f6c20f. Dashboard https://dash.cloudflare.com/?to=/595b1a2e4d763a5e62adf1df2416b889/pages/view/coderkit/c2b3caf7-5eca-4e2c-8b94-9937ff17fb72.
-  - Do not merge until current exact-head CI, Verify/Build, Preview and focused retry screenshot review all pass. Previous-head results are historical only.
-- The prior b6a94e2 exact-head Verify/Build #45962415411 fully passed, including standalone product build, product-site Chromium E2E, output validation, dist, product dist, visual artifact uploads. Homepage and first workspace desktop/mobile screenshots were visually reviewed; established navy/mint art direction and first-request hierarchy remain clear. New envelope-specific code has fresh checks.
-- **Next task:** [Issue #240](https://github.com/yqh-core/dev-tools/issues/240) tests one continuous journey from clean /app/ to new request, URL/query/header/body configuration, explicit Send, mocked relay, response status/headers/body, assertions, reload and environment/collection reuse. Benchmark same workflow with Postman/Hoppscotch/Bruno. Avoid live third-party API or fixtures with secrets.
-- PR #232 and #234 remain merged; don't repeat the guided walkthrough or collapsed Data tools.
+- PR #236 MERGED, Issue #235 CLOSED. Merge SHA 34f1b424fddf934397e43dee9a15a4a9bb33ecf7; tested head f29b597b415705252a9f4f8d74234abe69b903b7; exact CI #45960165602, Verify #45960165612 and Preview #140375840120 passed. Preview https://470b5b66.coderkit.pages.dev/ (Preview only). Environment selector width/readability fixed.
+- PR #239 OPEN, Issue #238 OPEN: https://github.com/yqh-core/dev-tools/pull/239. Branch feat/api-studio-single-request-retry-20261127; latest SHA ed8c6819589a9573cf1b725a615f2e86f5bcd9fb. Adds manual Retry next to relay/network errors and wrapped upstream transient statuses; no retry for local validation/missing vars or non-transient 4xx; no auto replay.
+- Real relay contract: functions/api/apiproxy.js returns outer HTTP 200 with upstream response status stored in JSON status. Current code checks both outer transport failures and upstream response status. For wrapped upstream 503 Retry sits beside response status; response body/headers/assertions remain inspectable.
+- E2E covers missing variable→zero relay calls/no retry; outer 200 + inner 400→visible response/no retry; outer 200 + inner 503→Retry visible/no auto call; user Enter→one further outer200+inner200 response, Retry clears; 390×844 no horizontal overflow.
+- Screenshot review for head 1f6c20f found first-visit consent overlay partly hiding the desktop response and completely dimming the mobile workspace. Latest test commit ed8c681 explicitly rejects analytics in its test context before screenshot, without changing production consent/defaults. New retry screenshots must be reviewed.
+- Latest exact-head checks for ed8c681:
+  - CI #45964510281, job #140389869855 — last at Lint, no failures yet.
+  - Verify/Build #45964510316, job #140389870032 — last at Typecheck + Build, no failures yet.
+  - Pages Preview exact head ed8c681 — BUILD IN PROGRESS; dashboard https://dash.cloudflare.com/?to=/595b1a2e4d763a5e62adf1df2416b889/pages/view/coderkit/71a39132-e48a-4464-9fcb-6e0825eee761.
+  - Merge #239 only after ed8c681 exact-head CI, Verify/Build, Preview and screenshot review all pass.
+- Product homepage and first workspace remain acceptable at 1440×900 / 390×844; keep navy/mint independent identity and avoid speculative redesign.
+- Next task Issue #240: test one uninterrupted new user flow in standalone /app/ with no seeded request: create, configure, explicit Send, mocked relay, inspect response, add assertion, persist/reload, reuse environment/collection/runner. Compare Postman/Hoppscotch/Bruno workflow; no live external API; test focus and mobile.
 
 ### Remaining launch gates
 
