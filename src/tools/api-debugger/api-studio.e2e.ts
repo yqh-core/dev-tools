@@ -176,7 +176,7 @@ test('shows live collection progress and structured redacted request outcomes', 
   const secondStarted = new Promise<void>((resolve) => { announceSecond = resolve; });
   const sentUrls: string[] = [];
 
-  await page.route(/\\/api\\/apiproxy/, async (route) => {
+  await page.route(/\/api\/apiproxy/, async (route) => {
     const payload = route.request().postDataJSON() as { url: string };
     sentUrls.push(payload.url);
     if (payload.url.includes('/first')) {
@@ -236,7 +236,7 @@ test('cancels a collection after the in-flight request finishes and does not sen
   const firstGate = new Promise<void>((resolve) => { finishFirst = resolve; });
   const firstStarted = new Promise<void>((resolve) => { announceFirst = resolve; });
   const sentUrls: string[] = [];
-  await page.route(/\\/api\\/apiproxy/, async (route) => {
+  await page.route(/\/api\/apiproxy/, async (route) => {
     const payload = route.request().postDataJSON() as { url: string };
     sentUrls.push(payload.url);
     announceFirst();
