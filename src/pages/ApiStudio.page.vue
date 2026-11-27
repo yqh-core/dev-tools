@@ -1830,11 +1830,21 @@ function onMenuSelect(key: string, node: TreeNode) {
           <span class="api-url-ghost">https://api.example.com/…</span>
         </div>
         <h2 class="api-editor-title">
-          A calmer place to build and test APIs
+          Start with your first request
         </h2>
         <p class="api-editor-sub">
-          Pick a request on the left to edit it, or add a new one. Group related calls into folders —
-          a folder's scripts apply to everything inside it, and the whole collection runs in order.
+          Create a blank request, add your endpoint URL, then select Send. New requests start as GET; you can change the method any time.
+        </p>
+        <button
+          class="api-tool-btn api-run-btn api-first-request-btn"
+          type="button"
+          data-test-id="create-first-request"
+          @click="addRequestTo(null)"
+        >
+          Create your first request
+        </button>
+        <p class="api-editor-tip">
+          Group related calls into folders, then run the collection in order when you're ready.
         </p>
         <p class="api-editor-note">
           Saved collections and environment values stay in this browser. Requests pass through our first-party API relay.
@@ -2847,6 +2857,20 @@ function onMenuSelect(key: string, node: TreeNode) {
   font-size: var(--api-fs-md);
   line-height: 1.6;
   color: var(--api-text-soft);
+}
+
+.api-first-request-btn {
+  min-height: 40px;
+  padding: 0 16px;
+  margin-bottom: var(--api-gap);
+  font-weight: 650;
+}
+
+.api-editor-tip {
+  margin: 0 0 var(--api-gap);
+  font-size: var(--api-fs-sm);
+  line-height: 1.6;
+  color: var(--api-text-muted);
 }
 
 .api-editor-note {

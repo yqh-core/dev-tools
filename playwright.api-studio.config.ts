@@ -13,6 +13,7 @@ export default defineConfig({
   reporter: 'list',
   use: {
     baseURL: 'http://127.0.0.1:5051',
+    testIdAttribute: 'data-test-id',
     trace: 'on-first-retry',
     locale: 'en-US',
   },
