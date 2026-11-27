@@ -500,6 +500,10 @@ test('completes a first-request journey from a clean /app origin through manual 
   await page.getByTestId('assertion-type').nth(1).click();
   await page.locator('.n-base-select-option').filter({ hasText: /^JSON field$/ }).click();
   await page.getByTestId('assertion-target').fill('$.id');
+  // JSON assertions default to "exists", which intentionally has no expected-value field.
+  // Select "equals" first so the expected value editor is visible.
+  await page.getByTestId('assertion-operator').nth(1).click();
+  await page.locator('.n-base-select-option').filter({ hasText: /^equals$/ }).click();
   await page.getByTestId('assertion-expected').nth(1).fill('42');
   await page.getByTestId('assertion-expected').nth(1).press('Tab');
   await expect(page.getByTestId('assertion-row')).toHaveCount(2);
