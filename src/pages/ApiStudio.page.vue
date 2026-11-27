@@ -515,6 +515,7 @@ const sendingSingle = ref(false);
 const singleResponse = ref<RunnerResponse | null>(null);
 const singleAssertionReport = ref<AssertionReport | null>(null);
 const singleError = ref('');
+const singleCanRetry = ref(false);
 const edPre = ref('');
 const edTest = ref('');
 // 仅在切换选中节点（id 变化）时回填，避免每次提交后 clobber 用户正在编辑的内容。
@@ -531,6 +532,7 @@ watch(() => selectedNode.value?.id, () => {
   singleResponse.value = null;
   singleAssertionReport.value = null;
   singleError.value = '';
+  singleCanRetry.value = false;
   edPre.value = n?.scripts?.prerequest ?? '';
   edTest.value = n?.scripts?.test ?? '';
 }, { immediate: true });
@@ -559,6 +561,7 @@ function commitRequest() {
   // A changed request must not leave an older response looking like the result of the new input.
   singleResponse.value = null;
   singleError.value = '';
+  singleCanRetry.value = false;
   const request = {
     ...s.request,
     method: edMethod.value,
@@ -1044,6 +1047,7 @@ async function sendSelectedRequest() {
   if (saved.error) {
     singleResponse.value = null;
     singleError.value = saved.error;
+    singleCanRetry.value = false;
     return;
   }
   applyTree(saved.tree);
@@ -1051,9 +1055,11 @@ async function sendSelectedRequest() {
   if (missing.length) {
     singleResponse.value = null;
     singleError.value = `Missing variables: ${missing.join(', ')}. Define them in the selected environment.`;
+    singleCanRetry.value = false;
     return;
   }
 
+  singleCanRetry.value = false;
   sendingSingle.value = true;
   singleError.value = '';
   singleResponse.value = null;
@@ -1070,6 +1076,7 @@ async function sendSelectedRequest() {
   }
   catch (e) {
     singleError.value = e instanceof Error ? e.message : String(e);
+    singleCanRetry.value = true;
     banner.value = 'Request could not be completed. Review the error and try again.';
   }
   finally {
@@ -1759,7 +1766,17 @@ function onMenuSelect(key: string, node: TreeNode) {
           </section>
 
           <div v-if="singleError" class="api-response-error" role="alert" data-test-id="single-send-error">
-            {{ singleError }}
+            <span>{{ singleError }}</span>
+            <button
+              v-if="singleCanRetry"
+              class="api-mini-action api-error-retry"
+              type="button"
+              data-test-id="retry-send"
+              :disabled="sendingSingle"
+              @click="sendSelectedRequest"
+            >
+              Retry request
+            </button>
           </div>
           <section v-if="singleResponse" class="api-response-panel" data-test-id="single-response" aria-label="Response">
             <div class="api-response-head">
@@ -2526,6 +2543,11 @@ function onMenuSelect(key: string, node: TreeNode) {
 }
 
 .api-response-error {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
   padding: 9px 12px;
   border: 1px solid var(--api-danger, #d45b5b);
   border-radius: var(--api-radius-sm);
@@ -2533,6 +2555,16 @@ function onMenuSelect(key: string, node: TreeNode) {
   color: var(--api-danger, #d45b5b);
   font-size: var(--api-fs-sm);
   overflow-wrap: anywhere;
+}
+
+.api-response-error > span {
+  flex: 1 1 16rem;
+  min-width: 0;
+}
+
+.api-error-retry {
+  flex: 0 0 auto;
+  white-space: nowrap;
 }
 
 .api-response-panel {
