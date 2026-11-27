@@ -16,9 +16,8 @@ site:
 home:
   hero:
     title: "免费在线开发者工具"
-    # S2 裁定：不笼统宣称 browser-only（whois/http-status-checker/today-in-history 需联网）。
-    # browser 能力表述只允许带限定语（默认/少数），与首页 Privacy 区块的分层声明同口径。
-    subtitle: "格式化 JSON、解析 JWT、测试正则、转换数据、排查 HTTP —— {count} 个面向真实工作流的开发者工具，默认在浏览器本地运行，少数工具需要联网查询。"
+    # 分开说明本地处理与联网任务，不笼统承诺所有工具仅在浏览器运行。
+    subtitle: "格式化 JSON、解析 JWT、测试正则并排查 HTTP —— {count} 个面向真实工作流的开发者工具。多数任务在浏览器本地处理；联网任务会访问完成任务所需的服务或中继。"
     badgeFree: "免费"
     badgeNoSignup: "无需注册"
     badgeTools: "{count} 个工具"
@@ -60,7 +59,7 @@ home:
         description: "检查 URL 的 HTTP 响应、查阅响应头、计算 IPv4 子网并查询域名注册信息。"
   why:
     title: "为什么选择 DigDevBox"
-    point1: "快：工具直接在浏览器里运行，不需要等服务端往返。"
+    point1: "快：本地任务无需服务器往返；联网任务只在完成任务所需时访问相应服务。"
     point2: "私有：凡是能本地完成的计算，输入内容都留在你的机器上。"
     point3: "免注册：不要账号、不要邮箱、没有付费墙 —— 打开即用。"
     point4: "基于浏览器：无需安装，无需配置。"
