@@ -152,7 +152,9 @@ test('homepage guided walkthrough is keyboard-operable and updates its step copy
   await page.setViewportSize({ width: 1440, height: 900 });
   const apiRequests: string[] = [];
   page.on('request', (request) => {
-    if (request.resourceType() === 'fetch' || request.resourceType() === 'xhr') apiRequests.push(request.url());
+    if (request.resourceType() === 'fetch' || request.resourceType() === 'xhr') {
+      apiRequests.push(request.url());
+    }
   });
   await page.goto('/');
   apiRequests.length = 0;
