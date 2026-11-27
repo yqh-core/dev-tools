@@ -38,11 +38,22 @@ test('workspace opens at /app and keeps the app shell out of search indexing', a
 
   const robots = await page.locator('meta[name="robots"]').getAttribute('content');
   expect(robots).toBe('noindex,nofollow');
-  const dimensions = await page.evaluate(() => ({
-    documentWidth: document.documentElement.scrollWidth,
-    viewportWidth: document.documentElement.clientWidth,
-  }));
+  const dimensions = await page.evaluate(() => {
+    const shell = document.querySelector('.api-studio-shell')?.getBoundingClientRect();
+    const workspace = document.querySelector('.api-shell-body')?.getBoundingClientRect();
+    return {
+      documentWidth: document.documentElement.scrollWidth,
+      viewportWidth: document.documentElement.clientWidth,
+      shellBottom: shell?.bottom ?? 0,
+      shellHeight: shell?.height ?? 0,
+      workspaceBottom: workspace?.bottom ?? 0,
+      viewportHeight: window.innerHeight,
+    };
+  });
   expect(dimensions.documentWidth).toBeLessThanOrEqual(dimensions.viewportWidth);
+  expect(dimensions.shellBottom).toBeGreaterThanOrEqual(dimensions.viewportHeight - 1);
+  expect(dimensions.shellHeight).toBeGreaterThanOrEqual(dimensions.viewportHeight - 1);
+  expect(dimensions.workspaceBottom).toBeGreaterThanOrEqual(dimensions.viewportHeight - 1);
   await page.screenshot({ path: testInfo.outputPath('workspace-desktop-first-fold.png') });
 });
 
@@ -74,11 +85,22 @@ test('workspace remains within the mobile viewport and theme control works', asy
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/app/');
 
-  const dimensions = await page.evaluate(() => ({
-    documentWidth: document.documentElement.scrollWidth,
-    viewportWidth: document.documentElement.clientWidth,
-  }));
+  const dimensions = await page.evaluate(() => {
+    const shell = document.querySelector('.api-studio-shell')?.getBoundingClientRect();
+    const workspace = document.querySelector('.api-shell-body')?.getBoundingClientRect();
+    return {
+      documentWidth: document.documentElement.scrollWidth,
+      viewportWidth: document.documentElement.clientWidth,
+      shellBottom: shell?.bottom ?? 0,
+      shellHeight: shell?.height ?? 0,
+      workspaceBottom: workspace?.bottom ?? 0,
+      viewportHeight: window.innerHeight,
+    };
+  });
   expect(dimensions.documentWidth).toBeLessThanOrEqual(dimensions.viewportWidth);
+  expect(dimensions.shellBottom).toBeGreaterThanOrEqual(dimensions.viewportHeight - 1);
+  expect(dimensions.shellHeight).toBeGreaterThanOrEqual(dimensions.viewportHeight - 1);
+  expect(dimensions.workspaceBottom).toBeGreaterThanOrEqual(dimensions.viewportHeight - 1);
   await page.screenshot({ path: testInfo.outputPath('workspace-mobile-first-fold.png') });
 
   const themeToggle = page.getByRole('button', { name: 'Switch to light theme' });
