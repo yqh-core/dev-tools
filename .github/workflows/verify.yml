@@ -52,6 +52,17 @@ jobs:
       - name: 类型检查 + 构建
         run: pnpm run build
 
+      # The independent API Studio product site is a separate build output.
+      # This validates /, /app/, and task guides without changing DigDevBox Main's dist/.
+      - name: 构建独立 API Studio 产品站
+        run: pnpm run build:api-studio
+
+      - name: 安装 Chromium（API Studio 产品站）
+        run: pnpm exec playwright install chromium
+
+      - name: API Studio 独立站浏览器验收
+        run: pnpm run test:e2e:api-studio
+
       - name: 校验产物
         run: |
           set -euo pipefail
