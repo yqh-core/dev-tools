@@ -88,6 +88,8 @@ test('all task guides are directly addressable and have a clear task heading', a
 test('workspace remains within the mobile viewport and theme control works', async ({ page }, testInfo) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/app/');
+  await expect(page.locator('.api-studio-shell')).toBeVisible();
+  await expect(page.getByText('No requests yet')).toBeVisible();
 
   const dimensions = await page.evaluate(() => {
     const shell = document.querySelector('.api-studio-shell')?.getBoundingClientRect();
