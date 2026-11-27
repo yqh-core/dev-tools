@@ -85,6 +85,25 @@ test('creates a blank first request from the empty state without sending it', as
     });
 
     await page.goto(new URL('/api-studio', baseUrl).toString());
+
+    // The nested Naive UI provider must not insert a wrapper around the shell's
+    // flex children, otherwise the header/body height chain collapses.
+    const shellLayout = await page.evaluate(() => {
+      const shell = document.querySelector('.api-studio-shell');
+      const topbar = shell?.querySelector(':scope > .api-topbar');
+      const body = shell?.querySelector(':scope > .api-shell-body');
+      return {
+        display: shell ? getComputedStyle(shell).display : '',
+        topbarIsDirectChild: topbar?.parentElement === shell,
+        bodyIsDirectChild: body?.parentElement === shell,
+        bodyHeight: body?.getBoundingClientRect().height ?? 0,
+      };
+    });
+    expect(shellLayout.display).toBe('flex');
+    expect(shellLayout.topbarIsDirectChild).toBe(true);
+    expect(shellLayout.bodyIsDirectChild).toBe(true);
+    expect(shellLayout.bodyHeight).toBeGreaterThan(600);
+
     const emptyState = page.locator('.api-editor-empty');
     await expect(emptyState).toBeVisible();
     const createButton = page.getByRole('button', { name: 'Create your first request' });
