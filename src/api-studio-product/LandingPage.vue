@@ -63,7 +63,7 @@ const currentDemoStep = computed(() => demoSteps[activeDemoStep.value] ?? demoSt
         <span class="site-brand-copy"><strong>API Studio</strong><small>by DigDevBox</small></span>
       </a>
       <nav class="site-nav-links" aria-label="Main navigation">
-        <a href="#workflow">How it works</a>
+        <a href="#guided-demo">How it works</a>
         <a href="#features">What you can do</a>
         <a href="/docs/">Guides</a>
       </nav>
@@ -78,7 +78,7 @@ const currentDemoStep = computed(() => demoSteps[activeDemoStep.value] ?? demoSt
           <p class="hero-lede">Send a request. See what came back. Keep the next run ready. API Studio brings everyday API testing into one clear browser workspace.</p>
           <div class="hero-actions">
             <a class="button-primary" href="/app/">Open API Studio <span aria-hidden="true">→</span></a>
-            <a class="button-secondary" href="#workflow">See how it works</a>
+            <a class="button-secondary" href="#guided-demo">See how it works</a>
           </div>
           <div class="hero-assurances" aria-label="Getting started">
             <span><i aria-hidden="true">✓</i> No install</span>
@@ -132,7 +132,7 @@ const currentDemoStep = computed(() => demoSteps[activeDemoStep.value] ?? demoSt
         <b>Request</b><i>→</i><b>Response</b><i>→</i><b>Assertion</b><i>→</i><b>Repeat</b>
       </section>
 
-      <section class="guided-demo-section section-wrap" aria-labelledby="guided-demo-title">
+      <section id="guided-demo" class="guided-demo-section section-wrap" aria-labelledby="guided-demo-title">
         <div class="guided-demo-heading">
           <p class="eyebrow">A FOUR-STEP WALKTHROUGH</p>
           <h2 id="guided-demo-title">One request.<br/><span>A repeatable result.</span></h2>
