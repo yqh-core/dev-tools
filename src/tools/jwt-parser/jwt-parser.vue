@@ -1,6 +1,6 @@
 <script setup lang="ts">
+import { JwtDecodeError, decodeJwt } from './jwt-parser.service';
 import { useValidation } from '@/composable/validation';
-import { decodeJwt, JwtDecodeError } from './jwt-parser.service';
 
 const { t, locale } = useI18n();
 
@@ -53,7 +53,7 @@ const validationRules = computed(() => [
       }
       catch (error) {
         const code = error instanceof JwtDecodeError ? error.code : 'decode';
-        return t('tools.jwt-parser.errors.' + code);
+        return t(`tools.jwt-parser.errors.${code}`);
       }
     },
   },
@@ -69,7 +69,7 @@ const clipboardStatus = ref('');
 
 function claimDescription(claim: string, fallback?: string) {
   const key = claimDescriptionKeys[claim];
-  return key ? t('tools.jwt-parser.' + key) : fallback;
+  return key ? t(`tools.jwt-parser.${key}`) : fallback;
 }
 
 async function copySignatureSegment() {
