@@ -819,7 +819,7 @@ export const GUIDES: Record<string, ToolGuide> = {
       '用 Infer Schema 从样本生成 JSON Schema Draft 7 初稿；用 Transform 将 JSON 转换为 YAML、CSV、XML 或 TOML。',
       '原始输入是 YAML、CSV、XML、TOML 或 .env 时，选择 Parse 将其解析为 JSON。',
       '用 Generate Types 生成 TypeScript、C#、Java 或 Go 类型；用 Diff 将当前输入与另一份 JSON 比较。',
-      '选择 → Add next step 继续添加步骤。修改输入或参数后，结果会自动更新，无需单独点击 Run。除非固定某一步的输入，否则该步骤会接收上一步成功的输出。',
+      '选择 → Add next step 继续添加步骤。修改输入或参数后，结果会自动更新，无需单独点击 Run。除非固定某一步的输入，否则该步骤会接收上一步的输出；如果上一步报错，下游步骤也会显示输入错误，修复上游后即可恢复。',
       '复制或下载步骤结果。Import state / Export state 用于在文件间迁移整个工作流；Reset 会恢复默认流程。',
     ],
     notes: [
@@ -831,10 +831,10 @@ export const GUIDES: Record<string, ToolGuide> = {
       '导入文件在当前浏览器标签页中读取，大小上限为 5 MiB。当前工作流会自动保存到本网站在此浏览器中的 localStorage；不会同步到云端，本工具也不会加密这些数据。',
       '导出的状态文件包含工作流输入和步骤参数。分享链接同样会把输入与参数放入 URL 片段，使用可逆的 Base64URL 编码，而非加密；任何拿到链接的人都可以读取其中的数据。完整链接上限为 8,192 个字符。请勿在分享链接或状态文件中放入凭据、访问令牌或生产环境私有数据。',
     ],
-    about: 'JSON 工作通常不止是格式化：开发者还需要检查嵌套结构、提取字段、转换格式、推断 Schema、生成类型定义并比较不同版本。本工作台把这些操作组织成一条实时处理管线。每一步默认接收上一步成功的输出，也可以固定独立输入；某一步报错不会清空整条流程。当前提供 Format / Validate、Minify、Tree、JSONPath Query、Transform、Infer Schema、Generate Types、Diff 和 Parse to JSON 九类操作。处理与本地文件读取都在当前浏览器标签页中进行；工作流保存在此浏览器的 localStorage。状态文件和分享链接会包含你输入的数据，分享链接只是编码，并非加密，应按数据导出方式谨慎处理。',
+    about: 'JSON 工作通常不止是格式化：开发者还需要检查嵌套结构、提取字段、转换格式、推断 Schema、生成类型定义并比较不同版本。本工作台把这些操作组织成一条实时处理管线。每一步默认接收上一步的输出，也可以固定独立输入。上游步骤报错时，依赖它的下游步骤会显示相应输入错误；修复上游即可恢复，工作流状态会保留。当前提供 Format / Validate、Minify、Tree、JSONPath Query、Transform、Infer Schema、Generate Types、Diff 和 Parse to JSON 九类操作。处理与本地文件读取都在当前浏览器标签页中进行；工作流保存在此浏览器的 localStorage。状态文件和分享链接会包含你输入的数据，分享链接只是编码，并非加密，应按数据导出方式谨慎处理。',
     faqs: [
       { q: '工作台包含哪些操作？', a: '包括 Format / Validate、Minify、Tree、JSONPath Query、Transform、Infer Schema、Generate Types、Diff 和 Parse to JSON。你可以围绕同一份输入连续添加多个步骤。' },
-      { q: '修改步骤后需要单独点击 Run 吗？', a: '不需要。修改输入或步骤参数后，处理结果会自动重新计算。除非固定某一步的输入，否则该步骤会使用上一步成功的输出。' },
+      { q: '修改步骤后需要单独点击 Run 吗？', a: '不需要。修改输入或步骤参数后，处理结果会自动重新计算。除非固定某一步的输入，否则该步骤会使用上一步的输出。若上游步骤报错，请先修复上游，再检查依赖它的步骤。' },
       { q: '支持哪些格式的解析和转换？', a: 'Parse 可将 YAML、CSV、XML、TOML 和 .env 解析为 JSON；Transform 可将 JSON 转换为 YAML、CSV、XML 或 TOML。CSV 输出要求对象数组；TOML 输出要求顶层为对象。' },
       { q: '支持哪些 JSONPath 表达式？', a: '支持 $、.key、[\'key\']、数组下标（包括负数）、切片、.* 与 [*] 通配符，以及 ..key 递归下降。不支持 ?() 过滤表达式和脚本表达式。' },
       { q: '推断出的 Schema 可以直接作为 API 契约吗？', a: '不能直接依赖。JSON Schema Draft 7 是根据单一样本推断出的初稿；请结合真实 API 契约核对必填字段、可选属性和数据类型。' },
