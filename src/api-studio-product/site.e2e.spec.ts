@@ -110,3 +110,41 @@ test('workspace remains within the mobile viewport and theme control works', asy
   await expect(page.getByRole('button', { name: 'Switch to dark theme' })).toBeVisible();
   await expect(page.locator('.api-studio-shell')).toHaveAttribute('data-api-theme', 'light');
 });
+
+
+test('first request CTA creates one blank request without sending a network call on desktop', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  const outbound: string[] = [];
+  page.on('request', request => {
+    if (request.method() !== 'GET' && !request.url().startsWith('data:')) {
+      outbound.push(request.url());
+    }
+  });
+
+  await page.goto('/app/');
+  const cta = page.getByTestId('create-first-request');
+  await expect(cta).toBeVisible();
+  await cta.click();
+
+  await expect(page.getByTestId('tree-row')).toHaveCount(1);
+  await expect(page.getByText('Start with your first request')).toHaveCount(0);
+  await expect(page.getByTestId('request-url')).toBeVisible();
+  expect(outbound).toEqual([]);
+});
+
+test('first request CTA is usable on mobile without horizontal overflow', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/app/');
+
+  const cta = page.getByTestId('create-first-request');
+  await expect(cta).toBeVisible();
+  await cta.click();
+
+  await expect(page.getByTestId('tree-row')).toHaveCount(1);
+  await expect(page.getByTestId('request-url')).toBeVisible();
+  const dimensions = await page.evaluate(() => ({
+    documentWidth: document.documentElement.scrollWidth,
+    viewportWidth: document.documentElement.clientWidth,
+  }));
+  expect(dimensions.documentWidth).toBeLessThanOrEqual(dimensions.viewportWidth);
+});
