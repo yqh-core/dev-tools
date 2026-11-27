@@ -147,3 +147,40 @@ test('first request CTA is usable on mobile without horizontal overflow', async 
   }));
   expect(dimensions.documentWidth).toBeLessThanOrEqual(dimensions.viewportWidth);
 });
+
+
+test('homepage guided walkthrough is keyboard-operable and updates its step copy', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/');
+
+  const steps = page.getByRole('group', { name: 'Guided demo steps' });
+  const assertions = steps.getByRole('button', { name: '03 Assertions' });
+  await expect(steps.getByRole('button')).toHaveCount(4);
+  await expect(steps.getByRole('button', { name: '01 Request' })).toHaveAttribute('aria-pressed', 'true');
+
+  await assertions.focus();
+  await page.keyboard.press('Enter');
+
+  await expect(assertions).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('#guided-demo-detail')).toContainText('Check the response');
+  await expect(page.locator('#guided-demo-detail')).toContainText('does not send a request').not.toBeVisible();
+  await expect(page.locator('#guided-demo-detail')).toContainText('review which checks passed');
+});
+
+test('homepage guided walkthrough stays usable on a 390px screen', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/');
+
+  const steps = page.getByRole('group', { name: 'Guided demo steps' });
+  const collectionRun = steps.getByRole('button', { name: '04 Collection run' });
+  await expect(collectionRun).toBeVisible();
+  await collectionRun.click();
+  await expect(collectionRun).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('#guided-demo-detail')).toContainText('Repeat the whole flow');
+
+  const dimensions = await page.evaluate(() => ({
+    documentWidth: document.documentElement.scrollWidth,
+    viewportWidth: document.documentElement.clientWidth,
+  }));
+  expect(dimensions.documentWidth).toBeLessThanOrEqual(dimensions.viewportWidth);
+});
