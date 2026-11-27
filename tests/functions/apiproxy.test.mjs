@@ -118,7 +118,7 @@ describe('apiproxy forwarding', () => {
     vi.useFakeTimers();
     try {
       let startTargetFetch;
-      const targetFetchStarted = new Promise(resolve => {
+      const targetFetchStarted = new Promise((resolve) => {
         startTargetFetch = resolve;
       });
       const upstream = dohAware((_url, init) => new Promise((_resolve, reject) => {
