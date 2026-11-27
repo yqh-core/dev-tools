@@ -153,6 +153,9 @@ test('homepage guided walkthrough is keyboard-operable and updates its step copy
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto('/');
 
+  await expect(page.getByRole('navigation', { name: 'Main navigation' }).getByRole('link', { name: 'How it works' })).toHaveAttribute('href', '#guided-demo');
+  await expect(page.getByRole('link', { name: 'See how it works' })).toHaveAttribute('href', '#guided-demo');
+
   const steps = page.getByRole('group', { name: 'Guided demo steps' });
   const assertions = steps.getByRole('button', { name: '03 Assertions' });
   await expect(steps.getByRole('button')).toHaveCount(4);
