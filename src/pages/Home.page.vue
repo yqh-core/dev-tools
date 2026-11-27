@@ -1859,7 +1859,6 @@ function onUpdateFavoriteTools() {
 
 /* .classic-card 样式随首页经典入口一并摘除（见模板注释）。 */
 
-
 /* Compact the Main hero on narrow screens without removing its task shortcuts,
    preview context or 44px primary touch targets. */
 @media (max-width: 600px) {
