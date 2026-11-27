@@ -407,219 +407,221 @@ test('completes the first-request journey from a clean /app origin on desktop an
     });
     const page = await context.newPage();
     const relayPayloads: RelayPayload[] = [];
-  let relayAttempts = 0;
-  const relayRequests: string[] = [];
-  const analyticsRequests: string[] = [];
+    let relayAttempts = 0;
+    const relayRequests: string[] = [];
+    const analyticsRequests: string[] = [];
 
-  // The standalone product HTML deliberately does not load the Main site's consent
-  // banner or analytics bootstrap. Verify that privacy boundary instead of waiting
-  // for a Reject button that this independent noindex workspace does not render.
-  page.on('request', (request) => {
-    const requestUrl = new URL(request.url());
-    if (requestUrl.pathname === '/api/apiproxy') {
-      relayRequests.push(request.url());
-    }
-    if (/google-analytics|googletagmanager|plausible\.io/i.test(requestUrl.hostname)) {
-      analyticsRequests.push(request.url());
-    }
-  });
-  // Synthetic responses stay inside the Playwright mock. No live upstream API is called.
-  await page.route('**/api/apiproxy', async (route) => {
-    const payload = route.request().postDataJSON() as RelayPayload;
-    relayPayloads.push(payload);
-    relayAttempts += 1;
-    const recovered = relayAttempts > 1;
-    return route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify({
-        url: payload.url,
-        status: recovered ? 200 : 503,
-        statusText: recovered ? 'OK' : 'Service Unavailable',
-        headers: { 'content-type': 'application/json', 'x-request-id': 'e2e-first-request' },
-        body: recovered ? '{"id":42,"created":true}' : '{"error":"Temporary upstream outage"}',
-        elapsedMs: recovered ? 14 : 11,
-      }),
+    // The standalone product HTML deliberately does not load the Main site's consent
+    // banner or analytics bootstrap. Verify that privacy boundary instead of waiting
+    // for a Reject button that this independent noindex workspace does not render.
+    page.on('request', (request) => {
+      const requestUrl = new URL(request.url());
+      if (requestUrl.pathname === '/api/apiproxy') {
+        relayRequests.push(request.url());
+      }
+      if (/google-analytics|googletagmanager|plausible\.io/i.test(requestUrl.hostname)) {
+        analyticsRequests.push(request.url());
+      }
     });
-  });
+    // Synthetic responses stay inside the Playwright mock. No live upstream API is called.
+    await page.route('**/api/apiproxy', async (route) => {
+      const payload = route.request().postDataJSON() as RelayPayload;
+      relayPayloads.push(payload);
+      relayAttempts += 1;
+      const recovered = relayAttempts > 1;
+      return route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          url: payload.url,
+          status: recovered ? 200 : 503,
+          statusText: recovered ? 'OK' : 'Service Unavailable',
+          headers: { 'content-type': 'application/json', 'x-request-id': 'e2e-first-request' },
+          body: recovered ? '{"id":42,"created":true}' : '{"error":"Temporary upstream outage"}',
+          elapsedMs: recovered ? 14 : 11,
+        }),
+      });
+    });
 
-  await page.goto('/app/');
+    await page.goto('/app/');
 
-  // Start with a genuinely fresh product origin. The standalone workspace is noindex
-  // and intentionally does not load the Main site's analytics-consent.js; assert that
-  // no analytics bootstrap/request or consent state is introduced here.
-  const freshStorage = await page.evaluate(() => ({
-    tree: localStorage.getItem('api-studio:tree'),
-    environment: localStorage.getItem('api-debugger:env'),
-    consent: localStorage.getItem('digdevbox.analytics-consent.v1'),
-    consentUi: Boolean(document.querySelector('#digdevbox-analytics-consent')),
-  }));
-  expect(freshStorage).toEqual({ tree: null, environment: null, consent: null, consentUi: false });
-  expect(analyticsRequests).toEqual([]);
-  await expect(page.getByText('No requests yet')).toBeVisible();
+    // Start with a genuinely fresh product origin. The standalone workspace is noindex
+    // and intentionally does not load the Main site's analytics-consent.js; assert that
+    // no analytics bootstrap/request or consent state is introduced here.
+    const freshStorage = await page.evaluate(() => ({
+      tree: localStorage.getItem('api-studio:tree'),
+      environment: localStorage.getItem('api-debugger:env'),
+      consent: localStorage.getItem('digdevbox.analytics-consent.v1'),
+      consentUi: Boolean(document.querySelector('#digdevbox-analytics-consent')),
+    }));
+    expect(freshStorage).toEqual({ tree: null, environment: null, consent: null, consentUi: false });
+    expect(analyticsRequests).toEqual([]);
+    await expect(page.getByText('No requests yet')).toBeVisible();
 
-  await page.getByTestId('create-first-request').click();
-  await expect(page.getByTestId('tree-row')).toHaveCount(1);
-  await expect(page.getByTestId('editor-url')).toBeVisible();
-  expect(relayRequests).toEqual([]);
-  expect(relayAttempts).toBe(0);
+    await page.getByTestId('create-first-request').click();
+    await expect(page.getByTestId('tree-row')).toHaveCount(1);
+    await expect(page.getByTestId('editor-url')).toBeVisible();
+    expect(relayRequests).toEqual([]);
+    expect(relayAttempts).toBe(0);
 
-  // Create an environment and variable through the product UI, not localStorage fixtures.
-  await page.getByTestId('manage-environments').click();
-  await expect(page.getByTestId('environment-management')).toBeVisible();
-  await page.getByTestId('new-environment-name').fill('QA');
-  await page.getByTestId('create-environment').click();
-  await expect(page.getByTestId('env-select')).toContainText('QA');
-  await page.getByTestId('scope-environment').click();
-  await page.getByTestId('new-var-name').fill('apiVersion');
-  await page.getByTestId('new-var-value').fill('v2');
-  await page.getByTestId('add-variable').click();
-  await expect(page.locator('[data-test-id="var-row"][data-var-name="apiVersion"]')).toBeVisible();
-  await page.getByTestId('close-env-manager').click();
+    // Create an environment and variable through the product UI, not localStorage fixtures.
+    await page.getByTestId('manage-environments').click();
+    await expect(page.getByTestId('environment-management')).toBeVisible();
+    await page.getByTestId('new-environment-name').fill('QA');
+    await page.getByTestId('create-environment').click();
+    await expect(page.getByTestId('env-select')).toContainText('QA');
+    await page.getByTestId('scope-environment').click();
+    await page.getByTestId('new-var-name').fill('apiVersion');
+    await page.getByTestId('new-var-value').fill('v2');
+    await page.getByTestId('add-variable').click();
+    await expect(page.locator('[data-test-id="var-row"][data-var-name="apiVersion"]')).toBeVisible();
+    await page.getByTestId('close-env-manager').click();
 
-  // Configure the request through the editor controls. The environment token is
-  // intentionally non-sensitive synthetic data; the relay receives the resolved value.
-  await page.getByTestId('editor-name').fill('Create user');
-  await page.getByTestId('editor-name').press('Tab');
+    // Configure the request through the editor controls. The environment token is
+    // intentionally non-sensitive synthetic data; the relay receives the resolved value.
+    await page.getByTestId('editor-name').fill('Create user');
+    await page.getByTestId('editor-name').press('Tab');
 
-  const methodSelect = page.getByTestId('editor-method');
-  await methodSelect.click();
-  await page.keyboard.press('ArrowDown');
-  await page.keyboard.press('Enter');
-  await expect(methodSelect).toContainText('POST');
+    const methodSelect = page.getByTestId('editor-method');
+    await methodSelect.click();
+    await page.keyboard.press('ArrowDown');
+    await page.keyboard.press('Enter');
+    await expect(methodSelect).toContainText('POST');
 
-  await page.getByTestId('editor-url').fill('https://api.test/users');
-  await page.getByTestId('editor-url').press('Tab');
-  await page.getByTestId('add-query-param').click();
-  await page.getByTestId('query-name').fill('active');
-  await page.getByTestId('query-value').fill('true');
-  await page.getByTestId('apply-query-params').click();
-  await expect(page.getByTestId('editor-url')).toHaveValue('https://api.test/users?active=true');
+    await page.getByTestId('editor-url').fill('https://api.test/users');
+    await page.getByTestId('editor-url').press('Tab');
+    await page.getByTestId('add-query-param').click();
+    await page.getByTestId('query-name').fill('active');
+    await page.getByTestId('query-value').fill('true');
+    await page.getByTestId('apply-query-params').click();
+    await expect(page.getByTestId('editor-url')).toHaveValue('https://api.test/users?active=true');
 
-  await page.getByTestId('add-header').click();
-  await page.getByTestId('header-name').fill('x-api-version');
-  await page.getByTestId('header-value').fill('{{apiVersion}}');
-  await page.getByTestId('header-value').press('Tab');
-  await page.getByTestId('editor-body').fill('{"name":"Ada"}');
-  await page.getByTestId('editor-body').press('Tab');
+    await page.getByTestId('add-header').click();
+    await page.getByTestId('header-name').fill('x-api-version');
+    await page.getByTestId('header-value').fill('{{apiVersion}}');
+    await page.getByTestId('header-value').press('Tab');
+    await page.getByTestId('editor-body').fill('{"name":"Ada"}');
+    await page.getByTestId('editor-body').press('Tab');
 
-  // Add two response checks using the visible assertion editor.
-  await page.getByTestId('add-assertion').click();
-  await page.getByTestId('assertion-expected').first().fill('200');
-  await page.getByTestId('assertion-expected').first().press('Tab');
-  await page.getByTestId('add-assertion').click();
-  await page.getByTestId('assertion-type').nth(1).click();
-  await page.locator('.n-base-select-option').filter({ hasText: /^JSON field$/ }).click();
-  await page.getByTestId('assertion-target').fill('$.id');
-  // JSON assertions default to "exists", which intentionally has no expected-value field.
-  // Select "equals" first so the expected value editor is visible.
-  await page.getByTestId('assertion-operator').nth(1).click();
-  await page.locator('.n-base-select-option').filter({ hasText: /^equals$/ }).click();
-  await page.getByTestId('assertion-expected').nth(1).fill('42');
-  await page.getByTestId('assertion-expected').nth(1).press('Tab');
-  await expect(page.getByTestId('assertion-row')).toHaveCount(2);
+    // Add two response checks using the visible assertion editor.
+    await page.getByTestId('add-assertion').click();
+    await page.getByTestId('assertion-expected').first().fill('200');
+    await page.getByTestId('assertion-expected').first().press('Tab');
+    await page.getByTestId('add-assertion').click();
+    await page.getByTestId('assertion-type').nth(1).click();
+    await page.locator('.n-base-select-option').filter({ hasText: /^JSON field$/ }).click();
+    await page.getByTestId('assertion-target').fill('$.id');
+    // JSON assertions default to "exists", which intentionally has no expected-value field.
+    // Select "equals" first so the expected value editor is visible.
+    await page.getByTestId('assertion-operator').nth(1).click();
+    await page.locator('.n-base-select-option').filter({ hasText: /^equals$/ }).click();
+    await page.getByTestId('assertion-expected').nth(1).fill('42');
+    await page.getByTestId('assertion-expected').nth(1).press('Tab');
+    await expect(page.getByTestId('assertion-row')).toHaveCount(2);
 
-  // Nothing is sent until the user explicitly activates Send.
-  expect(relayRequests).toEqual([]);
-  expect(relayAttempts).toBe(0);
-  const send = page.getByTestId('send-request');
-  await expect(send).toBeVisible();
-  await send.click();
+    // Nothing is sent until the user explicitly activates Send.
+    expect(relayRequests).toEqual([]);
+    expect(relayAttempts).toBe(0);
+    const send = page.getByTestId('send-request');
+    await expect(send).toBeVisible();
+    await send.click();
 
-  await expect(page.getByTestId('single-response')).toContainText('503 Service Unavailable');
-  const retry = page.getByTestId('retry-send');
-  await expect(retry).toBeVisible();
-  expect(relayAttempts).toBe(1);
-  expect(relayPayloads[0].method).toBe('POST');
-  expect(relayPayloads[0].url).toBe('https://api.test/users?active=true');
-  expect(relayPayloads[0].headers).toContainEqual({ name: 'x-api-version', value: 'v2' });
-  expect(relayPayloads[0].body).toBe('{"name":"Ada"}');
+    await expect(page.getByTestId('single-response')).toContainText('503 Service Unavailable');
+    const retry = page.getByTestId('retry-send');
+    await expect(retry).toBeVisible();
+    expect(relayAttempts).toBe(1);
+    expect(relayPayloads[0].method).toBe('POST');
+    expect(relayPayloads[0].url).toBe('https://api.test/users?active=true');
+    expect(relayPayloads[0].headers).toContainEqual({ name: 'x-api-version', value: 'v2' });
+    expect(relayPayloads[0].body).toBe('{"name":"Ada"}');
 
-  // A recoverable response never replays by itself. Check the actual mobile target,
-  // then require deliberate keyboard activation to send the second attempt.
-  expect(relayAttempts).toBe(1);
-  await retry.scrollIntoViewIfNeeded();
-  await expect(retry).toBeInViewport();
-  const retryBox = await retry.boundingBox();
-  expect(retryBox).not.toBeNull();
-  expect(retryBox!.height).toBeGreaterThanOrEqual(44);
-  const retryReceivesPointer = await page.evaluate(({ x, y }) => {
-    return Boolean(document.elementFromPoint(x, y)?.closest('[data-test-id="retry-send"]'));
-  }, {
-    x: retryBox!.x + retryBox!.width / 2,
-    y: retryBox!.y + retryBox!.height / 2,
-  });
-  expect(retryReceivesPointer).toBe(true);
-  const mobileWidth = await page.evaluate(() => ({
-    documentWidth: document.documentElement.scrollWidth,
-    viewportWidth: document.documentElement.clientWidth,
-  }));
-  expect(mobileWidth.documentWidth).toBeLessThanOrEqual(mobileWidth.viewportWidth);
-  await retry.focus();
-  await expect(retry).toBeFocused();
-  await page.keyboard.press('Enter');
-  await expect(page.getByTestId('single-response')).toContainText('200 OK');
-  await expect(page.getByTestId('single-response')).toContainText('14 ms');
-  await expect(page.getByTestId('single-response-body')).toContainText('"id": 42');
-  const assertionReport = page.getByTestId('single-assertion-report');
-  await expect(assertionReport).toContainText('2/2 assertions passed');
-  await expect(assertionReport.locator('[data-passed="true"]')).toHaveCount(2);
-  expect(relayAttempts).toBe(2);
+    // A recoverable response never replays by itself. Check the actual mobile target,
+    // then require deliberate keyboard activation to send the second attempt.
+    expect(relayAttempts).toBe(1);
+    await retry.scrollIntoViewIfNeeded();
+    await expect(retry).toBeInViewport();
+    const retryBox = await retry.boundingBox();
+    expect(retryBox).not.toBeNull();
+    if (viewport.name === 'mobile') {
+      expect(retryBox!.height).toBeGreaterThanOrEqual(44);
+      const retryReceivesPointer = await page.evaluate(({ x, y }) => {
+        return Boolean(document.elementFromPoint(x, y)?.closest('[data-test-id="retry-send"]'));
+      }, {
+        x: retryBox!.x + retryBox!.width / 2,
+        y: retryBox!.y + retryBox!.height / 2,
+      });
+      expect(retryReceivesPointer).toBe(true);
+    }
+    const retryViewportGeometry = await page.evaluate(() => ({
+      documentWidth: document.documentElement.scrollWidth,
+      viewportWidth: document.documentElement.clientWidth,
+    }));
+    expect(retryViewportGeometry.documentWidth).toBeLessThanOrEqual(retryViewportGeometry.viewportWidth);
+    await retry.focus();
+    await expect(retry).toBeFocused();
+    await page.keyboard.press('Enter');
+    await expect(page.getByTestId('single-response')).toContainText('200 OK');
+    await expect(page.getByTestId('single-response')).toContainText('14 ms');
+    await expect(page.getByTestId('single-response-body')).toContainText('"id": 42');
+    const assertionReport = page.getByTestId('single-assertion-report');
+    await expect(assertionReport).toContainText('2/2 assertions passed');
+    await expect(assertionReport.locator('[data-passed="true"]')).toHaveCount(2);
+    expect(relayAttempts).toBe(2);
 
-  // Persisted request and environment state is checked at the target viewport.
-  const persisted = await page.evaluate(() => ({
-    tree: JSON.parse(localStorage.getItem('api-studio:tree') || 'null'),
-    environment: JSON.parse(localStorage.getItem('api-debugger:env') || 'null'),
-    selectedEnvironment: localStorage.getItem('api-studio:selected-environment'),
-  }));
-  const savedRequest = persisted.tree?.items?.find((item: { name?: string }) => item.name === 'Create user');
-  expect(savedRequest?.request).toMatchObject({
-    method: 'POST',
-    url: 'https://api.test/users?active=true',
-    body: '{"name":"Ada"}',
-    headers: [{ name: 'x-api-version', value: '{{apiVersion}}' }],
-  });
-  expect(savedRequest?.assertions).toHaveLength(2);
-  // API Studio keeps its own selection without mutating the legacy API Debugger default.
-  expect(persisted.environment?.active).toBe('Default');
-  expect(persisted.environment?.envs?.QA?.apiVersion).toBe('v2');
-  expect(persisted.selectedEnvironment).toBe('QA');
-  await page.screenshot({ path: testInfo.outputPath(`first-request-${viewport.name}-after-retry.png`) });
+    // Persisted request and environment state is checked at the target viewport.
+    const persisted = await page.evaluate(() => ({
+      tree: JSON.parse(localStorage.getItem('api-studio:tree') || 'null'),
+      environment: JSON.parse(localStorage.getItem('api-debugger:env') || 'null'),
+      selectedEnvironment: localStorage.getItem('api-studio:selected-environment'),
+    }));
+    const savedRequest = persisted.tree?.items?.find((item: { name?: string }) => item.name === 'Create user');
+    expect(savedRequest?.request).toMatchObject({
+      method: 'POST',
+      url: 'https://api.test/users?active=true',
+      body: '{"name":"Ada"}',
+      headers: [{ name: 'x-api-version', value: '{{apiVersion}}' }],
+    });
+    expect(savedRequest?.assertions).toHaveLength(2);
+    // API Studio keeps its own selection without mutating the legacy API Debugger default.
+    expect(persisted.environment?.active).toBe('Default');
+    expect(persisted.environment?.envs?.QA?.apiVersion).toBe('v2');
+    expect(persisted.selectedEnvironment).toBe('QA');
+    await page.screenshot({ path: testInfo.outputPath(`first-request-${viewport.name}-after-retry.png`) });
 
-  // Reload without a seed script: the request and active environment must survive.
-  await page.reload();
-  await expect(page.getByTestId('tree-row')).toHaveCount(1);
-  await page.getByTestId('tree-method').click();
-  await expect(page.getByTestId('editor-name')).toHaveValue('Create user');
-  await expect(page.getByTestId('editor-method')).toContainText('POST');
-  await expect(page.getByTestId('editor-url')).toHaveValue('https://api.test/users?active=true');
-  await expect(page.getByTestId('header-value')).toHaveValue('{{apiVersion}}');
-  await expect(page.getByTestId('editor-body')).toHaveValue('{"name":"Ada"}');
-  await expect(page.getByTestId('assertion-row')).toHaveCount(2);
-  await expect(page.getByTestId('env-select')).toContainText('QA');
-  await expect(page.getByTestId('env-count')).toHaveText('1 var(s)');
+    // Reload without a seed script: the request and active environment must survive.
+    await page.reload();
+    await expect(page.getByTestId('tree-row')).toHaveCount(1);
+    await page.getByTestId('tree-method').click();
+    await expect(page.getByTestId('editor-name')).toHaveValue('Create user');
+    await expect(page.getByTestId('editor-method')).toContainText('POST');
+    await expect(page.getByTestId('editor-url')).toHaveValue('https://api.test/users?active=true');
+    await expect(page.getByTestId('header-value')).toHaveValue('{{apiVersion}}');
+    await expect(page.getByTestId('editor-body')).toHaveValue('{"name":"Ada"}');
+    await expect(page.getByTestId('assertion-row')).toHaveCount(2);
+    await expect(page.getByTestId('env-select')).toContainText('QA');
+    await expect(page.getByTestId('env-count')).toHaveText('1 var(s)');
 
-  // Reuse the same saved request and selected environment through Collection Runner.
-  await page.getByTestId('run-collection').click();
-  await expect(page.getByTestId('run-result')).toContainText('1/1 requests');
-  expect(relayAttempts).toBe(3);
-  expect(relayPayloads[2].url).toBe('https://api.test/users?active=true');
-  expect(relayPayloads[2].headers).toContainEqual({ name: 'x-api-version', value: 'v2' });
+    // Reuse the same saved request and selected environment through Collection Runner.
+    await page.getByTestId('run-collection').click();
+    await expect(page.getByTestId('run-result')).toContainText('1/1 requests');
+    expect(relayAttempts).toBe(3);
+    expect(relayPayloads[2].url).toBe('https://api.test/users?active=true');
+    expect(relayPayloads[2].headers).toContainEqual({ name: 'x-api-version', value: 'v2' });
 
-  // The full journey stays at its target viewport from first visit through reuse.
-  const finalGeometry = await page.evaluate(() => ({
-    documentWidth: document.documentElement.scrollWidth,
-    viewportWidth: document.documentElement.clientWidth,
-  }));
-  expect(finalGeometry.documentWidth).toBeLessThanOrEqual(finalGeometry.viewportWidth);
-  await expect(page.getByTestId('editor-url')).toHaveValue('https://api.test/users?active=true');
-  await send.focus();
-  await expect(send).toBeFocused();
-  await expect(send).toBeInViewport();
-  await page.keyboard.press('Enter');
-  await expect(page.getByTestId('single-response')).toContainText('200 OK');
-  expect(relayAttempts).toBe(4);
-  await page.screenshot({ path: testInfo.outputPath(`first-request-${viewport.name}-keyboard-send.png`), fullPage: true });
+    // The full journey stays at its target viewport from first visit through reuse.
+    const finalGeometry = await page.evaluate(() => ({
+      documentWidth: document.documentElement.scrollWidth,
+      viewportWidth: document.documentElement.clientWidth,
+    }));
+    expect(finalGeometry.documentWidth).toBeLessThanOrEqual(finalGeometry.viewportWidth);
+    await expect(page.getByTestId('editor-url')).toHaveValue('https://api.test/users?active=true');
+    await send.focus();
+    await expect(send).toBeFocused();
+    await expect(send).toBeInViewport();
+    await page.keyboard.press('Enter');
+    await expect(page.getByTestId('single-response')).toContainText('200 OK');
+    expect(relayAttempts).toBe(4);
+    await page.screenshot({ path: testInfo.outputPath(`first-request-${viewport.name}-keyboard-send.png`), fullPage: true });
     await context.close();
   }
 });
