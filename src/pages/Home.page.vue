@@ -695,12 +695,15 @@ function onUpdateFavoriteTools() {
           联网工具清单由 NETWORK_TOOL_PATHS 驱动（构建期 grep 的真实结果），
           新增会发外部请求的工具必须同步改那个常量，否则这里的声明就是假的。
         -->
-        <section class="home-block">
-          <h2 class="home-block-title">
+        <section id="home-privacy" class="home-block" aria-labelledby="home-privacy-title">
+          <h2 id="home-privacy-title" class="home-block-title">
             {{ $t('home.privacy.title') }}
           </h2>
-          <p class="home-block-text">
+          <p class="home-block-text" data-test-id="home-privacy-local">
             {{ $t('home.privacy.local') }}
+          </p>
+          <p class="home-block-text" data-test-id="home-privacy-relay">
+            {{ $t('home.privacy.relay') }}
           </p>
           <p class="home-block-text">
             {{ $t('home.privacy.networkIntro') }}
