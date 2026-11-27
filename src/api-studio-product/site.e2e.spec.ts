@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-test('product homepage explains the task and shows one primary workspace action', async ({ page }) => {
+test('product homepage explains the task and shows one primary workspace action', async ({ page }, testInfo) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto('/');
 
@@ -9,9 +9,10 @@ test('product homepage explains the task and shows one primary workspace action'
   await expect(page.getByText(/GUIDED PREVIEW · SAMPLE DATA/i)).toBeVisible();
   await expect(page.getByText(/not a live API call/i)).toBeVisible();
   await expect(page.getByRole('navigation', { name: 'Main navigation' }).getByRole('link', { name: 'Guides' })).toHaveAttribute('href', '/docs/');
+  await page.screenshot({ path: testInfo.outputPath('homepage-desktop-first-fold.png') });
 });
 
-test('homepage remains usable at 390px without horizontal overflow', async ({ page }) => {
+test('homepage remains usable at 390px without horizontal overflow', async ({ page }, testInfo) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/');
 
@@ -24,6 +25,7 @@ test('homepage remains usable at 390px without horizontal overflow', async ({ pa
   }));
 
   expect(dimensions.documentWidth).toBeLessThanOrEqual(dimensions.viewportWidth);
+  await page.screenshot({ path: testInfo.outputPath('homepage-mobile-first-fold.png') });
 });
 
 test('workspace opens at /app and keeps the app shell out of search indexing', async ({ page }) => {
@@ -46,7 +48,7 @@ test('task guides are directly addressable and link back to the workspace', asyn
   await expect(page.getByRole('link', { name: /All guides/i })).toHaveAttribute('href', '/docs/');
 });
 
-test('workspace remains within the mobile viewport and theme control works', async ({ page }) => {
+test('workspace remains within the mobile viewport and theme control works', async ({ page }, testInfo) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/app/');
 
@@ -55,6 +57,7 @@ test('workspace remains within the mobile viewport and theme control works', asy
     viewportWidth: document.documentElement.clientWidth,
   }));
   expect(dimensions.documentWidth).toBeLessThanOrEqual(dimensions.viewportWidth);
+  await page.screenshot({ path: testInfo.outputPath('workspace-mobile-first-fold.png') });
 
   const themeToggle = page.getByRole('button', { name: 'Switch to light theme' });
   await expect(themeToggle).toBeVisible();
