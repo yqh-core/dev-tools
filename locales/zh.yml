@@ -659,7 +659,7 @@ tools:
 
   eta-calculator:
     title: ETA 计算器 — 软件构建与任务完成时间
-    description: 估算软件构建、CI 任务、数据迁移或批处理何时完成。可按已知速率或实际进度计算，并比较截止时间、缓冲和工作日时段。
+    description: 根据已知处理速率或手动输入的进度，估算下载、构建和批处理何时完成。可标注工作单位、加入计划缓冲，并选择连续或工作日排程。
     firstScreenTitle: 估算任务何时完成
     firstScreenIntro: 根据当前进度或已知处理速率，预测软件构建、CI 任务、数据迁移和批处理的完成时间。
     scenariosTitle: 从常见任务开始
@@ -669,6 +669,30 @@ tools:
       migration: 数据迁移
       batch: 批量处理
       conversion: 文件转换
+    scenarioUnit:
+      build: 构建步骤
+      migration: 条记录
+      batch: 个项目
+      conversion: 个文件
+    workUnitLabel: 工作单位
+    workUnitPlaceholder: 例如：记录
+    defaultUnit: 单位
+    workUnitHelp: 任务总量、已完成数量和处理速率必须使用同一种单位。本字段只负责标注，不会自动换算单位。
+    totalAmountLabel: '任务总量（{unit}）'
+    completedAmountLabel: '已完成数量（{unit}）'
+    methodLabel: ETA 计算方式
+    rateValueLabel: 处理数量
+    rateIntervalLabel: 速率时间区间
+    ratePer: 每
+    processingRateLabel: 处理速率
+    remainingWorkStartTime: 剩余工作开始时间
+    bufferLabel: 额外时间缓冲（%）
+    bufferHelp: 按百分比延长基础处理时间。这是计划余量，不是统计置信区间。
+    milliseconds: 毫秒
+    seconds: 秒
+    minutes: 分钟
+    hours: 小时
+    days: 天
     rateMode: 输入已知处理速率
     observedMode: 根据已耗时间计算
     elapsedTitle: 已运行时间
@@ -676,7 +700,8 @@ tools:
     elapsedMinutes: 分钟
     elapsedSeconds: 秒
     unitsPerHour: 单位/小时
-    observedModeHelp: 根据已完成数量和已运行时间计算平均处理速率，预计完成时刻从当前时间开始推算。
+    unitPerHour: '{unit}/小时'
+    observedModeHelp: 根据你手动输入的已完成数量和已耗时间计算平均速率。这是静态估算，不是实时进程监控。
     observedModeHint: 请填写大于零的已完成数量和已耗时间，才能推导处理速率。若任务已全部完成，则无需提供耗时样本。
     localFinishTime: 本地完成时间
     copyFinishTime: 复制完成时间
@@ -701,6 +726,19 @@ tools:
     weekdayScheduleHelp: 只统计你本地时区（{timezone}）中周一至周五、上述起止时间之间的时段。开始时间若不在工作窗口内，任务会从下一个工作日的开工时间继续。
     workingWindowCounted: 工作时段内计入的时间（包含缓冲和计划暂停）
     workingScheduleError: 请输入有效的 24 小时制时间；同一天的下班时间必须晚于上班时间。
+    remainingWorkLabel: 剩余工作量
+    baseProcessingDurationLabel: 基础处理时间（不含缓冲和计划暂停）
+    calendarDurationLabel: 总耗时（含缓冲和计划暂停）
+    workWindowDurationLabel: 工作窗口内所需时长（含缓冲和计划暂停）
+    bufferAllowanceLabel: 时间缓冲
+    projectedCompletionLabel: 预计完成时间
+    progressAriaLabel: 任务完成进度
+    progressSummary: '已完成 {completed}/{total} {unit}（{percent}%）。'
+    completeMessage: 全部工作已完成。
+    formulaTitle: 计算方式
+    formulaBase: 基础处理时间 =（任务总量 − 已完成数量）÷ 处理速率 × 速率对应的时间区间。
+    formulaExample: '例如：500 条记录 − 已完成 200 条 = 剩余 300 条。按每 3 分钟处理 5 条计算，基础处理时间为 180 分钟（3 小时），尚未计入缓冲。'
+    formulaAssumption: 估算假设后续处理速率与输入的代表性速率大致稳定。观测速率来自手动输入的数据；本工具不会读取进程遥测或自动跟踪任务。
 
   roman-numeral-converter:
     title: 罗马数字转换器
