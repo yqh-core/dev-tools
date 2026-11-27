@@ -111,11 +111,10 @@ test('workspace remains within the mobile viewport and theme control works', asy
   await expect(page.locator('.api-studio-shell')).toHaveAttribute('data-api-theme', 'light');
 });
 
-
 test('first request CTA creates one blank request without sending a network call on desktop', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   const outbound: string[] = [];
-  page.on('request', request => {
+  page.on('request', (request) => {
     if (/\/api\//i.test(request.url()) || /apiproxy/i.test(request.url())) {
       outbound.push(request.url());
     }
