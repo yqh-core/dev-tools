@@ -168,3 +168,14 @@ Current implementation remains in this repository initially. Dedicated product b
 - Product defect: .api-mini-action defaulted to 28px, Retry inherited the undersized target. PR sets .api-error-retry min-height 44px on mobile while leaving utility controls compact. Current browser journey passes 503 → manual Retry → 200 OK, 2/2 assertions, persisted request/environment, Collection Runner and keyboard send. Artifact #15195511539 inspected.
 - PR #240 comment #7217653167 records exact evidence. Issue #231 comment #7217588490 records measured Main geometry and bounded UX plan.
 - Main PR #243 merged; #237 closed. Follow-up doc commit 247fa78 Verify passed; current main CI and deploy smoke/crawl still need refreshed status.
+
+### Current continuation override — 2026-11-27 ~12:07 UTC
+
+Older #241 failure/IN_PROGRESS notes above are historical and superseded by this update.
+
+- API Studio PR #241 MERGED as `91cadeac03f6a10556a823927c20b8b60e928575`; Issue #240 auto-closed. Exact-head CI #45994003286, Verify/Build #45994003220 and Cloudflare Preview all PASS. Merge-SHA Verify #45995130660 PASS, main Pages deployment check PASS, smoke #45995248568 PASS. Main CI #45995130686 was still running targeted E2E; smoke #45995642782 and crawl #45995248793 still in progress/queued.
+- API Studio mobile Retry product defect was 28px inherited minimum; fixed to 44px for `.api-error-retry` only. Screenshot artifact #15195511539 reviewed: 503, retry to 200 OK, 2/2 assertions, keyboard path.
+- Next active bounded Main task: Issue #231 / draft PR #244, branch `feat/homepage-first-fold-consent-20261127`, exact head `707534f17a6273d3148f6ebb3733713abdfed53f`. Current CI #45995824554, Verify #45995824340 IN_PROGRESS at ~12:07 UTC. PR Preview/visual evidence pending.
+- PR #244 changes mobile hero spacing and preview density; only undecided Main homepage consent is in-flow after hero. Other routes keep fixed consent. Accept/Reject, `digdevbox.analytics-consent.v1`, default-denied GA behavior and Privacy choices reopening remain. No relay/Worker/Cloudflare account changes.
+- Issue #231 comment #7217588490 has measurements and scope; comment #7217856270 has implementation detail. Do not merge until exact-head CI/Verify/Preview and visual screenshot acceptance all pass.
+- Issue #221 remains OPEN; shared production limiter not enabled. API Studio brand/domain #219 and separate Pages host/migration #214 remain separate gates.
