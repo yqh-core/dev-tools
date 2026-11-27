@@ -385,3 +385,45 @@ test.describe('Percentage calculator batch Chinese localization', () => {
     await expect(panel).toContainText('\u603B\u6298\u6263\u662F 28%');
   });
 });
+
+test.describe('Bilingual formula quick reference', () => {
+  test('shows concise formula guidance and semantic inputs in English', async ({ page }) => {
+    await page.goto('/percentage-calculator/');
+
+    const guide = page.getByTestId('percentage-calculator-guide');
+    await expect(guide).toContainText('Formula quick reference');
+    await expect(guide).toContainText('The old value is the baseline.');
+    await expect(guide).toContainText('4% to 6%');
+    await expect(guide).toContainText('50% relative change');
+    await expect(page.getByTestId('percentage-mode-switcher'))
+      .toHaveAttribute('aria-label', 'Choose a percentage calculation');
+    await expect(page.locator('input[placeholder="Percentage (%)"]')).toHaveCount(1);
+    await expect(page.locator('input[placeholder="Whole"]')).toHaveCount(1);
+  });
+
+  test('localizes the fields and formula guide on a first Chinese visit', async ({ page }) => {
+    await page.addInitScript(() => {
+      Object.defineProperty(navigator, 'language', {
+        configurable: true,
+        get: () => 'zh-CN',
+      });
+      Object.defineProperty(navigator, 'languages', {
+        configurable: true,
+        get: () => ['zh-CN', 'zh'],
+      });
+    });
+
+    await page.goto('/percentage-calculator/');
+
+    const guide = page.getByTestId('percentage-calculator-guide');
+    await expect(guide).toContainText('公式速查');
+    await expect(guide).toContainText('原值是比较基准');
+    await expect(guide).toContainText('增加 2 个百分点');
+    await expect(guide).toContainText('相对增幅为 50%');
+    await expect(page.getByTestId('percentage-mode-switcher'))
+      .toHaveAttribute('aria-label', '选择百分比计算方式');
+    await expect(page.locator('input[placeholder="百分比（%）"]')).toHaveCount(1);
+    await expect(page.locator('input[placeholder="整体值"]')).toHaveCount(1);
+  });
+});
+
