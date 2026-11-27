@@ -84,25 +84,32 @@ test.describe('Main sidebar tool-category disclosures', () => {
     await expect(page.locator('[data-test-id="tool-category-toggle"][aria-expanded="true"]')).toHaveCount(0);
   });
 
-  test('keeps the mobile disclosure usable with a 44px touch target and no horizontal overflow', async ({ page }, testInfo) => {
-    await page.setViewportSize({ width: 390, height: 844 });
-    await startWithFreshMainPreferences(page);
-    await page.goto('/');
+  test.describe('mobile touch', () => {
+    test.use({
+      viewport: { width: 390, height: 844 },
+      isMobile: true,
+      hasTouch: true,
+    });
 
-    await page.getByRole('button', { name: 'Toggle menu' }).click();
-    const firstToggle = page.getByTestId('tool-category-toggle').first();
-    await expect(firstToggle).toBeVisible();
+    test('keeps the mobile disclosure usable with a 44px touch target and no horizontal overflow', async ({ page }, testInfo) => {
+      await startWithFreshMainPreferences(page);
+      await page.goto('/');
 
-    const box = await firstToggle.boundingBox();
-    expect(box?.height).toBeGreaterThanOrEqual(44);
-    await firstToggle.tap();
-    await expect(firstToggle).toHaveAttribute('aria-expanded', 'true');
-    await page.screenshot({ path: testInfo.outputPath('tool-category-mobile-expanded.png') });
+      await page.getByRole('button', { name: 'Toggle menu' }).click();
+      const firstToggle = page.getByTestId('tool-category-toggle').first();
+      await expect(firstToggle).toBeVisible();
 
-    const geometry = await page.evaluate(() => ({
-      documentWidth: document.documentElement.scrollWidth,
-      viewportWidth: document.documentElement.clientWidth,
-    }));
-    expect(geometry.documentWidth).toBeLessThanOrEqual(geometry.viewportWidth);
+      const box = await firstToggle.boundingBox();
+      expect(box?.height).toBeGreaterThanOrEqual(44);
+      await firstToggle.tap();
+      await expect(firstToggle).toHaveAttribute('aria-expanded', 'true');
+      await page.screenshot({ path: testInfo.outputPath('tool-category-mobile-expanded.png') });
+
+      const geometry = await page.evaluate(() => ({
+        documentWidth: document.documentElement.scrollWidth,
+        viewportWidth: document.documentElement.clientWidth,
+      }));
+      expect(geometry.documentWidth).toBeLessThanOrEqual(geometry.viewportWidth);
+    });
   });
 });
