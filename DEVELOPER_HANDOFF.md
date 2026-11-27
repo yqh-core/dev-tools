@@ -195,3 +195,10 @@ Older #241 failure/IN_PROGRESS notes above are historical and superseded by this
 - Long-term content/copy standard: `PRODUCT_UX_EXECUTION_PLAYBOOK.md` v1.6 (ten-product terminology/tutorial/blog voice); API Studio delivery roadmap reconciled and competitive review updated so shipped PR #223 Runner is not misrepresented as pending.
 - Current homepage recommendations already comprise five task groups (API, JSON/Data, JWT/Auth, Calculate/Convert, Network). Next task after merge: audit these and the actual tool pages for technical accuracy, short useful instructions, examples and caveats; no duplicate recommendation section.
 - PRs #223, #241, #243 merged; related #222/#240/#237 closed. #221/#214/#219 remain owner/production gates.
+
+### Current PR #244 exact-head override — 2026-11-27 ~13:01 UTC
+
+- Current head `09a229fdceba615ba1be5eaf6266a08d73d31a7f`. CI #46003470631: Lint + Relay/Worker lint/bundle PASS; unit tests running. Verify #46003470618: example and crawler checks PASS; typecheck/build running. Exact current-head Preview in progress at dashboard b947f587-18c6-420a-9ca1-fc4c0a8ec3f8. No merge until all exact-head checks pass and updated screenshots are reviewed.
+- `3fbcafe` CI was blocked only by a single double-quoted `localStorage` string in `src/pages/home-task-discovery.e2e.spec.ts`; `09a229f` fixes the quote style.
+- Current branch now also clarifies hero/speed claims around local vs network-backed tasks, and adds an explicit browser `localStorage` (not encrypted storage) disclosure for API Debugger history and API Studio collections/environment values. EN/ZH copy and Playwright assertions are updated.
+- Predecessor head `ab141fa` CI/Verify/Preview were all successful; visual artifact #15198632896 inspected. Current head requires new exact-head tests and screenshots.
