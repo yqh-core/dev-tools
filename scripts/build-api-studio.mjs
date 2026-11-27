@@ -4,6 +4,11 @@ import { fileURLToPath } from 'node:url';
 
 const repoRoot = fileURLToPath(new URL('../', import.meta.url));
 const productRoot = resolve(repoRoot, 'product-api-studio');
+const outputName = process.env.API_STUDIO_PRODUCT_OUTPUT || 'dist-api-studio';
+
+if (!['dist', 'dist-api-studio'].includes(outputName)) {
+  throw new Error('API_STUDIO_PRODUCT_OUTPUT must be dist or dist-api-studio.');
+}
 
 process.env.API_STUDIO_PRODUCT_BUILD = '1';
 
@@ -15,7 +20,7 @@ await build({
   base: '/',
   publicDir: resolve(productRoot, 'public'),
   build: {
-    outDir: resolve(repoRoot, 'dist-api-studio'),
+    outDir: resolve(repoRoot, outputName),
     emptyOutDir: true,
     rollupOptions: {
       input: {
@@ -33,4 +38,4 @@ await build({
 
 await injectApiStudioSeo();
 
-console.log('API Studio product site built to dist-api-studio/.');
+console.log('API Studio product site built to ' + outputName + '/.');
