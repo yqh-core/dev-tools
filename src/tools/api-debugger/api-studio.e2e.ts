@@ -899,3 +899,91 @@ test('portable backup restores the workspace into a separate browser origin', as
   expect(restored.env.global.token).toBe('');
   expect(restored.env.collection.token).toBe('');
 });
+
+
+test('offers a keyboard-accessible manual retry only after a relay failure', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  const treeSeed = {
+    id: 'retry-collection',
+    name: 'Retry Demo',
+    items: [{
+      id: 'retry-request',
+      name: 'Retry request',
+      request: {
+        method: 'GET',
+        url: '{{missingBaseUrl}}/retry',
+        headers: [],
+        body: '',
+      },
+    }],
+  };
+  await page.addInitScript(
+    ([key, value]) => {
+      if (localStorage.getItem(key) === null) {
+        localStorage.setItem(key, value);
+      }
+    },
+    [TREE_KEY, JSON.stringify(treeSeed)] as [string, string],
+  );
+
+  let attempts = 0;
+  await page.route(/\\/api\\/apiproxy/, async (route) => {
+    attempts += 1;
+    if (attempts === 1) {
+      return route.fulfill({
+        status: 503,
+        contentType: 'application/json',
+        body: JSON.stringify({ error: 'Upstream service temporarily unavailable.' }),
+      });
+    }
+    return route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        url: 'https://api.test/retry',
+        status: 200,
+        statusText: 'OK',
+        headers: { 'content-type': 'application/json' },
+        body: '{"recovered":true}',
+        elapsedMs: 14,
+      }),
+    });
+  });
+
+  await page.goto('/api-studio');
+  await page.getByTestId('tree-method').click();
+
+  // Local configuration errors need a fix, not a retry button that would repeat the same failure.
+  await page.getByTestId('send-request').click();
+  await expect(page.getByTestId('single-send-error')).toContainText('Missing variables: missingBaseUrl');
+  await expect(page.getByTestId('retry-send')).toHaveCount(0);
+  expect(attempts).toBe(0);
+
+  await page.getByTestId('editor-url').fill('https://api.test/retry');
+  await page.getByTestId('editor-url').press('Tab');
+  await page.getByTestId('send-request').click();
+
+  await expect(page.getByTestId('single-send-error')).toContainText('Upstream service temporarily unavailable.');
+  const retry = page.getByTestId('retry-send');
+  await expect(retry).toBeVisible();
+  await expect(retry).toHaveText('Retry request');
+  expect(attempts).toBe(1);
+
+  // The request is never replayed automatically; the explicit keyboard action starts it.
+  await page.setViewportSize({ width: 390, height: 844 });
+  const dimensions = await page.evaluate(() => ({
+    viewport: document.documentElement.clientWidth,
+    document: document.documentElement.scrollWidth,
+  }));
+  expect(dimensions.document).toBeLessThanOrEqual(dimensions.viewport);
+  await retry.focus();
+  await expect(retry).toBeFocused();
+  await page.keyboard.press('Enter');
+
+  await expect(page.getByTestId('single-response')).toBeVisible();
+  await expect(page.getByTestId('single-response')).toContainText('200 OK');
+  await expect(page.getByTestId('single-response-body')).toContainText('"recovered": true');
+  await expect(page.getByTestId('single-send-error')).toHaveCount(0);
+  await expect(page.getByTestId('retry-send')).toHaveCount(0);
+  expect(attempts).toBe(2);
+});
