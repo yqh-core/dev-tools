@@ -971,6 +971,8 @@ test('offers a keyboard-accessible manual retry only after a relay failure', asy
   });
 
   await page.goto('/api-studio');
+  // Make the consent choice explicit so the screenshot reviews the workbench, not its first-visit overlay.
+  await page.getByRole('button', { name: 'Reject analytics' }).click();
   await page.getByTestId('tree-method').click();
 
   // Local configuration errors need a fix, not a retry button that would repeat the same failure.
