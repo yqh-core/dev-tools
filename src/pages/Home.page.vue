@@ -695,12 +695,18 @@ function onUpdateFavoriteTools() {
           联网工具清单由 NETWORK_TOOL_PATHS 驱动（构建期 grep 的真实结果），
           新增会发外部请求的工具必须同步改那个常量，否则这里的声明就是假的。
         -->
-        <section class="home-block">
-          <h2 class="home-block-title">
+        <section id="home-privacy" class="home-block" aria-labelledby="home-privacy-title">
+          <h2 id="home-privacy-title" class="home-block-title">
             {{ $t('home.privacy.title') }}
           </h2>
-          <p class="home-block-text">
+          <p class="home-block-text" data-test-id="home-privacy-local">
             {{ $t('home.privacy.local') }}
+          </p>
+          <p class="home-block-text" data-test-id="home-privacy-storage">
+            {{ $t('home.privacy.storage') }}
+          </p>
+          <p class="home-block-text" data-test-id="home-privacy-relay">
+            {{ $t('home.privacy.relay') }}
           </p>
           <p class="home-block-text">
             {{ $t('home.privacy.networkIntro') }}
@@ -1858,4 +1864,119 @@ function onUpdateFavoriteTools() {
 }
 
 /* .classic-card 样式随首页经典入口一并摘除（见模板注释）。 */
+
+/* Compact the Main hero on narrow screens without removing its task shortcuts,
+   preview context or 44px primary touch targets. */
+@media (max-width: 600px) {
+  .home-hero {
+    margin-bottom: 18px;
+    padding: 18px 16px 16px;
+
+    .home-hero-title {
+      margin-bottom: 6px;
+      font-size: 26px;
+      line-height: 1.14;
+    }
+
+    .home-hero-subtitle {
+      font-size: 13px;
+      line-height: 1.48;
+    }
+  }
+
+  .home-hero-layout {
+    gap: 8px;
+  }
+
+  .hero-badges {
+    gap: 6px;
+    margin-top: 8px;
+  }
+
+  .hero-badge {
+    padding: 3px 9px;
+    font-size: 11px;
+  }
+
+  .hero-search {
+    margin-top: 10px;
+  }
+
+  .search-bar {
+    padding: 10px 13px;
+  }
+
+  .hero-quick-search {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+    margin-top: 6px;
+  }
+
+  .hero-quick-search-label {
+    grid-column: 1 / -1;
+  }
+
+  .hero-quick-search-button {
+    width: 100%;
+    min-width: 0;
+    min-height: 44px;
+    padding: 6px 4px;
+    font-size: 11px;
+    white-space: nowrap;
+  }
+
+  .hero-cta-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    margin-top: 8px;
+  }
+
+  .hero-cta {
+    width: 100%;
+    min-height: 44px;
+    justify-content: center;
+    padding: 6px 8px;
+    font-size: 12px;
+    text-align: center;
+  }
+
+  .home-hero-preview {
+    padding: 12px;
+  }
+
+  .hero-preview-copy {
+    margin-top: 6px;
+
+    h2 {
+      font-size: 18px;
+      line-height: 1.25;
+    }
+
+    .hero-preview-description {
+      margin-top: 4px;
+      font-size: 12px;
+      line-height: 1.35;
+    }
+  }
+
+  .hero-preview-code {
+    margin-top: 6px;
+
+    .hero-preview-codebar {
+      padding: 6px 9px;
+    }
+
+    pre {
+      padding: 6px 8px;
+      font-size: 11px;
+      line-height: 1.45;
+    }
+  }
+
+  .hero-preview-link {
+    margin-top: 6px;
+  }
+}
 </style>
