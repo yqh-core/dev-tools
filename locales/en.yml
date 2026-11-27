@@ -748,7 +748,7 @@ tools:
     description: "Compare JSON files or pasted JSON online. Inspect nested changes by path, export a report, and match arrays by index, ignore-order or stable ID. Large comparisons run in a cancellable worker."
 
   jwt-parser:
-    title: "JWT Decoder — Inspect Header, Claims & Signature Segment"
+    title: "JWT Decoder & Parser — Claims & Expiration"
     description: "Decode a three-part compact JWT/JWS locally. Inspect the JOSE Header, Claims Set Payload and encoded signature segment; this tool does not verify signatures."
     inputLabel: "Compact JWT / JWS"
     inputPlaceholder: "Paste a three-part compact JWT..."
