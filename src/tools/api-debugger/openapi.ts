@@ -130,16 +130,13 @@ export function importOpenApi(text: string, options: OpenApiImportOptions = {}):
     warnings.push('Server URL variables were converted to {{variable}} placeholders; define them in an API Studio environment.');
   }
 
-  if (doc.security?.length || Object.keys(doc.components?.securitySchemes ?? {}).length) {
-    warnings.push('OpenAPI authentication/security schemes are not imported. Configure authentication headers or variables manually.');
-  }
-
   const paths = doc.paths && typeof doc.paths === 'object' ? doc.paths : {};
   const requests: ImportedRequest[] = [];
   let sawRef = false;
   let sawUnsupportedBody = false;
   let sawParameterRef = false;
   let sawServerOverride = false;
+  let sawSecurity = !!doc.security?.length || Object.keys(doc.components?.securitySchemes ?? {}).length > 0;
 
   for (const [path, pathItem] of Object.entries(paths)) {
     if (!pathItem || typeof pathItem !== 'object' || Array.isArray(pathItem)) {
@@ -157,6 +154,9 @@ export function importOpenApi(text: string, options: OpenApiImportOptions = {}):
       }
       if (Array.isArray(operation.servers) && operation.servers.length) {
         sawServerOverride = true;
+      }
+      if (Array.isArray(operation.security) && operation.security.length) {
+        sawSecurity = true;
       }
 
       const params = [...pathParams, ...(Array.isArray(operation.parameters) ? operation.parameters : [])];
@@ -186,7 +186,7 @@ export function importOpenApi(text: string, options: OpenApiImportOptions = {}):
       let body = '';
       const content = operation.requestBody?.content;
       const jsonContent = content?.['application/json'];
-      if (content && typeof content === 'object' && Object.keys(content).length && !jsonContent) {
+      if (content && typeof content === 'object' && Object.keys(content).some(mediaType => mediaType !== 'application/json')) {
         sawUnsupportedBody = true;
       }
       if (jsonContent?.example !== undefined) {
@@ -206,6 +206,9 @@ export function importOpenApi(text: string, options: OpenApiImportOptions = {}):
     }
   }
 
+  if (sawSecurity) {
+    warnings.push('OpenAPI authentication/security schemes are not imported. Configure authentication headers or variables manually.');
+  }
   if (sawRef) {
     warnings.push('Some request bodies use $ref schemas, which are not resolved; affected bodies are left empty.');
   }
