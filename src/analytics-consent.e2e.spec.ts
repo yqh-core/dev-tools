@@ -82,7 +82,7 @@ test.describe('DigDevBox Main consent and privacy settings', () => {
 
   test('Reject leaves tools usable; preferences can be reopened, accepted and revoked', async ({ page }) => {
     const analyticsRequests: string[] = [];
-    page.on('request', request => {
+    page.on('request', (request) => {
       if (/googletagmanager\.com|google-analytics\.com/i.test(request.url())) {
         analyticsRequests.push(request.url());
       }
@@ -135,13 +135,17 @@ test.describe('DigDevBox Main consent and privacy settings', () => {
   test('uses the Chinese text in both the inline choice and reopened settings', async ({ page }) => {
     await page.addInitScript(() => {
       const setChineseDocumentLanguage = () => {
-        if (!document.documentElement) return false;
+        if (!document.documentElement) {
+          return false;
+        }
         document.documentElement.lang = 'zh-CN';
         return true;
       };
       if (!setChineseDocumentLanguage()) {
         const observer = new MutationObserver(() => {
-          if (setChineseDocumentLanguage()) observer.disconnect();
+          if (setChineseDocumentLanguage()) {
+            observer.disconnect();
+          }
         });
         observer.observe(document, { childList: true, subtree: true });
       }
