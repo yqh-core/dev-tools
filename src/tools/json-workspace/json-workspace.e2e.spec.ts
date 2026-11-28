@@ -77,3 +77,54 @@ test.describe('JSON Workspace first-use privacy and hierarchy', () => {
     await expect(page.getByTestId('persistence-disclosure')).toBeVisible();
   });
 });
+
+test('renders the Main violet-blue palette on the JSON tool surface in both themes', async ({ page }, testInfo) => {
+  const cases = [
+    { theme: 'light', dark: false, primary: '#7e45ef', action: 'rgb(129, 78, 232)' },
+    { theme: 'dark', dark: true, primary: '#a78bfa', action: 'rgb(129, 78, 232)' },
+  ] as const;
+  const viewports = [
+    { name: 'mobile', width: 390, height: 844 },
+    { name: 'desktop', width: 1440, height: 900 },
+  ] as const;
+
+  for (const themeCase of cases) {
+    await page.evaluate((theme) => {
+      localStorage.setItem('vueuse-color-scheme', theme);
+    }, themeCase.theme);
+    await page.reload();
+
+    await expect.poll(() => page.evaluate(() => document.documentElement.classList.contains('dark')))
+      .toBe(themeCase.dark);
+    await expect(page.getByTestId('json-input')).toBeVisible();
+    const primaryAction = page.getByTestId('step-0-next');
+    await expect(primaryAction).toBeVisible();
+    await expect(primaryAction).toHaveClass(/n-button--primary-type/);
+
+    const colors = await primaryAction.evaluate((element) => {
+      const root = getComputedStyle(document.documentElement);
+      const button = getComputedStyle(element);
+      return {
+        brand: root.getPropertyValue('--dd-primary').trim().toLowerCase(),
+        background: button.backgroundColor,
+        foreground: button.color,
+      };
+    });
+    expect(colors.brand).toBe(themeCase.primary);
+    expect(colors.background).toBe(themeCase.action);
+    expect(colors.foreground).toBe('rgb(255, 255, 255)');
+
+    for (const viewport of viewports) {
+      await page.setViewportSize({ width: viewport.width, height: viewport.height });
+      const width = await page.evaluate(() => ({
+        viewport: window.innerWidth,
+        document: document.documentElement.scrollWidth,
+      }));
+      expect(width.document).toBeLessThanOrEqual(width.viewport);
+      await page.screenshot({
+        path: testInfo.outputPath(`json-workspace-${themeCase.theme}-${viewport.name}.png`),
+        fullPage: true,
+      });
+    }
+  }
+});
