@@ -385,7 +385,7 @@ paths:
   const preview = page.getByTestId('openapi-preview');
   await expect(preview).toBeVisible();
   await expect(preview).toContainText('1 operation(s)');
-  await expect(page.getByTestId('openapi-server').locator('option')).toHaveCount(2);
+  await expect(page.getByTestId('openapi-server').locator('option')).toHaveCount(3);
   await page.getByTestId('openapi-server').selectOption('https://staging.example.test/v1');
   await expect(page.getByTestId('openapi-operations')).toContainText('https://staging.example.test/v1/users/{{id}}?verbose={{verbose}}');
 
@@ -452,7 +452,6 @@ test('OpenAPI import targets a folder and exposes skip, append and replace dupli
     await page.getByTestId('openapi-destination').selectOption('api-folder');
   };
 
-  const preview = page.getByTestId('openapi-preview');
   await upload();
   await expect(page.getByTestId('openapi-operations')).toContainText('GET');
   await page.screenshot({ path: testInfo.outputPath('openapi-preview-desktop.png') });
