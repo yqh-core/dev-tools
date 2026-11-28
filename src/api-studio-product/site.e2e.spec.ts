@@ -400,6 +400,23 @@ paths:
 
   await page.getByTestId('cancel-openapi-import').click();
   await expect(page.getByTestId('openapi-preview')).toHaveCount(0);
+
+  await page.getByTestId('openapi-file').setInputFiles({
+    name: 'invalid.yaml',
+    mimeType: 'application/yaml',
+    buffer: Buffer.from('openapi: [not valid'),
+  });
+  await expect(page.getByTestId('openapi-preview')).toHaveCount(0);
+  await expect(page.locator('.api-banner')).toContainText('Not valid JSON or YAML');
+
+  await page.getByTestId('openapi-file').setInputFiles({
+    name: 'too-large.yaml',
+    mimeType: 'application/yaml',
+    buffer: Buffer.alloc(2 * 1024 * 1024 + 1, 'x'),
+  });
+  await expect(page.getByTestId('openapi-preview')).toHaveCount(0);
+  await expect(page.locator('.api-banner')).toContainText('maximum 2 MB');
+
   const after = await page.evaluate(() => ({
     tree: localStorage.getItem('api-studio:tree'),
     environments: localStorage.getItem('api-debugger:env'),
