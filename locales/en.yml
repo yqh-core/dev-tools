@@ -530,7 +530,34 @@ tools:
 
   http-status-codes:
     title: HTTP status codes
-    description: The list of all HTTP status codes, their name, and their meaning.
+    description: Search registered HTTP response status codes, understand protocol semantics and distinguish responses from transport failures.
+    searchPlaceholder: "Search by code, name or meaning…"
+    searchResults: "Matching status codes"
+    responseBoundary: "A status code exists only when an HTTP response is received. DNS, TCP/TLS and timeout failures can happen before a response; browser CORS rules may also prevent JavaScript from exposing it. This reference does not probe URLs."
+    noResults: "No matching status codes. Try a numeric code, registered name or a different phrase."
+    guideToggle: "Understand the 1xx–5xx classes"
+    registryNote: "Only registered entries are listed. Unassigned gaps are omitted; vendor-specific codes are not standard unless the registry says so."
+    categories:
+      informational: "1xx · Informational"
+      success: "2xx · Success"
+      redirection: "3xx · Redirection"
+      clientError: "4xx · Client error semantics"
+      serverError: "5xx · Server error semantics"
+      search: "Matching status codes"
+    classGuide:
+      informational: "The request has not finished; the server is sending interim information."
+      success: "The request was successfully received, understood and accepted."
+      redirection: "Further action is needed to complete the request; the response may identify another URI."
+      clientError: "The response describes a request-related error condition. It does not automatically prove that the end user is at fault; an intermediary can also generate it."
+      serverError: "The responding server failed to fulfil an apparently valid request. A gateway or proxy can generate this response; it does not identify the failing component by itself."
+    labels:
+      webDav: "WebDAV extension"
+      temporary: "Temporary registration"
+      deprecated: "Deprecated"
+      unused: "Unused / reserved"
+      reserved: "Reserved"
+      obsolete: "Obsoleted"
+      legacy: "Legacy registration"
 
   sql-prettify:
     title: SQL Formatter — Format and Beautify SQL Online

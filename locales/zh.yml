@@ -527,7 +527,227 @@ tools:
 
   http-status-codes:
     title: HTTP 状态码
-    description: 所有HTTP状态的列表对其名称和含义解释。
+    description: 搜索已注册的 HTTP 响应状态码，理解协议语义，并区分 HTTP 响应与网络传输故障。
+    searchPlaceholder: "按状态码、名称或含义搜索…"
+    searchResults: "匹配的状态码"
+    responseBoundary: "只有收到 HTTP 响应时才存在状态码。DNS、TCP/TLS 或超时故障可能发生在响应返回之前；浏览器的 CORS 规则也可能阻止 JavaScript 读取响应。本工具不会主动检测 URL。"
+    noResults: "没有匹配的状态码。请尝试输入数字、注册名称或其他关键词。"
+    guideToggle: "查看 1xx–5xx 状态码类别"
+    registryNote: "这里只列出注册表中的条目；未分配的数字空档会省略。厂商自定义状态码不属于标准状态码，除非注册表另有说明。"
+    categories:
+      informational: "1xx · 信息响应"
+      success: "2xx · 成功"
+      redirection: "3xx · 重定向"
+      clientError: "4xx · 客户端错误语义"
+      serverError: "5xx · 服务器错误语义"
+      search: "匹配的状态码"
+    classGuide:
+      informational: "请求尚未完成；服务器正在发送中间信息。"
+      success: "请求已被成功接收、理解并接受处理。"
+      redirection: "完成请求还需要后续操作；响应可能会指出另一个 URI。"
+      clientError: "响应描述与请求有关的错误情况，但不代表责任一定在最终用户；中间代理也可能生成此响应。"
+      serverError: "响应服务器未能完成一个看似有效的请求。网关或代理也可能生成此响应，单凭状态码无法确定故障组件。"
+    labels:
+      webDav: "WebDAV 扩展"
+      temporary: "临时注册"
+      deprecated: "已弃用"
+      unused: "未使用 / 保留"
+      reserved: "保留"
+      obsolete: "已废止"
+      legacy: "历史注册"
+    statusCodes:
+      "100":
+        name: "继续"
+        description: "服务器已收到请求头，客户端可以继续发送请求体。"
+      "101":
+        name: "切换协议"
+        description: "服务器正在切换到 Upgrade 请求头指定的协议。"
+      "102":
+        name: "处理中"
+        description: "历史 WebDAV 中间响应。该状态码曾见于 RFC 2518，但 RFC 4918 未定义此状态码；IANA 仍保留 RFC 2518 的历史注册。"
+      "103":
+        name: "早期提示"
+        description: "服务器在最终响应前发送初步响应头，常用于提示客户端预加载资源。"
+      "104":
+        name: "支持恢复上传"
+        description: "IANA 目前仍将其列为临时注册，登记有效期截至 2026-11-13。当前 HTTP 工作组 Internet-Draft draft-ietf-httpbis-resumable-upload-16 提议使用此状态码，但它尚未成为正式 RFC。不要将其视为永久注册或未分配状态；实施前请重新核对 IANA 注册表。"
+      "200":
+        name: "成功"
+        description: "请求成功。响应体的含义取决于所使用的请求方法。"
+      "201":
+        name: "已创建"
+        description: "请求成功并创建了一个或多个资源；如提供 Location，其值标识主要新建资源。"
+      "202":
+        name: "已接受"
+        description: "请求已被接受处理，但处理尚未完成。响应宜说明当前状态或提供状态查询入口。"
+      "203":
+        name: "非权威信息"
+        description: "请求成功，但转换代理修改了源服务器返回的表示内容。"
+      "204":
+        name: "无内容"
+        description: "请求成功，响应不包含消息内容。"
+      "205":
+        name: "重置内容"
+        description: "服务器已完成请求，并要求客户端重置提交该请求的文档视图。"
+      "206":
+        name: "部分内容"
+        description: "服务器正在返回范围请求所选取的部分表示数据。"
+      "207":
+        name: "多状态"
+        description: "WebDAV 响应，通过 multistatus 响应体报告多个资源各自的状态。"
+      "208":
+        name: "已报告"
+        description: "WebDAV 响应，表示 DAV 绑定成员已在此前的 multistatus 响应部分列出。"
+      "226":
+        name: "已使用实例操作"
+        description: "服务器完成 GET 请求，响应表示经过一个或多个实例操作后的结果。"
+      "300":
+        name: "多项选择"
+        description: "目标资源有多个表示形式；服务器提供信息供用户代理选择。"
+      "301":
+        name: "永久重定向"
+        description: "目标资源已永久迁移到新 URI。客户端跟随重定向时可能把 POST 改为 GET；需要保留请求方法时使用 308。"
+      "302":
+        name: "临时重定向"
+        description: "目标资源暂时位于另一个 URI。客户端跟随重定向时可能把 POST 改为 GET；需要保留请求方法时使用 307。"
+      "303":
+        name: "参见其他资源"
+        description: "响应指向包含间接结果的另一个 URI；客户端使用 GET 获取，适用时也可使用 HEAD。"
+      "304":
+        name: "未修改"
+        description: "客户端的条件请求表明本地缓存的表示仍有效，因此无需重新传输该表示。"
+      "305":
+        name: "使用代理（已弃用）"
+        description: "已弃用。该状态码不应再生成；通过响应内配置代理存在安全风险。"
+      "306":
+        name: "（未使用）"
+        description: "未使用并保留，没有现行标准语义。"
+      "307":
+        name: "临时重定向（保留方法）"
+        description: "目标资源暂时位于另一个 URI。客户端自动跟随此重定向时不得更改请求方法。"
+      "308":
+        name: "永久重定向（保留方法）"
+        description: "目标资源已永久迁移到另一个 URI。客户端自动跟随此重定向时不得更改请求方法。"
+      "400":
+        name: "错误请求"
+        description: "服务器认为请求存在客户端错误（例如语法格式错误），因此无法或不愿处理。"
+      "401":
+        name: "未认证"
+        description: "请求缺少访问目标资源所需的有效身份验证凭据。服务器必须发送 WWW-Authenticate 认证质询。"
+      "402":
+        name: "需要付款"
+        description: "保留供未来使用。服务自行实现的付款相关行为属于应用特定约定，除非另有标准规定。"
+      "403":
+        name: "禁止访问"
+        description: "服务器理解了请求，但拒绝履行。此状态本身并不表示用户已通过认证。"
+      "404":
+        name: "未找到"
+        description: "源服务器未找到目标资源的当前表示，或不愿透露该资源是否存在。"
+      "405":
+        name: "请求方法不允许"
+        description: "目标资源不支持该请求方法。响应必须通过 Allow 头列出支持的方法。"
+      "406":
+        name: "不可接受"
+        description: "服务器无法提供符合请求中主动内容协商字段要求的表示形式。"
+      "407":
+        name: "需要代理认证"
+        description: "客户端必须向代理服务器进行身份验证。响应必须包含 Proxy-Authenticate 质询。"
+      "408":
+        name: "请求超时"
+        description: "服务器未能在其愿意等待的时间内收到完整请求消息。"
+      "409":
+        name: "冲突"
+        description: "请求与目标资源的当前状态冲突，因此无法完成。"
+      "410":
+        name: "资源已不存在"
+        description: "目标资源在源服务器上已不可用，并且这种情况很可能是永久性的。"
+      "411":
+        name: "需要内容长度"
+        description: "服务器拒绝处理未提供 Content-Length 的请求。"
+      "412":
+        name: "前置条件失败"
+        description: "服务器检查请求头中的一个或多个前置条件后，发现条件不成立。"
+      "413":
+        name: "内容过大"
+        description: "请求内容超过服务器愿意或能够处理的大小。若限制是临时的，响应可能包含 Retry-After。"
+      "414":
+        name: "URI 过长"
+        description: "请求 URI 超出服务器愿意解析的长度。"
+      "415":
+        name: "不支持的媒体类型"
+        description: "目标资源不支持此请求方法所提交的内容格式。"
+      "416":
+        name: "无法满足范围请求"
+        description: "请求的字节范围均未与当前表示重叠，或请求的范围集合无效。"
+      "417":
+        name: "期望条件失败"
+        description: "服务器无法满足 Expect 请求头中指定的期望条件。"
+      "418":
+        name: "（未使用）"
+        description: "未使用。曾出现的“我是茶壶”说法源于愚人节玩笑，并非现行标准状态含义。"
+      "421":
+        name: "请求目标错误"
+        description: "请求被发送到无法或不愿为目标 URI 提供权威响应的服务器。"
+      "422":
+        name: "内容无法处理"
+        description: "服务器理解请求内容的媒体类型和语法，但无法处理其中的指令。"
+      "423":
+        name: "资源已锁定"
+        description: "WebDAV 响应，表示该方法的源资源或目标资源已被锁定。"
+      "424":
+        name: "依赖失败"
+        description: "WebDAV 响应，表示该方法依赖的另一项操作失败，因此无法执行。"
+      "425":
+        name: "请求过早"
+        description: "服务器不愿处理可能被重放的请求。"
+      "426":
+        name: "需要升级协议"
+        description: "服务器拒绝使用当前协议处理请求，并通过 Upgrade 响应头指出客户端应切换的协议。"
+      "428":
+        name: "需要前置条件"
+        description: "源服务器要求请求包含条件，以防止更新丢失。"
+      "429":
+        name: "请求过多"
+        description: "客户端在指定时间段内发送了过多请求。响应可能包含 Retry-After，存在时应遵循该值。"
+      "431":
+        name: "请求头字段过大"
+        description: "服务器因一个或多个请求头字段过大而拒绝处理请求。"
+      "451":
+        name: "因法律原因不可用"
+        description: "服务器因法律要求而拒绝访问该资源。"
+      "500":
+        name: "内部服务器错误"
+        description: "服务器遇到意外情况，无法完成请求。"
+      "501":
+        name: "尚未实现"
+        description: "服务器不支持完成该请求所需的功能。"
+      "502":
+        name: "网关错误"
+        description: "充当网关或代理的服务器在尝试完成请求时，从上游服务器收到无效响应。"
+      "503":
+        name: "服务不可用"
+        description: "服务器暂时无法处理请求，常见原因是过载或维护。Retry-After 可能指示建议重试的时间。"
+      "504":
+        name: "网关超时"
+        description: "充当网关或代理的服务器未能及时收到上游服务器的响应。"
+      "505":
+        name: "不支持的 HTTP 版本"
+        description: "服务器不支持请求所使用的 HTTP 主版本。"
+      "506":
+        name: "变体协商导致循环"
+        description: "服务器内部配置错误导致透明内容协商形成循环引用。"
+      "507":
+        name: "存储空间不足"
+        description: "WebDAV 响应，表示服务器无法存储完成该方法所需的表示，因此操作无法执行。"
+      "508":
+        name: "检测到循环"
+        description: "WebDAV 响应，表示服务器在处理请求时检测到无限循环。"
+      "510":
+        name: "扩展未满足（已废弃）"
+        description: "IANA 仍保留 510 Not Extended 的历史注册记录，并标记为 OBSOLETED；该状态码源自 RFC 2774 的 HTTP 扩展框架，已不适用于新的实现。"
+      "511":
+        name: "需要网络认证"
+        description: "客户端需要先完成网络认证（例如通过强制门户）才能访问网络。"
 
   sql-prettify:
     title: SQL 美化与格式化
