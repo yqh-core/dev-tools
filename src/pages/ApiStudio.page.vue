@@ -3947,9 +3947,10 @@ function onMenuSelect(key: string, node: TreeNode) {
   }
 
   .api-sidebar:has(.api-data-disclosure[open]):has([data-test-id="openapi-preview"]) {
-    height: min(78dvh, 620px);
-    max-height: 620px;
+    height: min(90dvh, 720px);
+    max-height: 720px;
     overflow-y: auto;
+    overscroll-behavior: contain;
   }
 
   .api-sidebar:has([data-test-id="openapi-preview"]) .api-tree {
