@@ -62,7 +62,7 @@ export async function fingerprintOpenApiValue(value: unknown): Promise<string> {
   const bytes = new TextEncoder().encode(JSON.stringify(value));
   const digest = await subtle.digest('SHA-256', bytes);
   const hex = [...new Uint8Array(digest)].map(byte => byte.toString(16).padStart(2, '0')).join('');
-  return \`sha256-\${hex}\`;
+  return `sha256-${hex}`;
 }
 
 export async function fingerprintOpenApiRequest(request: ApiRequestState): Promise<string> {
@@ -80,7 +80,7 @@ function operationKey(request: ImportedRequest): string {
   }
   const method = request.request.method.trim().toUpperCase();
   const path = String(request.path ?? '/').replace(/\/+/g, '/').replace(/\/$/, '') || '/';
-  return \`path:\${method}:\${path}\`;
+  return `path:${method}:${path}`;
 }
 
 async function fingerprintSpec(parsed: OpenApiImportResult): Promise<string> {
@@ -155,7 +155,7 @@ export async function planOpenApiRefresh(
   for (const imported of parsed.requests) {
     const key = operationKey(imported);
     if (incomingKeys.has(key)) {
-      throw new Error(\`The new spec contains a duplicate operation identity: \${key}\`);
+      throw new Error(`The new spec contains a duplicate operation identity: ${key}`);
     }
     incomingKeys.add(key);
     const incomingNameFingerprint = await fingerprintOpenApiValue(imported.name);
@@ -256,7 +256,7 @@ export async function applyOpenApiRefreshPlan(
     }
     if (item.status === 'added') {
       if (!item.imported || !item.incomingNameFingerprint || !item.incomingRequestFingerprint) {
-        throw new Error(\`The preview for \${item.key} is incomplete. The collection was not changed.\`);
+        throw new Error(`The preview for ${item.key} is incomplete. The collection was not changed.`);
       }
       const inserted = addRequest(next, null, {
         id: newNodeId(),
@@ -264,7 +264,7 @@ export async function applyOpenApiRefreshPlan(
         request: item.imported.request,
       });
       if (!inserted.node || inserted.error) {
-        throw new Error(\`Could not add \${item.key}: \${inserted.error ?? 'unknown collection error'}. The collection was not changed.\`);
+        throw new Error(`Could not add ${item.key}: ${inserted.error ?? 'unknown collection error'}. The collection was not changed.`);
       }
       next = inserted.tree;
       mappings.set(item.key, {
@@ -280,11 +280,11 @@ export async function applyOpenApiRefreshPlan(
     const mapping = mappings.get(item.key);
     const imported = item.imported;
     if (!mapping || !imported || !item.requestId || !item.nameField || !item.requestField) {
-      throw new Error(\`The preview mapping for \${item.key} is incomplete. The collection was not changed.\`);
+      throw new Error(`The preview mapping for ${item.key} is incomplete. The collection was not changed.`);
     }
 
-    const nameChoice = choices[\`\${item.key}:name\`] ?? 'keep-current';
-    const requestChoice = choices[\`\${item.key}:request\`] ?? 'keep-current';
+    const nameChoice = choices[`${item.key}:name`] ?? 'keep-current';
+    const requestChoice = choices[`${item.key}:request`] ?? 'keep-current';
     const applyName = item.nameField.action === 'apply'
       || (item.nameField.action === 'conflict' && nameChoice === 'use-spec');
     const applyRequest = item.requestField.action === 'apply'
@@ -298,7 +298,7 @@ export async function applyOpenApiRefreshPlan(
         ...(applyRequest ? { request: imported.request } : {}),
       });
       if (!update.node || update.error) {
-        throw new Error(\`Could not update \${item.key}: \${update.error ?? 'request no longer exists'}. The collection was not changed.\`);
+        throw new Error(`Could not update ${item.key}: ${update.error ?? 'request no longer exists'}. The collection was not changed.`);
       }
       next = update.tree;
       summary.updated++;
