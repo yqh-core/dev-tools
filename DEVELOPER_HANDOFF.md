@@ -1,3 +1,15 @@
+## API Studio — current developer handoff — 2026-11-28 13:16 UTC
+
+- PR #279 merged (`f518533`); PR #282 merged (`c45fac7`); #278/#281 closed. Main API flagship CTA now opens Studio, old Debugger remains a localized secondary link.
+- Post-merge #282 checks: CI #46146863756 SUCCESS; Verify/Build #46146863742 SUCCESS; shared Main Pages #140984707272 SUCCESS.
+- Active API feature: PR #283 / Issue #280, branch `feat/api-studio-openapi-safe-refresh-20261128`, exact HEAD `4d431844da3b99778754a181f23d69da52780889`, OPEN/mergeable. Exact-head Pages Preview #140990019395 SUCCESS. CI #46148615612 and Verify/Build #46148615577 are still running; CI has passed Lint, Relay lint/bundle, unit tests and is at typecheck; Verify is at typecheck/build. Do not merge until both complete and product E2E/screenshots are reviewed.
+- PR #283 implements local-only OpenAPI source refresh, operation identity and dirty fingerprints, three-way diff, Keep Current default, explicit Use Spec, backup v2/v1 restore, Postman export isolation and no-send/cancel E2E.
+- New source-link protection in HEAD `4d431844`: only one refreshable source association per collection in v1. A second import preserves existing link and explains additional requests are not refresh-managed; replacement is blocked if it would delete a request owned by existing source. E2E now covers this.
+- Competitor decisions and sources: Bruno v4.4.0 safe OpenAPI sync/value preservation; Hoppscotch v2026.11.0 free personal vs paid team collaboration; Postman API lifecycle/Git/CI/agent ecosystem. No-account personal core stays useful; do not claim feature parity.
+- Separate production host `https://apistudio.digdevbox.com` is not verified live. #214/#221/#219 remain separate deployment/security/name risk gates. Do not confuse shared Pages Preview with separate-host production.
+- Next: finish exact-head CI/Verify/Preview + visual review, merge if fully green, recheck merge-SHA checks; then continue #214 or the next highest-value product slice. Keep one active code PR at a time.
+
+---
 
 
 ## API Studio latest checkpoint — 2026-11-28 13:00 UTC
