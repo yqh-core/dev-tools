@@ -1150,3 +1150,34 @@ test('offers a manual retry when the API relay connection fails', async ({ page 
   await expect(retry).toHaveCount(0);
   expect(attempts).toBe(2);
 });
+
+test('keeps API Studio helper text readable on desktop and mobile', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/api-studio');
+  await page.getByRole('button', { name: 'Reject analytics' }).click();
+  await page.getByTestId('create-first-request').click();
+
+  const privacyHint = page.locator('[data-test-id="request-history"] > .api-field-hint').first();
+  await expect(privacyHint).toBeVisible();
+  const helperStyle = await privacyHint.evaluate((element) => {
+    const style = getComputedStyle(element);
+    return {
+      color: style.color,
+      fontSize: Number.parseFloat(style.fontSize),
+      lineHeight: Number.parseFloat(style.lineHeight),
+    };
+  });
+
+  // Light-theme API text-soft is #475569: comfortably readable on the light workbench.
+  expect(helperStyle.color).toBe('rgb(71, 85, 105)');
+  expect(helperStyle.fontSize).toBeGreaterThanOrEqual(12);
+  expect(helperStyle.lineHeight).toBeGreaterThan(helperStyle.fontSize);
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  const dimensions = await page.evaluate(() => ({
+    viewportWidth: document.documentElement.clientWidth,
+    documentWidth: document.documentElement.scrollWidth,
+  }));
+  expect(dimensions.documentWidth).toBeLessThanOrEqual(dimensions.viewportWidth);
+  await expect(privacyHint).toBeVisible();
+});
