@@ -29,7 +29,9 @@ function clickButton(label: string) {
   const button = Array.from(dom.window.document.querySelectorAll('button')).find(
     item => item.textContent === label,
   );
-  if (!button) throw new Error(`Missing button: ${label}`);
+  if (!button) {
+    throw new Error(`Missing button: ${label}`);
+  }
   button.click();
   return button;
 }
