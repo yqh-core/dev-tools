@@ -11,7 +11,7 @@
  *    导出保树，导出 → 导入 → 再导出 round-trip 保留嵌套与节点 ID。
  *  · 未知条目/非 raw 体/auth/未知 listen 全部进 warning（不静默丢弃，矩阵见 IMPORT_FIELD_MATRIX.md）。
  */
-import type { ApiRequestState, KV } from './engine';
+import type { ApiRequestState, KV, RequestAuthConfig } from './engine';
 import { sanitizeForShare } from './engine';
 import type { SavedRequest } from './store';
 import type { ImportedRequest } from './openapi';
@@ -37,6 +37,61 @@ function toPostmanUrl(raw: string): Record<string, unknown> {
     return { raw };
   }
 }
+function toPostmanAuth(auth: RequestAuthConfig | undefined): Record<string, unknown> | undefined {
+  if (!auth || auth.type === 'none') return undefined;
+  if (auth.type === 'bearer') {
+    return { type: 'bearer', bearer: [{ key: 'token', value: auth.token, type: 'string' }] };
+  }
+  if (auth.type === 'basic') {
+    return { type: 'basic', basic: [
+      { key: 'username', value: auth.username, type: 'string' },
+      { key: 'password', value: auth.password, type: 'string' },
+    ] };
+  }
+  return {
+    type: 'apikey',
+    apikey: [
+      { key: 'key', value: auth.key, type: 'string' },
+      { key: 'value', value: auth.value, type: 'string' },
+      { key: 'in', value: auth.type === 'api-key-query' ? 'query' : 'header', type: 'string' },
+    ],
+  };
+}
+
+function parsePostmanAuth(raw: unknown, requestName: string, warnings: string[]): RequestAuthConfig | undefined {
+  if (raw === undefined) return undefined;
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
+    warnings.push(`Request "${requestName}" declares auth in an unsupported shape; configure authentication manually.`);
+    return undefined;
+  }
+  const value = raw as Record<string, unknown>;
+  const type = typeof value.type === 'string' ? value.type.toLowerCase() : '';
+  const fields = Array.isArray(value[type]) ? value[type] as unknown[] : [];
+  const field = (key: string): string => {
+    const match = fields.find(item => !!item && typeof item === 'object' && (item as Record<string, unknown>).key === key) as Record<string, unknown> | undefined;
+    if (match && typeof match.value === 'string') return match.value;
+    return typeof value[key] === 'string' ? value[key] as string : '';
+  };
+  let auth: RequestAuthConfig | undefined;
+  if (type === 'noauth') auth = { type: 'none' };
+  else if (type === 'bearer') auth = { type: 'bearer', token: field('token') };
+  else if (type === 'basic') auth = { type: 'basic', username: field('username'), password: field('password') };
+  else if (type === 'apikey') {
+    const location = field('in').toLowerCase();
+    auth = {
+      type: location === 'query' ? 'api-key-query' : 'api-key-header',
+      key: field('key') || (location === 'query' ? 'api_key' : 'X-API-Key'),
+      value: field('value'),
+    };
+  }
+  else {
+    warnings.push(`Request "${requestName}" declares unsupported auth type "${type || 'unknown'}"; configure authentication manually.`);
+    return undefined;
+  }
+  warnings.push(`Request "${requestName}" declares auth "${type}"; the supported profile was imported as a local draft. Review credentials before Send.`);
+  return auth;
+}
+
 
 // ════════════════════════════════════════════════════════════════════════
 // flat 遗留路径（G3 前口径，字节级保留——回归锁与历史调用方依赖）
@@ -71,6 +126,7 @@ export function exportCollection(saved: SavedRequest[], name = 'DigDevBox Collec
           method: req.method,
           header: req.headers.map(h => ({ key: h.name, value: h.value })),
           url: toPostmanUrl(req.url),
+          ...(toPostmanAuth(req.auth) ? { auth: toPostmanAuth(req.auth) } : {}),
           ...(req.body ? { body: { mode: 'raw', raw: req.body } } : {}),
         },
         ...(events.length ? { event: events } : {}),
@@ -148,9 +204,7 @@ export function importCollection(text: string): { requests: ImportedRequest[]; w
         warnings.push(`Item "${name}" is neither a folder (no item array) nor a request (no request object) — skipped.`);
         continue;
       }
-      if (req.auth !== undefined) {
-        warnings.push(`Request "${name}" declares auth — auth is not applied by the importer (declare headers explicitly).`);
-      }
+      const authProfile = parsePostmanAuth(req.auth, name, warnings);
       // 终审 P1-06：非 raw body 模式（urlencoded/formdata/graphql/file/binary）不静默丢弃——进 warning
       const body = typeof req.body?.raw === 'string' ? req.body.raw : '';
       if (req.body && typeof req.body === 'object' && typeof req.body.raw !== 'string') {
@@ -171,7 +225,7 @@ export function importCollection(text: string): { requests: ImportedRequest[]; w
       if (test) {
         scriptEvents.test = test;
       }
-      requests.push({ name, request: { method, url, headers, body }, ...(Object.keys(scriptEvents).length ? { scriptEvents } : {}) });
+      requests.push({ name, request: { method, url, headers, body, ...(authProfile ? { auth: authProfile } : {}) }, ...(Object.keys(scriptEvents).length ? { scriptEvents } : {}) });
     }
   };
   walk(doc.item, '', docPre ? [docPre] : [], docTest ? [docTest] : []);
@@ -281,9 +335,7 @@ export function importCollectionTree(text: string): ImportCollectionTreeResult {
         warnings.push(`Item "${pathSeed}" is neither a folder (no item array) nor a request (no request object) — skipped.`);
         continue;
       }
-      if (req.auth !== undefined) {
-        warnings.push(`Request "${pathSeed}" declares auth — auth is not applied by the importer (declare headers explicitly).`);
-      }
+      const authProfile = parsePostmanAuth(req.auth, pathSeed, warnings);
       // 终审 P1-06：非 raw body 模式（urlencoded/formdata/graphql/file/binary）不静默丢弃——进 warning
       const body = typeof req.body?.raw === 'string' ? req.body.raw : '';
       if (req.body && typeof req.body === 'object' && typeof req.body.raw !== 'string') {
@@ -294,7 +346,7 @@ export function importCollectionTree(text: string): ImportCollectionTreeResult {
       const headers: KV[] = Array.isArray(req.header)
         ? req.header.filter((h: any) => h && h.key).map((h: any) => ({ name: String(h.key), value: String(h.value ?? '') }))
         : [];
-      const requestState: ApiRequestState = { method, url, headers, body };
+      const requestState: ApiRequestState = { method, url, headers, body, ...(authProfile ? { auth: authProfile } : {}) };
       const scripts = cleanScriptEvents({ ...(ownPre ? { prerequest: ownPre } : {}), ...(ownTest ? { test: ownTest } : {}) });
       const node: RequestNode = { id: nodeId(it, pathSeed), name, request: requestState, ...(scripts ? { scripts } : {}) };
       parent.items.push(node);
@@ -336,6 +388,7 @@ export function exportCollectionTree(tree: CollectionNode, stripAuth = true): Re
       method: req.method,
       header: req.headers.map(h => ({ key: h.name, value: h.value })),
       url: toPostmanUrl(req.url),
+      ...(toPostmanAuth(req.auth) ? { auth: toPostmanAuth(req.auth) } : {}),
       ...(req.body ? { body: { mode: 'raw', raw: req.body } } : {}),
     };
     return { ...base, ...(events.length ? { event: events } : {}), request: postmanRequest };
