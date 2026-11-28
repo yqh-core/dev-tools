@@ -350,7 +350,7 @@ onMounted(() => {
         </template>
         <template v-else-if="node.op === 'query'">
           <n-form-item label="JSONPath" label-placement="left" :show-feedback="false" style="flex: 1; min-width: 220px">
-            <c-input-text :value="node.params.query ?? '$'" :data-test-id="firstIndexOf('query') === i ? 'query-input' : undefined" monospace placeholder="$.store.book[*].title" @update:value="(v: string) => patchParams(i, { query: v })" />
+            <c-input-text :value="node.params.query ?? '$'" :test-id="firstIndexOf('query') === i ? 'query-input' : undefined" monospace placeholder="$.store.book[*].title" @update:value="(v: string) => patchParams(i, { query: v })" />
           </n-form-item>
         </template>
         <template v-else-if="node.op === 'transform'">
