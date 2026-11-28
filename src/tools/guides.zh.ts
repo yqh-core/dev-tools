@@ -2319,7 +2319,7 @@ export const GUIDES: Record<string, ToolGuide> = {
     intro: '粘贴 HTTP 响应头，或导入本地 HAR 1.2 / 纯文本捕获文件，在浏览器本地检查安全策略覆盖、Cookie 标志、CORS 配置、缓存与索引提示。文件不会上传到服务器。',
     steps: [
       '先获取目标页面的响应头。要检查 GET 响应，可运行 curl -sS -D - -o /dev/null https://example.com/；也可在 DevTools 的 Network 中选择 document 请求并复制 Response Headers。你也可以从 Network 面板导出 HAR 1.2。',
-      '通过文件选择器或拖放方式导入 .har 或纯文本 .txt 响应头文件。一个 HAR 可能包含多个请求，可在选择器中挑选要检查的响应；文件最大 10 MB。',
+      '通过文件选择器或拖放方式导入 .har 或纯文本 .txt 响应头文件。一个 HAR 可能包含多个请求，可在选择器中挑选要检查的响应；文件最大 10 MiB。',
       '手动检查时，粘贴包含 HTTP 状态行的完整响应块；支持重复出现的 Set-Cookie。',
       '查看安全头覆盖情况、CSP 指令、Cookie 问题，以及 CORS 或 X-Robots-Tag 提示。',
       '选择 Nginx、Apache、Caddy、Vercel 或 Cloudflare Pages，复制明确缺失且适合通用建议的响应头配置。',
@@ -2327,7 +2327,7 @@ export const GUIDES: Record<string, ToolGuide> = {
     ],
     notes: [
       '本页只分析你粘贴的响应头或导入的本地捕获文件，不会主动请求 URL，也不检查 TLS、应用代码或服务端行为。',
-      'HAR 文件可能包含 Cookie、Authorization 值和个人信息。导入前请检查文件，不要公开分享；文件大小限制为 10 MB。',
+      'HAR 文件可能包含 Cookie、Authorization 值和个人信息。导入前请检查文件，不要公开分享；文件大小限制为 10 MiB。',
       '导入器只读取分析所需的响应状态和响应头；请求头和响应正文不会显示，也不会发送到服务器。',
       '配置生成器只为明确缺失的低上下文响应头添加建议，例如 X-Content-Type-Options、Referrer-Policy 和 HSTS。不会自动编造依赖具体应用的 CSP、CORS、框架策略、Permissions-Policy 或 Cookie 规则。',
       '评分是按权重计算的响应头覆盖清单，不是 OWASP 评级、渗透测试，也不代表应用整体安全。',
@@ -2394,19 +2394,24 @@ export const GUIDES: Record<string, ToolGuide> = {
   },
 
   '/http-status-checker': {
-    intro: '从服务端检测一个网址真正返回的 HTTP 状态码与响应头，用来确认线上到底返回了什么。',
-    steps: ['填「网址」（不写协议时按 https 处理）', '点「检测状态码」或按回车', '看状态码配色与响应头列表，响应头可整段复制'],
+    intro: '从 DigDevBox 的 Cloudflare 边缘请求公开 URL，返回最终 HTTP 状态码、落地 URL 和选定的响应头。',
+    steps: [
+      '输入公开网址。不写协议时默认使用 HTTPS。',
+      '点击「检测 URL」或按回车。',
+      '分别查看检测请求结果和上游 HTTP 状态码。即使目标返回 404 或 500，也代表已收到有效的 HTTP 响应；最终 URL 和响应头会显示在下方。',
+    ],
     notes: [
-      '检测由本站服务端发起，看到的是服务端网络环境的结果，可能与本机 curl 不同（DNS 缓存、代理、地区差异）',
-      '需要站点已部署；本地开发环境会请求失败',
-      '状态码按 2xx 绿 / 3xx 橙 / 4xx、5xx 红着色',
+      '请求从 DigDevBox 的 Cloudflare 边缘发出，使用 DigDevBox/1.0 User-Agent 和 Accept: */*，不携带浏览器 Cookie。地区、防火墙、User-Agent 和缓存差异都可能让结果不同于浏览器或本机 curl。',
+      '优先发送 HEAD 请求；只有 HEAD 请求在收到响应前失败时才回退到 GET。若上游正常返回 405，则保留并显示 405。最多跟随 3 次重定向，只返回最终响应，不提供逐跳时间线。',
+      '为避免转交凭据型响应头，会省略 Set-Cookie；最多返回 60 个响应头。',
+      '此接口仅在部署到 Cloudflare Pages 后可用；本地 Vite 开发环境不提供 /api/webstatus。',
     ],
     example: { label: '填入示例网址', text: 'example.com' },
-    about: '输入一个线上 URL，立刻看到它此刻真实返回的 HTTP 状态码与响应头——用来区分「站点挂了」和「站点在重定向」、验证缓存刷新是否生效、确认安全头真的部署到了生产。请求经 DigDevBox API 发起，反映的是服务端抓取结果，不受你本机缓存影响。',
+    about: '从 DigDevBox 的 Cloudflare 边缘检测公开 URL，查看最终 HTTP 响应。页面会区分检测请求是否收到响应，以及目标站点实际返回的状态码：上游 404 或 500 仍然是有效的 HTTP 响应。结果包含最终落地 URL 和选定的响应头。请求使用 DigDevBox/1.0、Accept: */*，不携带浏览器 Cookie，因此可能与本机浏览器或 curl 不同。',
     faqs: [
-      { q: '为什么检测结果和浏览器不一样？', a: '浏览器会带 Cookie、Accept 头和缓存。本工具发起的是干净的无 Cookie 请求，结果更接近搜索引擎爬虫或新访客看到的样子。' },
-      { q: '我自己能打开，这里却返回 403，为什么？', a: '有些防火墙会拦数据中心 IP 或非浏览器 UA。浏览器正常但检测器 403，通常意味着触发了防爬虫策略，而不是站点坏了。' },
-      { q: '能跟踪重定向链吗？', a: '工具报告服务端请求完成后的最终状态码与响应头，永久/临时重定向已经解析完毕——看响应头就知道最终落在了哪里。' },
+      { q: '为什么结果和浏览器或 curl 不同？', a: '请求由 DigDevBox 的 Cloudflare 边缘发出，使用 DigDevBox/1.0 User-Agent 和 Accept: */*，不会携带你的浏览器 Cookie 或缓存。地区、防火墙规则、User-Agent 处理方式和本地网络都可能影响结果；它不保证等同于搜索引擎爬虫或所有访客看到的内容。' },
+      { q: '我自己能打开，这里却返回 403，为什么？', a: '403 是当前 Cloudflare 边缘请求收到的响应。防火墙可能会区别对待数据中心出口 IP、当前 User-Agent 或地区；这并不能证明所有访客都无法访问该站点。' },
+      { q: '能查看每一跳重定向吗？', a: '工具最多跟随 3 次重定向，并展示最终 URL、状态码和响应头，不提供中间跳转的时间线。返回结果会省略 Set-Cookie。' },
     ],
     relatedNotes: [
       {
