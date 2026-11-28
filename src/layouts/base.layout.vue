@@ -92,15 +92,7 @@ const tools = computed<ToolCategory[]>(() => [
             <RouterLink :to="normalizePath('/contact')">
               {{ $t('legal.contact') }}
             </RouterLink>
-            <span class="dot">·</span>
-            <button
-              class="footer-privacy-settings"
-              type="button"
-              data-privacy-settings
-              aria-haspopup="dialog"
-            >
-              {{ $t('legal.privacySettings') }}
-            </button>
+
           </div>
 
           <div class="footer-network">
@@ -144,6 +136,16 @@ const tools = computed<ToolCategory[]>(() => [
         </c-tooltip>
 
         <command-palette />
+
+        <button
+          class="privacy-settings-toolbar"
+          type="button"
+          data-privacy-settings
+          aria-haspopup="dialog"
+          :aria-label="$t('legal.privacySettings')"
+        >
+          {{ $t('legal.privacySettings') }}
+        </button>
 
         <locale-selector v-if="!styleStore.isSmallScreen" />
 
