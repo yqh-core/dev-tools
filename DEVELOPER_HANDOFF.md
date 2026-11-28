@@ -1,10 +1,35 @@
-## Main #258 exact-head status update — 2026-11-28T13:55:01.478Z
+## Current handoff — 2026-11-28 14:33 UTC
 
-- Branch/head `feat/home-task-story-demo-20261128` / `52d0db6b4bcf5b6bdbb0bc443f4c822090d7dc0e`; PR #258 OPEN; latest mergeable observation true.
-- Verify/Build #46151447367 **SUCCESS**.
-- Cloudflare Pages #141000100428 **SUCCESS**, exact Preview https://d8300146.coderkit.pages.dev/ (branch alias https://feat-home-task-story-demo-20.coderkit.pages.dev/). This is Preview, not Production.
-- Generic CI #46151447365 still **IN_PROGRESS**. Lint, Relay/DO lint/bundle, unit tests, typecheck, Main build and Chromium install are SUCCESS; the combined targeted Chromium E2E step remains RUNNING. No failed step recorded. Screenshot artifact uploads are downstream and still PENDING; no current exact-head desktop/mobile screenshot has been reviewed.
-- Next gate: terminal CI + inspect fresh homepage visual artifacts / post-run CTA measurements at 390×844 and desktop 1440×900. Do not merge before both conditions.
+### API Studio safe OpenAPI refresh (#283) — MERGED
+
+- PR #283 merged at `1495ab1da6ec86815043eab71a11eabaf05da9ca`; Issue #280 CLOSED.
+- Exact feature HEAD `d7c83d5022e31649d1822492e719acf7e9d8dad4`: CI #46150370635 SUCCESS (129 test files / 1,466 unit tests / 186 Chromium E2E); Verify/Build #46150370618 SUCCESS; shared Pages Preview #140995978047 SUCCESS.
+- Artifact #15265133469 reviewed at 1440×900 and 390×844. Mobile source/conflict controls and Apply/Cancel are reachable by scrolling; no horizontal overflow observed.
+- Merge-SHA Build #140997751328, Pages #140997669682 and production smoke #140998715906 are recorded SUCCESS. This does not prove the independent API Studio host is live.
+
+### DigDevBox Main task-demo homepage (#258) — MERGED
+
+- PR #258 merged at `cb89b6bf3dd2c27e78f4c643921332d68f20aafb`; current main compares identical to that SHA.
+- Exact feature HEAD `2e072fdf22ae7a005643a6ee71203d18ff1511d4`.
+- Main CI #46153357012 SUCCESS (129 test files / 1,466 unit tests / 186 Chromium E2E); Verify/Build #46153356949 SUCCESS (19/19); Cloudflare Pages Preview SUCCESS at https://997d6b53.coderkit.pages.dev/.
+- Artifact #15266054846 reviewed at 390×844 and 1440×900. JSON/JWT/Regex after Run + Copy kept the CTA inside 844px, preserved 44px controls and showed no horizontal overflow. Earlier `52d0db6` and `a6743be` mobile failures were superseded by `2e072fd`; the 844px assertion was not relaxed.
+- Merge commit changes only `locales/en.yml`, `locales/zh.yml`, `src/pages/Home.page.vue` and `src/pages/home-task-discovery.e2e.spec.ts`.
+
+### Release gate and next product task
+
+- **UNKNOWN:** #258 merge-SHA post-merge CI, Verify/Build, Pages production deployment and production smoke. The available connector returns PR-triggered workflow runs only; merge SHA `cb89b6b` returned no runs and no combined status contexts. This is not a pass/fail result.
+- Next API Studio candidate is Issue #284 — structured Authorization editor. Do not open its code PR until the #258 merge-SHA release checks are terminal-success and the live execution board is re-read.
+- P0 scope remains No Auth / Bearer / Basic / API Key Header / API Key Query; reuse `ApiRequestState` and local environment variables; preserve manual query/header rows; mask secrets by default; no auto-Send. P1 inheritance, OAuth refresh, hosted vault and cloud sync stay deferred.
+- The product README and authorization competitor/test plan are refreshed on this documentation-only branch `docs/api-studio-postmerge-handoff-20261128`. It is not merged and does not publish or deploy anything.
+
+### API Studio identity and production boundaries
+
+- Owner-selected identity: **API Studio — by DigDevBox**; selected target https://apistudio.digdevbox.com. Host selection is not proof of a live Production deployment.
+- Keep https://www.digdevbox.com/api-studio/ as fallback until #214 host/Functions/SEO/origin/rollback checks, #221 Relay Production hardening and #220 migration acceptance pass. #219 name screening remains preliminary.
+- Preserve the light-neutral/violet marketing surface and separate dark-navy workbench. No DNS, secret, WAF, billing or Production infrastructure changes were made.
+
+This current handoff supersedes the older checkpoints below; they remain historical evidence only.
+
 
 ---
 ## Verification refresh — 2026-11-28T13:53:37.289Z
