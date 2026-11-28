@@ -89,6 +89,7 @@ test('renders the Main violet-blue palette on the JSON tool surface in both them
   ] as const;
 
   for (const themeCase of cases) {
+    await page.goto('/json-workspace');
     await page.evaluate((theme) => {
       localStorage.setItem('vueuse-color-scheme', theme);
     }, themeCase.theme);
