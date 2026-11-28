@@ -212,7 +212,7 @@ export function redactAuthSensitiveText(
       : [auth.value];
   if (auth.type === 'api-key-query') {
     const queryValue = substituteVars(auth.value, env);
-    if (!queryValue.missing.length && queryValue.text && !/^\\s*\\{\\{/.test(queryValue.text)) {
+    if (!queryValue.missing.length && queryValue.text && !/^\s*\{\{/.test(queryValue.text)) {
       const formEncoded = new URLSearchParams([['value', queryValue.text]]).toString().slice('value='.length);
       const uriEncoded = encodeURIComponent(queryValue.text);
       values.push(formEncoded, uriEncoded);
