@@ -2334,7 +2334,7 @@ export const GUIDES: Record<string, ToolGuide> = {
     ],
     notes: [
       'This page analyzes pasted headers or a local capture; it does not fetch a URL or inspect TLS, application code or server-side behavior.',
-      'HAR files can contain cookies, authorization values and personal information. Review a capture before importing it, do not share it publicly, and keep exports under 10 MB.',
+      'HAR files can contain cookies, authorization values and personal information. Review a capture before importing it, do not share it publicly, and keep exports under 10 MiB.',
       'The importer extracts response status and response headers for analysis. Request headers and response bodies are not displayed or sent to a server.',
       'Generated configuration only adds clearly missing, low-context headers such as X-Content-Type-Options, Referrer-Policy and HSTS. It does not invent CSP, CORS, frame, Permissions-Policy or cookie rules that depend on your application.',
       'The score is a weighted header-coverage checklist, not an OWASP rating, penetration test or guarantee of application security.',
