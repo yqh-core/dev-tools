@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { decodeLink } from '../json-workspace/workspace-link';
-import { buildProxyPayload, isRequestAuthConfig, responseToWorkspaceLink, sanitizeForShare, substituteVars } from './engine';
+import { buildProxyPayload, isRequestAuthConfig, redactAuthQueryUrl, responseToWorkspaceLink, sanitizeForShare, substituteVars } from './engine';
 
 describe('substituteVars', () => {
   it('replaces known variables and lists missing ones', () => {
@@ -132,6 +132,31 @@ describe('request Authorization profiles', () => {
     expect(values).toEqual(['new']);
     expect(url).toContain('x=1');
     expect(request.url).toContain('api_key=old');
+  });
+
+  it('fails closed when a selected auth mode has no credential or an invalid header name', () => {
+    const missingBearer = buildProxyPayload({
+      method: 'GET', url: 'https://api.example.test/', headers: [], body: '',
+      auth: { type: 'bearer', token: '' },
+    }, {});
+    expect(missingBearer.error).toContain('Enter an authentication credential');
+
+    const badHeaderName = buildProxyPayload({
+      method: 'GET', url: 'https://api.example.test/', headers: [], body: '',
+      auth: { type: 'api-key-header', key: 'Bad Header Name', value: 'secret' },
+    }, {});
+    expect(badHeaderName.error).toContain('valid HTTP field name');
+  });
+
+  it('redacts only generated API-key query values from collection progress URLs', () => {
+    const url = 'https://api.example.test/items?lang=en&client_key=actual-secret#details';
+    expect(redactAuthQueryUrl(url, {
+      type: 'api-key-query', key: '{{KEY_NAME}}', value: '{{KEY_VALUE}}',
+    }, { KEY_NAME: 'client_key' })).toBe(
+      'https://api.example.test/items?lang=en&client_key=[REDACTED]#details',
+    );
+    expect(redactAuthQueryUrl(url, { type: 'bearer', token: 'secret' }, {})).toBe(url);
+    expect(redactAuthQueryUrl(url, { type: 'api-key-query', key: '{{MISSING}}', value: 'x' }, {})).toBe(url);
   });
 
   it('rejects CR/LF in resolved auth header names and values', () => {
