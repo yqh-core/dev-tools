@@ -21,6 +21,17 @@ test('product homepage explains the task and shows one primary workspace action'
   await expect(page.getByText(/GUIDED PREVIEW · SAMPLE DATA/i)).toBeVisible();
   await expect(page.getByText(/not a live API call/i)).toBeVisible();
   await expect(page.getByRole('navigation', { name: 'Main navigation' }).getByRole('link', { name: 'Guides' })).toHaveAttribute('href', '/docs/');
+  const palette = await page.evaluate(() => ({
+    scheme: getComputedStyle(document.documentElement).colorScheme,
+    page: getComputedStyle(document.body).backgroundColor,
+    accent: getComputedStyle(document.documentElement).getPropertyValue('--mint').trim(),
+    preview: getComputedStyle(document.querySelector('.workbench-card')!).backgroundColor,
+    guidedPreview: getComputedStyle(document.querySelector('.guided-demo-preview')!).backgroundColor,
+  }));
+  expect(palette.scheme).toBe('light');
+  expect(palette.accent).toBe('#7655e8');
+  expect(palette.preview).toBe('rgb(12, 23, 35)');
+  expect(palette.guidedPreview).toBe('rgb(13, 25, 37)');
   await page.screenshot({ path: testInfo.outputPath('homepage-desktop-first-fold.png') });
 });
 
@@ -121,10 +132,13 @@ test('workspace remains within the mobile viewport and theme control works', asy
   expect(dimensions.workspaceBottom).toBeGreaterThanOrEqual(dimensions.viewportHeight - 1);
   await page.screenshot({ path: testInfo.outputPath('workspace-mobile-first-fold.png') });
 
-  const themeToggle = page.getByRole('button', { name: 'Switch to light theme' });
+  await expect(page.locator('.api-studio-shell')).toHaveAttribute('data-api-theme', 'light');
+  const themeToggle = page.getByRole('button', { name: 'Switch to dark theme' });
   await expect(themeToggle).toBeVisible();
   await themeToggle.click();
-  await expect(page.getByRole('button', { name: 'Switch to dark theme' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Switch to light theme' })).toBeVisible();
+  await expect(page.locator('.api-studio-shell')).toHaveAttribute('data-api-theme', 'dark');
+  await page.getByRole('button', { name: 'Switch to light theme' }).click();
   await expect(page.locator('.api-studio-shell')).toHaveAttribute('data-api-theme', 'light');
 });
 
@@ -321,9 +335,12 @@ test('workspace data tools stay secondary behind a keyboard-accessible disclosur
   }
   await page.screenshot({ path: testInfo.outputPath('workspace-data-tools-desktop-expanded.png') });
 
+  await expect(page.locator('.api-studio-shell')).toHaveAttribute('data-api-theme', 'light');
+  await page.getByRole('button', { name: 'Switch to dark theme' }).click();
+  await expect(page.locator('.api-studio-shell')).toHaveAttribute('data-api-theme', 'dark');
+  await expect(dataControls).toBeVisible();
   await page.getByRole('button', { name: 'Switch to light theme' }).click();
   await expect(page.locator('.api-studio-shell')).toHaveAttribute('data-api-theme', 'light');
-  await expect(dataControls).toBeVisible();
 
   await summary.focus();
   await page.keyboard.press('Enter');
@@ -429,9 +446,12 @@ test('environment selector keeps common names readable and exposes the full acti
   await expect(page.getByTestId('env-count')).toHaveText('0 var(s)');
   await page.screenshot({ path: testInfo.outputPath('environment-selector-desktop-long-name.png') });
 
+  await expect(page.locator('.api-studio-shell')).toHaveAttribute('data-api-theme', 'light');
+  await page.getByRole('button', { name: 'Switch to dark theme' }).click();
+  await expect(page.locator('.api-studio-shell')).toHaveAttribute('data-api-theme', 'dark');
+  await expect(selector).toHaveAttribute('aria-label', 'Environment: Staging-West-2-Production');
   await page.getByRole('button', { name: 'Switch to light theme' }).click();
   await expect(page.locator('.api-studio-shell')).toHaveAttribute('data-api-theme', 'light');
-  await expect(selector).toHaveAttribute('aria-label', 'Environment: Staging-West-2-Production');
 });
 
 test('environment selector stays within the mobile workspace width with a long name', async ({ page }, testInfo) => {

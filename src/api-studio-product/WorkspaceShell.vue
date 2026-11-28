@@ -6,7 +6,7 @@ import { apiStudioDarkOverrides, apiStudioLightOverrides } from '@/themes/api-st
 import { config } from '@/config';
 
 type ApiTheme = 'dark' | 'light';
-const apiTheme = useStorage<ApiTheme>('api-studio:theme', 'dark');
+const apiTheme = useStorage<ApiTheme>('api-studio:theme', 'light');
 const theme = computed(() => (apiTheme.value === 'dark' ? darkTheme : null));
 const themeOverrides = computed(() =>
   apiTheme.value === 'dark' ? apiStudioDarkOverrides : apiStudioLightOverrides,

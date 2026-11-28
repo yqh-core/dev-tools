@@ -3,7 +3,7 @@
    --------------------------------------------------------------------------
    单一事实来源：API-Studio 全屏壳的所有视觉变量。延续 DigDevBox 的 teal-on-navy
    品牌 DNA（见 dd-tokens.css），但为「开发者高密度 API 工作台」重新调校：
-   默认深色（IDE 级低照度 navy），明色作自适应备选，新增 HTTP 方法色标与密度尺度。
+   工作台保留专业深色默认能力与浅色选项；新用户首次进入默认浅色，品牌强调色统一为 violet。
    对标 Postman / Bruno / Insomnia / Hoppscotch 的信息密度与可读性。
 
    作用域：全部变量定义在 .api-studio-shell 内，不污染站点 --dd-*，
@@ -29,13 +29,13 @@
   --api-text-muted: #6f7c96;    /* 弱化 / 占位 */
   --api-text-faint: #515d77;    /* 极弱（分隔、计数） */
 
-  /* ---------- 品牌主色（teal · 暗底提亮保对比） ---------- */
-  --api-primary: #2dd4bf;
-  --api-primary-hover: #5eead4;
-  --api-primary-active: #14b8a6;
-  --api-on-primary: #04201d;
-  --api-primary-soft: rgba(45, 212, 191, 0.14);
-  --api-primary-line: rgba(45, 212, 191, 0.32);
+  /* ---------- 品牌主色（violet · 暗底使用浅紫，保持对比） ---------- */
+  --api-primary: #b39aff;
+  --api-primary-hover: #c7b6ff;
+  --api-primary-active: #9677f2;
+  --api-on-primary: #21163f;
+  --api-primary-soft: rgba(179, 154, 255, 0.16);
+  --api-primary-line: rgba(179, 154, 255, 0.38);
 
   /* ---------- 语义色 ---------- */
   --api-success: #34d399;
@@ -64,7 +64,7 @@
   --api-radius-lg: 12px;
   --api-shadow: 0 1px 2px rgba(0, 0, 0, 0.5), 0 6px 18px rgba(0, 0, 0, 0.38);
   --api-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.45);
-  --api-focus-ring: 0 0 0 2px rgba(45, 212, 191, 0.42);
+  --api-focus-ring: 0 0 0 2px rgba(179, 154, 255, 0.48);
 
   /* ---------- 密度尺度（开发者工作台：比站点更紧） ---------- */
   --api-topbar-h: 52px;
@@ -95,12 +95,12 @@
   color: var(--api-text);
 }
 
-/* ---------- 明色自适应（data-api-theme="light"）：teal-on-light，密度不变 ---------- */
+/* ---------- 明色自适应（data-api-theme="light"）：violet-on-light，密度不变 ---------- */
 .api-studio-shell[data-api-theme="light"] {
-  --api-bg: #eef1f6;
+  --api-bg: #f7f7fc;
   --api-surface: #ffffff;
-  --api-surface-2: #f5f7fb;
-  --api-surface-3: #eaeef5;
+  --api-surface-2: #f3f1fa;
+  --api-surface-3: #eeecf6;
   --api-elevated: #ffffff;
 
   --api-border: #d8deea;
@@ -111,12 +111,12 @@
   --api-text-muted: #8a94a6;
   --api-text-faint: #aab3c2;
 
-  --api-primary: #0f766e;
-  --api-primary-hover: #115e59;
-  --api-primary-active: #134e4a;
+  --api-primary: #7655e8;
+  --api-primary-hover: #6846d8;
+  --api-primary-active: #5736c6;
   --api-on-primary: #ffffff;
-  --api-primary-soft: #ccfbf1;
-  --api-primary-line: #99f6e4;
+  --api-primary-soft: #eee9ff;
+  --api-primary-line: #c9baff;
 
   --api-success: #059669;
   --api-success-soft: #ecfdf5;
@@ -131,7 +131,7 @@
   --api-method-get: #0d9488;
   --api-method-post: #d97706;
   --api-method-put: #2563eb;
-  --api-method-patch: #9333ea;
+  --api-method-patch: #8b5cf6;
   --api-method-delete: #dc2626;
   --api-method-head: #64748b;
   --api-method-options: #64748b;
@@ -139,7 +139,7 @@
 
   --api-shadow: 0 1px 2px rgba(15, 23, 42, 0.08), 0 6px 18px rgba(15, 23, 42, 0.10);
   --api-shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.08);
-  --api-focus-ring: 0 0 0 2px rgba(20, 184, 166, 0.35);
+  --api-focus-ring: 0 0 0 2px rgba(118, 85, 232, 0.34);
 
   color-scheme: light;
 }

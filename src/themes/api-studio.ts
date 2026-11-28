@@ -11,13 +11,13 @@ import type { GlobalThemeOverrides } from 'naive-ui';
  * 全局主题（styleStore.isDarkTheme）：进入全屏壳即自带专业深色，不污染站点其它页面。
  */
 
-// 深色（默认）：navy 低照度 + teal 提亮
+// 深色：保留低照度 navy 工作区，以柔和 violet 作品牌强调
 export const apiStudioDarkOverrides: GlobalThemeOverrides = {
   common: {
-    primaryColor: '#2dd4bf',
-    primaryColorHover: '#5eead4',
-    primaryColorPressed: '#14b8a6',
-    primaryColorSuppl: '#5eead4',
+    primaryColor: '#b39aff',
+    primaryColorHover: '#c7b6ff',
+    primaryColorPressed: '#9677f2',
+    primaryColorSuppl: '#c7b6ff',
     infoColor: '#60a5fa',
     successColor: '#34d399',
     warningColor: '#fbbf24',
@@ -52,30 +52,30 @@ export const apiStudioDarkOverrides: GlobalThemeOverrides = {
     borderColor: '#223050',
   },
   Card: { color: '#0e1626', borderColor: '#223050' },
-  Input: { color: '#131c2e', colorFocus: '#18233a', border: '1px solid #223050', borderFocus: '1px solid #2dd4bf' },
+  Input: { color: '#131c2e', colorFocus: '#18233a', border: '1px solid #223050', borderFocus: '1px solid #b39aff' },
   Select: { peers: { InternalSelection: { color: '#131c2e', border: '1px solid #223050' } } },
-  Tree: { color: 'transparent', nodeColorHover: '#18233a', nodeColorActive: 'rgba(45, 212, 191, 0.14)' },
+  Tree: { color: 'transparent', nodeColorHover: '#18233a', nodeColorActive: 'rgba(179, 154, 255, 0.16)' },
   Menu: { itemHeight: '32px' },
   Tag: { borderRadius: '5px' },
 };
 
-// 明色（自适应备选）：teal-on-light
+// 明色（新用户默认）：violet-on-light
 export const apiStudioLightOverrides: GlobalThemeOverrides = {
   common: {
-    primaryColor: '#0f766e',
-    primaryColorHover: '#115e59',
-    primaryColorPressed: '#134e4a',
-    primaryColorSuppl: '#115e59',
+    primaryColor: '#7655e8',
+    primaryColorHover: '#6846d8',
+    primaryColorPressed: '#5736c6',
+    primaryColorSuppl: '#6846d8',
     infoColor: '#2563eb',
     successColor: '#059669',
     warningColor: '#d97706',
     errorColor: '#dc2626',
 
-    bodyColor: '#eef1f6',
+    bodyColor: '#f7f7fc',
     cardColor: '#ffffff',
     modalColor: '#ffffff',
     popoverColor: '#ffffff',
-    inputColor: '#f5f7fb',
+    inputColor: '#f3f1fa',
     tableColor: '#ffffff',
     borderColor: '#d8deea',
     dividerColor: '#d8deea',
@@ -91,13 +91,13 @@ export const apiStudioLightOverrides: GlobalThemeOverrides = {
     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif',
   },
   Layout: {
-    color: '#eef1f6',
+    color: '#f7f7fc',
     headerColor: '#ffffff',
     siderColor: '#ffffff',
     footerColor: '#eef1f6',
     borderColor: '#d8deea',
   },
-  Tree: { color: 'transparent', nodeColorHover: '#eaeef5', nodeColorActive: '#ccfbf1' },
+  Tree: { color: 'transparent', nodeColorHover: '#eeecf6', nodeColorActive: '#eee9ff' },
   Menu: { itemHeight: '32px' },
   Tag: { borderRadius: '5px' },
 };
