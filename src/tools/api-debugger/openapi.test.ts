@@ -111,7 +111,6 @@ describe('negative controls (never crash, honest warnings)', () => {
   });
 });
 
-
 describe('importOpenApi server selection and unsupported constructs', () => {
   const multiServerSpec = JSON.stringify({
     openapi: '3.1.0',
