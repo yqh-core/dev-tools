@@ -937,7 +937,7 @@ watch(() => selectedNode.value?.id, () => {
   edAuthToken.value = auth.type === 'bearer' ? auth.token : '';
   edAuthUsername.value = auth.type === 'basic' ? auth.username : '';
   edAuthPassword.value = auth.type === 'basic' ? auth.password : '';
-  edAuthKey.value = auth.type === 'api-key-header' || auth.type === 'api-key-query' ? auth.key : auth.type === 'api-key-query' ? 'api_key' : 'X-API-Key';
+  edAuthKey.value = auth.type === 'api-key-header' || auth.type === 'api-key-query' ? auth.key : 'X-API-Key';
   edAuthValue.value = auth.type === 'api-key-header' || auth.type === 'api-key-query' ? auth.value : '';
   authReveal.value = false;
   authCollisionChoice.value = null;
@@ -1010,8 +1010,8 @@ function onAuthModeChange(value: unknown) {
   const mode = String(value) as RequestAuthConfig['type'];
   if (!['none', 'bearer', 'basic', 'api-key-header', 'api-key-query'].includes(mode)) return;
   edAuthMode.value = mode;
-  if (mode === 'api-key-header' && !edAuthKey.value) edAuthKey.value = 'X-API-Key';
-  if (mode === 'api-key-query' && !edAuthKey.value) edAuthKey.value = 'api_key';
+  if (mode === 'api-key-header') edAuthKey.value = 'X-API-Key';
+  if (mode === 'api-key-query') edAuthKey.value = 'api_key';
   authReveal.value = false;
   commitAuth();
 }
@@ -2315,6 +2315,63 @@ function onMenuSelect(key: string, node: TreeNode) {
         <template v-if="selectedRequest">
           <input v-model="edUrl" class="api-url-input" data-test-id="editor-url" placeholder="https://api.example.com/endpoint" @change="onUrlChange">
 
+          <section class="api-request-section api-auth-section" aria-label="Authorization" data-test-id="request-auth">
+            <div class="api-request-section-head">
+              <span>Authorization</span>
+              <n-select :value="edAuthMode" :options="authModeOptions" class="api-auth-mode" data-test-id="auth-mode" @update:value="onAuthModeChange" />
+            </div>
+
+            <div v-if="edAuthMode === 'bearer'" class="api-auth-fields">
+              <label class="api-auth-field">
+                <span>Bearer token</span>
+                <input v-model="edAuthToken" class="api-kv-input api-auth-input" :type="authReveal ? 'text' : 'password'" autocomplete="off" placeholder="{{API_TOKEN}}" data-test-id="auth-bearer-token" @change="commitAuth">
+              </label>
+              <button class="api-mini-action api-auth-action" type="button" :aria-pressed="authReveal" data-test-id="auth-reveal" @click="authReveal = !authReveal">{{ authReveal ? 'Hide value' : 'Show value' }}</button>
+            </div>
+
+            <div v-else-if="edAuthMode === 'basic'" class="api-auth-fields api-auth-grid">
+              <label class="api-auth-field">
+                <span>Username</span>
+                <input v-model="edAuthUsername" class="api-kv-input api-auth-input" autocomplete="username" placeholder="Username" data-test-id="auth-basic-username" @change="commitAuth">
+              </label>
+              <label class="api-auth-field">
+                <span>Password</span>
+                <input v-model="edAuthPassword" class="api-kv-input api-auth-input" :type="authReveal ? 'text' : 'password'" autocomplete="current-password" placeholder="Password" data-test-id="auth-basic-password" @change="commitAuth">
+              </label>
+              <button class="api-mini-action api-auth-action" type="button" :aria-pressed="authReveal" data-test-id="auth-reveal" @click="authReveal = !authReveal">{{ authReveal ? 'Hide password' : 'Show password' }}</button>
+            </div>
+
+            <div v-else-if="edAuthMode === 'api-key-header' || edAuthMode === 'api-key-query'" class="api-auth-fields api-auth-grid">
+              <label class="api-auth-field">
+                <span>Key name</span>
+                <input v-model="edAuthKey" class="api-kv-input api-auth-input" autocomplete="off" placeholder="X-API-Key" data-test-id="auth-api-key-name" @change="commitAuth">
+              </label>
+              <label class="api-auth-field">
+                <span>Key value</span>
+                <input v-model="edAuthValue" class="api-kv-input api-auth-input" :type="authReveal ? 'text' : 'password'" autocomplete="off" placeholder="{{API_KEY}}" data-test-id="auth-api-key-value" @change="commitAuth">
+              </label>
+              <button class="api-mini-action api-auth-action" type="button" :aria-pressed="authReveal" data-test-id="auth-reveal" @click="authReveal = !authReveal">{{ authReveal ? 'Hide value' : 'Show value' }}</button>
+            </div>
+
+            <div v-if="authLocationPreview" class="api-auth-preview" data-test-id="auth-destination">
+              <span class="api-field-hint">Generated destination</span>
+              <code>{{ authLocationPreview }}</code>
+            </div>
+
+            <div v-if="authPreview.collision" class="api-auth-conflict" role="alert" data-test-id="auth-collision">
+              <strong>Existing {{ authPreview.collision.target }} field: {{ authPreview.collision.name }}</strong>
+              <p class="api-field-hint">This request already defines the same field. Nothing will be overwritten automatically.</p>
+              <div class="api-auth-conflict-actions">
+                <button class="api-mini-action api-auth-action" type="button" :aria-pressed="authCollisionChoice === 'replace'" data-test-id="auth-conflict-replace" @click="authCollisionChoice = 'replace'">Use auth value for this send</button>
+                <button class="api-mini-action api-auth-action" type="button" :aria-pressed="authCollisionChoice === 'keep-manual'" data-test-id="auth-conflict-keep" @click="authCollisionChoice = 'keep-manual'">Keep manual field</button>
+              </div>
+              <span class="api-field-hint">The original manual field remains saved either way.</span>
+            </div>
+
+            <p class="api-field-hint">Use an environment variable such as {{ '{{' }}API_TOKEN{{ '}}' }} for reusable credentials. Changes stay local until you choose Send or Run.</p>
+            <p class="api-auth-disclosure">Auth values are saved in this browser's localStorage and are not encrypted at rest. Secret variables are masked in the editor and omitted from safe backups; use an explicitly protected backup only when you intend to include credentials.</p>
+          </section>
+
           <section class="api-request-section" aria-label="Query parameters" data-test-id="query-params">
             <div class="api-request-section-head">
               <span>Query params</span>
@@ -3251,6 +3308,89 @@ function onMenuSelect(key: string, node: TreeNode) {
   line-height: 1.5;
 }
 
+.api-auth-mode {
+  width: min(100%, 220px);
+}
+
+.api-auth-fields {
+  display: flex;
+  align-items: end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.api-auth-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: end;
+}
+
+.api-auth-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+  color: var(--api-text-soft);
+  font-size: var(--api-fs-sm);
+}
+
+.api-auth-input {
+  min-height: 44px;
+  height: 44px;
+}
+
+.api-auth-action {
+  min-height: 44px;
+  padding-inline: 10px;
+}
+
+.api-auth-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-top: 4px;
+  color: var(--api-text);
+  overflow-wrap: anywhere;
+}
+
+.api-auth-preview code {
+  display: block;
+  padding: 8px 10px;
+  border: 1px solid var(--api-border);
+  border-radius: var(--api-radius-sm);
+  background: var(--api-surface-2);
+  font: 12px/1.5 var(--api-font-mono, monospace);
+  overflow-wrap: anywhere;
+}
+
+.api-auth-conflict {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px;
+  border: 1px solid var(--api-warning, #b7791f);
+  border-radius: var(--api-radius-sm);
+  background: var(--api-surface-2);
+  color: var(--api-text);
+}
+
+.api-auth-conflict p {
+  margin: 0;
+}
+
+.api-auth-conflict-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.api-auth-disclosure {
+  margin: 0;
+  color: var(--api-text-muted);
+  font-size: var(--api-fs-xs);
+  line-height: 1.5;
+}
+
 .api-backup-preview {
   margin-top: 10px;
 }
@@ -3974,6 +4114,23 @@ function onMenuSelect(key: string, node: TreeNode) {
 
   .api-kv-row {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr) 28px;
+  }
+
+  .api-auth-mode {
+    width: 100%;
+  }
+
+  .api-auth-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .api-auth-fields,
+  .api-auth-conflict-actions {
+    align-items: stretch;
+  }
+
+  .api-auth-action {
+    flex: 1 1 auto;
   }
 }
 
