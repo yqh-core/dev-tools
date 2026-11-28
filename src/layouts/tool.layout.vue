@@ -398,7 +398,7 @@ const shareLabel = computed(() => {
 
 <template>
   <BaseLayout>
-    <div class="tool-layout">
+    <div class="tool-layout" :class="{ 'tool-layout--wide': toolPath === '/json-workspace' }">
       <div class="tool-header">
         <div class="breadcrumb">
           <RouterLink to="/">
@@ -518,7 +518,7 @@ const shareLabel = computed(() => {
       </div>
     </div>
 
-    <div class="tool-content">
+    <div class="tool-content" :class="{ 'tool-content--wide': toolPath === '/json-workspace' }">
       <slot />
     </div>
 
@@ -577,6 +577,23 @@ const shareLabel = computed(() => {
 </template>
 
 <style lang="less" scoped>
+
+/* JSON Workspace is a document workbench, not a small single-control utility.
+   Widen only this route; keep every other tool's established 600px rhythm. */
+.tool-layout.tool-layout--wide {
+  max-width: 960px;
+}
+
+.tool-content.tool-content--wide {
+  max-width: 960px;
+  margin-left: auto;
+  margin-right: auto;
+
+  ::v-deep(& > *) {
+    flex-basis: 960px;
+  }
+}
+
 .tool-content {
   display: flex;
   flex-direction: row;
