@@ -103,11 +103,16 @@ test.describe('Homepage task discovery', () => {
       await expect(tab).toBeVisible();
     }
 
-    const cta = await preview.locator('a.hero-preview-link').boundingBox();
     const documentWidth = await page.evaluate(() => document.documentElement.scrollWidth);
-    expect(cta).not.toBeNull();
-    expect(cta!.y + cta!.height).toBeLessThanOrEqual(844);
     expect(documentWidth).toBeLessThanOrEqual(390);
+
+    for (const demoId of ['json', 'jwt', 'regex'] as const) {
+      const tab = preview.getByTestId(`home-demo-tab-${demoId}`);
+      await tab.click();
+      const cta = await preview.locator('a.hero-preview-link').boundingBox();
+      expect(cta).not.toBeNull();
+      expect(cta!.y + cta!.height).toBeLessThanOrEqual(844);
+    }
   });
 
   test('uses one column without horizontal overflow at 390px', async ({ page }) => {
