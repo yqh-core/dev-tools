@@ -42,6 +42,9 @@ home:
     runSample: "Run sample"
     running: "Running…"
     localResult: "LOCAL RESULT"
+    copyResult: "Copy"
+    copied: "Copied"
+    copyError: "Clipboard access was blocked by the browser."
     runError: "The sample could not be processed. Open the tool for details."
     json:
       tab: "JSON"
