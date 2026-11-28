@@ -1,3 +1,28 @@
+## Live handoff override — 2026-11-28 2026-11-28T13:50:00.231Z
+
+### API Studio safe OpenAPI refresh (#283) — MERGED
+- PR #283 merged successfully at `1495ab1da6ec86815043eab71a11eabaf05da9ca`; linked Issue #280 is CLOSED / completed.
+- Exact feature HEAD `d7c83d5022e31649d1822492e719acf7e9d8dad4`: generic CI #46150370635 **SUCCESS** (129 test files / 1,466 unit tests, 186 Chromium E2E passed); independent Verify/Build #46150370618 **SUCCESS**; Cloudflare Pages check #140995978047 **SUCCESS**.
+- Exact-head visual artifact #15265133469 was reviewed at 1440×900 and 390×844. The OpenAPI refresh preview clearly discloses local-only parsing, preserved removed operations, Keep Current default and explicit Use Spec; mobile scrolling exposes source server, conflict selector, Cancel and Apply; no horizontal overflow observed.
+- Merge-SHA `1495ab1da6ec86815043eab71a11eabaf05da9ca` follow-up: Build check #140997751328 **SUCCESS**; Cloudflare Pages #140997669682 **SUCCESS**; production smoke #140998715906 **SUCCESS**; the first production homepage visual #140997868680 **SUCCESS**. A later CI check #140997751183 and duplicate homepage visual/crawl checks were still running/queued at latest poll. Do not claim all post-merge site-wide checks terminal until refreshed.
+
+### DigDevBox Main task-demo homepage (#258) — CURRENT SINGLE WIP
+- PR #258 remains OPEN and GitHub reports mergeable. Branch `feat/home-task-story-demo-20261128`; exact HEAD `52d0db6b4bcf5b6bdbb0bc443f4c822090d7dc0e`. Linked base remains the original #257 merge SHA, but code tree now includes #282's identical shipped Home-page/API-card changes; PR changed-file list remains the same four intended files.
+- Original current-head mobile failure was state-dependent: after running a local demo, the `.hero-preview-link` bottom reached 865.4375px in a 390×844 viewport. The initial homepage screenshot itself fit; output expansion pushed the CTA below the fold.
+- Reconciliation with #282 is complete on the PR branch: API Studio is the primary API-card action, legacy API Debugger remains a secondary link, route assertions and EN/ZH labels are included.
+- Fix in `52d0db6`: after Run, the preview now shows the compact result instead of duplicating input + output; result area is keyboard-scrollable and mobile text density/height are constrained. No palette or broad homepage architecture changes.
+- New exact-head checks: CI #46151447365, Verify/Build #46151447367, Cloudflare Pages #140998746685 were **IN_PROGRESS** at latest poll. PR comment #7240204431 records the current QA contract. Do not merge until all three finish successfully and latest desktop/mobile screenshots prove JSON, JWT and Regex outputs plus their tool CTAs remain accessible within the 390×844 viewport.
+- Main's broad homepage redesign stays CLOSED. This is the bounded task-demo slice only; do not add video here.
+
+### Shared sequence / release gates
+1. Finish PR #258 exact-head CI/Verify/Pages and inspect post-run screenshots, especially CTA viewport bounds, keyboard scrolling and EN/ZH parity. Fix only evidence-backed issues; preserve #282 API Studio / legacy API Debugger routes.
+2. Merge #258 only after exact-head gates pass. Then verify merge-SHA CI, Build, Pages, smoke and production visual separately.
+3. Re-read this live board after #258; choose the next bounded issue by portfolio investment tier. Do not open another shared-repo code WIP while #258 is open.
+4. API Studio separate host/Relay/migration/rollback remain distinct production gates (#214/#221); successful shared Pages Preview does not prove `apistudio.digdevbox.com` is production live.
+
+Older checkpoint text below is historical and is superseded by this override. Always re-fetch exact live heads/checks before acting.
+
+---
 # DigDevBox live continuation — 2026-11-28 2026-11-28T13:40:50.128Z (authoritative override)
 
 ## Current execution state
