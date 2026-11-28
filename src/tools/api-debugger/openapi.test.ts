@@ -40,6 +40,17 @@ describe('importOpenApi (JSON)', () => {
   it('uses requestBody example as body', () => {
     expect(JSON.parse(r.requests[2].request.body)).toEqual({ name: 'Rex' });
   });
+  it('retains operationId and original path with a stable refresh key', () => {
+    expect(r.title).toBeUndefined();
+    expect(r.openApiVersion).toBe('3.0.3');
+    expect(r.requests[0]).toMatchObject({
+      operationId: 'getUser',
+      path: '/users/{id}',
+      sourceKey: 'operationId:getUser',
+    });
+    expect(r.requests[1].sourceKey).toBe('path:DELETE:/users/{id}');
+    expect(r.requests[2].sourceKey).toBe('path:POST:/pets');
+  });
 });
 
 describe('importOpenApi (YAML)', () => {
@@ -108,6 +119,25 @@ describe('negative controls (never crash, honest warnings)', () => {
     const r = importOpenApi(JSON.stringify({ openapi: '3.0.0', paths: { '/p': { get: {} } } }));
     expect(r.requests[0].request.url).toBe('/p');
     expect(r.warnings.join(' ')).toContain('servers');
+  });
+});
+
+describe('OpenAPI source identity collisions', () => {
+  it('falls back to normalized method + path when operationId is duplicated', () => {
+    const parsed = importOpenApi(JSON.stringify({
+      openapi: '3.1.0',
+      info: { title: 'Duplicate IDs' },
+      paths: {
+        '/one/': { get: { operationId: 'sameId' } },
+        '/two': { post: { operationId: 'sameId' } },
+      },
+    }));
+    expect(parsed.title).toBe('Duplicate IDs');
+    expect(parsed.requests.map(item => item.sourceKey)).toEqual([
+      'path:GET:/one',
+      'path:POST:/two',
+    ]);
+    expect(parsed.warnings.join(' ')).toContain('Duplicate operationId');
   });
 });
 
