@@ -6,12 +6,13 @@ import {
   isFolderNode,
   mergeImportedTree,
   parseCollectionTree,
+  parseOpenApiSyncMetadata,
 } from './collection-tree';
 import { type ApiRequestState, sanitizeForShare } from './engine';
 import { type EnvStore, collectSecretValues } from './environments';
 
 export const API_STUDIO_BACKUP_FORMAT = 'digdevbox-api-studio-backup';
-export const API_STUDIO_BACKUP_VERSION = 1;
+export const API_STUDIO_BACKUP_VERSION = 2;
 export const API_STUDIO_BACKUP_MAX_BYTES = 10 * 1024 * 1024;
 export const API_STUDIO_BACKUP_REDACTED = '[REDACTED]';
 
@@ -24,14 +25,24 @@ export interface ApiStudioBackupSecurity {
   notes: string[]
 }
 
-export interface ApiStudioBackupV1 {
+interface ApiStudioBackupBase {
   format: typeof API_STUDIO_BACKUP_FORMAT
-  version: typeof API_STUDIO_BACKUP_VERSION
   exportedAt: string
   collection: CollectionNode
   environments: EnvStore
   security: ApiStudioBackupSecurity
 }
+
+export interface ApiStudioBackupV1 extends ApiStudioBackupBase {
+  version: 1
+}
+
+export interface ApiStudioBackupV2 extends ApiStudioBackupBase {
+  version: 2
+}
+
+/** New exports use v2; restores continue to accept v1 files without OpenAPI provenance. */
+export type ApiStudioBackupArchive = ApiStudioBackupV1 | ApiStudioBackupV2;
 
 export type BackupRestoreStrategy = 'replace' | 'merge';
 
@@ -128,7 +139,7 @@ function validateRequest(value: unknown, where: string): void {
   });
 }
 
-function validateTreeNode(value: unknown, ids: Set<string>, where: string): void {
+function validateTreeNode(value: unknown, ids: Set<string>, where: string, allowOpenApiSync = false): void {
   if (!isRecord(value) || typeof value.id !== 'string' || !value.id.trim() || typeof value.name !== 'string') {
     throw new TypeError(`${where} has an invalid node identity.`);
   }
@@ -139,11 +150,16 @@ function validateTreeNode(value: unknown, ids: Set<string>, where: string): void
   validateScripts(value.scripts, `${where}.scripts`);
 
   if ('items' in value) {
-    assertOnlyKeys(value, ['id', 'name', 'items', 'scripts'], where);
+    assertOnlyKeys(value, allowOpenApiSync
+      ? ['id', 'name', 'items', 'scripts', 'openApiSync']
+      : ['id', 'name', 'items', 'scripts'], where);
+    if (allowOpenApiSync && value.openApiSync !== undefined && !parseOpenApiSyncMetadata(value.openApiSync)) {
+      throw new TypeError(`${where}.openApiSync has an invalid shape.`);
+    }
     if (!Array.isArray(value.items)) {
       throw new TypeError(`${where}.items must be an array.`);
     }
-    value.items.forEach((item, index) => validateTreeNode(item, ids, `${where}.items[${index}]`));
+    value.items.forEach((item, index) => validateTreeNode(item, ids, `${where}.items[${index}]`, false));
     return;
   }
 
@@ -157,12 +173,12 @@ function validateTreeNode(value: unknown, ids: Set<string>, where: string): void
   }
 }
 
-function validateCollection(value: unknown): CollectionNode {
+function validateCollection(value: unknown, backupVersion: 1 | 2): CollectionNode {
   if (!isRecord(value) || !Array.isArray(value.items) || typeof value.id !== 'string' || typeof value.name !== 'string') {
     throw new TypeError('The backup does not contain a valid collection tree.');
   }
   const ids = new Set<string>();
-  validateTreeNode(value, ids, 'collection');
+  validateTreeNode(value, ids, 'collection', backupVersion === 2);
   const parsed = parseCollectionTree(value);
   if (!parsed) {
     throw new TypeError('The backup collection tree could not be parsed.');
@@ -294,7 +310,7 @@ export function createApiStudioBackup(
   collection: CollectionNode,
   environments: EnvStore,
   options: { includeSecrets?: boolean; exportedAt?: string } = {},
-): ApiStudioBackupV1 {
+): ApiStudioBackupV2 {
   const includeSecrets = options.includeSecrets === true;
   const secretNames = [...new Set(environments.secrets ?? [])];
   const secretValues = includeSecrets
@@ -390,11 +406,11 @@ export function createApiStudioBackup(
   };
 }
 
-export function serializeApiStudioBackup(backup: ApiStudioBackupV1): string {
+export function serializeApiStudioBackup(backup: ApiStudioBackupArchive): string {
   return JSON.stringify(backup, null, 2);
 }
 
-export function parseApiStudioBackup(text: string): ApiStudioBackupV1 {
+export function parseApiStudioBackup(text: string): ApiStudioBackupArchive {
   if (typeof text !== 'string') {
     throw new TypeError('Choose a backup file to restore.');
   }
@@ -412,7 +428,7 @@ export function parseApiStudioBackup(text: string): ApiStudioBackupV1 {
     throw new TypeError('The selected file is not an API Studio backup.');
   }
   assertOnlyKeys(raw, ['format', 'version', 'exportedAt', 'collection', 'environments', 'security'], 'backup');
-  if (raw.format !== API_STUDIO_BACKUP_FORMAT || raw.version !== API_STUDIO_BACKUP_VERSION) {
+  if (raw.format !== API_STUDIO_BACKUP_FORMAT || (raw.version !== 1 && raw.version !== 2)) {
     throw new TypeError('Unsupported API Studio backup format or version.');
   }
   if (typeof raw.exportedAt !== 'string' || Number.isNaN(Date.parse(raw.exportedAt))) {
@@ -443,16 +459,16 @@ export function parseApiStudioBackup(text: string): ApiStudioBackupV1 {
   }
   return {
     format: API_STUDIO_BACKUP_FORMAT,
-    version: API_STUDIO_BACKUP_VERSION,
+    version: raw.version,
     exportedAt: raw.exportedAt,
-    collection: validateCollection(raw.collection),
+    collection: validateCollection(raw.collection, raw.version),
     environments: validateEnvironments(raw.environments),
     security: JSON.parse(JSON.stringify(raw.security)) as ApiStudioBackupSecurity,
-  };
+  } as ApiStudioBackupArchive;
 }
 
 export function previewApiStudioBackup(
-  backup: ApiStudioBackupV1,
+  backup: ApiStudioBackupArchive,
   currentCollection: CollectionNode,
   currentEnvironments: EnvStore,
 ): ApiStudioBackupPreview {
@@ -528,7 +544,7 @@ function mergeEnvironmentStores(current: EnvStore, incoming: EnvStore): { enviro
 export function planApiStudioRestore(
   currentCollection: CollectionNode,
   currentEnvironments: EnvStore,
-  backup: ApiStudioBackupV1,
+  backup: ApiStudioBackupArchive,
   strategy: BackupRestoreStrategy,
 ): ApiStudioRestoreState {
   if (strategy === 'replace') {
