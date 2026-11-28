@@ -117,19 +117,19 @@ export const codesByCategories: {
       {
         code: 301,
         name: 'Moved Permanently',
-        description: 'This and all future requests should be directed to the given URI.',
+        description: 'The resource has a permanent new URI. A user agent may change POST to GET for historical compatibility; use 308 when the request method must be preserved.',
         type: 'HTTP',
       },
       {
         code: 302,
         name: 'Found',
-        description: 'Redirect to another URL. This is an example of industry practice contradicting the standard.',
+        description: 'The resource is temporarily available at another URI. A user agent may change POST to GET for historical compatibility; use 307 when the request method must be preserved.',
         type: 'HTTP',
       },
       {
         code: 303,
         name: 'See Other',
-        description: 'The response to the request can be found under another URI using a GET method.',
+        description: 'The response is available indirectly at another URI. The user agent can retrieve that resource with GET or HEAD; this is not a method-preserving redirect.',
         type: 'HTTP',
       },
       {
@@ -143,26 +143,26 @@ export const codesByCategories: {
         code: 305,
         name: 'Use Proxy',
         description:
-          'The requested resource is available only through a proxy, the address for which is provided in the response.',
+          'Deprecated by RFC 9110. Do not generate this response in new implementations.',
         type: 'HTTP',
       },
       {
         code: 306,
-        name: 'Switch Proxy',
-        description: 'No longer used. Originally meant "Subsequent requests should use the specified proxy."',
+        name: '(Unused)',
+        description: 'Reserved and unused under RFC 9110. Do not use this status code.',
         type: 'HTTP',
       },
       {
         code: 307,
         name: 'Temporary Redirect',
         description:
-          'In this case, the request should be repeated with another URI; however, future requests should still use the original URI.',
+          'The resource is temporarily available at another URI. The user agent must not change the request method when following this redirect.',
         type: 'HTTP',
       },
       {
         code: 308,
         name: 'Permanent Redirect',
-        description: 'The request and all future requests should be repeated using another URI.',
+        description: 'The resource has a permanent new URI. The user agent must not change the request method when following this redirect.',
         type: 'HTTP',
       },
     ],
@@ -180,7 +180,7 @@ export const codesByCategories: {
         code: 401,
         name: 'Unauthorized',
         description:
-          'Similar to 403 Forbidden, but specifically for use when authentication is required and has failed or has not yet been provided.',
+          'The request lacks valid authentication credentials for the target resource. A 401 response MUST include at least one applicable WWW-Authenticate challenge.',
         type: 'HTTP',
       },
       {
@@ -194,7 +194,7 @@ export const codesByCategories: {
         code: 403,
         name: 'Forbidden',
         description:
-          'The request was valid, but the server is refusing action. The user might not have the necessary permissions for a resource.',
+          'The server understood the request but refuses to fulfill it. The reason may be unrelated to credentials; a 403 does not prove that the user has authenticated.',
         type: 'HTTP',
       },
       {
@@ -256,7 +256,7 @@ export const codesByCategories: {
       },
       {
         code: 413,
-        name: 'Payload Too Large',
+        name: 'Content Too Large',
         description: 'The request is larger than the server is willing or able to process.',
         type: 'HTTP',
       },
@@ -286,8 +286,8 @@ export const codesByCategories: {
       },
       {
         code: 418,
-        name: 'I\'m a teapot',
-        description: 'The server refuses the attempt to brew coffee with a teapot.',
+        name: '(Unused)',
+        description: 'Unused under RFC 9110. Historical teapot use is not the current HTTP status-code definition.',
         type: 'HTTP',
       },
       {
@@ -298,8 +298,8 @@ export const codesByCategories: {
       },
       {
         code: 422,
-        name: 'Unprocessable Entity',
-        description: 'The request was well-formed but was unable to be followed due to semantic errors.',
+        name: 'Unprocessable Content',
+        description: 'The request content has the correct syntax, but the server cannot process its instructions.',
         type: 'HTTP',
       },
       {
