@@ -26,10 +26,10 @@ import {
   renameNode,
   reorderNode,
   reparentNode,
+  requestNodeFromImported,
   serializeCollectionTree,
   updateFolderScripts,
   updateRequestNode,
-  requestNodeFromImported,
 } from '@/tools/api-debugger/collection-tree';
 import type { KV } from '@/tools/api-debugger/engine';
 import { buildProxyPayload } from '@/tools/api-debugger/engine';
@@ -299,7 +299,6 @@ function onImportFilePicked(e: Event) {
   };
   reader.readAsText(file);
 }
-
 
 // ── OpenAPI 3.x import (local parse + explicit preview; never sends a request) ──
 function openOpenApiPicker() {
