@@ -61,7 +61,7 @@ export function redactMarkedSecrets(value: string, secretValues: string[] = []):
   const patterns = secrets.map((secret) => {
     const literal = escapeRegExp(secret);
     return secret.length <= 3 && /^[A-Za-z0-9_]+$/.test(secret)
-      ? '(?<![A-Za-z0-9_])' + literal + '(?![A-Za-z0-9_])'
+      ? `(?<![A-Za-z0-9_])${literal}(?![A-Za-z0-9_])`
       : literal;
   });
   const matcher = new RegExp(patterns.join('|'), 'g');
