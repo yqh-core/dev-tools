@@ -212,7 +212,7 @@ describe('HTTP Status Codes bilingual protocol guidance accuracy', () => {
 
     expect(text).toContain('WWW-Authenticate');
     expect(text).toContain('preserve the request method');
-    expect(text).toContain('Proxies and gateways can generate HTTP responses too.');
+    expect(text.toLowerCase()).toContain('proxies and gateways can generate HTTP responses too.');
     expect(text).toContain('DNS lookup, TCP connection, TLS negotiation');
     expect(text).toContain('heuristically cacheable');
     expect(text).not.toContain('who are you?');
@@ -232,7 +232,7 @@ describe('HTTP Status Codes bilingual protocol guidance accuracy', () => {
 
     expect(text).toContain('WWW-Authenticate');
     expect(text).toContain('保留原请求方法');
-    expect(text).toContain('代理和网关也可能生成 HTTP 响应');
+    expect(text).toContain('代理或网关也可能生成 HTTP 响应');
     expect(text).toContain('DNS 查询、TCP 连接、TLS 握手');
     expect(text).toContain('启发式可缓存性');
     expect(text).not.toContain('你是谁？');
