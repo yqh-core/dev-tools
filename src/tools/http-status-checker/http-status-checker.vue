@@ -76,6 +76,10 @@ const headersText = computed(() => JSON.stringify(headers.value, null, 2));
       @keydown.enter="execute(url)"
     />
 
+    <p text-13px op-65>
+      {{ t('tools.http-status-checker.httpsDefaultHint') }}
+    </p>
+
     <div flex flex-wrap items-center gap-2>
       <c-button
         type="primary"
