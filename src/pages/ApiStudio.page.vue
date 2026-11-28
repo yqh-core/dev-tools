@@ -2398,7 +2398,7 @@ function onMenuSelect(key: string, node: TreeNode) {
             </div>
 
             <p class="api-field-hint">Use a secret environment variable for reusable credentials. Changes stay local until you choose Send or Run.</p>
-            <p class="api-auth-disclosure">Auth values are saved in this browser's localStorage and are not encrypted at rest. Secret variables are masked in the editor and omitted from safe backups; use an explicitly protected backup only when you intend to include credentials.</p>
+            <p class="api-auth-disclosure">Credentials are saved in this browser's localStorage and are not encrypted at rest. Secret variables are masked in the editor and omitted from safe backups; use an explicitly protected backup only when you intend to include credentials.</p>
           </section>
 
           <section class="api-request-section" aria-label="Query parameters" data-test-id="query-params">
