@@ -1,3 +1,14 @@
+## API Studio — verification update — 2026-11-28 12:40 UTC
+
+- PR #279 exact HEAD remains `bd27a3c4672d60e2e8ac909cad60d55b6d724218`.
+- Verify run #46145019094 is **SUCCESS**. Types/build, independent `build:api-studio`, Chromium API Studio product E2E, product artifact validation and screenshot artifact upload all passed.
+- Visual artifact #15263352196 was opened and checked: desktop 1440×900 and mobile 390×844 Request History/helper text is readable; first-request hierarchy remains clear and the mobile workspace does not show a visual horizontal squeeze. The PR's dedicated mobile overflow assertion is still in the main CI workflow.
+- CI #46145018949 has passed Lint, Relay lint, Durable Object bundle, unit tests, typecheck and main build; it is currently at Chromium installation before the targeted E2E suite (which includes `src/tools/api-debugger/api-studio.e2e.ts`).
+- Cloudflare Pages check #140978967074 remains IN_PROGRESS. No merge has been performed. Wait for exact-head CI and Pages to finish; recheck PR mergeability and branch HEAD immediately before merge.
+- Next issue is #280 OpenAPI safe refresh/sync; source-code discovery is recorded in that issue's technical comment.
+
+---
+
 ## API Studio — current handoff — 2026-11-28 12:35 UTC
 
 - Current main at checkpoint: `1f25365ec334fa5586e8bc87a5589ad6172c0740` (documentation-only update after PR #277 merge).
