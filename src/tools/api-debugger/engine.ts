@@ -233,7 +233,7 @@ export function buildProxyPayload(
     const value = auth.type === 'basic'
       ? (username || credential ? `Basic ${encodeBase64Utf8(`${username}:${credential}`)}` : '')
       : (credential ? `Bearer ${credential}` : '');
-    if (!credential) return { payload: { url, method: req.method, headers, body: b.text }, missing, error: 'Enter an authentication credential or reference an environment variable before sending.' };
+    if ((auth.type === 'bearer' && !credential) || (auth.type === 'basic' && !username && !credential)) return { payload: { url, method: req.method, headers, body: b.text }, missing, error: 'Enter an authentication credential or reference an environment variable before sending.' };
     if (/[\r\n]/.test(value)) {
       return { payload: { url, method: req.method, headers, body: b.text }, missing, error: 'Authentication header values cannot contain CR or LF characters.' };
     }
@@ -276,7 +276,7 @@ export function buildProxyPayload(
       ? headers.filter(header => header.name.trim().toLowerCase() !== name.toLowerCase())
       : [...headers];
     nextHeaders.push({ name, value });
-    return { payload: { url, method: req.method, headers: nextHeaders, body: b.text }, missing, ...(collision ? { collision } : {}) };
+    return { payload: { url, method: req.method, headers: nextHeaders, body: b.text }, missing };
   }
 
   const collision = queryKeyExists(url, name) ? { target: 'query' as const, name } : undefined;
