@@ -2351,7 +2351,7 @@ function onMenuSelect(key: string, node: TreeNode) {
             <div v-if="edAuthMode === 'bearer'" class="api-auth-fields">
               <label class="api-auth-field">
                 <span>Bearer token</span>
-                <input v-model="edAuthToken" class="api-kv-input api-auth-input" :type="authReveal ? 'text' : 'password'" autocomplete="off" placeholder="{{API_TOKEN}}" data-test-id="auth-bearer-token" @change="commitAuth">
+                <input v-model="edAuthToken" class="api-kv-input api-auth-input" :type="authReveal ? 'text' : 'password'" autocomplete="off" placeholder="Token or secret variable" data-test-id="auth-bearer-token" @change="commitAuth">
               </label>
               <button class="api-mini-action api-auth-action" type="button" :aria-pressed="authReveal" data-test-id="auth-reveal" @click="authReveal = !authReveal">{{ authReveal ? 'Hide value' : 'Show value' }}</button>
             </div>
@@ -2375,7 +2375,7 @@ function onMenuSelect(key: string, node: TreeNode) {
               </label>
               <label class="api-auth-field">
                 <span>Key value</span>
-                <input v-model="edAuthValue" class="api-kv-input api-auth-input" :type="authReveal ? 'text' : 'password'" autocomplete="off" placeholder="{{API_KEY}}" data-test-id="auth-api-key-value" @change="commitAuth">
+                <input v-model="edAuthValue" class="api-kv-input api-auth-input" :type="authReveal ? 'text' : 'password'" autocomplete="off" placeholder="Key value or secret variable" data-test-id="auth-api-key-value" @change="commitAuth">
               </label>
               <button class="api-mini-action api-auth-action" type="button" :aria-pressed="authReveal" data-test-id="auth-reveal" @click="authReveal = !authReveal">{{ authReveal ? 'Hide value' : 'Show value' }}</button>
             </div>
@@ -2397,7 +2397,7 @@ function onMenuSelect(key: string, node: TreeNode) {
               <span class="api-field-hint">The original manual field remains saved either way.</span>
             </div>
 
-            <p class="api-field-hint">Use an environment variable such as {{ '{{' }}API_TOKEN{{ '}}' }} for reusable credentials. Changes stay local until you choose Send or Run.</p>
+            <p class="api-field-hint">Use a secret environment variable for reusable credentials. Changes stay local until you choose Send or Run.</p>
             <p class="api-auth-disclosure">Auth values are saved in this browser's localStorage and are not encrypted at rest. Secret variables are masked in the editor and omitted from safe backups; use an explicitly protected backup only when you intend to include credentials.</p>
           </section>
 
