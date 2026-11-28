@@ -118,3 +118,8 @@ Evidence limits: public official documentation/release notes were reviewed; no h
 - The Bruno v4.4.0 behavior (collection/spec association and value-preserving sync) now maps to API Studio PR #283 / Issue #280: unique operation identity, prior baseline fingerprints, three-way local diff, review before Apply, Keep Current default and explicit Use Spec.
 - Source association is one per collection in v1. A second import cannot overwrite the link or delete a linked request via duplicate replacement. Additional requests added from another spec are explicitly described as unlinked. This is safer than implying multi-source support.
 - The update remains local-first; no remote spec fetch, auto-send, cloud sync or telemetry. Personal no-account flow stays in the core. Paid team sharing is deferred until the server-side implementation, security and support are real.
+## 2026-11-28 update — PR #283 validation learning
+
+- The safe refresh E2E is now checking not only three-way merge and no-send, but also one-source-per-collection integrity: a second spec import cannot silently replace a current source mapping or remove a request that mapping owns. Extra requests are clearly marked as not refresh-managed.
+- Prior head `4d43184` exposed a case-sensitive E2E assertion against a sentence-initial lower-case “keep”; Playwright trace showed correct UI state. Fixed test expectation case-insensitively in `3c33658`, with no user-facing copy change.
+- Merge only after the corrected exact-head E2E, Preview and screenshots pass. A Preview being built or a screenshot being present is not a successful browser acceptance.
