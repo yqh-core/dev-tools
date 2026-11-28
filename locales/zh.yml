@@ -37,8 +37,12 @@ home:
     codeLabel: "JSON 示例数据"
     cta: "打开 JSON 工作台"
   demo:
-    eyebrow: "示例数据 · 不会发送请求"
+    eyebrow: "本地示例 · 不调用 API"
     selectorLabel: "选择工作流预览"
+    runSample: "运行示例"
+    running: "正在运行…"
+    localResult: "本地结果"
+    runError: "示例处理失败，请打开对应工具查看详细信息。"
     json:
       tab: "JSON"
       label: "JSON 工作台"
