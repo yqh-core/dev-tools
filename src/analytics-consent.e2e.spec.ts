@@ -66,9 +66,9 @@ test.describe('DigDevBox Main consent and privacy settings', () => {
           expect(metrics.promptBottom).toBeLessThanOrEqual(metrics.anchorTop);
           const firstInput = page.locator('.tool-content input:visible, .tool-content textarea:visible').first();
           await expect(firstInput).toBeVisible();
-          const promptBottom = await prompt.boundingBox().then(box => box?.bottom ?? 0);
-          const inputTop = await firstInput.boundingBox().then(box => box?.top ?? 0);
-          expect(promptBottom).toBeLessThanOrEqual(inputTop);
+          const promptBox = await prompt.boundingBox();
+          const inputBox = await firstInput.boundingBox();
+          expect((promptBox?.y ?? 0) + (promptBox?.height ?? 0)).toBeLessThanOrEqual(inputBox?.y ?? 0);
         }
 
         await page.screenshot({
