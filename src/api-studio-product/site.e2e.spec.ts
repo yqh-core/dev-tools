@@ -26,10 +26,12 @@ test('product homepage explains the task and shows one primary workspace action'
     page: getComputedStyle(document.body).backgroundColor,
     accent: getComputedStyle(document.documentElement).getPropertyValue('--mint').trim(),
     preview: getComputedStyle(document.querySelector('.workbench-card')!).backgroundColor,
+    guidedPreview: getComputedStyle(document.querySelector('.guided-demo-preview')!).backgroundColor,
   }));
   expect(palette.scheme).toBe('light');
   expect(palette.accent).toBe('#7655e8');
   expect(palette.preview).toBe('rgb(12, 23, 35)');
+  expect(palette.guidedPreview).toBe('rgb(13, 25, 37)');
   await page.screenshot({ path: testInfo.outputPath('homepage-desktop-first-fold.png') });
 });
 
