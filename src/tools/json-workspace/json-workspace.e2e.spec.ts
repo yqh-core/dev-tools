@@ -35,31 +35,27 @@ test.describe('JSON Workspace first-use privacy and hierarchy', () => {
   });
 
   test('keeps the workflow and disclosure readable at mobile and desktop sizes', async ({ page }, testInfo) => {
-    const disclosure = page.getByTestId('workflow-disclosure');
+    const viewports = [
+      { name: 'mobile', width: 390, height: 844 },
+      { name: 'desktop', width: 1440, height: 900 },
+    ] as const;
 
-    await page.setViewportSize({ width: 390, height: 844 });
-    await expect(disclosure).toBeVisible();
-    const mobileWidth = await page.evaluate(() => ({
-      viewport: window.innerWidth,
-      document: document.documentElement.scrollWidth,
-    }));
-    expect(mobileWidth.document).toBeLessThanOrEqual(mobileWidth.viewport);
-    await page.screenshot({
-      path: testInfo.outputPath('json-workspace-mobile.png'),
-      fullPage: true,
-    });
+    for (const viewport of viewports) {
+      await page.setViewportSize({ width: viewport.width, height: viewport.height });
+      await page.goto('/json-workspace');
 
-    await page.setViewportSize({ width: 1440, height: 900 });
-    await expect(disclosure).toBeVisible();
-    const desktopWidth = await page.evaluate(() => ({
-      viewport: window.innerWidth,
-      document: document.documentElement.scrollWidth,
-    }));
-    expect(desktopWidth.document).toBeLessThanOrEqual(desktopWidth.viewport);
-    await page.screenshot({
-      path: testInfo.outputPath('json-workspace-desktop.png'),
-      fullPage: true,
-    });
+      const disclosure = page.getByTestId('workflow-disclosure');
+      await expect(disclosure).toBeVisible();
+      const width = await page.evaluate(() => ({
+        viewport: window.innerWidth,
+        document: document.documentElement.scrollWidth,
+      }));
+      expect(width.document).toBeLessThanOrEqual(width.viewport);
+      await page.screenshot({
+        path: testInfo.outputPath(`json-workspace-${viewport.name}.png`),
+        fullPage: true,
+      });
+    }
   });
 
   test('restores the current input after reloading the page', async ({ page }) => {
@@ -89,34 +85,35 @@ test('renders the Main violet-blue palette on the JSON tool surface in both them
   ] as const;
 
   for (const themeCase of cases) {
-    await page.goto('/json-workspace');
+    await page.goto('/');
     await page.evaluate((theme) => {
       localStorage.setItem('vueuse-color-scheme', theme);
     }, themeCase.theme);
-    await page.reload();
-
-    await expect.poll(() => page.evaluate(() => document.documentElement.classList.contains('dark')))
-      .toBe(themeCase.dark);
-    await expect(page.getByTestId('json-input')).toBeVisible();
-    const primaryAction = page.getByTestId('step-0-next');
-    await expect(primaryAction).toBeVisible();
-    await expect(primaryAction).toHaveClass(/n-button--primary-type/);
-
-    const colors = await primaryAction.evaluate((element) => {
-      const root = getComputedStyle(document.documentElement);
-      const button = getComputedStyle(element);
-      return {
-        brand: root.getPropertyValue('--dd-primary').trim().toLowerCase(),
-        background: button.backgroundColor,
-        foreground: button.color,
-      };
-    });
-    expect(colors.brand).toBe(themeCase.primary);
-    expect(colors.background).toBe(themeCase.action);
-    expect(colors.foreground).toBe('rgb(255, 255, 255)');
 
     for (const viewport of viewports) {
       await page.setViewportSize({ width: viewport.width, height: viewport.height });
+      await page.goto('/json-workspace');
+
+      await expect.poll(() => page.evaluate(() => document.documentElement.classList.contains('dark')))
+        .toBe(themeCase.dark);
+      await expect(page.getByTestId('json-input')).toBeVisible();
+      const primaryAction = page.getByTestId('step-0-next');
+      await expect(primaryAction).toBeVisible();
+      await expect(primaryAction).toHaveClass(/n-button--primary-type/);
+
+      const colors = await primaryAction.evaluate((element) => {
+        const root = getComputedStyle(document.documentElement);
+        const button = getComputedStyle(element);
+        return {
+          brand: root.getPropertyValue('--dd-primary').trim().toLowerCase(),
+          background: button.backgroundColor,
+          foreground: button.color,
+        };
+      });
+      expect(colors.brand).toBe(themeCase.primary);
+      expect(colors.background).toBe(themeCase.action);
+      expect(colors.foreground).toBe('rgb(255, 255, 255)');
+
       const width = await page.evaluate(() => ({
         viewport: window.innerWidth,
         document: document.documentElement.scrollWidth,
