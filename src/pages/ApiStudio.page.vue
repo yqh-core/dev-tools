@@ -1583,7 +1583,7 @@ function onMenuSelect(key: string, node: TreeNode) {
           <li v-for="warning in openApiPreview.warnings" :key="warning">{{ warning }}</li>
         </ul>
         <p v-if="openApiDuplicateCount === 0">No matching method + URL requests currently exist.</p>
-        <p v-else>{{ openApiDuplicateCount }} matching operation(s) already exist in this collection or import file.</p>
+        <p v-else data-test-id="openapi-duplicate-count">{{ openApiDuplicateCount }} matching operation(s) already exist in this collection or import file.</p>
         <div class="api-io-row" role="group" aria-label="OpenAPI import confirmation">
           <button class="api-tool-btn" type="button" data-test-id="cancel-openapi-import" @click="cancelOpenApiImport">Cancel</button>
           <button class="api-tool-btn api-run-btn" type="button" data-test-id="confirm-openapi-import" @click="confirmOpenApiImport">
