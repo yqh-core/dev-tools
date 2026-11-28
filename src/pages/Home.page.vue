@@ -2230,8 +2230,9 @@ function onUpdateFavoriteTools() {
     margin-top: 6px;
 
     .hero-preview-codebar {
+      min-height: 44px;
       gap: 4px;
-      padding: 6px 9px;
+      padding: 0 9px;
     }
 
     .hero-preview-run {
