@@ -214,10 +214,10 @@ test('moves the undecided consent prompt back to a fixed overlay during SPA navi
   await expect(consent).toHaveCSS('position', 'fixed');
 });
 
-test('captures the violet-blue palette in light and dark modes', async ({ page }, testInfo) => {
+test('captures the violet palette in light and dark modes', async ({ page }, testInfo) => {
   const cases = [
-    { theme: 'light', dark: false, primary: 'rgb(126, 69, 239)', onPrimary: 'rgb(255, 255, 255)', info: 'rgb(60, 102, 191)' },
-    { theme: 'dark', dark: true, primary: 'rgb(167, 139, 250)', onPrimary: 'rgb(32, 19, 56)', info: 'rgb(145, 180, 255)' },
+    { theme: 'light', dark: false, primary: 'rgb(126, 69, 239)', onPrimary: 'rgb(255, 255, 255)', info: 'rgb(104, 66, 194)' },
+    { theme: 'dark', dark: true, primary: 'rgb(167, 139, 250)', onPrimary: 'rgb(32, 19, 56)', info: 'rgb(185, 163, 255)' },
   ] as const;
   const viewports = [
     { name: 'mobile-390x844', width: 390, height: 844 },
@@ -266,10 +266,10 @@ test('captures the violet-blue palette in light and dark modes', async ({ page }
       expect(palette.primary.toLowerCase()).toBe(themeCase.dark ? '#a78bfa' : '#7e45ef');
       expect(palette.onPrimary.toLowerCase()).toBe(themeCase.dark ? '#201338' : '#ffffff');
       expect(palette.action.toLowerCase()).toBe('#814ee8');
-      expect(palette.info).toBe(themeCase.dark ? '#91B4FF' : '#3C66BF');
+      expect(palette.info).toBe(themeCase.dark ? '#B9A3FF' : '#6842C2');
       expect(palette.previewBackground).toBe(themeCase.primary);
       expect(palette.previewColor).toBe(themeCase.onPrimary);
-      expect(palette.secondaryColor).toBe(themeCase.dark ? 'rgb(145, 180, 255)' : 'rgb(60, 102, 191)');
+      expect(palette.secondaryColor).toBe(themeCase.dark ? 'rgb(185, 163, 255)' : 'rgb(104, 66, 194)');
       expect(palette.documentWidth).toBeLessThanOrEqual(viewport.width);
 
       await expect(page.locator('.home-hero')).toBeVisible();

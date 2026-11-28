@@ -793,9 +793,9 @@ function onUpdateFavoriteTools() {
 </template>
 
 <style scoped lang="less">
-/* 首页顶部：把纯文字堆叠升级为一块带品牌色渐晕的门面面板。
-   渐变只用 --dd-primary 的 color-mix 叠在 --dd-surface 上，不引入新硬编码色，
-   明暗两套令牌自动适配（暗色下 --dd-primary=teal-500、--dd-surface=navy）。 */
+/* 首页顶部：用轻柔的品牌紫色渐晕强化首屏层级。
+   渐变只混合 Main 的 --dd-primary 与现有 surface，不引入硬编码色；
+   深浅主题分别读取 Main 本地令牌，保持布局、字号与组件几何不变。 */
 .home-hero {
   position: relative;
   overflow: hidden;

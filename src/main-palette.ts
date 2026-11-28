@@ -1,9 +1,13 @@
 /**
- * DigDevBox Main-only violet/blue semantic palette.
+ * DigDevBox Main-only violet semantic palette.
  *
- * Inspiration: Abacus.AI's measured violet links and violet/blue actions.
- * These are local Main roles, not shared family tokens. API Studio keeps its
- * independent navy/mint theme and other portfolio sites keep their own palettes.
+ * Inspiration: Abacus AI Bot's light-first, violet-led visual hierarchy.
+ * Purple is the brand/action signal; the secondary information role now uses
+ * a coordinated violet scale instead of a competing blue. Neutral surfaces,
+ * typography and semantic success/warning/error colors stay unchanged.
+ *
+ * These values are local to DigDevBox Main. API Studio keeps its independent
+ * navy/mint identity, and every other portfolio site retains its own palette.
  */
 export const mainPalette = {
   light: {
@@ -17,9 +21,10 @@ export const mainPalette = {
     actionHover: '#7138D4',
     actionPressed: '#5D2CB6',
     onAction: '#FFFFFF',
-    info: '#3C66BF',
-    infoHover: '#3157A8',
-    infoPressed: '#28498F',
+    info: '#6842C2',
+    infoHover: '#5935A8',
+    infoPressed: '#48298C',
+    infoSoft: '#F3EEFF',
   },
   dark: {
     link: '#A78BFA',
@@ -32,8 +37,9 @@ export const mainPalette = {
     actionHover: '#7138D4',
     actionPressed: '#5D2CB6',
     onAction: '#FFFFFF',
-    info: '#91B4FF',
-    infoHover: '#A5C1FF',
-    infoPressed: '#7DA5F8',
+    info: '#B9A3FF',
+    infoHover: '#CDBDFF',
+    infoPressed: '#A78BFA',
+    infoSoft: '#2D214C',
   },
 } as const;

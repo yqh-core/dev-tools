@@ -1,5 +1,5 @@
 /**
- * DigDevBox Main-only palette layer.
+ * DigDevBox Main-only violet palette layer.
  *
  * Load after the family dd-tokens.css and dd-shell.css files in the Main
  * index.html only. Do not copy to satellite sites or API Studio's product build.
@@ -21,10 +21,11 @@
   --main-action-pressed: #5D2CB6;
   --main-on-action: #FFFFFF;
 
-  /* Blue is reserved for secondary / informational emphasis. */
-  --main-info: #3C66BF;
-  --main-info-hover: #3157A8;
-  --main-info-soft: #EDF3FF;
+  /* Secondary information emphasis stays in the violet family. */
+  --main-info: #6842C2;
+  --main-info-hover: #5935A8;
+  --main-info-pressed: #48298C;
+  --main-info-soft: #F3EEFF;
 }
 
 html.dark,
@@ -41,9 +42,10 @@ html[data-theme="dark"] {
   --main-action-pressed: #5D2CB6;
   --main-on-action: #FFFFFF;
 
-  --main-info: #91B4FF;
-  --main-info-hover: #A5C1FF;
-  --main-info-soft: #1D2B49;
+  --main-info: #B9A3FF;
+  --main-info-hover: #CDBDFF;
+  --main-info-pressed: #A78BFA;
+  --main-info-soft: #2D214C;
 }
 
 /* Re-skin the existing shared shell without changing its geometry. */
