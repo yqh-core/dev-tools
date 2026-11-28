@@ -154,6 +154,19 @@ test.describe('Homepage task discovery', () => {
     await apiEntry.focus();
     await expect(apiEntry).toBeFocused();
     await page.keyboard.press('Enter');
+    await expect(page).toHaveURL(/api-studio\/?$/);
+  });
+
+  test('keeps the legacy API Debugger available as a secondary API-card link', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto('/');
+
+    const apiCard = page.locator('#home-featured .featured-task-card').first();
+    const legacyLink = apiCard.getByRole('link', { name: 'Open API Debugger' });
+    await expect(legacyLink).toBeVisible();
+    await expect(legacyLink).toHaveAttribute('href', '/api-debugger/');
+
+    await legacyLink.click();
     await expect(page).toHaveURL(/api-debugger\/?$/);
   });
 
