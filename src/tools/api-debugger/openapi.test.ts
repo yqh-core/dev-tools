@@ -190,3 +190,25 @@ describe('importOpenApi server selection and unsupported constructs', () => {
     expect(parsed.requests[0].request.url).toBe('https://api.example.test/special');
   });
 });
+
+
+describe('importOpenApi reference limits', () => {
+  it('warns when path items and request bodies contain unresolved refs', () => {
+    const parsed = importOpenApi(JSON.stringify({
+      openapi: '3.0.3',
+      paths: {
+        '/referenced-path': {
+          $ref: '#/components/pathItems/Shared',
+        },
+        '/referenced-body': {
+          post: {
+            requestBody: { $ref: '#/components/requestBodies/Shared' },
+          },
+        },
+      },
+    }));
+    expect(parsed.warnings.join(' ')).toContain('OpenAPI $ref pointers were not resolved');
+    expect(parsed.requests).toHaveLength(1);
+    expect(parsed.requests[0].request.body).toBe('');
+  });
+});
