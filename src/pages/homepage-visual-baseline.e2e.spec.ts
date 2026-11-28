@@ -232,48 +232,47 @@ test('captures the violet-blue palette in light and dark modes', async ({ page }
     await page.evaluate((theme) => {
       localStorage.setItem('vueuse-color-scheme', theme);
     }, themeCase.theme);
-    await page.reload();
-    await expect.poll(() => page.evaluate(() => document.documentElement.classList.contains('dark')))
-      .toBe(themeCase.dark);
-
-    const previewCta = page.locator('.hero-preview-link');
-    const secondaryCta = page.locator('.hero-cta:not(.hero-cta-workspace)');
-    await expect(previewCta).toBeVisible();
-    await expect(secondaryCta).toBeVisible();
-
-    const palette = await page.evaluate(() => {
-      const root = getComputedStyle(document.documentElement);
-      const preview = document.querySelector('.hero-preview-link');
-      const secondary = document.querySelector('.hero-cta:not(.hero-cta-workspace)');
-      if (!preview || !secondary) {
-        throw new Error('Expected homepage primary and secondary actions to render');
-      }
-      return {
-        primary: root.getPropertyValue('--dd-primary').trim(),
-        onPrimary: root.getPropertyValue('--dd-on-primary').trim(),
-        action: root.getPropertyValue('--main-action').trim(),
-        info: root.getPropertyValue('--main-info').trim(),
-        previewBackground: getComputedStyle(preview).backgroundColor,
-        previewColor: getComputedStyle(preview).color,
-        secondaryColor: getComputedStyle(secondary).color,
-        documentWidth: document.documentElement.scrollWidth,
-      };
-    });
-
-    expect(palette.primary.toLowerCase()).toBe(themeCase.dark ? '#a78bfa' : '#7e45ef');
-    expect(palette.onPrimary.toLowerCase()).toBe(themeCase.dark ? '#201338' : '#ffffff');
-    expect(palette.action.toLowerCase()).toBe('#814ee8');
-    expect(palette.info).toBe(themeCase.dark ? '#91B4FF' : '#3C66BF');
-    expect(palette.previewBackground).toBe(themeCase.primary);
-    expect(palette.previewColor).toBe(themeCase.onPrimary);
-    expect(palette.secondaryColor).toBe(themeCase.dark ? 'rgb(145, 180, 255)' : 'rgb(60, 102, 191)');
 
     for (const viewport of viewports) {
       await page.setViewportSize({ width: viewport.width, height: viewport.height });
-      await expect(page.locator('.home-hero')).toBeVisible();
-      const documentWidth = await page.evaluate(() => document.documentElement.scrollWidth);
-      expect(documentWidth).toBeLessThanOrEqual(viewport.width);
+      await page.goto('/');
+      await expect.poll(() => page.evaluate(() => document.documentElement.classList.contains('dark')))
+        .toBe(themeCase.dark);
 
+      const previewCta = page.locator('.hero-preview-link');
+      const secondaryCta = page.locator('.hero-cta:not(.hero-cta-workspace)');
+      await expect(previewCta).toBeVisible();
+      await expect(secondaryCta).toBeVisible();
+
+      const palette = await page.evaluate(() => {
+        const root = getComputedStyle(document.documentElement);
+        const preview = document.querySelector('.hero-preview-link');
+        const secondary = document.querySelector('.hero-cta:not(.hero-cta-workspace)');
+        if (!preview || !secondary) {
+          throw new Error('Expected homepage primary and secondary actions to render');
+        }
+        return {
+          primary: root.getPropertyValue('--dd-primary').trim(),
+          onPrimary: root.getPropertyValue('--dd-on-primary').trim(),
+          action: root.getPropertyValue('--main-action').trim(),
+          info: root.getPropertyValue('--main-info').trim(),
+          previewBackground: getComputedStyle(preview).backgroundColor,
+          previewColor: getComputedStyle(preview).color,
+          secondaryColor: getComputedStyle(secondary).color,
+          documentWidth: document.documentElement.scrollWidth,
+        };
+      });
+
+      expect(palette.primary.toLowerCase()).toBe(themeCase.dark ? '#a78bfa' : '#7e45ef');
+      expect(palette.onPrimary.toLowerCase()).toBe(themeCase.dark ? '#201338' : '#ffffff');
+      expect(palette.action.toLowerCase()).toBe('#814ee8');
+      expect(palette.info).toBe(themeCase.dark ? '#91B4FF' : '#3C66BF');
+      expect(palette.previewBackground).toBe(themeCase.primary);
+      expect(palette.previewColor).toBe(themeCase.onPrimary);
+      expect(palette.secondaryColor).toBe(themeCase.dark ? 'rgb(145, 180, 255)' : 'rgb(60, 102, 191)');
+      expect(palette.documentWidth).toBeLessThanOrEqual(viewport.width);
+
+      await expect(page.locator('.home-hero')).toBeVisible();
       const screenshot = await page.screenshot({
         animations: 'disabled',
         fullPage: false,
