@@ -262,6 +262,13 @@ test('guided demo shows four inspectable fixture scenes without sending a reques
         await expect(scenePanel).toContainText(label);
       }
 
+      // Capture the actual task scene, not just the page hero or the step selector.
+      await preview.scrollIntoViewIfNeeded();
+      const previewBounds = await preview.boundingBox();
+      expect(previewBounds).not.toBeNull();
+      expect(previewBounds!.y).toBeGreaterThanOrEqual(0);
+      expect(previewBounds!.y).toBeLessThan(viewport.height);
+
       const target = await button.boundingBox();
       expect(target?.height ?? 0).toBeGreaterThanOrEqual(44);
 
