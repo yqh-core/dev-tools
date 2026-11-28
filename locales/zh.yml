@@ -76,6 +76,7 @@ home:
         title: "API 测试与调试"
         description: "构造请求、切换环境、查看响应历史、添加断言并运行请求集合。"
         studioLink: "打开 API Studio"
+        legacyDebuggerLink: "打开旧版 API 调试器"
       json:
         title: "处理 JSON 与结构化数据"
         description: "查看、格式化和比较 JSON，并在常见结构化格式之间转换。"
