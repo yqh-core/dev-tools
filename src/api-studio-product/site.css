@@ -859,6 +859,7 @@ body { background: var(--page); color: #19172a; }
 
 /* The task scene stays a dark product preview; violet becomes the active accent. */
 .guided-demo-preview {
+  background: #0d1925;
   --line: rgba(176,205,218,.14);
   --mint: #b39aff;
   --muted: #9aacb9;
