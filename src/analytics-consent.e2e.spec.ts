@@ -50,6 +50,7 @@ test.describe('DigDevBox Main consent and privacy settings', () => {
                 : promptElement.nextElementSibling === anchorElement
             )),
             choiceHeights: buttons.map(button => button.getBoundingClientRect().height),
+            settingsHeight: document.querySelector<HTMLElement>('[data-privacy-settings]')?.getBoundingClientRect().height ?? 0,
             promptPosition: promptElement ? getComputedStyle(promptElement).position : '',
           };
         }, { anchor: item.anchor, relation: item.relation });
@@ -59,6 +60,7 @@ test.describe('DigDevBox Main consent and privacy settings', () => {
         expect(metrics.promptPosition).toBe('relative');
         expect(metrics.choiceHeights).toHaveLength(2);
         metrics.choiceHeights.forEach(height => expect(height).toBeGreaterThanOrEqual(44));
+        expect(metrics.settingsHeight).toBeGreaterThanOrEqual(44);
         expect(analyticsRequests).toEqual([]);
         expect(await page.evaluate(key => localStorage.getItem(key), CONSENT_KEY)).toBeNull();
 
@@ -71,6 +73,7 @@ test.describe('DigDevBox Main consent and privacy settings', () => {
           expect((promptBox?.y ?? 0) + (promptBox?.height ?? 0)).toBeLessThanOrEqual(inputBox?.y ?? 0);
         }
 
+        await prompt.scrollIntoViewIfNeeded();
         await page.screenshot({
           path: testInfo.outputPath(`privacy-consent-${item.name}-${viewport.name}.png`),
           fullPage: false,
@@ -134,23 +137,13 @@ test.describe('DigDevBox Main consent and privacy settings', () => {
 
   test('uses the Chinese text in both the inline choice and reopened settings', async ({ page }) => {
     await page.addInitScript(() => {
-      const setChineseDocumentLanguage = () => {
-        if (!document.documentElement) {
-          return false;
-        }
-        document.documentElement.lang = 'zh-CN';
-        return true;
-      };
-      if (!setChineseDocumentLanguage()) {
-        const observer = new MutationObserver(() => {
-          if (setChineseDocumentLanguage()) {
-            observer.disconnect();
-          }
-        });
-        observer.observe(document, { childList: true, subtree: true });
-      }
+      Object.defineProperty(navigator, 'languages', {
+        configurable: true,
+        value: ['zh-CN'],
+      });
     });
     await page.goto('/json-workspace');
+    await expect(page.locator('html')).toHaveAttribute('lang', 'zh-CN');
     const prompt = page.locator('#digdevbox-analytics-consent');
     await expect(prompt).toContainText('隐私与分析选择');
     await expect(prompt).toContainText('可选分析服务仅记录页面访问');
