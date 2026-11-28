@@ -233,7 +233,7 @@ export function buildProxyPayload(
     const value = auth.type === 'basic'
       ? (username || credential ? `Basic ${encodeBase64Utf8(`${username}:${credential}`)}` : '')
       : (credential ? `Bearer ${credential}` : '');
-    if ((auth.type === 'bearer' && !credential) || (auth.type === 'basic' && !username && !credential)) return { payload: { url, method: req.method, headers, body: b.text }, missing, error: 'Enter an authentication credential or reference an environment variable before sending.' };
+    if ((auth.type === 'bearer' && !credential) || (auth.type === 'basic' && !username && !credential)) return { payload: { url, method: req.method, headers, body: b.text }, missing, error: 'Enter a Basic Auth username or password, or reference an environment variable, before sending.' };
     if (/[\r\n]/.test(value)) {
       return { payload: { url, method: req.method, headers, body: b.text }, missing, error: 'Authentication header values cannot contain CR or LF characters.' };
     }
