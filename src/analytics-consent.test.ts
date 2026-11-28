@@ -160,7 +160,7 @@ describe('shared GA4 consent gate', () => {
       page_title: 'Test page',
     });
     expect(String((views[0][2] as { page_location: string }).page_location)).not.toContain('private');
-    expect(String((views[0][2] as { page_referrer: string }).page_referrer).not.toContain('?');
+    expect(String((views[0][2] as { page_referrer: string }).page_referrer)).not.toContain('?');
     const defaults = calls().find(([kind, command]) => kind === 'consent' && command === 'default');
     expect(defaults?.[2]).toMatchObject({ analytics_storage: 'denied', ad_storage: 'denied' });
   });
