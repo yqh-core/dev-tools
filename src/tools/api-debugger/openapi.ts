@@ -274,7 +274,7 @@ export function importOpenApi(text: string, options: OpenApiImportOptions = {}):
   }
   const keyedRequests = requests.map((request) => {
     const method = request.request.method.trim().toUpperCase();
-    const normalizedPath = String(request.path ?? '/').replace(/\\/+/g, '/').replace(/\\/$/, '') || '/';
+    const normalizedPath = String(request.path ?? '/').replace(/\/+/g, '/').replace(/\/$/, '') || '/';
     const uniqueOperationId = request.operationId && operationIdCounts.get(request.operationId) === 1;
     return {
       ...request,
