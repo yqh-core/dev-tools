@@ -83,7 +83,7 @@ export const apiStudioLightOverrides: GlobalThemeOverrides = {
     textColorBase: '#0f172a',
     textColor1: '#0f172a',
     textColor2: '#475569',
-    textColor3: '#5b6677',
+    textColor3: '#475569',
     placeholderColor: '#5b6677',
     iconColor: '#5b6677',
 
