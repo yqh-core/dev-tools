@@ -19,6 +19,7 @@ import {
   mergeImportedTree,
   mergeScriptEvents,
   migrateLegacyCollection,
+  parseCollectionTree,
   removeNode,
   renameNode,
   reorderNode,
@@ -268,6 +269,30 @@ describe('树互操作 round-trip（importCollectionTree ↔ exportCollectionTre
     expect(findNode(tree, 'folder-auth')!.node.scripts).toEqual({ test: 'FOLDER-TEST' });
   });
 
+  it('Postman v2.1 export deliberately excludes private OpenAPI source metadata', () => {
+    const source = {
+      ...sampleTree(),
+      openApiSync: {
+        version: 1 as const,
+        fileName: 'users.yaml',
+        title: 'Users API',
+        openApiVersion: '3.1.0',
+        lastSyncedAt: '2026-11-28T12:00:00.000Z',
+        specFingerprint: `sha256-${'a'.repeat(64)}`,
+        operations: [{
+          key: 'operationId:getUser',
+          requestId: 'rA1',
+          baseNameFingerprint: `sha256-${'b'.repeat(64)}`,
+          baseRequestFingerprint: `sha256-${'c'.repeat(64)}`,
+        }],
+      },
+    };
+    const exported = exportCollectionTree(source, false);
+    expect(JSON.stringify(exported)).not.toContain('openApiSync');
+    expect(JSON.stringify(exported)).not.toContain('specFingerprint');
+    expect((exported.info as Record<string, unknown>)._postman_id).toBe(source.id);
+  });
+
   it('导出保形 + 再导入：嵌套结构与节点 ID round-trip 一致', () => {
     const first = importCollectionTree(nestedDoc).tree;
     const exported = JSON.stringify(exportCollectionTree(first, false));
@@ -310,6 +335,28 @@ describe('持久化（serializeCollectionTree / loadCollectionTree）', () => {
     const savedJson = JSON.stringify([{ id: 'x', name: 'x', request: req(), createdAt: 1, updatedAt: 1 }]);
     const { migrated } = loadCollectionTree(treeJson, savedJson, null);
     expect(migrated).toBe(false);
+  });
+
+  it('collection root OpenAPI provenance survives localStorage round-trip and rejects malformed fingerprints', () => {
+    const openApiSync = {
+      version: 1 as const,
+      fileName: 'users.yaml',
+      title: 'Users API',
+      openApiVersion: '3.1.0',
+      lastSyncedAt: '2026-11-28T12:00:00.000Z',
+      specFingerprint: `sha256-${'a'.repeat(64)}`,
+      operations: [{
+        key: 'operationId:getUser',
+        requestId: 'rA1',
+        baseNameFingerprint: `sha256-${'b'.repeat(64)}`,
+        baseRequestFingerprint: `sha256-${'c'.repeat(64)}`,
+      }],
+    };
+    const source = { ...sampleTree(), openApiSync };
+    const loaded = loadCollectionTree(serializeCollectionTree(source), null, null);
+    expect(loaded.migrated).toBe(false);
+    expect(loaded.tree.openApiSync).toEqual(openApiSync);
+    expect(parseCollectionTree({ ...source, openApiSync: { ...openApiSync, specFingerprint: 'plain-text' } })).toBeNull();
   });
 
   it('脏 tree JSON + 无 saved → 空集合，不抛不静默接受脏数据', () => {

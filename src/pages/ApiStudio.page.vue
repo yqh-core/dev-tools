@@ -53,6 +53,12 @@ import * as environmentEngine from '@/tools/api-debugger/environments';
 import { exportCollectionTree, importCollectionTree } from '@/tools/api-debugger/collection';
 import { importOpenApi } from '@/tools/api-debugger/openapi';
 import type { ImportedRequest } from '@/tools/api-debugger/openapi';
+import {
+  applyOpenApiRefreshPlan,
+  createOpenApiSyncMetadata,
+  planOpenApiRefresh,
+} from '@/tools/api-debugger/openapi-sync';
+import type { OpenApiRefreshChoice, OpenApiRefreshPlan } from '@/tools/api-debugger/openapi-sync';
 import { buildDownloadFilename, downloadTextFile } from '@/composable/downloadText';
 import {
   API_STUDIO_BACKUP_MAX_BYTES,
@@ -63,8 +69,8 @@ import {
   serializeApiStudioBackup,
 } from '@/tools/api-debugger/backup';
 import type {
+  ApiStudioBackupArchive,
   ApiStudioBackupPreview,
-  ApiStudioBackupV1,
   BackupRestoreStrategy,
 } from '@/tools/api-debugger/backup';
 
@@ -117,12 +123,15 @@ const openApiSpecText = ref('');
 const openApiServerUrl = ref('');
 const openApiTargetFolder = ref('');
 const openApiConflictMode = ref<'skip' | 'replace' | 'append'>('skip');
+const openApiMode = ref<'import' | 'refresh'>('import');
+const openApiRefreshPlan = ref<OpenApiRefreshPlan | null>(null);
+const openApiRefreshChoices = ref<Record<string, OpenApiRefreshChoice>>({});
 const OPENAPI_IMPORT_MAX_BYTES = 2 * 1024 * 1024;
 const openApiPreview = computed(() => openApiSpecText.value
   ? importOpenApi(openApiSpecText.value, { serverUrl: openApiServerUrl.value || undefined })
   : null);
 const backupFilePicker = ref<HTMLInputElement | null>(null);
-const backupRestore = ref<{ backup: ApiStudioBackupV1; preview: ApiStudioBackupPreview } | null>(null);
+const backupRestore = ref<{ backup: ApiStudioBackupArchive; preview: ApiStudioBackupPreview } | null>(null);
 const backupRestoreStrategy = ref<BackupRestoreStrategy>('replace');
 const revealedVars = ref<Set<string>>(new Set());
 
@@ -346,8 +355,20 @@ function onImportFilePicked(e: Event) {
   reader.readAsText(file);
 }
 
-// ── OpenAPI 3.x import (local parse + explicit preview; never sends a request) ──
+// ── OpenAPI 3.x import + source-aware local refresh (no remote fetch or auto-Send) ──
 function openOpenApiPicker() {
+  cancelOpenApiImport();
+  openApiMode.value = 'import';
+  openApiFilePicker.value?.click();
+}
+
+function openOpenApiRefreshPicker() {
+  if (!tree.value.openApiSync) {
+    banner.value = 'Import an OpenAPI file first to associate this collection with a local source.';
+    return;
+  }
+  cancelOpenApiImport();
+  openApiMode.value = 'refresh';
   openApiFilePicker.value?.click();
 }
 
@@ -357,14 +378,19 @@ function cancelOpenApiImport() {
   openApiServerUrl.value = '';
   openApiTargetFolder.value = '';
   openApiConflictMode.value = 'skip';
+  openApiRefreshPlan.value = null;
+  openApiRefreshChoices.value = {};
+  openApiMode.value = 'import';
 }
 
 function onOpenApiFilePicked(e: Event) {
   const input = e.target as HTMLInputElement;
   const file = input.files?.[0];
+  const mode = openApiMode.value;
   input.value = '';
   // A failed replacement file must not leave an older preview available to import.
   cancelOpenApiImport();
+  openApiMode.value = mode;
   if (!file) {
     return;
   }
@@ -373,21 +399,34 @@ function onOpenApiFilePicked(e: Event) {
     return;
   }
   const reader = new FileReader();
-  reader.onload = () => {
+  reader.onload = async () => {
     const raw = String(reader.result ?? '');
-    const parsed = importOpenApi(raw);
-    if (parsed.requests.length === 0) {
-      banner.value = parsed.warnings[0] ?? 'No OpenAPI operations could be imported. Your collection was not changed.';
+    const firstParse = importOpenApi(raw);
+    if (firstParse.requests.length === 0) {
+      banner.value = firstParse.warnings[0] ?? 'No OpenAPI operations could be imported. Your current collection was not changed.';
       return;
     }
     openApiFileName.value = file.name;
     openApiSpecText.value = raw;
-    openApiServerUrl.value = parsed.servers[0] ?? '';
+    openApiServerUrl.value = firstParse.servers[0] ?? '';
     openApiTargetFolder.value = '';
     openApiConflictMode.value = 'skip';
+    if (mode === 'refresh') {
+      try {
+        const selected = importOpenApi(raw, { serverUrl: openApiServerUrl.value || undefined });
+        openApiRefreshPlan.value = await planOpenApiRefresh(tree.value, selected, file.name);
+        banner.value = 'OpenAPI refresh prepared locally. Review every conflict; no request has been sent and the collection is unchanged until Apply.';
+      }
+      catch (error) {
+        cancelOpenApiImport();
+        banner.value = error instanceof Error ? error.message : 'Could not prepare the OpenAPI refresh. Your collection was not changed.';
+      }
+      return;
+    }
     banner.value = 'OpenAPI spec parsed locally. Review the preview before adding requests.';
   };
   reader.onerror = () => {
+    cancelOpenApiImport();
     banner.value = 'Could not read the OpenAPI file. Your current collection was not changed.';
   };
   reader.readAsText(file);
@@ -439,7 +478,7 @@ const openApiDuplicateCount = computed(() => {
   return count;
 });
 
-function confirmOpenApiImport() {
+async function confirmOpenApiImport() {
   const parsed = openApiPreview.value;
   if (!parsed || parsed.requests.length === 0) {
     banner.value = 'There are no supported OpenAPI operations to import.';
@@ -461,10 +500,34 @@ function confirmOpenApiImport() {
   let replaced = 0;
   let skipped = 0;
   let firstImportedId = '';
+  const syncSeeds: Array<{ sourceKey: string; requestId: string; name: string; request: RequestNode['request'] }> = [];
+  const existingOpenApiSource = tree.value.openApiSync;
+  const previouslyLinkedRequestIds = new Set(existingOpenApiSource?.operations.map(operation => operation.requestId) ?? []);
   for (const imported of parsed.requests) {
     const duplicates = findOpenApiDuplicates(nextTree, imported);
+    if (existingOpenApiSource
+      && openApiConflictMode.value === 'replace'
+      && duplicates.some(duplicate => previouslyLinkedRequestIds.has(duplicate.id))) {
+      banner.value = `This collection is linked to "${existingOpenApiSource.fileName}". Use Refresh OpenAPI to update linked requests; this import would replace a managed request, so no changes were saved.`;
+      return;
+    }
     if (duplicates.length > 0 && openApiConflictMode.value === 'skip') {
       skipped++;
+      // Link the source operation to the existing local request so even an
+      // all-skipped first import can become refreshable without duplicating data.
+      const existing = duplicates[0];
+      if (imported.sourceKey
+        && !syncSeeds.some(seed => seed.requestId === existing.id)
+        && !syncSeeds.some(seed => seed.sourceKey === imported.sourceKey)) {
+        syncSeeds.push({
+          sourceKey: imported.sourceKey,
+          requestId: existing.id,
+          // The imported document is the baseline; the skipped node remains a
+          // local override and is therefore preserved on a same-spec refresh.
+          name: imported.name,
+          request: imported.request,
+        });
+      }
       continue;
     }
     if (duplicates.length > 0 && openApiConflictMode.value === 'replace') {
@@ -500,10 +563,32 @@ function confirmOpenApiImport() {
     if (!firstImportedId) {
       firstImportedId = inserted.node.id;
     }
+    if (imported.sourceKey) {
+      syncSeeds.push({
+        sourceKey: imported.sourceKey,
+        requestId: inserted.node.id,
+        name: inserted.node.name,
+        request: inserted.node.request,
+      });
+    }
     added++;
   }
 
-  if (added > 0) {
+  if (added > 0 || syncSeeds.length > 0) {
+    try {
+      // A collection has one source association in v1. A later import may add
+      // independent requests, but it must never silently replace that link.
+      if (syncSeeds.length && !existingOpenApiSource) {
+        nextTree = {
+          ...nextTree,
+          openApiSync: await createOpenApiSyncMetadata(openApiFileName.value, parsed, syncSeeds),
+        };
+      }
+    }
+    catch (error) {
+      banner.value = error instanceof Error ? error.message : 'Could not store the OpenAPI source association. The collection was not changed.';
+      return;
+    }
     applyTree(nextTree);
     if (firstImportedId) {
       selectNode(firstImportedId);
@@ -513,8 +598,50 @@ function confirmOpenApiImport() {
     }
   }
   const warningCount = parsed.warnings.length;
-  banner.value = `OpenAPI import complete: ${added} added, ${replaced} replaced, ${skipped} skipped.${warningCount ? ` Review ${warningCount} compatibility note(s) in the preview.` : ''}`;
+  const compatibilityNote = warningCount ? ` Review ${warningCount} compatibility note(s) in the preview.` : '';
+  const sourceNote = existingOpenApiSource
+    ? ` Existing source "${existingOpenApiSource.fileName}" was kept; requests from this additional import are not linked to Refresh OpenAPI.`
+    : '';
+  banner.value = `OpenAPI import complete: ${added} added, ${replaced} replaced, ${skipped} skipped.${compatibilityNote}${sourceNote}`;
   cancelOpenApiImport();
+}
+
+function updateOpenApiRefreshChoice(key: string, field: 'name' | 'request', event: Event) {
+  const value = (event.target as HTMLSelectElement).value === 'use-spec' ? 'use-spec' : 'keep-current';
+  openApiRefreshChoices.value = { ...openApiRefreshChoices.value, [`${key}:${field}`]: value };
+}
+
+async function rebuildOpenApiRefreshPlan() {
+  if (!openApiSpecText.value || openApiMode.value !== 'refresh') {
+    return;
+  }
+  try {
+    const parsed = importOpenApi(openApiSpecText.value, { serverUrl: openApiServerUrl.value || undefined });
+    openApiRefreshPlan.value = await planOpenApiRefresh(tree.value, parsed, openApiFileName.value);
+    openApiRefreshChoices.value = {};
+  }
+  catch (error) {
+    openApiRefreshPlan.value = null;
+    banner.value = error instanceof Error ? error.message : 'Could not rebuild the OpenAPI preview. Your collection was not changed.';
+  }
+}
+
+async function confirmOpenApiRefresh() {
+  const plan = openApiRefreshPlan.value;
+  if (!plan) {
+    banner.value = 'Choose a new OpenAPI file before applying a refresh.';
+    return;
+  }
+  try {
+    const result = await applyOpenApiRefreshPlan(tree.value, plan, openApiRefreshChoices.value);
+    applyTree(result.tree);
+    const summary = result.summary;
+    banner.value = `OpenAPI refresh applied: ${summary.added} added, ${summary.updated} updated, ${summary.preserved} local edit(s) preserved, ${summary.removed} removed from source but retained locally.`;
+    cancelOpenApiImport();
+  }
+  catch (error) {
+    banner.value = error instanceof Error ? error.message : 'OpenAPI refresh failed. Your existing collection was not changed.';
+  }
 }
 
 function exportPostman() {
@@ -1625,6 +1752,12 @@ function onMenuSelect(key: string, node: TreeNode) {
           <button class="api-tool-btn" type="button" title="Import a supported OpenAPI 3.x JSON or YAML specification" data-test-id="import-openapi" @click="openOpenApiPicker">
             Import OpenAPI
           </button>
+          <button v-if="tree.openApiSync" class="api-tool-btn" type="button" title="Refresh this collection from a newly selected local OpenAPI file, preserving local changes" data-test-id="refresh-openapi" @click="openOpenApiRefreshPicker">
+            Refresh OpenAPI
+          </button>
+          <span v-if="tree.openApiSync" class="api-data-note" data-test-id="openapi-source-status">
+            Linked: {{ tree.openApiSync.fileName }} · Last sync: {{ tree.openApiSync.lastSyncedAt }}
+          </span>
         </div>
       </details>
       <input
@@ -1652,7 +1785,7 @@ function onMenuSelect(key: string, node: TreeNode) {
         @change="onBackupRestoreFilePicked"
       >
 
-      <section v-if="openApiPreview" class="api-import-notes api-backup-preview" data-test-id="openapi-preview" aria-label="OpenAPI import preview">
+      <section v-if="openApiPreview && openApiMode === 'import'" class="api-import-notes api-backup-preview" data-test-id="openapi-preview" aria-label="OpenAPI import preview">
         <div class="api-import-notes-head">OpenAPI import preview</div>
         <p><strong>{{ openApiFileName }}</strong> · {{ openApiPreview.requests.length }} operation(s) · {{ openApiPreview.source.toUpperCase() }}</p>
         <p>This file was parsed in your browser. Import does not send requests, call the API relay or fetch remote references.</p>
@@ -1697,6 +1830,45 @@ function onMenuSelect(key: string, node: TreeNode) {
           <button class="api-tool-btn api-run-btn" type="button" data-test-id="confirm-openapi-import" @click="confirmOpenApiImport">
             Import {{ openApiPreview.requests.length }} request(s)
           </button>
+        </div>
+      </section>
+      <section v-if="openApiRefreshPlan && openApiMode === 'refresh'" class="api-import-notes api-backup-preview" data-test-id="openapi-refresh-preview" aria-label="OpenAPI refresh preview">
+        <div class="api-import-notes-head">OpenAPI refresh preview</div>
+        <p><strong>{{ openApiRefreshPlan.fileName }}</strong> · {{ openApiRefreshPlan.items.length }} tracked operation(s) · {{ openApiRefreshPlan.openApiVersion }}</p>
+        <p>This file was parsed locally. Added or changed values are only applied after confirmation. Missing source operations are retained in your collection.</p>
+        <p>Conflict default: keep your current value. Choose “Use spec” per field only when you have reviewed the incoming change.</p>
+        <label v-if="openApiRefreshPlan.servers.length" class="api-openapi-field">
+          <span>Source server</span>
+          <select v-model="openApiServerUrl" data-test-id="openapi-refresh-server" @change="rebuildOpenApiRefreshPlan">
+            <option v-for="server in openApiRefreshPlan.servers" :key="server" :value="server">{{ server }}</option>
+          </select>
+        </label>
+        <ul class="api-import-warning-list api-openapi-operation-list" data-test-id="openapi-refresh-operations">
+          <li v-for="item in openApiRefreshPlan.items.slice(0, 40)" :key="item.key">
+            <code>{{ item.status }}</code>
+            <strong>{{ item.imported?.name ?? item.key }}</strong>
+            <span v-if="item.imported">{{ item.imported.request.method }} {{ item.imported.request.url }}</span>
+            <span v-else>Missing from the new spec — request kept locally</span>
+            <label v-if="item.nameField?.action === 'conflict'" class="api-openapi-field">
+              <span>Name conflict</span>
+              <select :value="openApiRefreshChoices[`${item.key}:name`] ?? 'keep-current'" :data-test-id="`openapi-name-choice-${item.key}`" @change="updateOpenApiRefreshChoice(item.key, 'name', $event)">
+                <option value="keep-current">Keep current name</option>
+                <option value="use-spec">Use spec name</option>
+              </select>
+            </label>
+            <label v-if="item.requestField?.action === 'conflict'" class="api-openapi-field">
+              <span>Request conflict</span>
+              <select :value="openApiRefreshChoices[`${item.key}:request`] ?? 'keep-current'" :data-test-id="`openapi-request-choice-${item.key}`" @change="updateOpenApiRefreshChoice(item.key, 'request', $event)">
+                <option value="keep-current">Keep current request</option>
+                <option value="use-spec">Use spec request</option>
+              </select>
+            </label>
+          </li>
+          <li v-if="openApiRefreshPlan.items.length > 40">And {{ openApiRefreshPlan.items.length - 40 }} more operation(s).</li>
+        </ul>
+        <div class="api-io-row" role="group" aria-label="OpenAPI refresh confirmation">
+          <button class="api-tool-btn" type="button" data-test-id="cancel-refresh-openapi" @click="cancelOpenApiImport">Cancel — keep current collection</button>
+          <button class="api-tool-btn api-run-btn" type="button" data-test-id="confirm-refresh-openapi" @click="confirmOpenApiRefresh">Apply reviewed refresh</button>
         </div>
       </section>
       <section v-if="backupRestore" class="api-import-notes api-backup-preview" data-test-id="backup-restore-preview" aria-label="Backup restore preview">
@@ -4085,14 +4257,16 @@ function onMenuSelect(key: string, node: TreeNode) {
     max-height: 399px;
   }
 
-  .api-sidebar:has(.api-data-disclosure[open]):has([data-test-id="openapi-preview"]) {
+  .api-sidebar:has(.api-data-disclosure[open]):has([data-test-id="openapi-preview"]),
+  .api-sidebar:has(.api-data-disclosure[open]):has([data-test-id="openapi-refresh-preview"]) {
     height: min(90dvh, 720px);
     max-height: 720px;
     overflow-y: auto;
     overscroll-behavior: contain;
   }
 
-  .api-sidebar:has([data-test-id="openapi-preview"]) .api-tree {
+  .api-sidebar:has([data-test-id="openapi-preview"]) .api-tree,
+  .api-sidebar:has([data-test-id="openapi-refresh-preview"]) .api-tree {
     flex: 0 0 auto;
     max-height: 160px;
   }

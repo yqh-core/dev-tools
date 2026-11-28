@@ -133,6 +133,37 @@ describe('API Studio portable backup', () => {
     expect(() => parseApiStudioBackup(JSON.stringify(badEnv))).toThrow('active environment');
   });
 
+  it('writes v2 OpenAPI provenance while continuing to restore v1 archives', () => {
+    const metadata = {
+      version: 1 as const,
+      fileName: 'users.yaml',
+      title: 'Users API',
+      openApiVersion: '3.1.0',
+      lastSyncedAt: '2026-11-28T12:00:00.000Z',
+      specFingerprint: `sha256-${'a'.repeat(64)}`,
+      operations: [{
+        key: 'operationId:getUser',
+        requestId: 'request-1',
+        baseNameFingerprint: `sha256-${'b'.repeat(64)}`,
+        baseRequestFingerprint: `sha256-${'c'.repeat(64)}`,
+      }],
+    };
+    const source = { ...tree(), openApiSync: metadata };
+    const v2 = createApiStudioBackup(source, envs(), { includeSecrets: true });
+    expect(v2.version).toBe(2);
+    const restoredV2 = parseApiStudioBackup(serializeApiStudioBackup(v2));
+    expect(restoredV2.version).toBe(2);
+    expect(restoredV2.collection.openApiSync).toEqual(metadata);
+
+    const oldArchive = { ...createApiStudioBackup(tree(), envs(), { includeSecrets: true }), version: 1 as const };
+    const restoredV1 = parseApiStudioBackup(JSON.stringify(oldArchive));
+    expect(restoredV1.version).toBe(1);
+    expect(restoredV1.collection.openApiSync).toBeUndefined();
+
+    const invalidLegacy = { ...oldArchive, collection: source };
+    expect(() => parseApiStudioBackup(JSON.stringify(invalidLegacy))).toThrow('Unsupported field');
+  });
+
   it('previews conflicts and builds replace or merge plans without mutating current state', () => {
     const currentCollection: CollectionNode = {
       id: 'current-root',

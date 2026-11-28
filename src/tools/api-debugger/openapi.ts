@@ -17,6 +17,12 @@ export interface ImportedRequest {
   request: ApiRequestState
   /** API-011: Postman pre-request/test event text, when present. */
   scriptEvents?: { prerequest?: string; test?: string }
+  /** Original OpenAPI operationId, when supplied by the source document. */
+  operationId?: string
+  /** Original OpenAPI path template, before parameter placeholder conversion. */
+  path?: string
+  /** Unique operationId key or deterministic method + normalized path fallback. */
+  sourceKey?: string
 }
 
 export interface OpenApiImportResult {
@@ -24,6 +30,8 @@ export interface OpenApiImportResult {
   warnings: string[]
   source: 'json' | 'yaml' | 'unknown'
   servers: string[]
+  title?: string
+  openApiVersion?: string
 }
 
 export interface OpenApiImportOptions {
@@ -38,8 +46,9 @@ function result(
   warnings: string[] = [],
   source: OpenApiImportResult['source'] = 'unknown',
   servers: string[] = [],
+  metadata: Pick<OpenApiImportResult, 'title' | 'openApiVersion'> = {},
 ): OpenApiImportResult {
-  return { requests, warnings, source, servers };
+  return { requests, warnings, source, servers, ...metadata };
 }
 
 /** Detect local, remote and circular $ref usage without traversing cyclic YAML aliases forever. */
@@ -115,6 +124,10 @@ export function importOpenApi(text: string, options: OpenApiImportOptions = {}):
 
   const warnings: string[] = [];
   const version = String(doc.openapi ?? doc.swagger ?? '');
+  const metadata = {
+    openApiVersion: version,
+    ...(typeof doc.info?.title === 'string' && doc.info.title.trim() ? { title: doc.info.title.trim() } : {}),
+  };
   if (!version.startsWith('3')) {
     if (version.startsWith('2')) {
       warnings.push('Swagger 2.0 detected; only OpenAPI 3.x is imported. Convert the spec first.');
@@ -215,8 +228,16 @@ export function importOpenApi(text: string, options: OpenApiImportOptions = {}):
           body = JSON.stringify(skeleton, null, 2);
         }
       }
-      const name = String(operation.operationId ?? `${method.toUpperCase()} ${path}`);
-      requests.push({ name, request: { method: method.toUpperCase(), url, headers, body } });
+      const operationId = typeof operation.operationId === 'string' && operation.operationId.trim()
+        ? operation.operationId.trim()
+        : undefined;
+      const name = String(operationId ?? `${method.toUpperCase()} ${path}`);
+      requests.push({
+        name,
+        request: { method: method.toUpperCase(), url, headers, body },
+        ...(operationId ? { operationId } : {}),
+        path: String(path),
+      });
     }
   }
 
@@ -238,5 +259,29 @@ export function importOpenApi(text: string, options: OpenApiImportOptions = {}):
   if (requests.length === 0) {
     warnings.push('No operations found under paths.');
   }
-  return result(requests, warnings, source, servers);
+
+  // operationId is the strongest identity only when unique in this document.
+  // Duplicate IDs fall back to method + normalized source path and are surfaced.
+  const operationIdCounts = new Map<string, number>();
+  for (const request of requests) {
+    if (request.operationId) {
+      operationIdCounts.set(request.operationId, (operationIdCounts.get(request.operationId) ?? 0) + 1);
+    }
+  }
+  const duplicateIds = [...operationIdCounts.entries()].filter(([, count]) => count > 1).map(([id]) => id);
+  if (duplicateIds.length) {
+    warnings.push(`Duplicate operationId value(s) were found (${duplicateIds.join(', ')}); those operations use method + path identity instead.`);
+  }
+  const keyedRequests = requests.map((request) => {
+    const method = request.request.method.trim().toUpperCase();
+    const normalizedPath = String(request.path ?? '/').replace(/\/+/g, '/').replace(/\/$/, '') || '/';
+    const uniqueOperationId = request.operationId && operationIdCounts.get(request.operationId) === 1;
+    return {
+      ...request,
+      sourceKey: uniqueOperationId
+        ? `operationId:${request.operationId}`
+        : `path:${method}:${normalizedPath}`,
+    };
+  });
+  return result(keyedRequests, warnings, source, servers, metadata);
 }
