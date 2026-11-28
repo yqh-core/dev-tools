@@ -31,7 +31,7 @@ import {
   updateFolderScripts,
   updateRequestNode,
 } from '@/tools/api-debugger/collection-tree';
-import type { KV } from '@/tools/api-debugger/engine';
+import type { KV, RequestAuthConfig } from '@/tools/api-debugger/engine';
 import { buildProxyPayload } from '@/tools/api-debugger/engine';
 import {
   API_STUDIO_HISTORY_CAP,
@@ -883,6 +883,37 @@ const edBody = ref('');
 const edHeaders = ref<KV[]>([]);
 const edQueryParams = ref<KV[]>([]);
 const edAssertions = ref<Assertion[]>([]);
+const edAuthMode = ref<RequestAuthConfig['type']>('none');
+const edAuthToken = ref('');
+const edAuthUsername = ref('');
+const edAuthPassword = ref('');
+const edAuthKey = ref('X-API-Key');
+const edAuthValue = ref('');
+const authReveal = ref(false);
+const authCollisionChoice = ref<'replace' | 'keep-manual' | null>(null);
+const edAuth = computed<RequestAuthConfig>(() => {
+  if (edAuthMode.value === 'bearer') return { type: 'bearer', token: edAuthToken.value };
+  if (edAuthMode.value === 'basic') return { type: 'basic', username: edAuthUsername.value, password: edAuthPassword.value };
+  if (edAuthMode.value === 'api-key-header' || edAuthMode.value === 'api-key-query') {
+    return { type: edAuthMode.value, key: edAuthKey.value, value: edAuthValue.value };
+  }
+  return { type: 'none' };
+});
+const authModeOptions = [
+  { label: 'No Auth', value: 'none' },
+  { label: 'Bearer Token', value: 'bearer' },
+  { label: 'Basic Auth', value: 'basic' },
+  { label: 'API Key · Header', value: 'api-key-header' },
+  { label: 'API Key · Query', value: 'api-key-query' },
+];
+const authLocationPreview = computed(() => {
+  const mask = (value: string) => /^\s*\{\{[^{}]+\}\}\s*$/.test(value) ? value : value ? '••••••' : '(not set)';
+  if (edAuth.value.type === 'none') return '';
+  if (edAuth.value.type === 'bearer') return `Authorization: Bearer ${mask(edAuth.value.token)}`;
+  if (edAuth.value.type === 'basic') return 'Authorization: Basic ••••••';
+  if (edAuth.value.type === 'api-key-header') return `${edAuth.value.key || 'X-API-Key'}: ${mask(edAuth.value.value)}`;
+  return `Query parameter ${edAuth.value.key || 'api_key'}=${mask(edAuth.value.value)}`;
+});
 const sendingSingle = ref(false);
 const singleResponse = ref<RunnerResponse | null>(null);
 const singleAssertionReport = ref<AssertionReport | null>(null);
@@ -901,6 +932,15 @@ watch(() => selectedNode.value?.id, () => {
   edHeaders.value = (r?.request.headers ?? []).map(h => ({ ...h }));
   edQueryParams.value = parseQueryParams(r?.request.url ?? '');
   edAssertions.value = (r?.assertions ?? []).map(assertion => ({ ...assertion }));
+  const auth = r?.request.auth ?? { type: 'none' as const };
+  edAuthMode.value = auth.type;
+  edAuthToken.value = auth.type === 'bearer' ? auth.token : '';
+  edAuthUsername.value = auth.type === 'basic' ? auth.username : '';
+  edAuthPassword.value = auth.type === 'basic' ? auth.password : '';
+  edAuthKey.value = auth.type === 'api-key-header' || auth.type === 'api-key-query' ? auth.key : auth.type === 'api-key-query' ? 'api_key' : 'X-API-Key';
+  edAuthValue.value = auth.type === 'api-key-header' || auth.type === 'api-key-query' ? auth.value : '';
+  authReveal.value = false;
+  authCollisionChoice.value = null;
   singleResponse.value = null;
   singleAssertionReport.value = null;
   singleError.value = '';
@@ -934,12 +974,14 @@ function commitRequest() {
   singleResponse.value = null;
   singleError.value = '';
   singleCanRetry.value = false;
+  authCollisionChoice.value = null;
   const request = {
     ...s.request,
     method: edMethod.value,
     url: edUrl.value,
     headers: edHeaders.value.filter(h => h.name.trim()),
     body: edBody.value,
+    auth: edAuth.value,
   };
   const r = updateRequestNode(tree.value, s.id, { name: edName.value, request });
   if (r.error) {
@@ -948,6 +990,30 @@ function commitRequest() {
   else {
     applyTree(r.tree);
   }
+}
+
+function commitAuth() {
+  const selected = selectedRequest.value;
+  if (!selected) return;
+  authCollisionChoice.value = null;
+  authReveal.value = false;
+  const request = { ...selected.request, auth: edAuth.value };
+  const result = updateRequestNode(tree.value, selected.id, { request });
+  if (result.error) {
+    banner.value = result.error;
+    return;
+  }
+  applyTree(result.tree);
+}
+
+function onAuthModeChange(value: unknown) {
+  const mode = String(value) as RequestAuthConfig['type'];
+  if (!['none', 'bearer', 'basic', 'api-key-header', 'api-key-query'].includes(mode)) return;
+  edAuthMode.value = mode;
+  if (mode === 'api-key-header' && !edAuthKey.value) edAuthKey.value = 'X-API-Key';
+  if (mode === 'api-key-query' && !edAuthKey.value) edAuthKey.value = 'api_key';
+  authReveal.value = false;
+  commitAuth();
 }
 
 const assertionTypeOptions = [
@@ -1168,6 +1234,13 @@ const selectedEnvStore = computed<EnvStore>(() => ({
   active: envStore.value.envs[selectedEnv.value] ? selectedEnv.value : envStore.value.active,
 }));
 const env = computed<Record<string, string>>(() => environmentEngine.activeVars(selectedEnvStore.value));
+const authPreview = computed(() => buildProxyPayload({
+  method: edMethod.value,
+  url: buildUrlWithQuery(edUrl.value, edQueryParams.value),
+  headers: edHeaders.value.filter(header => header.name.trim()),
+  body: edBody.value,
+  auth: edAuth.value,
+}, env.value));
 
 function markedSecretValues(): string[] {
   const store = selectedEnvStore.value;
@@ -1492,8 +1565,9 @@ async function sendSelectedRequest() {
     url: buildUrlWithQuery(edUrl.value, edQueryParams.value),
     headers: edHeaders.value.filter(h => h.name.trim()),
     body: edBody.value,
+    auth: edAuth.value,
   };
-  // Persist the exact request that will be sent; do not rely on a later blur/change event.
+  // Persist only the user-authored request profile; generated auth headers/query values stay transient.
   edUrl.value = request.url;
   const saved = updateRequestNode(tree.value, selected.id, { name: edName.value, request, assertions: edAssertions.value });
   if (saved.error) {
@@ -1503,7 +1577,14 @@ async function sendSelectedRequest() {
     return;
   }
   applyTree(saved.tree);
-  const { payload, missing } = buildProxyPayload(request, env.value);
+  const built = buildProxyPayload(request, env.value, authCollisionChoice.value ? { authCollision: authCollisionChoice.value } : {});
+  const { payload, missing } = built;
+  if (built.error || built.collision) {
+    singleResponse.value = null;
+    singleError.value = built.error ?? `Authentication ${built.collision?.target} "${built.collision?.name}" conflicts with a manually configured field. Choose how to resolve it above.`;
+    singleCanRetry.value = false;
+    return;
+  }
   if (missing.length) {
     singleResponse.value = null;
     singleError.value = `Missing variables: ${missing.join(', ')}. Define them in the selected environment.`;
