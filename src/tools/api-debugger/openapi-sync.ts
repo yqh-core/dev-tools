@@ -104,7 +104,7 @@ export async function createOpenApiSyncMetadata(
   imported: Array<{ sourceKey: string; requestId: string; name: string; request: ApiRequestState }>,
   lastSyncedAt = new Date().toISOString(),
 ): Promise<OpenApiSyncMetadata> {
-  const operations: OpenApiSyncOperation[] = await Promise.all(imported.map(async (item) => ({
+  const operations: OpenApiSyncOperation[] = await Promise.all(imported.map(async item => ({
     key: item.sourceKey,
     requestId: item.requestId,
     baseNameFingerprint: await fingerprintOpenApiValue(item.name),
