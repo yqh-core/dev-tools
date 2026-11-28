@@ -1583,7 +1583,9 @@ async function sendSelectedRequest() {
     return;
   }
   applyTree(saved.tree);
-  const built = buildProxyPayload(request, env.value, authCollisionChoice.value ? { authCollision: authCollisionChoice.value } : {});
+  const collisionChoice = authCollisionChoice.value;
+  authCollisionChoice.value = null;
+  const built = buildProxyPayload(request, env.value, collisionChoice ? { authCollision: collisionChoice } : {});
   const { payload, missing } = built;
   if (built.error || built.collision) {
     singleResponse.value = null;
