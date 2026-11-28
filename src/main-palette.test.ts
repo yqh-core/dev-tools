@@ -100,6 +100,6 @@ describe('DigDevBox Main violet-blue palette', () => {
 
   test('uses the new brand color in the Main PWA manifest', () => {
     const viteConfig = readSource('../vite.config.ts');
-    expect(viteConfig).toContain("theme_color: '#814EE8'");
+    expect(viteConfig).toMatch(/theme_color: '#814EE8'/);
   });
 });
