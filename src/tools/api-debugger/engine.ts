@@ -186,7 +186,7 @@ export function buildProxyPayload(
     const value = auth.type === 'basic'
       ? (username || credential ? `Basic ${encodeBase64Utf8(`${username}:${credential}`)}` : '')
       : (credential ? `Bearer ${credential}` : '');
-    if (!value) return { payload: { url, method: req.method, headers, body: b.text }, missing };
+    if (!credential) return { payload: { url, method: req.method, headers, body: b.text }, missing, error: 'Enter an authentication credential or reference an environment variable before sending.' };
     if (/[\r\n]/.test(value)) {
       return { payload: { url, method: req.method, headers, body: b.text }, missing, error: 'Authentication header values cannot contain CR or LF characters.' };
     }
@@ -208,9 +208,12 @@ export function buildProxyPayload(
 
   const name = resolve(auth.key).trim();
   const value = resolve(auth.value);
-  if (!name || !value) return { payload: { url, method: req.method, headers, body: b.text }, missing };
+  if (!name || !value) return { payload: { url, method: req.method, headers, body: b.text }, missing, error: 'Enter an API key name and value or reference an environment variable before sending.' };
   if (/[\r\n]/.test(name) || (auth.type === 'api-key-header' && /[\r\n]/.test(value))) {
     return { payload: { url, method: req.method, headers, body: b.text }, missing, error: 'Authentication header names and values cannot contain CR or LF characters.' };
+  }
+  if (auth.type === 'api-key-header' && !/^[!#$%&'*+.^_`|~0-9A-Za-z-]+$/.test(name)) {
+    return { payload: { url, method: req.method, headers, body: b.text }, missing, error: 'The API key header name is not a valid HTTP field name.' };
   }
 
   if (auth.type === 'api-key-header') {
