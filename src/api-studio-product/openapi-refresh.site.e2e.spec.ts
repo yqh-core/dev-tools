@@ -194,7 +194,7 @@ test('OpenAPI refresh preserves local edits, supports explicit source choice, an
   await expect(mobilePreview).toBeVisible();
   await page.screenshot({ path: testInfo.outputPath('openapi-refresh-preview-mobile.png') });
   const sidebar = page.locator('.api-sidebar');
-  const mobileSidebar = await sidebar.evaluate((element) => ({
+  const mobileSidebar = await sidebar.evaluate(element => ({
     clientHeight: element.clientHeight,
     scrollHeight: element.scrollHeight,
     clientWidth: element.clientWidth,
