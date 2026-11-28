@@ -25,7 +25,7 @@ export const codesByCategories: {
       {
         code: 102,
         name: 'Processing',
-        description: 'The server is processing the request, but no response is available yet.',
+        description: 'Legacy WebDAV interim response. It was removed from RFC 4918 because it lacked implementation; IANA retains the historical RFC 2518 registration.',
         type: 'WebDav',
       },
       {
@@ -123,7 +123,7 @@ export const codesByCategories: {
       {
         code: 301,
         name: 'Moved Permanently',
-        description: 'This and all future requests should be directed to the given URI.',
+        description: 'The target resource has a new permanent URI. User agents may change POST to GET when following this redirect; use 308 when the method must be preserved.',
         type: 'HTTP',
       },
       {
@@ -160,14 +160,13 @@ export const codesByCategories: {
       {
         code: 307,
         name: 'Temporary Redirect',
-        description:
-          'In this case, the request should be repeated with another URI; however, future requests should still use the original URI.',
+        description: 'The target resource is temporarily available at another URI. A user agent must not change the request method when automatically following this redirect.',
         type: 'HTTP',
       },
       {
         code: 308,
         name: 'Permanent Redirect',
-        description: 'The request and all future requests should be repeated using another URI.',
+        description: 'The target resource has a new permanent URI. A user agent must not change the request method when automatically following this redirect.',
         type: 'HTTP',
       },
     ],
@@ -337,7 +336,7 @@ export const codesByCategories: {
       {
         code: 429,
         name: 'Too Many Requests',
-        description: 'The user has sent too many requests in a given amount of time.',
+        description: 'The client sent too many requests in a given period. The response may include Retry-After; honor it when present.',
         type: 'HTTP',
       },
       {
