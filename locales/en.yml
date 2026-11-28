@@ -36,6 +36,30 @@ home:
     description: "Format a response, compare changes, or convert structured data in one focused workspace."
     codeLabel: "Example JSON payload"
     cta: "Open JSON Workspace"
+  demo:
+    eyebrow: "SAMPLE DATA · NO REQUEST SENT"
+    selectorLabel: "Choose a workflow preview"
+    json:
+      tab: "JSON"
+      label: "JSON WORKSPACE"
+      title: "Format structured data"
+      description: "Turn a compact response into readable JSON."
+      codeLabel: "Sample input and formatted output"
+      cta: "Open JSON Workspace"
+    jwt:
+      tab: "JWT"
+      label: "TOKEN INSPECTION"
+      title: "Inspect a JWT"
+      description: "Decode the JOSE Header and Claims Set; the signature is not verified."
+      codeLabel: "Sample token and decoded claims"
+      cta: "Open JWT Parser"
+    regex:
+      tab: "Regex"
+      label: "PATTERN MATCHING"
+      title: "Find matches and captures"
+      description: "Check a pattern against sample text and inspect its matches."
+      codeLabel: "Sample pattern and matching text"
+      cta: "Open Regex Tester"
   featured:
     title: "Start with a task"
     intro: "Choose the job you need to finish. Each entry opens a focused tool workflow; category browsing and the full directory remain available below."
