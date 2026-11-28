@@ -26,6 +26,13 @@ export const lightThemeOverrides: GlobalThemeOverrides = {
     infoColorSuppl: mainPalette.light.infoHover,
   },
 
+  Button: {
+    textColorPrimary: mainPalette.light.onAction,
+    textColorHoverPrimary: mainPalette.light.onAction,
+    textColorPressedPrimary: mainPalette.light.onAction,
+    textColorFocusPrimary: mainPalette.light.onAction,
+  },
+
   Menu: {
     itemHeight: '32px',
   },
@@ -61,6 +68,13 @@ export const darkThemeOverrides: GlobalThemeOverrides = {
     popoverColor: ddTokens.dark.surface,
     inputColor: ddTokens.dark.surface,
     borderColor: ddTokens.dark.border,
+  },
+
+  Button: {
+    textColorPrimary: mainPalette.dark.onAction,
+    textColorHoverPrimary: mainPalette.dark.onAction,
+    textColorPressedPrimary: mainPalette.dark.onAction,
+    textColorFocusPrimary: mainPalette.dark.onAction,
   },
 
   Notification: {
