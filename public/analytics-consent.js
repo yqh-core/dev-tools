@@ -342,6 +342,33 @@
     observer.observe(activeDocument.body, { childList: true, subtree: true });
   }
 
+  function observeLanguage() {
+    if (typeof window.MutationObserver === 'undefined' || !document.documentElement) {
+      return;
+    }
+    var activeWindow = window;
+    var activeDocument = document;
+    var observer = new activeWindow.MutationObserver(function () {
+      if (!activeDocument.defaultView
+        || typeof document === 'undefined'
+        || document !== activeDocument
+        || typeof window === 'undefined'
+        || window !== activeWindow) {
+        observer.disconnect();
+        return;
+      }
+      var state = readConsent();
+      if (state !== 'accepted' && state !== 'rejected') {
+        renderPrompt();
+      }
+      updateSettingsStatus();
+    });
+    observer.observe(activeDocument.documentElement, {
+      attributes: true,
+      attributeFilter: ['lang']
+    });
+  }
+
   function trackRoute() {
     window.setTimeout(function () {
       pageView();
@@ -364,6 +391,7 @@
     if (readConsent() === 'accepted') loadAnalytics();
     ensurePromptPlacement();
     observePlacement();
+    observeLanguage();
   }
 
   if (document.readyState === 'loading') {
