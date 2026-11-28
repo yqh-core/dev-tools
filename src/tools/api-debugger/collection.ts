@@ -38,7 +38,9 @@ function toPostmanUrl(raw: string): Record<string, unknown> {
   }
 }
 function toPostmanAuth(auth: RequestAuthConfig | undefined): Record<string, unknown> | undefined {
-  if (!auth || auth.type === 'none') return undefined;
+  if (!auth || auth.type === 'none') {
+    return undefined;
+  }
   if (auth.type === 'bearer') {
     return { type: 'bearer', bearer: [{ key: 'token', value: auth.token, type: 'string' }] };
   }
@@ -59,7 +61,9 @@ function toPostmanAuth(auth: RequestAuthConfig | undefined): Record<string, unkn
 }
 
 function parsePostmanAuth(raw: unknown, requestName: string, warnings: string[]): RequestAuthConfig | undefined {
-  if (raw === undefined) return undefined;
+  if (raw === undefined) {
+    return undefined;
+  }
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
     warnings.push(`Request "${requestName}" declares auth in an unsupported shape; configure authentication manually.`);
     return undefined;
@@ -69,13 +73,21 @@ function parsePostmanAuth(raw: unknown, requestName: string, warnings: string[])
   const fields = Array.isArray(value[type]) ? value[type] as unknown[] : [];
   const field = (key: string): string => {
     const match = fields.find(item => !!item && typeof item === 'object' && (item as Record<string, unknown>).key === key) as Record<string, unknown> | undefined;
-    if (match && typeof match.value === 'string') return match.value;
+    if (match && typeof match.value === 'string') {
+      return match.value;
+    }
     return typeof value[key] === 'string' ? value[key] as string : '';
   };
   let auth: RequestAuthConfig | undefined;
-  if (type === 'noauth') auth = { type: 'none' };
-  else if (type === 'bearer') auth = { type: 'bearer', token: field('token') };
-  else if (type === 'basic') auth = { type: 'basic', username: field('username'), password: field('password') };
+  if (type === 'noauth') {
+    auth = { type: 'none' };
+  }
+  else if (type === 'bearer') {
+    auth = { type: 'bearer', token: field('token') };
+  }
+  else if (type === 'basic') {
+    auth = { type: 'basic', username: field('username'), password: field('password') };
+  }
   else if (type === 'apikey') {
     const location = field('in').toLowerCase();
     auth = {

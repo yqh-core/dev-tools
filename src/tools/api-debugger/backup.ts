@@ -55,16 +55,26 @@ function isVariableReference(value: string): boolean {
 }
 
 function authCredentialValues(auth: RequestAuthConfig): string[] {
-  if (auth.type === 'bearer') return [auth.token];
-  if (auth.type === 'basic') return [auth.username, auth.password];
-  if (auth.type === 'api-key-header' || auth.type === 'api-key-query') return [auth.value];
+  if (auth.type === 'bearer') {
+    return [auth.token];
+  }
+  if (auth.type === 'basic') {
+    return [auth.username, auth.password];
+  }
+  if (auth.type === 'api-key-header' || auth.type === 'api-key-query') {
+    return [auth.value];
+  }
   return [];
 }
 
 /** Preserve the selected mode and non-secret field names without exporting literal credentials. */
 function redactAuthProfileForBackup(auth: RequestAuthConfig): RequestAuthConfig {
-  if (auth.type === 'none') return { type: 'none' };
-  if (auth.type === 'bearer') return { type: 'bearer', token: isVariableReference(auth.token) ? auth.token : '' };
+  if (auth.type === 'none') {
+    return { type: 'none' };
+  }
+  if (auth.type === 'bearer') {
+    return { type: 'bearer', token: isVariableReference(auth.token) ? auth.token : '' };
+  }
   if (auth.type === 'basic') return {
     type: 'basic',
     username: isVariableReference(auth.username) ? auth.username : '',

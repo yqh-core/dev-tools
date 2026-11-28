@@ -892,8 +892,12 @@ const edAuthValue = ref('');
 const authReveal = ref(false);
 const authCollisionChoice = ref<'replace' | 'keep-manual' | null>(null);
 const edAuth = computed<RequestAuthConfig>(() => {
-  if (edAuthMode.value === 'bearer') return { type: 'bearer', token: edAuthToken.value };
-  if (edAuthMode.value === 'basic') return { type: 'basic', username: edAuthUsername.value, password: edAuthPassword.value };
+  if (edAuthMode.value === 'bearer') {
+    return { type: 'bearer', token: edAuthToken.value };
+  }
+  if (edAuthMode.value === 'basic') {
+    return { type: 'basic', username: edAuthUsername.value, password: edAuthPassword.value };
+  }
   if (edAuthMode.value === 'api-key-header' || edAuthMode.value === 'api-key-query') {
     return { type: edAuthMode.value, key: edAuthKey.value, value: edAuthValue.value };
   }
@@ -908,10 +912,18 @@ const authModeOptions = [
 ];
 const authLocationPreview = computed(() => {
   const mask = (value: string) => /^\s*\{\{[^{}]+\}\}\s*$/.test(value) ? value : value ? '••••••' : '(not set)';
-  if (edAuth.value.type === 'none') return '';
-  if (edAuth.value.type === 'bearer') return `Authorization: Bearer ${mask(edAuth.value.token)}`;
-  if (edAuth.value.type === 'basic') return 'Authorization: Basic ••••••';
-  if (edAuth.value.type === 'api-key-header') return `${edAuth.value.key || 'X-API-Key'}: ${mask(edAuth.value.value)}`;
+  if (edAuth.value.type === 'none') {
+    return '';
+  }
+  if (edAuth.value.type === 'bearer') {
+    return `Authorization: Bearer ${mask(edAuth.value.token)}`;
+  }
+  if (edAuth.value.type === 'basic') {
+    return 'Authorization: Basic ••••••';
+  }
+  if (edAuth.value.type === 'api-key-header') {
+    return `${edAuth.value.key || 'X-API-Key'}: ${mask(edAuth.value.value)}`;
+  }
   return `Query parameter ${edAuth.value.key || 'api_key'}=${mask(edAuth.value.value)}`;
 });
 const sendingSingle = ref(false);
@@ -994,7 +1006,9 @@ function commitRequest() {
 
 function commitAuth() {
   const selected = selectedRequest.value;
-  if (!selected) return;
+  if (!selected) {
+    return;
+  }
   authCollisionChoice.value = null;
   authReveal.value = false;
   singleResponse.value = null;
@@ -1012,12 +1026,18 @@ function commitAuth() {
 
 function onAuthModeChange(value: unknown) {
   const mode = String(value) as RequestAuthConfig['type'];
-  if (!['none', 'bearer', 'basic', 'api-key-header', 'api-key-query'].includes(mode)) return;
+  if (!['none', 'bearer', 'basic', 'api-key-header', 'api-key-query'].includes(mode)) {
+    return;
+  }
   const previousMode = edAuthMode.value;
   const wasApiKey = previousMode === 'api-key-header' || previousMode === 'api-key-query';
   edAuthMode.value = mode;
-  if (mode === 'api-key-header' && !wasApiKey) edAuthKey.value = 'X-API-Key';
-  if (mode === 'api-key-query' && !wasApiKey) edAuthKey.value = 'api_key';
+  if (mode === 'api-key-header' && !wasApiKey) {
+    edAuthKey.value = 'X-API-Key';
+  }
+  if (mode === 'api-key-query' && !wasApiKey) {
+    edAuthKey.value = 'api_key';
+  }
   authReveal.value = false;
   commitAuth();
 }
@@ -1616,8 +1636,12 @@ async function sendSelectedRequest() {
     response.headers = Object.fromEntries(Object.entries(response.headers).map(([name, value]) => [
       name, redactAuthSensitiveText(value, request.auth, env.value),
     ]));
-    if (response.redirect) response.redirect = redactAuthSensitiveText(response.redirect, request.auth, env.value);
-    if (response.note) response.note = redactAuthSensitiveText(response.note, request.auth, env.value);
+    if (response.redirect) {
+      response.redirect = redactAuthSensitiveText(response.redirect, request.auth, env.value);
+    }
+    if (response.note) {
+      response.note = redactAuthSensitiveText(response.note, request.auth, env.value);
+    }
     recordRequestHistory(request, response.status, response.elapsedMs);
     singleResponse.value = response;
     // The relay wraps upstream HTTP statuses in a 200 JSON envelope; classify the

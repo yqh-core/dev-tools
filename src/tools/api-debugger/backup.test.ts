@@ -48,9 +48,13 @@ function tree(secret = 'env-secret-value'): CollectionNode {
 function treeWithAuth(token = 'request-auth-secret'): CollectionNode {
   const source = tree();
   const folder = source.items[0];
-  if (!('items' in folder)) throw new Error('test fixture folder missing');
+  if (!('items' in folder)) {
+    throw new Error('test fixture folder missing');
+  }
   const login = folder.items[0];
-  if (!('request' in login)) throw new Error('test fixture request missing');
+  if (!('request' in login)) {
+    throw new Error('test fixture request missing');
+  }
   login.request.auth = { type: 'bearer', token };
   return source;
 }
@@ -184,24 +188,36 @@ describe('API Studio portable backup', () => {
     const safe = createApiStudioBackup(source, envs());
     const serialized = serializeApiStudioBackup(safe);
     const folder = safe.collection.items[0];
-    if (!('items' in folder)) throw new Error('backup folder missing');
+    if (!('items' in folder)) {
+      throw new Error('backup folder missing');
+    }
     const login = folder.items[0];
-    if (!('request' in login)) throw new Error('backup request missing');
+    if (!('request' in login)) {
+      throw new Error('backup request missing');
+    }
     expect(login.request.auth).toEqual({ type: 'bearer', token: '' });
     expect(serialized).not.toContain('request-auth-secret');
 
     const protectedBackup = createApiStudioBackup(source, envs(), { includeSecrets: true });
     const protectedFolder = protectedBackup.collection.items[0];
-    if (!('items' in protectedFolder)) throw new Error('protected folder missing');
+    if (!('items' in protectedFolder)) {
+      throw new Error('protected folder missing');
+    }
     const protectedLogin = protectedFolder.items[0];
-    if (!('request' in protectedLogin)) throw new Error('protected request missing');
+    if (!('request' in protectedLogin)) {
+      throw new Error('protected request missing');
+    }
     expect(protectedLogin.request.auth).toEqual({ type: 'bearer', token: 'request-auth-secret' });
 
     const variableBackup = createApiStudioBackup(treeWithAuth('{{API_TOKEN}}'), envs());
     const variableFolder = variableBackup.collection.items[0];
-    if (!('items' in variableFolder)) throw new Error('variable folder missing');
+    if (!('items' in variableFolder)) {
+      throw new Error('variable folder missing');
+    }
     const variableLogin = variableFolder.items[0];
-    if (!('request' in variableLogin)) throw new Error('variable request missing');
+    if (!('request' in variableLogin)) {
+      throw new Error('variable request missing');
+    }
     expect(variableLogin.request.auth).toEqual({ type: 'bearer', token: '{{API_TOKEN}}' });
   });
 

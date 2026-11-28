@@ -235,7 +235,7 @@ test('Authorization editor keeps credentials local until Send and preserves manu
   expect(relayCalls).toBe(2);
   expect(relayPayloads[1].url).toContain('page=2');
   expect(new URL(relayPayloads[1].url).searchParams.get('client_key')).toBe('query-secret+value&safe');
-  expect(JSON.stringify(relayPayloads[1])).toContain('query-secret+value&safe');
+  expect(JSON.stringify(relayPayloads[1])).toContain('query-secret%2Bvalue%26safe');
   await expect(page.getByTestId('single-response-body')).not.toContainText('query-secret+value&safe');
   await expect(page.getByTestId('single-response-body')).toContainText('[REDACTED]');
 
