@@ -444,9 +444,12 @@ test('environment selector keeps common names readable and exposes the full acti
   await expect(page.getByTestId('env-count')).toHaveText('0 var(s)');
   await page.screenshot({ path: testInfo.outputPath('environment-selector-desktop-long-name.png') });
 
+  await expect(page.locator('.api-studio-shell')).toHaveAttribute('data-api-theme', 'light');
+  await page.getByRole('button', { name: 'Switch to dark theme' }).click();
+  await expect(page.locator('.api-studio-shell')).toHaveAttribute('data-api-theme', 'dark');
+  await expect(selector).toHaveAttribute('aria-label', 'Environment: Staging-West-2-Production');
   await page.getByRole('button', { name: 'Switch to light theme' }).click();
   await expect(page.locator('.api-studio-shell')).toHaveAttribute('data-api-theme', 'light');
-  await expect(selector).toHaveAttribute('aria-label', 'Environment: Staging-West-2-Production');
 });
 
 test('environment selector stays within the mobile workspace width with a long name', async ({ page }, testInfo) => {
