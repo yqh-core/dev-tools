@@ -62,13 +62,25 @@ test.describe('Tool - HTTP status code reference', () => {
     await page.reload();
 
     const search = page.getByPlaceholder('按状态码、名称或含义搜索…');
-    await expect(page.getByTestId('status-code-401')).toContainText('未认证');
-    await expect(page.getByTestId('status-code-401')).toContainText('WWW-Authenticate');
+    const unauthorized = page.getByTestId('status-code-401');
+    await expect(unauthorized.getByText('401 未认证', { exact: true })).toBeVisible();
+    await expect(unauthorized).toContainText('WWW-Authenticate');
+    await expect(unauthorized).not.toContainText('=>');
+    await expect(unauthorized).not.toContainText('normalize');
+
     await search.fill('510');
-    await expect(page.getByTestId('status-code-510')).toContainText('仍保留 510 Not Extended 的历史注册记录');
-    await expect(page.getByTestId('status-code-510')).toContainText('OBSOLETED');
+    const obsoleted = page.getByTestId('status-code-510');
+    await expect(obsoleted.getByText('510 扩展未满足（已废弃）', { exact: true })).toBeVisible();
+    await expect(obsoleted).toContainText('IANA 仍保留 510 Not Extended 的历史注册记录');
+    await expect(obsoleted).toContainText('OBSOLETED');
+    await expect(obsoleted).not.toContainText('=>');
+
     await search.fill('内容过大');
-    await expect(page.getByTestId('status-code-413')).toBeVisible();
+    const contentTooLarge = page.getByTestId('status-code-413');
+    await expect(contentTooLarge).toBeVisible();
+    await expect(contentTooLarge.getByText('413 内容过大', { exact: true })).toBeVisible();
+    await expect(contentTooLarge).toContainText('请求内容超过服务器愿意或能够处理的大小');
+    await expect(contentTooLarge).not.toContainText('=>');
     await expect(page.getByTestId('status-code-401')).toHaveCount(0);
   });
 
