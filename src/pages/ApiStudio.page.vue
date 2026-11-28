@@ -347,24 +347,22 @@ function onOpenApiFilePicked(e: Event) {
   reader.readAsText(file);
 }
 
-function findOpenApiDuplicate(source: CollectionNode, imported: ImportedRequest): RequestNode | null {
+function findOpenApiDuplicates(source: CollectionNode, imported: ImportedRequest): RequestNode[] {
   const targetMethod = imported.request.method.trim().toUpperCase();
   const targetUrl = imported.request.url.trim();
-  const walk = (items: TreeNode[]): RequestNode | null => {
+  const matches: RequestNode[] = [];
+  const walk = (items: TreeNode[]) => {
     for (const item of items) {
       if (isFolderNode(item)) {
-        const nested = walk(item.items);
-        if (nested) {
-          return nested;
-        }
+        walk(item.items);
       }
       else if (item.request.method.trim().toUpperCase() === targetMethod && item.request.url.trim() === targetUrl) {
-        return item;
+        matches.push(item);
       }
     }
-    return null;
   };
-  return walk(source.items);
+  walk(source.items);
+  return matches;
 }
 
 function hasOpenApiRequestName(source: CollectionNode, name: string): boolean {
@@ -387,7 +385,7 @@ const openApiDuplicateCount = computed(() => {
   let count = 0;
   for (const request of parsed.requests) {
     const key = `${request.request.method.trim().toUpperCase()} ${request.request.url.trim()}`;
-    if (findOpenApiDuplicate(tree.value, request) || seen.has(key)) {
+    if (findOpenApiDuplicates(tree.value, request).length > 0 || seen.has(key)) {
       count++;
     }
     seen.add(key);
@@ -418,18 +416,21 @@ function confirmOpenApiImport() {
   let skipped = 0;
   let firstImportedId = '';
   for (const imported of parsed.requests) {
-    const duplicate = findOpenApiDuplicate(nextTree, imported);
-    if (duplicate && openApiConflictMode.value === 'skip') {
+    const duplicates = findOpenApiDuplicates(nextTree, imported);
+    if (duplicates.length > 0 && openApiConflictMode.value === 'skip') {
       skipped++;
       continue;
     }
-    if (duplicate && openApiConflictMode.value === 'replace') {
-      nextTree = removeNode(nextTree, duplicate.id).tree;
+    if (duplicates.length > 0 && openApiConflictMode.value === 'replace') {
+      for (const duplicate of duplicates) {
+        nextTree = removeNode(nextTree, duplicate.id).tree;
+        replaced++;
+      }
     }
 
     let name = imported.name;
     let id: string | undefined = requestNodeFromImported(imported).id;
-    if (duplicate && openApiConflictMode.value === 'append') {
+    if (duplicates.length > 0 && openApiConflictMode.value === 'append') {
       let suffix = 2;
       const baseName = imported.name;
       name = `${baseName} (imported ${suffix})`;
@@ -454,9 +455,6 @@ function confirmOpenApiImport() {
       firstImportedId = inserted.node.id;
     }
     added++;
-    if (duplicate && openApiConflictMode.value === 'replace') {
-      replaced++;
-    }
   }
 
   if (added > 0) {
@@ -1570,7 +1568,7 @@ function onMenuSelect(key: string, node: TreeNode) {
             <span>{{ openApiDuplicateCount }} duplicate(s)</span>
             <select v-model="openApiConflictMode" data-test-id="openapi-conflicts">
               <option value="skip">Skip duplicates</option>
-              <option value="replace">Replace matching requests</option>
+              <option value="replace">Replace all matching requests</option>
               <option value="append">Append copies with suffix</option>
             </select>
           </label>
