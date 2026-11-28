@@ -161,12 +161,10 @@ const HOME_DEMO_STORIES: Record<HomeDemoId, {
     path: '/json-workspace',
     file: 'response.json',
     format: 'JSON',
-    code: String.raw`IN  {"items":[3,8,13]}
+    code: String.raw`IN  {"ok":true}
 OUT {
-      "items": [
-        3, 8, 13
-      ]
-    }`,
+  "ok": true
+}`,
   },
   jwt: {
     path: '/jwt-parser',
@@ -180,7 +178,7 @@ SIG present · NOT VERIFIED`,
     path: '/regex-tester',
     file: 'tickets.txt',
     format: 'REGEX',
-    code: String.raw`RE  \\b[A-Z]{3}-\\d{4}\\b
+    code: String.raw`RE  \b[A-Z]{3}-\d{4}\b
 IN  Ticket DEV-2048 / OPS-0781
 OUT 2 matches
     DEV-2048 · OPS-0781`,
