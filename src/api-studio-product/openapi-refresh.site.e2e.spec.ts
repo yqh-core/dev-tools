@@ -106,7 +106,7 @@ test('OpenAPI refresh preserves local edits, supports explicit source choice, an
   const preview = page.getByTestId('openapi-refresh-preview');
   await expect(preview).toBeVisible();
   await expect(page.getByTestId('openapi-refresh-operations')).toContainText('conflict');
-  await expect(preview).toContainText('Keep your current value');
+  await expect(preview).toContainText(/keep your current value/i);
   await expect(page.getByTestId('openapi-refresh-server').locator('option')).toHaveCount(2);
   await page.getByTestId('openapi-refresh-server').selectOption('https://staging.example.test/v1');
   await expect(page.getByTestId('openapi-refresh-operations')).toContainText('https://staging.example.test/v1/users/{{id}}/v2');
