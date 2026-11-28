@@ -65,6 +65,6 @@ export const statusCodeZh: Record<number, { name: string; description: string }>
   506: { name: '变体协商导致循环', description: '服务器内部配置错误导致透明内容协商形成循环引用。' },
   507: { name: '存储空间不足', description: 'WebDAV 响应，表示服务器无法存储完成该方法所需的表示，因此操作无法执行。' },
   508: { name: '检测到循环', description: 'WebDAV 响应，表示服务器在处理请求时检测到无限循环。' },
-  510: { name: '扩展未满足（已废弃）', description: '已废弃。旧版扩展机制状态码已不属于当前 HTTP 状态码注册项。' },
+  510: { name: '扩展未满足（已废弃）', description: 'IANA 仍保留 510 Not Extended 的历史注册记录，并标记为 OBSOLETED；该状态码源自 RFC 2774 的 HTTP 扩展框架，已不适用于新的实现。' },
   511: { name: '需要网络认证', description: '客户端需要先完成网络认证（例如通过强制门户）才能访问网络。' },
 };
