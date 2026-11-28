@@ -143,7 +143,7 @@ test.describe('DigDevBox Main consent and privacy settings', () => {
     await expect(prompt.getByRole('button', { name: '接受分析' })).toBeVisible();
     await expect(prompt.getByRole('button', { name: '拒绝分析' })).toBeVisible();
 
-    await page.getByRole('button', { name: '隐私设置' }).click();
+    await page.locator('[data-privacy-settings]').click();
     const dialog = page.getByRole('dialog', { name: '隐私设置' });
     await expect(dialog).toBeVisible();
     await expect(dialog).toContainText('当前尚未作出选择。');
