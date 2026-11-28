@@ -27,11 +27,31 @@ export interface RequestNode {
 }
 
 /** 集合/文件夹节点（可嵌套；root 是同形的顶层集合节点）。 */
+export interface OpenApiSyncOperation {
+  key: string
+  requestId: string
+  baseNameFingerprint: string
+  baseRequestFingerprint: string
+}
+
+/** Local provenance + dirty-detection baseline; fingerprints are not encryption or credential storage. */
+export interface OpenApiSyncMetadata {
+  version: 1
+  fileName: string
+  title: string
+  openApiVersion: string
+  lastSyncedAt: string
+  specFingerprint: string
+  operations: OpenApiSyncOperation[]
+}
+
+/** Collection/folder node. openApiSync is valid on the collection root only. */
 export interface CollectionNode {
   id: string
   name: string
   scripts?: ScriptEvents
   items: TreeNode[]
+  openApiSync?: OpenApiSyncMetadata
 }
 
 export type TreeNode = CollectionNode | RequestNode;
@@ -566,6 +586,67 @@ function parseNode(raw: unknown, seen: Set<string>): TreeNode | null {
   return null;
 }
 
+/** Strictly parse local OpenAPI provenance. No raw spec, credentials or request values are retained here. */
+export function parseOpenApiSyncMetadata(raw: unknown): OpenApiSyncMetadata | null {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
+    return null;
+  }
+  const value = raw as Record<string, unknown>;
+  const allowed = ['version', 'fileName', 'title', 'openApiVersion', 'lastSyncedAt', 'specFingerprint', 'operations'];
+  if (Object.keys(value).some(key => !allowed.includes(key))) {
+    return null;
+  }
+  const fingerprint = (input: unknown): input is string => typeof input === 'string' && /^sha256-[a-f0-9]{64}$/.test(input);
+  if (
+    value.version !== 1
+    || typeof value.fileName !== 'string' || !value.fileName.trim() || value.fileName.length > 255
+    || typeof value.title !== 'string' || value.title.length > 256
+    || typeof value.openApiVersion !== 'string' || !/^3\\./.test(value.openApiVersion)
+    || typeof value.lastSyncedAt !== 'string' || Number.isNaN(Date.parse(value.lastSyncedAt))
+    || !fingerprint(value.specFingerprint)
+    || !Array.isArray(value.operations) || value.operations.length > 10000
+  ) {
+    return null;
+  }
+  const keys = new Set<string>();
+  const requestIds = new Set<string>();
+  const operations: OpenApiSyncOperation[] = [];
+  for (const item of value.operations) {
+    if (!item || typeof item !== 'object' || Array.isArray(item)) {
+      return null;
+    }
+    const operation = item as Record<string, unknown>;
+    if (
+      Object.keys(operation).some(key => !['key', 'requestId', 'baseNameFingerprint', 'baseRequestFingerprint'].includes(key))
+      || typeof operation.key !== 'string' || !operation.key.trim() || operation.key.length > 512
+      || typeof operation.requestId !== 'string' || !operation.requestId.trim() || operation.requestId.length > 256
+      || !fingerprint(operation.baseNameFingerprint)
+      || !fingerprint(operation.baseRequestFingerprint)
+      || keys.has(operation.key)
+      || requestIds.has(operation.requestId)
+    ) {
+      return null;
+    }
+    keys.add(operation.key);
+    requestIds.add(operation.requestId);
+    operations.push({
+      key: operation.key,
+      requestId: operation.requestId,
+      baseNameFingerprint: operation.baseNameFingerprint,
+      baseRequestFingerprint: operation.baseRequestFingerprint,
+    });
+  }
+  return {
+    version: 1,
+    fileName: value.fileName,
+    title: value.title,
+    openApiVersion: value.openApiVersion,
+    lastSyncedAt: value.lastSyncedAt,
+    specFingerprint: value.specFingerprint,
+    operations,
+  };
+}
+
 /** localStorage 存储解析：items 缺失 → null（fail-closed）；name 缺失 → 'Collection' 宽容（我们写的存储必有名）。
  *  注：与 parseSaved 不同，树不按 cap 截断——截断会 orphan 结构；上限在添加面强制。 */
 export function parseCollectionTree(raw: unknown): CollectionNode | null {
@@ -587,7 +668,17 @@ export function parseCollectionTree(raw: unknown): CollectionNode | null {
     }
   }
   const scripts = parseScriptEvents(n.scripts);
-  return { id, name, items, ...(scripts ? { scripts } : {}) };
+  const openApiSync = n.openApiSync === undefined ? undefined : parseOpenApiSyncMetadata(n.openApiSync);
+  if (n.openApiSync !== undefined && !openApiSync) {
+    return null;
+  }
+  return {
+    id,
+    name,
+    items,
+    ...(scripts ? { scripts } : {}),
+    ...(openApiSync ? { openApiSync } : {}),
+  };
 }
 
 // ── 持久化（localStorage 契约；与 UI 框架无关的纯函数面）──────────────
