@@ -147,6 +147,49 @@ const FEATURED_TASKS = [
   },
 ] as const;
 
+type HomeDemoId = 'json' | 'jwt' | 'regex';
+
+const HOME_DEMO_IDS: HomeDemoId[] = ['json', 'jwt', 'regex'];
+
+const HOME_DEMO_STORIES: Record<HomeDemoId, {
+  path: string
+  file: string
+  format: string
+  code: string
+}> = {
+  json: {
+    path: '/json-workspace',
+    file: 'response.json',
+    format: 'JSON',
+    code: String.raw`IN  {"items":[3,8,13]}
+OUT {
+      "items": [
+        3, 8, 13
+      ]
+    }`,
+  },
+  jwt: {
+    path: '/jwt-parser',
+    file: 'sample.jwt',
+    format: 'JWT',
+    code: `IN  eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkZXYtMSIsInJvbGUiOiJxYSJ9.c2FtcGxl
+OUT sub=dev-1 · role=qa
+SIG present · NOT VERIFIED`,
+  },
+  regex: {
+    path: '/regex-tester',
+    file: 'tickets.txt',
+    format: 'REGEX',
+    code: String.raw`RE  \\b[A-Z]{3}-\\d{4}\\b
+IN  Ticket DEV-2048 / OPS-0781
+OUT 2 matches
+    DEV-2048 · OPS-0781`,
+  },
+};
+
+const activeHomeDemo = ref<HomeDemoId>('json');
+const activeHomeDemoStory = computed(() => HOME_DEMO_STORIES[activeHomeDemo.value]);
+
 function assertHomeToolPaths(paths: readonly string[], label: string, tools: ToolWithCategory[]) {
   const known = new Set(tools.map(tool => tool.path));
   const missing = paths.filter(path => !known.has(path));
@@ -166,6 +209,11 @@ const FEATURED_TASK_PATHS = [...new Set(
   FEATURED_TASKS.flatMap(task => [task.primaryPath, ...task.toolPaths]),
 )];
 assertHomeToolPaths(FEATURED_TASK_PATHS, 'FEATURED_TASKS', toolsWithCategory);
+assertHomeToolPaths(
+  HOME_DEMO_IDS.map(id => HOME_DEMO_STORIES[id].path),
+  'HOME_DEMO_STORIES',
+  toolsWithCategory,
+);
 
 if (FEATURED_TASKS.length < 3 || FEATURED_TASKS.length > 5) {
   throw new Error(`[Home.page] FEATURED_TASKS must contain 3–5 entries; found ${FEATURED_TASKS.length}`);
@@ -434,25 +482,39 @@ function onUpdateFavoriteTools() {
           <aside class="home-hero-preview" aria-labelledby="home-hero-preview-title">
             <div class="hero-preview-topline">
               <span class="hero-preview-status" aria-hidden="true" />
-              <span>{{ t('home.preview.eyebrow') }}</span>
+              <span>{{ t('home.demo.eyebrow') }}</span>
+            </div>
+            <div class="hero-preview-selector" role="group" :aria-label="t('home.demo.selectorLabel')">
+              <button
+                v-for="demoId in HOME_DEMO_IDS"
+                :key="demoId"
+                :data-testid="`home-demo-tab-${demoId}`"
+                class="hero-preview-tab"
+                type="button"
+                :aria-pressed="activeHomeDemo === demoId"
+                @click="activeHomeDemo = demoId"
+              >
+                {{ t(`home.demo.${demoId}.tab`) }}
+              </button>
             </div>
             <div class="hero-preview-copy">
-              <p class="hero-preview-label">{{ t('home.preview.label') }}</p>
-              <h2 id="home-hero-preview-title">{{ t('home.preview.title') }}</h2>
-              <p class="hero-preview-description">{{ t('home.preview.description') }}</p>
+              <p class="hero-preview-label">{{ t(`home.demo.${activeHomeDemo}.label`) }}</p>
+              <h2 id="home-hero-preview-title">{{ t(`home.demo.${activeHomeDemo}.title`) }}</h2>
+              <p class="hero-preview-description">{{ t(`home.demo.${activeHomeDemo}.description`) }}</p>
             </div>
-            <div class="hero-preview-code" :aria-label="t('home.preview.codeLabel')">
+            <div
+              class="hero-preview-code"
+              :aria-label="t(`home.demo.${activeHomeDemo}.codeLabel`)"
+              aria-live="polite"
+            >
               <div class="hero-preview-codebar">
-                <span>sample.json</span>
-                <span>JSON</span>
+                <span>{{ activeHomeDemoStory.file }}</span>
+                <span>{{ activeHomeDemoStory.format }}</span>
               </div>
-              <pre><code>{
-  "status": "ready",
-  "items": [3, 8, 13]
-}</code></pre>
+              <pre><code>{{ activeHomeDemoStory.code }}</code></pre>
             </div>
-            <RouterLink class="hero-preview-link" :to="normalizePath('/json-workspace')">
-              {{ t('home.preview.cta') }}
+            <RouterLink class="hero-preview-link" :to="normalizePath(activeHomeDemoStory.path)">
+              {{ t(`home.demo.${activeHomeDemo}.cta`) }}
               <span aria-hidden="true">→</span>
             </RouterLink>
           </aside>
@@ -855,7 +917,7 @@ function onUpdateFavoriteTools() {
   position: relative;
   min-width: 0;
   overflow: hidden;
-  padding: 20px;
+  padding: 14px;
   border: 1px solid color-mix(in srgb, var(--dd-primary) 24%, var(--dd-border));
   border-radius: 14px;
   background:
@@ -884,8 +946,49 @@ function onUpdateFavoriteTools() {
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--dd-success) 14%, transparent);
 }
 
+.hero-preview-selector {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.hero-preview-tab {
+  display: inline-flex;
+  min-width: 0;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  padding: 7px 5px;
+  border: 1px solid var(--dd-border);
+  border-radius: 8px;
+  background: var(--dd-surface-2);
+  color: var(--dd-text-soft);
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1.2;
+  transition: border-color 0.16s ease, background-color 0.16s ease, color 0.16s ease;
+
+  &[aria-pressed="true"] {
+    border-color: color-mix(in srgb, var(--dd-primary) 58%, var(--dd-border));
+    background: color-mix(in srgb, var(--dd-primary) 10%, var(--dd-surface));
+    color: var(--dd-primary);
+  }
+
+  &:hover {
+    border-color: color-mix(in srgb, var(--dd-primary) 48%, var(--dd-border));
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--dd-primary);
+    outline-offset: 2px;
+  }
+}
+
 .hero-preview-copy {
-  margin-top: 18px;
+  margin-top: 8px;
 
   .hero-preview-label {
     margin: 0 0 6px;
@@ -899,7 +1002,7 @@ function onUpdateFavoriteTools() {
   h2 {
     margin: 0;
     color: var(--dd-text);
-    font-size: 20px;
+    font-size: 18px;
     font-weight: 700;
     line-height: 1.25;
     letter-spacing: -0.02em;
@@ -916,7 +1019,7 @@ function onUpdateFavoriteTools() {
 
 .hero-preview-code {
   overflow: hidden;
-  margin-top: 16px;
+  margin-top: 8px;
   border: 1px solid var(--dd-border);
   border-radius: 9px;
   background: var(--dd-surface-2);
@@ -936,11 +1039,11 @@ function onUpdateFavoriteTools() {
   pre {
     overflow: hidden;
     margin: 0;
-    padding: 12px 14px;
+    padding: 8px 10px;
     color: var(--dd-text);
     font-family: var(--dd-font-mono);
-    font-size: 12px;
-    line-height: 1.65;
+    font-size: 11px;
+    line-height: 1.4;
     white-space: pre-wrap;
     overflow-wrap: anywhere;
   }
@@ -952,8 +1055,8 @@ function onUpdateFavoriteTools() {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-top: 14px;
-  padding: 10px 13px;
+  margin-top: 8px;
+  padding: 8px 13px;
   border: 1px solid var(--dd-primary);
   border-radius: 8px;
   background: var(--dd-primary);
