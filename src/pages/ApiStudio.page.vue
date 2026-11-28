@@ -382,7 +382,16 @@ const openApiDuplicateCount = computed(() => {
   if (!parsed) {
     return 0;
   }
-  return parsed.requests.filter(request => !!findOpenApiDuplicate(tree.value, request)).length;
+  const seen = new Set<string>();
+  let count = 0;
+  for (const request of parsed.requests) {
+    const key = `${request.request.method.trim().toUpperCase()} ${request.request.url.trim()}`;
+    if (findOpenApiDuplicate(tree.value, request) || seen.has(key)) {
+      count++;
+    }
+    seen.add(key);
+  }
+  return count;
 });
 
 function confirmOpenApiImport() {
@@ -1564,10 +1573,17 @@ function onMenuSelect(key: string, node: TreeNode) {
             </select>
           </label>
         </div>
+        <ul class="api-import-warning-list api-openapi-operation-list" data-test-id="openapi-operations">
+          <li v-for="operation in openApiPreview.requests.slice(0, 20)" :key="`${operation.name}:${operation.request.method}:${operation.request.url}`">
+            <code>{{ operation.request.method }}</code> <strong>{{ operation.name }}</strong> <span>{{ operation.request.url }}</span>
+          </li>
+          <li v-if="openApiPreview.requests.length > 20">And {{ openApiPreview.requests.length - 20 }} more operation(s).</li>
+        </ul>
         <ul v-if="openApiPreview.warnings.length" class="api-import-warning-list" data-test-id="openapi-warnings">
           <li v-for="warning in openApiPreview.warnings" :key="warning">{{ warning }}</li>
         </ul>
         <p v-if="openApiDuplicateCount === 0">No matching method + URL requests currently exist.</p>
+        <p v-else>{{ openApiDuplicateCount }} matching operation(s) already exist in this collection or import file.</p>
         <div class="api-io-row" role="group" aria-label="OpenAPI import confirmation">
           <button class="api-tool-btn" type="button" data-test-id="cancel-openapi-import" @click="cancelOpenApiImport">Cancel</button>
           <button class="api-tool-btn api-run-btn" type="button" data-test-id="confirm-openapi-import" @click="confirmOpenApiImport">
@@ -2492,6 +2508,20 @@ function onMenuSelect(key: string, node: TreeNode) {
   padding-left: 20px;
   color: var(--api-text-soft);
   font-size: var(--api-fs-xs);
+}
+.api-openapi-operation-list {
+  max-height: 180px;
+  overflow: auto;
+  overflow-wrap: anywhere;
+}
+.api-openapi-operation-list code {
+  display: inline-block;
+  min-width: 42px;
+  margin-right: 4px;
+}
+.api-openapi-operation-list span {
+  color: var(--api-text-muted);
+  font-family: var(--api-font-mono);
 }
 .api-import-warning-list li + li {
   margin-top: 4px;
