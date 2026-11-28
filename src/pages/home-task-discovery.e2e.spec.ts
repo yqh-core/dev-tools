@@ -106,7 +106,7 @@ test.describe('Homepage task discovery', () => {
     const cta = await preview.locator('a.hero-preview-link').boundingBox();
     const documentWidth = await page.evaluate(() => document.documentElement.scrollWidth);
     expect(cta).not.toBeNull();
-    expect(cta!.bottom).toBeLessThanOrEqual(844);
+    expect(cta!.y + cta!.height).toBeLessThanOrEqual(844);
     expect(documentWidth).toBeLessThanOrEqual(390);
   });
 
