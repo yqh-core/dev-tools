@@ -1,6 +1,7 @@
 import { webcrypto } from 'node:crypto';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { onRequestPost } from '../../functions/api/apiproxy.js';
+import { handleRateLimitRequest } from '../../workers/api-relay-limiter/src/limiter.js';
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -544,5 +545,174 @@ describe('apiproxy shared Durable Object rate limiter', () => {
 
     expect(response.status).toBe(200);
     expect(binding.calls.map(call => call.path)).toEqual(['/acquire', '/release']);
+  });
+});
+
+
+describe('API relay Pages Function + actual Durable Object limiter handler', () => {
+  class PersistentLimiterStorage {
+    constructor() {
+      this.values = new Map();
+      this.tail = Promise.resolve();
+      this.alarm = null;
+    }
+
+    async get(key) {
+      return this.values.get(key);
+    }
+
+    async put(key, value) {
+      this.values.set(key, structuredClone(value));
+    }
+
+    async getAlarm() {
+      return this.alarm;
+    }
+
+    async setAlarm(timestamp) {
+      this.alarm = timestamp;
+    }
+
+    async deleteAll() {
+      this.values.clear();
+      this.alarm = null;
+    }
+
+    transaction(callback) {
+      const run = async () => {
+        const previous = this.values;
+        this.values = new Map(
+          [...previous.entries()].map(([key, value]) => [key, structuredClone(value)]),
+        );
+        try {
+          return await callback();
+        }
+        catch (error) {
+          this.values = previous;
+          throw error;
+        }
+      };
+
+      const pending = this.tail.then(run, run);
+      this.tail = pending.then(() => undefined, () => undefined);
+      return pending;
+    }
+  }
+
+  function makeNamespace(storageById, observedIdentities) {
+    return {
+      idFromName(name) {
+        observedIdentities.push(name);
+        return { name };
+      },
+      get(id) {
+        if (!storageById.has(id.name)) {
+          storageById.set(id.name, new PersistentLimiterStorage());
+        }
+        const storage = storageById.get(id.name);
+
+        // Return a fresh stub for every Pages request, while the DO storage
+        // remains keyed by the deterministic identity as it does in Cloudflare.
+        return {
+          fetch(input, init) {
+            return handleRateLimitRequest(storage, new Request(input, init));
+          },
+        };
+      },
+    };
+  }
+
+  function relayRequest(address) {
+    return new Request('https://digdevbox.com/api/apiproxy', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'cf-connecting-ip': address,
+      },
+      body: JSON.stringify({ url: 'https://example.com/' }),
+    });
+  }
+
+  it('enforces the real burst algorithm before upstream fetch across fresh namespace wrappers', async () => {
+    vi.stubGlobal('crypto', webcrypto);
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-11-28T00:00:00.000Z'));
+
+    try {
+      const storageById = new Map();
+      const firstIdentities = [];
+      const firstNamespace = makeNamespace(storageById, firstIdentities);
+      const secret = 'integration-test-hmac-secret-at-least-32-bytes';
+      const envFor = namespace => ({
+        API_RELAY_RATE_LIMIT_MODE: 'shared',
+        API_RELAY_LIMITER: namespace,
+        API_RELAY_RATE_LIMIT_HMAC_KEY: secret,
+      });
+      const clientA = '198.51.100.42';
+      const clientB = '198.51.100.43';
+
+      const upstream = vi.fn(async url => {
+        const target = String(url);
+        if (target.includes('dns-query') || target.includes('dns.google')) {
+          return Response.json({ Answer: [{ type: 1, data: '93.184.216.34' }] });
+        }
+        return new Response('{"ok":true}', {
+          status: 201,
+          statusText: 'Created',
+          headers: { 'content-type': 'application/json' },
+        });
+      });
+      vi.stubGlobal('fetch', upstream);
+
+      for (let index = 0; index < 10; index += 1) {
+        const response = await onRequestPost({
+          request: relayRequest(clientA),
+          env: envFor(firstNamespace),
+        });
+        expect(response.status).toBe(200);
+      }
+
+      const targetCallCountBeforeBlock = upstream.mock.calls.filter(call =>
+        String(call[0]).startsWith('https://example.com/'),
+      ).length;
+      expect(targetCallCountBeforeBlock).toBe(10);
+
+      // Simulate a fresh Pages isolate/namespace wrapper. The same deterministic
+      // HMAC name must resolve the existing persistent limiter state.
+      const restartedIdentities = [];
+      const restartedNamespace = makeNamespace(storageById, restartedIdentities);
+      const blocked = await onRequestPost({
+        request: relayRequest(clientA),
+        env: envFor(restartedNamespace),
+      });
+
+      expect(blocked.status).toBe(429);
+      expect(blocked.headers.get('retry-after')).toBe('10');
+      expect(await blocked.json()).toEqual({
+        error: 'API request rate limit reached (30 per minute and 10 per 10-second burst per IP). Try again later.',
+      });
+      expect(restartedIdentities).toHaveLength(1);
+      expect(restartedIdentities[0]).toMatch(/^[a-f0-9]{64}$/);
+      expect(restartedIdentities[0]).toBe(firstIdentities[0]);
+      expect(restartedIdentities[0]).not.toContain(clientA);
+      expect(upstream.mock.calls.filter(call =>
+        String(call[0]).startsWith('https://example.com/'),
+      )).toHaveLength(targetCallCountBeforeBlock);
+
+      // A different client resolves to a separate DO key and has an independent
+      // first-request budget; this is per-IP sharding, not a global cap.
+      const independentClient = await onRequestPost({
+        request: relayRequest(clientB),
+        env: envFor(restartedNamespace),
+      });
+      expect(independentClient.status).toBe(200);
+      expect(restartedIdentities[1]).not.toBe(restartedIdentities[0]);
+      expect(upstream.mock.calls.filter(call =>
+        String(call[0]).startsWith('https://example.com/'),
+      )).toHaveLength(targetCallCountBeforeBlock + 1);
+    }
+    finally {
+      vi.useRealTimers();
+    }
   });
 });
