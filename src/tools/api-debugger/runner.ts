@@ -249,10 +249,15 @@ async function executeSequence(
         takeMutations(r.outcome);
       }
 
-      const { payload, missing } = buildProxyPayload(workingReq, mergedForSubstitution());
+      const built = buildProxyPayload(workingReq, mergedForSubstitution());
+      const { payload, missing } = built;
       opts.onRequestStart?.({ id: e.id, name: e.name, method: payload.method, url: payload.url }, globalIdx, totalRequests);
       let result: RequestRunResult;
-      if (missing.length) {
+      if (built.error || built.collision) {
+        const message = built.error ?? `Authentication ${built.collision?.target} "${built.collision?.name}" conflicts with a manually configured field. Resolve the conflict in the request editor before running the collection.`;
+        result = { ...base, sent: false, status: null, elapsedMs: null, error: message, report: null, passed: false };
+      }
+      else if (missing.length) {
         result = { ...base, sent: false, status: null, elapsedMs: null, error: `Missing variables: ${missing.join(', ')}. Define them in the Variables panel.`, report: null, passed: false };
       }
       else {
