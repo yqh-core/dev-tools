@@ -2402,7 +2402,7 @@ export const GUIDES: Record<string, ToolGuide> = {
     ],
     notes: [
       '请求从 DigDevBox 的 Cloudflare 边缘发出，使用 DigDevBox/1.0 User-Agent 和 Accept: */*，不携带浏览器 Cookie。地区、防火墙、User-Agent 和缓存差异都可能让结果不同于浏览器或本机 curl。',
-      '最多跟随 3 次重定向，只返回最终响应，不提供逐跳时间线。',
+      '优先发送 HEAD 请求；只有 HEAD 请求在收到响应前失败时才回退到 GET。若上游正常返回 405，则保留并显示 405。最多跟随 3 次重定向，只返回最终响应，不提供逐跳时间线。',
       '为避免转交凭据型响应头，会省略 Set-Cookie；最多返回 60 个响应头。',
       '此接口仅在部署到 Cloudflare Pages 后可用；本地 Vite 开发环境不提供 /api/webstatus。',
     ],
