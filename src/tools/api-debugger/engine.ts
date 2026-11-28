@@ -188,7 +188,7 @@ export function redactAuthSensitiveText(
   const values = auth.type === 'bearer'
     ? [auth.token]
     : auth.type === 'basic'
-      ? [auth.username, auth.password]
+      ? [auth.username, auth.password, `Basic ${encodeBase64Utf8(`${substituteVars(auth.username, env).text}:${substituteVars(auth.password, env).text}`)}`]
       : [auth.value];
   let safe = text;
   for (const raw of values) {
