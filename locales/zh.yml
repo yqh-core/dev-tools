@@ -42,6 +42,9 @@ home:
     runSample: "运行示例"
     running: "正在运行…"
     localResult: "本地结果"
+    copyResult: "复制结果"
+    copied: "已复制"
+    copyError: "浏览器未允许访问剪贴板。"
     runError: "示例处理失败，请打开对应工具查看详细信息。"
     json:
       tab: "JSON"
