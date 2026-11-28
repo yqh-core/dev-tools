@@ -230,8 +230,8 @@ async function runHomeDemo() {
       case 'jwt': {
         const { decodeJwt } = await import('@/tools/jwt-parser/jwt-parser.service');
         const decoded = decodeJwt({ jwt: HOME_DEMO_STORIES.jwt.input.replace(/^IN {2}/, '') });
-        const values = (claims: Record<string, { value: string }>) => Object.fromEntries(
-          Object.entries(claims).map(([name, claim]) => [name, claim.value]),
+        const values = (claims: Array<{ claim: string; value: string }>) => Object.fromEntries(
+          claims.map(claim => [claim.claim, claim.value]),
         );
         const header = values(decoded.header);
         const payload = values(decoded.payload);
