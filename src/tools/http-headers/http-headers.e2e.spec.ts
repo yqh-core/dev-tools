@@ -96,7 +96,11 @@ test.describe('Tool - local HTTP response header analyzer', () => {
   test('rejects local captures larger than the 10 MiB limit before reading them', async ({ page }) => {
     await expect(page.getByText('Maximum file size: 10 MiB.')).toBeVisible();
 
+    // Start each capture from a fresh page at its target viewport; resizing a
+    // mounted desktop page can leave the responsive navigation mid-transition.
     await page.setViewportSize({ width: 390, height: 844 });
+    await page.reload();
+    await expect(page.getByText('Maximum file size: 10 MiB.')).toBeVisible();
     await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth)).toBe(390);
     await page.screenshot({
       path: 'test-results/http-status-checker/headers-analyzer-mobile-390x844.png',
@@ -104,6 +108,8 @@ test.describe('Tool - local HTTP response header analyzer', () => {
     });
 
     await page.setViewportSize({ width: 1440, height: 900 });
+    await page.reload();
+    await expect(page.getByText('Maximum file size: 10 MiB.')).toBeVisible();
     await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth)).toBe(1440);
     await page.screenshot({
       path: 'test-results/http-status-checker/headers-analyzer-desktop-1440x900.png',
