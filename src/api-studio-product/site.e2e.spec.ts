@@ -158,7 +158,7 @@ test('Authorization editor keeps credentials local until Send and preserves manu
   await page.setViewportSize({ width: 1440, height: 900 });
   const relayPayloads: RelayPayload[] = [];
   let relayCalls = 0;
-  await page.route('**/api/apiproxy', async route => {
+  await page.route('**/api/apiproxy', async (route) => {
     const payload = route.request().postDataJSON() as RelayPayload;
     relayPayloads.push(payload);
     relayCalls += 1;

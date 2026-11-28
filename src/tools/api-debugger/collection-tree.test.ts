@@ -301,11 +301,14 @@ describe('树互操作 round-trip（importCollectionTree ↔ exportCollectionTre
         request: {
           method: 'GET',
           url: 'https://api.example.test/search',
-          auth: { type: 'apikey', apikey: [
-            { key: 'key', value: 'X-CLIENT-ID' },
-            { key: 'value', value: '{{CLIENT_ID}}' },
-            { key: 'in', value: 'header' },
-          ] },
+          auth: {
+            type: 'apikey',
+            apikey: [
+              { key: 'key', value: 'X-CLIENT-ID' },
+              { key: 'value', value: '{{CLIENT_ID}}' },
+              { key: 'in', value: 'header' },
+            ],
+          },
         },
       }],
     });
@@ -370,9 +373,17 @@ describe('持久化（serializeCollectionTree / loadCollectionTree）', () => {
     expect(parseCollectionTree({
       ...updated.tree!,
       items: [{
-        id: 'bad-auth', name: 'Bad auth', request: {
-          method: 'GET', url: 'https://x.test', headers: [], body: '',
-          auth: { type: 'oauth', token: 'not-supported' },
+        id: 'bad-auth',
+        name: 'Bad auth',
+        request: {
+          method: 'GET',
+          url: 'https://x.test',
+          headers: [],
+          body: '',
+          auth: {
+            type: 'oauth',
+            token: 'not-supported',
+          },
         },
       }],
     })).toBeNull();

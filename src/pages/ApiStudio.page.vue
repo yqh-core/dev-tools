@@ -31,8 +31,13 @@ import {
   updateFolderScripts,
   updateRequestNode,
 } from '@/tools/api-debugger/collection-tree';
-import { redactAuthQueryUrl, redactAuthSensitiveText, type KV, type RequestAuthConfig } from '@/tools/api-debugger/engine';
-import { buildProxyPayload } from '@/tools/api-debugger/engine';
+import {
+  type KV,
+  type RequestAuthConfig,
+  buildProxyPayload,
+  redactAuthQueryUrl,
+  redactAuthSensitiveText,
+} from '@/tools/api-debugger/engine';
 import {
   API_STUDIO_HISTORY_CAP,
   API_STUDIO_HISTORY_KEY,

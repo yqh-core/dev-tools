@@ -81,34 +81,73 @@ describe('request Authorization profiles', () => {
     const source = '用户:päss';
     const expected = btoa(Array.from(new TextEncoder().encode(source), byte => String.fromCharCode(byte)).join(''));
     const result = buildProxyPayload({
-      method: 'GET', url: 'https://api.example.test/', headers: [], body: '',
-      auth: { type: 'basic', username: '用户', password: 'päss' },
+      method: 'GET',
+      url: 'https://api.example.test/',
+      headers: [],
+      body: '',
+      auth: {
+        type: 'basic',
+        username: '用户',
+        password: 'päss',
+      },
     }, {});
-    expect(result.payload.headers).toEqual([{ name: 'Authorization', value: `Basic ${expected}` }]);
+    expect(result.payload.headers).toEqual([
+      {
+        name: 'Authorization',
+        value: `Basic ${expected}`,
+      },
+    ]);
   });
 
   it('does not replace a manual Authorization header without an explicit choice', () => {
     const request = {
-      method: 'GET', url: 'https://api.example.test/', body: '',
-      headers: [{ name: 'authorization', value: 'Manual value' }],
-      auth: { type: 'bearer' as const, token: 'generated-token' },
+      method: 'GET',
+      url: 'https://api.example.test/',
+      body: '',
+      headers: [
+        {
+          name: 'authorization',
+          value: 'Manual value',
+        },
+      ],
+      auth: {
+        type: 'bearer' as const,
+        token: 'generated-token',
+      },
     };
     const pending = buildProxyPayload(request, {});
     expect(pending.collision).toEqual({ target: 'header', name: 'Authorization' });
     expect(pending.payload.headers[0].value).toBe('Manual value');
     const replaced = buildProxyPayload(request, {}, { authCollision: 'replace' });
     expect(replaced.collision).toBeUndefined();
-    expect(replaced.payload.headers).toEqual([{ name: 'Authorization', value: 'Bearer generated-token' }]);
+    expect(replaced.payload.headers).toEqual([
+      {
+        name: 'Authorization',
+        value: 'Bearer generated-token',
+      },
+    ]);
     const kept = buildProxyPayload(request, {}, { authCollision: 'keep-manual' });
-    expect(kept.payload.headers).toEqual([{ name: 'authorization', value: 'Manual value' }]);
+    expect(kept.payload.headers).toEqual([
+      {
+        name: 'authorization',
+        value: 'Manual value',
+      },
+    ]);
     expect(request.headers[0].value).toBe('Manual value');
   });
 
   it('percent-encodes reserved query-key values once and preserves URL fragments', () => {
     const value = 'a+b &=#%';
     const result = buildProxyPayload({
-      method: 'GET', url: 'https://api.example.test/items?lang=en#details', headers: [], body: '',
-      auth: { type: 'api-key-query', key: 'api_key', value },
+      method: 'GET',
+      url: 'https://api.example.test/items?lang=en#details',
+      headers: [],
+      body: '',
+      auth: {
+        type: 'api-key-query',
+        key: 'api_key',
+        value,
+      },
     }, {});
     expect(result.payload.url).toContain('#details');
     const queryText = result.payload.url.split('?')[1].split('#')[0];
@@ -119,9 +158,15 @@ describe('request Authorization profiles', () => {
 
   it('reports query collisions and replaces duplicates only in the effective URL when chosen', () => {
     const request = {
-      method: 'GET', url: 'https://api.example.test/items?api_key=old&x=1&api_key=older#tab',
-      headers: [], body: '',
-      auth: { type: 'api-key-query' as const, key: 'api_key', value: 'new' },
+      method: 'GET',
+      url: 'https://api.example.test/items?api_key=old&x=1&api_key=older#tab',
+      headers: [],
+      body: '',
+      auth: {
+        type: 'api-key-query' as const,
+        key: 'api_key',
+        value: 'new',
+      },
     };
     const pending = buildProxyPayload(request, {});
     expect(pending.collision).toEqual({ target: 'query', name: 'api_key' });
@@ -136,14 +181,27 @@ describe('request Authorization profiles', () => {
 
   it('fails closed when a selected auth mode has no credential or an invalid header name', () => {
     const missingBearer = buildProxyPayload({
-      method: 'GET', url: 'https://api.example.test/', headers: [], body: '',
-      auth: { type: 'bearer', token: '' },
+      method: 'GET',
+      url: 'https://api.example.test/',
+      headers: [],
+      body: '',
+      auth: {
+        type: 'bearer',
+        token: '',
+      },
     }, {});
     expect(missingBearer.error).toContain('Enter an authentication credential');
 
     const badHeaderName = buildProxyPayload({
-      method: 'GET', url: 'https://api.example.test/', headers: [], body: '',
-      auth: { type: 'api-key-header', key: 'Bad Header Name', value: 'secret' },
+      method: 'GET',
+      url: 'https://api.example.test/',
+      headers: [],
+      body: '',
+      auth: {
+        type: 'api-key-header',
+        key: 'Bad Header Name',
+        value: 'secret',
+      },
     }, {});
     expect(badHeaderName.error).toContain('valid HTTP field name');
   });
@@ -173,8 +231,15 @@ describe('request Authorization profiles', () => {
 
   it('rejects CR/LF in resolved auth header names and values', () => {
     const result = buildProxyPayload({
-      method: 'GET', url: 'https://api.example.test/', headers: [], body: '',
-      auth: { type: 'api-key-header', key: 'X-API-Key', value: '{{INJECT}}' },
+      method: 'GET',
+      url: 'https://api.example.test/',
+      headers: [],
+      body: '',
+      auth: {
+        type: 'api-key-header',
+        key: 'X-API-Key',
+        value: '{{INJECT}}',
+      },
     }, { INJECT: 'safe\\r\\nInjected: yes' });
     expect(result.error).toContain('CR or LF');
   });

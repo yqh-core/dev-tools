@@ -8,7 +8,7 @@ import {
   parseCollectionTree,
   parseOpenApiSyncMetadata,
 } from './collection-tree';
-import { isRequestAuthConfig, type ApiRequestState, type RequestAuthConfig, sanitizeForShare } from './engine';
+import { type ApiRequestState, isRequestAuthConfig, type RequestAuthConfig, sanitizeForShare } from './engine';
 import { type EnvStore, collectSecretValues } from './environments';
 
 export const API_STUDIO_BACKUP_FORMAT = 'digdevbox-api-studio-backup';
@@ -75,11 +75,13 @@ function redactAuthProfileForBackup(auth: RequestAuthConfig): RequestAuthConfig 
   if (auth.type === 'bearer') {
     return { type: 'bearer', token: isVariableReference(auth.token) ? auth.token : '' };
   }
-  if (auth.type === 'basic') return {
-    type: 'basic',
-    username: isVariableReference(auth.username) ? auth.username : '',
-    password: isVariableReference(auth.password) ? auth.password : '',
-  };
+  if (auth.type === 'basic') {
+    return {
+      type: 'basic',
+      username: isVariableReference(auth.username) ? auth.username : '',
+      password: isVariableReference(auth.password) ? auth.password : '',
+    };
+  }
   return { type: auth.type, key: auth.key, value: isVariableReference(auth.value) ? auth.value : '' };
 }
 

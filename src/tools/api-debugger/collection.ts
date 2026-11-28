@@ -45,10 +45,13 @@ function toPostmanAuth(auth: RequestAuthConfig | undefined): Record<string, unkn
     return { type: 'bearer', bearer: [{ key: 'token', value: auth.token, type: 'string' }] };
   }
   if (auth.type === 'basic') {
-    return { type: 'basic', basic: [
-      { key: 'username', value: auth.username, type: 'string' },
-      { key: 'password', value: auth.password, type: 'string' },
-    ] };
+    return {
+      type: 'basic',
+      basic: [
+        { key: 'username', value: auth.username, type: 'string' },
+        { key: 'password', value: auth.password, type: 'string' },
+      ],
+    };
   }
   return {
     type: 'apikey',
@@ -103,7 +106,6 @@ function parsePostmanAuth(raw: unknown, requestName: string, warnings: string[])
   warnings.push(`Request "${requestName}" declares auth "${type}"; the supported profile was imported as a local draft. Review credentials before Send.`);
   return auth;
 }
-
 
 // ════════════════════════════════════════════════════════════════════════
 // flat 遗留路径（G3 前口径，字节级保留——回归锁与历史调用方依赖）

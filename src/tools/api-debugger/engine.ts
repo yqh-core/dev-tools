@@ -258,18 +258,19 @@ export function buildProxyPayload(
       ? (username || credential ? `Basic ${encodeBase64Utf8(`${username}:${credential}`)}` : '')
       : (credential ? `Bearer ${credential}` : '');
     if ((auth.type === 'bearer' && !credential) || (auth.type === 'basic' && !username && !credential)) {
-    return {
-      payload: { url, method: req.method, headers, body: b.text },
-      missing,
-      error: 'Enter a Basic Auth username or password, or reference an environment variable, before sending.',
-    };
-  }
+      return {
+        payload: { url, method: req.method, headers, body: b.text },
+        missing,
+        error: 'Enter a Basic Auth username or password, or reference an environment variable, before sending.',
+      };
+    }
     if (/[\r\n]/.test(value)) {
       return { payload: { url, method: req.method, headers, body: b.text }, missing, error: 'Authentication header values cannot contain CR or LF characters.' };
     }
     const name = 'Authorization';
     const collision = headers.some(header => header.name.trim().toLowerCase() === name.toLowerCase())
-      ? { target: 'header' as const, name } : undefined;
+      ? { target: 'header' as const, name }
+      : undefined;
     if (collision && !options.authCollision) {
       return { payload: { url, method: req.method, headers, body: b.text }, missing, collision };
     }
@@ -301,7 +302,8 @@ export function buildProxyPayload(
 
   if (auth.type === 'api-key-header') {
     const collision = headers.some(header => header.name.trim().toLowerCase() === name.toLowerCase())
-      ? { target: 'header' as const, name } : undefined;
+      ? { target: 'header' as const, name }
+      : undefined;
     if (collision && !options.authCollision) {
       return { payload: { url, method: req.method, headers, body: b.text }, missing, collision };
     }

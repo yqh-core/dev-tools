@@ -95,7 +95,7 @@ describe('runCollection core', () => {
       url: 'https://api.example.test/items?lang=en',
       auth: { type: 'api-key-query', key: 'client_key', value: '{{CLIENT_KEY}}' },
     });
-    const sum = await runCollection([request], { CLIENT_KEY: 'real-secret' }, async payload => {
+    const sum = await runCollection([request], { CLIENT_KEY: 'real-secret' }, async (payload) => {
       sent.push(payload.url);
       return resp({ url: payload.url });
     }, {

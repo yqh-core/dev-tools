@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { POSTMAN_SCHEMA, exportCollection, exportCollectionTree, importCollection, importCollectionTree } from './collection';
+import { POSTMAN_SCHEMA, exportCollection, importCollection } from './collection';
 import type { SavedRequest } from './store';
 
 const saved: SavedRequest[] = [
