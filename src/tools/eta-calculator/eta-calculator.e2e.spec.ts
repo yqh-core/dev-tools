@@ -37,6 +37,20 @@ test('ETA Calculator leads with task samples and loads the matching inputs', asy
   await expect(page.getByTestId('eta-duration')).toBeVisible();
 });
 
+test('ETA Calculator scenario controls are keyboard-operable and expose focus', async ({ page }) => {
+  await page.goto('/eta-calculator');
+  const build = page.getByTestId('eta-scenario-build');
+  await build.focus();
+  await expect(build).toBeFocused();
+  await page.keyboard.press('Enter');
+  await expect(page.getByTestId('eta-total').locator('input')).toHaveValue('240');
+  await page.keyboard.press('Tab');
+  await expect(page.getByTestId('eta-scenario-migration')).toBeFocused();
+  const total = page.getByTestId('eta-total').locator('input');
+  await total.focus();
+  await expect(total).toBeFocused();
+});
+
 test('ETA Calculator projects remaining work and adds an optional buffer', async ({ page }) => {
   await page.goto('/eta-calculator');
   const fill = async (id: string, value: string) => {
@@ -96,7 +110,7 @@ test('ETA Calculator clearly reports a completed workload', async ({ page }) => 
   await fill('eta-total', '500');
   await fill('eta-completed', '500');
   await expect(page.getByTestId('eta-remaining')).toContainText('0');
-  await expect(page.getByTestId('eta-duration')).toContainText('0 seconds');
+  await expect(page.getByTestId('eta-duration')).toHaveCount(0);
   await expect(page.getByTestId('eta-observed-rate')).toHaveCount(0);
   await expect(page.getByTestId('eta-complete')).toContainText('All work items are complete');
   await expect(page.getByTestId('eta-finish')).toHaveCount(0);
@@ -154,7 +168,7 @@ test('ETA Calculator reports missing progress and invalid elapsed pace, then han
 
   await fill('eta-completed', '500');
   await expect(page.getByTestId('eta-remaining')).toContainText('0');
-  await expect(page.getByTestId('eta-duration')).toContainText('0 seconds');
+  await expect(page.getByTestId('eta-duration')).toHaveCount(0);
   await expect(page.getByTestId('eta-complete')).toContainText('All work items are complete');
   await expect(page.getByTestId('eta-observed-error')).toHaveCount(0);
   await expect(page.getByTestId('eta-finish')).toHaveCount(0);
@@ -165,23 +179,121 @@ test.describe('ETA Calculator observed pace Chinese localization', () => {
 
   test('renders the observed-pace controls and derived rate in Chinese', async ({ page }) => {
     await page.goto('/eta-calculator');
+    await expect(page.getByTestId('eta-deadline-help')).toContainText('周一至周五');
+    await expect(page.getByTestId('eta-deadline-help')).toContainText('缓冲百分比 / 100');
     await expect(page.getByTestId('eta-mode-observed')).toContainText('\u6839\u636E\u5DF2\u8017\u65F6\u95F4\u8BA1\u7B97');
-    await page.getByTestId('eta-mode-observed').click();
+    await page.getByTestId('eta-scenario-migration').click();
 
     const fill = async (id: string, value: string) => {
-      await page.getByTestId(id).locator('input').fill(value);
+      const input = page.getByTestId(id).locator('input');
+      await input.fill(value);
+      await input.press('Tab');
     };
-    await fill('eta-total', '500');
+    const unit = page.getByTestId('eta-unit-name');
+    await expect(unit).toHaveValue('\u6761\u8BB0\u5F55');
+    // Total is constrained to be no lower than completed work, so reduce completed first.
     await fill('eta-completed', '200');
+    await fill('eta-total', '500');
+    await expect(page.getByTestId('eta-total').locator('input')).toHaveValue('500');
+    await expect(page.getByTestId('eta-completed').locator('input')).toHaveValue('200');
     await fill('eta-elapsed-hours', '2');
+    await fill('eta-elapsed-minutes', '0');
+    await fill('eta-elapsed-seconds', '0');
 
+    await expect(page.getByTestId('eta-observed-rate')).toContainText('\u5B9E\u6D4B\u5904\u7406\u901F\u7387');
     await expect(page.getByTestId('eta-observed-rate')).toContainText('100');
-    await expect(page.getByTestId('eta-observed-rate')).toContainText('\u5355\u4F4D/\u5C0F\u65F6');
+    await expect(page.getByTestId('eta-observed-rate')).toContainText('\u6761\u8BB0\u5F55/\u5C0F\u65F6');
+    await expect(page.getByTestId('eta-remaining')).toContainText('300 \u6761\u8BB0\u5F55');
+    await expect(page.getByTestId('eta-duration')).toContainText('\u5C0F\u65F6');
   });
+});
+
+test('ETA Calculator uses one explicit work unit across inputs, progress and results', async ({ page }) => {
+  await page.goto('/eta-calculator');
+  await page.getByTestId('eta-scenario-migration').click();
+
+  const unit = page.getByTestId('eta-unit-name');
+  await expect(unit).toHaveValue('records');
+  await expect(page.getByTestId('eta-total').locator('input')).toHaveValue('12000');
+  await expect(page.getByTestId('eta-remaining')).toContainText('records');
+  await expect(page.getByTestId('eta-observed-rate')).toContainText('records/hour');
+
+  await unit.fill('database rows');
+  const fill = async (id: string, value: string) => {
+    const input = page.getByTestId(id).locator('input');
+    await input.fill(value);
+    await input.press('Tab');
+  };
+  // Total is constrained to be no lower than completed work, so reduce completed first.
+  await fill('eta-completed', '200');
+  await fill('eta-total', '500');
+  await expect(page.getByTestId('eta-total').locator('input')).toHaveValue('500');
+  await expect(page.getByTestId('eta-completed').locator('input')).toHaveValue('200');
+  await page.getByTestId('eta-mode-rate').click();
+  await fill('eta-rate', '5');
+  await fill('eta-interval', '3');
+  await expect(page.getByTestId('eta-remaining')).toContainText('300 database rows');
+  await expect(page.getByTestId('eta-progress-label')).toContainText('database rows');
+  await expect(page.getByTestId('eta-unit-help')).toContainText('does not convert');
+
+  await page.getByTestId('eta-mode-observed').click();
+  await fill('eta-elapsed-hours', '2');
+  await fill('eta-elapsed-minutes', '0');
+  await fill('eta-elapsed-seconds', '0');
+  await expect(page.getByTestId('eta-observed-rate')).toContainText('100 database rows/hour');
+});
+
+test('ETA Calculator separates base processing time, buffer and scheduled duration', async ({ page }) => {
+  await page.goto('/eta-calculator');
+  const fill = async (id: string, value: string) => {
+    await page.getByTestId(id).locator('input').fill(value);
+  };
+
+  await fill('eta-total', '500');
+  await fill('eta-completed', '200');
+  await fill('eta-rate', '5');
+  await fill('eta-interval', '3');
+  await fill('eta-buffer', '10');
+  await fill('eta-pause-minutes', '15');
+
+  await expect(page.getByTestId('eta-base-duration')).toContainText('3 hours');
+  await expect(page.getByTestId('eta-buffer-time')).toContainText('18 minutes');
+  await expect(page.getByTestId('eta-pause-time')).toContainText('15 minutes');
+  await expect(page.getByTestId('eta-duration')).toContainText('3 hours 33 minutes');
+});
+
+test('ETA Calculator captures readable mobile and desktop task layouts', async ({ page }, testInfo) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/eta-calculator');
+  await page.getByTestId('eta-scenario-migration').click();
+  await expect(page.getByTestId('eta-unit-name')).toHaveValue('records');
+  await expect(page.getByTestId('eta-result')).toBeVisible();
+
+  let dimensions = await page.evaluate(() => ({
+    viewport: document.documentElement.clientWidth,
+    content: document.documentElement.scrollWidth,
+  }));
+  expect(dimensions.content).toBeLessThanOrEqual(dimensions.viewport + 1);
+  await page.mouse.move(0, 0);
+  await page.screenshot({ path: testInfo.outputPath('eta-calculator-mobile.png'), fullPage: true });
+
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await expect.poll(() => page.evaluate(() => document.documentElement.clientWidth)).toBe(1440);
+  dimensions = await page.evaluate(() => ({
+    viewport: document.documentElement.clientWidth,
+    content: document.documentElement.scrollWidth,
+  }));
+  expect(dimensions.content).toBeLessThanOrEqual(dimensions.viewport + 1);
+  await page.mouse.move(0, 0);
+  await page.screenshot({ path: testInfo.outputPath('eta-calculator-desktop.png'), fullPage: true });
 });
 
 test('ETA Calculator compares the current pace with the rate needed for a deadline', async ({ page }) => {
   await page.goto('/eta-calculator');
+  await expect(page.getByTestId('eta-deadline-help'))
+    .toContainText('between the estimate start and deadline');
+  await expect(page.getByTestId('eta-deadline-help'))
+    .toContainText('(1 + buffer % / 100)');
   const fill = async (id: string, value: string) => {
     await page.getByTestId(id).locator('input').fill(value);
   };
@@ -243,8 +355,8 @@ test.describe('ETA Calculator weekday schedule in the device timezone', () => {
     await page.getByTestId('eta-schedule-weekdays').click();
 
     await expect(page.getByTestId('eta-working-window-counted')).toContainText('10 minutes');
-    await expect(page.getByTestId('eta-finish-local')).toContainText('23 Nov 2026');
-    await expect(page.getByTestId('eta-finish-local')).toContainText('10:10');
+    await expect(page.getByTestId('eta-finish-local')).toContainText('Nov 23, 2026');
+    await expect(page.getByTestId('eta-finish-local')).toContainText('10:10 AM');
     await expect(page.getByTestId('eta-working-schedule-help')).toContainText('America/New_York');
 
     await page.addInitScript((fixedNow) => {
@@ -254,12 +366,35 @@ test.describe('ETA Calculator weekday schedule in the device timezone', () => {
     await fill('eta-total', '6');
     await fill('eta-completed', '0');
     await page.getByTestId('eta-schedule-weekdays').click();
-    await expect(page.getByTestId('eta-finish-local')).toContainText('24 Nov 2026');
-    await expect(page.getByTestId('eta-finish-local')).toContainText('09:10');
+    await expect(page.getByTestId('eta-finish-local')).toContainText('Nov 24, 2026');
+    await expect(page.getByTestId('eta-finish-local')).toContainText('9:10 AM');
 
     await page.getByTestId('eta-schedule-calendar').click();
-    await expect(page.getByTestId('eta-finish-local')).toContainText('23 Nov 2026');
-    await expect(page.getByTestId('eta-finish-local')).toContainText('18:10');
+    await expect(page.getByTestId('eta-finish-local')).toContainText('Nov 23, 2026');
+    await expect(page.getByTestId('eta-finish-local')).toContainText('6:10 PM');
+  });
+
+  test('calculates required pace from weekday work-window time after pauses and buffer', async ({ page }) => {
+    await page.addInitScript((fixedNow) => {
+      Date.now = () => fixedNow;
+    }, Date.parse('2026-11-23T15:00:00Z'));
+    await page.goto('/eta-calculator');
+
+    const fill = async (id: string, value: string) => {
+      await page.getByTestId(id).locator('input').fill(value);
+    };
+    await fill('eta-total', '180');
+    await fill('eta-completed', '60');
+    await fill('eta-rate', '3');
+    await fill('eta-interval', '5');
+    await page.getByTestId('eta-schedule-weekdays').click();
+    await fill('eta-buffer', '20');
+    await fill('eta-pause-minutes', '60');
+    await page.getByTestId('eta-deadline-input').fill('2026-11-23T17:00');
+
+    // 10:00–17:00 local = 7h; minus 1h pause = 6h;
+    // 6h / 1.2 buffer factor = 5h; 120 remaining / 5h = 24 units/hour.
+    await expect(page.getByTestId('eta-required-pace')).toContainText('24 units/hour');
   });
 
   test('carries Friday work over a DST weekend while keeping local work hours stable', async ({ page }) => {
@@ -276,7 +411,7 @@ test.describe('ETA Calculator weekday schedule in the device timezone', () => {
     await page.getByTestId('eta-schedule-weekdays').click();
 
     await expect(page.getByTestId('eta-working-window-counted')).toContainText('2 hours');
-    await expect(page.getByTestId('eta-finish-local')).toContainText('9 Mar 2026');
+    await expect(page.getByTestId('eta-finish-local')).toContainText('Mar 9, 2026');
     await expect(page.getByTestId('eta-finish-local')).toContainText('10:00');
     await expect(page.getByTestId('eta-finish-local')).toContainText('America/New_York');
   });

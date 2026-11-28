@@ -662,7 +662,7 @@ tools:
 
   eta-calculator:
     title: ETA Calculator — Software Build & Task Completion
-    description: Estimate when a software build, CI job, data migration or batch process will finish. Use measured progress or a known rate, compare pace with a deadline, and include buffers and weekday work hours.
+    description: Estimate when a download, build or batch job may finish from a known processing rate or manually entered progress. Label your work units, add a planning buffer and choose continuous or weekday hours.
     firstScreenTitle: Estimate when your work will finish
     firstScreenIntro: Forecast software builds, CI runs, data migrations and batch jobs from current progress or a known processing rate.
     scenariosTitle: Start with a common workflow
@@ -672,14 +672,40 @@ tools:
       migration: Data migration
       batch: Batch processing
       conversion: File conversion
+    scenarioUnit:
+      build: build steps
+      migration: records
+      batch: items
+      conversion: files
+    workUnitLabel: Work unit
+    workUnitPlaceholder: e.g. records
+    defaultUnit: units
+    workUnitHelp: Use the same unit for total, completed and rate values. This label does not convert units automatically.
+    totalAmountLabel: 'Total ({unit})'
+    completedAmountLabel: 'Completed ({unit})'
+    methodLabel: ETA calculation method
+    rateValueLabel: Amount processed
+    rateIntervalLabel: Rate interval
+    ratePer: per
+    processingRateLabel: Processing rate
+    remainingWorkStartTime: Remaining work start time
+    bufferLabel: Extra time buffer (%)
+    bufferHelp: Adds this percentage to the base processing time. It is a planning allowance, not a statistical confidence interval.
+    milliseconds: milliseconds
+    seconds: seconds
+    minutes: minutes
+    hours: hours
+    days: days
     rateMode: Enter a known processing rate
     observedMode: Calculate from elapsed time
     elapsedTitle: Elapsed time so far
     elapsedHours: Hours
     elapsedMinutes: Minutes
     elapsedSeconds: Seconds
+    observedRateLabel: Observed processing rate
     unitsPerHour: units/hour
-    observedModeHelp: Derive the average processing pace from completed work and elapsed time. The finish time is projected from now.
+    unitPerHour: '{unit}/hour'
+    observedModeHelp: Derive the average {unit} per hour from the completed work and elapsed time you enter manually. This is a snapshot estimate, not live process monitoring.
     observedModeHint: Enter completed work greater than zero and a positive elapsed time to derive a pace. A completed workload needs no elapsed-time sample.
     localFinishTime: Local finish time
     copyFinishTime: Copy finish time
@@ -689,7 +715,7 @@ tools:
     additionalPauseHelp: Add expected pauses to the finish-time estimate after applying the rate and buffer.
     additionalPauseResult: Additional planned pause time
     deadlineLabel: Target deadline (local time)
-    deadlineHelp: Optional. Compare your current pace with the pace needed to finish by this date and time. Planned pauses and your buffer are included; weekday mode counts only configured Monday-Friday working hours.
+    deadlineHelp: Counts only Monday-Friday time inside your configured local work window between the estimate start and deadline. Planned pauses are subtracted, then the remaining window is divided by (1 + buffer % / 100) to calculate required units/hour.
     requiredPace: Required pace
     currentPace: Current pace
     deadlineOnTrack: Your current pace is sufficient to meet this deadline.
@@ -704,6 +730,28 @@ tools:
     weekdayScheduleHelp: Only Monday-Friday time between these hours is counted in your local timezone ({timezone}). Work starts at the next opening when the start time is outside the window.
     workingWindowCounted: Time counted inside working windows (includes buffer and planned pauses)
     workingScheduleError: Choose valid 24-hour times. The closing time must be later than the opening time on the same day.
+    remainingWorkLabel: Remaining work
+    baseProcessingDurationLabel: Processing time before buffer and pauses
+    calendarDurationLabel: Estimated duration including buffer and planned pauses
+    workWindowDurationLabel: Working time required across configured windows, including buffer and planned pauses
+    bufferAllowanceLabel: Buffer allowance
+    projectedCompletionLabel: Projected completion
+    progressAriaLabel: Work completed
+    progressSummary: '{completed} of {total} {unit} completed ({percent}%).'
+    completeMessage: All work items are complete.
+    formulaTitle: How the estimate works
+    formulaBase: 'Base processing time = (total amount − completed amount) ÷ processing rate × rate interval.'
+    formulaExample: 'Example: 500 records − 200 completed = 300 remaining. At 5 records per 3 minutes, the base processing time is 180 minutes (3 hours), before a buffer.'
+    formulaAssumption: The estimate assumes a representative, steady processing rate. Observed pace comes from manually entered values; this tool does not read process telemetry or monitor a live job.
+    duration:
+      hourSingular: '{count} hour'
+      hourPlural: '{count} hours'
+      minuteSingular: '{count} minute'
+      minutePlural: '{count} minutes'
+      secondSingular: '{count} second'
+      secondPlural: '{count} seconds'
+      millisecondSingular: '{count} ms'
+      millisecondPlural: '{count} ms'
 
   roman-numeral-converter:
     title: Roman numeral converter

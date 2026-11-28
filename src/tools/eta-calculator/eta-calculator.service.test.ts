@@ -79,6 +79,8 @@ describe('calculateRemainingEta', () => {
     expect(() => calculateRemainingEta({ ...base, completedUnits: -1 })).toThrow(RangeError);
     expect(() => calculateRemainingEta({ ...base, completedUnits: 101 })).toThrow(RangeError);
     expect(() => calculateRemainingEta({ ...base, unitsPerInterval: 0 })).toThrow(RangeError);
+    expect(() => calculateRemainingEta({ ...base, unitsPerInterval: -1 })).toThrow(RangeError);
+    expect(() => calculateRemainingEta({ ...base, unitsPerInterval: Number.POSITIVE_INFINITY })).toThrow(RangeError);
     expect(() => calculateRemainingEta({ ...base, intervalMs: 0 })).toThrow(RangeError);
     expect(() => calculateRemainingEta({ ...base, bufferPercent: -1 })).toThrow(RangeError);
     expect(() => calculateRemainingEta({ ...base, bufferPercent: 101 })).toThrow(RangeError);
@@ -216,6 +218,12 @@ describe('weekday working-hours schedule', () => {
       .toBe(local(2026, 11, 23, 12));
   });
 
+  it('moves an estimate that starts before opening to the configured opening time', () => {
+    const start = local(2026, 11, 23, 7);
+    expect(calculateWorkingHoursFinishAt(start, 60 * 60 * 1000, schedule))
+      .toBe(local(2026, 11, 23, 10));
+  });
+
   it('moves an estimate that starts after closing to the next weekday opening', () => {
     const start = local(2026, 11, 23, 18);
     expect(calculateWorkingHoursFinishAt(start, 60 * 60 * 1000, schedule))
@@ -225,6 +233,12 @@ describe('weekday working-hours schedule', () => {
   it('carries unfinished work from Friday afternoon to Monday morning', () => {
     const friday = local(2026, 11, 27, 16);
     expect(calculateWorkingHoursFinishAt(friday, 2 * 60 * 60 * 1000, schedule))
+      .toBe(local(2026, 11, 30, 10));
+  });
+
+  it('moves a Saturday start to the next Monday opening', () => {
+    const saturday = local(2026, 11, 28, 12);
+    expect(calculateWorkingHoursFinishAt(saturday, 60 * 60 * 1000, schedule))
       .toBe(local(2026, 11, 30, 10));
   });
 
