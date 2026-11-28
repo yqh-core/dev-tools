@@ -16,6 +16,7 @@ import {
   firstRequestNode,
   folderMoveOptions,
   loadCollectionTree,
+  parseCollectionTree,
   mergeImportedTree,
   mergeScriptEvents,
   migrateLegacyCollection,
@@ -310,6 +311,28 @@ describe('持久化（serializeCollectionTree / loadCollectionTree）', () => {
     const savedJson = JSON.stringify([{ id: 'x', name: 'x', request: req(), createdAt: 1, updatedAt: 1 }]);
     const { migrated } = loadCollectionTree(treeJson, savedJson, null);
     expect(migrated).toBe(false);
+  });
+
+  it('collection root OpenAPI provenance survives localStorage round-trip and rejects malformed fingerprints', () => {
+    const openApiSync = {
+      version: 1 as const,
+      fileName: 'users.yaml',
+      title: 'Users API',
+      openApiVersion: '3.1.0',
+      lastSyncedAt: '2026-11-28T12:00:00.000Z',
+      specFingerprint: `sha256-${'a'.repeat(64)}`,
+      operations: [{
+        key: 'operationId:getUser',
+        requestId: 'rA1',
+        baseNameFingerprint: `sha256-${'b'.repeat(64)}`,
+        baseRequestFingerprint: `sha256-${'c'.repeat(64)}`,
+      }],
+    };
+    const source = { ...sampleTree(), openApiSync };
+    const loaded = loadCollectionTree(serializeCollectionTree(source), null, null);
+    expect(loaded.migrated).toBe(false);
+    expect(loaded.tree.openApiSync).toEqual(openApiSync);
+    expect(parseCollectionTree({ ...source, openApiSync: { ...openApiSync, specFingerprint: 'plain-text' } })).toBeNull();
   });
 
   it('脏 tree JSON + 无 saved → 空集合，不抛不静默接受脏数据', () => {
