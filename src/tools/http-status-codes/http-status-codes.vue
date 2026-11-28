@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { codesByCategories, registryStatusByCode } from './http-status-codes.constants';
-import { statusCodeZh } from './http-status-codes.translations';
 import { useFuzzySearch } from '@/composable/fuzzySearch';
 
-const { t, locale } = useI18n();
+const { t, tm, locale } = useI18n();
 const search = ref('');
+const statusCodeZh = computed(() => locale.value === 'zh'
+  ? tm('tools.http-status-codes.statusCodes') as unknown as Record<number, { name: string; description: string }>
+  : {});
 
 const statusCategoryKeys: Record<string, string> = {
   '1xx informational response': 'informational',
@@ -17,8 +19,8 @@ const statusCategoryKeys: Record<string, string> = {
 const searchableCodes = computed(() => codesByCategories.flatMap(({ codes, category }) =>
   codes.map(code => ({
     ...code,
-    nameZh: statusCodeZh[code.code]?.name ?? '',
-    descriptionZh: statusCodeZh[code.code]?.description ?? '',
+    nameZh: statusCodeZh.value[code.code]?.name ?? '',
+    descriptionZh: statusCodeZh.value[code.code]?.description ?? '',
     category,
   })),
 ));
@@ -55,11 +57,11 @@ const codesByCategoryFiltered = computed(() => {
 });
 
 function displayName(code: number, name: string) {
-  return locale.value === 'zh' ? (statusCodeZh[code]?.name ?? name) : name;
+  return locale.value === 'zh' ? (statusCodeZh.value[code]?.name ?? name) : name;
 }
 
 function displayDescription(code: number, description: string) {
-  return locale.value === 'zh' ? (statusCodeZh[code]?.description ?? description) : description;
+  return locale.value === 'zh' ? (statusCodeZh.value[code]?.description ?? description) : description;
 }
 
 function registryLabel(code: number) {
