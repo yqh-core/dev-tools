@@ -531,6 +531,7 @@ tools:
     searchPlaceholder: "按状态码、名称或含义搜索…"
     searchResults: "匹配的状态码"
     responseBoundary: "只有收到 HTTP 响应时才存在状态码。DNS、TCP/TLS 或超时故障可能发生在响应返回之前；浏览器的 CORS 规则也可能阻止 JavaScript 读取响应。本工具不会主动检测 URL。"
+    noResults: "没有匹配的状态码。请尝试输入数字、注册名称或其他关键词。"
     guideToggle: "查看 1xx–5xx 状态码类别"
     registryNote: "这里只列出注册表中的条目；未分配的数字空档会省略。厂商自定义状态码不属于标准状态码，除非注册表另有说明。"
     categories:
