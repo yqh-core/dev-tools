@@ -306,6 +306,22 @@ function addRequestTo(parentId: string | null) {
   }
 }
 
+function addSampleRequest() {
+  const r = addRequest(tree.value, null, {
+    name: 'Sample GET request',
+    request: { method: 'GET', url: 'https://api.example.com/v1/users/me', headers: [], body: '' },
+  });
+  if (r.error) {
+    banner.value = r.error;
+    return;
+  }
+  applyTree(r.tree);
+  if (r.node) {
+    selectNode(r.node.id);
+  }
+  banner.value = 'Sample request added locally. Replace the example URL, then select Send when ready. Nothing was sent.';
+}
+
 function addFolderTo(parentId: string | null) {
   const r = addFolder(tree.value, parentId, 'New folder');
   if (r.error) {
@@ -2636,16 +2652,43 @@ function onMenuSelect(key: string, node: TreeNode) {
           Start with your first request
         </h2>
         <p class="api-editor-sub">
-          Create a blank request, add your endpoint URL, then select Send. New requests start as GET; you can change the method any time.
+          Create a request, enter your endpoint, review its configuration, then select Send when you're ready. New requests start as GET; you can change the method any time.
         </p>
-        <button
-          class="api-tool-btn api-run-btn api-first-request-btn"
-          type="button"
-          data-test-id="create-first-request"
-          @click="addRequestTo(null)"
-        >
-          Create your first request
-        </button>
+        <ol class="api-first-request-steps" aria-label="First request steps">
+          <li>
+            <span class="api-first-request-number">01</span>
+            <span><strong>Set method and URL</strong><small>Start with GET or choose another HTTP method.</small></span>
+          </li>
+          <li>
+            <span class="api-first-request-number">02</span>
+            <span><strong>Review headers and auth</strong><small>Add only the parameters your endpoint needs.</small></span>
+          </li>
+          <li>
+            <span class="api-first-request-number">03</span>
+            <span><strong>Inspect the response</strong><small>Send explicitly, then review status, headers and body.</small></span>
+          </li>
+        </ol>
+        <div class="api-first-request-actions">
+          <button
+            class="api-tool-btn api-run-btn api-first-request-btn"
+            type="button"
+            data-test-id="create-first-request"
+            @click="addRequestTo(null)"
+          >
+            Create your first request
+          </button>
+          <button
+            class="api-tool-btn api-first-request-btn api-sample-request-btn"
+            type="button"
+            data-test-id="load-sample-request"
+            @click="addSampleRequest"
+          >
+            Load sample GET
+          </button>
+        </div>
+        <p class="api-first-request-safety">
+          A sample only fills the editor. Nothing is sent until you select Send.
+        </p>
         <p class="api-editor-tip">
           Group related calls into folders, then run the collection in order when you're ready.
         </p>
@@ -3939,6 +3982,105 @@ function onMenuSelect(key: string, node: TreeNode) {
   font-size: var(--api-fs-sm);
   line-height: 1.6;
   color: var(--api-text-muted);
+}
+
+.api-first-request-steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 18px 0;
+  padding: 0;
+  list-style: none;
+  text-align: left;
+}
+
+.api-first-request-steps li {
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr);
+  align-items: start;
+  gap: 8px;
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid var(--api-border);
+  border-radius: var(--api-radius);
+  background: var(--api-surface);
+}
+
+.api-first-request-number {
+  display: inline-grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 7px;
+  background: var(--api-primary-soft);
+  color: var(--api-primary);
+  font-family: var(--api-font-mono);
+  font-size: var(--api-fs-xs);
+  font-weight: 700;
+}
+
+.api-first-request-steps li > span:last-child {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.api-first-request-steps strong {
+  color: var(--api-text);
+  font-size: var(--api-fs-sm);
+  line-height: 1.35;
+}
+
+.api-first-request-steps small {
+  color: var(--api-text-muted);
+  font-size: var(--api-fs-xs);
+  line-height: 1.45;
+}
+
+.api-first-request-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.api-first-request-btn {
+  min-height: 44px;
+}
+
+.api-sample-request-btn {
+  border-color: var(--api-border-strong);
+  background: var(--api-surface);
+  color: var(--api-text);
+}
+
+.api-first-request-safety {
+  margin: 9px 0 var(--api-gap);
+  color: var(--api-text-muted);
+  font-size: var(--api-fs-xs);
+  line-height: 1.5;
+}
+
+@media (max-width: 760px) {
+  .api-first-request-steps {
+    grid-template-columns: 1fr;
+    gap: 6px;
+    margin: 12px 0;
+  }
+
+  .api-first-request-steps li {
+    padding: 8px 10px;
+  }
+
+  .api-first-request-actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .api-first-request-actions .api-first-request-btn {
+    width: 100%;
+  }
 }
 
 /* ---------- 集合根行 ---------- */
