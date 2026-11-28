@@ -239,6 +239,9 @@ test('guided demo shows four inspectable fixture scenes without sending a reques
 
     const steps = page.getByRole('group', { name: 'Guided demo steps' });
     const preview = page.getByTestId('guided-demo-preview');
+    await expect(preview).toHaveAttribute('aria-live', 'polite');
+    await expect(preview).toHaveAttribute('aria-atomic', 'false');
+    await expect(steps.getByRole('button').first()).toHaveAttribute('aria-controls', 'guided-demo-detail guided-demo-preview');
     await expect(steps.getByRole('button')).toHaveCount(4);
 
     for (const scene of scenes) {
