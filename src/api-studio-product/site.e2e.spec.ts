@@ -82,6 +82,57 @@ test('workspace opens at /app and keeps the app shell out of search indexing', a
   await page.screenshot({ path: testInfo.outputPath('workspace-desktop-first-fold.png') });
 });
 
+test('first-request empty state guides the flow and loads a local sample safely at narrow widths', async ({ page }, testInfo) => {
+  const outbound: string[] = [];
+  page.on('request', (request) => {
+    if (/\\/api\\/apiproxy|\\/api\\//i.test(request.url())) {
+      outbound.push(request.url());
+    }
+  });
+
+  for (const width of [320, 360] as const) {
+    await page.setViewportSize({ width, height: 844 });
+    await page.goto('/app/');
+    await expect(page.getByRole('heading', { level: 2, name: 'Start with your first request' })).toBeVisible();
+    await expect(page.getByRole('list', { name: 'First request steps' }).getByRole('listitem')).toHaveCount(3);
+
+    const primary = page.getByTestId('create-first-request');
+    const sample = page.getByTestId('load-sample-request');
+    await expect(primary).toBeVisible();
+    await expect(sample).toBeVisible();
+    expect((await primary.boundingBox())?.height ?? 0).toBeGreaterThanOrEqual(44);
+    expect((await sample.boundingBox())?.height ?? 0).toBeGreaterThanOrEqual(44);
+
+    const before = await page.evaluate(() => ({
+      documentWidth: document.documentElement.scrollWidth,
+      viewportWidth: document.documentElement.clientWidth,
+    }));
+    expect(before.documentWidth).toBeLessThanOrEqual(before.viewportWidth);
+
+    await sample.click();
+    await expect(page.getByTestId('editor-method')).toContainText('GET');
+    await expect(page.getByTestId('editor-url')).toHaveValue('https://api.example.com/v1/users/me');
+    await expect(page.getByText(/Nothing was sent/i)).toBeVisible();
+    await expect(page.getByTestId('single-response')).toHaveCount(0);
+    expect(outbound).toEqual([]);
+
+    const after = await page.evaluate(() => ({
+      documentWidth: document.documentElement.scrollWidth,
+      viewportWidth: document.documentElement.clientWidth,
+      editorWidth: document.querySelector('.api-editor')?.getBoundingClientRect().width ?? 0,
+    }));
+    expect(after.documentWidth).toBeLessThanOrEqual(after.viewportWidth);
+    expect(after.editorWidth).toBeLessThanOrEqual(after.viewportWidth);
+
+    await page.screenshot({ path: testInfo.outputPath(`workspace-first-request-${width}px.png`) });
+
+    await page.evaluate(() => {
+      localStorage.removeItem('api-studio:tree');
+      localStorage.removeItem('api-studio:request-history');
+    });
+  }
+});
+
 test('task guides are directly addressable and link back to the workspace', async ({ page }) => {
   await page.goto('/docs/first-request/');
 
