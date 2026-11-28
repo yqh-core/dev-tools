@@ -69,8 +69,8 @@ import {
   serializeApiStudioBackup,
 } from '@/tools/api-debugger/backup';
 import type {
-  ApiStudioBackupPreview,
   ApiStudioBackupArchive,
+  ApiStudioBackupPreview,
   BackupRestoreStrategy,
 } from '@/tools/api-debugger/backup';
 
@@ -594,7 +594,7 @@ async function confirmOpenApiImport() {
 
 function updateOpenApiRefreshChoice(key: string, field: 'name' | 'request', event: Event) {
   const value = (event.target as HTMLSelectElement).value === 'use-spec' ? 'use-spec' : 'keep-current';
-  openApiRefreshChoices.value = { ...openApiRefreshChoices.value, [key + ':' + field]: value };
+  openApiRefreshChoices.value = { ...openApiRefreshChoices.value, [`${key}:${field}`]: value };
 }
 
 async function rebuildOpenApiRefreshPlan() {
@@ -1837,14 +1837,14 @@ function onMenuSelect(key: string, node: TreeNode) {
             <span v-else>Missing from the new spec — request kept locally</span>
             <label v-if="item.nameField?.action === 'conflict'" class="api-openapi-field">
               <span>Name conflict</span>
-              <select :value="openApiRefreshChoices[item.key + ':name'] ?? 'keep-current'" :data-test-id="'openapi-name-choice-' + item.key" @change="updateOpenApiRefreshChoice(item.key, 'name', $event)">
+              <select :value="openApiRefreshChoices[`${item.key}:name`] ?? 'keep-current'" :data-test-id="`openapi-name-choice-${item.key}`" @change="updateOpenApiRefreshChoice(item.key, 'name', $event)">
                 <option value="keep-current">Keep current name</option>
                 <option value="use-spec">Use spec name</option>
               </select>
             </label>
             <label v-if="item.requestField?.action === 'conflict'" class="api-openapi-field">
               <span>Request conflict</span>
-              <select :value="openApiRefreshChoices[item.key + ':request'] ?? 'keep-current'" :data-test-id="'openapi-request-choice-' + item.key" @change="updateOpenApiRefreshChoice(item.key, 'request', $event)">
+              <select :value="openApiRefreshChoices[`${item.key}:request`] ?? 'keep-current'" :data-test-id="`openapi-request-choice-${item.key}`" @change="updateOpenApiRefreshChoice(item.key, 'request', $event)">
                 <option value="keep-current">Keep current request</option>
                 <option value="use-spec">Use spec request</option>
               </select>
