@@ -601,7 +601,7 @@ export function parseOpenApiSyncMetadata(raw: unknown): OpenApiSyncMetadata | nu
     value.version !== 1
     || typeof value.fileName !== 'string' || !value.fileName.trim() || value.fileName.length > 255
     || typeof value.title !== 'string' || value.title.length > 256
-    || typeof value.openApiVersion !== 'string' || !/^3\\./.test(value.openApiVersion)
+    || typeof value.openApiVersion !== 'string' || !/^3\./.test(value.openApiVersion)
     || typeof value.lastSyncedAt !== 'string' || Number.isNaN(Date.parse(value.lastSyncedAt))
     || !fingerprint(value.specFingerprint)
     || !Array.isArray(value.operations) || value.operations.length > 10000
