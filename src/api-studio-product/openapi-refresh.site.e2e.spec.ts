@@ -108,7 +108,7 @@ test('OpenAPI refresh preserves local edits, supports explicit source choice, an
       enabled: true,
       type: 'status',
       target: 'status',
-      operator: 'equals',
+      operator: 'eq',
       expected: '204',
     }];
     localStorage.setItem('api-studio:tree', JSON.stringify(tree));
