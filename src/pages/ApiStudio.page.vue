@@ -2383,6 +2383,8 @@ function onMenuSelect(key: string, node: TreeNode) {
               <code>{{ authLocationPreview }}</code>
             </div>
 
+            <p v-if="authPreview.error" class="api-auth-error" role="alert" data-test-id="auth-error">{{ authPreview.error }}</p>
+
             <div v-if="authPreview.collision" class="api-auth-conflict" role="alert" data-test-id="auth-collision">
               <strong>Existing {{ authPreview.collision.target }} field: {{ authPreview.collision.name }}</strong>
               <p class="api-field-hint">This request already defines the same field. Nothing will be overwritten automatically.</p>
@@ -3386,6 +3388,13 @@ function onMenuSelect(key: string, node: TreeNode) {
   background: var(--api-surface-2);
   font: 12px/1.5 var(--api-font-mono, monospace);
   overflow-wrap: anywhere;
+}
+
+.api-auth-error {
+  margin: 0;
+  color: var(--api-danger, #b42318);
+  font-size: var(--api-fs-sm);
+  line-height: 1.5;
 }
 
 .api-auth-conflict {
