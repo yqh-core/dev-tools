@@ -31,7 +31,7 @@ import {
   updateFolderScripts,
   updateRequestNode,
 } from '@/tools/api-debugger/collection-tree';
-import type { KV, RequestAuthConfig } from '@/tools/api-debugger/engine';
+import { redactAuthQueryUrl, redactAuthSensitiveText, type KV, type RequestAuthConfig } from '@/tools/api-debugger/engine';
 import { buildProxyPayload } from '@/tools/api-debugger/engine';
 import {
   API_STUDIO_HISTORY_CAP,
@@ -997,6 +997,10 @@ function commitAuth() {
   if (!selected) return;
   authCollisionChoice.value = null;
   authReveal.value = false;
+  singleResponse.value = null;
+  singleAssertionReport.value = null;
+  singleError.value = '';
+  singleCanRetry.value = false;
   const request = { ...selected.request, auth: edAuth.value };
   const result = updateRequestNode(tree.value, selected.id, { request });
   if (result.error) {
@@ -1009,9 +1013,11 @@ function commitAuth() {
 function onAuthModeChange(value: unknown) {
   const mode = String(value) as RequestAuthConfig['type'];
   if (!['none', 'bearer', 'basic', 'api-key-header', 'api-key-query'].includes(mode)) return;
+  const previousMode = edAuthMode.value;
+  const wasApiKey = previousMode === 'api-key-header' || previousMode === 'api-key-query';
   edAuthMode.value = mode;
-  if (mode === 'api-key-header') edAuthKey.value = 'X-API-Key';
-  if (mode === 'api-key-query') edAuthKey.value = 'api_key';
+  if (mode === 'api-key-header' && !wasApiKey) edAuthKey.value = 'X-API-Key';
+  if (mode === 'api-key-query' && !wasApiKey) edAuthKey.value = 'api_key';
   authReveal.value = false;
   commitAuth();
 }
@@ -1599,6 +1605,8 @@ async function sendSelectedRequest() {
   const sendStartedAt = Date.now();
   try {
     const response = await runnerSend(payload);
+    response.url = redactAuthQueryUrl(response.url, request.auth, env.value);
+    response.body = redactAuthSensitiveText(response.body, request.auth, env.value);
     recordRequestHistory(request, response.status, response.elapsedMs);
     singleResponse.value = response;
     // The relay wraps upstream HTTP statuses in a 200 JSON envelope; classify the
@@ -1614,7 +1622,7 @@ async function sendSelectedRequest() {
   }
   catch (e) {
     recordRequestHistory(request, null, Date.now() - sendStartedAt);
-    singleError.value = e instanceof Error ? e.message : String(e);
+    singleError.value = redactAuthSensitiveText(e instanceof Error ? e.message : String(e), request.auth, env.value);
     singleCanRetry.value = e instanceof Error
       && (e as Error & { retryable?: boolean }).retryable === true;
     banner.value = 'Request could not be completed. Review the error and try again.';
