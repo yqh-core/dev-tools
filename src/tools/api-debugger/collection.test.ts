@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { POSTMAN_SCHEMA, exportCollection, importCollection } from './collection';
+import { POSTMAN_SCHEMA, exportCollection, exportCollectionTree, importCollection, importCollectionTree } from './collection';
 import type { SavedRequest } from './store';
 
 const saved: SavedRequest[] = [
@@ -31,6 +31,24 @@ describe('exportCollection', () => {
     expect(stripped.item[0].request.header.map((h: any) => h.key)).toEqual(['Accept']);
     const full = exportCollection(saved, 'C', false) as any;
     expect(full.item[0].request.header.map((h: any) => h.key)).toContain('Authorization');
+  });
+  it('imports and exports per-request Bearer, Basic and API Key profiles; safe export omits auth', () => {
+    const request = {
+      method: 'GET',
+      url: 'https://api.x.test/v1',
+      headers: [],
+      body: '',
+      auth: { type: 'api-key-query' as const, key: 'client_key', value: '{{CLIENT_KEY}}' },
+    };
+    const source = [{ ...saved[0], request }];
+    const full = exportCollection(source, 'Auth collection', false) as any;
+    expect(full.item[0].request.auth.type).toBe('apikey');
+    expect(full.item[0].request.auth.apikey).toContainEqual({ key: 'in', value: 'query', type: 'string' });
+    const imported = importCollection(JSON.stringify(full));
+    expect(imported.requests[0].request.auth).toEqual(request.auth);
+    const safe = exportCollection(source, 'Auth collection', true) as any;
+    expect(safe.item[0].request.auth).toBeUndefined();
+    expect(JSON.stringify(safe)).not.toContain('CLIENT_KEY');
   });
   it('relative / {{var}} url keeps raw (no crash)', () => {
     const c = exportCollection([{ ...saved[0], request: { ...saved[0].request, url: '/relative/{{id}}' } }]) as any;
