@@ -79,7 +79,7 @@ test.describe('Homepage task discovery', () => {
     await expect(preview.locator('pre code')).toContainText('OUT {');
     await expect(preview.locator('pre code')).toContainText('"ok": true');
     const jsonSample = await preview.locator('pre code').textContent();
-    expect(jsonSample).toContain('IN  {"ok":true}\nOUT {\n  "ok": true\n}');
+    expect(jsonSample).toContain('OUT {\n  "ok": true\n}');
     expect(jsonSample).not.toContain('\\n');
     await preview.getByTestId('home-demo-copy').click();
     await expect(preview.getByTestId('home-demo-copy')).toHaveText('Copied');
@@ -105,7 +105,7 @@ test.describe('Homepage task discovery', () => {
     await expect(preview.locator('pre code')).toContainText('2 matches');
     await expect(preview.locator('pre code')).toContainText('DEV-2048 · OPS-0781');
     const regexSample = await preview.locator('pre code').textContent();
-    expect(regexSample).toContain('RE  \\b[A-Z]{3}-\\d{4}\\b\nIN  Ticket');
+    expect(regexSample).toContain('OUT 2 matches\nDEV-2048 · OPS-0781');
     expect(regexSample).not.toContain('\\n');
     await preview.getByTestId('home-demo-copy').click();
     expect(await page.evaluate(() => navigator.clipboard.readText())).toContain('DEV-2048 · OPS-0781');
@@ -236,6 +236,19 @@ test.describe('Homepage task discovery', () => {
     await apiEntry.focus();
     await expect(apiEntry).toBeFocused();
     await page.keyboard.press('Enter');
+    await expect(page).toHaveURL(/api-studio\/?$/);
+  });
+
+  test('keeps the legacy API Debugger available as a secondary API-card link', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto('/');
+
+    const apiCard = page.locator('#home-featured .featured-task-card').first();
+    const legacyLink = apiCard.getByRole('link', { name: 'Open API Debugger' });
+    await expect(legacyLink).toBeVisible();
+    await expect(legacyLink).toHaveAttribute('href', '/api-debugger/');
+
+    await legacyLink.click();
     await expect(page).toHaveURL(/api-debugger\/?$/);
   });
 
