@@ -1,3 +1,15 @@
+## API Studio — current developer handoff — 2026-11-28 13:18 UTC
+
+- PR #279 merged (`f518533`); PR #282 merged (`c45fac7`); #278/#281 closed. Main acquisition card sends primary API traffic to Studio and keeps API Debugger as localized secondary. #282 mainline post-merge CI #46146863756, Verify #46146863742, Pages #140984707272 all SUCCESS.
+- Current API feature PR #283 / Issue #280: https://github.com/yqh-core/dev-tools/pull/283; branch `feat/api-studio-openapi-safe-refresh-20261128`; latest exact HEAD `3c336587a294cd0b436bb0ebf7ba184a23e8f5cf`, OPEN/mergeable. Prior head `4d43184` exact-head Lint/unit/type passed, Pages Preview #140990019395 succeeded, but product Verify E2E failed a case-sensitive text assertion. Trace showed UI correctly says “Conflict default: keep your current value”; test expected capitalized “Keep your current value”. Fixed to case-insensitive in `3c33658` without changing UI copy.
+- New current checks: CI #46148922968 running from Lint; Verify/Build #46148922998 type/build in progress; Pages Preview #140990950997 building. Don't merge until this latest SHA passes all gates, refresh-conflict E2E, mobile/desktop screenshots, and merge SHA checks.
+- Source-link safety retained: only one refreshable OpenAPI source per collection v1; a second file import cannot silently re-associate, and cannot delete a source-managed request through duplicate Replace. Extra imported requests are explicitly disclosed as not managed by Refresh OpenAPI; E2E proves association retention.
+- PR #283 includes source identity, local SHA-256 baselines, three-way preview, Keep Current default, Use Spec explicit, stale-preview protection, never silently delete, backup v2/read v1, Postman export isolation, no auto-Send/remote fetch/cloud sync/telemetry.
+- Import preview visuals inspected from artifact #15264473904: desktop 1440×900 and mobile 390×844. Latest refresh-conflict visual artifact from #46148922998 still needs review.
+- Daily Product Execution automation prompt updated successfully; existing ID, enabled state, daily flexible America/Chicago schedule unchanged. It now resumes #283, not stale #282. Latest automation result/run mismatch from Nov 27 remains an UNKNOWN, not credited as successful Studio work.
+- Separate production host remains unverified; #214 second Pages Production/DNS/TLS/SEO/routes/migration/rollback/smoke; #221 shared relay Production binding/HMAC/WAF/cross-isolate/fail-closed; #219 preliminary name-risk screen. No account-side config or production secrets changed.
+
+---
 ## API Studio — current developer handoff — 2026-11-28 13:16 UTC
 
 - PR #279 merged (`f518533`); PR #282 merged (`c45fac7`); #278/#281 closed. Main API flagship CTA now opens Studio, old Debugger remains a localized secondary link.
