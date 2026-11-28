@@ -1340,7 +1340,22 @@ tools:
 
   http-status-checker:
     title: "HTTP 状态码检测"
-    description: "输入网址实时检测其 HTTP 状态码与响应头，用于排查站点可达性、跳转与缓存配置。"
+    description: "从 DigDevBox 的 Cloudflare 边缘检测公开 URL，查看最终 HTTP 响应状态码、落地 URL 和响应头。"
+    urlLabel: "网址"
+    urlPlaceholder: "输入网址，例如 example.com"
+    enterUrl: "请先输入网址"
+    checking: "检测中…"
+    checkAction: "检测 URL"
+    clear: "清除结果"
+    checkFailed: "检测失败"
+    noStatus: "服务未返回上游 HTTP 状态码。"
+    requestContext: "请求由 DigDevBox 的 Cloudflare 边缘发出，使用 DigDevBox/1.0，不带浏览器 Cookie。结果可能与浏览器或 curl 不同。"
+    requestLimits: "最多跟随 3 次重定向，只展示最终响应。不返回 Set-Cookie，最多返回 60 个响应头。"
+    lookupReceived: "已收到 HTTP 响应"
+    upstreamStatus: "上游 HTTP 状态码"
+    statusIsNotLookupError: "4xx 或 5xx 是目标站点返回的状态码，不代表检测请求失败。"
+    finalUrl: "最终 URL"
+    responseHeaders: "响应头（{count} 个）"
 
   today-in-history:
     title: "历史上的今天"
