@@ -4,7 +4,7 @@ import { apiStudioLightOverrides } from '../themes/api-studio';
 
 function relativeLuminance(hex: string) {
   const normalized = hex.replace('#', '');
-  const channels = [0, 2, 4].map(offset => {
+  const channels = [0, 2, 4].map((offset) => {
     const value = Number.parseInt(normalized.slice(offset, offset + 2), 16) / 255;
     return value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
   });
@@ -19,7 +19,7 @@ function contrastRatio(first: string, second: string) {
 const css = readFileSync(new URL('../styles/api-studio-tokens.css', import.meta.url), 'utf8');
 const lightCss = css.split('.api-studio-shell[data-api-theme="light"]')[1] || '';
 function token(name: string) {
-  const line = lightCss.split('\n').find(item => item.trim().startsWith(name + ':'));
+  const line = lightCss.split('\n').find(item => item.trim().startsWith(`${name}:`));
   if (!line) {
     throw new Error(`Missing light token: ${name}`);
   }
