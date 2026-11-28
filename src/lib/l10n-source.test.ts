@@ -78,9 +78,7 @@ function toolFiles(): string[] {
       continue;
     }
     for (const f of readdirSync(dir)) {
-      // Explicit locale maps (for example *.translations.ts) intentionally contain translated
-      // strings and must not be counted as English UI-source regressions.
-      if (f.endsWith('.vue') || (f.endsWith('.ts') && !/\.(test|spec|translations)\.ts$/.test(f))) {
+      if (f.endsWith('.vue') || (f.endsWith('.ts') && !/\.(test|spec)\.ts$/.test(f))) {
         files.push(path.join(dir, f));
       }
     }
