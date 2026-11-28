@@ -88,6 +88,26 @@ describe('runCollection core', () => {
     expect(sum.results[0].error).toContain('Missing variables: nope');
   });
 
+  it('masks generated API-key query values in progress callbacks but sends the real payload', async () => {
+    const starts: string[] = [];
+    const sent: string[] = [];
+    const request = saved('query-auth', {
+      url: 'https://api.example.test/items?lang=en',
+      auth: { type: 'api-key-query', key: 'client_key', value: '{{CLIENT_KEY}}' },
+    });
+    const sum = await runCollection([request], { CLIENT_KEY: 'real-secret' }, async payload => {
+      sent.push(payload.url);
+      return resp({ url: payload.url });
+    }, {
+      now: tick(),
+      onRequestStart: entry => starts.push(entry.url),
+    });
+    expect(starts[0]).toBe('https://api.example.test/items?lang=en&client_key=[REDACTED]');
+    expect(starts[0]).not.toContain('real-secret');
+    expect(sent[0]).toBe('https://api.example.test/items?lang=en&client_key=real-secret');
+    expect(sum.sent).toBe(1);
+  });
+
   it('send rejection is captured as error, not a crash (negative control)', async () => {
     const send: SendFn = async () => {
       throw new Error('network down');
