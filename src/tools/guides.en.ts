@@ -2326,7 +2326,7 @@ export const GUIDES: Record<string, ToolGuide> = {
     intro: 'Paste raw HTTP response headers or import a local HAR 1.2 or plain-text capture to check security-policy coverage, cookie flags, CORS configuration, caching and indexing hints. Files are processed in this browser tab and are never uploaded.',
     steps: [
       'Capture the response headers for the page you want to inspect. For a GET response, run curl -sS -D - -o /dev/null https://example.com/; in DevTools, open Network, select the document request and copy Response Headers. You can also export a HAR 1.2 capture from the Network panel.',
-      'Import a .har file or a plain-text .txt response-header capture using the file picker or drop zone. HAR files can contain multiple requests; select the response you want to inspect. The file limit is 10 MB.',
+      'Import a .har file or a plain-text .txt response-header capture using the file picker or drop zone. HAR files can contain multiple requests; select the response you want to inspect. The file limit is 10 MiB.',
       'For a manual check, paste the raw response block including the HTTP status line. Repeated Set-Cookie lines are supported.',
       'Review the coverage checks, CSP directives, cookie findings and any CORS or X-Robots-Tag warnings.',
       'Choose Nginx, Apache, Caddy, Vercel or Cloudflare Pages to copy a configuration snippet for clearly missing, low-context headers.',
