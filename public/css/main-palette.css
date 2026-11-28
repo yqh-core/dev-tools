@@ -76,15 +76,3 @@ html[data-theme="dark"] {
 .dd-btn.ghost:hover {
   background: var(--dd-primary-soft);
 }
-
-/* The homepage keeps its existing hierarchy: blue secondary discovery CTA,
-   violet primary workspace CTA, and the existing JSON preview action. */
-.home-hero .hero-cta:not(.hero-cta-workspace) {
-  border-color: color-mix(in srgb, var(--main-info) 55%, transparent);
-  color: var(--main-info);
-}
-
-.home-hero .hero-cta:not(.hero-cta-workspace):hover {
-  border-color: var(--main-info);
-  background: var(--main-info-soft);
-}
