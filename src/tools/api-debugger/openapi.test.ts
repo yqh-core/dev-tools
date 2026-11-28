@@ -191,7 +191,6 @@ describe('importOpenApi server selection and unsupported constructs', () => {
   });
 });
 
-
 describe('importOpenApi reference limits', () => {
   it('warns when path items and request bodies contain unresolved refs', () => {
     const parsed = importOpenApi(JSON.stringify({
