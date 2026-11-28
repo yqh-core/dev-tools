@@ -42,6 +42,18 @@ function result(
   return { requests, warnings, source, servers };
 }
 
+/** Detect local, remote and circular $ref usage without traversing cyclic YAML aliases forever. */
+function containsOpenApiRef(value: unknown, seen = new WeakSet<object>()): boolean {
+  if (!value || typeof value !== 'object' || seen.has(value)) {
+    return false;
+  }
+  seen.add(value);
+  if (typeof (value as Record<string, unknown>).$ref === 'string') {
+    return true;
+  }
+  return Object.values(value as Record<string, unknown>).some(child => containsOpenApiRef(child, seen));
+}
+
 /** Build a shallow example. $ref is intentionally not fetched or resolved. */
 export function schemaSkeleton(schema: any, depth = 0): unknown {
   if (!schema || typeof schema !== 'object' || depth > 5 || schema.$ref) {
@@ -134,7 +146,7 @@ export function importOpenApi(text: string, options: OpenApiImportOptions = {}):
 
   const paths = doc.paths && typeof doc.paths === 'object' ? doc.paths : {};
   const requests: ImportedRequest[] = [];
-  let sawRef = false;
+  let sawRef = containsOpenApiRef(paths);
   let sawUnsupportedBody = false;
   let sawParameterRef = false;
   let sawServerOverride = false;
@@ -195,7 +207,7 @@ export function importOpenApi(text: string, options: OpenApiImportOptions = {}):
         body = typeof jsonContent.example === 'string' ? jsonContent.example : JSON.stringify(jsonContent.example, null, 2);
       }
       else if (jsonContent?.schema) {
-        if (JSON.stringify(jsonContent.schema).includes('$ref')) {
+        if (containsOpenApiRef(jsonContent.schema)) {
           sawRef = true;
         }
         const skeleton = schemaSkeleton(jsonContent.schema);
@@ -212,7 +224,7 @@ export function importOpenApi(text: string, options: OpenApiImportOptions = {}):
     warnings.push('OpenAPI authentication/security schemes are not imported. Configure authentication headers or variables manually.');
   }
   if (sawRef) {
-    warnings.push('Some request bodies use $ref schemas, which are not resolved; affected bodies are left empty.');
+    warnings.push('One or more OpenAPI $ref pointers were not resolved. Affected path items, parameters or request bodies may be omitted or incomplete; remote references are never fetched.');
   }
   if (sawParameterRef) {
     warnings.push('Some parameter $ref entries are not resolved and were skipped.');
