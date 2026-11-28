@@ -330,7 +330,7 @@ test('workspace data tools stay secondary behind a keyboard-accessible disclosur
   await expect(disclosure).toHaveJSProperty('open', true);
   const dataControls = page.getByRole('group', { name: 'Backup and collection transfer' });
   await expect(dataControls).toBeVisible();
-  for (const id of ['backup-safe', 'backup-with-secrets', 'restore-backup', 'import-collection', 'export-collection']) {
+  for (const id of ['backup-safe', 'backup-with-secrets', 'restore-backup', 'import-collection', 'export-collection', 'import-openapi']) {
     await expect(page.getByTestId(id)).toBeVisible();
   }
   await page.screenshot({ path: testInfo.outputPath('workspace-data-tools-desktop-expanded.png') });
@@ -508,9 +508,10 @@ test('workspace data disclosure preserves first-request priority on a 390px scre
   await expect(disclosure).toHaveJSProperty('open', true);
   await expect(page.getByTestId('backup-safe')).toBeVisible();
   await expect(page.getByTestId('import-collection')).toBeVisible();
+  await expect(page.getByTestId('import-openapi')).toBeVisible();
   await expect(page.getByTestId('api-studio-root')).toBeVisible();
   await expect(page.getByTestId('create-first-request')).toBeVisible();
-  for (const id of ['backup-safe', 'backup-with-secrets', 'restore-backup', 'import-collection', 'export-collection']) {
+  for (const id of ['backup-safe', 'backup-with-secrets', 'restore-backup', 'import-collection', 'export-collection', 'import-openapi']) {
     const target = await page.getByTestId(id).boundingBox();
     expect(target?.height ?? 0).toBeGreaterThanOrEqual(44);
   }
