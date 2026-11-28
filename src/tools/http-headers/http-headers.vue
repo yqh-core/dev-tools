@@ -216,6 +216,9 @@ function directionLabel(direction: string): string {
         <span text-xs op-60>
           {{ t('tools.http-headers.analyzer.harPrivacyNote') }}
         </span>
+        <span text-xs op-60>
+          {{ t('tools.http-headers.analyzer.harSizeLimit') }}
+        </span>
       </div>
       <div
         class="har-drop-zone"
