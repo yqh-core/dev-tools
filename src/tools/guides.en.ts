@@ -2401,19 +2401,24 @@ export const GUIDES: Record<string, ToolGuide> = {
   },
 
   '/http-status-checker': {
-    intro: 'Checks from the server side what HTTP status code and response headers a URL actually returns, to confirm what is really served in production.',
-    steps: ['Enter the URL (https is assumed when no scheme is given)', 'Click check status or press enter', 'Read the colour-coded status and the response header list, which can be copied as a whole'],
+    intro: 'Checks a public URL from DigDevBox\'s Cloudflare edge and returns the final HTTP status, landing URL and selected response headers.',
+    steps: [
+      'Enter a public URL. HTTPS is assumed when no scheme is supplied.',
+      'Choose Check URL or press Enter.',
+      'Read the lookup result separately from the upstream HTTP status. A 404 or 500 is still a received HTTP response; the final URL and response headers appear below.',
+    ],
     notes: [
-      'The check runs from this site\'s server, so you see the result from the server\'s network environment, which may differ from a local curl (DNS cache, proxy, regional differences)',
-      'The site must be deployed; local development requests will fail',
-      'Status codes are coloured green for 2xx, orange for 3xx and red for 4xx / 5xx',
+      'Requests originate at DigDevBox\'s Cloudflare edge with the DigDevBox/1.0 user agent, Accept: */* and no browser cookies. Results can differ from a browser or local curl because of region, firewall, user-agent and cache behavior.',
+      'The checker follows up to 3 redirects and returns only the final response. It does not show an intermediate hop-by-hop timeline.',
+      'Set-Cookie is deliberately omitted, and at most 60 response headers are returned.',
+      'The endpoint is available after deployment to Cloudflare Pages; local Vite development does not provide the /api/webstatus function.',
     ],
     example: { label: 'Fill in a sample URL', text: 'example.com' },
-    about: 'Check a live URL and see the actual HTTP status code and response headers it returns right now — useful to tell "the site is down" from "the site redirects", to verify a cache purge, or to confirm a security header actually ships in production. Requests run through the DigDevBox API, so the result reflects a server-side fetch, not your local cache.',
+    about: 'Check a public URL from DigDevBox\'s Cloudflare edge and inspect the final HTTP response. The result separates whether the lookup received a response from the status returned by the target: an upstream 404 or 500 is still a valid HTTP response. The page shows the final landing URL and selected response headers. Requests use DigDevBox/1.0, Accept: */* and no browser cookies, so results may differ from your browser or curl.',
     faqs: [
-      { q: 'Why does the checker show a different result than my browser?', a: 'Browsers send cookies, Accept headers and cached responses. This tool makes a clean, cookie-less request, so what you see is closer to what a search-engine bot or a fresh visitor would get.' },
-      { q: 'The site loads for me but returns 403 here — why?', a: 'Some firewalls block datacenter IPs or non-browser user agents. A 403 from the checker with a working browser often means bot protection, not a broken site.' },
-      { q: 'Can I follow a redirect chain with it?', a: 'The tool reports the final status and headers after the server-side request completes, so permanent and temporary redirects are already resolved — check the response headers to see where you landed.' },
+      { q: 'Why does the result differ from my browser or curl?', a: 'This request comes from DigDevBox\'s Cloudflare edge, uses the DigDevBox/1.0 user agent and Accept: */*, and does not send your browser cookies or cache. Region, firewall rules, user-agent handling and your local network can all change the response. It is not a guarantee of what a search crawler or every visitor sees.' },
+      { q: 'The site loads for me but returns 403 here — why?', a: 'A 403 is the response received from this Cloudflare edge request. A firewall may treat a datacenter source IP, this user agent or this region differently from your browser. It does not prove that the site is unavailable to every visitor.' },
+      { q: 'Does the checker show every redirect?', a: 'It follows up to 3 redirects and displays the final URL, status and response headers. Intermediate hops are not shown as a timeline. Set-Cookie is omitted from the returned headers.' },
     ],
     relatedNotes: [
       {
