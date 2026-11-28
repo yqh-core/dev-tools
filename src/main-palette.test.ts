@@ -94,6 +94,8 @@ describe('DigDevBox Main violet-blue palette', () => {
     expect(naiveTheme).toContain('mainPalette.dark.action');
     expect(naiveTheme).toContain('mainPalette.light.info');
     expect(naiveTheme).toContain('mainPalette.dark.info');
+    expect(naiveTheme).toContain('textColorPrimary: mainPalette.light.onAction');
+    expect(naiveTheme).toContain('textColorPrimary: mainPalette.dark.onAction');
     expect(componentTheme).toContain('mainPalette.light.link');
     expect(componentTheme).toContain('mainPalette.dark.link');
   });
