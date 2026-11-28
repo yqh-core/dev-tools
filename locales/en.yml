@@ -1348,6 +1348,8 @@ tools:
     urlLabel: "URL"
     urlPlaceholder: "Enter a URL, e.g. example.com"
     httpsDefaultHint: "HTTPS is used when no scheme is entered."
+    copyUrl: "Copy URL"
+    copiedUrl: "URL copied"
     enterUrl: "Enter a URL first"
     checking: "Checking…"
     checkAction: "Check URL"
