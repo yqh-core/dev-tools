@@ -15,6 +15,22 @@ const statusCategoryKeys: Record<string, string> = {
   '5xx server error': 'serverError',
 };
 
+function searchableText(value: unknown): string {
+  if (typeof value === 'string' || typeof value === 'number') {
+    return String(value);
+  }
+
+  if (Array.isArray(value)) {
+    return value.map(searchableText).filter(Boolean).join(' ');
+  }
+
+  if (value && typeof value === 'object') {
+    return Object.values(value).map(searchableText).filter(Boolean).join(' ');
+  }
+
+  return '';
+}
+
 const searchableCodes = computed(() => codesByCategories.flatMap(({ codes, category }) =>
   codes.map(code => ({
     ...code,
@@ -42,7 +58,7 @@ const searchResult = computed(() => {
     code.description,
     code.descriptionZh,
     code.category,
-  ].some(value => value.toLocaleLowerCase().includes(query)));
+  ].some(value => searchableText(value).toLocaleLowerCase().includes(query)));
 });
 
 const categoryGroups = computed(() => codesByCategories.map(({ category, codes }) => ({
