@@ -70,7 +70,7 @@ test.describe('Homepage task discovery', () => {
     await expect(preview).toBeVisible();
     await expect(preview).toContainText('SAMPLE DATA · NO REQUEST SENT');
     await expect(preview.getByTestId('home-demo-tab-json')).toHaveAttribute('aria-pressed', 'true');
-    await expect(preview.locator('pre code')).toContainText('"items":[3,8,13]');
+    await expect(preview.locator('pre code')).toContainText('"ok":true');
     await expect(preview.locator('a.hero-preview-link')).toHaveAttribute('href', '/json-workspace/');
 
     const jwtTab = preview.getByTestId('home-demo-tab-jwt');
