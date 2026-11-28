@@ -598,7 +598,7 @@ describe('API relay Pages Function + actual Durable Object limiter handler', () 
     }
   }
 
-  function makeNamespace(storageById, observedIdentities) {
+  function makeNamespace(storageById, observedIdentities, createStorage = () => new PersistentLimiterStorage()) {
     return {
       idFromName(name) {
         observedIdentities.push(name);
@@ -606,7 +606,7 @@ describe('API relay Pages Function + actual Durable Object limiter handler', () 
       },
       get(id) {
         if (!storageById.has(id.name)) {
-          storageById.set(id.name, new PersistentLimiterStorage());
+          storageById.set(id.name, createStorage());
         }
         const storage = storageById.get(id.name);
 
@@ -715,3 +715,37 @@ describe('API relay Pages Function + actual Durable Object limiter handler', () 
     }
   });
 });
+
+
+  it('fails closed before any upstream request when the actual limiter storage is unavailable', async () => {
+    vi.stubGlobal('crypto', webcrypto);
+    let failingStateReads = 0;
+    const storageById = new Map();
+    const namespace = makeNamespace(storageById, [], () => ({
+      async get() {
+        failingStateReads += 1;
+        throw new Error('simulated Durable Object storage failure');
+      },
+      transaction(callback) {
+        return callback();
+      },
+    }));
+    const upstream = vi.fn();
+    vi.stubGlobal('fetch', upstream);
+
+    const response = await onRequestPost({
+      request: relayRequest('198.51.100.44'),
+      env: {
+        API_RELAY_RATE_LIMIT_MODE: 'shared',
+        API_RELAY_LIMITER: namespace,
+        API_RELAY_RATE_LIMIT_HMAC_KEY: 'integration-test-hmac-secret-at-least-32-bytes',
+      },
+    });
+
+    expect(response.status).toBe(503);
+    expect(await response.json()).toEqual({
+      error: 'The API relay is temporarily unavailable because shared abuse protection could not be reached.',
+    });
+    expect(failingStateReads).toBe(1);
+    expect(upstream).not.toHaveBeenCalled();
+  });
