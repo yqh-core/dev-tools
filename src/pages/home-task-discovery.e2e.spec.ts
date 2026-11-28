@@ -64,6 +64,7 @@ test.describe('Homepage task discovery', () => {
 
   test('switches between truthful JSON, JWT and Regex workflow previews', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
+    await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
     await page.goto('/');
 
     const preview = page.locator('.home-hero-preview');
@@ -80,6 +81,9 @@ test.describe('Homepage task discovery', () => {
     const jsonSample = await preview.locator('pre code').textContent();
     expect(jsonSample).toContain('IN  {"ok":true}\nOUT {\n  "ok": true\n}');
     expect(jsonSample).not.toContain('\\n');
+    await preview.getByTestId('home-demo-copy').click();
+    await expect(preview.getByTestId('home-demo-copy')).toHaveText('Copied');
+    expect(await page.evaluate(() => navigator.clipboard.readText())).toContain('"ok": true');
     await expect(preview.locator('a.hero-preview-link')).toHaveAttribute('href', '/json-workspace/');
 
     const jwtTab = preview.getByTestId('home-demo-tab-jwt');
@@ -88,6 +92,8 @@ test.describe('Homepage task discovery', () => {
     await runButton.click();
     await expect(preview.locator('pre code')).toContainText('Claims dev-1 · qa');
     await expect(preview.locator('pre code')).toContainText('NOT VERIFIED');
+    await preview.getByTestId('home-demo-copy').click();
+    expect(await page.evaluate(() => navigator.clipboard.readText())).toContain('NOT VERIFIED');
     await expect(preview.locator('a.hero-preview-link')).toHaveAttribute('href', '/jwt-parser/');
 
     const regexTab = preview.getByTestId('home-demo-tab-regex');
@@ -101,11 +107,14 @@ test.describe('Homepage task discovery', () => {
     const regexSample = await preview.locator('pre code').textContent();
     expect(regexSample).toContain('RE  \\b[A-Z]{3}-\\d{4}\\b\nIN  Ticket');
     expect(regexSample).not.toContain('\\n');
+    await preview.getByTestId('home-demo-copy').click();
+    expect(await page.evaluate(() => navigator.clipboard.readText())).toContain('DEV-2048 · OPS-0781');
     await expect(preview.locator('a.hero-preview-link')).toHaveAttribute('href', '/regex-tester/');
   });
 
   test('keeps the selectable preview usable within the mobile first fold', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
+    await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
     await page.goto('/');
 
     const preview = page.locator('.home-hero-preview');
@@ -131,6 +140,11 @@ test.describe('Homepage task discovery', () => {
       await tab.click();
       await runButton.click();
       await expect(preview.locator('pre code')).toContainText('OUT');
+      const copyButton = preview.getByTestId('home-demo-copy');
+      await expect(copyButton).toBeVisible();
+      const copyBox = await copyButton.boundingBox();
+      expect(copyBox?.height).toBeGreaterThanOrEqual(44);
+      await copyButton.click();
       const cta = await preview.locator('a.hero-preview-link').boundingBox();
       expect(cta).not.toBeNull();
       expect(cta!.y + cta!.height).toBeLessThanOrEqual(844);
