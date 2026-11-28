@@ -151,42 +151,98 @@ type HomeDemoId = 'json' | 'jwt' | 'regex';
 
 const HOME_DEMO_IDS: HomeDemoId[] = ['json', 'jwt', 'regex'];
 
-const HOME_DEMO_STORIES: Record<HomeDemoId, {
-  path: string
-  file: string
-  format: string
-  code: string
-}> = {
+const HOME_DEMO_STORIES = {
   json: {
     path: '/json-workspace',
     file: 'response.json',
     format: 'JSON',
-    code: `IN  {"ok":true}
-OUT {
-  "ok": true
-}`,
+    input: 'IN  {"ok":true}',
   },
   jwt: {
     path: '/jwt-parser',
     file: 'sample.jwt',
     format: 'JWT',
-    code: `IN  eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkZXYtMSIsInJvbGUiOiJxYSJ9.c2FtcGxl
-OUT sub=dev-1 · role=qa
-SIG present · NOT VERIFIED`,
+    input: 'IN  eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkZXYtMSIsInJvbGUiOiJxYSJ9.c2FtcGxl',
   },
   regex: {
     path: '/regex-tester',
     file: 'tickets.txt',
     format: 'REGEX',
-    code: `RE  \b[A-Z]{3}-\d{4}\b
-IN  Ticket DEV-2048 / OPS-0781
-OUT 2 matches
-    DEV-2048 · OPS-0781`,
+    input: 'RE  \\b[A-Z]{3}-\\d{4}\\b\\nIN  Ticket DEV-2048 / OPS-0781',
+    pattern: '\\b[A-Z]{3}-\\d{4}\\b',
+    text: 'Ticket DEV-2048 / OPS-0781',
+    flags: 'dg',
   },
-};
+} as const;
 
 const activeHomeDemo = ref<HomeDemoId>('json');
 const activeHomeDemoStory = computed(() => HOME_DEMO_STORIES[activeHomeDemo.value]);
+const activeHomeDemoResult = ref('');
+const activeHomeDemoError = ref('');
+const isHomeDemoRunning = ref(false);
+const activeHomeDemoCode = computed(() => activeHomeDemoResult.value
+  ? `${activeHomeDemoStory.value.input}\\nOUT ${activeHomeDemoResult.value}`
+  : activeHomeDemoStory.value.input);
+
+function selectHomeDemo(demoId: HomeDemoId) {
+  activeHomeDemo.value = demoId;
+  activeHomeDemoResult.value = '';
+  activeHomeDemoError.value = '';
+}
+
+async function runHomeDemo() {
+  if (isHomeDemoRunning.value) {
+    return;
+  }
+
+  activeHomeDemoError.value = '';
+  isHomeDemoRunning.value = true;
+
+  try {
+    switch (activeHomeDemo.value) {
+      case 'json': {
+        const { formatJson } = await import('@/tools/json-viewer/json.models');
+        activeHomeDemoResult.value = formatJson({
+          rawJson: HOME_DEMO_STORIES.json.input.replace(/^IN  /, ''),
+          indentSize: 2,
+          sortKeys: false,
+        });
+        break;
+      }
+      case 'jwt': {
+        const { decodeJwt } = await import('@/tools/jwt-parser/jwt-parser.service');
+        const decoded = decodeJwt({ jwt: HOME_DEMO_STORIES.jwt.input.replace(/^IN  /, '') });
+        const values = (claims: Record<string, { value: string }>) => Object.fromEntries(
+          Object.entries(claims).map(([name, claim]) => [name, claim.value]),
+        );
+        const header = values(decoded.header);
+        const payload = values(decoded.payload);
+        activeHomeDemoResult.value = [
+          `Header ${String(header.alg)} · ${String(header.typ)}`,
+          `Claims ${String(payload.sub)} · ${String(payload.role)}`,
+          'SIG present · NOT VERIFIED',
+        ].join('\\n');
+        break;
+      }
+      case 'regex': {
+        const { matchRegex } = await import('@/tools/regex-tester/regex-tester.service');
+        const story = HOME_DEMO_STORIES.regex;
+        const matches = matchRegex(story.pattern, story.text, story.flags);
+        activeHomeDemoResult.value = [
+          `${matches.length} matches`,
+          matches.map(match => match.value).join(' · '),
+        ].join('\\n');
+        break;
+      }
+    }
+  }
+  catch {
+    activeHomeDemoError.value = 'The sample could not be processed. Open the tool to inspect the input.';
+  }
+  finally {
+    isHomeDemoRunning.value = false;
+  }
+}
 
 function assertHomeToolPaths(paths: readonly string[], label: string, tools: ToolWithCategory[]) {
   const known = new Set(tools.map(tool => tool.path));
@@ -490,7 +546,7 @@ function onUpdateFavoriteTools() {
                 class="hero-preview-tab"
                 type="button"
                 :aria-pressed="activeHomeDemo === demoId"
-                @click="activeHomeDemo = demoId"
+                @click="selectHomeDemo(demoId)"
               >
                 {{ t(`home.demo.${demoId}.tab`) }}
               </button>
@@ -506,10 +562,22 @@ function onUpdateFavoriteTools() {
               aria-live="polite"
             >
               <div class="hero-preview-codebar">
-                <span>{{ activeHomeDemoStory.file }}</span>
+                <span>{{ activeHomeDemoResult ? t('home.demo.localResult') : activeHomeDemoStory.file }}</span>
                 <span>{{ activeHomeDemoStory.format }}</span>
+                <button
+                  class="hero-preview-run"
+                  data-testid="home-demo-run"
+                  type="button"
+                  :disabled="isHomeDemoRunning"
+                  @click="runHomeDemo"
+                >
+                  {{ isHomeDemoRunning ? t('home.demo.running') : t('home.demo.runSample') }}
+                </button>
               </div>
-              <pre><code>{{ activeHomeDemoStory.code }}</code></pre>
+              <pre><code>{{ activeHomeDemoCode }}</code></pre>
+              <p v-if="activeHomeDemoError" class="hero-preview-error" role="alert">
+                {{ t('home.demo.runError') }}
+              </p>
             </div>
             <RouterLink class="hero-preview-link" :to="normalizePath(activeHomeDemoStory.path)">
               {{ t(`home.demo.${activeHomeDemo}.cta`) }}
@@ -1024,14 +1092,50 @@ function onUpdateFavoriteTools() {
 
   .hero-preview-codebar {
     display: flex;
+    min-height: 56px;
+    align-items: center;
     justify-content: space-between;
-    padding: 7px 11px;
+    gap: 8px;
+    padding: 6px 8px;
     border-bottom: 1px solid var(--dd-border);
     color: var(--dd-text-muted);
     font-size: 10px;
     font-weight: 650;
     letter-spacing: 0.07em;
     text-transform: uppercase;
+  }
+  .hero-preview-run {
+    min-width: 88px;
+    min-height: 44px;
+    flex: 0 0 auto;
+    padding: 0 9px;
+    border: 1px solid color-mix(in srgb, var(--dd-primary) 48%, var(--dd-border));
+    border-radius: 7px;
+    background: color-mix(in srgb, var(--dd-primary) 8%, var(--dd-surface));
+    color: var(--dd-primary);
+    cursor: pointer;
+    font: inherit;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0;
+    text-transform: none;
+
+    &:disabled {
+      cursor: progress;
+      opacity: 0.72;
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--dd-primary);
+      outline-offset: 2px;
+    }
+  }
+
+  .hero-preview-error {
+    margin: 6px 10px 8px;
+    color: var(--dd-danger, var(--dd-text));
+    font-size: 12px;
+    line-height: 1.4;
   }
 
   pre {
