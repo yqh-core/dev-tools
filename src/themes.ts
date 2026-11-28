@@ -5,7 +5,7 @@ import { mainPalette } from './main-palette';
 /**
  * DigDevBox Main's Naive UI theme overrides.
  *
- * Main-local violet action and blue information roles come from mainPalette.
+ * Main-local violet action and information roles come from mainPalette.
  * Neutral surfaces, borders and success/warning/danger semantics remain on
  * the shared ddTokens foundation so this Main-only refinement cannot recolor
  * API Studio or the other portfolio sites.
