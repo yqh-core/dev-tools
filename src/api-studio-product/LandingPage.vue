@@ -146,7 +146,7 @@ const currentDemoStep = computed(() => demoSteps[activeDemoStep.value] ?? demoSt
               class="guided-demo-step"
               type="button"
               :aria-pressed="activeDemoStep === index"
-              aria-controls="guided-demo-detail"
+              aria-controls="guided-demo-detail guided-demo-preview"
               @click="activeDemoStep = index"
             >
               <span class="guided-demo-index">{{ item.number }}</span>
@@ -161,6 +161,115 @@ const currentDemoStep = computed(() => demoSteps[activeDemoStep.value] ?? demoSt
             <h3>{{ currentDemoStep.title }}</h3>
             <p>{{ currentDemoStep.description }}</p>
             <a class="guided-demo-link" href="/app/">Open the real workspace <span aria-hidden="true">→</span></a>
+          </div>
+
+          <div id="guided-demo-preview" class="guided-demo-preview" data-test-id="guided-demo-preview" aria-live="polite" aria-atomic="false">
+            <div class="guided-demo-preview-bar">
+              <div class="guided-demo-preview-context">
+                <span class="guided-demo-preview-mark" aria-hidden="true">⌁</span>
+                <span>ORDERS API <i>/</i> CHECKOUT FLOW</span>
+              </div>
+              <span class="guided-demo-fixture-badge">FIXTURE DATA · NOT EXECUTED</span>
+            </div>
+
+            <div v-if="activeDemoStep === 0" class="guided-demo-scene" data-test-id="guided-demo-scene-request">
+              <div class="guided-demo-scene-main">
+                <div class="guided-demo-scene-label">REQUEST DEFINITION</div>
+                <div class="guided-demo-request-line">
+                  <span class="guided-demo-method guided-demo-method-post">POST</span>
+                  <code>https://api.example.test/v1/orders</code>
+                </div>
+                <div class="guided-demo-request-fields">
+                  <div><small>ENVIRONMENT</small><strong><i/> Staging</strong></div>
+                  <div><small>HEADER</small><strong>Content-Type: application/json</strong></div>
+                  <div><small>QUERY</small><strong>validate=true</strong></div>
+                </div>
+                <div class="guided-demo-code-panel">
+                  <div class="guided-demo-code-heading"><span>REQUEST BODY</span><span>JSON</span></div>
+                  <pre>{
+  "sku": "canvas-pack",
+  "quantity": 2,
+  "shipping": "standard"
+}</pre>
+                </div>
+              </div>
+              <aside class="guided-demo-scene-aside">
+                <span class="guided-demo-scene-label">READY TO SEND</span>
+                <strong>One request</strong>
+                <p>Method, endpoint and payload are grouped in one request definition.</p>
+                <span class="guided-demo-aside-note">No request is sent from this preview.</span>
+              </aside>
+            </div>
+
+            <div v-else-if="activeDemoStep === 1" class="guided-demo-scene" data-test-id="guided-demo-scene-response">
+              <div class="guided-demo-scene-main">
+                <div class="guided-demo-scene-label">RESPONSE INSPECTION <span class="guided-demo-sample-note">SAMPLE RESPONSE</span></div>
+                <div class="guided-demo-response-summary">
+                  <div class="guided-demo-response-status"><b>201</b><span>Created</span></div>
+                  <div><small>ELAPSED TIME</small><strong>14 ms</strong></div>
+                  <div><small>CONTENT TYPE</small><strong>application/json</strong></div>
+                </div>
+                <div class="guided-demo-code-panel">
+                  <div class="guided-demo-code-heading"><span>RESPONSE BODY</span><span>JSON · SAMPLE</span></div>
+                  <pre>{
+  "id": "ord_1042",
+  "status": "accepted",
+  "total": 48.00,
+  "currency": "USD"
+}</pre>
+                </div>
+              </div>
+              <aside class="guided-demo-scene-aside">
+                <span class="guided-demo-scene-label">WHAT TO CHECK</span>
+                <strong>Read the response</strong>
+                <p>Separate the upstream HTTP status from transport errors, then inspect headers and body.</p>
+                <span class="guided-demo-aside-note">Status and timing are illustrative fixture values.</span>
+              </aside>
+            </div>
+
+            <div v-else-if="activeDemoStep === 2" class="guided-demo-scene" data-test-id="guided-demo-scene-assertions">
+              <div class="guided-demo-scene-main">
+                <div class="guided-demo-scene-label">RESPONSE ASSERTIONS <span class="guided-demo-sample-note">SAMPLE RESULT</span></div>
+                <div class="guided-demo-assertion-list">
+                  <div class="guided-demo-assertion-row">
+                    <span class="guided-demo-assertion-check" aria-hidden="true">✓</span>
+                    <span><strong>Status code equals 201</strong><small>Response status</small></span>
+                    <b>PASS</b>
+                  </div>
+                  <div class="guided-demo-assertion-row">
+                    <span class="guided-demo-assertion-check" aria-hidden="true">✓</span>
+                    <span><strong>JSON path $.id exists</strong><small>Response body</small></span>
+                    <b>PASS</b>
+                  </div>
+                </div>
+                <div class="guided-demo-assertion-total"><strong>2 passed</strong><span>·</span><span>0 failed</span><small>Illustrative fixture outcome</small></div>
+              </div>
+              <aside class="guided-demo-scene-aside">
+                <span class="guided-demo-scene-label">VALIDATION</span>
+                <strong>Make success explicit</strong>
+                <p>Keep each rule beside its outcome so a failed check points to what needs attention.</p>
+                <span class="guided-demo-aside-note">These checks are shown as sample data, not executed.</span>
+              </aside>
+            </div>
+
+            <div v-else class="guided-demo-scene" data-test-id="guided-demo-scene-collection">
+              <div class="guided-demo-scene-main">
+                <div class="guided-demo-scene-label">COLLECTION RUN <span class="guided-demo-sample-note">SAMPLE RESULTS</span></div>
+                <div class="guided-demo-run-summary"><strong>Checkout smoke tests</strong><span>3 requests · fixture run</span></div>
+                <div class="guided-demo-run-list">
+                  <div><span class="guided-demo-run-index">01</span><strong>GET /health</strong><span class="guided-demo-run-status">200 OK</span></div>
+                  <div><span class="guided-demo-run-index">02</span><strong>POST /v1/orders</strong><span class="guided-demo-run-status">201 Created</span></div>
+                  <div><span class="guided-demo-run-index">03</span><strong>GET /v1/orders/ord_1042</strong><span class="guided-demo-run-status">200 OK</span></div>
+                </div>
+                <div class="guided-demo-run-footer"><span>3 / 3 sample outcomes</span><span>Not a live collection run</span></div>
+              </div>
+              <aside class="guided-demo-scene-aside">
+                <span class="guided-demo-scene-label">REPEATABLE WORK</span>
+                <strong>From one request to a flow</strong>
+                <p>Save related requests, reuse an environment and review each result in order.</p>
+                <span class="guided-demo-aside-note">The fixture is illustrative; nothing runs in the background.</span>
+              </aside>
+            </div>
           </div>
         </div>
       </section>

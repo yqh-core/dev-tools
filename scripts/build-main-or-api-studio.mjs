@@ -1,8 +1,7 @@
 import { spawnSync } from 'node:child_process';
+import { shouldBuildApiStudioPreview } from './api-studio-preview-routing.mjs';
 
-const productPreviewBranch = 'feat/api-studio-independent-site-20261127';
-const isProductPreview = process.env.CF_PAGES === '1'
-  && process.env.CF_PAGES_BRANCH === productPreviewBranch;
+const isProductPreview = shouldBuildApiStudioPreview(process.env);
 
 if (isProductPreview) {
   // Render the independent product at the existing Cloudflare PR Preview URL only.
