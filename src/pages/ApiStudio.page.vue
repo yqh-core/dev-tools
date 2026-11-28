@@ -3947,6 +3947,17 @@ function onMenuSelect(key: string, node: TreeNode) {
     max-height: 399px;
   }
 
+  .api-sidebar:has(.api-data-disclosure[open]):has([data-test-id="openapi-preview"]) {
+    height: min(78dvh, 620px);
+    max-height: 620px;
+    overflow-y: auto;
+  }
+
+  .api-sidebar:has([data-test-id="openapi-preview"]) .api-tree {
+    flex: 0 0 auto;
+    max-height: 160px;
+  }
+
   /* Keep high-frequency request/environment controls visible while the tree
      scrolls in its own region. Import/export actions expand only on demand. */
   .api-sidebar-head,
