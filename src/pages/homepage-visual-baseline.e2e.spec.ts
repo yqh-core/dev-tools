@@ -213,3 +213,79 @@ test('moves the undecided consent prompt back to a fixed overlay during SPA navi
   await expect(consent).toHaveAttribute('data-placement', 'fixed-overlay');
   await expect(consent).toHaveCSS('position', 'fixed');
 });
+
+test('captures the violet-blue palette in light and dark modes', async ({ page }, testInfo) => {
+  const cases = [
+    { theme: 'light', dark: false, primary: 'rgb(126, 69, 239)', onPrimary: 'rgb(255, 255, 255)', info: 'rgb(60, 102, 191)' },
+    { theme: 'dark', dark: true, primary: 'rgb(167, 139, 250)', onPrimary: 'rgb(32, 19, 56)', info: 'rgb(145, 180, 255)' },
+  ] as const;
+  const viewports = [
+    { name: 'mobile-390x844', width: 390, height: 844 },
+    { name: 'desktop-1440x900', width: 1440, height: 900 },
+  ] as const;
+
+  const outputDirectory = resolve('artifacts/homepage-visual');
+  await mkdir(outputDirectory, { recursive: true });
+
+  for (const themeCase of cases) {
+    await page.goto('/');
+    await page.evaluate((theme) => {
+      localStorage.setItem('vueuse-color-scheme', theme);
+    }, themeCase.theme);
+
+    for (const viewport of viewports) {
+      await page.setViewportSize({ width: viewport.width, height: viewport.height });
+      await page.goto('/');
+      await expect.poll(() => page.evaluate(() => document.documentElement.classList.contains('dark')))
+        .toBe(themeCase.dark);
+
+      const previewCta = page.locator('.hero-preview-link');
+      const secondaryCta = page.locator('.hero-cta:not(.hero-cta-workspace)');
+      await expect(previewCta).toBeVisible();
+      await expect(secondaryCta).toBeVisible();
+
+      const palette = await page.evaluate(() => {
+        const root = getComputedStyle(document.documentElement);
+        const preview = document.querySelector('.hero-preview-link');
+        const secondary = document.querySelector('.hero-cta:not(.hero-cta-workspace)');
+        if (!preview || !secondary) {
+          throw new Error('Expected homepage primary and secondary actions to render');
+        }
+        return {
+          primary: root.getPropertyValue('--dd-primary').trim(),
+          onPrimary: root.getPropertyValue('--dd-on-primary').trim(),
+          action: root.getPropertyValue('--main-action').trim(),
+          info: root.getPropertyValue('--main-info').trim(),
+          previewBackground: getComputedStyle(preview).backgroundColor,
+          previewColor: getComputedStyle(preview).color,
+          secondaryColor: getComputedStyle(secondary).color,
+          documentWidth: document.documentElement.scrollWidth,
+        };
+      });
+
+      expect(palette.primary.toLowerCase()).toBe(themeCase.dark ? '#a78bfa' : '#7e45ef');
+      expect(palette.onPrimary.toLowerCase()).toBe(themeCase.dark ? '#201338' : '#ffffff');
+      expect(palette.action.toLowerCase()).toBe('#814ee8');
+      expect(palette.info).toBe(themeCase.dark ? '#91B4FF' : '#3C66BF');
+      expect(palette.previewBackground).toBe(themeCase.primary);
+      expect(palette.previewColor).toBe(themeCase.onPrimary);
+      expect(palette.secondaryColor).toBe(themeCase.dark ? 'rgb(145, 180, 255)' : 'rgb(60, 102, 191)');
+      expect(palette.documentWidth).toBeLessThanOrEqual(viewport.width);
+
+      await expect(page.locator('.home-hero')).toBeVisible();
+      const screenshot = await page.screenshot({
+        animations: 'disabled',
+        fullPage: false,
+        type: 'png',
+      });
+      await testInfo.attach(`homepage-${themeCase.theme}-${viewport.name}`, {
+        body: screenshot,
+        contentType: 'image/png',
+      });
+      await writeFile(
+        resolve(outputDirectory, `homepage-${themeCase.theme}-${viewport.name}.png`),
+        screenshot,
+      );
+    }
+  }
+});

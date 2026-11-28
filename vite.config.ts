@@ -131,7 +131,7 @@ export default defineConfig({
         display: 'standalone',
         start_url: `${baseUrl}?utm_source=pwa&utm_medium=pwa`,
         orientation: 'any',
-        theme_color: '#0f766e',
+        theme_color: '#814EE8',
         background_color: '#f1f5f9',
         icons: [
           {

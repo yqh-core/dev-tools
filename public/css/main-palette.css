@@ -1,0 +1,78 @@
+/**
+ * DigDevBox Main-only palette layer.
+ *
+ * Load after the family dd-tokens.css and dd-shell.css files in the Main
+ * index.html only. Do not copy to satellite sites or API Studio's product build.
+ * Neutral surfaces, typography, spacing, component geometry and semantic
+ * success/warning/danger colors remain owned by the existing site system.
+ */
+:root {
+  /* Violet brand links, selected states and soft emphasis. */
+  --dd-primary: #7E45EF;
+  --dd-primary-hover: #6B39D9;
+  --dd-primary-active: #5C2FC4;
+  --dd-primary-soft: #F2EDFF;
+  --dd-on-primary: #FFFFFF;
+  --dd-focus-ring: rgba(126, 69, 239, 0.38);
+
+  /* Strong filled actions use a contrast-checked violet. */
+  --main-action: #814EE8;
+  --main-action-hover: #7138D4;
+  --main-action-pressed: #5D2CB6;
+  --main-on-action: #FFFFFF;
+
+  /* Blue is reserved for secondary / informational emphasis. */
+  --main-info: #3C66BF;
+  --main-info-hover: #3157A8;
+  --main-info-soft: #EDF3FF;
+}
+
+html.dark,
+html[data-theme="dark"] {
+  --dd-primary: #A78BFA;
+  --dd-primary-hover: #B99BFF;
+  --dd-primary-active: #9273E8;
+  --dd-primary-soft: #2D214C;
+  --dd-on-primary: #201338;
+  --dd-focus-ring: rgba(167, 139, 250, 0.48);
+
+  --main-action: #814EE8;
+  --main-action-hover: #7138D4;
+  --main-action-pressed: #5D2CB6;
+  --main-on-action: #FFFFFF;
+
+  --main-info: #91B4FF;
+  --main-info-hover: #A5C1FF;
+  --main-info-soft: #1D2B49;
+}
+
+/* Re-skin the existing shared shell without changing its geometry. */
+.dd-brandbar {
+  background: var(--main-action);
+  color: var(--main-on-action);
+}
+
+.dd-brandbar a {
+  color: var(--main-on-action);
+}
+
+.dd-btn {
+  border-color: var(--main-action);
+  background: var(--main-action);
+  color: var(--main-on-action);
+}
+
+.dd-btn:hover {
+  border-color: var(--main-action-hover);
+  background: var(--main-action-hover);
+}
+
+.dd-btn.ghost {
+  border-color: var(--dd-primary);
+  background: var(--dd-surface);
+  color: var(--dd-primary);
+}
+
+.dd-btn.ghost:hover {
+  background: var(--dd-primary-soft);
+}

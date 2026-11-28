@@ -1,15 +1,16 @@
 import { defineThemes } from './theme.models';
 import { ddTokens } from '@/generated/dd-tokens';
+import { mainPalette } from '@/main-palette';
 
 /**
- * c-* 组件族的主题 —— 颜色来自 dd-tokens（B3）。
+ * DigDevBox Main c-* component themes.
  *
- * 用构建期生成的 ddTokens 而不是 'var(--dd-*)'：这些值会参与 JS 侧的颜色运算
- * （见 src/themes.ts 顶部注释里实测到的 seemly/rgba 报错），且统一成一种写法更好维护。
+ * Brand links and their interaction states come from the Main-only palette.
+ * Neutral surfaces remain on generated ddTokens; warning/success/error roles
+ * intentionally retain their existing meanings and values.
  *
- * 只迁「与 token 完全相等」的值（零视觉变化）+ 修脱离设计体系的残留旧值。
- * text.baseColor / default.* / 语义色（warning/success/error）与 dd token 值不同，
- * 纳入会改变全站观感 → 保持原样，集中记录在方案文档「待确认统一」清单。
+ * These are concrete TypeScript colors rather than CSS variables because the
+ * c-* theme helpers perform color calculations at runtime.
  */
 export const { themes: appThemes, useTheme: useAppTheme } = defineThemes({
   light: {
@@ -24,10 +25,10 @@ export const { themes: appThemes, useTheme: useAppTheme } = defineThemes({
       colorPressed: 'rgba(46, 51, 56, 0.22)',
     },
     primary: {
-      color: ddTokens.light.primary,
-      colorHover: ddTokens.light.primary_hover,
-      colorPressed: ddTokens.light.primary_active,
-      colorFaded: '#0f766e2f',
+      color: mainPalette.light.link,
+      colorHover: mainPalette.light.linkHover,
+      colorPressed: mainPalette.light.linkPressed,
+      colorFaded: mainPalette.light.linkFaded,
     },
     warning: {
       color: '#f59e0b',
@@ -61,10 +62,10 @@ export const { themes: appThemes, useTheme: useAppTheme } = defineThemes({
       colorPressed: 'rgba(255, 255, 255, 0.24)',
     },
     primary: {
-      color: ddTokens.dark.primary,
-      colorHover: ddTokens.dark.primary_hover,
-      colorPressed: ddTokens.dark.primary_active,
-      colorFaded: '#14b8a62f',
+      color: mainPalette.dark.link,
+      colorHover: mainPalette.dark.linkHover,
+      colorPressed: mainPalette.dark.linkPressed,
+      colorFaded: mainPalette.dark.linkFaded,
     },
     warning: {
       color: '#f59e0b',
