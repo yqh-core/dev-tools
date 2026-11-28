@@ -89,6 +89,18 @@ describe('safe local OpenAPI refresh', () => {
     expect(findRequestNode(applied.tree, 'request-user')?.request.url).not.toBe(parsed.requests[0].request.url);
   });
 
+  it('rejects a stale preview if a user edits the request before Apply', async () => {
+    const { tree } = await associatedTree();
+    const changedSpec = importOpenApi(spec('/users/{id}/new'));
+    const plan = await planOpenApiRefresh(tree, changedSpec, 'users-v2.yaml');
+    const current = findRequestNode(tree, 'request-user')!;
+    const editedAfterPreview = updateRequestNode(tree, current.id, {
+      request: { ...current.request, url: 'https://local.example.test/edited-after-preview' },
+    }).tree;
+    await expect(applyOpenApiRefreshPlan(editedAfterPreview, plan)).rejects.toThrow('changed after preview');
+    expect(findRequestNode(editedAfterPreview, 'request-user')?.request.url).toBe('https://local.example.test/edited-after-preview');
+  });
+
   it('allows an explicit Use spec decision for a conflicting request field', async () => {
     const { tree } = await associatedTree();
     const current = findRequestNode(tree, 'request-user')!;
