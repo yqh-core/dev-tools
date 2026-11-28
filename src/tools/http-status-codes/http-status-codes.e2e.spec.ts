@@ -9,12 +9,12 @@ test.describe('Tool - HTTP status code reference', () => {
     await expect(page).toHaveTitle('HTTP status codes - DigDevBox');
     await expect(page.getByTestId('status-response-boundary')).toContainText('DNS, TCP/TLS and timeout failures');
     await expect(page.getByTestId('status-registry-note')).toContainText('Unassigned gaps are omitted');
-    await expect(page.getByTestId('status-class-guide')).toContainText('How to read status classes');
+    await expect(page.getByTestId('status-class-guide')).toContainText('Understand the 1xx–5xx classes');
   });
 
   test('uses RFC 9110 semantics for authentication and redirects', async ({ page }) => {
     await expect(page.getByTestId('status-code-401')).toContainText('WWW-Authenticate');
-    await expect(page.getByTestId('status-code-403')).toContainText('does not by itself mean the user is authenticated');
+    await expect(page.getByTestId('status-code-403')).toContainText('does not prove that the user has authenticated');
     await expect(page.getByTestId('status-code-301')).toContainText('may change POST to GET');
     await expect(page.getByTestId('status-code-302')).toContainText('may change POST to GET');
     await expect(page.getByTestId('status-code-303')).toContainText('GET or HEAD');
