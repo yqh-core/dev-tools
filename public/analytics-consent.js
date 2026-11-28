@@ -11,6 +11,7 @@
   var DIALOG_ID = 'digdevbox-privacy-settings';
   var loaded = false;
   var lastPage = '';
+  var settingsTrigger = null;
 
   function copyForLanguage() {
     var isChinese = /^zh(?:[-_]|$)/i.test(document.documentElement.lang || '');
@@ -249,6 +250,11 @@
     panel.appendChild(status);
     panel.appendChild(actions);
     dialog.appendChild(panel);
+    dialog.addEventListener('keydown', function (event) {
+      if (event.key !== 'Escape') return;
+      event.preventDefault();
+      closeDialog(dialog);
+    });
     document.body.appendChild(dialog);
     return dialog;
   }
@@ -275,9 +281,13 @@
   function closeDialog(dialog) {
     if (typeof dialog.close === 'function' && dialog.open) dialog.close();
     else dialog.removeAttribute('open');
+    if (settingsTrigger && settingsTrigger.isConnected && typeof settingsTrigger.focus === 'function') {
+      settingsTrigger.focus();
+    }
   }
 
-  function openSettings() {
+  function openSettings(trigger) {
+    settingsTrigger = trigger || document.activeElement;
     var dialog = ensureDialog();
     updateSettingsStatus();
     if (typeof dialog.showModal === 'function') {
@@ -295,7 +305,7 @@
     var target = event.target && event.target.closest ? event.target.closest('[data-privacy-settings]') : null;
     if (!target) return;
     event.preventDefault();
-    openSettings();
+    openSettings(target);
   });
 
   function ensurePromptPlacement() {
