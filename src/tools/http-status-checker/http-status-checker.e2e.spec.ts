@@ -29,6 +29,7 @@ test.describe('Tool - HTTP status checker edge response semantics', () => {
     await expect(page.getByTestId('lookup-success')).toContainText('HTTP response received');
     await expect(page.getByTestId('upstream-status')).toHaveText('404');
     await expect(page.getByTestId('final-url')).toHaveText('https://example.com/final-page');
+    await expect(page.getByTestId('copy-final-url')).toBeVisible();
     await expect(page.getByTestId('response-headers')).toContainText('x-edge-result');
     await expect(page.getByTestId('lookup-error')).toHaveCount(0);
   });
