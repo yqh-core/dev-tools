@@ -178,6 +178,28 @@ export function redactAuthQueryUrl(
   return `${beforeHash.slice(0, query + 1)}${masked.join('&')}${fragment}`;
 }
 
+/** Redact resolved auth fields from UI/error text without changing the request payload. */
+export function redactAuthSensitiveText(
+  text: string,
+  auth: RequestAuthConfig | undefined,
+  env: Record<string, string>,
+): string {
+  if (!auth || auth.type === 'none' || !text) return text;
+  const values = auth.type === 'bearer'
+    ? [auth.token]
+    : auth.type === 'basic'
+      ? [auth.username, auth.password]
+      : [auth.value];
+  let safe = text;
+  for (const raw of values) {
+    if (!raw) continue;
+    const resolved = substituteVars(raw, env);
+    if (resolved.missing.length || !resolved.text || /^\s*\{\{/.test(resolved.text)) continue;
+    safe = safe.split(resolved.text).join('[REDACTED]');
+  }
+  return safe;
+}
+
 /** Assemble an apiproxy payload. Auth remains persisted as intent; credentials are transient here. */
 export function buildProxyPayload(
   req: ApiRequestState,
