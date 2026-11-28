@@ -386,7 +386,7 @@ export const codesByCategories: {
       {
         code: 503,
         name: 'Service Unavailable',
-        description: 'The server is currently unavailable (because it is overloaded or down for maintenance).',
+        description: 'The server is temporarily unable to handle the request, commonly due to overload or maintenance. The response may include Retry-After to suggest when the client should retry.',
         type: 'HTTP',
       },
       {
