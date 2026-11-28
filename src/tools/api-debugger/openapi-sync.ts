@@ -14,6 +14,7 @@ type FieldAction = 'apply' | 'preserve' | 'unchanged' | 'conflict';
 
 export interface OpenApiRefreshFieldPlan {
   action: FieldAction
+  currentFingerprint: string
   incomingFingerprint: string
 }
 
@@ -34,6 +35,8 @@ export interface OpenApiRefreshPlan {
   fileName: string
   title: string
   openApiVersion: string
+  servers: string[]
+  baseSpecFingerprint: string
   specFingerprint: string
   items: OpenApiRefreshPlanItem[]
 }
@@ -194,8 +197,16 @@ export async function planOpenApiRefresh(
       status: hasConflict ? 'conflict' : hasUpdate ? 'updated' : hasLocalEdit ? 'preserved' : 'unchanged',
       imported,
       requestId: mapping.requestId,
-      nameField: { action: nameAction, incomingFingerprint: incomingNameFingerprint },
-      requestField: { action: requestAction, incomingFingerprint: incomingRequestFingerprint },
+      nameField: {
+        action: nameAction,
+        currentFingerprint: currentNameFingerprint,
+        incomingFingerprint: incomingNameFingerprint,
+      },
+      requestField: {
+        action: requestAction,
+        currentFingerprint: currentRequestFingerprint,
+        incomingFingerprint: incomingRequestFingerprint,
+      },
       incomingNameFingerprint,
       incomingRequestFingerprint,
     });
@@ -216,6 +227,8 @@ export async function planOpenApiRefresh(
     fileName: fileName.slice(0, 255),
     title: (parsed.title ?? '').slice(0, 256),
     openApiVersion: parsed.openApiVersion ?? metadata.openApiVersion,
+    servers: parsed.servers,
+    baseSpecFingerprint: metadata.specFingerprint,
     specFingerprint: await fingerprintSpec(parsed),
     items,
   };
@@ -230,6 +243,29 @@ export async function applyOpenApiRefreshPlan(
 ): Promise<OpenApiRefreshResult> {
   if (!collection.openApiSync) {
     throw new Error('The OpenAPI source association is missing. The collection was not changed.');
+  }
+  if (collection.openApiSync.specFingerprint !== plan.baseSpecFingerprint) {
+    throw new Error('The collection source changed after this preview was prepared. Re-open the preview before applying.');
+  }
+
+  // Preflight every mapped node before creating the replacement tree. If a user
+  // edits a request after preview but before Apply, reject the stale plan instead
+  // of overwriting that newer edit.
+  for (const item of plan.items) {
+    if (!item.requestId || !item.nameField || !item.requestField || item.status === 'added' || item.status === 'removed' || item.status === 'orphaned') {
+      continue;
+    }
+    const current = findRequestNode(collection, item.requestId);
+    if (!current) {
+      throw new Error(`The request for ${item.key} changed or was removed after preview. Re-open the preview before applying.`);
+    }
+    const [nameFingerprint, requestFingerprint] = await Promise.all([
+      fingerprintOpenApiValue(current.name),
+      fingerprintOpenApiRequest(current.request),
+    ]);
+    if (nameFingerprint !== item.nameField.currentFingerprint || requestFingerprint !== item.requestField.currentFingerprint) {
+      throw new Error(`The request "${current.name}" changed after preview. Re-open the preview before applying so no newer local edit is lost.`);
+    }
   }
 
   let next = cloneTree(collection);
