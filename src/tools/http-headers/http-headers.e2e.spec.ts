@@ -95,6 +95,21 @@ test.describe('Tool - local HTTP response header analyzer', () => {
 
   test('rejects local captures larger than the 10 MiB limit before reading them', async ({ page }) => {
     await expect(page.getByText('Maximum file size: 10 MiB.')).toBeVisible();
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth)).toBe(390);
+    await page.screenshot({
+      path: 'test-results/http-status-checker/headers-analyzer-mobile-390x844.png',
+      fullPage: true,
+    });
+
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth)).toBe(1440);
+    await page.screenshot({
+      path: 'test-results/http-status-checker/headers-analyzer-desktop-1440x900.png',
+      fullPage: true,
+    });
+
     const oversized = Buffer.alloc(10 * 1024 * 1024 + 1);
     await page.getByTestId('har-file-input').setInputFiles({
       name: 'oversized.har',
