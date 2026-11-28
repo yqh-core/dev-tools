@@ -85,7 +85,17 @@ jobs:
           src/components/CollapsibleToolMenu.e2e.spec.ts
           src/tools/api-debugger/api-studio.e2e.ts
           src/tools/jwt-parser/jwt-parser.e2e.spec.ts
+          src/analytics-consent.e2e.spec.ts
           --project=chromium
+
+      - name: Upload consent and privacy settings responsive screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: privacy-consent-responsive-${{ github.sha }}
+          path: test-results/**/privacy-consent-*.png
+          if-no-files-found: warn
+          retention-days: 3
 
       - name: Upload HTTP Status Codes Playwright traces and responsive screenshots
         if: always()
