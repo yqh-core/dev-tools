@@ -162,8 +162,8 @@ test('Authorization editor keeps credentials local until Send and preserves manu
     const payload = route.request().postDataJSON() as RelayPayload;
     relayPayloads.push(payload);
     relayCalls += 1;
-    const echoedSecret = payload.headers.find(header => header.name.toLowerCase() === 'authorization')?.value
-      ?? new URL(payload.url).searchParams.get('client_key')
+    const echoedSecret = new URL(payload.url).searchParams.get('client_key')
+      ?? payload.headers.find(header => header.name.toLowerCase() === 'authorization')?.value
       ?? '';
     await route.fulfill({
       status: 200,
