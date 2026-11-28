@@ -78,6 +78,25 @@ test('OpenAPI refresh preserves local edits, supports explicit source choice, an
   expect(stored.openApiSync.operations.map((item: { key: string }) => item.key)).toEqual(['operationId:getUser']);
   expect(stored.items.some((item: { name: string }) => item.name === 'listInventory')).toBe(true);
 
+  // Replacing a duplicate that belongs to the linked spec must be blocked,
+  // even when a later import explicitly selects Replace duplicates.
+  await page.getByTestId('import-openapi').click();
+  await page.getByTestId('openapi-file').setInputFiles({
+    name: 'users-replacement.json',
+    mimeType: 'application/json',
+    buffer: Buffer.from(spec('/users/{id}', 'replacement-attempt')),
+  });
+  await expect(page.getByTestId('openapi-preview')).toBeVisible();
+  await page.getByTestId('openapi-conflicts').selectOption('replace');
+  await page.getByTestId('confirm-openapi-import').click();
+  await expect(page.getByTestId('banner')).toContainText('users-v1.json');
+  await expect(page.getByTestId('banner')).toContainText('no changes were saved');
+  stored = await page.evaluate(() => JSON.parse(localStorage.getItem('api-studio:tree') || 'null'));
+  expect(stored.openApiSync.fileName).toBe('users-v1.json');
+  expect(stored.items.some((item: { id: string }) => item.id === requestId)).toBe(true);
+  expect(stored.items.some((item: { name: string }) => item.name === 'listInventory')).toBe(true);
+  await page.getByTestId('cancel-openapi-import').click();
+
   // Model a user-authored override plus scripts/assertions that a refresh must preserve.
   await page.evaluate((id) => {
     const tree = JSON.parse(localStorage.getItem('api-studio:tree') || 'null');
