@@ -115,6 +115,14 @@ function registryLabel(code: number) {
       autofocus raw-text mb-10
     />
 
+    <c-card
+      v-if="search.trim() && searchResult.length === 0"
+      data-testid="status-search-empty-state"
+      mb-6
+    >
+      {{ t('tools.http-status-codes.noResults') }}
+    </c-card>
+
     <div v-for="{ codes, category } of codesByCategoryFiltered" :key="category" mb-8>
       <div mb-2 text-xl font-semibold>
         {{ category }}
