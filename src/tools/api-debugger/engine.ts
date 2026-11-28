@@ -112,7 +112,7 @@ function queryKeyExists(url: string, key: string): boolean {
   if (query < 0) {
     return false;
   }
-  return [...new URLSearchParams(beforeHash.slice(query + 1)).keys()].some(item => item === key);
+  return [...new URLSearchParams(beforeHash.slice(query + 1)).keys()].includes(key);
 }
 
 function removeQueryKey(url: string, key: string): string {
@@ -125,11 +125,17 @@ function removeQueryKey(url: string, key: string): string {
   }
   const base = beforeHash.slice(0, query);
   const kept = beforeHash.slice(query + 1).split('&').filter((part) => {
-    if (!part) return false;
+    if (!part) {
+      return false;
+    }
     const rawName = part.split('=', 1)[0];
     let name = rawName;
-    try { name = decodeURIComponent(rawName.replace(/\+/g, ' ')); }
-    catch { /* retain malformed name as entered */ }
+    try {
+      name = decodeURIComponent(rawName.replace(/\+/g, ' '));
+    }
+    catch {
+      // Retain malformed name as entered.
+    }
     return name !== key;
   });
   return base + (kept.length ? `?${kept.join('&')}` : '') + fragment;
@@ -149,7 +155,9 @@ function appendQueryValue(url: string, key: string, value: string): string {
 
 function mergeMissing(target: string[], values: string[]) {
   for (const value of values) {
-    if (!target.includes(value)) target.push(value);
+    if (!target.includes(value)) {
+      target.push(value);
+    }
   }
 }
 
@@ -159,20 +167,30 @@ export function redactAuthQueryUrl(
   auth: RequestAuthConfig | undefined,
   env: Record<string, string>,
 ): string {
-  if (!auth || auth.type !== 'api-key-query') return url;
+  if (!auth || auth.type !== 'api-key-query') {
+    return url;
+  }
   const resolvedKey = substituteVars(auth.key, env);
-  if (resolvedKey.missing.length || !resolvedKey.text) return url;
+  if (resolvedKey.missing.length || !resolvedKey.text) {
+    return url;
+  }
   const hash = url.indexOf('#');
   const fragment = hash < 0 ? '' : url.slice(hash);
   const beforeHash = hash < 0 ? url : url.slice(0, hash);
   const query = beforeHash.indexOf('?');
-  if (query < 0) return url;
+  if (query < 0) {
+    return url;
+  }
   const masked = beforeHash.slice(query + 1).split('&').map((part) => {
     const equal = part.indexOf('=');
     const rawName = equal < 0 ? part : part.slice(0, equal);
     let name = rawName;
-    try { name = decodeURIComponent(rawName.replace(/\+/g, ' ')); }
-    catch { /* keep malformed parameter name */ }
+    try {
+      name = decodeURIComponent(rawName.replace(/\+/g, ' '));
+    }
+    catch {
+      // Keep malformed parameter name.
+    }
     return name === resolvedKey.text ? `${rawName}=[REDACTED]` : part;
   });
   return `${beforeHash.slice(0, query + 1)}${masked.join('&')}${fragment}`;
@@ -184,7 +202,9 @@ export function redactAuthSensitiveText(
   auth: RequestAuthConfig | undefined,
   env: Record<string, string>,
 ): string {
-  if (!auth || auth.type === 'none' || !text) return text;
+  if (!auth || auth.type === 'none' || !text) {
+    return text;
+  }
   const values = auth.type === 'bearer'
     ? [auth.token]
     : auth.type === 'basic'
@@ -192,9 +212,13 @@ export function redactAuthSensitiveText(
       : [auth.value];
   let safe = text;
   for (const raw of values) {
-    if (!raw) continue;
+    if (!raw) {
+      continue;
+    }
     const resolved = substituteVars(raw, env);
-    if (resolved.missing.length || !resolved.text || /^\s*\{\{/.test(resolved.text)) continue;
+    if (resolved.missing.length || !resolved.text || /^\s*\{\{/.test(resolved.text)) {
+      continue;
+    }
     safe = safe.split(resolved.text).join('[REDACTED]');
   }
   return safe;
@@ -233,7 +257,13 @@ export function buildProxyPayload(
     const value = auth.type === 'basic'
       ? (username || credential ? `Basic ${encodeBase64Utf8(`${username}:${credential}`)}` : '')
       : (credential ? `Bearer ${credential}` : '');
-    if ((auth.type === 'bearer' && !credential) || (auth.type === 'basic' && !username && !credential)) return { payload: { url, method: req.method, headers, body: b.text }, missing, error: 'Enter a Basic Auth username or password, or reference an environment variable, before sending.' };
+    if ((auth.type === 'bearer' && !credential) || (auth.type === 'basic' && !username && !credential)) {
+    return {
+      payload: { url, method: req.method, headers, body: b.text },
+      missing,
+      error: 'Enter a Basic Auth username or password, or reference an environment variable, before sending.',
+    };
+  }
     if (/[\r\n]/.test(value)) {
       return { payload: { url, method: req.method, headers, body: b.text }, missing, error: 'Authentication header values cannot contain CR or LF characters.' };
     }
@@ -255,7 +285,13 @@ export function buildProxyPayload(
 
   const name = resolve(auth.key).trim();
   const value = resolve(auth.value);
-  if (!name || !value) return { payload: { url, method: req.method, headers, body: b.text }, missing, error: 'Enter an API key name and value or reference an environment variable before sending.' };
+  if (!name || !value) {
+    return {
+      payload: { url, method: req.method, headers, body: b.text },
+      missing,
+      error: 'Enter an API key name and value or reference an environment variable before sending.',
+    };
+  }
   if (/[\r\n]/.test(name) || (auth.type === 'api-key-header' && /[\r\n]/.test(value))) {
     return { payload: { url, method: req.method, headers, body: b.text }, missing, error: 'Authentication header names and values cannot contain CR or LF characters.' };
   }
@@ -286,7 +322,9 @@ export function buildProxyPayload(
   if (collision && options.authCollision === 'keep-manual') {
     return { payload: { url, method: req.method, headers, body: b.text }, missing };
   }
-  if (collision) url = removeQueryKey(url, name);
+  if (collision) {
+    url = removeQueryKey(url, name);
+  }
   url = appendQueryValue(url, name, value);
   return { payload: { url, method: req.method, headers, body: b.text }, missing };
 }
