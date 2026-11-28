@@ -39,7 +39,7 @@ describe('API Studio light theme contrast', () => {
   });
 
   test('keeps form-control boundaries distinguishable from their input surface', () => {
-    const border = apiStudioLightOverrides.Input?.border?.split(' ').at(-1);
+    const border = apiStudioLightOverrides.Input?.border?.split(' ').pop();
     const inputSurface = token('--api-surface-3');
     expect(border).toBeDefined();
     expect(contrastRatio(border!, inputSurface)).toBeGreaterThanOrEqual(3);
@@ -49,4 +49,4 @@ describe('API Studio light theme contrast', () => {
     expect(token('--api-primary')).toBe('#7655e8');
     expect(apiStudioLightOverrides.common?.primaryColor).toBe(token('--api-primary'));
   });
-}
+});
