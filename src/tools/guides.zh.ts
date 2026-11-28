@@ -2319,7 +2319,7 @@ export const GUIDES: Record<string, ToolGuide> = {
     intro: '粘贴 HTTP 响应头，或导入本地 HAR 1.2 / 纯文本捕获文件，在浏览器本地检查安全策略覆盖、Cookie 标志、CORS 配置、缓存与索引提示。文件不会上传到服务器。',
     steps: [
       '先获取目标页面的响应头。要检查 GET 响应，可运行 curl -sS -D - -o /dev/null https://example.com/；也可在 DevTools 的 Network 中选择 document 请求并复制 Response Headers。你也可以从 Network 面板导出 HAR 1.2。',
-      '通过文件选择器或拖放方式导入 .har 或纯文本 .txt 响应头文件。一个 HAR 可能包含多个请求，可在选择器中挑选要检查的响应；文件最大 10 MB。',
+      '通过文件选择器或拖放方式导入 .har 或纯文本 .txt 响应头文件。一个 HAR 可能包含多个请求，可在选择器中挑选要检查的响应；文件最大 10 MiB。',
       '手动检查时，粘贴包含 HTTP 状态行的完整响应块；支持重复出现的 Set-Cookie。',
       '查看安全头覆盖情况、CSP 指令、Cookie 问题，以及 CORS 或 X-Robots-Tag 提示。',
       '选择 Nginx、Apache、Caddy、Vercel 或 Cloudflare Pages，复制明确缺失且适合通用建议的响应头配置。',
