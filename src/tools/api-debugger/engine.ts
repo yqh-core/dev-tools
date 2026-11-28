@@ -153,6 +153,31 @@ function mergeMissing(target: string[], values: string[]) {
   }
 }
 
+/** Hide generated API-key query values in UI/progress URLs without changing the actual send payload. */
+export function redactAuthQueryUrl(
+  url: string,
+  auth: RequestAuthConfig | undefined,
+  env: Record<string, string>,
+): string {
+  if (!auth || auth.type !== 'api-key-query') return url;
+  const resolvedKey = substituteVars(auth.key, env);
+  if (resolvedKey.missing.length || !resolvedKey.text) return url;
+  const hash = url.indexOf('#');
+  const fragment = hash < 0 ? '' : url.slice(hash);
+  const beforeHash = hash < 0 ? url : url.slice(0, hash);
+  const query = beforeHash.indexOf('?');
+  if (query < 0) return url;
+  const masked = beforeHash.slice(query + 1).split('&').map((part) => {
+    const equal = part.indexOf('=');
+    const rawName = equal < 0 ? part : part.slice(0, equal);
+    let name = rawName;
+    try { name = decodeURIComponent(rawName.replace(/\+/g, ' ')); }
+    catch { /* keep malformed parameter name */ }
+    return name === resolvedKey.text ? `${rawName}=[REDACTED]` : part;
+  });
+  return `${beforeHash.slice(0, query + 1)}${masked.join('&')}${fragment}`;
+}
+
 /** Assemble an apiproxy payload. Auth remains persisted as intent; credentials are transient here. */
 export function buildProxyPayload(
   req: ApiRequestState,
