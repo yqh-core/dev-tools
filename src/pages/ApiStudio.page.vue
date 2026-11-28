@@ -1741,6 +1741,9 @@ function onMenuSelect(key: string, node: TreeNode) {
           <button v-if="tree.openApiSync" class="api-tool-btn" type="button" title="Refresh this collection from a newly selected local OpenAPI file, preserving local changes" data-test-id="refresh-openapi" @click="openOpenApiRefreshPicker">
             Refresh OpenAPI
           </button>
+          <span v-if="tree.openApiSync" class="api-data-note" data-test-id="openapi-source-status">
+            Linked: {{ tree.openApiSync.fileName }} · Last sync: {{ tree.openApiSync.lastSyncedAt }}
+          </span>
         </div>
       </details>
       <input
