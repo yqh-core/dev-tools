@@ -112,3 +112,9 @@ Evidence limits: public official documentation/release notes were reviewed; no h
 - PR #282 merged at `c45fac72c2d8366bd471db540710e594c5b8a366`: Main API featured card now promotes API Studio as primary and preserves legacy API Debugger as a secondary link.
 - Issue #280 / PR #283 is the implementation of the Bruno-inspired safe OpenAPI refresh gap. It uses operationId or normalized method+path identity, local source association, three-way conflict preview, Keep Current default, explicit Use Spec, no silent delete, v1 backup read/v2 write and Postman metadata isolation.
 - Browser coverage exercises preservation of local overrides/scripts/assertions, explicit source application, server selection, cancel invariance and no relay sends. Runtime verification remains pending; do not represent the feature as shipped until exact-head checks/Preview/E2E pass and merge completes.
+
+## 2026-11-28 implementation mapping — safe OpenAPI sync
+
+- The Bruno v4.4.0 behavior (collection/spec association and value-preserving sync) now maps to API Studio PR #283 / Issue #280: unique operation identity, prior baseline fingerprints, three-way local diff, review before Apply, Keep Current default and explicit Use Spec.
+- Source association is one per collection in v1. A second import cannot overwrite the link or delete a linked request via duplicate replacement. Additional requests added from another spec are explicitly described as unlinked. This is safer than implying multi-source support.
+- The update remains local-first; no remote spec fetch, auto-send, cloud sync or telemetry. Personal no-account flow stays in the core. Paid team sharing is deferred until the server-side implementation, security and support are real.
