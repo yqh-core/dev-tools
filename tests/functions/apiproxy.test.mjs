@@ -714,8 +714,6 @@ describe('API relay Pages Function + actual Durable Object limiter handler', () 
       vi.useRealTimers();
     }
   });
-});
-
 
   it('fails closed before any upstream request when the actual limiter storage is unavailable', async () => {
     vi.stubGlobal('crypto', webcrypto);
@@ -749,3 +747,4 @@ describe('API relay Pages Function + actual Durable Object limiter handler', () 
     expect(failingStateReads).toBe(1);
     expect(upstream).not.toHaveBeenCalled();
   });
+});
