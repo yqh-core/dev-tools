@@ -67,6 +67,18 @@ describe('runCollection core', () => {
     expect(sum.allPassed).toBe(false);
   });
 
+  it('does not send collection requests while an auth field collides with a manual header', async () => {
+    const send = vi.fn(async (_payload: RunnerPayload): Promise<RunnerResponse> => resp());
+    const request = saved('manual-auth-collision', {
+      headers: [{ name: 'Authorization', value: 'Manual credential' }],
+      auth: { type: 'bearer', token: '{{API_TOKEN}}' },
+    });
+    const summary = await runCollection([request], { API_TOKEN: 'secret' }, send, { now: tick(), stopOnError: false });
+    expect(send).not.toHaveBeenCalled();
+    expect(summary.results[0].sent).toBe(false);
+    expect(summary.results[0].error).toContain('conflicts with a manually configured field');
+  });
+
   it('missing variables → not sent, failed, readable error (negative control)', async () => {
     const send = vi.fn(async (_p: RunnerPayload): Promise<RunnerResponse> => resp());
     const sum = await runCollection([saved('missing', { url: 'https://{{nope}}/x' })], {}, send, { now: tick(), stopOnError: false });
