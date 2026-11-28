@@ -108,6 +108,33 @@ describe('runCollection core', () => {
     expect(sum.sent).toBe(1);
   });
 
+  it('redacts literal auth credentials from collection assertion values and visible reports', async () => {
+    const secret = 'literal-auth-secret';
+    const request = saved('echo-auth', {
+      auth: { type: 'bearer', token: secret },
+    }, [{ ...makeAssertion('echo', 'json'), target: '$.token', operator: 'eq', expected: 'not-the-secret' }]);
+    const summary = await runCollection([request], {}, async payload => resp({
+      url: payload.url,
+      body: JSON.stringify({ token: secret }),
+    }), { now: tick() });
+    const result = summary.results[0];
+    expect(result.report?.results[0].passed).toBe(false);
+    expect(result.report?.results[0].actual).toBe('[REDACTED]');
+    expect(result.report?.results[0].message).not.toContain(secret);
+    expect(formatCollectionReportText(summary)).not.toContain(secret);
+  });
+
+  it('redacts literal auth credentials from collection send errors', async () => {
+    const secret = 'literal-error-secret';
+    const request = saved('error-auth', {
+      auth: { type: 'bearer', token: secret },
+    });
+    const summary = await runCollection([request], {}, async () => {
+      throw new Error(`Upstream rejected Bearer ${secret}`);
+    }, { now: tick(), stopOnError: false });
+    expect(summary.results[0].error).toBe('Upstream rejected Bearer [REDACTED]');
+  });
+
   it('send rejection is captured as error, not a crash (negative control)', async () => {
     const send: SendFn = async () => {
       throw new Error('network down');
