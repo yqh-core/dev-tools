@@ -175,6 +175,21 @@ describe('shared GA4 consent gate', () => {
     expect(dialog?.textContent).toContain('Current choice: optional analytics is disabled.');
   });
 
+  it('updates the visible prompt and open preferences when the document language changes', async () => {
+    const trigger = dom.window.document.querySelector<HTMLButtonElement>('[data-privacy-settings]');
+    trigger?.click();
+
+    dom.window.document.documentElement.lang = 'zh-CN';
+    await nextTask();
+
+    const prompt = dom.window.document.getElementById('digdevbox-analytics-consent');
+    const dialog = dom.window.document.getElementById('digdevbox-privacy-settings');
+    expect(prompt?.getAttribute('aria-label')).toBe('分析与隐私选项');
+    expect(prompt?.textContent).toContain('可选分析服务仅记录页面访问');
+    expect(dialog?.textContent).toContain('隐私设置');
+    expect(dialog?.textContent).toContain('当前尚未作出选择。');
+  });
+
   it('stops sending SPA page views and clears GA cookies after consent is revoked', async () => {
     clickButton('Accept analytics');
     const script = dom.window.document.querySelector<HTMLScriptElement>('script[src*="googletagmanager.com"]');
