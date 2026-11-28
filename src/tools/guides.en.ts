@@ -2409,7 +2409,7 @@ export const GUIDES: Record<string, ToolGuide> = {
     ],
     notes: [
       'Requests originate at DigDevBox\'s Cloudflare edge with the DigDevBox/1.0 user agent, Accept: */* and no browser cookies. Results can differ from a browser or local curl because of region, firewall, user-agent and cache behavior.',
-      'The checker follows up to 3 redirects and returns only the final response. It does not show an intermediate hop-by-hop timeline.',
+      'The checker sends HEAD first and retries with GET only if the HEAD request fails before a response is received; a returned 405 is kept as the upstream status. It follows up to 3 redirects and returns only the final response, not an intermediate hop-by-hop timeline.',
       'Set-Cookie is deliberately omitted, and at most 60 response headers are returned.',
       'The endpoint is available after deployment to Cloudflare Pages; local Vite development does not provide the /api/webstatus function.',
     ],
