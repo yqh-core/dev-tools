@@ -50,6 +50,22 @@ describe('exportCollection', () => {
     expect(safe.item[0].request.auth).toBeUndefined();
     expect(JSON.stringify(safe)).not.toContain('CLIENT_KEY');
   });
+  it('round-trips all supported Postman auth variants', () => {
+    const profiles = [
+      { type: 'bearer' as const, token: '{{ACCESS_TOKEN}}' },
+      { type: 'basic' as const, username: '{{BASIC_USER}}', password: '{{BASIC_PASS}}' },
+      { type: 'api-key-header' as const, key: 'X-Client-Key', value: '{{CLIENT_KEY}}' },
+      { type: 'api-key-query' as const, key: 'client_key', value: '{{CLIENT_KEY}}' },
+    ];
+    for (const auth of profiles) {
+      const request = { ...saved[0].request, auth };
+      const source = [{ ...saved[0], request }];
+      const full = exportCollection(source, 'Auth profiles', false);
+      const imported = importCollection(JSON.stringify(full));
+      expect(imported.requests[0].request.auth).toEqual(auth);
+    }
+  });
+
   it('relative / {{var}} url keeps raw (no crash)', () => {
     const c = exportCollection([{ ...saved[0], request: { ...saved[0].request, url: '/relative/{{id}}' } }]) as any;
     expect(c.item[0].request.url.raw).toBe('/relative/{{id}}');
