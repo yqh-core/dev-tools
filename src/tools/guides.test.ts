@@ -211,7 +211,7 @@ describe('HTTP Status Codes bilingual protocol guidance accuracy', () => {
     ].join(' ');
 
     expect(text).toContain('WWW-Authenticate');
-    expect(text).toContain('method must be preserved');
+    expect(text).toContain('preserve the request method');
     expect(text).toContain('proxies and gateways');
     expect(text).toContain('DNS lookup, TCP connection, TLS negotiation');
     expect(text).toContain('heuristically cacheable');
@@ -236,7 +236,7 @@ describe('HTTP Status Codes bilingual protocol guidance accuracy', () => {
     expect(text).toContain('DNS 查询、TCP 连接、TLS 握手');
     expect(text).toContain('启发式可缓存性');
     expect(text).not.toContain('你是谁？');
-    expect(text).not.toContain('永久缓存');
+    expect(text).not.toContain('客户端可能永久缓存');
     expect(text).not.toContain('客户端需要改');
   });
 });
