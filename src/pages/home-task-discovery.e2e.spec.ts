@@ -62,13 +62,95 @@ test.describe('Homepage task discovery', () => {
     expect(documentWidth).toBeLessThanOrEqual(390);
   });
 
-  test('shows a concrete JSON workflow preview linked to the real workspace', async ({ page }) => {
+  test('switches between truthful JSON, JWT and Regex workflow previews', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
     await page.goto('/');
 
     const preview = page.locator('.home-hero-preview');
     await expect(preview).toBeVisible();
-    await expect(preview.locator('pre code')).toContainText('"status": "ready"');
+    await expect(preview).toContainText('LOCAL SAMPLE · NO API CALL');
+    await expect(preview.getByTestId('home-demo-tab-json')).toHaveAttribute('aria-pressed', 'true');
+    const runButton = preview.getByTestId('home-demo-run');
+    await expect(runButton).toBeVisible();
+    const runBox = await runButton.boundingBox();
+    expect(runBox?.height).toBeGreaterThanOrEqual(44);
+    await runButton.click();
+    await expect(preview.locator('pre code')).toContainText('OUT {');
+    await expect(preview.locator('pre code')).toContainText('"ok": true');
+    const jsonSample = await preview.locator('pre code').textContent();
+    expect(jsonSample).toContain('OUT {\n  "ok": true\n}');
+    expect(jsonSample).not.toContain('\\n');
+    await preview.getByTestId('home-demo-copy').click();
+    await expect(preview.getByTestId('home-demo-copy')).toHaveText('Copied');
+    expect(await page.evaluate(() => navigator.clipboard.readText())).toContain('"ok": true');
     await expect(preview.locator('a.hero-preview-link')).toHaveAttribute('href', '/json-workspace/');
+
+    const jwtTab = preview.getByTestId('home-demo-tab-jwt');
+    await jwtTab.click();
+    await expect(jwtTab).toHaveAttribute('aria-pressed', 'true');
+    await runButton.click();
+    await expect(preview.locator('pre code')).toContainText('Claims dev-1 · qa');
+    await expect(preview.locator('pre code')).toContainText('NOT VERIFIED');
+    await preview.getByTestId('home-demo-copy').click();
+    expect(await page.evaluate(() => navigator.clipboard.readText())).toContain('NOT VERIFIED');
+    await expect(preview.locator('a.hero-preview-link')).toHaveAttribute('href', '/jwt-parser/');
+
+    const regexTab = preview.getByTestId('home-demo-tab-regex');
+    await regexTab.focus();
+    await expect(regexTab).toBeFocused();
+    await page.keyboard.press('Enter');
+    await expect(regexTab).toHaveAttribute('aria-pressed', 'true');
+    await runButton.click();
+    await expect(preview.locator('pre code')).toContainText('2 matches');
+    await expect(preview.locator('pre code')).toContainText('DEV-2048 · OPS-0781');
+    const regexSample = await preview.locator('pre code').textContent();
+    expect(regexSample).toContain('OUT 2 matches\nDEV-2048 · OPS-0781');
+    expect(regexSample).not.toContain('\\n');
+    await preview.getByTestId('home-demo-copy').click();
+    expect(await page.evaluate(() => navigator.clipboard.readText())).toContain('DEV-2048 · OPS-0781');
+    await expect(preview.locator('a.hero-preview-link')).toHaveAttribute('href', '/regex-tester/');
+  });
+
+  test('keeps the selectable preview usable within the mobile first fold', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
+    await page.goto('/');
+
+    const preview = page.locator('.home-hero-preview');
+    await expect(preview).toBeVisible();
+    const tabs = preview.locator('.hero-preview-tab');
+    await expect(tabs).toHaveCount(3);
+
+    for (const tab of await tabs.all()) {
+      const box = await tab.boundingBox();
+      expect(box?.height).toBeGreaterThanOrEqual(44);
+      await expect(tab).toBeVisible();
+    }
+
+    const documentWidth = await page.evaluate(() => document.documentElement.scrollWidth);
+    expect(documentWidth).toBeLessThanOrEqual(390);
+
+    const runButton = preview.getByTestId('home-demo-run');
+    const runBox = await runButton.boundingBox();
+    expect(runBox?.height).toBeGreaterThanOrEqual(44);
+
+    for (const demoId of ['json', 'jwt', 'regex'] as const) {
+      const tab = preview.getByTestId(`home-demo-tab-${demoId}`);
+      await tab.click();
+      await runButton.click();
+      await expect(preview.locator('pre code')).toContainText('OUT');
+      const copyButton = preview.getByTestId('home-demo-copy');
+      await expect(copyButton).toBeVisible();
+      const copyBox = await copyButton.boundingBox();
+      expect(copyBox?.height).toBeGreaterThanOrEqual(44);
+      await copyButton.click();
+      const cta = await preview.locator('a.hero-preview-link').boundingBox();
+      expect(cta).not.toBeNull();
+      expect(cta!.y + cta!.height).toBeLessThanOrEqual(844);
+      const documentWidth = await page.evaluate(() => document.documentElement.scrollWidth);
+      expect(documentWidth).toBeLessThanOrEqual(390);
+    }
   });
 
   test('uses one column without horizontal overflow at 390px', async ({ page }) => {

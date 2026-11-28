@@ -147,6 +147,128 @@ const FEATURED_TASKS = [
   },
 ] as const;
 
+type HomeDemoId = 'json' | 'jwt' | 'regex';
+
+const HOME_DEMO_IDS: HomeDemoId[] = ['json', 'jwt', 'regex'];
+
+const HOME_DEMO_STORIES = {
+  json: {
+    path: '/json-workspace',
+    file: 'response.json',
+    format: 'JSON',
+    input: 'IN  {"ok":true}',
+  },
+  jwt: {
+    path: '/jwt-parser',
+    file: 'sample.jwt',
+    format: 'JWT',
+    input: 'IN  eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkZXYtMSIsInJvbGUiOiJxYSJ9.c2FtcGxl',
+  },
+  regex: {
+    path: '/regex-tester',
+    file: 'tickets.txt',
+    format: 'REGEX',
+    input: 'RE  \\b[A-Z]{3}-\\d{4}\\b\nIN  Ticket DEV-2048 / OPS-0781',
+    pattern: '\\b[A-Z]{3}-\\d{4}\\b',
+    text: 'Ticket DEV-2048 / OPS-0781',
+    flags: 'dg',
+  },
+} as const;
+
+const activeHomeDemo = ref<HomeDemoId>('json');
+const activeHomeDemoStory = computed(() => HOME_DEMO_STORIES[activeHomeDemo.value]);
+const activeHomeDemoResult = ref('');
+const activeHomeDemoError = ref('');
+const homeDemoCopyStatus = ref<'idle' | 'copied' | 'error'>('idle');
+const isHomeDemoRunning = ref(false);
+const activeHomeDemoCode = computed(() => activeHomeDemoResult.value
+  ? `OUT ${activeHomeDemoResult.value}`
+  : activeHomeDemoStory.value.input);
+
+function selectHomeDemo(demoId: HomeDemoId) {
+  activeHomeDemo.value = demoId;
+  activeHomeDemoResult.value = '';
+  activeHomeDemoError.value = '';
+  homeDemoCopyStatus.value = 'idle';
+}
+
+async function copyHomeDemoResult() {
+  if (!activeHomeDemoResult.value) {
+    return;
+  }
+
+  try {
+    await navigator.clipboard.writeText(activeHomeDemoResult.value);
+    homeDemoCopyStatus.value = 'copied';
+  }
+  catch {
+    homeDemoCopyStatus.value = 'error';
+  }
+}
+
+async function runHomeDemo() {
+  if (isHomeDemoRunning.value) {
+    return;
+  }
+
+  const demoId = activeHomeDemo.value;
+  activeHomeDemoError.value = '';
+  isHomeDemoRunning.value = true;
+
+  try {
+    let result = '';
+    switch (demoId) {
+      case 'json': {
+        const { formatJson } = await import('@/tools/json-viewer/json.models');
+        result = formatJson({
+          rawJson: HOME_DEMO_STORIES.json.input.replace(/^IN {2}/, ''),
+          indentSize: 2,
+          sortKeys: false,
+        });
+        break;
+      }
+      case 'jwt': {
+        const { decodeJwt } = await import('@/tools/jwt-parser/jwt-parser.service');
+        const decoded = decodeJwt({ jwt: HOME_DEMO_STORIES.jwt.input.replace(/^IN {2}/, '') });
+        const values = (claims: Array<{ claim: string; value: string }>) => Object.fromEntries(
+          claims.map(claim => [claim.claim, claim.value] as const),
+        );
+        const header = values(decoded.header);
+        const payload = values(decoded.payload);
+        result = [
+          `Header ${String(header.alg)} · ${String(header.typ)}`,
+          `Claims ${String(payload.sub)} · ${String(payload.role)}`,
+          'SIG present · NOT VERIFIED',
+        ].join('\n');
+        break;
+      }
+      case 'regex': {
+        const { matchRegex } = await import('@/tools/regex-tester/regex-tester.service');
+        const story = HOME_DEMO_STORIES.regex;
+        const matches = matchRegex(story.pattern, story.text, story.flags);
+        result = [
+          `${matches.length} matches`,
+          matches.map(match => match.value).join(' · '),
+        ].join('\n');
+        break;
+      }
+    }
+
+    if (activeHomeDemo.value === demoId) {
+      activeHomeDemoResult.value = result;
+      homeDemoCopyStatus.value = 'idle';
+    }
+  }
+  catch {
+    if (activeHomeDemo.value === demoId) {
+      activeHomeDemoError.value = 'run-error';
+    }
+  }
+  finally {
+    isHomeDemoRunning.value = false;
+  }
+}
+
 function assertHomeToolPaths(paths: readonly string[], label: string, tools: ToolWithCategory[]) {
   const known = new Set(tools.map(tool => tool.path));
   const missing = paths.filter(path => !known.has(path));
@@ -165,6 +287,11 @@ assertHomeToolPaths(LEGACY_POPULAR_TOOL_PATHS, 'LEGACY_POPULAR_TOOL_PATHS', tool
 // Product-shell destinations (e.g. API Studio) may be primary entries without being tools-index routes.
 const FEATURED_TASK_PATHS = [...new Set(FEATURED_TASKS.flatMap(task => task.toolPaths))];
 assertHomeToolPaths(FEATURED_TASK_PATHS, 'FEATURED_TASKS', toolsWithCategory);
+assertHomeToolPaths(
+  HOME_DEMO_IDS.map(id => HOME_DEMO_STORIES[id].path),
+  'HOME_DEMO_STORIES',
+  toolsWithCategory,
+);
 
 if (FEATURED_TASKS.length < 3 || FEATURED_TASKS.length > 5) {
   throw new Error(`[Home.page] FEATURED_TASKS must contain 3–5 entries; found ${FEATURED_TASKS.length}`);
@@ -433,25 +560,63 @@ function onUpdateFavoriteTools() {
           <aside class="home-hero-preview" aria-labelledby="home-hero-preview-title">
             <div class="hero-preview-topline">
               <span class="hero-preview-status" aria-hidden="true" />
-              <span>{{ t('home.preview.eyebrow') }}</span>
+              <span>{{ t('home.demo.eyebrow') }}</span>
+            </div>
+            <div class="hero-preview-selector" role="group" :aria-label="t('home.demo.selectorLabel')">
+              <button
+                v-for="demoId in HOME_DEMO_IDS"
+                :key="demoId"
+                :data-test-id="`home-demo-tab-${demoId}`"
+                class="hero-preview-tab"
+                type="button"
+                :aria-pressed="activeHomeDemo === demoId"
+                @click="selectHomeDemo(demoId)"
+              >
+                {{ t(`home.demo.${demoId}.tab`) }}
+              </button>
             </div>
             <div class="hero-preview-copy">
-              <p class="hero-preview-label">{{ t('home.preview.label') }}</p>
-              <h2 id="home-hero-preview-title">{{ t('home.preview.title') }}</h2>
-              <p class="hero-preview-description">{{ t('home.preview.description') }}</p>
+              <p class="hero-preview-label">{{ t(`home.demo.${activeHomeDemo}.label`) }}</p>
+              <h2 id="home-hero-preview-title">{{ t(`home.demo.${activeHomeDemo}.title`) }}</h2>
+              <p class="hero-preview-description">{{ t(`home.demo.${activeHomeDemo}.description`) }}</p>
             </div>
-            <div class="hero-preview-code" :aria-label="t('home.preview.codeLabel')">
+            <div
+              class="hero-preview-code"
+              :aria-label="t(`home.demo.${activeHomeDemo}.codeLabel`)"
+              aria-live="polite"
+            >
               <div class="hero-preview-codebar">
-                <span>sample.json</span>
-                <span>JSON</span>
+                <span>{{ activeHomeDemoResult ? t('home.demo.localResult') : activeHomeDemoStory.file }}</span>
+                <span>{{ activeHomeDemoStory.format }}</span>
+                <button
+                  class="hero-preview-run"
+                  data-test-id="home-demo-run"
+                  type="button"
+                  :disabled="isHomeDemoRunning"
+                  @click="runHomeDemo"
+                >
+                  {{ isHomeDemoRunning ? t('home.demo.running') : t('home.demo.runSample') }}
+                </button>
+                <button
+                  v-if="activeHomeDemoResult"
+                  class="hero-preview-copy-result"
+                  data-test-id="home-demo-copy"
+                  type="button"
+                  @click="copyHomeDemoResult"
+                >
+                  {{ homeDemoCopyStatus === 'copied' ? t('home.demo.copied') : t('home.demo.copyResult') }}
+                </button>
               </div>
-              <pre><code>{
-  "status": "ready",
-  "items": [3, 8, 13]
-}</code></pre>
+              <pre tabindex="0"><code>{{ activeHomeDemoCode }}</code></pre>
+              <p v-if="homeDemoCopyStatus === 'error'" class="hero-preview-error" role="status">
+                {{ t('home.demo.copyError') }}
+              </p>
+              <p v-if="activeHomeDemoError" class="hero-preview-error" role="alert">
+                {{ t('home.demo.runError') }}
+              </p>
             </div>
-            <RouterLink class="hero-preview-link" :to="normalizePath('/json-workspace')">
-              {{ t('home.preview.cta') }}
+            <RouterLink class="hero-preview-link" :to="normalizePath(activeHomeDemoStory.path)">
+              {{ t(`home.demo.${activeHomeDemo}.cta`) }}
               <span aria-hidden="true">→</span>
             </RouterLink>
           </aside>
@@ -855,7 +1020,7 @@ function onUpdateFavoriteTools() {
   position: relative;
   min-width: 0;
   overflow: hidden;
-  padding: 20px;
+  padding: 14px;
   border: 1px solid color-mix(in srgb, var(--dd-primary) 24%, var(--dd-border));
   border-radius: 14px;
   background:
@@ -880,12 +1045,53 @@ function onUpdateFavoriteTools() {
   height: 7px;
   flex: 0 0 7px;
   border-radius: 50%;
-  background: var(--dd-success);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--dd-success) 14%, transparent);
+  background: var(--dd-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--dd-primary) 14%, transparent);
+}
+
+.hero-preview-selector {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.hero-preview-tab {
+  display: inline-flex;
+  min-width: 0;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  padding: 7px 5px;
+  border: 1px solid var(--dd-border);
+  border-radius: 8px;
+  background: var(--dd-surface-2);
+  color: var(--dd-text-soft);
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1.2;
+  transition: border-color 0.16s ease, background-color 0.16s ease, color 0.16s ease;
+
+  &[aria-pressed="true"] {
+    border-color: color-mix(in srgb, var(--dd-primary) 58%, var(--dd-border));
+    background: color-mix(in srgb, var(--dd-primary) 10%, var(--dd-surface));
+    color: var(--dd-primary);
+  }
+
+  &:hover {
+    border-color: color-mix(in srgb, var(--dd-primary) 48%, var(--dd-border));
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--dd-primary);
+    outline-offset: 2px;
+  }
 }
 
 .hero-preview-copy {
-  margin-top: 18px;
+  margin-top: 8px;
 
   .hero-preview-label {
     margin: 0 0 6px;
@@ -899,7 +1105,7 @@ function onUpdateFavoriteTools() {
   h2 {
     margin: 0;
     color: var(--dd-text);
-    font-size: 20px;
+    font-size: 18px;
     font-weight: 700;
     line-height: 1.25;
     letter-spacing: -0.02em;
@@ -916,15 +1122,18 @@ function onUpdateFavoriteTools() {
 
 .hero-preview-code {
   overflow: hidden;
-  margin-top: 16px;
+  margin-top: 8px;
   border: 1px solid var(--dd-border);
   border-radius: 9px;
   background: var(--dd-surface-2);
 
   .hero-preview-codebar {
     display: flex;
+    min-height: 56px;
+    align-items: center;
     justify-content: space-between;
-    padding: 7px 11px;
+    gap: 8px;
+    padding: 6px 8px;
     border-bottom: 1px solid var(--dd-border);
     color: var(--dd-text-muted);
     font-size: 10px;
@@ -932,15 +1141,70 @@ function onUpdateFavoriteTools() {
     letter-spacing: 0.07em;
     text-transform: uppercase;
   }
+  .hero-preview-copy-result {
+    min-width: 66px;
+    min-height: 44px;
+    flex: 0 0 auto;
+    padding: 0 8px;
+    border: 1px solid var(--dd-border);
+    border-radius: 7px;
+    background: var(--dd-surface);
+    color: var(--dd-text-soft);
+    cursor: pointer;
+    font: inherit;
+    font-size: 11px;
+    font-weight: 650;
+    letter-spacing: 0;
+    text-transform: none;
+
+    &:focus-visible {
+      outline: 2px solid var(--dd-primary);
+      outline-offset: 2px;
+    }
+  }
+
+  .hero-preview-run {
+    min-width: 88px;
+    min-height: 44px;
+    flex: 0 0 auto;
+    padding: 0 9px;
+    border: 1px solid color-mix(in srgb, var(--dd-primary) 48%, var(--dd-border));
+    border-radius: 7px;
+    background: color-mix(in srgb, var(--dd-primary) 8%, var(--dd-surface));
+    color: var(--dd-primary);
+    cursor: pointer;
+    font: inherit;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0;
+    text-transform: none;
+
+    &:disabled {
+      cursor: progress;
+      opacity: 0.72;
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--dd-primary);
+      outline-offset: 2px;
+    }
+  }
+
+  .hero-preview-error {
+    margin: 6px 10px 8px;
+    color: var(--dd-danger, var(--dd-text));
+    font-size: 12px;
+    line-height: 1.4;
+  }
 
   pre {
     overflow: hidden;
     margin: 0;
-    padding: 12px 14px;
+    padding: 8px 10px;
     color: var(--dd-text);
     font-family: var(--dd-font-mono);
-    font-size: 12px;
-    line-height: 1.65;
+    font-size: 11px;
+    line-height: 1.4;
     white-space: pre-wrap;
     overflow-wrap: anywhere;
   }
@@ -952,8 +1216,8 @@ function onUpdateFavoriteTools() {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-top: 14px;
-  padding: 10px 13px;
+  margin-top: 8px;
+  padding: 8px 13px;
   border: 1px solid var(--dd-primary);
   border-radius: 8px;
   background: var(--dd-primary);
@@ -1966,13 +2230,31 @@ function onUpdateFavoriteTools() {
     margin-top: 6px;
 
     .hero-preview-codebar {
-      padding: 6px 9px;
+      min-height: 44px;
+      gap: 4px;
+      padding: 0 9px;
+    }
+
+    .hero-preview-run {
+      min-width: 76px;
+      padding-right: 6px;
+      padding-left: 6px;
+      font-size: 10px;
+    }
+
+    .hero-preview-copy-result {
+      min-width: 58px;
+      padding-right: 6px;
+      padding-left: 6px;
+      font-size: 10px;
     }
 
     pre {
+      max-height: 48px;
+      overflow: auto;
       padding: 6px 8px;
-      font-size: 11px;
-      line-height: 1.45;
+      font-size: 10px;
+      line-height: 1.25;
     }
   }
 
