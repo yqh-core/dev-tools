@@ -52,7 +52,7 @@
 
   function isNoindexPage() {
     var meta = document.querySelector('meta[name="robots"]');
-    return !!meta && /\\bnoindex\\b/i.test(meta.getAttribute('content') || '');
+    return !!meta && /\bnoindex\b/i.test(meta.getAttribute('content') || '');
   }
 
   function pageView() {
