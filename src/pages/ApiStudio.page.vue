@@ -505,6 +505,19 @@ async function confirmOpenApiImport() {
     const duplicates = findOpenApiDuplicates(nextTree, imported);
     if (duplicates.length > 0 && openApiConflictMode.value === 'skip') {
       skipped++;
+      // Link the source operation to the existing local request so even an
+      // all-skipped first import can become refreshable without duplicating data.
+      const existing = duplicates[0];
+      if (imported.sourceKey
+        && !syncSeeds.some(seed => seed.requestId === existing.id)
+        && !syncSeeds.some(seed => seed.sourceKey === imported.sourceKey)) {
+        syncSeeds.push({
+          sourceKey: imported.sourceKey,
+          requestId: existing.id,
+          name: existing.name,
+          request: existing.request,
+        });
+      }
       continue;
     }
     if (duplicates.length > 0 && openApiConflictMode.value === 'replace') {
@@ -551,7 +564,7 @@ async function confirmOpenApiImport() {
     added++;
   }
 
-  if (added > 0) {
+  if (added > 0 || syncSeeds.length > 0) {
     try {
       if (syncSeeds.length) {
         nextTree = {
