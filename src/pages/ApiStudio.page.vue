@@ -501,8 +501,16 @@ async function confirmOpenApiImport() {
   let skipped = 0;
   let firstImportedId = '';
   const syncSeeds: Array<{ sourceKey: string; requestId: string; name: string; request: RequestNode['request'] }> = [];
+  const existingOpenApiSource = tree.value.openApiSync;
+  const previouslyLinkedRequestIds = new Set(existingOpenApiSource?.operations.map(operation => operation.requestId) ?? []);
   for (const imported of parsed.requests) {
     const duplicates = findOpenApiDuplicates(nextTree, imported);
+    if (existingOpenApiSource
+      && openApiConflictMode.value === 'replace'
+      && duplicates.some(duplicate => previouslyLinkedRequestIds.has(duplicate.id))) {
+      banner.value = `This collection is linked to "${existingOpenApiSource.fileName}". Use Refresh OpenAPI to update linked requests; this import would replace a managed request, so no changes were saved.`;
+      return;
+    }
     if (duplicates.length > 0 && openApiConflictMode.value === 'skip') {
       skipped++;
       // Link the source operation to the existing local request so even an
@@ -568,7 +576,9 @@ async function confirmOpenApiImport() {
 
   if (added > 0 || syncSeeds.length > 0) {
     try {
-      if (syncSeeds.length) {
+      // A collection has one source association in v1. A later import may add
+      // independent requests, but it must never silently replace that link.
+      if (syncSeeds.length && !existingOpenApiSource) {
         nextTree = {
           ...nextTree,
           openApiSync: await createOpenApiSyncMetadata(openApiFileName.value, parsed, syncSeeds),
@@ -588,7 +598,11 @@ async function confirmOpenApiImport() {
     }
   }
   const warningCount = parsed.warnings.length;
-  banner.value = `OpenAPI import complete: ${added} added, ${replaced} replaced, ${skipped} skipped.${warningCount ? ` Review ${warningCount} compatibility note(s) in the preview.` : ''}`;
+  const compatibilityNote = warningCount ? ` Review ${warningCount} compatibility note(s) in the preview.` : '';
+  const sourceNote = existingOpenApiSource
+    ? ` Existing source "${existingOpenApiSource.fileName}" was kept; requests from this additional import are not linked to Refresh OpenAPI.`
+    : '';
+  banner.value = `OpenAPI import complete: ${added} added, ${replaced} replaced, ${skipped} skipped.${compatibilityNote}${sourceNote}`;
   cancelOpenApiImport();
 }
 
