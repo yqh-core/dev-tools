@@ -146,7 +146,7 @@ const currentDemoStep = computed(() => demoSteps[activeDemoStep.value] ?? demoSt
               class="guided-demo-step"
               type="button"
               :aria-pressed="activeDemoStep === index"
-              aria-controls="guided-demo-detail"
+              aria-controls="guided-demo-detail guided-demo-preview"
               @click="activeDemoStep = index"
             >
               <span class="guided-demo-index">{{ item.number }}</span>
@@ -163,7 +163,7 @@ const currentDemoStep = computed(() => demoSteps[activeDemoStep.value] ?? demoSt
             <a class="guided-demo-link" href="/app/">Open the real workspace <span aria-hidden="true">→</span></a>
           </div>
 
-          <div class="guided-demo-preview" data-test-id="guided-demo-preview">
+          <div id="guided-demo-preview" class="guided-demo-preview" data-test-id="guided-demo-preview" aria-live="polite" aria-atomic="false">
             <div class="guided-demo-preview-bar">
               <div class="guided-demo-preview-context">
                 <span class="guided-demo-preview-mark" aria-hidden="true">⌁</span>
