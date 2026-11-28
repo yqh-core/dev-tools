@@ -527,7 +527,33 @@ tools:
 
   http-status-codes:
     title: HTTP 状态码
-    description: 所有HTTP状态的列表对其名称和含义解释。
+    description: 搜索已注册的 HTTP 响应状态码，理解协议语义，并区分 HTTP 响应与网络传输故障。
+    searchPlaceholder: "按状态码、名称或含义搜索…"
+    searchResults: "匹配的状态码"
+    responseBoundary: "只有收到 HTTP 响应时才存在状态码。DNS、TCP/TLS 或超时故障可能发生在响应返回之前；浏览器的 CORS 规则也可能阻止 JavaScript 读取响应。本工具不会主动检测 URL。"
+    guideToggle: "查看 1xx–5xx 状态码类别"
+    registryNote: "这里只列出注册表中的条目；未分配的数字空档会省略。厂商自定义状态码不属于标准状态码，除非注册表另有说明。"
+    categories:
+      informational: "1xx · 信息响应"
+      success: "2xx · 成功"
+      redirection: "3xx · 重定向"
+      clientError: "4xx · 客户端错误语义"
+      serverError: "5xx · 服务器错误语义"
+      search: "匹配的状态码"
+    classGuide:
+      informational: "请求尚未完成；服务器正在发送中间信息。"
+      success: "请求已被成功接收、理解并接受处理。"
+      redirection: "完成请求还需要后续操作；响应可能会指出另一个 URI。"
+      clientError: "响应描述与请求有关的错误情况，但不代表责任一定在最终用户；中间代理也可能生成此响应。"
+      serverError: "响应服务器未能完成一个看似有效的请求。网关或代理也可能生成此响应，单凭状态码无法确定故障组件。"
+    labels:
+      webDav: "WebDAV 扩展"
+      temporary: "临时注册"
+      deprecated: "已弃用"
+      unused: "未使用 / 保留"
+      reserved: "保留"
+      obsolete: "已废止"
+      legacy: "历史注册"
 
   sql-prettify:
     title: SQL 美化与格式化
