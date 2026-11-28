@@ -572,14 +572,21 @@ export const GUIDES: Record<string, ToolGuide> = {
   },
 
   '/http-status-codes': {
-    intro: 'A reference for the meaning of every HTTP status code, for when you hit an unfamiliar one.',
-    steps: ['Find the code by category or search', 'Read its official name and the usual scenario'],
+    intro: 'A searchable reference for HTTP response status codes, their registered names and the next practical step.',
+    steps: ['Search by status code, name or category', 'Read the protocol meaning and the recommended next check'],
+    notes: [
+      'A status code exists only when an HTTP response is received. DNS, connection, TLS and timeout failures can happen before a response exists; CORS can also prevent JavaScript from reading a response even when a network exchange occurred.',
+      'This is a reference, not a live URL, DNS, TLS or origin-availability checker.',
+      'The 4xx and 5xx class names describe response semantics, not guaranteed fault ownership. Proxies and gateways can generate HTTP responses too.',
+    ],
     example: { label: 'Fill in a sample query', text: '404' },
-    about: 'The complete list of HTTP status codes with their official name and a plain-language meaning for each — from 200 OK through the redirect class (3xx), client errors (4xx) and server errors (5xx). A quick reference when reading logs, writing an API client or explaining a failure to a teammate.',
+    about: 'Look up the registered meaning of an HTTP response status code and decide what to inspect next. Search by code, name or category across informational responses, successful responses, redirects, client-error responses and server-error responses. This is a protocol reference—not a URL or network diagnostic.',
     faqs: [
-      { q: '401 vs 403 — which one do I return?', a: '401 means "who are you?" — authentication is missing or invalid. 403 means "I know who you are and you still cannot do this." If re-login could fix it, use 401; otherwise 403.' },
-      { q: '301, 302, 307 — what is the practical difference?', a: '301 is permanent and clients may cache it forever; 302 is temporary but legacy clients may switch method to GET; 307 is temporary with the method preserved. For a temporary POST redirect, 307 is the safe modern answer.' },
-      { q: 'Is a 4xx my fault or the client\'s?', a: 'Convention: 4xx means the request was bad (bad URL, bad credentials, rate limited) and the client must change something; 5xx means the server failed despite a valid request.' },
+      { q: '401 vs 403 — what is the protocol difference?', a: 'A 401 response means the request lacks valid authentication credentials for the target resource, and the server MUST send at least one applicable WWW-Authenticate challenge. A 403 means the server understood the request but refuses to fulfill it. The reason may be unrelated to credentials, so 403 does not prove that the user is authenticated. As a mnemonic only: 401 asks for an authentication challenge; 403 refuses the request.' },
+      { q: 'How do 301, 302, 303, 307 and 308 differ?', a: '301 is a permanent redirect and 302 is a temporary redirect; for historical compatibility, a user agent may change POST to GET when following either one. 303 directs the client to retrieve an indirect response at another URI, typically with GET or HEAD. 307 is temporary and 308 is permanent; both require the user agent to preserve the request method. Use 307 or 308 when method preservation matters.' },
+      { q: 'Does 301 mean clients cache the redirect forever?', a: 'No. 301 is heuristically cacheable unless cache controls say otherwise. A cache still follows its freshness and validation rules; "permanent" describes the redirect semantics, not an instruction to cache forever.' },
+      { q: 'Does a 4xx always mean the client is at fault?', a: 'No. The 4xx and 5xx labels classify the response; they do not establish who caused it. An intermediary such as a proxy or gateway can generate a response. Use the individual code and request context: validate input for 400, inspect the authentication challenge for 401, review access policy for 403, reconcile resource state for 409, correct semantic content for 422, and respect Retry-After or backoff for 429.' },
+      { q: 'Can a network error have an HTTP status code?', a: 'Not always. DNS lookup, TCP connection, TLS negotiation or a timeout can fail before any HTTP response is received, so there may be no HTTP status code. CORS can also prevent browser JavaScript from exposing a response even if the network exchange happened.' },
     ],
     relatedNotes: [
       {
