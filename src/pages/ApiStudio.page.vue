@@ -4257,14 +4257,16 @@ function onMenuSelect(key: string, node: TreeNode) {
     max-height: 399px;
   }
 
-  .api-sidebar:has(.api-data-disclosure[open]):has([data-test-id="openapi-preview"]) {
+  .api-sidebar:has(.api-data-disclosure[open]):has([data-test-id="openapi-preview"]),
+  .api-sidebar:has(.api-data-disclosure[open]):has([data-test-id="openapi-refresh-preview"]) {
     height: min(90dvh, 720px);
     max-height: 720px;
     overflow-y: auto;
     overscroll-behavior: contain;
   }
 
-  .api-sidebar:has([data-test-id="openapi-preview"]) .api-tree {
+  .api-sidebar:has([data-test-id="openapi-preview"]) .api-tree,
+  .api-sidebar:has([data-test-id="openapi-refresh-preview"]) .api-tree {
     flex: 0 0 auto;
     max-height: 160px;
   }
