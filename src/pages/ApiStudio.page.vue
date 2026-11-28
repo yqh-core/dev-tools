@@ -514,8 +514,10 @@ async function confirmOpenApiImport() {
         syncSeeds.push({
           sourceKey: imported.sourceKey,
           requestId: existing.id,
-          name: existing.name,
-          request: existing.request,
+          // The imported document is the baseline; the skipped node remains a
+          // local override and is therefore preserved on a same-spec refresh.
+          name: imported.name,
+          request: imported.request,
         });
       }
       continue;
