@@ -16,6 +16,7 @@ import {
   addRequest,
   chainSources,
   countRequests,
+  findNode,
   findRequestNode,
   folderMoveOptions,
   isFolderNode,
@@ -25,6 +26,7 @@ import {
   renameNode,
   reorderNode,
   reparentNode,
+  requestNodeFromImported,
   serializeCollectionTree,
   updateFolderScripts,
   updateRequestNode,
@@ -39,6 +41,8 @@ import { redactText } from '@/tools/api-debugger/report';
 import { runScriptIsolated } from '@/tools/api-debugger/script-sandbox';
 import * as environmentEngine from '@/tools/api-debugger/environments';
 import { exportCollectionTree, importCollectionTree } from '@/tools/api-debugger/collection';
+import { importOpenApi } from '@/tools/api-debugger/openapi';
+import type { ImportedRequest } from '@/tools/api-debugger/openapi';
 import { buildDownloadFilename, downloadTextFile } from '@/composable/downloadText';
 import {
   API_STUDIO_BACKUP_MAX_BYTES,
@@ -95,6 +99,16 @@ const runResultStatus = computed(() => {
 // Postman 导入/导出：filePicker=隐藏文件选择器；importWarnings=上次导入的兼容性提示（UI 可见，不静默丢弃）
 const filePicker = ref<HTMLInputElement | null>(null);
 const importWarnings = ref<string[]>([]);
+const openApiFilePicker = ref<HTMLInputElement | null>(null);
+const openApiFileName = ref('');
+const openApiSpecText = ref('');
+const openApiServerUrl = ref('');
+const openApiTargetFolder = ref('');
+const openApiConflictMode = ref<'skip' | 'replace' | 'append'>('skip');
+const OPENAPI_IMPORT_MAX_BYTES = 2 * 1024 * 1024;
+const openApiPreview = computed(() => openApiSpecText.value
+  ? importOpenApi(openApiSpecText.value, { serverUrl: openApiServerUrl.value || undefined })
+  : null);
 const backupFilePicker = ref<HTMLInputElement | null>(null);
 const backupRestore = ref<{ backup: ApiStudioBackupV1; preview: ApiStudioBackupPreview } | null>(null);
 const backupRestoreStrategy = ref<BackupRestoreStrategy>('replace');
@@ -284,6 +298,177 @@ function onImportFilePicked(e: Event) {
     banner.value = 'Could not read that file. Try again, or pick a valid Postman v2.1 collection.';
   };
   reader.readAsText(file);
+}
+
+// ── OpenAPI 3.x import (local parse + explicit preview; never sends a request) ──
+function openOpenApiPicker() {
+  openApiFilePicker.value?.click();
+}
+
+function cancelOpenApiImport() {
+  openApiSpecText.value = '';
+  openApiFileName.value = '';
+  openApiServerUrl.value = '';
+  openApiTargetFolder.value = '';
+  openApiConflictMode.value = 'skip';
+}
+
+function onOpenApiFilePicked(e: Event) {
+  const input = e.target as HTMLInputElement;
+  const file = input.files?.[0];
+  input.value = '';
+  // A failed replacement file must not leave an older preview available to import.
+  cancelOpenApiImport();
+  if (!file) {
+    return;
+  }
+  if (file.size > OPENAPI_IMPORT_MAX_BYTES) {
+    banner.value = 'OpenAPI file is too large (maximum 2 MB). Your current collection was not changed.';
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = () => {
+    const raw = String(reader.result ?? '');
+    const parsed = importOpenApi(raw);
+    if (parsed.requests.length === 0) {
+      banner.value = parsed.warnings[0] ?? 'No OpenAPI operations could be imported. Your collection was not changed.';
+      return;
+    }
+    openApiFileName.value = file.name;
+    openApiSpecText.value = raw;
+    openApiServerUrl.value = parsed.servers[0] ?? '';
+    openApiTargetFolder.value = '';
+    openApiConflictMode.value = 'skip';
+    banner.value = 'OpenAPI spec parsed locally. Review the preview before adding requests.';
+  };
+  reader.onerror = () => {
+    banner.value = 'Could not read the OpenAPI file. Your current collection was not changed.';
+  };
+  reader.readAsText(file);
+}
+
+function findOpenApiDuplicates(source: CollectionNode, imported: ImportedRequest): RequestNode[] {
+  const targetMethod = imported.request.method.trim().toUpperCase();
+  const targetUrl = imported.request.url.trim();
+  const matches: RequestNode[] = [];
+  const walk = (items: TreeNode[]) => {
+    for (const item of items) {
+      if (isFolderNode(item)) {
+        walk(item.items);
+      }
+      else if (item.request.method.trim().toUpperCase() === targetMethod && item.request.url.trim() === targetUrl) {
+        matches.push(item);
+      }
+    }
+  };
+  walk(source.items);
+  return matches;
+}
+
+function hasOpenApiRequestName(source: CollectionNode, name: string): boolean {
+  const target = name.trim().toLowerCase();
+  const walk = (items: TreeNode[]): boolean => items.some((item) => {
+    if (isFolderNode(item)) {
+      return walk(item.items);
+    }
+    return item.name.trim().toLowerCase() === target;
+  });
+  return walk(source.items);
+}
+
+const openApiDuplicateCount = computed(() => {
+  const parsed = openApiPreview.value;
+  if (!parsed) {
+    return 0;
+  }
+  const seen = new Set<string>();
+  let count = 0;
+  for (const request of parsed.requests) {
+    const key = `${request.request.method.trim().toUpperCase()} ${request.request.url.trim()}`;
+    if (findOpenApiDuplicates(tree.value, request).length > 0 || seen.has(key)) {
+      count++;
+    }
+    seen.add(key);
+  }
+  return count;
+});
+
+function confirmOpenApiImport() {
+  const parsed = openApiPreview.value;
+  if (!parsed || parsed.requests.length === 0) {
+    banner.value = 'There are no supported OpenAPI operations to import.';
+    return;
+  }
+  const parentId = openApiTargetFolder.value || null;
+  if (parentId) {
+    const target = findNode(tree.value, parentId);
+    if (!target || !isFolderNode(target.node)) {
+      banner.value = 'The selected destination folder no longer exists. Review the preview and choose another folder.';
+      return;
+    }
+  }
+
+  // Build against an immutable working copy and persist once, only after every
+  // request has been accepted by the collection tree helpers.
+  let nextTree = tree.value;
+  let added = 0;
+  let replaced = 0;
+  let skipped = 0;
+  let firstImportedId = '';
+  for (const imported of parsed.requests) {
+    const duplicates = findOpenApiDuplicates(nextTree, imported);
+    if (duplicates.length > 0 && openApiConflictMode.value === 'skip') {
+      skipped++;
+      continue;
+    }
+    if (duplicates.length > 0 && openApiConflictMode.value === 'replace') {
+      for (const duplicate of duplicates) {
+        nextTree = removeNode(nextTree, duplicate.id).tree;
+        replaced++;
+      }
+    }
+
+    let name = imported.name;
+    let id: string | undefined = requestNodeFromImported(imported).id;
+    if (duplicates.length > 0 && openApiConflictMode.value === 'append') {
+      let suffix = 2;
+      const baseName = imported.name;
+      name = `${baseName} (imported ${suffix})`;
+      while (hasOpenApiRequestName(nextTree, name)) {
+        suffix++;
+        name = `${baseName} (imported ${suffix})`;
+      }
+      id = undefined;
+    }
+
+    const inserted = addRequest(nextTree, parentId, {
+      ...(id ? { id } : {}),
+      name,
+      request: imported.request,
+    });
+    if (inserted.error || !inserted.node) {
+      banner.value = `Import stopped: ${inserted.error ?? 'a request could not be added'}. No partial collection changes were saved.`;
+      return;
+    }
+    nextTree = inserted.tree;
+    if (!firstImportedId) {
+      firstImportedId = inserted.node.id;
+    }
+    added++;
+  }
+
+  if (added > 0) {
+    applyTree(nextTree);
+    if (firstImportedId) {
+      selectNode(firstImportedId);
+    }
+    if (parentId) {
+      collapsed.value = new Set([...collapsed.value].filter(id => id !== parentId));
+    }
+  }
+  const warningCount = parsed.warnings.length;
+  banner.value = `OpenAPI import complete: ${added} added, ${replaced} replaced, ${skipped} skipped.${warningCount ? ` Review ${warningCount} compatibility note(s) in the preview.` : ''}`;
+  cancelOpenApiImport();
 }
 
 function exportPostman() {
@@ -1309,7 +1494,7 @@ function onMenuSelect(key: string, node: TreeNode) {
         <summary class="api-data-summary">
           <span class="api-data-summary-copy">
             <strong>Data tools</strong>
-            <span>Backup · restore · Postman import/export</span>
+            <span>Backup · restore · Postman · OpenAPI import/export</span>
           </span>
           <span class="api-data-chevron" aria-hidden="true">⌄</span>
         </summary>
@@ -1329,6 +1514,9 @@ function onMenuSelect(key: string, node: TreeNode) {
           <button class="api-tool-btn" type="button" title="Export this collection as Postman v2.1" data-test-id="export-collection" @click="exportPostman">
             Export Postman
           </button>
+          <button class="api-tool-btn" type="button" title="Import a supported OpenAPI 3.x JSON or YAML specification" data-test-id="import-openapi" @click="openOpenApiPicker">
+            Import OpenAPI
+          </button>
         </div>
       </details>
       <input
@@ -1340,6 +1528,14 @@ function onMenuSelect(key: string, node: TreeNode) {
         @change="onImportFilePicked"
       >
       <input
+        ref="openApiFilePicker"
+        type="file"
+        accept=".json,.yaml,.yml,application/json,application/yaml,text/yaml"
+        class="api-file-input"
+        data-test-id="openapi-file"
+        @change="onOpenApiFilePicked"
+      >
+      <input
         ref="backupFilePicker"
         type="file"
         accept=".json,application/json"
@@ -1348,6 +1544,53 @@ function onMenuSelect(key: string, node: TreeNode) {
         @change="onBackupRestoreFilePicked"
       >
 
+      <section v-if="openApiPreview" class="api-import-notes api-backup-preview" data-test-id="openapi-preview" aria-label="OpenAPI import preview">
+        <div class="api-import-notes-head">OpenAPI import preview</div>
+        <p><strong>{{ openApiFileName }}</strong> · {{ openApiPreview.requests.length }} operation(s) · {{ openApiPreview.source.toUpperCase() }}</p>
+        <p>This file was parsed in your browser. Import does not send requests, call the API relay or fetch remote references.</p>
+        <p>Path, query, header and server placeholders such as <code v-pre>{{id}}</code> must be given values in the Environment manager before sending a request. Authentication schemes are not auto-configured.</p>
+        <div class="api-io-row" role="group" aria-label="OpenAPI import options">
+          <label class="api-openapi-field">
+            <span>Server</span>
+            <select v-model="openApiServerUrl" data-test-id="openapi-server">
+              <option value="">Relative paths</option>
+              <option v-for="server in openApiPreview.servers" :key="server" :value="server">{{ server }}</option>
+            </select>
+          </label>
+          <label class="api-openapi-field">
+            <span>Destination</span>
+            <select v-model="openApiTargetFolder" data-test-id="openapi-destination">
+              <option value="">Collection root</option>
+              <option v-for="folder in folderMoveOptions(tree)" :key="folder.value" :value="folder.value">{{ folder.label }}</option>
+            </select>
+          </label>
+          <label v-if="openApiDuplicateCount > 0" class="api-openapi-field">
+            <span>{{ openApiDuplicateCount }} duplicate(s)</span>
+            <select v-model="openApiConflictMode" data-test-id="openapi-conflicts">
+              <option value="skip">Skip duplicates</option>
+              <option value="replace">Replace all matching requests</option>
+              <option value="append">Append copies with suffix</option>
+            </select>
+          </label>
+        </div>
+        <ul class="api-import-warning-list api-openapi-operation-list" data-test-id="openapi-operations">
+          <li v-for="operation in openApiPreview.requests.slice(0, 20)" :key="`${operation.name}:${operation.request.method}:${operation.request.url}`">
+            <code>{{ operation.request.method }}</code> <strong>{{ operation.name }}</strong> <span>{{ operation.request.url }}</span>
+          </li>
+          <li v-if="openApiPreview.requests.length > 20">And {{ openApiPreview.requests.length - 20 }} more operation(s).</li>
+        </ul>
+        <ul v-if="openApiPreview.warnings.length" class="api-import-warning-list" data-test-id="openapi-warnings">
+          <li v-for="warning in openApiPreview.warnings" :key="warning">{{ warning }}</li>
+        </ul>
+        <p v-if="openApiDuplicateCount === 0">No matching method + URL requests currently exist.</p>
+        <p v-else data-test-id="openapi-duplicate-count">{{ openApiDuplicateCount }} matching operation(s) already exist in this collection or import file.</p>
+        <div class="api-io-row" role="group" aria-label="OpenAPI import confirmation">
+          <button class="api-tool-btn" type="button" data-test-id="cancel-openapi-import" @click="cancelOpenApiImport">Cancel</button>
+          <button class="api-tool-btn api-run-btn" type="button" data-test-id="confirm-openapi-import" @click="confirmOpenApiImport">
+            Import {{ openApiPreview.requests.length }} request(s)
+          </button>
+        </div>
+      </section>
       <section v-if="backupRestore" class="api-import-notes api-backup-preview" data-test-id="backup-restore-preview" aria-label="Backup restore preview">
         <div class="api-import-notes-head">Backup restore preview</div>
         <p><strong>{{ backupRestore.preview.collectionName }}</strong> · {{ backupRestore.preview.requestCount }} request(s) · {{ backupRestore.preview.folderCount }} folder(s)</p>
@@ -2240,6 +2483,54 @@ function onMenuSelect(key: string, node: TreeNode) {
   background: var(--api-warning-soft, var(--api-surface));
 }
 
+.api-openapi-field {
+  display: flex;
+  flex: 1 1 180px;
+  min-width: 0;
+  flex-direction: column;
+  gap: 4px;
+  color: var(--api-text-muted);
+  font-size: var(--api-fs-xs);
+}
+.api-openapi-field select {
+  width: 100%;
+  min-width: 0;
+  min-height: 36px;
+  padding: 0 8px;
+  border: 1px solid var(--api-border);
+  border-radius: var(--api-radius-sm);
+  background: var(--api-surface);
+  color: var(--api-text);
+  font: inherit;
+}
+.api-import-warning-list {
+  margin: 8px 0;
+  padding-left: 20px;
+  color: var(--api-text-soft);
+  font-size: var(--api-fs-xs);
+}
+.api-openapi-operation-list {
+  max-height: 180px;
+  overflow: auto;
+  overflow-wrap: anywhere;
+}
+.api-openapi-operation-list code {
+  display: inline-block;
+  min-width: 42px;
+  margin-right: 4px;
+}
+.api-openapi-operation-list span {
+  color: var(--api-text-muted);
+  font-family: var(--api-font-mono);
+}
+.api-import-warning-list li + li {
+  margin-top: 4px;
+}
+@media (max-width: 640px) {
+  .api-openapi-field {
+    grid-column: 1 / -1;
+  }
+}
 .api-import-notes-head {
   font-size: var(--api-fs-sm);
   font-weight: 600;
@@ -3651,6 +3942,18 @@ function onMenuSelect(key: string, node: TreeNode) {
     box-sizing: border-box;
     height: min(50dvh, 399px);
     max-height: 399px;
+  }
+
+  .api-sidebar:has(.api-data-disclosure[open]):has([data-test-id="openapi-preview"]) {
+    height: min(90dvh, 720px);
+    max-height: 720px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .api-sidebar:has([data-test-id="openapi-preview"]) .api-tree {
+    flex: 0 0 auto;
+    max-height: 160px;
   }
 
   /* Keep high-frequency request/environment controls visible while the tree

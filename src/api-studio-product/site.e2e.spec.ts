@@ -1,3 +1,4 @@
+import { Buffer } from 'node:buffer';
 import { expect, test } from '@playwright/test';
 
 interface RelayHeader {
@@ -321,7 +322,7 @@ test('workspace data tools stay secondary behind a keyboard-accessible disclosur
   await expect(page.getByTestId('import-file')).toHaveCount(1);
   await expect(page.getByTestId('backup-file')).toHaveCount(1);
   await page.screenshot({ path: testInfo.outputPath('workspace-data-tools-desktop-collapsed.png') });
-  for (const id of ['backup-safe', 'backup-with-secrets', 'restore-backup', 'import-collection', 'export-collection']) {
+  for (const id of ['backup-safe', 'backup-with-secrets', 'restore-backup', 'import-collection', 'export-collection', 'import-openapi']) {
     await expect(page.getByTestId(id)).toBeHidden();
   }
 
@@ -330,7 +331,7 @@ test('workspace data tools stay secondary behind a keyboard-accessible disclosur
   await expect(disclosure).toHaveJSProperty('open', true);
   const dataControls = page.getByRole('group', { name: 'Backup and collection transfer' });
   await expect(dataControls).toBeVisible();
-  for (const id of ['backup-safe', 'backup-with-secrets', 'restore-backup', 'import-collection', 'export-collection']) {
+  for (const id of ['backup-safe', 'backup-with-secrets', 'restore-backup', 'import-collection', 'export-collection', 'import-openapi']) {
     await expect(page.getByTestId(id)).toBeVisible();
   }
   await page.screenshot({ path: testInfo.outputPath('workspace-data-tools-desktop-expanded.png') });
@@ -345,6 +346,168 @@ test('workspace data tools stay secondary behind a keyboard-accessible disclosur
   await summary.focus();
   await page.keyboard.press('Enter');
   await expect(disclosure).toHaveJSProperty('open', false);
+});
+
+test('OpenAPI import preview is local, selectable and cancellable on mobile', async ({ page }, testInfo) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  const relayCalls: string[] = [];
+  page.on('request', (request) => {
+    if (request.url().includes('/api/apiproxy')) {
+      relayCalls.push(request.url());
+    }
+  });
+  await page.goto('/app/');
+  await page.getByTestId('data-tools-disclosure').locator('summary').click();
+
+  const before = await page.evaluate(() => ({
+    tree: localStorage.getItem('api-studio:tree'),
+    environments: localStorage.getItem('api-debugger:env'),
+  }));
+  const yaml = `openapi: 3.0.3
+servers:
+  - url: https://api.example.test/v1
+  - url: https://staging.example.test/v1
+paths:
+  /users/{id}:
+    get:
+      operationId: getUser
+      parameters:
+        - name: id
+          in: path
+        - name: verbose
+          in: query
+`;
+  await page.getByTestId('openapi-file').setInputFiles({
+    name: 'users.yaml',
+    mimeType: 'application/yaml',
+    buffer: Buffer.from(yaml),
+  });
+
+  const preview = page.getByTestId('openapi-preview');
+  await expect(preview).toBeVisible();
+  await expect(preview).toContainText('1 operation(s)');
+  await expect(page.getByTestId('openapi-server').locator('option')).toHaveCount(3);
+  await page.getByTestId('openapi-server').selectOption('https://staging.example.test/v1');
+  await expect(page.getByTestId('openapi-operations')).toContainText('https://staging.example.test/v1/users/{{id}}?verbose={{verbose}}');
+
+  const dimensions = await page.evaluate(() => ({
+    documentWidth: document.documentElement.scrollWidth,
+    viewportWidth: document.documentElement.clientWidth,
+    previewWidth: document.querySelector('[data-test-id="openapi-preview"]')?.getBoundingClientRect().width ?? 0,
+  }));
+  expect(dimensions.documentWidth).toBeLessThanOrEqual(dimensions.viewportWidth);
+  expect(dimensions.previewWidth).toBeLessThanOrEqual(dimensions.viewportWidth);
+  await page.screenshot({ path: testInfo.outputPath('openapi-preview-mobile.png') });
+  await page.getByTestId('confirm-openapi-import').scrollIntoViewIfNeeded();
+  await expect(page.getByTestId('openapi-operations')).toBeVisible();
+  await expect(page.getByTestId('confirm-openapi-import')).toBeVisible();
+  await page.screenshot({ path: testInfo.outputPath('openapi-preview-mobile-actions.png') });
+
+  await page.getByTestId('cancel-openapi-import').scrollIntoViewIfNeeded();
+  await expect(page.getByTestId('cancel-openapi-import')).toBeVisible();
+  await page.getByTestId('cancel-openapi-import').click();
+  await expect(page.getByTestId('openapi-preview')).toHaveCount(0);
+
+  await page.getByTestId('openapi-file').setInputFiles({
+    name: 'invalid.yaml',
+    mimeType: 'application/yaml',
+    buffer: Buffer.from('openapi: [not valid'),
+  });
+  await expect(page.getByTestId('openapi-preview')).toHaveCount(0);
+  await expect(page.locator('.api-banner')).toContainText('Not valid JSON or YAML');
+
+  await page.getByTestId('openapi-file').setInputFiles({
+    name: 'too-large.yaml',
+    mimeType: 'application/yaml',
+    buffer: Buffer.alloc(2 * 1024 * 1024 + 1, 'x'),
+  });
+  await expect(page.getByTestId('openapi-preview')).toHaveCount(0);
+  await expect(page.locator('.api-banner')).toContainText('maximum 2 MB');
+
+  const after = await page.evaluate(() => ({
+    tree: localStorage.getItem('api-studio:tree'),
+    environments: localStorage.getItem('api-debugger:env'),
+  }));
+  expect(after).toEqual(before);
+  expect(relayCalls).toEqual([]);
+});
+
+test('OpenAPI import targets a folder and exposes skip, append and replace duplicate policies', async ({ page }, testInfo) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  const relayCalls: string[] = [];
+  page.on('request', (request) => {
+    if (request.url().includes('/api/apiproxy')) {
+      relayCalls.push(request.url());
+    }
+  });
+  await page.addInitScript(() => {
+    localStorage.setItem('api-studio:tree', JSON.stringify({
+      id: 'root',
+      name: 'Collection',
+      items: [{ id: 'api-folder', name: 'Imported API', items: [] }],
+    }));
+  });
+  await page.goto('/app/');
+  await page.getByTestId('data-tools-disclosure').locator('summary').click();
+
+  const spec = JSON.stringify({
+    openapi: '3.0.3',
+    servers: [
+      { url: 'https://api.example.test/v1' },
+      { url: 'https://staging.example.test/v1' },
+    ],
+    paths: {
+      '/users/{id}': {
+        get: {
+          operationId: 'getUser',
+          parameters: [{ name: 'id', in: 'path' }],
+          responses: { 200: { description: 'OK' } },
+        },
+      },
+    },
+  });
+  const upload = async () => {
+    await page.getByTestId('openapi-file').setInputFiles({
+      name: 'users.json',
+      mimeType: 'application/json',
+      buffer: Buffer.from(spec),
+    });
+    await expect(page.getByTestId('openapi-preview')).toBeVisible();
+    await page.getByTestId('openapi-destination').selectOption('api-folder');
+  };
+
+  await upload();
+  await expect(page.getByTestId('openapi-operations')).toContainText('GET');
+  await page.screenshot({ path: testInfo.outputPath('openapi-preview-desktop.png') });
+  await page.getByTestId('confirm-openapi-import').click();
+
+  const first = await page.evaluate(() => JSON.parse(localStorage.getItem('api-studio:tree') ?? 'null'));
+  expect(first.items[0].items).toHaveLength(1);
+  expect(first.items[0].items[0].request.url).toBe('https://api.example.test/v1/users/{{id}}');
+
+  await upload();
+  await expect(page.getByTestId('openapi-conflicts')).toBeVisible();
+  await expect(page.getByTestId('openapi-duplicate-count')).toHaveText('1 matching operation(s) already exist in this collection or import file.');
+  await page.getByTestId('openapi-conflicts').selectOption('skip');
+  await page.getByTestId('confirm-openapi-import').click();
+  let saved = await page.evaluate(() => JSON.parse(localStorage.getItem('api-studio:tree') ?? 'null'));
+  expect(saved.items[0].items).toHaveLength(1);
+
+  await upload();
+  await page.getByTestId('openapi-conflicts').selectOption('append');
+  await page.getByTestId('confirm-openapi-import').click();
+  saved = await page.evaluate(() => JSON.parse(localStorage.getItem('api-studio:tree') ?? 'null'));
+  expect(saved.items[0].items).toHaveLength(2);
+  expect(saved.items[0].items[1].name).toBe('getUser (imported 2)');
+
+  await upload();
+  await page.getByTestId('openapi-conflicts').selectOption('replace');
+  await page.getByTestId('confirm-openapi-import').click();
+  saved = await page.evaluate(() => JSON.parse(localStorage.getItem('api-studio:tree') ?? 'null'));
+  expect(saved.items[0].items).toHaveLength(1);
+  expect(saved.items[0].items[0].name).toBe('getUser');
+  await page.screenshot({ path: testInfo.outputPath('openapi-imported-folder-desktop.png') });
+  expect(relayCalls).toEqual([]);
 });
 
 test('workspace data disclosure preserves first-request priority on a 390px screen', async ({ page }, testInfo) => {
@@ -368,9 +531,10 @@ test('workspace data disclosure preserves first-request priority on a 390px scre
   await expect(disclosure).toHaveJSProperty('open', true);
   await expect(page.getByTestId('backup-safe')).toBeVisible();
   await expect(page.getByTestId('import-collection')).toBeVisible();
+  await expect(page.getByTestId('import-openapi')).toBeVisible();
   await expect(page.getByTestId('api-studio-root')).toBeVisible();
   await expect(page.getByTestId('create-first-request')).toBeVisible();
-  for (const id of ['backup-safe', 'backup-with-secrets', 'restore-backup', 'import-collection', 'export-collection']) {
+  for (const id of ['backup-safe', 'backup-with-secrets', 'restore-backup', 'import-collection', 'export-collection', 'import-openapi']) {
     const target = await page.getByTestId(id).boundingBox();
     expect(target?.height ?? 0).toBeGreaterThanOrEqual(44);
   }

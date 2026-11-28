@@ -110,3 +110,104 @@ describe('negative controls (never crash, honest warnings)', () => {
     expect(r.warnings.join(' ')).toContain('servers');
   });
 });
+
+describe('importOpenApi server selection and unsupported constructs', () => {
+  const multiServerSpec = JSON.stringify({
+    openapi: '3.1.0',
+    servers: [
+      { url: 'https://api.example.test/v1' },
+      { url: 'https://staging.example.test/v1' },
+    ],
+    paths: {
+      '/users/{id}': {
+        get: {
+          operationId: 'getUser',
+          parameters: [
+            { name: 'id', in: 'path' },
+            { name: 'verbose', in: 'query' },
+          ],
+        },
+      },
+    },
+  });
+
+  it('exposes declared servers and builds URLs from an explicitly selected server', () => {
+    const initial = importOpenApi(multiServerSpec);
+    const staging = importOpenApi(multiServerSpec, { serverUrl: 'https://staging.example.test/v1' });
+    expect(initial.servers).toEqual([
+      'https://api.example.test/v1',
+      'https://staging.example.test/v1',
+    ]);
+    expect(initial.requests[0].request.url).toBe('https://api.example.test/v1/users/{{id}}?verbose={{verbose}}');
+    expect(staging.requests[0].request.url).toBe('https://staging.example.test/v1/users/{{id}}?verbose={{verbose}}');
+  });
+
+  it('does not silently accept a server URL absent from the spec', () => {
+    const parsed = importOpenApi(multiServerSpec, { serverUrl: 'https://untrusted.example.test' });
+    expect(parsed.requests[0].request.url).toContain('https://api.example.test/v1/');
+    expect(parsed.warnings.join(' ')).toContain('not declared by this spec');
+  });
+
+  it('converts server variables into environment placeholders with a warning', () => {
+    const parsed = importOpenApi(JSON.stringify({
+      openapi: '3.0.3',
+      servers: [{ url: 'https://{region}.example.test/{basePath}' }],
+      paths: { '/ping': { get: {} } },
+    }));
+    expect(parsed.requests[0].request.url).toBe('https://{{region}}.example.test/{{basePath}}/ping');
+    expect(parsed.warnings.join(' ')).toContain('Server URL variables');
+  });
+
+  it('warns when security schemes or non-JSON request bodies are not imported', () => {
+    const parsed = importOpenApi(JSON.stringify({
+      openapi: '3.0.3',
+      security: [{ bearerAuth: [] }],
+      components: { securitySchemes: { bearerAuth: { type: 'http', scheme: 'bearer' } } },
+      paths: {
+        '/upload': {
+          post: {
+            requestBody: { content: { 'multipart/form-data': { schema: { type: 'object' } } } },
+          },
+        },
+      },
+    }));
+    expect(parsed.warnings.join(' ')).toContain('security schemes are not imported');
+    expect(parsed.warnings.join(' ')).toContain('media types other than application/json');
+  });
+
+  it('warns for path-level and operation-level servers rather than silently claiming support', () => {
+    const parsed = importOpenApi(JSON.stringify({
+      openapi: '3.0.3',
+      servers: [{ url: 'https://api.example.test' }],
+      paths: {
+        '/special': {
+          servers: [{ url: 'https://other.example.test' }],
+          get: { servers: [{ url: 'https://operation.example.test' }] },
+        },
+      },
+    }));
+    expect(parsed.warnings.join(' ')).toContain('Path-level or operation-level servers');
+    expect(parsed.requests[0].request.url).toBe('https://api.example.test/special');
+  });
+});
+
+describe('importOpenApi reference limits', () => {
+  it('warns when path items and request bodies contain unresolved refs', () => {
+    const parsed = importOpenApi(JSON.stringify({
+      openapi: '3.0.3',
+      paths: {
+        '/referenced-path': {
+          $ref: '#/components/pathItems/Shared',
+        },
+        '/referenced-body': {
+          post: {
+            requestBody: { $ref: '#/components/requestBodies/Shared' },
+          },
+        },
+      },
+    }));
+    expect(parsed.warnings.join(' ')).toContain('OpenAPI $ref pointers were not resolved');
+    expect(parsed.requests).toHaveLength(1);
+    expect(parsed.requests[0].request.body).toBe('');
+  });
+});
