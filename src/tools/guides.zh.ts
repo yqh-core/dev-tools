@@ -2327,7 +2327,7 @@ export const GUIDES: Record<string, ToolGuide> = {
     ],
     notes: [
       '本页只分析你粘贴的响应头或导入的本地捕获文件，不会主动请求 URL，也不检查 TLS、应用代码或服务端行为。',
-      'HAR 文件可能包含 Cookie、Authorization 值和个人信息。导入前请检查文件，不要公开分享；文件大小限制为 10 MB。',
+      'HAR 文件可能包含 Cookie、Authorization 值和个人信息。导入前请检查文件，不要公开分享；文件大小限制为 10 MiB。',
       '导入器只读取分析所需的响应状态和响应头；请求头和响应正文不会显示，也不会发送到服务器。',
       '配置生成器只为明确缺失的低上下文响应头添加建议，例如 X-Content-Type-Options、Referrer-Policy 和 HSTS。不会自动编造依赖具体应用的 CSP、CORS、框架策略、Permissions-Policy 或 Cookie 规则。',
       '评分是按权重计算的响应头覆盖清单，不是 OWASP 评级、渗透测试，也不代表应用整体安全。',
