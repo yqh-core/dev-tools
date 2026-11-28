@@ -436,7 +436,6 @@ export const codesByCategories: {
   },
 ];
 
-
 /** IANA/RFC lifecycle labels that are not implied by the numeric status class. */
 export const registryStatusByCode: Record<number, 'temporary' | 'deprecated' | 'unused' | 'reserved' | 'obsolete' | 'legacy'> = {
   102: 'legacy',
