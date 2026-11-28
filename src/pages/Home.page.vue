@@ -940,8 +940,8 @@ function onUpdateFavoriteTools() {
   height: 7px;
   flex: 0 0 7px;
   border-radius: 50%;
-  background: var(--dd-success);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--dd-success) 14%, transparent);
+  background: var(--dd-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--dd-primary) 14%, transparent);
 }
 
 .hero-preview-selector {
