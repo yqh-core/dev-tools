@@ -1,3 +1,37 @@
+# DigDevBox live continuation — 2026-11-28 2026-11-28T13:40:50.128Z (authoritative override)
+
+## Current execution state
+- Shared engineering repository: yqh-core/dev-tools. Observed main SHA: 3b1eff8a17b965979aed96e419d6e484b6c7470a.
+- Single active code WIP: API Studio Issue #280 / PR #283, branch feat/api-studio-openapi-safe-refresh-20261128, exact HEAD d7c83d5022e31649d1822492e719acf7e9d8dad4. PR is OPEN and mergeable at last poll.
+- Commits 065b80ebbc0ca0915a17f89e7c75eb39d2d2ae59 and d7c83d5022e31649d1822492e719acf7e9d8dad4 correct test-only expectations: supported assertion operator eq, and the non-destructive rule that Replace duplicates cannot delete source-managed requests.
+- Exact-head CI #46150370635 and Verify/Build #46150370618 were IN_PROGRESS at last poll. Cloudflare Pages check was SUCCESS. Re-fetch current exact-head checks and preview before claiming completion. No merge yet.
+- Previous browser failures were test-fixture/expectation issues, not proven product defects: invalid operator equals was rejected by strict parser; the older test expected destructive replacement despite the source-managed-request guard. Updated tests must pass on the current exact SHA.
+- A desktop refresh-conflict screenshot from the immediately preceding code-equivalent run was inspected at 1440x900. Latest exact-head artifact and mobile 390x844 refresh-preview/action screenshots still require review.
+
+## Next shared-repository sequence
+1. Finish #283 exact-head CI, independent API Studio Verify/Build Chromium E2E, Cloudflare Preview and current desktop/mobile screenshot review. Merge only when all required gates are terminal-success, then verify merge-SHA workflows and deployment separately.
+2. Resume existing DigDevBox Main PR #258 only after #283 merge. Its old branch is 364f15617b1d8f3cfe056cd02f7165807d94d22d, old base 00408c45cd476d9e4df3f8401911aa349a561d00. Refresh/rebase it against the new main before coding.
+3. PR #258 old Verify/Build #46121920478 and Pages deployment were SUCCESS, but generic CI #46121920510 FAILED a mobile first-fold task-preview test: vertical content measured 865.4375px against an 844px viewport. Inspect the trace and repair the actual mobile fit; do not weaken the viewport assertion or call this PR green.
+4. After #258, follow the live portfolio board for one bounded next task; no overlapping code PRs.
+
+## Ten-product identity and investment rules
+- Ten product experiences share research, terminology and acceptance methods, not a common visual template.
+- DigDevBox Main: ACTIVE / Tier A discovery workbench; light-first neutral surfaces, readable ink, restrained violet. Main #252 HTTP semantics, #253 JSON Workspace, #257 Consent/Settings and #263 color refinement are complete. Broad homepage redesign stays closed. Preserve existing search, shortcuts, Browse All, API Studio CTA, JSON preview and five task groups.
+- API Studio: independent tenth product with its own light-neutral/violet marketing surface and dark developer workbench. #279 helper readability and #282 Main acquisition route are merged. Separate host, Relay and migration/rollback remain release gates #214/#221; shared Preview is not Production.
+- DigImg: Tier A but #41 remains blocked by Windows Runner identity/credential isolation. Never bypass. StreamPlay and IP Locator: selective maintenance/growth. Forge Notes: supporting editorial. ImageForge and DigTTSReader: HOLD. Fangdai: maintain only. Geek Typing: frozen except critical fixes.
+- Abacus Bot's useful transferable pattern is try-before-open task storytelling: concrete task, actual interface, visible progress/state, real result, next action. Do not copy its brand/assets/copy or imply autonomous-agent capability. GitHub Copilot reinforces issue-to-execution-to-review continuity; JetBrains tool windows reinforce contextual and adaptable work panels.
+- Video is a later format after real workflows stabilize: self-hosted, truthful 45–75 seconds, captions/transcript, user-controlled playback, reduced-motion support, no audible autoplay or forced mobile download, and measured transfer/LCP/CLS.
+- Technical copy must be concise and precise: purpose/job, inputs and accepted formats, steps, expected output, error recovery, limitations/privacy, references. Define unfamiliar terms once. Blog copy separates cited facts from analysis. EN/ZH meaning stays aligned.
+- Low-sample SEO/GSC/AdSense analytics are monitor-only; retain technical crawl/HTTP/build gates and investigate concrete regressions or account/policy signals.
+
+## Scheduled task reconciliation
+- API Studio Product Execution ID 6b07931a698c8191a5a948c912d627ba remains enabled, daily flexible, America/Chicago. Actual Nov 27 run 41bb4e78-aabc-8324-bc7e-71e431dbbc0f FAILED; surfaced result run_id dc61c254-6270-8332-a315-da77675202f1 is stale Nov 26 DigImg content. Cause/output/delivery UNKNOWN; do not attribute it to API Studio.
+- Weekday Product UX QA ID 6b07931b2678819186ee54e818945c69 remains enabled, weekday flexible, America/Chicago. Matching run e7fcdae2-5814-8329-9901-01c6c9be6b2f completed ETA Calculator #250 only: 1,416/1,416 unit tests, 167/167 Chromium E2E, Verify/Build 19/19, Pages Preview deployed; it found consent obstruction later covered by #257. It was not a ten-site audit.
+- Both saved automation prompts were updated successfully to follow the live board, enforce the single-WIP rule, preserve unique visual identities and reconcile exact run IDs. Task IDs, enabled state, schedules and timezone were preserved; no run was manually triggered.
+- Weekly SEO Growth Review did not appear in live automation peek; existence/deletion UNKNOWN. Do not create a duplicate.
+
+Older snapshots below are historical. Re-fetch live branches, exact SHAs, checks, previews and task run IDs before acting.
+---
 ## API Studio — current developer handoff — 2026-11-28 13:18 UTC
 
 - PR #279 merged (`f518533`); PR #282 merged (`c45fac7`); #278/#281 closed. Main acquisition card sends primary API traffic to Studio and keeps API Debugger as localized secondary. #282 mainline post-merge CI #46146863756, Verify #46146863742, Pages #140984707272 all SUCCESS.
