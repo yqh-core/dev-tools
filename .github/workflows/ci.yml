@@ -72,6 +72,7 @@ jobs:
           src/tools/ipv6-ula-generator/ipv6-ula-generator.e2e.spec.ts
           src/tools/text-statistics/text-statistics.e2e.spec.ts
           src/tools/http-headers/http-headers.e2e.spec.ts
+          src/tools/http-status-checker/http-status-checker.e2e.spec.ts
           src/tools/slugify-string/slugify-string.e2e.spec.ts
           src/tools/redirect-generator/redirect-generator.e2e.spec.ts
           src/tools/basic-auth-generator/basic-auth-generator.e2e.spec.ts
@@ -84,6 +85,15 @@ jobs:
           src/tools/api-debugger/api-studio.e2e.ts
           src/tools/jwt-parser/jwt-parser.e2e.spec.ts
           --project=chromium
+
+      - name: Upload HTTP Status Checker responsive screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: http-status-checker-responsive-${{ github.sha }}
+          path: test-results/http-status-checker/
+          if-no-files-found: warn
+          retention-days: 3
 
       - name: Upload API Studio retry-state screenshots
         if: always()
