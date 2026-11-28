@@ -582,6 +582,21 @@ function updateOpenApiRefreshChoice(key: string, field: 'name' | 'request', even
   openApiRefreshChoices.value = { ...openApiRefreshChoices.value, [key + ':' + field]: value };
 }
 
+async function rebuildOpenApiRefreshPlan() {
+  if (!openApiSpecText.value || openApiMode.value !== 'refresh') {
+    return;
+  }
+  try {
+    const parsed = importOpenApi(openApiSpecText.value, { serverUrl: openApiServerUrl.value || undefined });
+    openApiRefreshPlan.value = await planOpenApiRefresh(tree.value, parsed, openApiFileName.value);
+    openApiRefreshChoices.value = {};
+  }
+  catch (error) {
+    openApiRefreshPlan.value = null;
+    banner.value = error instanceof Error ? error.message : 'Could not rebuild the OpenAPI preview. Your collection was not changed.';
+  }
+}
+
 async function confirmOpenApiRefresh() {
   const plan = openApiRefreshPlan.value;
   if (!plan) {
@@ -1790,6 +1805,12 @@ function onMenuSelect(key: string, node: TreeNode) {
         <p><strong>{{ openApiRefreshPlan.fileName }}</strong> · {{ openApiRefreshPlan.items.length }} tracked operation(s) · {{ openApiRefreshPlan.openApiVersion }}</p>
         <p>This file was parsed locally. Added or changed values are only applied after confirmation. Missing source operations are retained in your collection.</p>
         <p>Conflict default: keep your current value. Choose “Use spec” per field only when you have reviewed the incoming change.</p>
+        <label v-if="openApiRefreshPlan.servers.length" class="api-openapi-field">
+          <span>Source server</span>
+          <select v-model="openApiServerUrl" data-test-id="openapi-refresh-server" @change="rebuildOpenApiRefreshPlan">
+            <option v-for="server in openApiRefreshPlan.servers" :key="server" :value="server">{{ server }}</option>
+          </select>
+        </label>
         <ul class="api-import-warning-list api-openapi-operation-list" data-test-id="openapi-refresh-operations">
           <li v-for="item in openApiRefreshPlan.items.slice(0, 40)" :key="item.key">
             <code>{{ item.status }}</code>
