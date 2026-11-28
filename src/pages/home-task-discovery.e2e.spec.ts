@@ -62,13 +62,52 @@ test.describe('Homepage task discovery', () => {
     expect(documentWidth).toBeLessThanOrEqual(390);
   });
 
-  test('shows a concrete JSON workflow preview linked to the real workspace', async ({ page }) => {
+  test('switches between truthful JSON, JWT and Regex workflow previews', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto('/');
 
     const preview = page.locator('.home-hero-preview');
     await expect(preview).toBeVisible();
-    await expect(preview.locator('pre code')).toContainText('"status": "ready"');
+    await expect(preview).toContainText('SAMPLE DATA · NO REQUEST SENT');
+    await expect(preview.getByTestId('home-demo-tab-json')).toHaveAttribute('aria-pressed', 'true');
+    await expect(preview.locator('pre code')).toContainText('"items":[3,8,13]');
     await expect(preview.locator('a.hero-preview-link')).toHaveAttribute('href', '/json-workspace/');
+
+    const jwtTab = preview.getByTestId('home-demo-tab-jwt');
+    await jwtTab.click();
+    await expect(jwtTab).toHaveAttribute('aria-pressed', 'true');
+    await expect(preview.locator('pre code')).toContainText('NOT VERIFIED');
+    await expect(preview.locator('a.hero-preview-link')).toHaveAttribute('href', '/jwt-parser/');
+
+    const regexTab = preview.getByTestId('home-demo-tab-regex');
+    await regexTab.focus();
+    await expect(regexTab).toBeFocused();
+    await page.keyboard.press('Enter');
+    await expect(regexTab).toHaveAttribute('aria-pressed', 'true');
+    await expect(preview.locator('pre code')).toContainText('2 matches');
+    await expect(preview.locator('a.hero-preview-link')).toHaveAttribute('href', '/regex-tester/');
+  });
+
+  test('keeps the selectable preview usable within the mobile first fold', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/');
+
+    const preview = page.locator('.home-hero-preview');
+    await expect(preview).toBeVisible();
+    const tabs = preview.locator('.hero-preview-tab');
+    await expect(tabs).toHaveCount(3);
+
+    for (const tab of await tabs.all()) {
+      const box = await tab.boundingBox();
+      expect(box?.height).toBeGreaterThanOrEqual(44);
+      await expect(tab).toBeVisible();
+    }
+
+    const cta = await preview.locator('a.hero-preview-link').boundingBox();
+    const documentWidth = await page.evaluate(() => document.documentElement.scrollWidth);
+    expect(cta).not.toBeNull();
+    expect(cta!.bottom).toBeLessThanOrEqual(844);
+    expect(documentWidth).toBeLessThanOrEqual(390);
   });
 
   test('uses one column without horizontal overflow at 390px', async ({ page }) => {
