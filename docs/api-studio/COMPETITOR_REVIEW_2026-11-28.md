@@ -9,6 +9,32 @@ Focused workflow review, not a feature-count contest. Public product documentati
 - [Postman navigation and History](https://learning.postman.com/docs/getting-started/basics/navigating-postman): History is a sidebar surface; opening an entry restores it in a new tab. The docs distinguish individual request history from summarized collection-run history, and document removing a row and clearing all history. Signed-in Postman history can sync across devices; that is not a default to copy into a no-account browser tool.
 - [Bruno changelog](https://www.usebruno.com/changelog) and [v4.4.0 release](https://github.com/usebruno/bruno/releases/tag/v4.4.0), dated 2026-11-24: current work includes stronger secret-field handling and warnings, external secret-manager support, OpenAPI collection sync, and Runner improvements.
 
+## Authorization editor benchmark — 2026-11-28 (Issue #284)
+
+This compares the same task: configure a credential and understand where it will be sent. Official documentation was checked on 2026-11-28; no hands-on performance measurement or user study is claimed.
+
+### Direct competitor — Postman v12
+
+- SOURCE-VERIFIED: [supported authorization types](https://learning.postman.com/latest-v-12/docs/use/send-requests/authorization/authorization-types) documents No Auth, Bearer, Basic and API Key in Header or Query Params, with variable references.
+- SOURCE-VERIFIED: [authorization details](https://learning.postman.com/latest-v-12/docs/use/send-requests/authorization/specifying-authorization-details) explains where generated auth fields appear, their source, protected generated headers and parent collection/folder inheritance.
+
+### Adjacent browser reference — Hoppscotch
+
+- SOURCE-VERIFIED: [using auth tokens](https://docs.hoppscotch.io/documentation/getting-started/rest/auth-tokens) teaches users to put a credential in an environment variable, choose Bearer and reference the variable before explicit Send.
+- SOURCE-VERIFIED: [request headers](https://docs.hoppscotch.io/documentation/getting-started/rest/request-headers) distinguishes Authorization-generated fields from manual header fields.
+
+### API Studio transfer decision (INFERENCE)
+
+Keep P0 local and per-request. Show the generated destination and provenance without resolving the secret in the preview; preserve manual header/query rows; make collisions explicit; recommend `{{secret_variable}}` from the current environment. Do not copy parent inheritance, OAuth refresh, hosted vault or cloud sync into P0.
+
+### Test-first implementation opportunity
+
+- Add a pure auth-contribution resolver around `ApiRequestState`; generate a transient effective request only at explicit Send/Run.
+- Unit-test five modes, collisions/mode switches, UTF-8 Basic encoding, API-Key Query percent-encoding for reserved characters and fragments, and variable placeholder preservation.
+- Chromium-test masking/reveal, generated-field provenance, keyboard/focus and zero relay calls before explicit Send.
+- Preserve strict backup migration, Postman v2.1 mapping/warnings, cURL/share and Request History redaction.
+- Issue #284 is queued after Main PR #258 merge-SHA CI/Verify/Pages/production-smoke gates. No implementation PR is opened until those gates are verified.
+
 ## What matters for API Studio
 
 | Competitor pattern | User value | API Studio decision |
