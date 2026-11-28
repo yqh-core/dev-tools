@@ -1027,11 +1027,11 @@ function onUpdateFavoriteTools() {
   margin-top: 0;
   padding: 8px 14px;
 
-  border: 1px solid color-mix(in srgb, var(--dd-primary) 55%, transparent);
+  border: 1px solid color-mix(in srgb, var(--main-info) 55%, transparent);
   border-radius: 8px;
   background: transparent;
 
-  color: var(--dd-primary);
+  color: var(--main-info);
   cursor: pointer;
 
   font-size: 13px;
@@ -1041,11 +1041,12 @@ function onUpdateFavoriteTools() {
   transition: background-color 0.2s ease;
 
   &:hover {
-    background: color-mix(in srgb, var(--dd-primary) 10%, transparent);
+    border-color: var(--main-info);
+    background: var(--main-info-soft);
   }
 
   .dark & {
-    color: var(--dd-primary);
+    color: var(--main-info);
   }
 }
 
