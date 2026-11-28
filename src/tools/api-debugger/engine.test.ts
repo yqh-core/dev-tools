@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { decodeLink } from '../json-workspace/workspace-link';
-import { buildProxyPayload, responseToWorkspaceLink, sanitizeForShare, substituteVars } from './engine';
+import { buildProxyPayload, isRequestAuthConfig, responseToWorkspaceLink, sanitizeForShare, substituteVars } from './engine';
 
 describe('substituteVars', () => {
   it('replaces known variables and lists missing ones', () => {
@@ -48,6 +48,98 @@ describe('buildProxyPayload', () => {
     expect(r.payload.headers[0].value).toBe('Bearer {{token}}');
     expect(r.payload.body).toBe('{"u":"a"}');
     expect(r.missing).toEqual(['token']);
+  });
+});
+
+describe('request Authorization profiles', () => {
+  it('validates only the supported, strictly-shaped profile variants', () => {
+    expect(isRequestAuthConfig({ type: 'none' })).toBe(true);
+    expect(isRequestAuthConfig({ type: 'bearer', token: '{{API_TOKEN}}' })).toBe(true);
+    expect(isRequestAuthConfig({ type: 'basic', username: '', password: '' })).toBe(true);
+    expect(isRequestAuthConfig({ type: 'api-key-header', key: 'X-API-Key', value: '' })).toBe(true);
+    expect(isRequestAuthConfig({ type: 'bearer', token: 'x', unexpected: true })).toBe(false);
+    expect(isRequestAuthConfig({ type: 'api-key-query', key: 'x'.repeat(1025), value: 'v' })).toBe(false);
+  });
+
+  it('resolves Bearer variables only into the transient send payload', () => {
+    const request = {
+      method: 'GET',
+      url: 'https://api.example.test/users',
+      headers: [],
+      body: '',
+      auth: { type: 'bearer' as const, token: '{{API_TOKEN}}' },
+    };
+    const result = buildProxyPayload(request, { API_TOKEN: 'live-secret' });
+    expect(result.payload.headers).toEqual([{ name: 'Authorization', value: 'Bearer live-secret' }]);
+    expect(Object.keys(result.payload).sort()).toEqual(['body', 'headers', 'method', 'url']);
+    expect(request.auth.token).toBe('{{API_TOKEN}}');
+    expect(JSON.stringify(sanitizeForShare(request))).not.toContain('live-secret');
+    expect('auth' in sanitizeForShare(request)).toBe(false);
+  });
+
+  it('encodes Basic credentials as UTF-8 before base64', () => {
+    const source = '用户:päss';
+    const expected = btoa(Array.from(new TextEncoder().encode(source), byte => String.fromCharCode(byte)).join(''));
+    const result = buildProxyPayload({
+      method: 'GET', url: 'https://api.example.test/', headers: [], body: '',
+      auth: { type: 'basic', username: '用户', password: 'päss' },
+    }, {});
+    expect(result.payload.headers).toEqual([{ name: 'Authorization', value: `Basic ${expected}` }]);
+  });
+
+  it('does not replace a manual Authorization header without an explicit choice', () => {
+    const request = {
+      method: 'GET', url: 'https://api.example.test/', body: '',
+      headers: [{ name: 'authorization', value: 'Manual value' }],
+      auth: { type: 'bearer' as const, token: 'generated-token' },
+    };
+    const pending = buildProxyPayload(request, {});
+    expect(pending.collision).toEqual({ target: 'header', name: 'Authorization' });
+    expect(pending.payload.headers[0].value).toBe('Manual value');
+    const replaced = buildProxyPayload(request, {}, { authCollision: 'replace' });
+    expect(replaced.collision).toBeUndefined();
+    expect(replaced.payload.headers).toEqual([{ name: 'Authorization', value: 'Bearer generated-token' }]);
+    const kept = buildProxyPayload(request, {}, { authCollision: 'keep-manual' });
+    expect(kept.payload.headers).toEqual([{ name: 'authorization', value: 'Manual value' }]);
+    expect(request.headers[0].value).toBe('Manual value');
+  });
+
+  it('percent-encodes reserved query-key values once and preserves URL fragments', () => {
+    const value = 'a+b &=#%';
+    const result = buildProxyPayload({
+      method: 'GET', url: 'https://api.example.test/items?lang=en#details', headers: [], body: '',
+      auth: { type: 'api-key-query', key: 'api_key', value },
+    }, {});
+    expect(result.payload.url).toContain('#details');
+    const queryText = result.payload.url.split('?')[1].split('#')[0];
+    const parsed = new URLSearchParams(queryText);
+    expect(parsed.get('api_key')).toBe(value);
+    expect(queryText).toContain('api_key=a%2Bb+%26%3D%23%25');
+  });
+
+  it('reports query collisions and replaces duplicates only in the effective URL when chosen', () => {
+    const request = {
+      method: 'GET', url: 'https://api.example.test/items?api_key=old&x=1&api_key=older#tab',
+      headers: [], body: '',
+      auth: { type: 'api-key-query' as const, key: 'api_key', value: 'new' },
+    };
+    const pending = buildProxyPayload(request, {});
+    expect(pending.collision).toEqual({ target: 'query', name: 'api_key' });
+    const replaced = buildProxyPayload(request, {}, { authCollision: 'replace' });
+    const [url, fragment] = replaced.payload.url.split('#');
+    expect(fragment).toBe('tab');
+    const values = [...new URLSearchParams(url.split('?')[1]).getAll('api_key')];
+    expect(values).toEqual(['new']);
+    expect(url).toContain('x=1');
+    expect(request.url).toContain('api_key=old');
+  });
+
+  it('rejects CR/LF in resolved auth header names and values', () => {
+    const result = buildProxyPayload({
+      method: 'GET', url: 'https://api.example.test/', headers: [], body: '',
+      auth: { type: 'api-key-header', key: 'X-API-Key', value: '{{INJECT}}' },
+    }, { INJECT: 'safe\\r\\nInjected: yes' });
+    expect(result.error).toContain('CR or LF');
   });
 });
 
