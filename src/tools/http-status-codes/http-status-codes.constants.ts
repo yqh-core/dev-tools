@@ -25,7 +25,7 @@ export const codesByCategories: {
       {
         code: 102,
         name: 'Processing',
-        description: 'Legacy WebDAV interim response. It was removed from RFC 4918 because it lacked implementation; IANA retains the historical RFC 2518 registration.',
+        description: 'Historical WebDAV interim response. It appears in RFC 2518, but RFC 4918 does not define this status code; IANA retains the historical RFC 2518 registration.',
         type: 'WebDav',
       },
       {
@@ -37,7 +37,7 @@ export const codesByCategories: {
       {
         code: 104,
         name: 'Upload Resumption Supported',
-        description: 'Temporary IANA registration for resumable uploads. Check the current registry entry before relying on it; the published registry snapshot shows an expiry date that has passed.',
+        description: 'IANA still displays the temporary registration with an expiry date of 2026-11-13. The active HTTP working-group Internet-Draft draft-ietf-httpbis-resumable-upload-16 proposes this status, but it is not an issued RFC. Do not treat it as a permanent registration or as unassigned; recheck IANA before implementation.',
         type: 'HTTP',
       },
     ],
