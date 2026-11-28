@@ -81,6 +81,27 @@ html[data-theme="dark"] {
 
 
 /* Main-only consent and preferences surfaces — uses the site's semantic palette. */
+.privacy-settings-toolbar {
+  display: inline-flex;
+  min-height: 36px;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 9px;
+  border: 1px solid var(--dd-border);
+  border-radius: 8px;
+  background: var(--dd-surface);
+  color: var(--dd-primary);
+  font: 600 12px/1.35 var(--dd-font);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.privacy-settings-toolbar:hover {
+  border-color: var(--dd-primary);
+  background: var(--dd-primary-soft);
+}
+
+
 #digdevbox-analytics-consent.dd-consent {
   position: relative;
   z-index: 1;
@@ -164,24 +185,9 @@ html[data-theme="dark"] {
 
 .dd-consent__button:focus-visible,
 .dd-consent-dialog__close:focus-visible,
-.footer-privacy-settings:focus-visible {
+.privacy-settings-toolbar:focus-visible {
   outline: 3px solid var(--dd-focus-ring);
   outline-offset: 3px;
-}
-
-.footer-privacy-settings {
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: var(--dd-primary);
-  font: inherit;
-  text-decoration: underline;
-  text-underline-offset: 2px;
-  cursor: pointer;
-}
-
-.footer-privacy-settings:hover {
-  color: var(--dd-primary-hover);
 }
 
 .dd-consent-dialog {
