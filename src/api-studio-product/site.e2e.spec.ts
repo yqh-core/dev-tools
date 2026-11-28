@@ -213,6 +213,75 @@ test('homepage guided walkthrough stays usable on a 390px screen', async ({ page
   expect(dimensions.documentWidth).toBeLessThanOrEqual(dimensions.viewportWidth);
 });
 
+test('guided demo shows four inspectable fixture scenes without sending a request', async ({ page }, testInfo) => {
+  const apiRequests: string[] = [];
+  page.on('request', (request) => {
+    if (request.resourceType() === 'fetch' || request.resourceType() === 'xhr') {
+      apiRequests.push(request.url());
+    }
+  });
+
+  const viewports = [
+    { name: 'desktop', width: 1440, height: 900 },
+    { name: 'mobile', width: 390, height: 844 },
+  ] as const;
+  const scenes = [
+    { id: 'request', button: '01 Request', expected: ['POST', '/v1/orders', 'Staging', 'REQUEST BODY'] },
+    { id: 'response', button: '02 Response', expected: ['201', 'Created', '14 ms', 'SAMPLE RESPONSE'] },
+    { id: 'assertions', button: '03 Assertions', expected: ['JSON path $.id exists', '2 passed', '0 failed', 'SAMPLE RESULT'] },
+    { id: 'collection', button: '04 Collection run', expected: ['Checkout smoke tests', '3 requests', '3 / 3 sample outcomes', 'Not a live collection run'] },
+  ] as const;
+
+  for (const viewport of viewports) {
+    await page.setViewportSize({ width: viewport.width, height: viewport.height });
+    await page.goto('/');
+    apiRequests.length = 0;
+
+    const steps = page.getByRole('group', { name: 'Guided demo steps' });
+    const preview = page.getByTestId('guided-demo-preview');
+    await expect(steps.getByRole('button')).toHaveCount(4);
+
+    for (const scene of scenes) {
+      const button = steps.getByRole('button', { name: scene.button });
+      if (scene.id === 'assertions') {
+        await button.focus();
+        await page.keyboard.press('Enter');
+      }
+      else {
+        await button.click();
+      }
+
+      await expect(button).toHaveAttribute('aria-pressed', 'true');
+      const scenePanel = page.getByTestId(`guided-demo-scene-${scene.id}`);
+      await expect(scenePanel).toBeVisible();
+      await expect(preview.locator('.guided-demo-fixture-badge')).toHaveText('FIXTURE DATA · NOT EXECUTED');
+      for (const label of scene.expected) {
+        await expect(scenePanel).toContainText(label);
+      }
+
+      const target = await button.boundingBox();
+      expect(target?.height ?? 0).toBeGreaterThanOrEqual(44);
+
+      if (viewport.width === 390) {
+        const dimensions = await page.evaluate(() => ({
+          documentWidth: document.documentElement.scrollWidth,
+          viewportWidth: document.documentElement.clientWidth,
+          previewWidth: document.querySelector('[data-test-id="guided-demo-preview"]')?.getBoundingClientRect().width ?? 0,
+        }));
+        expect(dimensions.documentWidth).toBeLessThanOrEqual(dimensions.viewportWidth);
+        expect(dimensions.previewWidth).toBeLessThanOrEqual(dimensions.viewportWidth);
+      }
+
+      await page.screenshot({
+        path: testInfo.outputPath(`guided-demo-${viewport.name}-${scene.id}.png`),
+      });
+    }
+
+    expect(apiRequests).toEqual([]);
+  }
+});
+
+
 test('workspace data tools stay secondary behind a keyboard-accessible disclosure on desktop', async ({ page }, testInfo) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto('/app/');
