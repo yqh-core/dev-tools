@@ -45,6 +45,8 @@ test('OpenAPI refresh preserves local edits, supports explicit source choice, an
   expect(stored.openApiSync.version).toBe(1);
   expect(stored.openApiSync.operations).toHaveLength(1);
   expect(stored.openApiSync.operations[0].key).toBe('operationId:getUser');
+  await expect(page.getByTestId('openapi-source-status')).toContainText('users-v1.json');
+  await expect(page.getByTestId('openapi-source-status')).toContainText('Last sync:');
   const requestId = stored.openApiSync.operations[0].requestId;
 
   // Model a user-authored override plus scripts/assertions that a refresh must preserve.
