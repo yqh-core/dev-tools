@@ -19,7 +19,9 @@ test.describe('Tool - HTTP status checker edge response semantics', () => {
     });
 
     await page.getByTestId('status-url').locator('input').fill('example.com/start');
+    await expect(page.getByText('HTTPS is used when no scheme is entered.')).toBeVisible();
     await page.getByTestId('check-url').click();
+    await expect.poll(() => route.url()).toContain('https%3A%2F%2Fexample.com%2Fstart');
 
     await expect(page.getByTestId('lookup-success')).toBeVisible();
     await expect(page.getByTestId('lookup-success')).toContainText('HTTP response received');
