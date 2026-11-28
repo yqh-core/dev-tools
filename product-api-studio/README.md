@@ -22,7 +22,7 @@ The dedicated build writes only to dist-api-studio/. It does not replace or writ
 
 ## Cloudflare branch Preview
 
-The Git-connected Cloudflare project uses the regular `pnpm run build` command. On the exact branch `feat/api-studio-independent-site-20261127` only, Cloudflare's documented `CF_PAGES=1` and `CF_PAGES_BRANCH` environment variables route that command to the API Studio product build and write its static output to the existing Preview output directory `dist/`. This allows the existing Pages Preview to render the actual independent product output and reuse the first-party Pages Functions for manual smoke testing.
+The Git-connected Cloudflare project uses the regular `pnpm run build` command. On API Studio feature branches whose name begins with `feat/api-studio-`, Cloudflare's documented `CF_PAGES=1` and `CF_PAGES_BRANCH` environment variables route that command to the API Studio product build and write its static output to the existing Preview output directory `dist/`. A tested routing helper keeps `main`, unrelated feature branches and non-Cloudflare builds on the normal DigDevBox Main output. This lets each API Studio feature PR render the actual independent product output and reuse the first-party Pages Functions for manual smoke testing.
 
 All routes on this branch Preview are forced to `noindex,nofollow`; robots.txt disallows the whole Preview; no production canonical URLs or sitemap are emitted. When the branch is merged, `CF_PAGES_BRANCH=main` selects the original DigDevBox Main build, so the Main production output stays unchanged.
 
