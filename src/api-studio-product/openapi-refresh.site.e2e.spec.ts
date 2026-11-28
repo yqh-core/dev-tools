@@ -180,5 +180,38 @@ test('OpenAPI refresh preserves local edits, supports explicit source choice, an
   await page.getByTestId('cancel-refresh-openapi').click();
   const afterCancel = await page.evaluate(() => localStorage.getItem('api-studio:tree'));
   expect(afterCancel).toBe(beforeCancel);
+
+  // The refresh preview needs the same tall, independently scrollable sidebar
+  // as the initial OpenAPI import preview on a narrow phone viewport.
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.getByTestId('refresh-openapi').click();
+  await page.getByTestId('openapi-file').setInputFiles({
+    name: 'users-mobile-refresh.json',
+    mimeType: 'application/json',
+    buffer: Buffer.from(spec('/users/{id}/mobile', 'mobile')),
+  });
+  const mobilePreview = page.getByTestId('openapi-refresh-preview');
+  await expect(mobilePreview).toBeVisible();
+  await page.screenshot({ path: testInfo.outputPath('openapi-refresh-preview-mobile.png') });
+  const sidebar = page.locator('.api-sidebar');
+  const mobileSidebar = await sidebar.evaluate((element) => ({
+    clientHeight: element.clientHeight,
+    scrollHeight: element.scrollHeight,
+    clientWidth: element.clientWidth,
+    scrollWidth: element.scrollWidth,
+  }));
+  expect(mobileSidebar.clientHeight).toBeGreaterThanOrEqual(650);
+  expect(mobileSidebar.scrollHeight).toBeGreaterThan(mobileSidebar.clientHeight);
+  expect(mobileSidebar.scrollWidth).toBeLessThanOrEqual(mobileSidebar.clientWidth);
+  await page.getByTestId('confirm-refresh-openapi').scrollIntoViewIfNeeded();
+  const applyRect = await page.getByTestId('confirm-refresh-openapi').evaluate((element) => {
+    const rect = element.getBoundingClientRect();
+    return { top: rect.top, bottom: rect.bottom };
+  });
+  expect(applyRect.top).toBeGreaterThanOrEqual(0);
+  expect(applyRect.bottom).toBeLessThanOrEqual(844);
+  await page.screenshot({ path: testInfo.outputPath('openapi-refresh-actions-mobile.png') });
+  await page.getByTestId('cancel-refresh-openapi').click();
+
   expect(relayCalls).toEqual([]);
 });
