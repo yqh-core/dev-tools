@@ -181,7 +181,7 @@ const activeHomeDemoResult = ref('');
 const activeHomeDemoError = ref('');
 const isHomeDemoRunning = ref(false);
 const activeHomeDemoCode = computed(() => activeHomeDemoResult.value
-  ? activeHomeDemoStory.value.input + '\nOUT ' + activeHomeDemoResult.value
+  ? `${activeHomeDemoStory.value.input}\nOUT ${activeHomeDemoResult.value}`
   : activeHomeDemoStory.value.input);
 
 function selectHomeDemo(demoId: HomeDemoId) {
@@ -205,7 +205,7 @@ async function runHomeDemo() {
       case 'json': {
         const { formatJson } = await import('@/tools/json-viewer/json.models');
         result = formatJson({
-          rawJson: HOME_DEMO_STORIES.json.input.replace(/^IN  /, ''),
+          rawJson: HOME_DEMO_STORIES.json.input.replace(/^IN {2}/, ''),
           indentSize: 2,
           sortKeys: false,
         });
@@ -213,15 +213,15 @@ async function runHomeDemo() {
       }
       case 'jwt': {
         const { decodeJwt } = await import('@/tools/jwt-parser/jwt-parser.service');
-        const decoded = decodeJwt({ jwt: HOME_DEMO_STORIES.jwt.input.replace(/^IN  /, '') });
+        const decoded = decodeJwt({ jwt: HOME_DEMO_STORIES.jwt.input.replace(/^IN {2}/, '') });
         const values = (claims: Record<string, { value: string }>) => Object.fromEntries(
           Object.entries(claims).map(([name, claim]) => [name, claim.value]),
         );
         const header = values(decoded.header);
         const payload = values(decoded.payload);
         result = [
-          'Header ' + String(header.alg) + ' · ' + String(header.typ),
-          'Claims ' + String(payload.sub) + ' · ' + String(payload.role),
+          `Header ${String(header.alg)} · ${String(header.typ)}`,
+          `Claims ${String(payload.sub)} · ${String(payload.role)}`,
           'SIG present · NOT VERIFIED',
         ].join('\n');
         break;
@@ -231,7 +231,7 @@ async function runHomeDemo() {
         const story = HOME_DEMO_STORIES.regex;
         const matches = matchRegex(story.pattern, story.text, story.flags);
         result = [
-          matches.length + ' matches',
+          `${matches.length} matches`,
           matches.map(match => match.value).join(' · '),
         ].join('\n');
         break;
