@@ -30,6 +30,17 @@ test.describe('Tool - HTTP status checker edge response semantics', () => {
     await expect(page.getByTestId('upstream-status')).toHaveText('404');
     await expect(page.getByTestId('final-url')).toHaveText('https://example.com/final-page');
     await expect(page.getByTestId('copy-final-url')).toBeVisible();
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.screenshot({
+      path: 'test-results/http-status-checker/mobile-390x844.png',
+      fullPage: true,
+    });
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.screenshot({
+      path: 'test-results/http-status-checker/desktop-1440x900.png',
+      fullPage: true,
+    });
     await expect(page.getByTestId('response-headers')).toContainText('x-edge-result');
     await expect(page.getByTestId('lookup-error')).toHaveCount(0);
   });
