@@ -31,13 +31,24 @@ test.describe('Tool - HTTP status checker edge response semantics', () => {
     await expect(page.getByTestId('final-url')).toHaveText('https://example.com/final-page');
     await expect(page.getByTestId('copy-final-url')).toBeVisible();
 
+    // Reload after each viewport change so screenshots capture a settled first-load
+    // navigation state, not the transition from the desktop layout.
     await page.setViewportSize({ width: 390, height: 844 });
+    await page.reload();
+    await page.getByTestId('status-url').locator('input').fill('example.com/start');
+    await page.getByTestId('check-url').click();
+    await expect(page.getByTestId('lookup-success')).toBeVisible();
+    await expect(page.getByTestId('final-url')).toHaveText('https://example.com/final-page');
     await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth)).toBe(390);
     await page.screenshot({
       path: 'test-results/http-status-checker/mobile-390x844.png',
       fullPage: true,
     });
     await page.setViewportSize({ width: 1440, height: 900 });
+    await page.reload();
+    await page.getByTestId('status-url').locator('input').fill('example.com/start');
+    await page.getByTestId('check-url').click();
+    await expect(page.getByTestId('lookup-success')).toBeVisible();
     await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth)).toBe(1440);
     await page.screenshot({
       path: 'test-results/http-status-checker/desktop-1440x900.png',
