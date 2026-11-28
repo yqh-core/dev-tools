@@ -1,3 +1,17 @@
+## API Studio — current handoff — 2026-11-28 12:35 UTC
+
+- Current main at checkpoint: `1f25365ec334fa5586e8bc87a5589ad6172c0740` (documentation-only update after PR #277 merge).
+- **PR #277 merged**: https://github.com/yqh-core/dev-tools/pull/277; merge SHA `d766acd2e7666f244cfaf658b8cc7ecced9e8fe3`. Merge-SHA CI #46142185638 SUCCESS, Verify/Build #46142185650 SUCCESS and shared coderkit Pages check #140971240637 SUCCESS. The Pages URL is `https://c103aba3.coderkit.pages.dev`; it does not establish that `apistudio.digdevbox.com` is live.
+- **Current PR #279 / Issue #278**: https://github.com/yqh-core/dev-tools/pull/279. Branch `fix/api-studio-helper-readability-20261128`, exact HEAD `bd27a3c4672d60e2e8ac909cad60d55b6d724218`. Changed `src/pages/ApiStudio.page.vue` and `src/tools/api-debugger/api-studio.e2e.ts`; workspace helper hints now use theme-aware soft text at 12px and 1.5 line-height; Chromium test checks computed light theme style and 390px overflow. At checkpoint CI #46145018949 and Verify #46145019094 were not both terminal success; Pages #140978967074 was in progress. Wait for exact-head checks and inspect screenshots before merge.
+- **Next queued Issue #280**: safe local OpenAPI spec refresh/sync for existing imported collections: preview added/changed/removed operations, preserve manual values and organization by default, explicit conflict decisions, no auto-send, backward-compatible import/export/backup.
+- Product baseline already merged: request/response engine, collections/folders, environments, assertions, runner/reporting, Postman v2.1 interchange, portable backup/restore, guided first-use journey, OpenAPI 3.x import (#275), private bounded Request History (#277).
+- Owner-approved product name/host: API Studio — by DigDevBox; `https://apistudio.digdevbox.com`; routes /, /app/, /docs/. Keep `https://www.digdevbox.com/api-studio/` fallback. Independent deployment remains issue #214; do not claim host is production until separate Pages project, DNS/TLS, canonical/robots/sitemap, deep-route, origin/storage migration, Relay and rollback/smoke acceptance pass.
+- Relay issue #221 remains open: Production shared mode is not confirmed enabled. Do not activate before the account-side Worker/DO binding, HMAC secret, WAF, cross-isolate/restart and fail-closed verification are done. Name collision screen #219 remains preliminary; no legal clearance claim.
+- Automation IDs/status: API Product Execution `6b07931a698c8191a5a948c912d627ba` enabled daily but Nov 27 actual run failed with stale DigImg result-ID mismatch; cause/output/delivery unknown. Weekday UX QA `6b07931b2678819186ee54e818945c69` completed Nov 27 Main ETA Calculator #250, not API Studio. SEO Growth Review absent from live peek; state unknown.
+- Competitor sources current as of 2026-11-28: Hoppscotch v2026.11.0, Bruno v4.4.0 and Postman product/lifecycle; see `docs/api-studio/COMPETITOR_REVIEW_2026-11-28.md`.
+
+---
+
 ## API Studio — current handoff — 2026-11-28 11:57 UTC
 
 - Owner-approved product identity: **API Studio — by DigDevBox**, target `https://apistudio.digdevbox.com`, on the existing DigDevBox parent domain. Product routes: `/`, `/app/`, `/docs/`. A separate registrable domain is not required. Keep `https://www.digdevbox.com/api-studio/` as fallback until the independent-host acceptance gates pass.
