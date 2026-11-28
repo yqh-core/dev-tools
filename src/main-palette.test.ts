@@ -19,7 +19,7 @@ function contrastRatio(first: string, second: string) {
 
 const readSource = (path: string) => readFileSync(new URL(path, import.meta.url), 'utf8');
 
-describe('DigDevBox Main violet-blue palette', () => {
+describe('DigDevBox Main violet palette', () => {
   test('keeps normal text and primary controls above WCAG AA contrast', () => {
     const lightSurface = '#FFFFFF';
     const darkSurface = '#131C2B';
@@ -32,6 +32,7 @@ describe('DigDevBox Main violet-blue palette', () => {
     }
     for (const infoState of [mainPalette.light.info, mainPalette.light.infoHover, mainPalette.light.infoPressed]) {
       expect(contrastRatio(infoState, lightSurface)).toBeGreaterThanOrEqual(4.5);
+      expect(contrastRatio(infoState, mainPalette.light.infoSoft)).toBeGreaterThanOrEqual(4.5);
     }
 
     for (const linkState of [mainPalette.dark.link, mainPalette.dark.linkHover, mainPalette.dark.linkPressed]) {
@@ -42,6 +43,7 @@ describe('DigDevBox Main violet-blue palette', () => {
     }
     for (const infoState of [mainPalette.dark.info, mainPalette.dark.infoHover, mainPalette.dark.infoPressed]) {
       expect(contrastRatio(infoState, darkSurface)).toBeGreaterThanOrEqual(4.5);
+      expect(contrastRatio(infoState, mainPalette.dark.infoSoft)).toBeGreaterThanOrEqual(4.5);
     }
     expect(contrastRatio(mainPalette.light.onLinkSolid, mainPalette.light.link)).toBeGreaterThanOrEqual(4.5);
     expect(contrastRatio(mainPalette.dark.onLinkSolid, mainPalette.dark.link)).toBeGreaterThanOrEqual(4.5);
@@ -59,6 +61,9 @@ describe('DigDevBox Main violet-blue palette', () => {
     expect(css).toContain(`--main-action-hover: ${mainPalette.light.actionHover};`);
     expect(css).toContain(`--main-action-pressed: ${mainPalette.light.actionPressed};`);
     expect(css).toContain(`--main-info: ${mainPalette.light.info};`);
+    expect(css).toContain(`--main-info-hover: ${mainPalette.light.infoHover};`);
+    expect(css).toContain(`--main-info-pressed: ${mainPalette.light.infoPressed};`);
+    expect(css).toContain(`--main-info-soft: ${mainPalette.light.infoSoft};`);
 
     expect(css).toContain(`--dd-primary: ${mainPalette.dark.link};`);
     expect(css).toContain(`--dd-primary-hover: ${mainPalette.dark.linkHover};`);
@@ -70,6 +75,8 @@ describe('DigDevBox Main violet-blue palette', () => {
     expect(css).toContain(`--main-action-pressed: ${mainPalette.dark.actionPressed};`);
     expect(css).toContain(`--main-info: ${mainPalette.dark.info};`);
     expect(css).toContain(`--main-info-hover: ${mainPalette.dark.infoHover};`);
+    expect(css).toContain(`--main-info-pressed: ${mainPalette.dark.infoPressed};`);
+    expect(css).toContain(`--main-info-soft: ${mainPalette.dark.infoSoft};`);
   });
 
   test('loads the Main palette after family shell tokens and keeps API Studio separate', () => {
