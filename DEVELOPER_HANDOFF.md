@@ -1,3 +1,16 @@
+## API Studio — latest developer handoff — 2026-11-28 12:53 UTC
+
+- PR #279 merged: `f518533ccb81259164a8d1653692ed3b725ed5fd`; helper text now uses theme-aware soft text, 12px and 1.5 line-height. Exact-head and post-merge CI/Build/Preview/Suite checks passed.
+- PR #282 merged: `c45fac72c2d8366bd471db540710e594c5b8a366`; Issue #281 closed. API Studio is now the Main API featured-card primary CTA; legacy API Debugger is a labeled secondary en/zh link. Product homepage hero CTA and featured API card now agree.
+- PR #282 exact-head checks: CI #46146254182 SUCCESS; Verify/Build #46146254180 SUCCESS; Cloudflare Preview #140982841806 SUCCESS. Artifacts #15264066030 (product visuals) and #15263594165 (Main homepage visuals) visually inspected at 1440×900 and 390×844; E2E covers keyboard primary CTA and secondary legacy link.
+- Post-merge checks for merge SHA `c45fac72c2d8366bd471db540710e594c5b8a366` pending at 12:53 UTC: CI #46146863756 in progress; Verify/Build #46146863742 queued; Pages #140984707272 building. Recheck before claiming merged code successfully deployed to shared Main project.
+- Next API product feature Issue #280: safe local OpenAPI refresh/sync with preview diffs, preserve local changes by default, explicit conflicts, no silent deletion or network Send side-effects. Implement after #282 merge SHA checks complete. Technical data-model contract and three-way merge rules are in the Issue #280 comments.
+- Product baseline: core request/response, collections/folders, environments, assertions, collection runner/report, Postman v2.1 interchange, versioned backup, first-use journey, OpenAPI 3.x import (#275), private bounded Request History (#277), helper legibility (#279).
+- Competitors researched 2026-11-28: Hoppscotch v2026.11.0 personal/free vs paid collaboration; Bruno v4.4.0 safe OpenAPI sync/value preservation; Postman full API lifecycle/Git/CLI/CI/agents. Full source and roadmap decisions in `docs/api-studio/COMPETITOR_REVIEW_2026-11-28.md`.
+- Independent host `https://apistudio.digdevbox.com` remains unverified. Issue #214 requires separate Cloudflare Pages Production project, DNS/TLS, host-specific metadata and routes, origin data migration, Relay hardening, rollback/smoke. No Cloudflare account connector or account-side write access was available in this session.
+- Shared Relay Production mode remains local until #221 shared DO + HMAC + WAF + cross-isolate/restart/fail-closed tests pass. #219 name screen is not legal clearance.
+- Automation audit: API Product Execution failed Nov 27 with stale DigImg result-ID mismatch; cause/output/delivery unknown. Weekday UX QA ran Main ETA Calculator #250, not API Studio. Weekly SEO review absent in live peek (state unknown).
+
 ## API Studio — current developer handoff — 2026-11-28 12:43 UTC
 
 - PR #279 merged at `f518533ccb81259164a8d1653692ed3b725ed5fd`; #278 closed. Exact-head CI #46145018949, Verify #46145019094 and shared Pages Preview #140978967074 passed. Artifact #15263352196 inspected (1440×900 and 390×844).
