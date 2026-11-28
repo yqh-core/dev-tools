@@ -161,7 +161,7 @@ const HOME_DEMO_STORIES: Record<HomeDemoId, {
     path: '/json-workspace',
     file: 'response.json',
     format: 'JSON',
-    code: String.raw`IN  {"ok":true}
+    code: `IN  {"ok":true}
 OUT {
   "ok": true
 }`,
@@ -178,7 +178,7 @@ SIG present · NOT VERIFIED`,
     path: '/regex-tester',
     file: 'tickets.txt',
     format: 'REGEX',
-    code: String.raw`RE  \b[A-Z]{3}-\d{4}\b
+    code: `RE  \b[A-Z]{3}-\d{4}\b
 IN  Ticket DEV-2048 / OPS-0781
 OUT 2 matches
     DEV-2048 · OPS-0781`,
