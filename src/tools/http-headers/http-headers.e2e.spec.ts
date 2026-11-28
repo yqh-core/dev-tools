@@ -207,4 +207,31 @@ test.describe('Tool - local HTTP response header analyzer', () => {
     await page.getByTestId('header-analyzer').getByRole('button', { name: 'Clear' }).click();
     await expect(page.getByTestId('analysis-results')).toHaveCount(0);
   });
+
+  test('keeps the import-to-analysis controls in a predictable keyboard order', async ({ page }) => {
+    const fileInput = page.getByTestId('har-file-input');
+    const textarea = page.getByTestId('raw-response-headers').locator('textarea');
+    const loadSample = page.getByTestId('header-analyzer').getByRole('button', { name: 'Load sample' });
+    const clear = page.getByTestId('header-analyzer').getByRole('button', { name: 'Clear' });
+
+    await fileInput.focus();
+    await expect(fileInput).toBeFocused();
+
+    // The drop target and privacy/size disclosures are intentionally not
+    // extra tab stops. Keyboard users move directly to the editable header
+    // field, then to the sample and clear actions.
+    await page.keyboard.press('Tab');
+    await expect(textarea).toBeFocused();
+    await page.keyboard.press('Tab');
+    await expect(loadSample).toBeFocused();
+    await page.keyboard.press('Tab');
+    await expect(clear).toBeFocused();
+
+    await page.keyboard.press('Shift+Tab');
+    await expect(loadSample).toBeFocused();
+    await page.keyboard.press('Shift+Tab');
+    await expect(textarea).toBeFocused();
+    await page.keyboard.press('Shift+Tab');
+    await expect(fileInput).toBeFocused();
+  });
 });
