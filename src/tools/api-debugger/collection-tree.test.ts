@@ -349,6 +349,29 @@ describe('持久化（serializeCollectionTree / loadCollectionTree）', () => {
     expect(findNode(tree, 'rA1')?.node.name).toBe('a1');
   });
 
+  it('request auth intent survives localStorage tree serialization and validation', () => {
+    const original = sampleTree();
+    const request = findRequestNode(original, 'rA1')!;
+    const updated = updateRequestNode(original, 'rA1', {
+      request: { ...request.request, auth: { type: 'api-key-query', key: 'client_key', value: '{{CLIENT_KEY}}' } },
+    });
+    expect(updated.error).toBeUndefined();
+    const loaded = loadCollectionTree(serializeCollectionTree(updated.tree!), null, null);
+    expect(loaded.migrated).toBe(false);
+    expect(findRequestNode(loaded.tree, 'rA1')?.request.auth).toEqual({
+      type: 'api-key-query', key: 'client_key', value: '{{CLIENT_KEY}}',
+    });
+    expect(parseCollectionTree({
+      ...updated.tree!,
+      items: [{
+        id: 'bad-auth', name: 'Bad auth', request: {
+          method: 'GET', url: 'https://x.test', headers: [], body: '',
+          auth: { type: 'oauth', token: 'not-supported' },
+        },
+      }],
+    })).toBeNull();
+  });
+
   it('无 tree 键但有旧 flat saved → 升树（migrated=true），集合脚本入根', () => {
     const savedJson = JSON.stringify([
       { id: 'one', name: 'one', request: req('https://x.test/1'), createdAt: 1, updatedAt: 1, scriptEvents: { prerequest: 'p1' } },
