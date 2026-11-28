@@ -252,6 +252,14 @@ test('Authorization editor keeps credentials local until Send and preserves manu
   await expect(page.getByTestId('auth-mode')).toContainText('API Key · Query');
   await expect(page.getByTestId('auth-api-key-value')).toHaveAttribute('type', 'password');
   expect(relayCalls).toBe(2);
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  const authInputBox = await page.getByTestId('auth-api-key-value').boundingBox();
+  expect(authInputBox?.height).toBeGreaterThanOrEqual(44);
+  const hasHorizontalOverflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
+  expect(hasHorizontalOverflow).toBe(false);
+  await expect(page.getByTestId('auth-destination')).not.toContainText('query-secret+value&safe');
+  expect(relayCalls).toBe(2);
 });
 
 test('failed sends enter request history without raw relay error text', async ({ page }) => {
