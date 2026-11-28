@@ -212,7 +212,7 @@ describe('HTTP Status Codes bilingual protocol guidance accuracy', () => {
 
     expect(text).toContain('WWW-Authenticate');
     expect(text).toContain('preserve the request method');
-    expect(text.toLowerCase()).toContain('proxies and gateways can generate HTTP responses too.');
+    expect(text.toLowerCase()).toContain('proxies and gateways can generate http responses too.');
     expect(text).toContain('DNS lookup, TCP connection, TLS negotiation');
     expect(text).toContain('heuristically cacheable');
     expect(text).not.toContain('who are you?');
