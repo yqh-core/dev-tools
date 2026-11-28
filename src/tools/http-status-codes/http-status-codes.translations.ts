@@ -5,9 +5,9 @@
 export const statusCodeZh: Record<number, { name: string; description: string }> = {
   100: { name: '继续', description: '服务器已收到请求头，客户端可以继续发送请求体。' },
   101: { name: '切换协议', description: '服务器正在切换到 Upgrade 请求头指定的协议。' },
-  102: { name: '处理中', description: '历史 WebDAV 临时响应。该状态码未被 RFC 4918 继续采用，IANA 仍保留其 RFC 2518 历史注册。' },
+  102: { name: '处理中', description: '历史 WebDAV 中间响应。该状态码曾见于 RFC 2518，但 RFC 4918 未定义此状态码；IANA 仍保留 RFC 2518 的历史注册。' },
   103: { name: '早期提示', description: '服务器在最终响应前发送初步响应头，常用于提示客户端预加载资源。' },
-  104: { name: '支持恢复上传', description: '可恢复上传的临时 IANA 注册状态码。使用前应核对最新注册信息；已发布的注册表快照所列有效期已过。' },
+  104: { name: '支持恢复上传', description: 'IANA 目前仍将其列为临时注册，登记有效期截至 2026-11-13。当前 HTTP 工作组 Internet-Draft draft-ietf-httpbis-resumable-upload-16 提议使用此状态码，但它尚未成为正式 RFC。不要将其视为永久注册或未分配状态；实施前请重新核对 IANA 注册表。' },
   200: { name: '成功', description: '请求成功。响应体的含义取决于所使用的请求方法。' },
   201: { name: '已创建', description: '请求成功并创建了一个或多个资源；如提供 Location，其值标识主要新建资源。' },
   202: { name: '已接受', description: '请求已被接受处理，但处理尚未完成。响应宜说明当前状态或提供状态查询入口。' },
