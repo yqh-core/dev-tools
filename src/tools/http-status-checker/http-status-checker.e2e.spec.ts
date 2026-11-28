@@ -6,7 +6,9 @@ test.describe('Tool - HTTP status checker edge response semantics', () => {
   });
 
   test('shows a received 404 separately from the lookup outcome and includes the final URL', async ({ page }) => {
+    let requestedUrl = '';
     await page.route('**/api/webstatus?*', async (route) => {
+      requestedUrl = route.request().url();
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -21,7 +23,7 @@ test.describe('Tool - HTTP status checker edge response semantics', () => {
     await page.getByTestId('status-url').locator('input').fill('example.com/start');
     await expect(page.getByText('HTTPS is used when no scheme is entered.')).toBeVisible();
     await page.getByTestId('check-url').click();
-    await expect.poll(() => route.url()).toContain('https%3A%2F%2Fexample.com%2Fstart');
+    await expect.poll(() => requestedUrl ? new URL(requestedUrl).searchParams.get('url') : '').toBe('https://example.com/start');
 
     await expect(page.getByTestId('lookup-success')).toBeVisible();
     await expect(page.getByTestId('lookup-success')).toContainText('HTTP response received');
