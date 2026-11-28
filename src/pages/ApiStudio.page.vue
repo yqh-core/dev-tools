@@ -1607,6 +1607,7 @@ async function sendSelectedRequest() {
     const response = await runnerSend(payload);
     // Evaluate against the real response, then redact only the values shown to the user.
     const assertionBody = response.body;
+    const assertionHeaders = response.headers;
     response.url = redactAuthQueryUrl(response.url, request.auth, env.value);
     response.body = redactAuthSensitiveText(assertionBody, request.auth, env.value);
     response.statusText = redactAuthSensitiveText(response.statusText, request.auth, env.value);
@@ -1622,7 +1623,7 @@ async function sendSelectedRequest() {
     singleCanRetry.value = isRetryableHttpStatus(response.status);
     const assertionReport = assertionEngine.runAssertions(edAssertions.value, {
       status: response.status,
-      headers: response.headers,
+      headers: assertionHeaders,
       body: assertionBody,
       elapsedMs: response.elapsedMs,
     });
