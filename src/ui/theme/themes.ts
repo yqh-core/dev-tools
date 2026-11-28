@@ -1,5 +1,6 @@
 import { defineThemes } from './theme.models';
 import { ddTokens } from '@/generated/dd-tokens';
+import { mainPalette } from '@/main-palette';
 
 /**
  * c-* 组件族的主题 —— 颜色来自 dd-tokens（B3）。
@@ -24,10 +25,10 @@ export const { themes: appThemes, useTheme: useAppTheme } = defineThemes({
       colorPressed: 'rgba(46, 51, 56, 0.22)',
     },
     primary: {
-      color: ddTokens.light.primary,
-      colorHover: ddTokens.light.primary_hover,
-      colorPressed: ddTokens.light.primary_active,
-      colorFaded: '#0f766e2f',
+      color: mainPalette.light.link,
+      colorHover: mainPalette.light.linkHover,
+      colorPressed: mainPalette.light.linkPressed,
+      colorFaded: mainPalette.light.linkFaded,
     },
     warning: {
       color: '#f59e0b',
@@ -61,10 +62,10 @@ export const { themes: appThemes, useTheme: useAppTheme } = defineThemes({
       colorPressed: 'rgba(255, 255, 255, 0.24)',
     },
     primary: {
-      color: ddTokens.dark.primary,
-      colorHover: ddTokens.dark.primary_hover,
-      colorPressed: ddTokens.dark.primary_active,
-      colorFaded: '#14b8a62f',
+      color: mainPalette.dark.link,
+      colorHover: mainPalette.dark.linkHover,
+      colorPressed: mainPalette.dark.linkPressed,
+      colorFaded: mainPalette.dark.linkFaded,
     },
     warning: {
       color: '#f59e0b',
