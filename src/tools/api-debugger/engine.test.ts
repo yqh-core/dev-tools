@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { decodeLink } from '../json-workspace/workspace-link';
-import { buildProxyPayload, isRequestAuthConfig, redactAuthQueryUrl, responseToWorkspaceLink, sanitizeForShare, substituteVars } from './engine';
+import { buildProxyPayload, isRequestAuthConfig, redactAuthQueryUrl, redactAuthSensitiveText, responseToWorkspaceLink, sanitizeForShare, substituteVars } from './engine';
 
 describe('substituteVars', () => {
   it('replaces known variables and lists missing ones', () => {
@@ -146,6 +146,18 @@ describe('request Authorization profiles', () => {
       auth: { type: 'api-key-header', key: 'Bad Header Name', value: 'secret' },
     }, {});
     expect(badHeaderName.error).toContain('valid HTTP field name');
+  });
+
+  it('redacts resolved literal and UTF-8 Basic credentials from displayed error text', () => {
+    expect(redactAuthSensitiveText('Rejected secret-token', {
+      type: 'bearer', token: '{{API_TOKEN}}',
+    }, { API_TOKEN: 'secret-token' })).toBe('Rejected [REDACTED]');
+    const username = '用户';
+    const password = 'päss';
+    const encoded = btoa(Array.from(new TextEncoder().encode(`${username}:${password}`), byte => String.fromCharCode(byte)).join(''));
+    expect(redactAuthSensitiveText(`Rejected Basic ${encoded}`, {
+      type: 'basic', username, password,
+    }, {})).toBe('Rejected [REDACTED]');
   });
 
   it('redacts only generated API-key query values from collection progress URLs', () => {
