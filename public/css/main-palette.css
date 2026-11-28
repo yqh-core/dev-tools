@@ -83,10 +83,10 @@ html[data-theme="dark"] {
 /* Main-only consent and preferences surfaces — uses the site's semantic palette. */
 .privacy-settings-toolbar {
   display: inline-flex;
-  min-height: 36px;
+  min-height: 44px;
   align-items: center;
   justify-content: center;
-  padding: 6px 9px;
+  padding: 8px 10px;
   border: 1px solid var(--dd-border);
   border-radius: 8px;
   background: var(--dd-surface);
@@ -186,7 +186,7 @@ html[data-theme="dark"] {
 .dd-consent__button:focus-visible,
 .dd-consent-dialog__close:focus-visible,
 .privacy-settings-toolbar:focus-visible {
-  outline: 3px solid var(--dd-focus-ring);
+  outline: 3px solid rgba(126, 69, 239, .38);
   outline-offset: 3px;
 }
 
