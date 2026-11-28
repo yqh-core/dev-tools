@@ -567,7 +567,7 @@ function onUpdateFavoriteTools() {
               <button
                 v-for="demoId in HOME_DEMO_IDS"
                 :key="demoId"
-                :data-testid="`home-demo-tab-${demoId}`"
+                :data-test-id="`home-demo-tab-${demoId}`"
                 class="hero-preview-tab"
                 type="button"
                 :aria-pressed="activeHomeDemo === demoId"
@@ -591,7 +591,7 @@ function onUpdateFavoriteTools() {
                 <span>{{ activeHomeDemoStory.format }}</span>
                 <button
                   class="hero-preview-run"
-                  data-testid="home-demo-run"
+                  data-test-id="home-demo-run"
                   type="button"
                   :disabled="isHomeDemoRunning"
                   @click="runHomeDemo"
@@ -601,7 +601,7 @@ function onUpdateFavoriteTools() {
                 <button
                   v-if="activeHomeDemoResult"
                   class="hero-preview-copy-result"
-                  data-testid="home-demo-copy"
+                  data-test-id="home-demo-copy"
                   type="button"
                   @click="copyHomeDemoResult"
                 >
