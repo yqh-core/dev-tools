@@ -2992,9 +2992,10 @@ function onMenuSelect(key: string, node: TreeNode) {
 }
 
 .api-field-hint {
-  color: var(--api-text-faint);
-  font-size: var(--api-fs-xs);
+  color: var(--api-text-soft);
+  font-size: var(--api-fs-sm);
   font-weight: 400;
+  line-height: 1.5;
 }
 
 .api-backup-preview {
