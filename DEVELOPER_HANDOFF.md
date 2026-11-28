@@ -1,3 +1,20 @@
+## Verification refresh — 2026-11-28T13:53:37.289Z
+
+### API Studio merge SHA
+- Main CI run #46151113582: **SUCCESS** (job completed; browser regression and screenshot uploads terminal-success).
+- Merge-SHA Build #46151113569 / check #140997751328: **SUCCESS**; Cloudflare Pages #140997669682: **SUCCESS**; production smoke #140998715906: **SUCCESS**; production homepage visual #140998793158: **SUCCESS**; comprehensive crawl gate #140999219137: **SUCCESS**.
+- A second site-crawl dispatch is active: StreamPlay and IP Locator succeeded; DigImg succeeded; TTS Reader and Main were in progress; Forge Notes, ImageForge, Fangdai and Geek Typing were queued on last read. The first completed matrix of nine site tasks was all successful. This second dispatch is not evidence of an error, but remains in progress until terminal.
+
+### Main homepage task demo — exact head 52d0db6
+- PR #258 remains OPEN; exact head `52d0db6b4bcf5b6bdbb0bc443f4c822090d7dc0e`; latest PR mergeable observation `true`.
+- Verify/Build #46151447367 / check #140998763641: **SUCCESS**.
+- Generic CI #46151447365 / check #140998763467: **IN_PROGRESS**. Lint, worker lint/bundle, unit tests and typecheck succeeded; main production build was still running. The Chromium regression steps are downstream of this build and have not been observed as complete.
+- Cloudflare Pages check #140998746685: **IN_PROGRESS**.
+- Latest artifacts for #258 were not yet available at last read. Post-run 390×844 CTA bounds, keyboard scrolling and 1440×900 screenshots therefore remain **NOT YET VERIFIED**. No merge until exact-head CI + Pages complete and real screenshots are reviewed.
+
+Do not change current single-WIP rule: #258 is the only active shared-repo code PR. Do not start a competing Main or API Studio code PR.
+
+---
 ## Live handoff override — 2026-11-28 2026-11-28T13:50:00.231Z
 
 ### API Studio safe OpenAPI refresh (#283) — MERGED
