@@ -504,8 +504,8 @@ test('OpenAPI import targets a folder and exposes skip, append and replace dupli
   await page.getByTestId('openapi-conflicts').selectOption('replace');
   await page.getByTestId('confirm-openapi-import').click();
   saved = await page.evaluate(() => JSON.parse(localStorage.getItem('api-studio:tree') ?? 'null'));
-  expect(saved.items[0].items).toHaveLength(2);
-  expect(saved.items[0].items.map((item: { name: string }) => item.name)).toEqual(['getUser (imported 2)', 'getUser']);
+  expect(saved.items[0].items).toHaveLength(1);
+  expect(saved.items[0].items[0].name).toBe('getUser');
   await page.screenshot({ path: testInfo.outputPath('openapi-imported-folder-desktop.png') });
   expect(relayCalls).toEqual([]);
 });
