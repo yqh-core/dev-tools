@@ -93,6 +93,18 @@ test.describe('Tool - local HTTP response header analyzer', () => {
     await expect(page.getByTestId('header-checks')).toContainText('MIME sniffing protection');
   });
 
+  test('rejects local captures larger than the 10 MiB limit before reading them', async ({ page }) => {
+    const oversized = Buffer.alloc(10 * 1024 * 1024 + 1);
+    await page.getByTestId('har-file-input').setInputFiles({
+      name: 'oversized.har',
+      mimeType: 'application/json',
+      buffer: oversized,
+    });
+
+    await expect(page.getByTestId('har-import-error')).toContainText('10 MiB');
+    await expect(page.getByTestId('analysis-results')).toHaveCount(0);
+  });
+
   test('rejects invalid HAR files without replacing the current analysis', async ({ page }) => {
     await page.getByTestId('raw-response-headers').locator('textarea').fill('HTTP/2 200 OK');
     await page.getByTestId('har-file-input').setInputFiles({
