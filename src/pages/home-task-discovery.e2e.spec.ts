@@ -157,8 +157,6 @@ test.describe('Homepage task discovery', () => {
     await expect(page).toHaveURL(/api-studio\/?$/);
   });
 
-
-
   test('keeps the legacy API Debugger available as a secondary API-card link', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto('/');
