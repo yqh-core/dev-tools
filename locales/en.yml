@@ -1344,7 +1344,22 @@ tools:
 
   http-status-checker:
     title: "HTTP status checker"
-    description: "Check the live HTTP status code and response headers of a URL to troubleshoot reachability, redirects and caching."
+    description: "Check a public URL from DigDevBox's Cloudflare edge and inspect its final HTTP response status, landing URL and response headers."
+    urlLabel: "URL"
+    urlPlaceholder: "Enter a URL, e.g. example.com"
+    enterUrl: "Enter a URL first"
+    checking: "Checking…"
+    checkAction: "Check URL"
+    clear: "Clear result"
+    checkFailed: "Lookup failed"
+    noStatus: "The service returned no upstream HTTP status."
+    requestContext: "Sent from DigDevBox's Cloudflare edge with DigDevBox/1.0 and no browser cookies. Results may differ from your browser or curl."
+    requestLimits: "Follows up to 3 redirects and shows only the final response. Set-Cookie is omitted; at most 60 response headers are returned."
+    lookupReceived: "HTTP response received"
+    upstreamStatus: "Upstream HTTP status"
+    statusIsNotLookupError: "A 4xx or 5xx code is the target's response, not a checker failure."
+    finalUrl: "Final URL"
+    responseHeaders: "Response headers ({count})"
 
   today-in-history:
     title: "Today in history"
