@@ -33,6 +33,16 @@ import {
 } from '@/tools/api-debugger/collection-tree';
 import type { KV } from '@/tools/api-debugger/engine';
 import { buildProxyPayload } from '@/tools/api-debugger/engine';
+import {
+  API_STUDIO_HISTORY_CAP,
+  API_STUDIO_HISTORY_KEY,
+  createApiStudioHistoryEntry,
+  parseApiStudioHistory,
+  pushApiStudioHistory,
+  removeApiStudioHistory,
+  serializeApiStudioHistory,
+} from '@/tools/api-debugger/request-history';
+import type { ApiStudioHistoryEntry } from '@/tools/api-debugger/request-history';
 import * as assertionEngine from '@/tools/api-debugger/assertions';
 import { buildUrlWithQuery, parseQueryParams } from '@/tools/api-debugger/query';
 import type { CollectionRunSummary, RunnerResponse, SendFn } from '@/tools/api-debugger/runner';
@@ -69,6 +79,8 @@ type VarScope = environmentEngine.VarScope;
 const TREE_KEY = ['api-studio', 'tree'].join(':');
 const LEGACY_SAVED_KEY = ['api-debugger', 'saved'].join(':');
 const LEGACY_SCRIPTS_KEY = ['api-debugger', 'collection-scripts'].join(':');
+const requestHistory = ref<ApiStudioHistoryEntry[]>([]);
+const historyNotice = ref('');
 
 const tree = ref<CollectionNode>(emptyRoot());
 const selectedId = ref<string | null>(null);
@@ -158,6 +170,39 @@ function applyTree(next: CollectionNode) {
   persist();
 }
 
+function persistRequestHistory(): void {
+  try {
+    localStorage.setItem(API_STUDIO_HISTORY_KEY, serializeApiStudioHistory(requestHistory.value));
+    historyNotice.value = '';
+  }
+  catch {
+    historyNotice.value = 'The request was sent, but browser storage is unavailable. This history change is only in memory.';
+  }
+}
+
+function loadRequestHistory(): void {
+  try {
+    const raw = localStorage.getItem(API_STUDIO_HISTORY_KEY);
+    let parsed: unknown = null;
+    if (raw) {
+      try {
+        parsed = JSON.parse(raw);
+      }
+      catch {
+        parsed = null;
+      }
+    }
+    requestHistory.value = parseApiStudioHistory(parsed, Date.now());
+    if (raw) {
+      localStorage.setItem(API_STUDIO_HISTORY_KEY, serializeApiStudioHistory(requestHistory.value));
+    }
+  }
+  catch {
+    requestHistory.value = [];
+    historyNotice.value = 'Request history could not be read from this browser profile.';
+  }
+}
+
 onMounted(() => {
   if (typeof window === 'undefined') {
     return;
@@ -193,6 +238,7 @@ onMounted(() => {
     selectedEnv.value = 'Default';
   }
   renameEnvDraft.value = selectedEnv.value;
+  loadRequestHistory();
 });
 
 // ── 扁平可见行（按折叠状态展开，depth 决定缩进）───────────────────────
@@ -995,6 +1041,65 @@ const selectedEnvStore = computed<EnvStore>(() => ({
   active: envStore.value.envs[selectedEnv.value] ? selectedEnv.value : envStore.value.active,
 }));
 const env = computed<Record<string, string>>(() => environmentEngine.activeVars(selectedEnvStore.value));
+
+function markedSecretValues(): string[] {
+  const store = selectedEnvStore.value;
+  const names = new Set(store.secrets ?? []);
+  if (names.size === 0) {
+    return [];
+  }
+  const layers = [store.global ?? {}, store.collection ?? {}, ...Object.values(store.envs ?? {})];
+  const values: string[] = [];
+  for (const layer of layers) {
+    for (const name of names) {
+      const value = layer[name];
+      if (typeof value === 'string' && value.length > 0 && !values.includes(value)) {
+        values.push(value);
+      }
+    }
+  }
+  return values;
+}
+
+function recordRequestHistory(request: { method: string; url: string; headers: KV[]; body: string }, status: number | null, elapsedMs: number | null): void {
+  const at = Date.now();
+  const entry = createApiStudioHistoryEntry({
+    id: `${at.toString()}-${Math.random().toString(36).slice(2, 8)}`,
+    at,
+    request,
+    status,
+    elapsedMs,
+  }, markedSecretValues());
+  requestHistory.value = pushApiStudioHistory(requestHistory.value, entry);
+  persistRequestHistory();
+}
+
+function loadRequestFromHistory(entry: ApiStudioHistoryEntry): void {
+  const target = entry.request.url.replace(/^https?:\/\//i, '');
+  const name = `${entry.request.method.toUpperCase()} ${target}`.slice(0, 80).trim();
+  const result = addRequest(tree.value, null, {
+    name: name || 'Request from history',
+    request: entry.request,
+  });
+  if (result.error || !result.node) {
+    banner.value = result.error ?? 'Could not add the historical request to this collection.';
+    return;
+  }
+  applyTree(result.tree);
+  selectNode(result.node.id);
+  banner.value = 'Loaded a sanitized copy as a new request. Re-add removed credentials and review it before sending.';
+}
+
+function removeRequestHistory(id: string): void {
+  requestHistory.value = removeApiStudioHistory(requestHistory.value, id);
+  persistRequestHistory();
+}
+
+function clearRequestHistory(): void {
+  requestHistory.value = [];
+  persistRequestHistory();
+}
+
 const envOptions = computed(() => environmentEngine.envNames(envStore.value).map(name => ({ label: name, value: name })));
 const envVarCount = computed(() => Object.keys(env.value).length);
 const scopeRows = computed(() => Object.entries(environmentEngine.scopeVars(selectedEnvStore.value, activeScope.value))
@@ -1283,8 +1388,10 @@ async function sendSelectedRequest() {
   sendingSingle.value = true;
   singleError.value = '';
   singleResponse.value = null;
+  const sendStartedAt = Date.now();
   try {
     const response = await runnerSend(payload);
+    recordRequestHistory(request, response.status, response.elapsedMs);
     singleResponse.value = response;
     // The relay wraps upstream HTTP statuses in a 200 JSON envelope; classify the
     // upstream status too so a returned 503 has a nearby manual retry action.
@@ -1298,6 +1405,7 @@ async function sendSelectedRequest() {
     banner.value = `Received HTTP ${response.status} in ${response.elapsedMs} ms.`;
   }
   catch (e) {
+    recordRequestHistory(request, null, Date.now() - sendStartedAt);
     singleError.value = e instanceof Error ? e.message : String(e);
     singleCanRetry.value = e instanceof Error
       && (e as Error & { retryable?: boolean }).retryable === true;
@@ -2177,6 +2285,38 @@ function onMenuSelect(key: string, node: TreeNode) {
           Saved collections and environment values stay in this browser. Requests pass through our first-party API relay.
         </p>
       </div>
+
+      <section class="api-request-section api-history-section" data-test-id="request-history" aria-label="Request history">
+        <div class="api-request-section-head">
+          <span>Recent requests <span class="api-field-hint">{{ requestHistory.length }}/{{ API_STUDIO_HISTORY_CAP }} · last 30 days</span></span>
+          <button v-if="requestHistory.length" class="api-mini-action" type="button" data-test-id="request-history-clear" @click="clearRequestHistory">
+            Clear all
+          </button>
+        </div>
+        <p class="api-field-hint">
+          Browser-local only; not encrypted or uploaded. Credential fields are removed or redacted. Unmarked secrets in free-form text may remain.
+        </p>
+        <p v-if="historyNotice" class="api-field-hint" role="status" data-test-id="request-history-notice">
+          {{ historyNotice }}
+        </p>
+        <div v-if="requestHistory.length" class="kv-list" style="max-height: 320px; overflow-y: auto" data-test-id="request-history-list">
+          <div v-for="entry in requestHistory" :key="entry.id" class="api-kv-row" data-test-id="request-history-entry" :data-history-id="entry.id">
+            <span class="api-method-badge">{{ entry.request.method }}</span>
+            <span class="api-field-hint" style="flex: 1 1 180px; min-width: 0; overflow-wrap: anywhere">
+              {{ entry.request.url || '(no URL)' }}
+            </span>
+            <span class="api-field-hint">
+              {{ entry.status === null ? 'No HTTP status' : `HTTP ${entry.status}` }}{{ entry.elapsedMs !== null ? ` · ${entry.elapsedMs} ms` : '' }}
+            </span>
+            <span class="api-field-hint">{{ new Date(entry.at).toLocaleString() }}</span>
+            <button class="api-mini-action" type="button" data-test-id="request-history-load" @click="loadRequestFromHistory(entry)">Load as new</button>
+            <button class="api-mini-action" type="button" data-test-id="request-history-remove" @click="removeRequestHistory(entry.id)">Remove</button>
+          </div>
+        </div>
+        <p v-else class="api-field-hint">
+          Individual Send attempts will appear here. Collection-run reports stay separate.
+        </p>
+      </section>
 
       <!-- Collection run: show progress first, then safe per-request outcomes and the shareable report. -->
       <div v-if="running || runSummary" class="api-run-result" data-test-id="run-result">
