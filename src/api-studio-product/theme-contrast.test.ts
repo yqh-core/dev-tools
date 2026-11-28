@@ -41,7 +41,7 @@ describe('API Studio light theme contrast', () => {
   });
 
   test('keeps form-control boundaries distinguishable from their input surface', () => {
-    const borderColor = '#7f8da2';
+    const borderColor = '#75839a';
     const inputSurface = token('--api-surface-3');
     expect(apiStudioLightOverrides.Input).toMatchObject({
       border: `1px solid ${borderColor}`,
