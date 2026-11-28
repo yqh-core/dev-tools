@@ -6,6 +6,7 @@
  * 重定向或传输层问题才属于检测失败。接口只返回最终响应，不返回逐跳时间线。
  */
 import { useI18n } from 'vue-i18n';
+import { useCopy } from '@/composable/copy';
 import { useToolFetch } from '@/composable/toolFetch';
 
 interface WebStatus {
@@ -41,6 +42,10 @@ const { data, error, isLoading, execute, clear } = useToolFetch<WebStatus>({
 
 const status = computed(() => data.value?.status ?? null);
 const finalUrl = computed(() => data.value?.url ?? '');
+const { copy: copyFinalUrl, isJustCopied: isFinalUrlCopied } = useCopy({
+  source: finalUrl,
+  text: t('tools.http-status-checker.copiedUrl'),
+});
 const headers = computed(() => data.value?.headers ?? {});
 const hasResponse = computed(() => status.value !== null);
 
@@ -124,7 +129,14 @@ const headersText = computed(() => JSON.stringify(headers.value, null, 2));
         </div>
         <div flex flex-wrap items-start gap-2>
           <span class="min-w-0 flex-1 break-all" data-test-id="final-url">{{ finalUrl }}</span>
-          <SpanCopyable :value="finalUrl" />
+          <c-button
+            size="small"
+            type="tertiary"
+            data-test-id="copy-final-url"
+            @click="copyFinalUrl()"
+          >
+            {{ isFinalUrlCopied ? t('tools.http-status-checker.copiedUrl') : t('tools.http-status-checker.copyUrl') }}
+          </c-button>
         </div>
       </div>
     </c-card>
