@@ -366,6 +366,17 @@ function findOpenApiDuplicate(source: CollectionNode, imported: ImportedRequest)
   return walk(source.items);
 }
 
+function hasOpenApiRequestName(source: CollectionNode, name: string): boolean {
+  const target = name.trim().toLowerCase();
+  const walk = (items: TreeNode[]): boolean => items.some((item) => {
+    if (isFolderNode(item)) {
+      return walk(item.items);
+    }
+    return item.name.trim().toLowerCase() === target;
+  });
+  return walk(source.items);
+}
+
 const openApiDuplicateCount = computed(() => {
   const parsed = openApiPreview.value;
   if (!parsed) {
@@ -412,7 +423,7 @@ function confirmOpenApiImport() {
       let suffix = 2;
       const baseName = imported.name;
       name = `${baseName} (imported ${suffix})`;
-      while (findOpenApiDuplicate(nextTree, { ...imported, name })) {
+      while (hasOpenApiRequestName(nextTree, name)) {
         suffix++;
         name = `${baseName} (imported ${suffix})`;
       }
