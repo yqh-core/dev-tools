@@ -442,16 +442,18 @@ test('OpenAPI import targets a folder and exposes skip, append and replace dupli
       },
     },
   });
-  const upload = () => page.getByTestId('openapi-file').setInputFiles({
-    name: 'users.json',
-    mimeType: 'application/json',
-    buffer: Buffer.from(spec),
-  });
+  const upload = async () => {
+    await page.getByTestId('openapi-file').setInputFiles({
+      name: 'users.json',
+      mimeType: 'application/json',
+      buffer: Buffer.from(spec),
+    });
+    await expect(page.getByTestId('openapi-preview')).toBeVisible();
+    await page.getByTestId('openapi-destination').selectOption('api-folder');
+  };
 
-  await upload();
   const preview = page.getByTestId('openapi-preview');
-  await expect(preview).toBeVisible();
-  await page.getByTestId('openapi-destination').selectOption('api-folder');
+  await upload();
   await expect(page.getByTestId('openapi-operations')).toContainText('GET');
   await page.screenshot({ path: testInfo.outputPath('openapi-preview-desktop.png') });
   await page.getByTestId('confirm-openapi-import').click();
