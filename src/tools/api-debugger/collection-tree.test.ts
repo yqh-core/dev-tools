@@ -293,6 +293,37 @@ describe('树互操作 round-trip（importCollectionTree ↔ exportCollectionTre
     expect((exported.info as Record<string, unknown>)._postman_id).toBe(source.id);
   });
 
+  it('round-trips per-request auth profiles through Postman v2.1 tree import/export', () => {
+    const postman = JSON.stringify({
+      info: { name: 'Auth API' },
+      item: [{
+        name: 'Search',
+        request: {
+          method: 'GET',
+          url: 'https://api.example.test/search',
+          auth: { type: 'apikey', apikey: [
+            { key: 'key', value: 'X-CLIENT-ID' },
+            { key: 'value', value: '{{CLIENT_ID}}' },
+            { key: 'in', value: 'header' },
+          ] },
+        },
+      }],
+    });
+    const imported = importCollectionTree(postman);
+    const request = imported.tree.items[0];
+    if (!('request' in request)) throw new Error('request node missing');
+    expect(request.request.auth).toEqual({ type: 'api-key-header', key: 'X-CLIENT-ID', value: '{{CLIENT_ID}}' });
+    const full = exportCollectionTree(imported.tree, false);
+    const roundTrip = importCollectionTree(JSON.stringify(full)).tree.items[0];
+    if (!('request' in roundTrip)) throw new Error('round-trip request node missing');
+    expect(roundTrip.request.auth).toEqual(request.request.auth);
+
+    const safe = exportCollectionTree(imported.tree, true);
+    expect(JSON.stringify(safe)).not.toContain('CLIENT_ID');
+    const safeRequest = importCollectionTree(JSON.stringify(safe)).tree.items[0];
+    if (!('request' in safeRequest)) throw new Error('safe request node missing');
+    expect(safeRequest.request.auth).toBeUndefined();
+  });
   it('导出保形 + 再导入：嵌套结构与节点 ID round-trip 一致', () => {
     const first = importCollectionTree(nestedDoc).tree;
     const exported = JSON.stringify(exportCollectionTree(first, false));
