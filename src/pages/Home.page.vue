@@ -125,7 +125,7 @@ const LEGACY_POPULAR_TOOL_PATHS = [
 ];
 
 const FEATURED_TASKS = [
-  { id: 'api', primaryPath: '/api-debugger', toolPaths: ['/api-debugger'], hue: 205 },
+  { id: 'api', primaryPath: '/api-studio', toolPaths: ['/api-debugger'], hue: 205 },
   {
     id: 'json',
     primaryPath: '/json-workspace',
@@ -182,7 +182,7 @@ const activeHomeDemoError = ref('');
 const homeDemoCopyStatus = ref<'idle' | 'copied' | 'error'>('idle');
 const isHomeDemoRunning = ref(false);
 const activeHomeDemoCode = computed(() => activeHomeDemoResult.value
-  ? `${activeHomeDemoStory.value.input}\nOUT ${activeHomeDemoResult.value}`
+  ? `OUT ${activeHomeDemoResult.value}`
   : activeHomeDemoStory.value.input);
 
 function selectHomeDemo(demoId: HomeDemoId) {
@@ -284,9 +284,8 @@ if (LEGACY_POPULAR_TOOL_PATHS.length !== 12) {
 }
 assertHomeToolPaths(LEGACY_POPULAR_TOOL_PATHS, 'LEGACY_POPULAR_TOOL_PATHS', toolsWithCategory);
 
-const FEATURED_TASK_PATHS = [...new Set(
-  FEATURED_TASKS.flatMap(task => [task.primaryPath, ...task.toolPaths]),
-)];
+// Product-shell destinations (e.g. API Studio) may be primary entries without being tools-index routes.
+const FEATURED_TASK_PATHS = [...new Set(FEATURED_TASKS.flatMap(task => task.toolPaths))];
 assertHomeToolPaths(FEATURED_TASK_PATHS, 'FEATURED_TASKS', toolsWithCategory);
 assertHomeToolPaths(
   HOME_DEMO_IDS.map(id => HOME_DEMO_STORIES[id].path),
@@ -608,7 +607,7 @@ function onUpdateFavoriteTools() {
                   {{ homeDemoCopyStatus === 'copied' ? t('home.demo.copied') : t('home.demo.copyResult') }}
                 </button>
               </div>
-              <pre><code>{{ activeHomeDemoCode }}</code></pre>
+              <pre tabindex="0"><code>{{ activeHomeDemoCode }}</code></pre>
               <p v-if="homeDemoCopyStatus === 'error'" class="hero-preview-error" role="status">
                 {{ t('home.demo.copyError') }}
               </p>
@@ -692,11 +691,10 @@ function onUpdateFavoriteTools() {
               <div v-if="task.tools.length > 1 || task.id === 'api'" class="featured-task-links">
                 <RouterLink
                   v-if="task.id === 'api'"
-                  class="featured-task-link featured-task-workspace-link"
-                  :to="normalizePath('/api-studio')"
+                  class="featured-task-link"
+                  :to="normalizePath('/api-debugger')"
                 >
-                  {{ t('home.featured.items.api.studioLink') }}
-                  <span aria-hidden="true">↗</span>
+                  {{ t('home.featured.items.api.legacyDebuggerLink') }}
                 </RouterLink>
                 <RouterLink
                   v-for="tool in task.tools.slice(1)"
@@ -710,9 +708,11 @@ function onUpdateFavoriteTools() {
               <RouterLink
                 class="featured-task-primary"
                 :to="normalizePath(task.primaryPath)"
-                :aria-label="`${t('home.featured.open')} ${task.tools[0].name}`"
+                :aria-label="task.id === 'api'
+                  ? t('home.featured.items.api.studioLink')
+                  : `${t('home.featured.open')} ${task.tools[0].name}`"
               >
-                {{ t('home.featured.open') }}
+                {{ task.id === 'api' ? t('home.featured.items.api.studioLink') : t('home.featured.open') }}
                 <span aria-hidden="true">→</span>
               </RouterLink>
             </article>
@@ -2234,9 +2234,11 @@ function onUpdateFavoriteTools() {
     }
 
     pre {
+      max-height: 48px;
+      overflow: auto;
       padding: 6px 8px;
-      font-size: 11px;
-      line-height: 1.45;
+      font-size: 10px;
+      line-height: 1.25;
     }
   }
 
