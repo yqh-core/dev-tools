@@ -93,6 +93,96 @@ test('task guides are directly addressable and link back to the workspace', asyn
   await expect(page.getByTestId('retry-guidance')).toContainText('Retry is manual');
 });
 
+
+test('request history stores a sanitized template and loads it as a new request after refresh', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.addInitScript(() => {
+    localStorage.setItem('api-debugger:env', JSON.stringify({
+      active: 'Default', envs: { Default: { accessToken: 'super-secret-value' } }, secrets: ['accessToken'],
+    }));
+  });
+  let relayCalls = 0;
+  await page.route('**/api/apiproxy', async (route) => {
+    relayCalls += 1;
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({
+      status: 200, statusText: 'OK', url: 'https://api.example.test/v1/items',
+      headers: { 'content-type': 'application/json' }, body: '{"ok":true}', elapsedMs: 12,
+    }) });
+  });
+  await page.goto('/app/');
+  await page.getByTestId('create-first-request').click();
+  await page.getByTestId('editor-url').fill('https://api.example.test/v1/items?access_token={{accessToken}}&page=2');
+  await page.getByTestId('editor-body').fill('{"accessToken":"super-secret-value","note":"keep this"}');
+  await page.getByTestId('add-header').click();
+  await page.getByTestId('header-name').last().fill('X-API-Key');
+  await page.getByTestId('header-value').last().fill('private-api-key');
+  await page.getByTestId('send-request').click();
+  await expect(page.getByTestId('single-response')).toBeVisible();
+  await expect(page.getByTestId('request-history-entry')).toHaveCount(1);
+  const stored = await page.evaluate(() => JSON.parse(localStorage.getItem('api-studio:request-history') || 'null'));
+  expect(stored.version).toBe(1);
+  expect(stored.entries).toHaveLength(1);
+  const entry = stored.entries[0];
+  const serialized = JSON.stringify(entry);
+  expect(serialized).not.toContain('private-api-key');
+  expect(serialized).not.toContain('super-secret-value');
+  expect(entry.request.url).toContain('access_token={{accessToken}}');
+  expect(entry.request.url).toContain('page=2');
+  expect(entry.request.headers.some((header: { name: string }) => /api-key|authorization|token/i.test(header.name))).toBe(false);
+  expect(entry.request.body).toContain('[REDACTED]');
+  expect(entry.request.body).toContain('keep this');
+  expect(entry).not.toHaveProperty('response');
+  expect(entry).not.toHaveProperty('error');
+  await page.reload();
+  await expect(page.getByTestId('request-history-entry')).toHaveCount(1);
+  await page.getByTestId('request-history-load').click();
+  await expect(page.getByTestId('tree-row')).toHaveCount(2);
+  await expect(page.getByTestId('editor-body')).toHaveValue(/REDACTED/);
+  expect(relayCalls).toBe(1);
+  await page.getByTestId('request-history-remove').click();
+  await expect(page.getByTestId('request-history-entry')).toHaveCount(0);
+  await page.getByTestId('send-request').click();
+  await expect(page.getByTestId('request-history-entry')).toHaveCount(1);
+  await page.getByTestId('request-history-clear').click();
+  await expect(page.getByTestId('request-history-entry')).toHaveCount(0);
+});
+
+test('failed sends enter request history without raw relay error text', async ({ page }) => {
+  await page.goto('/app/');
+  await page.getByTestId('create-first-request').click();
+  await page.getByTestId('editor-url').fill('https://api.example.test/fails');
+  await page.route('**/api/apiproxy', async (route) => {
+    await route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ error: 'private-relay-debug-detail' }) });
+  });
+  await page.getByTestId('send-request').click();
+  await expect(page.getByTestId('single-send-error')).toBeVisible();
+  await expect(page.getByTestId('request-history-entry')).toHaveCount(1);
+  const stored = await page.evaluate(() => JSON.parse(localStorage.getItem('api-studio:request-history') || 'null'));
+  expect(stored.entries[0].status).toBeNull();
+  expect(JSON.stringify(stored)).not.toContain('private-relay-debug-detail');
+  expect(stored.entries[0]).not.toHaveProperty('error');
+});
+
+test('request history remains usable on a 390px workspace without horizontal overflow', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.route('**/api/apiproxy', async (route) => {
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({
+      status: 200, statusText: 'OK', url: 'https://api.example.test/mobile',
+      headers: {}, body: '{}', elapsedMs: 4,
+    }) });
+  });
+  await page.goto('/app/');
+  await page.getByTestId('create-first-request').click();
+  await page.getByTestId('editor-url').fill('https://api.example.test/mobile');
+  await page.getByTestId('send-request').click();
+  await expect(page.getByTestId('request-history-entry')).toHaveCount(1);
+  const dimensions = await page.evaluate(() => ({
+    documentWidth: document.documentElement.scrollWidth,
+    viewportWidth: document.documentElement.clientWidth,
+  }));
+  expect(dimensions.documentWidth).toBeLessThanOrEqual(dimensions.viewportWidth);
+});
+
 test('all task guides are directly addressable and have a clear task heading', async ({ page }) => {
   const guides = [
     ['/docs/', 'Get from first request to repeatable tests.'],
