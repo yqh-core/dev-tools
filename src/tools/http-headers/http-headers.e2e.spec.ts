@@ -94,6 +94,7 @@ test.describe('Tool - local HTTP response header analyzer', () => {
   });
 
   test('rejects local captures larger than the 10 MiB limit before reading them', async ({ page }) => {
+    await expect(page.getByText('Maximum file size: 10 MiB.')).toBeVisible();
     const oversized = Buffer.alloc(10 * 1024 * 1024 + 1);
     await page.getByTestId('har-file-input').setInputFiles({
       name: 'oversized.har',
