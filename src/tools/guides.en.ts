@@ -577,7 +577,7 @@ export const GUIDES: Record<string, ToolGuide> = {
     notes: [
       'A status code exists only when an HTTP response is received. DNS, connection, TLS and timeout failures can happen before a response exists; CORS can also prevent JavaScript from reading a response even when a network exchange occurred.',
       'This is a reference, not a live URL, DNS, TLS or origin-availability checker.',
-      'The 4xx and 5xx class names describe response semantics, not guaranteed fault ownership. Proxies and gateways can generate HTTP responses too.',
+      'The 4xx and 5xx class names describe response semantics, not guaranteed fault ownership. The response does not always originate at the end server; proxies and gateways can generate HTTP responses too.',
     ],
     example: { label: 'Fill in a sample query', text: '404' },
     about: 'Look up the registered meaning of an HTTP response status code and decide what to inspect next. Search by code, name or category across informational responses, successful responses, redirects, client-error responses and server-error responses. This is a protocol reference—not a URL or network diagnostic.',
