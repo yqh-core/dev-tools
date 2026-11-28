@@ -68,17 +68,25 @@ test.describe('Homepage task discovery', () => {
 
     const preview = page.locator('.home-hero-preview');
     await expect(preview).toBeVisible();
-    await expect(preview).toContainText('SAMPLE DATA · NO REQUEST SENT');
+    await expect(preview).toContainText('LOCAL SAMPLE · NO API CALL');
     await expect(preview.getByTestId('home-demo-tab-json')).toHaveAttribute('aria-pressed', 'true');
-    await expect(preview.locator('pre code')).toContainText('"ok":true');
+    const runButton = preview.getByTestId('home-demo-run');
+    await expect(runButton).toBeVisible();
+    const runBox = await runButton.boundingBox();
+    expect(runBox?.height).toBeGreaterThanOrEqual(44);
+    await runButton.click();
+    await expect(preview.locator('pre code')).toContainText('OUT {');
+    await expect(preview.locator('pre code')).toContainText('"ok": true');
     const jsonSample = await preview.locator('pre code').textContent();
-    expect(jsonSample).toContain('IN  {"ok":true}\nOUT {');
+    expect(jsonSample).toContain('IN  {"ok":true}\nOUT {\n  "ok": true\n}');
     expect(jsonSample).not.toContain('\\n');
     await expect(preview.locator('a.hero-preview-link')).toHaveAttribute('href', '/json-workspace/');
 
     const jwtTab = preview.getByTestId('home-demo-tab-jwt');
     await jwtTab.click();
     await expect(jwtTab).toHaveAttribute('aria-pressed', 'true');
+    await runButton.click();
+    await expect(preview.locator('pre code')).toContainText('Claims dev-1 · qa');
     await expect(preview.locator('pre code')).toContainText('NOT VERIFIED');
     await expect(preview.locator('a.hero-preview-link')).toHaveAttribute('href', '/jwt-parser/');
 
@@ -87,7 +95,9 @@ test.describe('Homepage task discovery', () => {
     await expect(regexTab).toBeFocused();
     await page.keyboard.press('Enter');
     await expect(regexTab).toHaveAttribute('aria-pressed', 'true');
+    await runButton.click();
     await expect(preview.locator('pre code')).toContainText('2 matches');
+    await expect(preview.locator('pre code')).toContainText('DEV-2048 · OPS-0781');
     const regexSample = await preview.locator('pre code').textContent();
     expect(regexSample).toContain('RE  \\b[A-Z]{3}-\\d{4}\\b\nIN  Ticket');
     expect(regexSample).not.toContain('\\n');
@@ -112,12 +122,20 @@ test.describe('Homepage task discovery', () => {
     const documentWidth = await page.evaluate(() => document.documentElement.scrollWidth);
     expect(documentWidth).toBeLessThanOrEqual(390);
 
+    const runButton = preview.getByTestId('home-demo-run');
+    const runBox = await runButton.boundingBox();
+    expect(runBox?.height).toBeGreaterThanOrEqual(44);
+
     for (const demoId of ['json', 'jwt', 'regex'] as const) {
       const tab = preview.getByTestId(`home-demo-tab-${demoId}`);
       await tab.click();
+      await runButton.click();
+      await expect(preview.locator('pre code')).toContainText('OUT');
       const cta = await preview.locator('a.hero-preview-link').boundingBox();
       expect(cta).not.toBeNull();
       expect(cta!.y + cta!.height).toBeLessThanOrEqual(844);
+      const documentWidth = await page.evaluate(() => document.documentElement.scrollWidth);
+      expect(documentWidth).toBeLessThanOrEqual(390);
     }
   });
 
