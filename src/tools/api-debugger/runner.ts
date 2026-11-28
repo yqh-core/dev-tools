@@ -29,7 +29,7 @@
 
 import { type AssertionReport, runAssertions } from './assertions';
 import { type ReportRedactOptions, redactText } from './report';
-import { type KV, buildProxyPayload, redactAuthQueryUrl } from './engine';
+import { type KV, buildProxyPayload, redactAuthQueryUrl, redactAuthSensitiveText } from './engine';
 import type { SavedRequest } from './store';
 import type { DataFile } from './datafiles';
 import type { ScriptOutcomeData, ScriptSnapshot } from './script-runtime';
@@ -309,6 +309,31 @@ async function executeSequence(
       }
       if (!result.sent && scriptError && !result.error) {
         result.error = scriptError;
+      }
+      if (workingReq.auth) {
+        result.url = redactAuthQueryUrl(result.url, workingReq.auth, mergedForSubstitution());
+        if (result.error) {
+          result.error = redactAuthSensitiveText(result.error, workingReq.auth, mergedForSubstitution());
+        }
+        if (result.scriptError) {
+          result.scriptError = redactAuthSensitiveText(result.scriptError, workingReq.auth, mergedForSubstitution());
+        }
+        if (result.scriptTests) {
+          result.scriptTests = result.scriptTests.map(item => ({
+            ...item,
+            ...(item.error ? { error: redactAuthSensitiveText(item.error, workingReq.auth, mergedForSubstitution()) } : {}),
+          }));
+        }
+        if (result.report) {
+          result.report = {
+            ...result.report,
+            results: result.report.results.map(item => ({
+              ...item,
+              actual: redactAuthSensitiveText(item.actual, workingReq.auth, mergedForSubstitution()),
+              message: redactAuthSensitiveText(item.message, workingReq.auth, mergedForSubstitution()),
+            })),
+          };
+        }
       }
       roundResults.push(result);
       allResults.push(result);
