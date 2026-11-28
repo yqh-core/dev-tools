@@ -99,17 +99,17 @@
 .api-studio-shell[data-api-theme="light"] {
   --api-bg: #f7f7fc;
   --api-surface: #ffffff;
-  --api-surface-2: #f3f1fa;
-  --api-surface-3: #eeecf6;
+  --api-surface-2: #f0eef7;
+  --api-surface-3: #e8e5f2;
   --api-elevated: #ffffff;
 
-  --api-border: #d8deea;
-  --api-border-strong: #c2cbdb;
+  --api-border: #c7cfdd;
+  --api-border-strong: #75839a;
 
   --api-text: #0f172a;
   --api-text-soft: #475569;
-  --api-text-muted: #8a94a6;
-  --api-text-faint: #aab3c2;
+  --api-text-muted: #475569;
+  --api-text-faint: #5b6677;
 
   --api-primary: #7655e8;
   --api-primary-hover: #6846d8;

@@ -8,7 +8,7 @@ import type { GlobalThemeOverrides } from 'naive-ui';
  *   这里必须是真实色值，与 CSS token 文件逐值对齐。改色时两处一起改。
  *
  * 壳内用**嵌套 n-config-provider** 注入这两套，使 API-Studio 的明暗独立于站点
- * 全局主题（styleStore.isDarkTheme）：进入全屏壳即自带专业深色，不污染站点其它页面。
+ * 全局主题（styleStore.isDarkTheme）：新用户默认浅色工作区，用户可切换到专业深色工作区，不污染站点其它页面。
  */
 
 // 深色：保留低照度 navy 工作区，以柔和 violet 作品牌强调
@@ -75,16 +75,17 @@ export const apiStudioLightOverrides: GlobalThemeOverrides = {
     cardColor: '#ffffff',
     modalColor: '#ffffff',
     popoverColor: '#ffffff',
-    inputColor: '#f3f1fa',
+    inputColor: '#e8e5f2',
     tableColor: '#ffffff',
-    borderColor: '#d8deea',
-    dividerColor: '#d8deea',
+    borderColor: '#c7cfdd',
+    dividerColor: '#c7cfdd',
 
     textColorBase: '#0f172a',
     textColor1: '#0f172a',
     textColor2: '#475569',
-    textColor3: '#8a94a6',
-    placeholderColor: '#8a94a6',
+    textColor3: '#475569',
+    placeholderColor: '#5b6677',
+    iconColor: '#5b6677',
 
     borderRadius: '8px',
     borderRadiusSmall: '5px',
@@ -93,11 +94,13 @@ export const apiStudioLightOverrides: GlobalThemeOverrides = {
   Layout: {
     color: '#f7f7fc',
     headerColor: '#ffffff',
-    siderColor: '#ffffff',
-    footerColor: '#eef1f6',
-    borderColor: '#d8deea',
+    siderColor: '#f0eef7',
+    footerColor: '#e8e5f2',
+    borderColor: '#c7cfdd',
   },
-  Tree: { color: 'transparent', nodeColorHover: '#eeecf6', nodeColorActive: '#eee9ff' },
+  Input: { color: '#e8e5f2', colorFocus: '#ffffff', border: '1px solid #75839a', borderFocus: '1px solid #7655e8' },
+  Select: { peers: { InternalSelection: { color: '#e8e5f2', border: '1px solid #75839a', borderFocus: '1px solid #7655e8' } } },
+  Tree: { color: 'transparent', nodeColorHover: '#e8e5f2', nodeColorActive: '#e7e0ff' },
   Menu: { itemHeight: '32px' },
   Tag: { borderRadius: '5px' },
 };
