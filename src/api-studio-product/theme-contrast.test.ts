@@ -31,6 +31,7 @@ describe('API Studio light theme contrast', () => {
     const muted = token('--api-text-muted');
     const faint = token('--api-text-faint');
     const surfaces = ['--api-bg', '--api-surface', '--api-surface-2', '--api-surface-3', '--api-elevated'].map(token);
+    expect(muted).not.toBe(faint);
     expect(apiStudioLightOverrides.common?.textColor3).toBe(muted);
     expect(apiStudioLightOverrides.common?.placeholderColor).toBe(faint);
     for (const foreground of [muted, faint]) {
