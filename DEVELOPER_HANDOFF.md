@@ -1,3 +1,20 @@
+## API Studio — current handoff — 2026-11-28 11:57 UTC
+
+- Owner-approved product identity: **API Studio — by DigDevBox**, target `https://apistudio.digdevbox.com`, on the existing DigDevBox parent domain. Product routes: `/`, `/app/`, `/docs/`. A separate registrable domain is not required. Keep `https://www.digdevbox.com/api-studio/` as fallback until the independent-host acceptance gates pass.
+- **PR #277 merged**: https://github.com/yqh-core/dev-tools/pull/277. Issue #276 is closed. Merge SHA: `d766acd2e7666f244cfaf658b8cc7ecced9e8fe3`; feature head `0d5e0a4f522a2dc858adcb646efb85bd823952b1`.
+- Exact-head feature checks all passed: CI #46141634079, Verify/Build #46141634110, Cloudflare Preview SUCCESS. Verify included product build, browser acceptance, screenshots and artifact validation. Main CI included lint, Worker checks, unit tests, types/build and the main Chromium regression suite.
+- **Post-merge checks still running at this checkpoint:** merge-SHA CI #46142185638, Verify/Build #46142185650 and Cloudflare Pages deployment check. Do not mark Production Verified until all merge-SHA checks and post-deploy Smoke/route/Relay checks finish.
+- Request History: Studio-owned browser localStorage, max 50 entries, 30-day retention, newest first, single Send attempts only. Stores a sanitized request template, timestamp, upstream status if available and elapsed time. Removes credential-like headers, URL userinfo and sensitive query values, redacts current marked Secret values and preserves unresolved `{{variable}}` tokens. Does not store response bodies/headers, resolved Relay payload or raw Relay errors. Load as a new request; no auto-send. Remove/Clear all. LocalStorage is not encrypted; unmarked free-form secrets may remain; history is excluded from portable backup and Postman/OpenAPI interchange.
+- Verified screenshots were inspected at 1440×900 and 390×844. Homepage CTA/first-fold and four-stage deterministic demo are good. Workspace helper text (including history privacy copy) needs a contrast/readability refinement. Visual QA and competitor/commercial strategy are recorded in design-system repo:
+  - `strategy/SITE_PRODUCT_IMPROVEMENT_METHOD_v1.md`
+  - `strategy/API_STUDIO_COMPETITOR_AND_COMMERCIAL_POSITIONING_2026-11-28.md`
+  - `ops/visual-qa/API_STUDIO_VISUAL_QA_2026-11-28.md`
+- Independent launch blockers: #214 host project/custom-domain/canonical/robots/sitemap/deep-link/Relay/origin-storage/redirect/rollback; #219 source-backed descriptive-name collision screening; #221 Production Relay Worker/DO/HMAC/WAF/cross-isolate/restart/fail-closed.
+- Scheduled tasks: API Studio Product Execution ID `6b07931a698c8191a5a948c912d627ba` remains enabled daily flexible America/Chicago; actual Nov 27 run failed and surfaced output is stale Nov 26 DigImg material; failure cause/output/delivery UNKNOWN. Weekday Product UX QA ID `6b07931b2678819186ee54e818945c69` remains enabled weekdays flexible America/Chicago; latest matching Nov 27 run was Main ETA Calculator #250, not API Studio. Weekly SEO Growth Review did not surface; existence/deletion UNKNOWN. No automation was triggered or rescheduled.
+- **Next action:** complete merge-SHA CI/Verify/Pages and post-deploy Smoke; then continue #214/#221 without bypassing account controls. Next product iteration: workspace helper-text contrast; then review API Studio homepage demo/recovery story separately from DigDevBox Main homepage PR #258. Preserve existing Main tool-recommendation backlog and its own sequence.
+
+---
+
 ## API Studio — merged OpenAPI import handoff — 2026-11-28 10:08 UTC
 
 - **Merged change:** PR [#275](https://github.com/yqh-core/dev-tools/pull/275) merged at 2026-11-28 10:02:33 UTC; issue [#274](https://github.com/yqh-core/dev-tools/issues/274) closed. Main and merge SHA: `0d525b1037a62aead7c145cf9ce62d126c4d9fdc`.
