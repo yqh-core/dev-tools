@@ -93,7 +93,6 @@ test('task guides are directly addressable and link back to the workspace', asyn
   await expect(page.getByTestId('retry-guidance')).toContainText('Retry is manual');
 });
 
-
 test('request history stores a sanitized template and loads it as a new request after refresh', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.addInitScript(() => {
@@ -104,10 +103,18 @@ test('request history stores a sanitized template and loads it as a new request 
   let relayCalls = 0;
   await page.route('**/api/apiproxy', async (route) => {
     relayCalls += 1;
-    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({
-      status: 200, statusText: 'OK', url: 'https://api.example.test/v1/items',
-      headers: { 'content-type': 'application/json' }, body: '{"ok":true}', elapsedMs: 12,
-    }) });
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        status: 200,
+        statusText: 'OK',
+        url: 'https://api.example.test/v1/items',
+        headers: { 'content-type': 'application/json' },
+        body: '{"ok":true}',
+        elapsedMs: 12,
+      }),
+    });
   });
   await page.goto('/app/');
   await page.getByTestId('create-first-request').click();
@@ -152,7 +159,11 @@ test('failed sends enter request history without raw relay error text', async ({
   await page.getByTestId('create-first-request').click();
   await page.getByTestId('editor-url').fill('https://api.example.test/fails');
   await page.route('**/api/apiproxy', async (route) => {
-    await route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ error: 'private-relay-debug-detail' }) });
+    await route.fulfill({
+      status: 503,
+      contentType: 'application/json',
+      body: JSON.stringify({ error: 'private-relay-debug-detail' }),
+    });
   });
   await page.getByTestId('send-request').click();
   await expect(page.getByTestId('single-send-error')).toBeVisible();
@@ -166,10 +177,18 @@ test('failed sends enter request history without raw relay error text', async ({
 test('request history remains usable on a 390px workspace without horizontal overflow', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.route('**/api/apiproxy', async (route) => {
-    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({
-      status: 200, statusText: 'OK', url: 'https://api.example.test/mobile',
-      headers: {}, body: '{}', elapsedMs: 4,
-    }) });
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        status: 200,
+        statusText: 'OK',
+        url: 'https://api.example.test/mobile',
+        headers: {},
+        body: '{}',
+        elapsedMs: 4,
+      }),
+    });
   });
   await page.goto('/app/');
   await page.getByTestId('create-first-request').click();

@@ -76,7 +76,7 @@ describe('API Studio private request history', () => {
     let entries = base;
     for (let i = 0; i < API_STUDIO_HISTORY_CAP + 5; i++) {
       entries = pushApiStudioHistory(entries, createApiStudioHistoryEntry({
-        id: 'entry-' + i,
+        id: `entry-${i}`,
         at: i + 2,
         request,
         status: 200,
@@ -84,7 +84,7 @@ describe('API Studio private request history', () => {
       }));
     }
     expect(entries).toHaveLength(API_STUDIO_HISTORY_CAP);
-    expect(entries[0].id).toBe('entry-' + (API_STUDIO_HISTORY_CAP + 4));
+    expect(entries[0].id).toBe(`entry-${API_STUDIO_HISTORY_CAP + 4}`);
     expect(entries.some(entry => entry.id === 'old')).toBe(false);
     expect(base).toHaveLength(1);
   });

@@ -23,7 +23,7 @@ interface HistoryInput {
 
 const CREDENTIAL_HEADER = /authorization|(?:^|[-_])auth(?:$|[-_])|cookie|token|secret|password|passwd|credential|api[-_]?key|access[-_]?key|signature|(?:^|[-_])sig(?:$|[-_])|session/i;
 const CREDENTIAL_QUERY = /(?:^|[-_])(?:auth(?:orization)?|token|secret|password|passwd|credential|api[-_]?key|access[-_]?key|client[-_]?secret|signature|sig|session|cookie)(?:$|[-_])/i;
-const VARIABLE_PLACEHOLDER = /\{\{\s*[A-Za-z_][A-Za-z0-9_.-]*\s*\}\}/g;
+const VARIABLE_PLACEHOLDER = /(\{\{\s*[A-Za-z_][A-Za-z0-9_.-]*\s*\}\})/g;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return !!value && typeof value === 'object' && !Array.isArray(value);
@@ -43,7 +43,7 @@ function decodeQueryPart(value: string): string {
 }
 
 function escapeRegExp(value: string): string {
-  return value.split('').map(char => '\\^$.*+?()[]{}|'.includes(char) ? '\\' + char : char).join('');
+  return value.split('').map(char => '\\^$.*+?()[]{}|'.includes(char) ? `\\${char}` : char).join('');
 }
 
 /**
@@ -107,10 +107,10 @@ function redactSensitiveQueryValues(value: string): string {
     if (!CREDENTIAL_QUERY.test(decodedKey) || isPlaceholder(decodedValue)) {
       return part;
     }
-    return key + '=' + API_STUDIO_HISTORY_REDACTED;
+    return `${key}=${API_STUDIO_HISTORY_REDACTED}`;
   });
 
-  return beforeHash.slice(0, query + 1) + parts.join('&') + fragment;
+  return `${beforeHash.slice(0, query + 1)}${parts.join('&')}${fragment}`;
 }
 
 /** Sanitized, immutable request snapshot safe for the bounded browser-local history. */

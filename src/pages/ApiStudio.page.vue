@@ -1064,7 +1064,7 @@ function markedSecretValues(): string[] {
 function recordRequestHistory(request: { method: string; url: string; headers: KV[]; body: string }, status: number | null, elapsedMs: number | null): void {
   const at = Date.now();
   const entry = createApiStudioHistoryEntry({
-    id: at.toString() + '-' + Math.random().toString(36).slice(2, 8),
+    id: `${at.toString()}-${Math.random().toString(36).slice(2, 8)}`,
     at,
     request,
     status,
@@ -1076,7 +1076,7 @@ function recordRequestHistory(request: { method: string; url: string; headers: K
 
 function loadRequestFromHistory(entry: ApiStudioHistoryEntry): void {
   const target = entry.request.url.replace(/^https?:\/\//i, '');
-  const name = (entry.request.method.toUpperCase() + ' ' + target).slice(0, 80).trim();
+  const name = `${entry.request.method.toUpperCase()} ${target}`.slice(0, 80).trim();
   const result = addRequest(tree.value, null, {
     name: name || 'Request from history',
     request: entry.request,
@@ -2306,7 +2306,7 @@ function onMenuSelect(key: string, node: TreeNode) {
               {{ entry.request.url || '(no URL)' }}
             </span>
             <span class="api-field-hint">
-              {{ entry.status === null ? 'No HTTP status' : 'HTTP ' + entry.status }}{{ entry.elapsedMs !== null ? ' · ' + entry.elapsedMs + ' ms' : '' }}
+              {{ entry.status === null ? 'No HTTP status' : `HTTP ${entry.status}` }}{{ entry.elapsedMs !== null ? ` · ${entry.elapsedMs} ms` : '' }}
             </span>
             <span class="api-field-hint">{{ new Date(entry.at).toLocaleString() }}</span>
             <button class="api-mini-action" type="button" data-test-id="request-history-load" @click="loadRequestFromHistory(entry)">Load as new</button>
