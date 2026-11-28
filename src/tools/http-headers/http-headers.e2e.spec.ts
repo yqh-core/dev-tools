@@ -234,5 +234,4 @@ test.describe('Tool - local HTTP response header analyzer', () => {
     await page.keyboard.press('Shift+Tab');
     await expect(fileInput).toBeFocused();
   });
-
 });
