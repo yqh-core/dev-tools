@@ -398,7 +398,13 @@ paths:
   expect(dimensions.documentWidth).toBeLessThanOrEqual(dimensions.viewportWidth);
   expect(dimensions.previewWidth).toBeLessThanOrEqual(dimensions.viewportWidth);
   await page.screenshot({ path: testInfo.outputPath('openapi-preview-mobile.png') });
+  await page.getByTestId('confirm-openapi-import').scrollIntoViewIfNeeded();
+  await expect(page.getByTestId('openapi-operations')).toBeVisible();
+  await expect(page.getByTestId('confirm-openapi-import')).toBeVisible();
+  await page.screenshot({ path: testInfo.outputPath('openapi-preview-mobile-actions.png') });
 
+  await page.getByTestId('cancel-openapi-import').scrollIntoViewIfNeeded();
+  await expect(page.getByTestId('cancel-openapi-import')).toBeVisible();
   await page.getByTestId('cancel-openapi-import').click();
   await expect(page.getByTestId('openapi-preview')).toHaveCount(0);
 
