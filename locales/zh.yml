@@ -196,6 +196,7 @@ legal:
   terms: '服务条款'
   faq: '常见问题'
   contact: '联系我们'
+  privacySettings: '隐私设置'
 faq:
   intro: '这一页只回答站点级的问题：收费、数据去向、设备适配、怎么反馈。具体工具的使用注意点仍写在各自的工具页里，两边不重复回答。'
   contents: '目录'
