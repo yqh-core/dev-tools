@@ -179,6 +179,7 @@ const activeHomeDemo = ref<HomeDemoId>('json');
 const activeHomeDemoStory = computed(() => HOME_DEMO_STORIES[activeHomeDemo.value]);
 const activeHomeDemoResult = ref('');
 const activeHomeDemoError = ref('');
+const homeDemoCopyStatus = ref<'idle' | 'copied' | 'error'>('idle');
 const isHomeDemoRunning = ref(false);
 const activeHomeDemoCode = computed(() => activeHomeDemoResult.value
   ? `${activeHomeDemoStory.value.input}\nOUT ${activeHomeDemoResult.value}`
@@ -188,6 +189,21 @@ function selectHomeDemo(demoId: HomeDemoId) {
   activeHomeDemo.value = demoId;
   activeHomeDemoResult.value = '';
   activeHomeDemoError.value = '';
+  homeDemoCopyStatus.value = 'idle';
+}
+
+async function copyHomeDemoResult() {
+  if (!activeHomeDemoResult.value) {
+    return;
+  }
+
+  try {
+    await navigator.clipboard.writeText(activeHomeDemoResult.value);
+    homeDemoCopyStatus.value = 'copied';
+  }
+  catch {
+    homeDemoCopyStatus.value = 'error';
+  }
 }
 
 async function runHomeDemo() {
@@ -240,6 +256,7 @@ async function runHomeDemo() {
 
     if (activeHomeDemo.value === demoId) {
       activeHomeDemoResult.value = result;
+      homeDemoCopyStatus.value = 'idle';
     }
   }
   catch {
@@ -581,8 +598,20 @@ function onUpdateFavoriteTools() {
                 >
                   {{ isHomeDemoRunning ? t('home.demo.running') : t('home.demo.runSample') }}
                 </button>
+                <button
+                  v-if="activeHomeDemoResult"
+                  class="hero-preview-copy-result"
+                  data-testid="home-demo-copy"
+                  type="button"
+                  @click="copyHomeDemoResult"
+                >
+                  {{ homeDemoCopyStatus === 'copied' ? t('home.demo.copied') : t('home.demo.copyResult') }}
+                </button>
               </div>
               <pre><code>{{ activeHomeDemoCode }}</code></pre>
+              <p v-if="homeDemoCopyStatus === 'error'" class="hero-preview-error" role="status">
+                {{ t('home.demo.copyError') }}
+              </p>
               <p v-if="activeHomeDemoError" class="hero-preview-error" role="alert">
                 {{ t('home.demo.runError') }}
               </p>
@@ -1112,6 +1141,28 @@ function onUpdateFavoriteTools() {
     letter-spacing: 0.07em;
     text-transform: uppercase;
   }
+  .hero-preview-copy-result {
+    min-width: 66px;
+    min-height: 44px;
+    flex: 0 0 auto;
+    padding: 0 8px;
+    border: 1px solid var(--dd-border);
+    border-radius: 7px;
+    background: var(--dd-surface);
+    color: var(--dd-text-soft);
+    cursor: pointer;
+    font: inherit;
+    font-size: 11px;
+    font-weight: 650;
+    letter-spacing: 0;
+    text-transform: none;
+
+    &:focus-visible {
+      outline: 2px solid var(--dd-primary);
+      outline-offset: 2px;
+    }
+  }
+
   .hero-preview-run {
     min-width: 88px;
     min-height: 44px;
