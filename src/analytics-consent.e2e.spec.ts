@@ -134,7 +134,17 @@ test.describe('DigDevBox Main consent and privacy settings', () => {
 
   test('uses the Chinese text in both the inline choice and reopened settings', async ({ page }) => {
     await page.addInitScript(() => {
-      document.documentElement.lang = 'zh-CN';
+      const setChineseDocumentLanguage = () => {
+        if (!document.documentElement) return false;
+        document.documentElement.lang = 'zh-CN';
+        return true;
+      };
+      if (!setChineseDocumentLanguage()) {
+        const observer = new MutationObserver(() => {
+          if (setChineseDocumentLanguage()) observer.disconnect();
+        });
+        observer.observe(document, { childList: true, subtree: true });
+      }
     });
     await page.goto('/json-workspace');
     const prompt = page.locator('#digdevbox-analytics-consent');
