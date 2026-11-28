@@ -71,6 +71,9 @@ test.describe('Homepage task discovery', () => {
     await expect(preview).toContainText('SAMPLE DATA · NO REQUEST SENT');
     await expect(preview.getByTestId('home-demo-tab-json')).toHaveAttribute('aria-pressed', 'true');
     await expect(preview.locator('pre code')).toContainText('"ok":true');
+    const jsonSample = await preview.locator('pre code').textContent();
+    expect(jsonSample).toContain('IN  {"ok":true}\nOUT {');
+    expect(jsonSample).not.toContain('\\n');
     await expect(preview.locator('a.hero-preview-link')).toHaveAttribute('href', '/json-workspace/');
 
     const jwtTab = preview.getByTestId('home-demo-tab-jwt');
@@ -85,6 +88,9 @@ test.describe('Homepage task discovery', () => {
     await page.keyboard.press('Enter');
     await expect(regexTab).toHaveAttribute('aria-pressed', 'true');
     await expect(preview.locator('pre code')).toContainText('2 matches');
+    const regexSample = await preview.locator('pre code').textContent();
+    expect(regexSample).toContain('RE  \\b[A-Z]{3}-\\d{4}\\b\nIN  Ticket');
+    expect(regexSample).not.toContain('\\n');
     await expect(preview.locator('a.hero-preview-link')).toHaveAttribute('href', '/regex-tester/');
   });
 
