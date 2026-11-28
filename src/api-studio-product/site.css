@@ -746,3 +746,210 @@ button, a { -webkit-tap-highlight-color: transparent; }
   .guided-demo-assertion-total { flex-wrap: wrap; }
   .guided-demo-assertion-total small { width: 100%; margin-left: 0; }
 }
+
+
+/* ==========================================================================
+   API Studio · light-first marketing system
+   Inspired by Abacus Bot's light neutral canvas and focused violet emphasis.
+   Keep the workbench and code examples dark so product UI remains authentic.
+   Layout, type families, spacing and demo geometry intentionally stay unchanged.
+   ========================================================================== */
+:root {
+  color-scheme: light;
+  background: #f8f8fc;
+  color: #19172a;
+  --page: #f8f8fc;
+  --panel: #ffffff;
+  --panel-2: #f2f0f9;
+  --line: rgba(39, 32, 73, .12);
+  --muted: #68667b;
+  --soft: #4b4960;
+  --mint: #7655e8;
+  --blue: #8b75ed;
+  --display: 'Space Grotesk', 'DM Sans', sans-serif;
+}
+body { background: var(--page); color: #19172a; }
+.product-site { background: var(--page); color: #19172a; }
+.site-nav { border-bottom-color: rgba(39,32,73,.11); }
+.site-brand-mark {
+  background: linear-gradient(145deg, rgba(118,85,232,.14), rgba(139,117,237,.08));
+  color: #7655e8;
+  border-color: rgba(118,85,232,.23);
+}
+.site-brand-copy strong { color: #19172a; }
+.site-brand-copy small { color: #77748b; }
+.site-nav-links a, .site-footer a { color: #56536b; }
+.site-nav-links a:hover, .site-footer a:hover { color: #6846d8; }
+.nav-cta {
+  border-color: rgba(118,85,232,.28);
+  color: #6846d8;
+  background: rgba(118,85,232,.07);
+}
+.eyebrow { color: #6846d8; }
+.eyebrow-dot { background: #7655e8; box-shadow: 0 0 14px rgba(118,85,232,.35); }
+.hero-copy h1, .section-heading h2, .feature-layout h2, .privacy-copy h2, .closing-section h2 { color: #19172a; }
+.hero-copy h1 span, .section-heading h2 span, .feature-layout h2 span, .privacy-copy h2 span, .closing-section h2 span { color: #7655e8; }
+.hero-lede { color: #5f5d73; }
+.button-primary {
+  background: linear-gradient(135deg, #7655e8, #6846d8);
+  color: #ffffff;
+  box-shadow: 0 12px 28px rgba(104,70,216,.19);
+}
+.button-primary:hover { box-shadow: 0 14px 32px rgba(104,70,216,.25); }
+.button-secondary {
+  color: #39364f;
+  border-color: rgba(39,32,73,.17);
+  background: rgba(255,255,255,.76);
+}
+.hero-assurances { color: #6c6980; }
+.hero-assurances i { color: #7655e8; }
+
+/* The mock workbench is intentionally dark: it demonstrates the real app's
+   high-density request/response surface rather than making the entire page dark. */
+.workbench-card {
+  --line: rgba(176,205,218,.14);
+  --mint: #a78bfa;
+  --muted: #9aacb9;
+  --soft: #c3d1d8;
+  color-scheme: dark;
+}
+.visual-glow { background: radial-gradient(ellipse, rgba(118,85,232,.17), transparent 65%); }
+.floating-note {
+  border-color: rgba(167,139,250,.3);
+  background: #211b37;
+}
+.floating-note-icon { color: #c4b5fd; background: rgba(167,139,250,.14); }
+.floating-note strong { color: #f1edff; }
+.floating-note small { color: #b4a9d2; }
+
+.trust-strip {
+  background: #f0eef8;
+  border-color: rgba(39,32,73,.1);
+  color: #6f6b83;
+}
+.trust-strip b { color: #312d48; }
+.trust-strip i { color: #7655e8; }
+
+.guided-demo-section { border-bottom-color: rgba(39,32,73,.1); }
+.guided-demo-heading h2 { color: #19172a; }
+.guided-demo-heading h2 span { color: #7655e8; }
+.guided-demo-heading > p:not(.eyebrow) { color: #656278; }
+.guided-demo-panel {
+  border-color: rgba(39,32,73,.13);
+  background: #ffffff;
+  box-shadow: 0 22px 60px rgba(42,32,91,.09);
+}
+.guided-demo-steps { border-bottom-color: rgba(39,32,73,.1); }
+.guided-demo-step {
+  color: #625f76;
+  border-right-color: rgba(39,32,73,.1);
+}
+.guided-demo-step:hover { background: rgba(118,85,232,.055); color: #292541; }
+.guided-demo-step[aria-pressed="true"] {
+  background: rgba(118,85,232,.09);
+  color: #28213f;
+  box-shadow: inset 0 -2px 0 #7655e8;
+}
+.guided-demo-index, .guided-demo-detail-meta span:first-child { color: #7655e8; }
+.guided-demo-detail-meta { color: #77738a; }
+.guided-demo-detail h3 { color: #211e35; }
+.guided-demo-detail > p { color: #625f76; }
+.guided-demo-link { color: #6846d8; }
+.guided-demo-link:hover { color: #5736c6; }
+
+/* The task scene stays a dark product preview; violet becomes the active accent. */
+.guided-demo-preview {
+  --line: rgba(176,205,218,.14);
+  --mint: #b39aff;
+  --muted: #9aacb9;
+  --soft: #c3d1d8;
+  color-scheme: dark;
+}
+.guided-demo-preview-mark {
+  color: #b39aff;
+  border-color: rgba(179,154,255,.3);
+  background: rgba(179,154,255,.1);
+}
+
+.workflow-section { background: #f8f8fc; }
+.section-heading h2, .feature-layout h2, .privacy-copy h2, .closing-section h2 { color: #19172a; }
+.section-heading > p:last-child, .feature-intro, .privacy-copy > p:not(.eyebrow), .closing-section > p:not(.eyebrow) { color: #666379; }
+.workflow-card {
+  border-color: rgba(39,32,73,.12);
+  background: linear-gradient(145deg, #ffffff, #f4f2fa);
+  box-shadow: 0 8px 24px rgba(42,32,91,.035);
+}
+.workflow-number { color: #7655e8; }
+.workflow-card h3 { color: #242139; }
+.workflow-card p { color: #666379; }
+.workflow-tags span {
+  border-color: rgba(39,32,73,.12);
+  color: #5d5973;
+  background: rgba(255,255,255,.72);
+}
+.feature-section {
+  border-color: rgba(39,32,73,.1);
+  background: radial-gradient(ellipse at 10% 55%, rgba(118,85,232,.07), transparent 45%), #f1eff8;
+}
+.feature-list article { border-bottom-color: rgba(39,32,73,.1); }
+.feature-icon {
+  border-color: rgba(118,85,232,.2);
+  color: #7655e8;
+  background: rgba(118,85,232,.07);
+}
+.feature-list h3 { color: #242139; }
+.feature-list p { color: #666379; }
+.text-link { color: #6846d8; }
+.text-link:hover { color: #5736c6; }
+
+.privacy-mark {
+  border-color: rgba(118,85,232,.2);
+  color: #7655e8;
+  background: rgba(118,85,232,.07);
+}
+.privacy-copy h2 { color: #19172a; }
+.closing-section {
+  border-color: rgba(39,32,73,.1);
+  background: radial-gradient(ellipse at center, rgba(118,85,232,.11), transparent 62%), #f1eff8;
+}
+.closing-section > small { color: #77738a; }
+.closing-orbit {
+  border-color: rgba(118,85,232,.1);
+  box-shadow: 0 0 0 50px rgba(118,85,232,.025), 0 0 0 100px rgba(118,85,232,.015);
+}
+.site-footer { border-top: 1px solid rgba(39,32,73,.1); }
+.site-footer > span { color: #77738a; }
+
+/* Documentation uses the same light editorial canvas and preserves code contrast. */
+.docs-page { background: radial-gradient(ellipse at 80% 0%, rgba(118,85,232,.08), transparent 40%), #f8f8fc; }
+.docs-brand { color: #211e35; }
+.docs-brand span { color: #77738a; }
+.docs-shell h1, .docs-article h1 { color: #19172a; }
+.docs-intro { color: #666379; }
+.docs-card {
+  border-color: rgba(39,32,73,.12);
+  background: #ffffff;
+  box-shadow: 0 6px 20px rgba(42,32,91,.035);
+}
+.docs-card:hover { border-color: rgba(118,85,232,.4); }
+.docs-number, .docs-link, .docs-back, .docs-article a:not(.docs-brand):not(.docs-back) { color: #6846d8; }
+.docs-card h2, .docs-article h2 { color: #242139; }
+.docs-card p, .docs-article > p:not(.eyebrow) { color: #5f5d73; }
+.guide-steps { color: #7655e8; }
+.guide-steps li h2 { color: #242139; }
+.guide-steps li p { color: #5f5d73; }
+.docs-article code {
+  background: #eeebf8;
+  color: #5b3dc4;
+}
+.guide-note {
+  border-left-color: #b68a39;
+  background: #fbf6e9;
+  color: #735b2e !important;
+}
+:focus-visible { outline-color: #7655e8; }
+
+@media (prefers-color-scheme: dark) {
+  /* Marketing pages remain intentionally light; only product UI previews stay dark. */
+  :root { color-scheme: light; }
+}
