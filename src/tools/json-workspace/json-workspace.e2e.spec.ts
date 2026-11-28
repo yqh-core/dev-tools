@@ -70,7 +70,7 @@ test.describe('JSON Workspace first-use privacy and hierarchy', () => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.reload();
     await page.getByTestId('step-0-next').click();
-    await page.getByRole('option', { name: 'Query (JSONPath)' }).click();
+    await page.getByText('Query (JSONPath)', { exact: true }).click();
     await page.getByTestId('query-input').fill('$.records[*].profile.active');
 
     const desktopMeasurements = [];
