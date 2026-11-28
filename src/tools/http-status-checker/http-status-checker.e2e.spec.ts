@@ -32,11 +32,13 @@ test.describe('Tool - HTTP status checker edge response semantics', () => {
     await expect(page.getByTestId('copy-final-url')).toBeVisible();
 
     await page.setViewportSize({ width: 390, height: 844 });
+    await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth)).toBe(390);
     await page.screenshot({
       path: 'test-results/http-status-checker/mobile-390x844.png',
       fullPage: true,
     });
     await page.setViewportSize({ width: 1440, height: 900 });
+    await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth)).toBe(1440);
     await page.screenshot({
       path: 'test-results/http-status-checker/desktop-1440x900.png',
       fullPage: true,
