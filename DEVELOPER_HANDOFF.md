@@ -1,3 +1,15 @@
+## API Studio — current developer handoff — 2026-11-28 12:43 UTC
+
+- PR #279 merged at `f518533ccb81259164a8d1653692ed3b725ed5fd`; #278 closed. Exact-head CI #46145018949, Verify #46145019094 and shared Pages Preview #140978967074 passed. Artifact #15263352196 inspected (1440×900 and 390×844).
+- Merge-SHA workflows now in progress: CI #46145737482, Verify #46145737448, Cloudflare Pages #140981280160; detect-site-changes, repository production-smoke and production-homepage-visual succeeded. This is not separate-host production acceptance.
+- Active PR #282 / Issue #281: https://github.com/yqh-core/dev-tools/pull/282, branch `feat/main-api-studio-primary-flagship-20261128`, HEAD `ee005ddfa4f74a15ee4582ebd667584a87667a42`. API card primary route changed to `/api-studio/`, old API Debugger is secondary and localized en/zh; Hero CTA unchanged. E2E updates keyboard destination and checks legacy route. CI #46145884418, Verify #46145884392, Pages #140981680107 were in progress at checkpoint.
+- Next Issue #280: safe local OpenAPI spec refresh/sync (provenance, preview diff, preserve local values by default, explicit conflicts, no silent removals or auto-sends). Source model and technical findings are in Issue #280.
+- Product baseline and current competitor positioning stay as in the previous handoff: no-account useful core, team/server-side paid differentiation only after infrastructure/security/support exist.
+- Separate product host remains unverified at `https://apistudio.digdevbox.com`; #214 is independent hosting gate, #221 Relay hardening, #219 name screening. Shared Pages preview is not independent host release.
+- Do not parallelize more code PRs until #282 finishes; after #282 merges and post-merge checks pass, begin Issue #280 (unless a production gate is actively blocked).
+
+---
+
 ## API Studio — latest handoff — 2026-11-28 12:42 UTC
 
 - PR #279 `https://github.com/yqh-core/dev-tools/pull/279`, exact head `bd27a3c4672d60e2e8ac909cad60d55b6d724218`: Verify/Build #46145019094 SUCCESS; Cloudflare Pages #140978967074 SUCCESS (“Deployed successfully” for shared coderkit Pages preview). Main CI #46145018949 has all substantive tests through targeted Chromium E2E SUCCESS; workflow was still running non-blocking screenshot uploads at this checkpoint. Do not claim CI final success until its workflow conclusion is complete.
