@@ -99,3 +99,10 @@ Decision: organize future roadmap/docs around a coherent lifecycle, but defer mo
 5. Monetize hosted collaboration, hosted secrets, published docs and governance only once implemented and supportable.
 
 Evidence limits: public official documentation/release notes were reviewed; no hands-on competitor load benchmark or paid-plan validation is claimed. Pricing/entitlements may change and must be rechecked before product packaging.
+
+## 2026-11-28 implementation outcome and next gap
+- Main acquisition path fixed in PR #282 (merged as `c45fac72c2d8366bd471db540710e594c5b8a366`): the API featured card's primary action is now API Studio, its localized secondary link preserves the legacy API Debugger, and the homepage hero CTA already targeted Studio. Exact-head CI/Verify/Preview passed; post-merge validation remains separately tracked.
+- This closes the gap between homepage discovery and product onboarding without deleting an older useful tool or redirecting existing URLs.
+- Next: Issue #280 safe OpenAPI refresh. Bruno's current release makes source-spec sync and preservation of hand-edited values a concrete competitive expectation. Our implementation must be local-first, previewed and conflict-safe.
+- Keep the no-account personal workflow free of premature gates; paid packaging belongs to actual team/server-side capabilities rather than core request send/collections.
+
