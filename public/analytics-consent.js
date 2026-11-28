@@ -281,6 +281,7 @@
   function closeDialog(dialog) {
     if (typeof dialog.close === 'function' && dialog.open) dialog.close();
     else dialog.removeAttribute('open');
+    dialog.removeAttribute('aria-modal');
     if (settingsTrigger && settingsTrigger.isConnected && typeof settingsTrigger.focus === 'function') {
       settingsTrigger.focus();
     }
