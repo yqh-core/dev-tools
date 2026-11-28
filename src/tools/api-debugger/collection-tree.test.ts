@@ -370,7 +370,7 @@ describe('持久化（serializeCollectionTree / loadCollectionTree）', () => {
     expect(findRequestNode(loaded.tree, 'rA1')?.request.auth).toEqual({
       type: 'api-key-query', key: 'client_key', value: '{{CLIENT_KEY}}',
     });
-    expect(parseCollectionTree({
+    const unsupportedAuthTree = parseCollectionTree({
       ...updated.tree!,
       items: [{
         id: 'bad-auth',
@@ -386,7 +386,9 @@ describe('持久化（serializeCollectionTree / loadCollectionTree）', () => {
           },
         },
       }],
-    })).toBeNull();
+    });
+    expect(unsupportedAuthTree).not.toBeNull();
+    expect(unsupportedAuthTree?.items).toHaveLength(0);
   });
 
   it('无 tree 键但有旧 flat saved → 升树（migrated=true），集合脚本入根', () => {

@@ -246,7 +246,7 @@ describe('request Authorization profiles', () => {
         key: 'X-API-Key',
         value: '{{INJECT}}',
       },
-    }, { INJECT: 'safe\\r\\nInjected: yes' });
+    }, { INJECT: 'safe\r\nInjected: yes' });
     expect(result.error).toContain('CR or LF');
   });
 });
