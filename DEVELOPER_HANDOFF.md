@@ -1,3 +1,12 @@
+## Main #258 exact-head status update — 2026-11-28T13:55:01.478Z
+
+- Branch/head `feat/home-task-story-demo-20261128` / `52d0db6b4bcf5b6bdbb0bc443f4c822090d7dc0e`; PR #258 OPEN; latest mergeable observation true.
+- Verify/Build #46151447367 **SUCCESS**.
+- Cloudflare Pages #141000100428 **SUCCESS**, exact Preview https://d8300146.coderkit.pages.dev/ (branch alias https://feat-home-task-story-demo-20.coderkit.pages.dev/). This is Preview, not Production.
+- Generic CI #46151447365 still **IN_PROGRESS**. Lint, Relay/DO lint/bundle, unit tests, typecheck, Main build and Chromium install are SUCCESS; the combined targeted Chromium E2E step remains RUNNING. No failed step recorded. Screenshot artifact uploads are downstream and still PENDING; no current exact-head desktop/mobile screenshot has been reviewed.
+- Next gate: terminal CI + inspect fresh homepage visual artifacts / post-run CTA measurements at 390×844 and desktop 1440×900. Do not merge before both conditions.
+
+---
 ## Verification refresh — 2026-11-28T13:53:37.289Z
 
 ### API Studio merge SHA
