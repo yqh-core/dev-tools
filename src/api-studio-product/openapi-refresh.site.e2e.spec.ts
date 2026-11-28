@@ -49,6 +49,35 @@ test('OpenAPI refresh preserves local edits, supports explicit source choice, an
   await expect(page.getByTestId('openapi-source-status')).toContainText('Last sync:');
   const requestId = stored.openApiSync.operations[0].requestId;
 
+  // A second spec may add independent requests, but it must not silently replace
+  // the collection's existing single-source refresh association.
+  await page.getByTestId('import-openapi').click();
+  await page.getByTestId('openapi-file').setInputFiles({
+    name: 'inventory.json',
+    mimeType: 'application/json',
+    buffer: Buffer.from(JSON.stringify({
+      openapi: '3.1.0',
+      info: { title: 'Inventory API' },
+      servers: [{ url: 'https://inventory.example.test/v1' }],
+      paths: {
+        '/inventory': {
+          get: {
+            operationId: 'listInventory',
+            responses: { 200: { description: 'OK' } },
+          },
+        },
+      },
+    })),
+  });
+  await expect(page.getByTestId('openapi-preview')).toBeVisible();
+  await page.getByTestId('confirm-openapi-import').click();
+  await expect(page.getByTestId('banner')).toContainText('users-v1.json');
+  await expect(page.getByTestId('banner')).toContainText('not linked to Refresh OpenAPI');
+  stored = await page.evaluate(() => JSON.parse(localStorage.getItem('api-studio:tree') || 'null'));
+  expect(stored.openApiSync.fileName).toBe('users-v1.json');
+  expect(stored.openApiSync.operations.map((item: { key: string }) => item.key)).toEqual(['operationId:getUser']);
+  expect(stored.items.some((item: { name: string }) => item.name === 'listInventory')).toBe(true);
+
   // Model a user-authored override plus scripts/assertions that a refresh must preserve.
   await page.evaluate((id) => {
     const tree = JSON.parse(localStorage.getItem('api-studio:tree') || 'null');
