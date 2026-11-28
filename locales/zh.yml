@@ -1344,6 +1344,8 @@ tools:
     urlLabel: "网址"
     urlPlaceholder: "输入网址，例如 example.com"
     httpsDefaultHint: "未填写协议时默认使用 HTTPS。"
+    copyUrl: "复制 URL"
+    copiedUrl: "URL 已复制"
     enterUrl: "请先输入网址"
     checking: "检测中…"
     checkAction: "检测 URL"
