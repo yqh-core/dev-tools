@@ -318,6 +318,8 @@ function onOpenApiFilePicked(e: Event) {
   const input = e.target as HTMLInputElement;
   const file = input.files?.[0];
   input.value = '';
+  // A failed replacement file must not leave an older preview available to import.
+  cancelOpenApiImport();
   if (!file) {
     return;
   }
@@ -1549,6 +1551,7 @@ function onMenuSelect(key: string, node: TreeNode) {
         <div class="api-import-notes-head">OpenAPI import preview</div>
         <p><strong>{{ openApiFileName }}</strong> · {{ openApiPreview.requests.length }} operation(s) · {{ openApiPreview.source.toUpperCase() }}</p>
         <p>This file was parsed in your browser. Import does not send requests, call the API relay or fetch remote references.</p>
+        <p>Path, query, header and server placeholders such as {{id}} must be given values in the Environment manager before sending a request. Authentication schemes are not auto-configured.</p>
         <div class="api-io-row" role="group" aria-label="OpenAPI import options">
           <label class="api-openapi-field">
             <span>Server</span>
