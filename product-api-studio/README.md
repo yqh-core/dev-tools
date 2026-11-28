@@ -26,12 +26,12 @@ The Git-connected Cloudflare project uses the regular `pnpm run build` command. 
 
 All routes on this branch Preview are forced to `noindex,nofollow`; robots.txt disallows the whole Preview; no production canonical URLs or sitemap are emitted. When the branch is merged, `CF_PAGES_BRANCH=main` selects the original DigDevBox Main build, so the Main production output stays unchanged.
 
-This branch Preview is a rendered product preview only. It does not create the final separate Pages project, choose the registrable domain or change production DNS. The branch selector relies on Cloudflare's documented `CF_PAGES=1` and `CF_PAGES_BRANCH` variables: https://developers.cloudflare.com/pages/configuration/build-configuration/.
+This branch Preview is a rendered product preview only. It does not create the separate Production Pages project, provision the selected target host or change production DNS. Host selection is not proof of a live deployment. Keep https://www.digdevbox.com/api-studio/ as the fallback until the independent host, Functions/Relay, origin migration, rollback and Production smoke gates pass. The branch selector relies on Cloudflare's documented `CF_PAGES=1` and `CF_PAGES_BRANCH` variables: https://developers.cloudflare.com/pages/configuration/build-configuration/.
 
 ## Independent Cloudflare Pages project
 
-After a separate product brand and registrable domain have been selected:
-1. Create a second Pages project connected to this repository, with repository root as the project root.
+Owner-selected identity: **API Studio — by DigDevBox**. Selected target: **https://apistudio.digdevbox.com**, using the existing DigDevBox parent domain; a separate registrable domain is not required. The target is not verified live. Follow Issue #214 and the approved release plan before any account-side configuration. Host selection does not authorize DNS, Cloudflare, secret, WAF or billing changes.
+1. When the owner-authorized host release is ready, create a second Pages project connected to this repository, with repository root as the project root.
 2. Set the build command to `pnpm run build:api-studio`.
 3. Set the output directory to `dist-api-studio`.
 4. Keep the existing `functions/` directory available so `/api/apiproxy` and its shared SSRF checks deploy with the product.
@@ -44,4 +44,4 @@ Do not set `API_STUDIO_SITE_URL` to a temporary Preview URL or guessed domain. W
 
 Collections and environment values remain in origin-scoped browser storage. API requests pass through the existing first-party relay. Secret masking is not encryption at rest. See /docs/privacy/ for user-facing explanations.
 
-The working product name is API Studio. Final brand and primary domain remain pending owner selection; the product folder and build target do not authorize DNS or production-domain changes.
+The owner-selected product identity is API Studio — by DigDevBox, with target https://apistudio.digdevbox.com. The independent Production host is not yet verified live; keep the legacy /api-studio/ route as fallback until #214/#221/#220 release gates pass. The product folder and build target do not authorize DNS or Production changes.
