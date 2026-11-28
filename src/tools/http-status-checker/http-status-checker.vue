@@ -90,9 +90,10 @@ const headersText = computed(() => JSON.stringify(headers.value, null, 2));
       </c-button>
     </div>
 
-    <p text-13px op-65>
-      {{ t('tools.http-status-checker.requestContext') }}
-    </p>
+    <div flex flex-col gap-1 text-13px op-65>
+      <p>{{ t('tools.http-status-checker.requestContext') }}</p>
+      <p>{{ t('tools.http-status-checker.requestLimits') }}</p>
+    </div>
 
     <c-alert v-if="error" data-test-id="lookup-error">
       {{ error }}
