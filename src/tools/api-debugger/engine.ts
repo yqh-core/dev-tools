@@ -64,8 +64,9 @@ export function sanitizeForShare(req: ApiRequestState): ApiRequestState {
   catch {
     // 非法 URL 原样保留（发送时会报错），脱敏不掩盖输入问题
   }
+  const { auth: _auth, ...safeRequest } = req;
   return {
-    ...req,
+    ...safeRequest,
     url,
     headers: req.headers.filter(h => !AUTH_HEADER_NAMES.includes(h.name.trim().toLowerCase())),
   };
