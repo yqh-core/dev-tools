@@ -1,5 +1,6 @@
 import type { GlobalThemeOverrides } from 'naive-ui';
 import { ddTokens } from './generated/dd-tokens';
+import { mainPalette } from './main-palette';
 
 /**
  * Naive UI 主题覆盖 —— 颜色全部来自 dd-tokens（B3）。
@@ -19,10 +20,14 @@ import { ddTokens } from './generated/dd-tokens';
  */
 export const lightThemeOverrides: GlobalThemeOverrides = {
   common: {
-    primaryColor: ddTokens.light.primary,
-    primaryColorHover: ddTokens.light.primary_hover,
-    primaryColorPressed: ddTokens.light.primary_active,
-    primaryColorSuppl: ddTokens.light.primary_hover,
+    primaryColor: mainPalette.light.action,
+    primaryColorHover: mainPalette.light.actionHover,
+    primaryColorPressed: mainPalette.light.actionPressed,
+    primaryColorSuppl: mainPalette.light.actionHover,
+    infoColor: mainPalette.light.info,
+    infoColorHover: mainPalette.light.infoHover,
+    infoColorPressed: mainPalette.light.infoPressed,
+    infoColorSuppl: mainPalette.light.infoHover,
   },
 
   Menu: {
@@ -40,10 +45,14 @@ export const lightThemeOverrides: GlobalThemeOverrides = {
 
 export const darkThemeOverrides: GlobalThemeOverrides = {
   common: {
-    primaryColor: ddTokens.dark.primary,
-    primaryColorHover: ddTokens.dark.primary_hover,
-    primaryColorPressed: ddTokens.dark.primary_active,
-    primaryColorSuppl: ddTokens.dark.primary_hover,
+    primaryColor: mainPalette.dark.action,
+    primaryColorHover: mainPalette.dark.actionHover,
+    primaryColorPressed: mainPalette.dark.actionPressed,
+    primaryColorSuppl: mainPalette.dark.actionHover,
+    infoColor: mainPalette.dark.info,
+    infoColorHover: mainPalette.dark.infoHover,
+    infoColorPressed: mainPalette.dark.infoPressed,
+    infoColorSuppl: mainPalette.dark.infoHover,
 
     // Naive 暗色默认 bodyColor = #101014（近黑灰），脱离 DigDevBox navy 体系。
     // NGlobalStyle 把 bodyColor 直接打到 body.style.backgroundColor，
