@@ -548,7 +548,6 @@ describe('apiproxy shared Durable Object rate limiter', () => {
   });
 });
 
-
 describe('API relay Pages Function + actual Durable Object limiter handler', () => {
   class PersistentLimiterStorage {
     constructor() {
