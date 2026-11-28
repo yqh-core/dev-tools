@@ -11,7 +11,7 @@ import type { GlobalThemeOverrides } from 'naive-ui';
  * 全局主题（styleStore.isDarkTheme）：进入全屏壳即自带专业深色，不污染站点其它页面。
  */
 
-// 深色（默认）：navy 低照度 + teal 提亮
+// 深色：保留低照度 navy 工作区，以柔和 violet 作品牌强调
 export const apiStudioDarkOverrides: GlobalThemeOverrides = {
   common: {
     primaryColor: '#b39aff',
@@ -59,7 +59,7 @@ export const apiStudioDarkOverrides: GlobalThemeOverrides = {
   Tag: { borderRadius: '5px' },
 };
 
-// 明色（自适应备选）：teal-on-light
+// 明色（新用户默认）：violet-on-light
 export const apiStudioLightOverrides: GlobalThemeOverrides = {
   common: {
     primaryColor: '#7655e8',
@@ -91,7 +91,7 @@ export const apiStudioLightOverrides: GlobalThemeOverrides = {
     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif',
   },
   Layout: {
-    color: '#eef1f6',
+    color: '#f7f7fc',
     headerColor: '#ffffff',
     siderColor: '#ffffff',
     footerColor: '#eef1f6',
