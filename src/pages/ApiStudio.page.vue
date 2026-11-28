@@ -2531,7 +2531,7 @@ function onMenuSelect(key: string, node: TreeNode) {
 }
 @media (max-width: 640px) {
   .api-openapi-field {
-    flex-basis: 100%;
+    grid-column: 1 / -1;
   }
 }
 .api-import-notes-head {
