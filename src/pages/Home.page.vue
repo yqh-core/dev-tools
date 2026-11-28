@@ -2230,7 +2230,22 @@ function onUpdateFavoriteTools() {
     margin-top: 6px;
 
     .hero-preview-codebar {
+      gap: 4px;
       padding: 6px 9px;
+    }
+
+    .hero-preview-run {
+      min-width: 76px;
+      padding-right: 6px;
+      padding-left: 6px;
+      font-size: 10px;
+    }
+
+    .hero-preview-copy-result {
+      min-width: 58px;
+      padding-right: 6px;
+      padding-left: 6px;
+      font-size: 10px;
     }
 
     pre {
