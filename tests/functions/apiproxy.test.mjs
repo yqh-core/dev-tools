@@ -650,7 +650,7 @@ describe('API relay Pages Function + actual Durable Object limiter handler', () 
       const clientA = '198.51.100.42';
       const clientB = '198.51.100.43';
 
-      const upstream = vi.fn(async url => {
+      const upstream = vi.fn(async (url) => {
         const target = String(url);
         if (target.includes('dns-query') || target.includes('dns.google')) {
           return Response.json({ Answer: [{ type: 1, data: '93.184.216.34' }] });
