@@ -284,7 +284,6 @@ test('guided demo shows four inspectable fixture scenes without sending a reques
   }
 });
 
-
 test('workspace data tools stay secondary behind a keyboard-accessible disclosure on desktop', async ({ page }, testInfo) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto('/app/');
