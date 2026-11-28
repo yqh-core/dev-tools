@@ -142,6 +142,7 @@ const tools = computed<ToolCategory[]>(() => [
           type="button"
           data-privacy-settings
           aria-haspopup="dialog"
+          aria-controls="digdevbox-privacy-settings"
           :aria-label="$t('legal.privacySettings')"
         >
           {{ $t('legal.privacySettings') }}
