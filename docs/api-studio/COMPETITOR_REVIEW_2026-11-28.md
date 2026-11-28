@@ -106,3 +106,9 @@ Evidence limits: public official documentation/release notes were reviewed; no h
 - Next: Issue #280 safe OpenAPI refresh. Bruno's current release makes source-spec sync and preservation of hand-edited values a concrete competitive expectation. Our implementation must be local-first, previewed and conflict-safe.
 - Keep the no-account personal workflow free of premature gates; paid packaging belongs to actual team/server-side capabilities rather than core request send/collections.
 
+
+
+## API Studio — 2026-11-28 implementation update
+- PR #282 merged at `c45fac72c2d8366bd471db540710e594c5b8a366`: Main API featured card now promotes API Studio as primary and preserves legacy API Debugger as a secondary link.
+- Issue #280 / PR #283 is the implementation of the Bruno-inspired safe OpenAPI refresh gap. It uses operationId or normalized method+path identity, local source association, three-way conflict preview, Keep Current default, explicit Use Spec, no silent delete, v1 backup read/v2 write and Postman metadata isolation.
+- Browser coverage exercises preservation of local overrides/scripts/assertions, explicit source application, server selection, cancel invariance and no relay sends. Runtime verification remains pending; do not represent the feature as shipped until exact-head checks/Preview/E2E pass and merge completes.
