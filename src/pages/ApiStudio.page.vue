@@ -1605,19 +1605,35 @@ async function sendSelectedRequest() {
   const sendStartedAt = Date.now();
   try {
     const response = await runnerSend(payload);
+    // Evaluate against the real response, then redact only the values shown to the user.
+    const assertionBody = response.body;
     response.url = redactAuthQueryUrl(response.url, request.auth, env.value);
-    response.body = redactAuthSensitiveText(response.body, request.auth, env.value);
+    response.body = redactAuthSensitiveText(assertionBody, request.auth, env.value);
+    response.statusText = redactAuthSensitiveText(response.statusText, request.auth, env.value);
+    response.headers = Object.fromEntries(Object.entries(response.headers).map(([name, value]) => [
+      name, redactAuthSensitiveText(value, request.auth, env.value),
+    ]));
+    if (response.redirect) response.redirect = redactAuthSensitiveText(response.redirect, request.auth, env.value);
+    if (response.note) response.note = redactAuthSensitiveText(response.note, request.auth, env.value);
     recordRequestHistory(request, response.status, response.elapsedMs);
     singleResponse.value = response;
     // The relay wraps upstream HTTP statuses in a 200 JSON envelope; classify the
     // upstream status too so a returned 503 has a nearby manual retry action.
     singleCanRetry.value = isRetryableHttpStatus(response.status);
-    singleAssertionReport.value = assertionEngine.runAssertions(edAssertions.value, {
+    const assertionReport = assertionEngine.runAssertions(edAssertions.value, {
       status: response.status,
       headers: response.headers,
-      body: response.body,
+      body: assertionBody,
       elapsedMs: response.elapsedMs,
     });
+    singleAssertionReport.value = {
+      ...assertionReport,
+      results: assertionReport.results.map(item => ({
+        ...item,
+        actual: redactAuthSensitiveText(item.actual, request.auth, env.value),
+        message: redactAuthSensitiveText(item.message, request.auth, env.value),
+      })),
+    };
     banner.value = `Received HTTP ${response.status} in ${response.elapsedMs} ms.`;
   }
   catch (e) {
