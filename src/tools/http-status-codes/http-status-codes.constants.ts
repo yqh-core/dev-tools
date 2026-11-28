@@ -25,13 +25,19 @@ export const codesByCategories: {
       {
         code: 102,
         name: 'Processing',
-        description: 'The server is processing the request, but no response is available yet.',
+        description: 'Legacy WebDAV interim response. It was removed from RFC 4918 because it lacked implementation; IANA retains the historical RFC 2518 registration.',
         type: 'WebDav',
       },
       {
         code: 103,
         name: 'Early Hints',
         description: 'The server returns some response headers before final HTTP message.',
+        type: 'HTTP',
+      },
+      {
+        code: 104,
+        name: 'Upload Resumption Supported',
+        description: 'Temporary IANA registration for resumable uploads. Check the current registry entry before relying on it; the published registry snapshot shows an expiry date that has passed.',
         type: 'HTTP',
       },
     ],
@@ -186,8 +192,7 @@ export const codesByCategories: {
       {
         code: 402,
         name: 'Payment Required',
-        description:
-          'Reserved for future use. The original intention was that this code might be used as part of some form of digital cash or micropayment scheme.',
+        description: 'Reserved for future use. Payment-related behavior implemented by a service is application-specific unless separately standardized.',
         type: 'HTTP',
       },
       {
@@ -306,13 +311,13 @@ export const codesByCategories: {
         code: 423,
         name: 'Locked',
         description: 'The resource that is being accessed is locked.',
-        type: 'HTTP',
+        type: 'WebDav',
       },
       {
         code: 424,
         name: 'Failed Dependency',
         description: 'The request failed due to failure of a previous request.',
-        type: 'HTTP',
+        type: 'WebDav',
       },
       {
         code: 425,
@@ -335,7 +340,7 @@ export const codesByCategories: {
       {
         code: 429,
         name: 'Too Many Requests',
-        description: 'The user has sent too many requests in a given amount of time.',
+        description: 'The client sent too many requests in a given period. The response may include Retry-After; honor it when present.',
         type: 'HTTP',
       },
       {
@@ -407,13 +412,13 @@ export const codesByCategories: {
         code: 507,
         name: 'Insufficient Storage',
         description: 'The server is unable to store the representation needed to complete the request.',
-        type: 'HTTP',
+        type: 'WebDav',
       },
       {
         code: 508,
         name: 'Loop Detected',
         description: 'The server detected an infinite loop while processing the request.',
-        type: 'HTTP',
+        type: 'WebDav',
       },
       {
         code: 510,
@@ -430,3 +435,15 @@ export const codesByCategories: {
     ],
   },
 ];
+
+
+/** IANA/RFC lifecycle labels that are not implied by the numeric status class. */
+export const registryStatusByCode: Record<number, 'temporary' | 'deprecated' | 'unused' | 'reserved' | 'obsolete' | 'legacy'> = {
+  102: 'legacy',
+  104: 'temporary',
+  305: 'deprecated',
+  306: 'unused',
+  402: 'reserved',
+  418: 'unused',
+  510: 'obsolete',
+};
