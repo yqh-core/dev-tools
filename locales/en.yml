@@ -196,6 +196,7 @@ legal:
   terms: 'Terms of Service'
   faq: 'FAQ'
   contact: 'Contact Us'
+  privacySettings: 'Privacy settings'
 faq:
   intro: 'Site-level questions about money, data, devices and feedback. Tool-specific gotchas live on each tool page instead, so nothing is answered twice.'
   contents: 'Contents'

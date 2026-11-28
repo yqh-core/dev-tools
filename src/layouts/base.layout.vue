@@ -92,6 +92,7 @@ const tools = computed<ToolCategory[]>(() => [
             <RouterLink :to="normalizePath('/contact')">
               {{ $t('legal.contact') }}
             </RouterLink>
+
           </div>
 
           <div class="footer-network">
@@ -135,6 +136,17 @@ const tools = computed<ToolCategory[]>(() => [
         </c-tooltip>
 
         <command-palette />
+
+        <button
+          class="privacy-settings-toolbar"
+          type="button"
+          data-privacy-settings
+          aria-haspopup="dialog"
+          aria-controls="digdevbox-privacy-settings"
+          :aria-label="$t('legal.privacySettings')"
+        >
+          {{ $t('legal.privacySettings') }}
+        </button>
 
         <locale-selector v-if="!styleStore.isSmallScreen" />
 

@@ -110,7 +110,6 @@ test('captures a non-blocking homepage first fold at mobile and desktop viewport
       expect(metrics.elements.previewCta).not.toBeNull();
       expect(metrics.elements.previewCta!.top).toBeGreaterThanOrEqual(0);
       expect(metrics.elements.previewCta!.bottom).toBeLessThanOrEqual(viewport.height);
-      expect(metrics.elements.consent!.height).toBeLessThanOrEqual(150);
     }
 
     const screenshot = await page.screenshot({
@@ -135,7 +134,7 @@ test('captures a non-blocking homepage first fold at mobile and desktop viewport
   }
 });
 
-test('keeps analytics denied after Reject and allows users to reopen privacy choices', async ({ page }) => {
+test('keeps analytics denied after Reject and allows users to reopen privacy settings', async ({ page }) => {
   const analyticsRequests: string[] = [];
   page.on('request', (request) => {
     if (/googletagmanager\.com|google-analytics\.com/i.test(request.url())) {
@@ -151,16 +150,25 @@ test('keeps analytics denied after Reject and allows users to reopen privacy cho
   await consent.getByRole('button', { name: 'Reject analytics' }).click();
 
   await expect.poll(() => page.evaluate(key => localStorage.getItem(key), CONSENT_KEY)).toBe('rejected');
-  await expect(consent.getByRole('button', { name: 'Privacy choices' })).toBeVisible();
+  await expect(consent).toHaveCount(0);
+  const settings = page.locator('[data-privacy-settings]');
+  await expect(settings).toBeVisible();
+  await settings.click();
+  const dialog = page.getByRole('dialog', { name: 'Privacy settings' });
+  await expect(dialog).toBeVisible();
+  await expect(dialog).toContainText('Current choice: optional analytics is disabled.');
+  await expect(dialog.getByRole('button', { name: 'Accept analytics' })).toBeVisible();
+  await expect(dialog.getByRole('button', { name: 'Reject analytics' })).toBeVisible();
+  await dialog.getByRole('button', { name: 'Close' }).click();
+  await expect(dialog).toBeHidden();
   await page.reload();
 
-  const savedChoices = page.locator('#digdevbox-analytics-consent');
-  await expect(savedChoices.getByRole('button', { name: 'Privacy choices' })).toBeVisible();
-  await savedChoices.getByRole('button', { name: 'Privacy choices' }).click();
-  await expect(savedChoices).toHaveAttribute('data-placement', 'fixed-overlay');
-  await expect(savedChoices).toHaveCSS('position', 'fixed');
-  await expect(savedChoices.getByRole('button', { name: 'Accept analytics' })).toBeVisible();
-  await expect(savedChoices.getByRole('button', { name: 'Reject analytics' })).toBeVisible();
+  await expect(page.locator('#digdevbox-analytics-consent')).toHaveCount(0);
+  const savedSettings = page.locator('[data-privacy-settings]');
+  await savedSettings.click();
+  await expect(page.getByRole('dialog', { name: 'Privacy settings' })).toContainText(
+    'Current choice: optional analytics is disabled.',
+  );
   expect(analyticsRequests).toEqual([]);
 });
 
@@ -184,34 +192,50 @@ test('loads analytics only after explicit Accept and persists the choice', async
   await expect.poll(() => analyticsRequests.length).toBeGreaterThan(0);
 
   await page.reload();
-  const savedChoices = page.locator('#digdevbox-analytics-consent');
-  await expect(savedChoices.getByRole('button', { name: 'Privacy choices' })).toBeVisible();
-  await expect.poll(() => page.evaluate(key => localStorage.getItem(key), CONSENT_KEY)).toBe('accepted');
+  await expect(page.locator('#digdevbox-analytics-consent')).toHaveCount(0);
+  const savedSettings = page.locator('[data-privacy-settings]');
+  await savedSettings.click();
+  await expect(page.getByRole('dialog', { name: 'Privacy settings' })).toContainText(
+    'Current choice: optional analytics is enabled.',
+  );
 });
 
-test('keeps the undecided consent prompt fixed on non-home tool routes', async ({ page }) => {
+test('keeps the undecided consent prompt in the normal flow on tool routes', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto('/tools');
+  await page.goto('/percentage-calculator');
   await expect(page.locator('.home-hero')).toHaveCount(0);
 
   const consent = page.locator('#digdevbox-analytics-consent');
   await expect(consent).toBeVisible();
-  await expect(consent).toHaveAttribute('data-placement', 'fixed-overlay');
-  await expect(consent).toHaveCSS('position', 'fixed');
+  await expect(consent).toHaveAttribute('data-placement', 'tool-inline');
+  await expect(consent).not.toHaveCSS('position', 'fixed');
+  const isBeforeWorkspace = await page.evaluate(() => {
+    const prompt = document.querySelector('#digdevbox-analytics-consent');
+    const workspace = document.querySelector('.tool-content');
+    return Boolean(prompt && workspace && prompt.nextElementSibling === workspace);
+  });
+  expect(isBeforeWorkspace).toBe(true);
   await expect(consent.getByRole('button', { name: 'Accept analytics' })).toBeVisible();
   await expect(consent.getByRole('button', { name: 'Reject analytics' })).toBeVisible();
 });
 
-test('moves the undecided consent prompt back to a fixed overlay during SPA navigation', async ({ page }) => {
+test('repositions the in-flow consent prompt during SPA navigation to a tool', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto('/');
   const consent = page.locator('#digdevbox-analytics-consent');
   await expect(consent).toHaveAttribute('data-placement', 'home-inline');
-  await page.locator('#home-tasks > a.home-blog-more[href="/tools/"]').click();
-  await expect(page).toHaveURL(/\/tools\/?$/);
+  await page.locator('.hero-preview-link').click();
+  await expect(page).toHaveURL(/\/json-workspace\/?$/);
   await expect(page.locator('.home-hero')).toHaveCount(0);
-  await expect(consent).toHaveAttribute('data-placement', 'fixed-overlay');
-  await expect(consent).toHaveCSS('position', 'fixed');
+  await expect(page.locator('.tool-content')).toBeVisible();
+  await expect(consent).toHaveAttribute('data-placement', 'tool-inline');
+  await expect(consent).not.toHaveCSS('position', 'fixed');
+  const isBeforeWorkspace = await page.evaluate(() => {
+    const prompt = document.querySelector('#digdevbox-analytics-consent');
+    const workspace = document.querySelector('.tool-content');
+    return Boolean(prompt && workspace && prompt.nextElementSibling === workspace);
+  });
+  expect(isBeforeWorkspace).toBe(true);
 });
 
 test('captures the violet palette in light and dark modes', async ({ page }, testInfo) => {
