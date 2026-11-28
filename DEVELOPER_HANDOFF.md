@@ -1,3 +1,17 @@
+## API Studio — latest handoff — 2026-11-28 12:42 UTC
+
+- PR #279 `https://github.com/yqh-core/dev-tools/pull/279`, exact head `bd27a3c4672d60e2e8ac909cad60d55b6d724218`: Verify/Build #46145019094 SUCCESS; Cloudflare Pages #140978967074 SUCCESS (“Deployed successfully” for shared coderkit Pages preview). Main CI #46145018949 has all substantive tests through targeted Chromium E2E SUCCESS; workflow was still running non-blocking screenshot uploads at this checkpoint. Do not claim CI final success until its workflow conclusion is complete.
+- Visual artifact #15263352196 inspected at desktop 1440×900 and mobile 390×844. Helper/privacy copy readable; main task CTA remains clear; no obvious mobile width issue.
+- Main acquisition gap: five flagship card layout already exists, and Hero links to `/api-studio`, but API card primaryPath remains `/api-debugger`; Studio is currently a secondary API-card link. Issue #281 tracks promoting API Studio to primary API card action, retaining the old debugger deliberately as secondary.
+- Next product slice Issue #280: local OpenAPI spec refresh with preview diff, preserve user edits, conflict resolution, no silent delete or auto-send.
+- Existing merged baseline: Request/response editor; collections/folders; environments; assertions; runner/report; Postman v2.1 interchange; portable backup/restore; first-use journey; OpenAPI 3.x import (#275); private bounded request history (#277).
+- Independent target host `https://apistudio.digdevbox.com` is not verified live. Issue #214, Relay production security #221, and descriptive name risk #219 are separate launch tracks. Shared coderkit Preview success does not satisfy independent-host production acceptance.
+- Competitor evidence latest 2026-11-28: Hoppscotch v2026.11.0, Bruno v4.4.0 and Postman lifecycle/Git/CI/agent workflows are recorded in `docs/api-studio/COMPETITOR_REVIEW_2026-11-28.md`. User-value focus: no-account individual path first; charge only for real team/server-side value after implementation/security/support exist.
+- After core flows and host acceptance, create a 45–60 second captioned product walkthrough, not a fake live demo. The current homepage preview uses deterministic fixtures and must say so; no autoplay/sound dependence.
+- Automation audit remains as previously recorded: Product Execution actual run failed with a stale DigImg result mismatch; Weekday UX QA ran Main ETA Calculator #250, not API Studio; SEO Growth Review absent from live peek (existence unknown).
+
+---
+
 ## API Studio — verification update — 2026-11-28 12:40 UTC
 
 - PR #279 exact HEAD remains `bd27a3c4672d60e2e8ac909cad60d55b6d724218`.
