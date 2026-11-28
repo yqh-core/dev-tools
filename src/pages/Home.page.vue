@@ -168,7 +168,7 @@ const HOME_DEMO_STORIES = {
     path: '/regex-tester',
     file: 'tickets.txt',
     format: 'REGEX',
-    input: 'RE  \\b[A-Z]{3}-\\d{4}\\b\\nIN  Ticket DEV-2048 / OPS-0781',
+    input: 'RE  \\b[A-Z]{3}-\\d{4}\\b\nIN  Ticket DEV-2048 / OPS-0781',
     pattern: '\\b[A-Z]{3}-\\d{4}\\b',
     text: 'Ticket DEV-2048 / OPS-0781',
     flags: 'dg',
@@ -181,7 +181,7 @@ const activeHomeDemoResult = ref('');
 const activeHomeDemoError = ref('');
 const isHomeDemoRunning = ref(false);
 const activeHomeDemoCode = computed(() => activeHomeDemoResult.value
-  ? `${activeHomeDemoStory.value.input}\\nOUT ${activeHomeDemoResult.value}`
+  ? activeHomeDemoStory.value.input + '\nOUT ' + activeHomeDemoResult.value
   : activeHomeDemoStory.value.input);
 
 function selectHomeDemo(demoId: HomeDemoId) {
@@ -195,14 +195,16 @@ async function runHomeDemo() {
     return;
   }
 
+  const demoId = activeHomeDemo.value;
   activeHomeDemoError.value = '';
   isHomeDemoRunning.value = true;
 
   try {
-    switch (activeHomeDemo.value) {
+    let result = '';
+    switch (demoId) {
       case 'json': {
         const { formatJson } = await import('@/tools/json-viewer/json.models');
-        activeHomeDemoResult.value = formatJson({
+        result = formatJson({
           rawJson: HOME_DEMO_STORIES.json.input.replace(/^IN  /, ''),
           indentSize: 2,
           sortKeys: false,
@@ -217,27 +219,33 @@ async function runHomeDemo() {
         );
         const header = values(decoded.header);
         const payload = values(decoded.payload);
-        activeHomeDemoResult.value = [
-          `Header ${String(header.alg)} · ${String(header.typ)}`,
-          `Claims ${String(payload.sub)} · ${String(payload.role)}`,
+        result = [
+          'Header ' + String(header.alg) + ' · ' + String(header.typ),
+          'Claims ' + String(payload.sub) + ' · ' + String(payload.role),
           'SIG present · NOT VERIFIED',
-        ].join('\\n');
+        ].join('\n');
         break;
       }
       case 'regex': {
         const { matchRegex } = await import('@/tools/regex-tester/regex-tester.service');
         const story = HOME_DEMO_STORIES.regex;
         const matches = matchRegex(story.pattern, story.text, story.flags);
-        activeHomeDemoResult.value = [
-          `${matches.length} matches`,
+        result = [
+          matches.length + ' matches',
           matches.map(match => match.value).join(' · '),
-        ].join('\\n');
+        ].join('\n');
         break;
       }
     }
+
+    if (activeHomeDemo.value === demoId) {
+      activeHomeDemoResult.value = result;
+    }
   }
   catch {
-    activeHomeDemoError.value = 'The sample could not be processed. Open the tool to inspect the input.';
+    if (activeHomeDemo.value === demoId) {
+      activeHomeDemoError.value = 'run-error';
+    }
   }
   finally {
     isHomeDemoRunning.value = false;
