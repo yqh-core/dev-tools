@@ -97,6 +97,7 @@ test('OpenAPI refresh preserves local edits, supports explicit source choice, an
     mimeType: 'application/json',
     buffer: Buffer.from(spec('/users/{id}/v2', 'v2')),
   });
+  await page.getByTestId('openapi-refresh-server').selectOption('https://staging.example.test/v1');
   await expect(page.getByTestId('openapi-refresh-operations')).toContainText('preserved');
   await page.getByTestId('cancel-refresh-openapi').click();
 
@@ -107,12 +108,13 @@ test('OpenAPI refresh preserves local edits, supports explicit source choice, an
     mimeType: 'application/json',
     buffer: Buffer.from(spec('/users/{id}/v3', 'v3')),
   });
+  await page.getByTestId('openapi-refresh-server').selectOption('https://staging.example.test/v1');
   await expect(page.getByTestId('openapi-refresh-operations')).toContainText('conflict');
   await page.getByTestId('openapi-request-choice-operationId:getUser').selectOption('use-spec');
   await page.getByTestId('confirm-refresh-openapi').click();
   stored = await page.evaluate(() => JSON.parse(localStorage.getItem('api-studio:tree') || 'null'));
   current = stored.items.find((item: { id: string }) => item.id === requestId);
-  expect(current.request.url).toBe('https://api.example.test/v1/users/{{id}}/v3');
+  expect(current.request.url).toBe('https://staging.example.test/v1/users/{{id}}/v3');
   expect(current.scripts.test).toBe('expect(response.status).toBe(204);');
   expect(current.assertions[0].id).toBe('local-assertion');
 
