@@ -10,8 +10,8 @@ import { config } from '@/config';
 import '../styles/api-studio-tokens.css';
 
 type ApiTheme = 'dark' | 'light';
-// 深色是默认与主形态（专业 API 工作台）；偏好持久化，仅作用于本壳，不碰站点 styleStore。
-const apiTheme = useStorage<ApiTheme>('api-studio:theme', 'dark');
+// 浅色是新用户默认；用户已有主题偏好仍保留，仅作用于本壳，不碰站点 styleStore。
+const apiTheme = useStorage<ApiTheme>('api-studio:theme', 'light');
 
 const theme = computed(() => (apiTheme.value === 'dark' ? darkTheme : null));
 const themeOverrides = computed(() => (apiTheme.value === 'dark' ? apiStudioDarkOverrides : apiStudioLightOverrides));
