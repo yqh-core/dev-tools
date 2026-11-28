@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { codesByCategories, registryStatusByCode } from './http-status-codes.constants';
-import { useFuzzySearch } from '@/composable/fuzzySearch';
 
 const { t, tm, locale } = useI18n();
 const search = ref('');
@@ -25,19 +24,25 @@ const searchableCodes = computed(() => codesByCategories.flatMap(({ codes, categ
   })),
 ));
 
-const { searchResult } = useFuzzySearch({
-  search,
-  data: searchableCodes,
-  options: {
-    keys: [
-      { name: 'code', weight: 3 },
-      { name: 'name', weight: 2 },
-      { name: 'nameZh', weight: 2 },
-      'description',
-      'descriptionZh',
-      'category',
-    ],
-  },
+const searchResult = computed(() => {
+  const query = search.value.trim().toLocaleLowerCase();
+
+  if (!query) {
+    return searchableCodes.value;
+  }
+
+  if (/^\d{3}$/.test(query)) {
+    return searchableCodes.value.filter(({ code }) => String(code) === query);
+  }
+
+  return searchableCodes.value.filter(code => [
+    String(code.code),
+    code.name,
+    code.nameZh,
+    code.description,
+    code.descriptionZh,
+    code.category,
+  ].some(value => value.toLocaleLowerCase().includes(query)));
 });
 
 const categoryGroups = computed(() => codesByCategories.map(({ category, codes }) => ({
