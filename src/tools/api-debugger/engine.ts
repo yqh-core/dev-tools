@@ -11,7 +11,26 @@ import { makeNode } from '../json-workspace/pipeline-defs';
 import { LinkTooLargeError, encodeLink } from '../json-workspace/workspace-link';
 
 export interface KV { name: string; value: string }
-export interface ApiRequestState { method: string; url: string; headers: KV[]; body: string }
+
+export type RequestAuthConfig =
+  | { type: 'none' }
+  | { type: 'bearer'; token: string }
+  | { type: 'basic'; username: string; password: string }
+  | { type: 'api-key-header' | 'api-key-query'; key: string; value: string };
+
+export interface ApiRequestState {
+  method: string
+  url: string
+  headers: KV[]
+  body: string
+  /** Per-request auth intent; effective credentials are derived only at explicit Send/Run. */
+  auth?: RequestAuthConfig
+}
+
+export interface AuthCollision {
+  target: 'header' | 'query'
+  name: string
+}
 
 export const AUTH_HEADER_NAMES = ['authorization', 'cookie', 'x-api-key', 'proxy-authorization'];
 export const HANDOFF_KEY = 'digdevbox:ws-handoff';
@@ -52,26 +71,173 @@ export function sanitizeForShare(req: ApiRequestState): ApiRequestState {
   };
 }
 
-/** 组装 apiproxy payload（变量替换后）。 */
-export function buildProxyPayload(req: ApiRequestState, env: Record<string, string>): { payload: { url: string; method: string; headers: KV[]; body: string }; missing: string[] } {
+/** Validate the persisted auth union without accepting unknown credential fields. */
+export function isRequestAuthConfig(value: unknown): value is RequestAuthConfig {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return false;
+  }
+  const auth = value as Record<string, unknown>;
+  const stringField = (name: string, max = 20000) => typeof auth[name] === 'string' && (auth[name] as string).length <= max;
+  if (auth.type === 'none') {
+    return Object.keys(auth).every(key => key === 'type');
+  }
+  if (auth.type === 'bearer') {
+    return Object.keys(auth).every(key => key === 'type' || key === 'token') && stringField('token');
+  }
+  if (auth.type === 'basic') {
+    return Object.keys(auth).every(key => key === 'type' || key === 'username' || key === 'password')
+      && stringField('username') && stringField('password');
+  }
+  if (auth.type === 'api-key-header' || auth.type === 'api-key-query') {
+    return Object.keys(auth).every(key => key === 'type' || key === 'key' || key === 'value')
+      && stringField('key', 1024) && stringField('value');
+  }
+  return false;
+}
+
+function encodeBase64Utf8(value: string): string {
+  const bytes = new TextEncoder().encode(value);
+  let binary = '';
+  for (let offset = 0; offset < bytes.length; offset += 0x8000) {
+    binary += String.fromCharCode(...bytes.subarray(offset, Math.min(offset + 0x8000, bytes.length)));
+  }
+  return btoa(binary);
+}
+
+function queryKeyExists(url: string, key: string): boolean {
+  const hash = url.indexOf('#');
+  const beforeHash = hash < 0 ? url : url.slice(0, hash);
+  const query = beforeHash.indexOf('?');
+  if (query < 0) {
+    return false;
+  }
+  return [...new URLSearchParams(beforeHash.slice(query + 1)).keys()].some(item => item === key);
+}
+
+function removeQueryKey(url: string, key: string): string {
+  const hash = url.indexOf('#');
+  const fragment = hash < 0 ? '' : url.slice(hash);
+  const beforeHash = hash < 0 ? url : url.slice(0, hash);
+  const query = beforeHash.indexOf('?');
+  if (query < 0) {
+    return url;
+  }
+  const base = beforeHash.slice(0, query);
+  const kept = beforeHash.slice(query + 1).split('&').filter((part) => {
+    if (!part) return false;
+    const rawName = part.split('=', 1)[0];
+    let name = rawName;
+    try { name = decodeURIComponent(rawName.replace(/\+/g, ' ')); }
+    catch { /* retain malformed name as entered */ }
+    return name !== key;
+  });
+  return base + (kept.length ? `?${kept.join('&')}` : '') + fragment;
+}
+
+function appendQueryValue(url: string, key: string, value: string): string {
+  const hash = url.indexOf('#');
+  const fragment = hash < 0 ? '' : url.slice(hash);
+  const beforeHash = hash < 0 ? url : url.slice(0, hash);
+  const query = beforeHash.indexOf('?');
+  const base = query < 0 ? beforeHash : beforeHash.slice(0, query);
+  const existing = query < 0 ? '' : beforeHash.slice(query + 1);
+  const encoded = new URLSearchParams([[key, value]]).toString();
+  const separator = !existing ? '' : existing.endsWith('&') ? '' : '&';
+  return `${base}?${existing}${separator}${encoded}${fragment}`;
+}
+
+function mergeMissing(target: string[], values: string[]) {
+  for (const value of values) {
+    if (!target.includes(value)) target.push(value);
+  }
+}
+
+/** Assemble an apiproxy payload. Auth remains persisted as intent; credentials are transient here. */
+export function buildProxyPayload(
+  req: ApiRequestState,
+  env: Record<string, string>,
+  options: { authCollision?: 'replace' | 'keep-manual' } = {},
+): { payload: { url: string; method: string; headers: KV[]; body: string }; missing: string[]; collision?: AuthCollision; error?: string } {
   const u = substituteVars(req.url, env);
   const b = substituteVars(req.body, env);
   const missing = [...u.missing];
-  const headers = req.headers.map((h) => {
-    const r = substituteVars(h.value, env);
-    for (const m of r.missing) {
-      if (!missing.includes(m)) {
-        missing.push(m);
-      }
-    }
-    return { name: h.name, value: r.text };
+  mergeMissing(missing, b.missing);
+  const headers: KV[] = req.headers.map((header) => {
+    const resolved = substituteVars(header.value, env);
+    mergeMissing(missing, resolved.missing);
+    return { name: header.name, value: resolved.text };
   });
-  for (const m of b.missing) {
-    if (!missing.includes(m)) {
-      missing.push(m);
-    }
+  let url = u.text;
+  const auth = req.auth;
+  if (!auth || auth.type === 'none') {
+    return { payload: { url, method: req.method, headers, body: b.text }, missing };
   }
-  return { payload: { url: u.text, method: req.method, headers, body: b.text }, missing };
+
+  const resolve = (value: string) => {
+    const result = substituteVars(value, env);
+    mergeMissing(missing, result.missing);
+    return result.text;
+  };
+
+  if (auth.type === 'bearer' || auth.type === 'basic') {
+    const username = auth.type === 'basic' ? resolve(auth.username) : '';
+    const credential = auth.type === 'basic' ? resolve(auth.password) : resolve(auth.token);
+    const value = auth.type === 'basic'
+      ? (username || credential ? `Basic ${encodeBase64Utf8(`${username}:${credential}`)}` : '')
+      : (credential ? `Bearer ${credential}` : '');
+    if (!value) return { payload: { url, method: req.method, headers, body: b.text }, missing };
+    if (/[\r\n]/.test(value)) {
+      return { payload: { url, method: req.method, headers, body: b.text }, missing, error: 'Authentication header values cannot contain CR or LF characters.' };
+    }
+    const name = 'Authorization';
+    const collision = headers.some(header => header.name.trim().toLowerCase() === name.toLowerCase())
+      ? { target: 'header' as const, name } : undefined;
+    if (collision && !options.authCollision) {
+      return { payload: { url, method: req.method, headers, body: b.text }, missing, collision };
+    }
+    if (collision && options.authCollision === 'keep-manual') {
+      return { payload: { url, method: req.method, headers, body: b.text }, missing };
+    }
+    const nextHeaders = collision
+      ? headers.filter(header => header.name.trim().toLowerCase() !== name.toLowerCase())
+      : [...headers];
+    nextHeaders.push({ name, value });
+    return { payload: { url, method: req.method, headers: nextHeaders, body: b.text }, missing, ...(collision ? { collision } : {}) };
+  }
+
+  const name = resolve(auth.key).trim();
+  const value = resolve(auth.value);
+  if (!name || !value) return { payload: { url, method: req.method, headers, body: b.text }, missing };
+  if (/[\r\n]/.test(name) || (auth.type === 'api-key-header' && /[\r\n]/.test(value))) {
+    return { payload: { url, method: req.method, headers, body: b.text }, missing, error: 'Authentication header names and values cannot contain CR or LF characters.' };
+  }
+
+  if (auth.type === 'api-key-header') {
+    const collision = headers.some(header => header.name.trim().toLowerCase() === name.toLowerCase())
+      ? { target: 'header' as const, name } : undefined;
+    if (collision && !options.authCollision) {
+      return { payload: { url, method: req.method, headers, body: b.text }, missing, collision };
+    }
+    if (collision && options.authCollision === 'keep-manual') {
+      return { payload: { url, method: req.method, headers, body: b.text }, missing };
+    }
+    const nextHeaders = collision
+      ? headers.filter(header => header.name.trim().toLowerCase() !== name.toLowerCase())
+      : [...headers];
+    nextHeaders.push({ name, value });
+    return { payload: { url, method: req.method, headers: nextHeaders, body: b.text }, missing, ...(collision ? { collision } : {}) };
+  }
+
+  const collision = queryKeyExists(url, name) ? { target: 'query' as const, name } : undefined;
+  if (collision && !options.authCollision) {
+    return { payload: { url, method: req.method, headers, body: b.text }, missing, collision };
+  }
+  if (collision && options.authCollision === 'keep-manual') {
+    return { payload: { url, method: req.method, headers, body: b.text }, missing };
+  }
+  if (collision) url = removeQueryKey(url, name);
+  url = appendQueryValue(url, name, value);
+  return { payload: { url, method: req.method, headers, body: b.text }, missing, ...(collision ? { collision } : {}) };
 }
 
 /** 响应体 → WS-2 deep-link；超 8KB 返回 null（调用方改走 localStorage handoff）。 */
