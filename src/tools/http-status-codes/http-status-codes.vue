@@ -73,11 +73,11 @@ function registryLabel(code: number) {
 <template>
   <div>
     <c-card mb-6>
-      <p mb-3 text-sm op-80 data-testid="status-response-boundary">
+      <p mb-3 text-sm op-80 data-test-id="status-response-boundary">
         {{ t('tools.http-status-codes.responseBoundary') }}
       </p>
 
-      <details data-testid="status-class-guide">
+      <details data-test-id="status-class-guide">
         <summary cursor-pointer font-semibold>
           {{ t('tools.http-status-codes.guideToggle') }}
         </summary>
@@ -106,7 +106,7 @@ function registryLabel(code: number) {
         </div>
       </details>
 
-      <p mt-3 text-xs op-70 data-testid="status-registry-note">
+      <p mt-3 text-xs op-70 data-test-id="status-registry-note">
         {{ t('tools.http-status-codes.registryNote') }}
       </p>
     </c-card>
@@ -119,7 +119,7 @@ function registryLabel(code: number) {
 
     <c-card
       v-if="search.trim() && searchResult.length === 0"
-      data-testid="status-search-empty-state"
+      data-test-id="status-search-empty-state"
       mb-6
     >
       {{ t('tools.http-status-codes.noResults') }}
@@ -133,7 +133,7 @@ function registryLabel(code: number) {
       <div
         v-for="{ code, description, name, type } of codes"
         :key="code"
-        :data-testid="`status-code-${code}`"
+        :data-test-id="`status-code-${code}`"
         mb-2
       >
         <c-card>
