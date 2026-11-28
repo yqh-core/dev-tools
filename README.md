@@ -145,7 +145,7 @@
 - [MAC address generator](https://digdevbox.com/mac-address-generator) - Enter the quantity and prefix. MAC addresses will be generated in your chosen case (uppercase or lowercase)
 - [IPv6 ULA generator](https://digdevbox.com/ipv6-ula-generator) - Generate RFC 4193 fd00::/8 IPv6 Unique Local Address (ULA) /48 prefixes with secure random 40-bit Global IDs or a manual Global ID. Create up to 20 prefixes and inspect first/last /64 subnets in your browser.
 - [Domain WHOIS & RDAP Lookup — Check Registration Details](https://digdevbox.com/whois-lookup) - Look up domain registration data through RDAP, including registrar, registration and expiry dates, status and nameservers when supplied by the registry. Coverage and returned fields vary by domain extension.
-- [HTTP status checker](https://digdevbox.com/http-status-checker) - Check the live HTTP status code and response headers of a URL to troubleshoot reachability, redirects and caching.
+- [HTTP status checker](https://digdevbox.com/http-status-checker) - Check a public URL from DigDevBox's Cloudflare edge and inspect its final HTTP response status, landing URL and response headers.
 - [Today in history](https://digdevbox.com/today-in-history) - See what happened on this day in history. Events load automatically when the page opens.
 
 ### Math
