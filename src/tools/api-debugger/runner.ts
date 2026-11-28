@@ -29,7 +29,7 @@
 
 import { type AssertionReport, runAssertions } from './assertions';
 import { type ReportRedactOptions, redactText } from './report';
-import { type KV, buildProxyPayload } from './engine';
+import { type KV, buildProxyPayload, redactAuthQueryUrl } from './engine';
 import type { SavedRequest } from './store';
 import type { DataFile } from './datafiles';
 import type { ScriptOutcomeData, ScriptSnapshot } from './script-runtime';
@@ -251,7 +251,7 @@ async function executeSequence(
 
       const built = buildProxyPayload(workingReq, mergedForSubstitution());
       const { payload, missing } = built;
-      opts.onRequestStart?.({ id: e.id, name: e.name, method: payload.method, url: payload.url }, globalIdx, totalRequests);
+      opts.onRequestStart?.({ id: e.id, name: e.name, method: payload.method, url: redactAuthQueryUrl(payload.url, workingReq.auth, mergedForSubstitution()) }, globalIdx, totalRequests);
       let result: RequestRunResult;
       if (built.error || built.collision) {
         const message = built.error ?? `Authentication ${built.collision?.target} "${built.collision?.name}" conflicts with a manually configured field. Resolve the conflict in the request editor before running the collection.`;
