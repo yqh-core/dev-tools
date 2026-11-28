@@ -57,6 +57,9 @@ test.describe('Tool - HTTP status code reference', () => {
     const search = page.getByPlaceholder('按状态码、名称或含义搜索…');
     await expect(page.getByTestId('status-code-401')).toContainText('未认证');
     await expect(page.getByTestId('status-code-401')).toContainText('WWW-Authenticate');
+    await search.fill('510');
+    await expect(page.getByTestId('status-code-510')).toContainText('仍保留 510 Not Extended 的历史注册记录');
+    await expect(page.getByTestId('status-code-510')).toContainText('OBSOLETED');
     await search.fill('内容过大');
     await expect(page.getByTestId('status-code-413')).toBeVisible();
     await expect(page.getByTestId('status-code-401')).toHaveCount(0);
