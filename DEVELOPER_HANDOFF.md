@@ -1,3 +1,11 @@
+
+
+## API Studio latest checkpoint — 2026-11-28 13:00 UTC
+- PR #279 merged (`f518533`), Issue #278 closed. PR #282 merged (`c45fac7`), Issue #281 closed. Main API card primary CTA now enters Studio; legacy Debugger remains secondary and searchable.
+- PR #282 exact-head CI/Verify/Preview all passed; mobile/desktop screenshots reviewed. Post-merge Verify/Build #46146863742 and Pages #140984707272 SUCCESS. CI #46146863756 still running broad Chromium E2E (12 steps success, 1 E2E in progress, 13 screenshot/cleanup steps pending).
+- Issue #212 corrected, renamed and closed as completed; #214 remains the operative host deployment issue with selected host `https://apistudio.digdevbox.com`. No separate registrable domain is needed.
+- API Studio Product Execution automation prompt was refreshed while preserving its ID and daily schedule.
+- Next code slice Issue #280 must wait for #282 merge-SHA CI terminal success.
 ## API Studio — latest developer handoff — 2026-11-28 12:53 UTC
 
 - PR #279 merged: `f518533ccb81259164a8d1653692ed3b725ed5fd`; helper text now uses theme-aware soft text, 12px and 1.5 line-height. Exact-head and post-merge CI/Build/Preview/Suite checks passed.
