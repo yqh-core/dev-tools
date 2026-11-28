@@ -37,8 +37,12 @@ home:
     codeLabel: "Example JSON payload"
     cta: "Open JSON Workspace"
   demo:
-    eyebrow: "SAMPLE DATA · NO REQUEST SENT"
+    eyebrow: "LOCAL SAMPLE · NO API CALL"
     selectorLabel: "Choose a workflow preview"
+    runSample: "Run sample"
+    running: "Running…"
+    localResult: "LOCAL RESULT"
+    runError: "The sample could not be processed. Open the tool for details."
     json:
       tab: "JSON"
       label: "JSON WORKSPACE"
