@@ -72,3 +72,30 @@ Product decision: use this lifecycle as a roadmap taxonomy, not as an immediate 
 2. Implement Issue #280 as the next request-lifecycle gap (spec association → preview diff → keep-current default → explicit apply/cancel).
 3. Continue independent hosting #214, Relay hardening #221 and name risk #219 as parallel release-readiness tracks; do not conflate successful Preview with Production.
 4. Preserve the no-account, portable personal workflow; monetize team/server-side value only after it exists and is supported.
+
+
+## API Studio competitor refresh — 2026-11-28 (official-source review)
+
+### Hoppscotch v2026.11.0 — useful free personal workflow, paid team value
+Official source: https://hoppscotch.com/releases/release-notes-v2026-11-0 (published 2026-11-23).
+Observed: personal REST/GraphQL/realtime workflows, collections, environments, scripts, tests and collection runs remain in the Free offer. Team workspaces, shared collections/environments, real-time collaboration, documentation and mock/MCP capabilities form the Business/Enterprise boundary; higher tiers add identity/security/governance controls.
+Decision: keep API Studio's first request and core personal workflow useful without an account. Do not charge for the core HTTP task. Later paid tiers should map to genuinely delivered team sync/collaboration and governance.
+
+### Bruno v4.4.0 — OpenAPI refresh and secrets are active workflow battlegrounds
+Official source: https://www.usebruno.com/changelog and https://github.com/usebruno/bruno/releases/tag/v4.4.0 (2026-11-24).
+Observed: collection-to-OpenAPI association/sync with preservation of existing values, collection-level auth selection, request naming controls, schema composition support, stronger sensitive-field/secret handling and Runner improvements.
+Decision: safe spec refresh and secret boundaries should be API Studio's immediate product gap. Issue #280 defines a safer three-way local merge; it is deliberately narrower than Bruno's whole model.
+
+### Postman — lifecycle breadth as taxonomy, not today's feature checklist
+Official sources: https://www.postman.com/product/ and https://www.postman.com/product/spec-hub/.
+Observed: connected Develop, Design, Test, Mock, Monitor and Distribute lifecycle; Spec Hub; Git integrations; CLI/CI; monitoring; API documentation/catalog and agent workflows.
+Decision: organize future roadmap/docs around a coherent lifecycle, but defer mock hosting, cloud monitoring, Git collaboration, CLI/CI, catalog and agent platform until demand and operating model are supported. Do not attempt superficial Postman parity.
+
+### Prioritized API Studio positioning
+1. Short browser journey: create/import request → send → inspect → assert → save → reuse.
+2. Preserve local-first data ownership, portable backups and safe history; accurately disclose browser-local storage limitations and relay traversal.
+3. Complete OpenAPI refresh with explicit conflict handling and secret-safe request reuse.
+4. Complete independent host and Relay production security gates before broad promotion.
+5. Monetize hosted collaboration, hosted secrets, published docs and governance only once implemented and supportable.
+
+Evidence limits: public official documentation/release notes were reviewed; no hands-on competitor load benchmark or paid-plan validation is claimed. Pricing/entitlements may change and must be rechecked before product packaging.
