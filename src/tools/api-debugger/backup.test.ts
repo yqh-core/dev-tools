@@ -45,6 +45,16 @@ function tree(secret = 'env-secret-value'): CollectionNode {
   };
 }
 
+function treeWithAuth(token = 'request-auth-secret'): CollectionNode {
+  const source = tree();
+  const folder = source.items[0];
+  if (!('items' in folder)) throw new Error('test fixture folder missing');
+  const login = folder.items[0];
+  if (!('request' in login)) throw new Error('test fixture request missing');
+  login.request.auth = { type: 'bearer', token };
+  return source;
+}
+
 function envs(): EnvStore {
   return {
     active: 'Development',
@@ -133,7 +143,7 @@ describe('API Studio portable backup', () => {
     expect(() => parseApiStudioBackup(JSON.stringify(badEnv))).toThrow('active environment');
   });
 
-  it('writes v2 OpenAPI provenance while continuing to restore v1 archives', () => {
+  it('writes v3 auth-aware OpenAPI provenance while continuing to restore v1 and v2 archives', () => {
     const metadata = {
       version: 1 as const,
       fileName: 'users.yaml',
@@ -149,9 +159,14 @@ describe('API Studio portable backup', () => {
       }],
     };
     const source = { ...tree(), openApiSync: metadata };
-    const v2 = createApiStudioBackup(source, envs(), { includeSecrets: true });
-    expect(v2.version).toBe(2);
-    const restoredV2 = parseApiStudioBackup(serializeApiStudioBackup(v2));
+    const v3 = createApiStudioBackup(source, envs(), { includeSecrets: true });
+    expect(v3.version).toBe(3);
+    const restoredV3 = parseApiStudioBackup(serializeApiStudioBackup(v3));
+    expect(restoredV3.version).toBe(3);
+    expect(restoredV3.collection.openApiSync).toEqual(metadata);
+
+    const v2Archive = { ...v3, version: 2 as const };
+    const restoredV2 = parseApiStudioBackup(JSON.stringify(v2Archive));
     expect(restoredV2.version).toBe(2);
     expect(restoredV2.collection.openApiSync).toEqual(metadata);
 
@@ -162,6 +177,38 @@ describe('API Studio portable backup', () => {
 
     const invalidLegacy = { ...oldArchive, collection: source };
     expect(() => parseApiStudioBackup(JSON.stringify(invalidLegacy))).toThrow('Unsupported field');
+  });
+
+  it('preserves auth mode in safe backups but removes literal credential values', () => {
+    const source = treeWithAuth();
+    const safe = createApiStudioBackup(source, envs());
+    const serialized = serializeApiStudioBackup(safe);
+    const folder = safe.collection.items[0];
+    if (!('items' in folder)) throw new Error('backup folder missing');
+    const login = folder.items[0];
+    if (!('request' in login)) throw new Error('backup request missing');
+    expect(login.request.auth).toEqual({ type: 'bearer', token: '' });
+    expect(serialized).not.toContain('request-auth-secret');
+
+    const protectedBackup = createApiStudioBackup(source, envs(), { includeSecrets: true });
+    const protectedFolder = protectedBackup.collection.items[0];
+    if (!('items' in protectedFolder)) throw new Error('protected folder missing');
+    const protectedLogin = protectedFolder.items[0];
+    if (!('request' in protectedLogin)) throw new Error('protected request missing');
+    expect(protectedLogin.request.auth).toEqual({ type: 'bearer', token: 'request-auth-secret' });
+
+    const variableBackup = createApiStudioBackup(treeWithAuth('{{API_TOKEN}}'), envs());
+    const variableFolder = variableBackup.collection.items[0];
+    if (!('items' in variableFolder)) throw new Error('variable folder missing');
+    const variableLogin = variableFolder.items[0];
+    if (!('request' in variableLogin)) throw new Error('variable request missing');
+    expect(variableLogin.request.auth).toEqual({ type: 'bearer', token: '{{API_TOKEN}}' });
+  });
+
+  it('rejects auth profiles in legacy v1/v2 archives because those schemas do not include auth', () => {
+    const archive = createApiStudioBackup(treeWithAuth(), envs(), { includeSecrets: true });
+    expect(() => parseApiStudioBackup(JSON.stringify({ ...archive, version: 2 }))).toThrow('Unsupported field');
+    expect(() => parseApiStudioBackup(JSON.stringify({ ...archive, version: 1 }))).toThrow('Unsupported field');
   });
 
   it('previews conflicts and builds replace or merge plans without mutating current state', () => {
