@@ -154,6 +154,106 @@ test('request history stores a sanitized template and loads it as a new request 
   await expect(page.getByTestId('request-history-entry')).toHaveCount(0);
 });
 
+test('Authorization editor keeps credentials local until Send and preserves manual fields', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  const relayPayloads: RelayPayload[] = [];
+  let relayCalls = 0;
+  await page.route('**/api/apiproxy', async route => {
+    const payload = route.request().postDataJSON() as RelayPayload;
+    relayPayloads.push(payload);
+    relayCalls += 1;
+    const echoedSecret = payload.headers.find(header => header.name.toLowerCase() === 'authorization')?.value
+      ?? new URL(payload.url).searchParams.get('client_key')
+      ?? '';
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        status: 200,
+        statusText: 'OK',
+        url: payload.url,
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ ok: true, echo: echoedSecret }),
+        elapsedMs: 8,
+      }),
+    });
+  });
+
+  await page.goto('/app/');
+  await page.getByTestId('create-first-request').click();
+  await page.getByTestId('editor-url').fill('https://api.example.test/items?page=2');
+  await page.getByTestId('editor-url').press('Tab');
+
+  // A manually authored field is retained when an auth profile is selected.
+  await page.getByTestId('add-header').click();
+  await page.getByTestId('header-name').last().fill('Authorization');
+  await page.getByTestId('header-value').last().fill('Manual value');
+  await page.getByTestId('header-value').last().press('Tab');
+
+  const authMode = page.getByTestId('auth-mode');
+  await authMode.click();
+  await page.locator('.n-base-select-option').filter({ hasText: 'Bearer Token' }).click();
+  const bearerInput = page.getByTestId('auth-bearer-token');
+  await expect(bearerInput).toHaveAttribute('type', 'password');
+  await bearerInput.fill('sensitive-bearer-token');
+  await bearerInput.press('Tab');
+
+  const reveal = page.getByTestId('auth-reveal');
+  await reveal.click();
+  await expect(bearerInput).toHaveAttribute('type', 'text');
+  await reveal.click();
+  await expect(bearerInput).toHaveAttribute('type', 'password');
+  await expect(page.getByTestId('auth-collision')).toContainText('Authorization');
+  expect(relayCalls).toBe(0);
+
+  // Choosing a resolution is local. The original manual field stays in storage.
+  await page.getByTestId('auth-conflict-replace').click();
+  expect(relayCalls).toBe(0);
+  await page.getByTestId('send-request').click();
+  await expect(page.getByTestId('single-response')).toBeVisible();
+  expect(relayCalls).toBe(1);
+  expect(relayPayloads[0].headers).toContainEqual({ name: 'Authorization', value: 'Bearer sensitive-bearer-token' });
+  await expect(page.getByTestId('single-response-body')).not.toContainText('sensitive-bearer-token');
+  await expect(page.getByTestId('single-response-body')).toContainText('[REDACTED]');
+
+  const afterBearer = await page.evaluate(() => JSON.parse(localStorage.getItem('api-studio:tree') || 'null'));
+  const bearerRequest = afterBearer.items.find((item: { request?: unknown }) => !!item.request);
+  expect(bearerRequest.request.headers).toContainEqual({ name: 'Authorization', value: 'Manual value' });
+  expect(bearerRequest.request.auth).toEqual({ type: 'bearer', token: 'sensitive-bearer-token' });
+
+  // Switching to API Key in Query does not send and does not remove manual query fields.
+  await authMode.click();
+  await page.locator('.n-base-select-option').filter({ hasText: 'API Key · Query' }).click();
+  await page.getByTestId('auth-api-key-name').fill('client_key');
+  await page.getByTestId('auth-api-key-name').press('Tab');
+  const apiKeyValue = page.getByTestId('auth-api-key-value');
+  await apiKeyValue.fill('query-secret+value&safe');
+  await apiKeyValue.press('Tab');
+  expect(relayCalls).toBe(1);
+  await page.getByTestId('send-request').click();
+  await expect(page.getByTestId('single-response')).toBeVisible();
+  expect(relayCalls).toBe(2);
+  expect(relayPayloads[1].url).toContain('page=2');
+  expect(new URL(relayPayloads[1].url).searchParams.get('client_key')).toBe('query-secret+value&safe');
+  expect(JSON.stringify(relayPayloads[1])).toContain('query-secret+value&safe');
+  await expect(page.getByTestId('single-response-body')).not.toContainText('query-secret+value&safe');
+  await expect(page.getByTestId('single-response-body')).toContainText('[REDACTED]');
+
+  const persisted = await page.evaluate(() => JSON.parse(localStorage.getItem('api-studio:tree') || 'null'));
+  const queryRequest = persisted.items.find((item: { request?: unknown }) => !!item.request);
+  expect(queryRequest.request.url).toBe('https://api.example.test/items?page=2');
+  expect(queryRequest.request.headers).toContainEqual({ name: 'Authorization', value: 'Manual value' });
+  expect(queryRequest.request.auth).toEqual({
+    type: 'api-key-query',
+    key: 'client_key',
+    value: 'query-secret+value&safe',
+  });
+  await page.reload();
+  await expect(page.getByTestId('auth-mode')).toContainText('API Key · Query');
+  await expect(page.getByTestId('auth-api-key-value')).toHaveAttribute('type', 'password');
+  expect(relayCalls).toBe(2);
+});
+
 test('failed sends enter request history without raw relay error text', async ({ page }) => {
   await page.goto('/app/');
   await page.getByTestId('create-first-request').click();
