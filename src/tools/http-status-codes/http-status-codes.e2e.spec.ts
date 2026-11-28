@@ -24,7 +24,10 @@ test.describe('Tool - HTTP status code reference', () => {
 
   test('uses current lifecycle-sensitive IANA names and WebDAV labels', async ({ page }) => {
     await expect(page.getByTestId('status-code-104')).toContainText('Temporary registration');
+    await expect(page.getByTestId('status-code-104')).toContainText('draft-ietf-httpbis-resumable-upload-16');
+    await expect(page.getByTestId('status-code-104')).toContainText('not an issued RFC');
     await expect(page.getByTestId('status-code-102')).toContainText('Legacy registration');
+    await expect(page.getByTestId('status-code-102')).toContainText('RFC 4918 does not define this status code');
     await expect(page.getByTestId('status-code-305')).toContainText('Deprecated');
     await expect(page.getByTestId('status-code-306')).toContainText('(Unused)');
     await expect(page.getByTestId('status-code-402')).toContainText('Reserved');
@@ -45,6 +48,10 @@ test.describe('Tool - HTTP status code reference', () => {
     await search.fill('Retry-After');
     await expect(page.getByTestId('status-code-429')).toBeVisible();
     await expect(page.getByTestId('status-code-503')).toBeVisible();
+
+    await search.fill('no-such-http-status-term');
+    await expect(page.getByTestId('status-search-empty-state')).toContainText('No matching status codes');
+    await expect(page.getByTestId('status-code-200')).toHaveCount(0);
   });
 
   test('uses Chinese labels and searches Chinese status names', async ({ page }) => {
