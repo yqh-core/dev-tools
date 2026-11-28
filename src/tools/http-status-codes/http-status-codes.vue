@@ -5,10 +5,10 @@ const { t, tm, rt, locale } = useI18n();
 const search = ref('');
 
 type I18nMessageValue = Parameters<typeof rt>[0];
-type StatusCodeTranslation = {
-  name?: I18nMessageValue;
-  description?: I18nMessageValue;
-};
+interface StatusCodeTranslation {
+  name?: I18nMessageValue
+  description?: I18nMessageValue
+}
 
 const statusCodeZh = computed(() => {
   if (locale.value !== 'zh') {
