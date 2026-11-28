@@ -249,6 +249,8 @@ test('Authorization editor keeps credentials local until Send and preserves manu
     value: 'query-secret+value&safe',
   });
   await page.reload();
+  // Selection is intentionally session-local; reopen the persisted request from the collection tree.
+  await page.getByTestId('tree-method').click();
   await expect(page.getByTestId('auth-mode')).toContainText('API Key · Query');
   await expect(page.getByTestId('auth-api-key-value')).toHaveAttribute('type', 'password');
   expect(relayCalls).toBe(2);
