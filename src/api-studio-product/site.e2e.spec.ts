@@ -113,7 +113,7 @@ test('first-request empty state guides the flow and loads a local sample safely 
     await sample.click();
     await expect(page.getByTestId('editor-method')).toContainText('GET');
     await expect(page.getByTestId('editor-url')).toHaveValue('https://api.example.com/v1/users/me');
-    await expect(page.getByText(/Nothing was sent/i)).toBeVisible();
+    await expect(page.getByTestId('banner')).toContainText('Nothing was sent.');
     await expect(page.getByTestId('single-response')).toHaveCount(0);
     expect(outbound).toEqual([]);
 
