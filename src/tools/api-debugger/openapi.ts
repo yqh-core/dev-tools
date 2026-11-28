@@ -113,10 +113,12 @@ export function importOpenApi(text: string, options: OpenApiImportOptions = {}):
     return result([], warnings, source);
   }
 
-  const servers = Array.isArray(doc.servers)
-    ? [...new Set(doc.servers.map((server: any) => typeof server?.url === 'string' ? server.url.trim() : '').filter(Boolean))]
-    : [];
-  const selectedServer = options.serverUrl && servers.includes(options.serverUrl)
+  const rawServers = Array.isArray(doc.servers) ? doc.servers as Array<Record<string, unknown>> : [];
+  const servers: string[] = [...new Set(rawServers.flatMap((server) => {
+    const url = server.url;
+    return typeof url === 'string' && url.trim() ? [url.trim()] : [];
+  }))];
+  const selectedServer: string = options.serverUrl && servers.includes(options.serverUrl)
     ? options.serverUrl
     : servers[0] ?? '';
   if (options.serverUrl && !servers.includes(options.serverUrl)) {
