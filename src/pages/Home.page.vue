@@ -125,7 +125,7 @@ const LEGACY_POPULAR_TOOL_PATHS = [
 ];
 
 const FEATURED_TASKS = [
-  { id: 'api', primaryPath: '/api-studio', toolPaths: ['/api-debugger'], hue: 205 }
+  { id: 'api', primaryPath: '/api-studio', toolPaths: ['/api-debugger'], hue: 205 },
   {
     id: 'json',
     primaryPath: '/json-workspace',
