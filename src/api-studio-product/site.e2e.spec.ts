@@ -1,3 +1,4 @@
+import { Buffer } from 'node:buffer';
 import { expect, test } from '@playwright/test';
 
 interface RelayHeader {
@@ -454,7 +455,7 @@ test('OpenAPI import targets a folder and exposes skip, append and replace dupli
         get: {
           operationId: 'getUser',
           parameters: [{ name: 'id', in: 'path' }],
-          responses: { '200': { description: 'OK' } },
+          responses: { 200: { description: 'OK' } },
         },
       },
     },
