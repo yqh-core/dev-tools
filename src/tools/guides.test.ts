@@ -199,6 +199,48 @@ describe('JWT Parser bilingual guide accuracy', () => {
   });
 });
 
+describe('HTTP Status Codes bilingual protocol guidance accuracy', () => {
+  it('uses RFC 9110 semantics and clear diagnostic boundaries in English', async () => {
+    const guide = (await loadGuides('en'))['/http-status-codes'];
+    const text = [
+      guide.intro,
+      ...guide.steps,
+      ...(guide.notes ?? []),
+      guide.about ?? '',
+      ...(guide.faqs ?? []).map(item => `${item.q} ${item.a}`),
+    ].join(' ');
+
+    expect(text).toContain('WWW-Authenticate');
+    expect(text).toContain('method must be preserved');
+    expect(text).toContain('proxies and gateways');
+    expect(text).toContain('DNS lookup, TCP connection, TLS negotiation');
+    expect(text).toContain('heuristically cacheable');
+    expect(text).not.toContain('who are you?');
+    expect(text).not.toContain('cache it forever');
+    expect(text).not.toContain('the client must change something');
+  });
+
+  it('keeps the Chinese guide equivalent and technically precise', async () => {
+    const guide = (await loadGuides('zh'))['/http-status-codes'];
+    const text = [
+      guide.intro,
+      ...guide.steps,
+      ...(guide.notes ?? []),
+      guide.about ?? '',
+      ...(guide.faqs ?? []).map(item => `${item.q} ${item.a}`),
+    ].join(' ');
+
+    expect(text).toContain('WWW-Authenticate');
+    expect(text).toContain('保留原请求方法');
+    expect(text).toContain('代理或网关也可能生成 HTTP 响应');
+    expect(text).toContain('DNS 查询、TCP 连接、TLS 握手');
+    expect(text).toContain('启发式可缓存性');
+    expect(text).not.toContain('你是谁？');
+    expect(text).not.toContain('永久缓存');
+    expect(text).not.toContain('客户端需要改');
+  });
+});
+
 describe('G4: assertGuideCoverage 自检', () => {
   it('当前所有已启用语言都有 importer → 返回空数组', () => {
     expect(assertGuideCoverage()).toEqual([]);
