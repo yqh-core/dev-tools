@@ -577,7 +577,6 @@ const shareLabel = computed(() => {
 </template>
 
 <style lang="less" scoped>
-
 /* JSON Workspace is a document workbench, not a small single-control utility.
    Widen only this route; keep every other tool's established 600px rhythm. */
 .tool-layout.tool-layout--wide {
