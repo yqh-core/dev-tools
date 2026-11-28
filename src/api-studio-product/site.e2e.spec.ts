@@ -85,7 +85,7 @@ test('workspace opens at /app and keeps the app shell out of search indexing', a
 test('first-request empty state guides the flow and loads a local sample safely at narrow widths', async ({ page }, testInfo) => {
   const outbound: string[] = [];
   page.on('request', (request) => {
-    if (/\\/api\\/apiproxy|\\/api\\//i.test(request.url())) {
+    if (request.url().includes('/api/apiproxy')) {
       outbound.push(request.url());
     }
   });
@@ -108,6 +108,7 @@ test('first-request empty state guides the flow and loads a local sample safely 
       viewportWidth: document.documentElement.clientWidth,
     }));
     expect(before.documentWidth).toBeLessThanOrEqual(before.viewportWidth);
+    await page.screenshot({ path: testInfo.outputPath(`workspace-first-request-empty-${width}px.png`) });
 
     await sample.click();
     await expect(page.getByTestId('editor-method')).toContainText('GET');
@@ -126,10 +127,7 @@ test('first-request empty state guides the flow and loads a local sample safely 
 
     await page.screenshot({ path: testInfo.outputPath(`workspace-first-request-${width}px.png`) });
 
-    await page.evaluate(() => {
-      localStorage.removeItem('api-studio:tree');
-      localStorage.removeItem('api-studio:request-history');
-    });
+    await page.evaluate(() => localStorage.clear());
   }
 });
 
