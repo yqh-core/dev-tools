@@ -1,11 +1,34 @@
 <script setup lang="ts">
 import { codesByCategories, registryStatusByCode } from './http-status-codes.constants';
 
-const { t, tm, locale } = useI18n();
+const { t, tm, rt, locale } = useI18n();
 const search = ref('');
-const statusCodeZh = computed(() => locale.value === 'zh'
-  ? tm('tools.http-status-codes.statusCodes') as unknown as Record<number, { name: string; description: string }>
-  : {});
+
+type I18nMessageValue = Parameters<typeof rt>[0];
+type StatusCodeTranslation = {
+  name?: I18nMessageValue;
+  description?: I18nMessageValue;
+};
+
+const statusCodeZh = computed(() => {
+  if (locale.value !== 'zh') {
+    return {};
+  }
+
+  // tm() returns compiled message functions for nested YAML resources.
+  // Resolve each message with rt() before rendering or indexing it for search.
+  const messages = tm('tools.http-status-codes.statusCodes') as unknown as Record<string, StatusCodeTranslation>;
+
+  return Object.fromEntries(
+    Object.entries(messages).map(([code, message]) => [
+      Number(code),
+      {
+        name: message.name == null ? '' : rt(message.name),
+        description: message.description == null ? '' : rt(message.description),
+      },
+    ]),
+  ) as Record<number, { name: string; description: string }>;
+});
 
 const statusCategoryKeys: Record<string, string> = {
   '1xx informational response': 'informational',
