@@ -9,7 +9,7 @@
  *  · 全部纯函数 + 不可变更新（返回新树），与 store 快照纪律一致；脏存储 fail-closed（parseCollectionTree 返回 null）；
  *  · ID 口径：导入取 Postman `_postman_id ?? id`，缺失用 path+name 确定性哈希（重导入幂等）；手动保存 newNodeId()。
  */
-import type { ApiRequestState } from './engine';
+import { type ApiRequestState, isRequestAuthConfig } from './engine';
 import { NAME_MAX, SAVED_CAP, type SavedRequest, cloneRequest, isValidName, parseSaved } from './store';
 import { type Assertion, cloneAssertions, parseAssertions } from './assertions';
 import type { ImportedRequest } from './openapi';
@@ -534,7 +534,11 @@ function isRequestShape(v: unknown): v is ApiRequestState {
     return false;
   }
   const r = v as Record<string, unknown>;
-  return typeof r.method === 'string' && typeof r.url === 'string' && typeof r.body === 'string' && isKVArray(r.headers);
+  return typeof r.method === 'string'
+    && typeof r.url === 'string'
+    && typeof r.body === 'string'
+    && isKVArray(r.headers)
+    && (r.auth === undefined || isRequestAuthConfig(r.auth));
 }
 
 function parseScriptEvents(raw: unknown): ScriptEvents | undefined {

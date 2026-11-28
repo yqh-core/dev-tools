@@ -8,11 +8,11 @@ import {
   parseCollectionTree,
   parseOpenApiSyncMetadata,
 } from './collection-tree';
-import { type ApiRequestState, sanitizeForShare } from './engine';
+import { type ApiRequestState, type RequestAuthConfig, isRequestAuthConfig, sanitizeForShare } from './engine';
 import { type EnvStore, collectSecretValues } from './environments';
 
 export const API_STUDIO_BACKUP_FORMAT = 'digdevbox-api-studio-backup';
-export const API_STUDIO_BACKUP_VERSION = 2;
+export const API_STUDIO_BACKUP_VERSION = 3;
 export const API_STUDIO_BACKUP_MAX_BYTES = 10 * 1024 * 1024;
 export const API_STUDIO_BACKUP_REDACTED = '[REDACTED]';
 
@@ -41,10 +41,49 @@ export interface ApiStudioBackupV2 extends ApiStudioBackupBase {
   version: 2
 }
 
-/** New exports use v2; restores continue to accept v1 files without OpenAPI provenance. */
-export type ApiStudioBackupArchive = ApiStudioBackupV1 | ApiStudioBackupV2;
+export interface ApiStudioBackupV3 extends ApiStudioBackupBase {
+  version: 3
+}
+
+/** New exports use v3 auth profiles; restores continue to accept v1/v2 archives. */
+export type ApiStudioBackupArchive = ApiStudioBackupV1 | ApiStudioBackupV2 | ApiStudioBackupV3;
 
 export type BackupRestoreStrategy = 'replace' | 'merge';
+
+function isVariableReference(value: string): boolean {
+  return /^\s*\{\{\s*[A-Za-z_][A-Za-z0-9_.-]*\s*\}\}\s*$/.test(value);
+}
+
+function authCredentialValues(auth: RequestAuthConfig): string[] {
+  if (auth.type === 'bearer') {
+    return [auth.token];
+  }
+  if (auth.type === 'basic') {
+    return [auth.username, auth.password];
+  }
+  if (auth.type === 'api-key-header' || auth.type === 'api-key-query') {
+    return [auth.value];
+  }
+  return [];
+}
+
+/** Preserve the selected mode and non-secret field names without exporting literal credentials. */
+function redactAuthProfileForBackup(auth: RequestAuthConfig): RequestAuthConfig {
+  if (auth.type === 'none') {
+    return { type: 'none' };
+  }
+  if (auth.type === 'bearer') {
+    return { type: 'bearer', token: isVariableReference(auth.token) ? auth.token : '' };
+  }
+  if (auth.type === 'basic') {
+    return {
+      type: 'basic',
+      username: isVariableReference(auth.username) ? auth.username : '',
+      password: isVariableReference(auth.password) ? auth.password : '',
+    };
+  }
+  return { type: auth.type, key: auth.key, value: isVariableReference(auth.value) ? auth.value : '' };
+}
 
 export interface ApiStudioBackupPreview {
   requestCount: number
@@ -115,11 +154,11 @@ function validateAssertion(value: unknown, where: string): void {
   }
 }
 
-function validateRequest(value: unknown, where: string): void {
+function validateRequest(value: unknown, where: string, backupVersion: 1 | 2 | 3): void {
   if (!isRecord(value)) {
     throw new TypeError(`${where} must be an object.`);
   }
-  assertOnlyKeys(value, ['method', 'url', 'headers', 'body'], where);
+  assertOnlyKeys(value, backupVersion >= 3 ? ['method', 'url', 'headers', 'body', 'auth'] : ['method', 'url', 'headers', 'body'], where);
   if (
     typeof value.method !== 'string'
     || typeof value.url !== 'string'
@@ -127,6 +166,9 @@ function validateRequest(value: unknown, where: string): void {
     || !Array.isArray(value.headers)
   ) {
     throw new TypeError(`${where} has an invalid request shape.`);
+  }
+  if (value.auth !== undefined && (backupVersion < 3 || !isRequestAuthConfig(value.auth))) {
+    throw new TypeError(`${where}.auth has an invalid or unsupported request auth profile.`);
   }
   value.headers.forEach((header, index) => {
     if (!isRecord(header)) {
@@ -139,7 +181,7 @@ function validateRequest(value: unknown, where: string): void {
   });
 }
 
-function validateTreeNode(value: unknown, ids: Set<string>, where: string, allowOpenApiSync = false): void {
+function validateTreeNode(value: unknown, ids: Set<string>, where: string, allowOpenApiSync = false, backupVersion: 1 | 2 | 3 = 2): void {
   if (!isRecord(value) || typeof value.id !== 'string' || !value.id.trim() || typeof value.name !== 'string') {
     throw new TypeError(`${where} has an invalid node identity.`);
   }
@@ -159,12 +201,12 @@ function validateTreeNode(value: unknown, ids: Set<string>, where: string, allow
     if (!Array.isArray(value.items)) {
       throw new TypeError(`${where}.items must be an array.`);
     }
-    value.items.forEach((item, index) => validateTreeNode(item, ids, `${where}.items[${index}]`, false));
+    value.items.forEach((item, index) => validateTreeNode(item, ids, `${where}.items[${index}]`, false, backupVersion));
     return;
   }
 
   assertOnlyKeys(value, ['id', 'name', 'request', 'assertions', 'scripts'], where);
-  validateRequest(value.request, `${where}.request`);
+  validateRequest(value.request, `${where}.request`, backupVersion);
   if (value.assertions !== undefined) {
     if (!Array.isArray(value.assertions)) {
       throw new TypeError(`${where}.assertions must be an array.`);
@@ -173,12 +215,12 @@ function validateTreeNode(value: unknown, ids: Set<string>, where: string, allow
   }
 }
 
-function validateCollection(value: unknown, backupVersion: 1 | 2): CollectionNode {
+function validateCollection(value: unknown, backupVersion: 1 | 2 | 3): CollectionNode {
   if (!isRecord(value) || !Array.isArray(value.items) || typeof value.id !== 'string' || typeof value.name !== 'string') {
     throw new TypeError('The backup does not contain a valid collection tree.');
   }
   const ids = new Set<string>();
-  validateTreeNode(value, ids, 'collection', backupVersion === 2);
+  validateTreeNode(value, ids, 'collection', backupVersion >= 2, backupVersion);
   const parsed = parseCollectionTree(value);
   if (!parsed) {
     throw new TypeError('The backup collection tree could not be parsed.');
@@ -310,7 +352,7 @@ export function createApiStudioBackup(
   collection: CollectionNode,
   environments: EnvStore,
   options: { includeSecrets?: boolean; exportedAt?: string } = {},
-): ApiStudioBackupV2 {
+): ApiStudioBackupV3 {
   const includeSecrets = options.includeSecrets === true;
   const secretNames = [...new Set(environments.secrets ?? [])];
   const secretValues = includeSecrets
@@ -333,13 +375,22 @@ export function createApiStudioBackup(
         };
       }
       const original = node.request;
-      const sanitized = sanitizeForShare(original);
+      const { auth: originalAuth, ...requestWithoutAuth } = original;
+      const sanitized = sanitizeForShare(requestWithoutAuth);
+      const safeAuth = originalAuth ? redactAuthProfileForBackup(originalAuth) : undefined;
+      if (safeAuth && originalAuth) {
+        redactedValues += authCredentialValues(originalAuth).filter(value => value.length > 0 && !isVariableReference(value)).length;
+      }
       removedCredentialHeaders += original.headers.length - sanitized.headers.length;
       if (urlHasCredentials(original.url)) {
         removedUrlCredentials++;
       }
+      const requestForBackup: ApiRequestState = {
+        ...sanitized,
+        ...(safeAuth ? { auth: safeAuth } : {}),
+      };
       const scrubbed = redactArbitraryStrings({
-        request: sanitized,
+        request: requestForBackup,
         scripts: node.scripts,
         assertions: node.assertions,
       }, secretValues);
@@ -398,6 +449,7 @@ export function createApiStudioBackup(
         : [
             'Marked environment secret values are blanked in every scope.',
             'Credential headers and URL-embedded username/password are removed.',
+            'Request auth mode and non-secret key names are preserved; credential values are blanked. Unresolved {{variable}} references are retained.',
             'Marked secret values longer than three characters are redacted when found in collection text fields.',
             'Free-form body, query and script content may contain unmarked secrets that cannot be identified automatically.',
             ...(shortSecretNames.length ? [`Short marked secret values (1–3 characters) were omitted from variables but may remain in free-form text: ${shortSecretNames.join(', ')}.`] : []),
@@ -428,7 +480,7 @@ export function parseApiStudioBackup(text: string): ApiStudioBackupArchive {
     throw new TypeError('The selected file is not an API Studio backup.');
   }
   assertOnlyKeys(raw, ['format', 'version', 'exportedAt', 'collection', 'environments', 'security'], 'backup');
-  if (raw.format !== API_STUDIO_BACKUP_FORMAT || (raw.version !== 1 && raw.version !== 2)) {
+  if (raw.format !== API_STUDIO_BACKUP_FORMAT || (raw.version !== 1 && raw.version !== 2 && raw.version !== 3)) {
     throw new TypeError('Unsupported API Studio backup format or version.');
   }
   if (typeof raw.exportedAt !== 'string' || Number.isNaN(Date.parse(raw.exportedAt))) {

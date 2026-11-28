@@ -293,6 +293,46 @@ describe('树互操作 round-trip（importCollectionTree ↔ exportCollectionTre
     expect((exported.info as Record<string, unknown>)._postman_id).toBe(source.id);
   });
 
+  it('round-trips per-request auth profiles through Postman v2.1 tree import/export', () => {
+    const postman = JSON.stringify({
+      info: { name: 'Auth API' },
+      item: [{
+        name: 'Search',
+        request: {
+          method: 'GET',
+          url: 'https://api.example.test/search',
+          auth: {
+            type: 'apikey',
+            apikey: [
+              { key: 'key', value: 'X-CLIENT-ID' },
+              { key: 'value', value: '{{CLIENT_ID}}' },
+              { key: 'in', value: 'header' },
+            ],
+          },
+        },
+      }],
+    });
+    const imported = importCollectionTree(postman);
+    const request = imported.tree.items[0];
+    if (!('request' in request)) {
+      throw new Error('request node missing');
+    }
+    expect(request.request.auth).toEqual({ type: 'api-key-header', key: 'X-CLIENT-ID', value: '{{CLIENT_ID}}' });
+    const full = exportCollectionTree(imported.tree, false);
+    const roundTrip = importCollectionTree(JSON.stringify(full)).tree.items[0];
+    if (!('request' in roundTrip)) {
+      throw new Error('round-trip request node missing');
+    }
+    expect(roundTrip.request.auth).toEqual(request.request.auth);
+
+    const safe = exportCollectionTree(imported.tree, true);
+    expect(JSON.stringify(safe)).not.toContain('CLIENT_ID');
+    const safeRequest = importCollectionTree(JSON.stringify(safe)).tree.items[0];
+    if (!('request' in safeRequest)) {
+      throw new Error('safe request node missing');
+    }
+    expect(safeRequest.request.auth).toBeUndefined();
+  });
   it('导出保形 + 再导入：嵌套结构与节点 ID round-trip 一致', () => {
     const first = importCollectionTree(nestedDoc).tree;
     const exported = JSON.stringify(exportCollectionTree(first, false));
@@ -316,6 +356,39 @@ describe('持久化（serializeCollectionTree / loadCollectionTree）', () => {
     expect(migrated).toBe(false);
     expect(countRequests(tree)).toBe(3);
     expect(findNode(tree, 'rA1')?.node.name).toBe('a1');
+  });
+
+  it('request auth intent survives localStorage tree serialization and validation', () => {
+    const original = sampleTree();
+    const request = findRequestNode(original, 'rA1')!;
+    const updated = updateRequestNode(original, 'rA1', {
+      request: { ...request.request, auth: { type: 'api-key-query', key: 'client_key', value: '{{CLIENT_KEY}}' } },
+    });
+    expect(updated.error).toBeUndefined();
+    const loaded = loadCollectionTree(serializeCollectionTree(updated.tree!), null, null);
+    expect(loaded.migrated).toBe(false);
+    expect(findRequestNode(loaded.tree, 'rA1')?.request.auth).toEqual({
+      type: 'api-key-query', key: 'client_key', value: '{{CLIENT_KEY}}',
+    });
+    const unsupportedAuthTree = parseCollectionTree({
+      ...updated.tree!,
+      items: [{
+        id: 'bad-auth',
+        name: 'Bad auth',
+        request: {
+          method: 'GET',
+          url: 'https://x.test',
+          headers: [],
+          body: '',
+          auth: {
+            type: 'oauth',
+            token: 'not-supported',
+          },
+        },
+      }],
+    });
+    expect(unsupportedAuthTree).not.toBeNull();
+    expect(unsupportedAuthTree?.items).toHaveLength(0);
   });
 
   it('无 tree 键但有旧 flat saved → 升树（migrated=true），集合脚本入根', () => {

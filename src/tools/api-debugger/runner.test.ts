@@ -67,6 +67,18 @@ describe('runCollection core', () => {
     expect(sum.allPassed).toBe(false);
   });
 
+  it('does not send collection requests while an auth field collides with a manual header', async () => {
+    const send = vi.fn(async (_payload: RunnerPayload): Promise<RunnerResponse> => resp());
+    const request = saved('manual-auth-collision', {
+      headers: [{ name: 'Authorization', value: 'Manual credential' }],
+      auth: { type: 'bearer', token: '{{API_TOKEN}}' },
+    });
+    const summary = await runCollection([request], { API_TOKEN: 'secret' }, send, { now: tick(), stopOnError: false });
+    expect(send).not.toHaveBeenCalled();
+    expect(summary.results[0].sent).toBe(false);
+    expect(summary.results[0].error).toContain('conflicts with a manually configured field');
+  });
+
   it('missing variables → not sent, failed, readable error (negative control)', async () => {
     const send = vi.fn(async (_p: RunnerPayload): Promise<RunnerResponse> => resp());
     const sum = await runCollection([saved('missing', { url: 'https://{{nope}}/x' })], {}, send, { now: tick(), stopOnError: false });
@@ -74,6 +86,53 @@ describe('runCollection core', () => {
     expect(sum.results[0].sent).toBe(false);
     expect(sum.results[0].passed).toBe(false);
     expect(sum.results[0].error).toContain('Missing variables: nope');
+  });
+
+  it('masks generated API-key query values in progress callbacks but sends the real payload', async () => {
+    const starts: string[] = [];
+    const sent: string[] = [];
+    const request = saved('query-auth', {
+      url: 'https://api.example.test/items?lang=en',
+      auth: { type: 'api-key-query', key: 'client_key', value: '{{CLIENT_KEY}}' },
+    });
+    const sum = await runCollection([request], { CLIENT_KEY: 'real-secret' }, async (payload) => {
+      sent.push(payload.url);
+      return resp({ url: payload.url });
+    }, {
+      now: tick(),
+      onRequestStart: entry => starts.push(entry.url),
+    });
+    expect(starts[0]).toBe('https://api.example.test/items?lang=en&client_key=[REDACTED]');
+    expect(starts[0]).not.toContain('real-secret');
+    expect(sent[0]).toBe('https://api.example.test/items?lang=en&client_key=real-secret');
+    expect(sum.sent).toBe(1);
+  });
+
+  it('redacts literal auth credentials from collection assertion values and visible reports', async () => {
+    const secret = 'literal-auth-secret';
+    const request = saved('echo-auth', {
+      auth: { type: 'bearer', token: secret },
+    }, [{ ...makeAssertion('echo', 'json'), target: '$.token', operator: 'eq', expected: 'not-the-secret' }]);
+    const summary = await runCollection([request], {}, async payload => resp({
+      url: payload.url,
+      body: JSON.stringify({ token: secret }),
+    }), { now: tick() });
+    const result = summary.results[0];
+    expect(result.report?.results[0].passed).toBe(false);
+    expect(result.report?.results[0].actual).toBe('[REDACTED]');
+    expect(result.report?.results[0].message).not.toContain(secret);
+    expect(formatCollectionReportText(summary)).not.toContain(secret);
+  });
+
+  it('redacts literal auth credentials from collection send errors', async () => {
+    const secret = 'literal-error-secret';
+    const request = saved('error-auth', {
+      auth: { type: 'bearer', token: secret },
+    });
+    const summary = await runCollection([request], {}, async () => {
+      throw new Error(`Upstream rejected Bearer ${secret}`);
+    }, { now: tick(), stopOnError: false });
+    expect(summary.results[0].error).toBe('Upstream rejected Bearer [REDACTED]');
   });
 
   it('send rejection is captured as error, not a crash (negative control)', async () => {

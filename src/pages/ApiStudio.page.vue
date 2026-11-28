@@ -31,8 +31,13 @@ import {
   updateFolderScripts,
   updateRequestNode,
 } from '@/tools/api-debugger/collection-tree';
-import type { KV } from '@/tools/api-debugger/engine';
-import { buildProxyPayload } from '@/tools/api-debugger/engine';
+import {
+  type KV,
+  type RequestAuthConfig,
+  buildProxyPayload,
+  redactAuthQueryUrl,
+  redactAuthSensitiveText,
+} from '@/tools/api-debugger/engine';
 import {
   API_STUDIO_HISTORY_CAP,
   API_STUDIO_HISTORY_KEY,
@@ -883,6 +888,49 @@ const edBody = ref('');
 const edHeaders = ref<KV[]>([]);
 const edQueryParams = ref<KV[]>([]);
 const edAssertions = ref<Assertion[]>([]);
+const edAuthMode = ref<RequestAuthConfig['type']>('none');
+const edAuthToken = ref('');
+const edAuthUsername = ref('');
+const edAuthPassword = ref('');
+const edAuthKey = ref('X-API-Key');
+const edAuthValue = ref('');
+const authReveal = ref(false);
+const authCollisionChoice = ref<'replace' | 'keep-manual' | null>(null);
+const edAuth = computed<RequestAuthConfig>(() => {
+  if (edAuthMode.value === 'bearer') {
+    return { type: 'bearer', token: edAuthToken.value };
+  }
+  if (edAuthMode.value === 'basic') {
+    return { type: 'basic', username: edAuthUsername.value, password: edAuthPassword.value };
+  }
+  if (edAuthMode.value === 'api-key-header' || edAuthMode.value === 'api-key-query') {
+    return { type: edAuthMode.value, key: edAuthKey.value, value: edAuthValue.value };
+  }
+  return { type: 'none' };
+});
+const authModeOptions = [
+  { label: 'No Auth', value: 'none' },
+  { label: 'Bearer Token', value: 'bearer' },
+  { label: 'Basic Auth', value: 'basic' },
+  { label: 'API Key · Header', value: 'api-key-header' },
+  { label: 'API Key · Query', value: 'api-key-query' },
+];
+const authLocationPreview = computed(() => {
+  const mask = (value: string) => /^\s*\{\{[^{}]+\}\}\s*$/.test(value) ? value : value ? '••••••' : '(not set)';
+  if (edAuth.value.type === 'none') {
+    return '';
+  }
+  if (edAuth.value.type === 'bearer') {
+    return `Authorization: Bearer ${mask(edAuth.value.token)}`;
+  }
+  if (edAuth.value.type === 'basic') {
+    return 'Authorization: Basic ••••••';
+  }
+  if (edAuth.value.type === 'api-key-header') {
+    return `${edAuth.value.key || 'X-API-Key'}: ${mask(edAuth.value.value)}`;
+  }
+  return `Query parameter ${edAuth.value.key || 'api_key'}=${mask(edAuth.value.value)}`;
+});
 const sendingSingle = ref(false);
 const singleResponse = ref<RunnerResponse | null>(null);
 const singleAssertionReport = ref<AssertionReport | null>(null);
@@ -901,6 +949,15 @@ watch(() => selectedNode.value?.id, () => {
   edHeaders.value = (r?.request.headers ?? []).map(h => ({ ...h }));
   edQueryParams.value = parseQueryParams(r?.request.url ?? '');
   edAssertions.value = (r?.assertions ?? []).map(assertion => ({ ...assertion }));
+  const auth = r?.request.auth ?? { type: 'none' as const };
+  edAuthMode.value = auth.type;
+  edAuthToken.value = auth.type === 'bearer' ? auth.token : '';
+  edAuthUsername.value = auth.type === 'basic' ? auth.username : '';
+  edAuthPassword.value = auth.type === 'basic' ? auth.password : '';
+  edAuthKey.value = auth.type === 'api-key-header' || auth.type === 'api-key-query' ? auth.key : 'X-API-Key';
+  edAuthValue.value = auth.type === 'api-key-header' || auth.type === 'api-key-query' ? auth.value : '';
+  authReveal.value = false;
+  authCollisionChoice.value = null;
   singleResponse.value = null;
   singleAssertionReport.value = null;
   singleError.value = '';
@@ -934,12 +991,14 @@ function commitRequest() {
   singleResponse.value = null;
   singleError.value = '';
   singleCanRetry.value = false;
+  authCollisionChoice.value = null;
   const request = {
     ...s.request,
     method: edMethod.value,
     url: edUrl.value,
     headers: edHeaders.value.filter(h => h.name.trim()),
     body: edBody.value,
+    auth: edAuth.value,
   };
   const r = updateRequestNode(tree.value, s.id, { name: edName.value, request });
   if (r.error) {
@@ -948,6 +1007,44 @@ function commitRequest() {
   else {
     applyTree(r.tree);
   }
+}
+
+function commitAuth() {
+  const selected = selectedRequest.value;
+  if (!selected) {
+    return;
+  }
+  authCollisionChoice.value = null;
+  authReveal.value = false;
+  singleResponse.value = null;
+  singleAssertionReport.value = null;
+  singleError.value = '';
+  singleCanRetry.value = false;
+  const request = { ...selected.request, auth: edAuth.value };
+  const result = updateRequestNode(tree.value, selected.id, { request });
+  if (result.error) {
+    banner.value = result.error;
+    return;
+  }
+  applyTree(result.tree);
+}
+
+function onAuthModeChange(value: unknown) {
+  const mode = String(value) as RequestAuthConfig['type'];
+  if (!['none', 'bearer', 'basic', 'api-key-header', 'api-key-query'].includes(mode)) {
+    return;
+  }
+  const previousMode = edAuthMode.value;
+  const wasApiKey = previousMode === 'api-key-header' || previousMode === 'api-key-query';
+  edAuthMode.value = mode;
+  if (mode === 'api-key-header' && !wasApiKey) {
+    edAuthKey.value = 'X-API-Key';
+  }
+  if (mode === 'api-key-query' && !wasApiKey) {
+    edAuthKey.value = 'api_key';
+  }
+  authReveal.value = false;
+  commitAuth();
 }
 
 const assertionTypeOptions = [
@@ -1168,6 +1265,13 @@ const selectedEnvStore = computed<EnvStore>(() => ({
   active: envStore.value.envs[selectedEnv.value] ? selectedEnv.value : envStore.value.active,
 }));
 const env = computed<Record<string, string>>(() => environmentEngine.activeVars(selectedEnvStore.value));
+const authPreview = computed(() => buildProxyPayload({
+  method: edMethod.value,
+  url: buildUrlWithQuery(edUrl.value, edQueryParams.value),
+  headers: edHeaders.value.filter(header => header.name.trim()),
+  body: edBody.value,
+  auth: edAuth.value,
+}, env.value));
 
 function markedSecretValues(): string[] {
   const store = selectedEnvStore.value;
@@ -1492,8 +1596,9 @@ async function sendSelectedRequest() {
     url: buildUrlWithQuery(edUrl.value, edQueryParams.value),
     headers: edHeaders.value.filter(h => h.name.trim()),
     body: edBody.value,
+    auth: edAuth.value,
   };
-  // Persist the exact request that will be sent; do not rely on a later blur/change event.
+  // Persist only the user-authored request profile; generated auth headers/query values stay transient.
   edUrl.value = request.url;
   const saved = updateRequestNode(tree.value, selected.id, { name: edName.value, request, assertions: edAssertions.value });
   if (saved.error) {
@@ -1503,7 +1608,16 @@ async function sendSelectedRequest() {
     return;
   }
   applyTree(saved.tree);
-  const { payload, missing } = buildProxyPayload(request, env.value);
+  const collisionChoice = authCollisionChoice.value;
+  authCollisionChoice.value = null;
+  const built = buildProxyPayload(request, env.value, collisionChoice ? { authCollision: collisionChoice } : {});
+  const { payload, missing } = built;
+  if (built.error || built.collision) {
+    singleResponse.value = null;
+    singleError.value = built.error ?? `Authentication ${built.collision?.target} "${built.collision?.name}" conflicts with a manually configured field. Choose how to resolve it above.`;
+    singleCanRetry.value = false;
+    return;
+  }
   if (missing.length) {
     singleResponse.value = null;
     singleError.value = `Missing variables: ${missing.join(', ')}. Define them in the selected environment.`;
@@ -1518,22 +1632,45 @@ async function sendSelectedRequest() {
   const sendStartedAt = Date.now();
   try {
     const response = await runnerSend(payload);
+    // Evaluate against the real response, then redact only the values shown to the user.
+    const assertionBody = response.body;
+    const assertionHeaders = response.headers;
+    response.url = redactAuthQueryUrl(response.url, request.auth, env.value);
+    response.body = redactAuthSensitiveText(assertionBody, request.auth, env.value);
+    response.statusText = redactAuthSensitiveText(response.statusText, request.auth, env.value);
+    response.headers = Object.fromEntries(Object.entries(response.headers).map(([name, value]) => [
+      name, redactAuthSensitiveText(value, request.auth, env.value),
+    ]));
+    if (response.redirect) {
+      response.redirect = redactAuthSensitiveText(response.redirect, request.auth, env.value);
+    }
+    if (response.note) {
+      response.note = redactAuthSensitiveText(response.note, request.auth, env.value);
+    }
     recordRequestHistory(request, response.status, response.elapsedMs);
     singleResponse.value = response;
     // The relay wraps upstream HTTP statuses in a 200 JSON envelope; classify the
     // upstream status too so a returned 503 has a nearby manual retry action.
     singleCanRetry.value = isRetryableHttpStatus(response.status);
-    singleAssertionReport.value = assertionEngine.runAssertions(edAssertions.value, {
+    const assertionReport = assertionEngine.runAssertions(edAssertions.value, {
       status: response.status,
-      headers: response.headers,
-      body: response.body,
+      headers: assertionHeaders,
+      body: assertionBody,
       elapsedMs: response.elapsedMs,
     });
+    singleAssertionReport.value = {
+      ...assertionReport,
+      results: assertionReport.results.map(item => ({
+        ...item,
+        actual: redactAuthSensitiveText(item.actual, request.auth, env.value),
+        message: redactAuthSensitiveText(item.message, request.auth, env.value),
+      })),
+    };
     banner.value = `Received HTTP ${response.status} in ${response.elapsedMs} ms.`;
   }
   catch (e) {
     recordRequestHistory(request, null, Date.now() - sendStartedAt);
-    singleError.value = e instanceof Error ? e.message : String(e);
+    singleError.value = redactAuthSensitiveText(e instanceof Error ? e.message : String(e), request.auth, env.value);
     singleCanRetry.value = e instanceof Error
       && (e as Error & { retryable?: boolean }).retryable === true;
     banner.value = 'Request could not be completed. Review the error and try again.';
@@ -2233,6 +2370,65 @@ function onMenuSelect(key: string, node: TreeNode) {
 
         <template v-if="selectedRequest">
           <input v-model="edUrl" class="api-url-input" data-test-id="editor-url" placeholder="https://api.example.com/endpoint" @change="onUrlChange">
+
+          <section class="api-request-section api-auth-section" aria-label="Authorization" data-test-id="request-auth">
+            <div class="api-request-section-head">
+              <span>Authorization</span>
+              <n-select :value="edAuthMode" :options="authModeOptions" class="api-auth-mode" data-test-id="auth-mode" @update:value="onAuthModeChange" />
+            </div>
+
+            <div v-if="edAuthMode === 'bearer'" class="api-auth-fields">
+              <label class="api-auth-field">
+                <span>Bearer token</span>
+                <input v-model="edAuthToken" class="api-kv-input api-auth-input" :type="authReveal ? 'text' : 'password'" autocomplete="off" placeholder="Token or secret variable" data-test-id="auth-bearer-token" @change="commitAuth">
+              </label>
+              <button class="api-mini-action api-auth-action" type="button" :aria-pressed="authReveal" data-test-id="auth-reveal" @click="authReveal = !authReveal">{{ authReveal ? 'Hide value' : 'Show value' }}</button>
+            </div>
+
+            <div v-else-if="edAuthMode === 'basic'" class="api-auth-fields api-auth-grid">
+              <label class="api-auth-field">
+                <span>Username</span>
+                <input v-model="edAuthUsername" class="api-kv-input api-auth-input" autocomplete="username" placeholder="Username" data-test-id="auth-basic-username" @change="commitAuth">
+              </label>
+              <label class="api-auth-field">
+                <span>Password</span>
+                <input v-model="edAuthPassword" class="api-kv-input api-auth-input" :type="authReveal ? 'text' : 'password'" autocomplete="current-password" placeholder="Password" data-test-id="auth-basic-password" @change="commitAuth">
+              </label>
+              <button class="api-mini-action api-auth-action" type="button" :aria-pressed="authReveal" data-test-id="auth-reveal" @click="authReveal = !authReveal">{{ authReveal ? 'Hide password' : 'Show password' }}</button>
+            </div>
+
+            <div v-else-if="edAuthMode === 'api-key-header' || edAuthMode === 'api-key-query'" class="api-auth-fields api-auth-grid">
+              <label class="api-auth-field">
+                <span>Key name</span>
+                <input v-model="edAuthKey" class="api-kv-input api-auth-input" autocomplete="off" placeholder="X-API-Key" data-test-id="auth-api-key-name" @change="commitAuth">
+              </label>
+              <label class="api-auth-field">
+                <span>Key value</span>
+                <input v-model="edAuthValue" class="api-kv-input api-auth-input" :type="authReveal ? 'text' : 'password'" autocomplete="off" placeholder="Key value or secret variable" data-test-id="auth-api-key-value" @change="commitAuth">
+              </label>
+              <button class="api-mini-action api-auth-action" type="button" :aria-pressed="authReveal" data-test-id="auth-reveal" @click="authReveal = !authReveal">{{ authReveal ? 'Hide value' : 'Show value' }}</button>
+            </div>
+
+            <div v-if="authLocationPreview" class="api-auth-preview" data-test-id="auth-destination">
+              <span class="api-field-hint">Generated destination</span>
+              <code>{{ authLocationPreview }}</code>
+            </div>
+
+            <p v-if="authPreview.error" class="api-auth-error" role="alert" data-test-id="auth-error">{{ authPreview.error }}</p>
+
+            <div v-if="authPreview.collision" class="api-auth-conflict" role="alert" data-test-id="auth-collision">
+              <strong>Existing {{ authPreview.collision.target }} field: {{ authPreview.collision.name }}</strong>
+              <p class="api-field-hint">This request already defines the same field. Nothing will be overwritten automatically.</p>
+              <div class="api-auth-conflict-actions">
+                <button class="api-mini-action api-auth-action" type="button" :aria-pressed="authCollisionChoice === 'replace'" data-test-id="auth-conflict-replace" @click="authCollisionChoice = 'replace'">Use auth value for this send</button>
+                <button class="api-mini-action api-auth-action" type="button" :aria-pressed="authCollisionChoice === 'keep-manual'" data-test-id="auth-conflict-keep" @click="authCollisionChoice = 'keep-manual'">Keep manual field</button>
+              </div>
+              <span class="api-field-hint">The original manual field remains saved either way.</span>
+            </div>
+
+            <p class="api-field-hint">Use a secret environment variable for reusable credentials. Changes stay local until you choose Send or Run.</p>
+            <p class="api-auth-disclosure">Credentials are saved in this browser's localStorage and are not encrypted at rest. Secret variables are masked in the editor and omitted from safe backups; use an explicitly protected backup only when you intend to include credentials.</p>
+          </section>
 
           <section class="api-request-section" aria-label="Query parameters" data-test-id="query-params">
             <div class="api-request-section-head">
@@ -3170,6 +3366,96 @@ function onMenuSelect(key: string, node: TreeNode) {
   line-height: 1.5;
 }
 
+.api-auth-mode {
+  width: min(100%, 220px);
+}
+
+.api-auth-fields {
+  display: flex;
+  align-items: end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.api-auth-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: end;
+}
+
+.api-auth-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+  color: var(--api-text-soft);
+  font-size: var(--api-fs-sm);
+}
+
+.api-auth-input {
+  min-height: 44px;
+  height: 44px;
+}
+
+.api-auth-action {
+  min-height: 44px;
+  padding-inline: 10px;
+}
+
+.api-auth-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-top: 4px;
+  color: var(--api-text);
+  overflow-wrap: anywhere;
+}
+
+.api-auth-preview code {
+  display: block;
+  padding: 8px 10px;
+  border: 1px solid var(--api-border);
+  border-radius: var(--api-radius-sm);
+  background: var(--api-surface-2);
+  font: 12px/1.5 var(--api-font-mono, monospace);
+  overflow-wrap: anywhere;
+}
+
+.api-auth-error {
+  margin: 0;
+  color: var(--api-danger, #b42318);
+  font-size: var(--api-fs-sm);
+  line-height: 1.5;
+}
+
+.api-auth-conflict {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px;
+  border: 1px solid var(--api-warning, #b7791f);
+  border-radius: var(--api-radius-sm);
+  background: var(--api-surface-2);
+  color: var(--api-text);
+}
+
+.api-auth-conflict p {
+  margin: 0;
+}
+
+.api-auth-conflict-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.api-auth-disclosure {
+  margin: 0;
+  color: var(--api-text-muted);
+  font-size: var(--api-fs-xs);
+  line-height: 1.5;
+}
+
 .api-backup-preview {
   margin-top: 10px;
 }
@@ -3893,6 +4179,23 @@ function onMenuSelect(key: string, node: TreeNode) {
 
   .api-kv-row {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr) 28px;
+  }
+
+  .api-auth-mode {
+    width: 100%;
+  }
+
+  .api-auth-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .api-auth-fields,
+  .api-auth-conflict-actions {
+    align-items: stretch;
+  }
+
+  .api-auth-action {
+    flex: 1 1 auto;
   }
 }
 
