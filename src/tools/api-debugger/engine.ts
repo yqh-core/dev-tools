@@ -203,7 +203,7 @@ export function buildProxyPayload(
       ? headers.filter(header => header.name.trim().toLowerCase() !== name.toLowerCase())
       : [...headers];
     nextHeaders.push({ name, value });
-    return { payload: { url, method: req.method, headers: nextHeaders, body: b.text }, missing, ...(collision ? { collision } : {}) };
+    return { payload: { url, method: req.method, headers: nextHeaders, body: b.text }, missing };
   }
 
   const name = resolve(auth.key).trim();
@@ -238,7 +238,7 @@ export function buildProxyPayload(
   }
   if (collision) url = removeQueryKey(url, name);
   url = appendQueryValue(url, name, value);
-  return { payload: { url, method: req.method, headers, body: b.text }, missing, ...(collision ? { collision } : {}) };
+  return { payload: { url, method: req.method, headers, body: b.text }, missing };
 }
 
 /** 响应体 → WS-2 deep-link；超 8KB 返回 null（调用方改走 localStorage handoff）。 */
