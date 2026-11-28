@@ -218,6 +218,12 @@ describe('request Authorization profiles', () => {
     }, {})).toBe('Rejected [REDACTED]');
   });
 
+  it('redacts URL-encoded API-key query values echoed in response text', () => {
+    const auth = { type: 'api-key-query' as const, key: 'client_key', value: 'secret+value&safe' };
+    const echoed = 'Request failed: client_key=secret%2Bvalue%26safe';
+    expect(redactAuthSensitiveText(echoed, auth, {})).toBe('Request failed: client_key=[REDACTED]');
+  });
+
   it('redacts only generated API-key query values from collection progress URLs', () => {
     const url = 'https://api.example.test/items?lang=en&client_key=actual-secret#details';
     expect(redactAuthQueryUrl(url, {

@@ -8,7 +8,7 @@ import {
   parseCollectionTree,
   parseOpenApiSyncMetadata,
 } from './collection-tree';
-import { type ApiRequestState, isRequestAuthConfig, type RequestAuthConfig, sanitizeForShare } from './engine';
+import { type ApiRequestState, type RequestAuthConfig, isRequestAuthConfig, sanitizeForShare } from './engine';
 import { type EnvStore, collectSecretValues } from './environments';
 
 export const API_STUDIO_BACKUP_FORMAT = 'digdevbox-api-studio-backup';

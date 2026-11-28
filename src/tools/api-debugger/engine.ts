@@ -210,6 +210,14 @@ export function redactAuthSensitiveText(
     : auth.type === 'basic'
       ? [auth.username, auth.password, `Basic ${encodeBase64Utf8(`${substituteVars(auth.username, env).text}:${substituteVars(auth.password, env).text}`)}`]
       : [auth.value];
+  if (auth.type === 'api-key-query') {
+    const queryValue = substituteVars(auth.value, env);
+    if (!queryValue.missing.length && queryValue.text && !/^\\s*\\{\\{/.test(queryValue.text)) {
+      const formEncoded = new URLSearchParams([['value', queryValue.text]]).toString().slice('value='.length);
+      const uriEncoded = encodeURIComponent(queryValue.text);
+      values.push(formEncoded, uriEncoded);
+    }
+  }
   let safe = text;
   for (const raw of values) {
     if (!raw) {
@@ -261,7 +269,7 @@ export function buildProxyPayload(
       return {
         payload: { url, method: req.method, headers, body: b.text },
         missing,
-        error: 'Enter a Basic Auth username or password, or reference an environment variable, before sending.',
+        error: 'Enter an authentication credential or reference the required environment variables before sending.',
       };
     }
     if (/[\r\n]/.test(value)) {
