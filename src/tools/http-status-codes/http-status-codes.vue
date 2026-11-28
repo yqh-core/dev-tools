@@ -54,16 +54,18 @@ const codesByCategoryFiltered = computed(() => {
   }];
 });
 
-const displayName = (code: number, name: string) =>
-  locale.value === 'zh' ? (statusCodeZh[code]?.name ?? name) : name;
+function displayName(code: number, name: string) {
+  return locale.value === 'zh' ? (statusCodeZh[code]?.name ?? name) : name;
+}
 
-const displayDescription = (code: number, description: string) =>
-  locale.value === 'zh' ? (statusCodeZh[code]?.description ?? description) : description;
+function displayDescription(code: number, description: string) {
+  return locale.value === 'zh' ? (statusCodeZh[code]?.description ?? description) : description;
+}
 
-const registryLabel = (code: number) => {
+function registryLabel(code: number) {
   const status = registryStatusByCode[code];
   return status ? t(`tools.http-status-codes.labels.${status}`) : '';
-};
+}
 </script>
 
 <template>
