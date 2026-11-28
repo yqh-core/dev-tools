@@ -58,6 +58,83 @@ test.describe('JSON Workspace first-use privacy and hierarchy', () => {
     }
   });
 
+  test('uses a wide desktop workbench for 5–20 KB nested JSON and keeps mobile stacked', async ({ page }, testInfo) => {
+    await page.evaluate(() => localStorage.setItem('digdevbox.analytics-consent.v1', 'rejected'));
+    await page.reload();
+
+    const prefix = '{"meta":{"source":"fixture","version":1},"records":[{"id":"record-1","profile":{"active":true,"roles":["developer","reviewer"]},"payload":"';
+    const suffix = '"}]}';
+    const targets = [5 * 1024, 10 * 1024, 20 * 1024];
+    const input = page.getByTestId('json-input');
+
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.reload();
+    await page.getByTestId('step-0-next').click();
+    await page.getByRole('option', { name: 'Query (JSONPath)' }).click();
+    await page.getByTestId('query-input').fill('$.records[*].profile.active');
+
+    const desktopMeasurements = [];
+    for (const targetBytes of targets) {
+      const fixture = `${prefix}${'x'.repeat(targetBytes - prefix.length - suffix.length)}${suffix}`;
+      expect(new TextEncoder().encode(fixture).byteLength).toBe(targetBytes);
+      await input.fill(fixture);
+      await expect(page.getByTestId('query-count')).toContainText('1 match');
+      await expect(page.getByTestId('step-1-error')).toHaveCount(0);
+
+      const geometry = await page.evaluate(() => {
+        const widthOf = (selector: string) => document.querySelector(selector)?.getBoundingClientRect().width ?? 0;
+        return {
+          viewport: window.innerWidth,
+          document: document.documentElement.scrollWidth,
+          header: widthOf('.tool-layout'),
+          workbench: widthOf('.tool-content'),
+          input: widthOf('.input-zone'),
+          step: widthOf('.step-card'),
+        };
+      });
+      expect(geometry.header).toBeGreaterThanOrEqual(940);
+      expect(geometry.workbench).toBeGreaterThanOrEqual(940);
+      expect(geometry.input).toBeGreaterThanOrEqual(940);
+      expect(geometry.step).toBeGreaterThanOrEqual(940);
+      expect(geometry.document).toBeLessThanOrEqual(geometry.viewport);
+      desktopMeasurements.push({ payloadBytes: targetBytes, ...geometry });
+    }
+
+    await page.screenshot({
+      path: testInfo.outputPath('json-workspace-wide-desktop.png'),
+      fullPage: true,
+    });
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.reload();
+    await expect(page.getByTestId('query-count')).toContainText('1 match');
+    const mobileGeometry = await page.evaluate(() => {
+      const widthOf = (selector: string) => document.querySelector(selector)?.getBoundingClientRect().width ?? 0;
+      return {
+        viewport: window.innerWidth,
+        document: document.documentElement.scrollWidth,
+        header: widthOf('.tool-layout'),
+        workbench: widthOf('.tool-content'),
+        input: widthOf('.input-zone'),
+        step: widthOf('.step-card'),
+      };
+    });
+    expect(mobileGeometry.header).toBeLessThanOrEqual(390);
+    expect(mobileGeometry.workbench).toBeLessThanOrEqual(390);
+    expect(mobileGeometry.input).toBeLessThanOrEqual(390);
+    expect(mobileGeometry.step).toBeLessThanOrEqual(390);
+    expect(mobileGeometry.document).toBeLessThanOrEqual(390);
+    await page.screenshot({
+      path: testInfo.outputPath('json-workspace-wide-mobile.png'),
+      fullPage: true,
+    });
+
+    await testInfo.attach('json-workspace-geometry.json', {
+      body: JSON.stringify({ desktop: desktopMeasurements, mobile: mobileGeometry }, null, 2),
+      contentType: 'application/json',
+    });
+  });
+
   test('restores the current input after reloading the page', async ({ page }) => {
     const input = page.getByTestId('json-input');
     await input.fill('{"user":"Ada","active":true}');
